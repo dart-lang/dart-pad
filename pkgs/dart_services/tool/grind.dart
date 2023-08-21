@@ -359,7 +359,7 @@ void deploy() {
 }
 
 @Task()
-@Depends(generateProtos, analyze, fuzz, buildStorageArtifacts)
+@Depends(analyze, fuzz, buildStorageArtifacts)
 void buildbot() {}
 
 @Task('Generate Protobuf classes')

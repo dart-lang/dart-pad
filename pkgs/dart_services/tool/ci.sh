@@ -54,5 +54,5 @@ if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
 
   coveralls-lcov --repo-token="${REPO_TOKEN}" lcov.info
 else
-  FLUTTER_CHANNEL=$channel dart test/all.dart
+  FLUTTER_CHANNEL=$channel dart test
 fi

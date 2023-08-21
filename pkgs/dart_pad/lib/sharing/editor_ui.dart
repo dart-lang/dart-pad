@@ -264,14 +264,17 @@ abstract class EditorUi {
       final response = await dartServices.version();
 
       // Update the version information for this editor.
-      version = Version(response.flutterDartVersion, response.flutterVersion,
-          response.flutterEngineSha);
+      version = Version(
+        response.sdkVersion,
+        response.flutterVersion,
+        response.flutterEngineSha,
+      );
 
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       querySelector('#dartpad-version')?.text =
           'Based on Flutter ${response.flutterVersion}'
           ' Dart SDK ${response.sdkVersionFull}';
-      if (response.packageVersions.isNotEmpty) {
+      if (response.packageInfo.isNotEmpty) {
         _packageInfo.clear();
         _packageInfo.addAll(response.packageInfo);
       }
@@ -282,8 +285,7 @@ abstract class EditorUi {
 
   /// A list of each package's information.
   ///
-  /// This list is set on page load, and each time the Null Safety switch is
-  /// toggled.
+  /// This list is set on page load and each time the SDK channel is updated.
   final List<PackageInfo> _packageInfo = [];
 
   void _sendCompilationTiming(int milliseconds) {

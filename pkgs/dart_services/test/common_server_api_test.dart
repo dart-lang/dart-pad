@@ -505,10 +505,10 @@ main() {
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
         final assists = data['assists'] as List<dynamic>;
-        if (sdk.masterChannel || sdk.betaChannel) {
-          expect(assists, hasLength(3));
-        } else {
+        if (sdk.oldChannel) {
           expect(assists, hasLength(2));
+        } else {
+          expect(assists, hasLength(3));
         }
         final firstEdit = assists.first as Map<String, dynamic>;
         expect(firstEdit['edits'], isNotNull);
@@ -527,7 +527,6 @@ main() {
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['sdkVersion'], isNotNull);
-        expect(data['runtimeVersion'], isNotNull);
       }
     });
   });
@@ -1217,10 +1216,10 @@ main() {
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
         final assists = data['assists'] as List<dynamic>;
-        if (sdk.masterChannel || sdk.betaChannel) {
-          expect(assists, hasLength(3));
-        } else {
+        if (sdk.oldChannel) {
           expect(assists, hasLength(2));
+        } else {
+          expect(assists, hasLength(3));
         }
         final firstEdit = assists.first as Map<String, dynamic>;
         expect(firstEdit['edits'], isNotNull);

@@ -377,7 +377,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     FormatResponse result;
 
     try {
-      result = await appServices.format(SourceRequest()..source = value);
+      result = await appServices.format(SourceRequest(source: value));
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');

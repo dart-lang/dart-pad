@@ -376,10 +376,10 @@ main() {
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AssistsResponse()..mergeFromProto3Json(data);
       final assists = reply.assists;
-      if (sdk.masterChannel || sdk.betaChannel) {
-        expect(assists, hasLength(3));
-      } else {
+      if (sdk.oldChannel) {
         expect(assists, hasLength(2));
+      } else {
+        expect(assists, hasLength(3));
       }
       expect(assists.first.edits, isNotNull);
       expect(assists.first.edits, hasLength(1));
@@ -395,7 +395,7 @@ main() {
       final encoded = await response.transform(utf8.decoder).join();
       final data = json.decode(encoded) as Map<String, dynamic>;
       expect(data['sdkVersion'], isNotNull);
-      expect(data['runtimeVersion'], isNotNull);
+      expect(data['flutterVersion'], isNotNull);
     });
 
     test('version', () async {
@@ -404,7 +404,7 @@ main() {
       final encoded = await response.transform(utf8.decoder).join();
       final data = json.decode(encoded) as Map<String, dynamic>;
       expect(data['sdkVersion'], isNotNull);
-      expect(data['runtimeVersion'], isNotNull);
+      expect(data['flutterVersion'], isNotNull);
     });
   });
 
@@ -733,10 +733,10 @@ main() {
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AssistsResponse()..mergeFromProto3Json(data);
       final assists = reply.assists;
-      if (sdk.masterChannel || sdk.betaChannel) {
-        expect(assists, hasLength(3));
-      } else {
+      if (sdk.oldChannel) {
         expect(assists, hasLength(2));
+      } else {
+        expect(assists, hasLength(3));
       }
       expect(assists.first.edits, isNotNull);
       expect(assists.first.edits, hasLength(1));

@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -14,7 +14,19 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class CompileRequest extends $pb.GeneratedMessage {
-  factory CompileRequest() => create();
+  factory CompileRequest({
+    $core.String? source,
+    $core.bool? returnSourceMap,
+  }) {
+    final $result = create();
+    if (source != null) {
+      $result.source = source;
+    }
+    if (returnSourceMap != null) {
+      $result.returnSourceMap = returnSourceMap;
+    }
+    return $result;
+  }
   CompileRequest._() : super();
   factory CompileRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -56,6 +68,7 @@ class CompileRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<CompileRequest>(create);
   static CompileRequest? _defaultInstance;
 
+  /// The Dart source.
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -68,6 +81,7 @@ class CompileRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearSource() => clearField(1);
 
+  /// Return the Dart to JS source map; optional (defaults to false).
   @$pb.TagNumber(2)
   $core.bool get returnSourceMap => $_getBF(1);
   @$pb.TagNumber(2)
@@ -81,8 +95,21 @@ class CompileRequest extends $pb.GeneratedMessage {
   void clearReturnSourceMap() => clearField(2);
 }
 
+/// / Compile request for a multiple file set.
 class CompileFilesRequest extends $pb.GeneratedMessage {
-  factory CompileFilesRequest() => create();
+  factory CompileFilesRequest({
+    $core.Map<$core.String, $core.String>? files,
+    $core.bool? returnSourceMap,
+  }) {
+    final $result = create();
+    if (files != null) {
+      $result.files.addAll(files);
+    }
+    if (returnSourceMap != null) {
+      $result.returnSourceMap = returnSourceMap;
+    }
+    return $result;
+  }
   CompileFilesRequest._() : super();
   factory CompileFilesRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -128,9 +155,11 @@ class CompileFilesRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<CompileFilesRequest>(create);
   static CompileFilesRequest? _defaultInstance;
 
+  /// The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get files => $_getMap(0);
 
+  /// Return the Dart to JS source map; optional (defaults to false).
   @$pb.TagNumber(2)
   $core.bool get returnSourceMap => $_getBF(1);
   @$pb.TagNumber(2)
@@ -145,7 +174,15 @@ class CompileFilesRequest extends $pb.GeneratedMessage {
 }
 
 class CompileDDCRequest extends $pb.GeneratedMessage {
-  factory CompileDDCRequest() => create();
+  factory CompileDDCRequest({
+    $core.String? source,
+  }) {
+    final $result = create();
+    if (source != null) {
+      $result.source = source;
+    }
+    return $result;
+  }
   CompileDDCRequest._() : super();
   factory CompileDDCRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -185,6 +222,7 @@ class CompileDDCRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<CompileDDCRequest>(create);
   static CompileDDCRequest? _defaultInstance;
 
+  /// The Dart source.
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -198,8 +236,17 @@ class CompileDDCRequest extends $pb.GeneratedMessage {
   void clearSource() => clearField(1);
 }
 
+/// / DDC Compile request for a multiple file set.
 class CompileFilesDDCRequest extends $pb.GeneratedMessage {
-  factory CompileFilesDDCRequest() => create();
+  factory CompileFilesDDCRequest({
+    $core.Map<$core.String, $core.String>? files,
+  }) {
+    final $result = create();
+    if (files != null) {
+      $result.files.addAll(files);
+    }
+    return $result;
+  }
   CompileFilesDDCRequest._() : super();
   factory CompileFilesDDCRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -245,12 +292,21 @@ class CompileFilesDDCRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<CompileFilesDDCRequest>(create);
   static CompileFilesDDCRequest? _defaultInstance;
 
+  /// The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get files => $_getMap(0);
 }
 
 class FlutterBuildRequest extends $pb.GeneratedMessage {
-  factory FlutterBuildRequest() => create();
+  factory FlutterBuildRequest({
+    $core.String? source,
+  }) {
+    final $result = create();
+    if (source != null) {
+      $result.source = source;
+    }
+    return $result;
+  }
   FlutterBuildRequest._() : super();
   factory FlutterBuildRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -290,6 +346,7 @@ class FlutterBuildRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<FlutterBuildRequest>(create);
   static FlutterBuildRequest? _defaultInstance;
 
+  /// The Dart source.
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -304,7 +361,19 @@ class FlutterBuildRequest extends $pb.GeneratedMessage {
 }
 
 class FlutterBuildResponse extends $pb.GeneratedMessage {
-  factory FlutterBuildResponse() => create();
+  factory FlutterBuildResponse({
+    $core.Map<$core.String, $core.String>? artifacts,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (artifacts != null) {
+      $result.artifacts.addAll(artifacts);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   FlutterBuildResponse._() : super();
   factory FlutterBuildResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -354,6 +423,7 @@ class FlutterBuildResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get artifacts => $_getMap(0);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(1);
   @$pb.TagNumber(99)
@@ -370,7 +440,19 @@ class FlutterBuildResponse extends $pb.GeneratedMessage {
 }
 
 class SourceRequest extends $pb.GeneratedMessage {
-  factory SourceRequest() => create();
+  factory SourceRequest({
+    $core.String? source,
+    $core.int? offset,
+  }) {
+    final $result = create();
+    if (source != null) {
+      $result.source = source;
+    }
+    if (offset != null) {
+      $result.offset = offset;
+    }
+    return $result;
+  }
   SourceRequest._() : super();
   factory SourceRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -411,6 +493,7 @@ class SourceRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<SourceRequest>(create);
   static SourceRequest? _defaultInstance;
 
+  /// The Dart source.
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -423,6 +506,7 @@ class SourceRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearSource() => clearField(1);
 
+  /// The offset within source to operate at.
   @$pb.TagNumber(2)
   $core.int get offset => $_getIZ(1);
   @$pb.TagNumber(2)
@@ -436,8 +520,25 @@ class SourceRequest extends $pb.GeneratedMessage {
   void clearOffset() => clearField(2);
 }
 
+/// / Multiple file set of dart source for analysis, completion, fixes, etc.
 class SourceFilesRequest extends $pb.GeneratedMessage {
-  factory SourceFilesRequest() => create();
+  factory SourceFilesRequest({
+    $core.Map<$core.String, $core.String>? files,
+    $core.String? activeSourceName,
+    $core.int? offset,
+  }) {
+    final $result = create();
+    if (files != null) {
+      $result.files.addAll(files);
+    }
+    if (activeSourceName != null) {
+      $result.activeSourceName = activeSourceName;
+    }
+    if (offset != null) {
+      $result.offset = offset;
+    }
+    return $result;
+  }
   SourceFilesRequest._() : super();
   factory SourceFilesRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -484,9 +585,11 @@ class SourceFilesRequest extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<SourceFilesRequest>(create);
   static SourceFilesRequest? _defaultInstance;
 
+  /// The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get files => $_getMap(0);
 
+  /// active (within editor) source filename key within files map
   @$pb.TagNumber(2)
   $core.String get activeSourceName => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -499,6 +602,7 @@ class SourceFilesRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearActiveSourceName() => clearField(2);
 
+  /// The offset within active source file to operate at.
   @$pb.TagNumber(3)
   $core.int get offset => $_getIZ(2);
   @$pb.TagNumber(3)
@@ -513,7 +617,23 @@ class SourceFilesRequest extends $pb.GeneratedMessage {
 }
 
 class AnalysisResults extends $pb.GeneratedMessage {
-  factory AnalysisResults() => create();
+  factory AnalysisResults({
+    $core.Iterable<AnalysisIssue>? issues,
+    $core.Iterable<$core.String>? packageImports,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (issues != null) {
+      $result.issues.addAll(issues);
+    }
+    if (packageImports != null) {
+      $result.packageImports.addAll(packageImports);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   AnalysisResults._() : super();
   factory AnalysisResults.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -561,9 +681,11 @@ class AnalysisResults extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.List<AnalysisIssue> get issues => $_getList(0);
 
+  /// The package imports parsed from the source.
   @$pb.TagNumber(2)
   $core.List<$core.String> get packageImports => $_getList(1);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(2);
   @$pb.TagNumber(99)
@@ -580,7 +702,59 @@ class AnalysisResults extends $pb.GeneratedMessage {
 }
 
 class AnalysisIssue extends $pb.GeneratedMessage {
-  factory AnalysisIssue() => create();
+  factory AnalysisIssue({
+    $core.String? kind,
+    $core.int? line,
+    $core.String? message,
+    $core.String? sourceName,
+    $core.bool? hasFixes,
+    $core.int? charStart,
+    $core.int? charLength,
+    $core.String? url,
+    $core.Iterable<DiagnosticMessage>? diagnosticMessages,
+    $core.String? correction,
+    $core.int? column,
+    $core.String? code,
+  }) {
+    final $result = create();
+    if (kind != null) {
+      $result.kind = kind;
+    }
+    if (line != null) {
+      $result.line = line;
+    }
+    if (message != null) {
+      $result.message = message;
+    }
+    if (sourceName != null) {
+      $result.sourceName = sourceName;
+    }
+    if (hasFixes != null) {
+      $result.hasFixes = hasFixes;
+    }
+    if (charStart != null) {
+      $result.charStart = charStart;
+    }
+    if (charLength != null) {
+      $result.charLength = charLength;
+    }
+    if (url != null) {
+      $result.url = url;
+    }
+    if (diagnosticMessages != null) {
+      $result.diagnosticMessages.addAll(diagnosticMessages);
+    }
+    if (correction != null) {
+      $result.correction = correction;
+    }
+    if (column != null) {
+      $result.column = column;
+    }
+    if (code != null) {
+      $result.code = code;
+    }
+    return $result;
+  }
   AnalysisIssue._() : super();
   factory AnalysisIssue.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -772,7 +946,27 @@ class AnalysisIssue extends $pb.GeneratedMessage {
 }
 
 class DiagnosticMessage extends $pb.GeneratedMessage {
-  factory DiagnosticMessage() => create();
+  factory DiagnosticMessage({
+    $core.String? message,
+    $core.int? line,
+    $core.int? charStart,
+    $core.int? charLength,
+  }) {
+    final $result = create();
+    if (message != null) {
+      $result.message = message;
+    }
+    if (line != null) {
+      $result.line = line;
+    }
+    if (charStart != null) {
+      $result.charStart = charStart;
+    }
+    if (charLength != null) {
+      $result.charLength = charLength;
+    }
+    return $result;
+  }
   DiagnosticMessage._() : super();
   factory DiagnosticMessage.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -908,7 +1102,23 @@ class VersionRequest extends $pb.GeneratedMessage {
 }
 
 class CompileResponse extends $pb.GeneratedMessage {
-  factory CompileResponse() => create();
+  factory CompileResponse({
+    $core.String? result,
+    $core.String? sourceMap,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (result != null) {
+      $result.result = result;
+    }
+    if (sourceMap != null) {
+      $result.sourceMap = sourceMap;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   CompileResponse._() : super();
   factory CompileResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -975,6 +1185,7 @@ class CompileResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearSourceMap() => clearField(2);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(2);
   @$pb.TagNumber(99)
@@ -991,7 +1202,23 @@ class CompileResponse extends $pb.GeneratedMessage {
 }
 
 class CompileDDCResponse extends $pb.GeneratedMessage {
-  factory CompileDDCResponse() => create();
+  factory CompileDDCResponse({
+    $core.String? result,
+    $core.String? modulesBaseUrl,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (result != null) {
+      $result.result = result;
+    }
+    if (modulesBaseUrl != null) {
+      $result.modulesBaseUrl = modulesBaseUrl;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   CompileDDCResponse._() : super();
   factory CompileDDCResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1059,6 +1286,7 @@ class CompileDDCResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearModulesBaseUrl() => clearField(2);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(2);
   @$pb.TagNumber(99)
@@ -1075,7 +1303,19 @@ class CompileDDCResponse extends $pb.GeneratedMessage {
 }
 
 class DocumentResponse extends $pb.GeneratedMessage {
-  factory DocumentResponse() => create();
+  factory DocumentResponse({
+    $core.Map<$core.String, $core.String>? info,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (info != null) {
+      $result.info.addAll(info);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   DocumentResponse._() : super();
   factory DocumentResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1124,6 +1364,7 @@ class DocumentResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.Map<$core.String, $core.String> get info => $_getMap(0);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(1);
   @$pb.TagNumber(99)
@@ -1140,7 +1381,27 @@ class DocumentResponse extends $pb.GeneratedMessage {
 }
 
 class CompleteResponse extends $pb.GeneratedMessage {
-  factory CompleteResponse() => create();
+  factory CompleteResponse({
+    $core.int? replacementOffset,
+    $core.int? replacementLength,
+    $core.Iterable<Completion>? completions,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (replacementOffset != null) {
+      $result.replacementOffset = replacementOffset;
+    }
+    if (replacementLength != null) {
+      $result.replacementLength = replacementLength;
+    }
+    if (completions != null) {
+      $result.completions.addAll(completions);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   CompleteResponse._() : super();
   factory CompleteResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1190,6 +1451,7 @@ class CompleteResponse extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<CompleteResponse>(create);
   static CompleteResponse? _defaultInstance;
 
+  /// The offset of the start of the text to be replaced.
   @$pb.TagNumber(1)
   $core.int get replacementOffset => $_getIZ(0);
   @$pb.TagNumber(1)
@@ -1202,6 +1464,7 @@ class CompleteResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearReplacementOffset() => clearField(1);
 
+  /// The length of the text to be replaced.
   @$pb.TagNumber(2)
   $core.int get replacementLength => $_getIZ(1);
   @$pb.TagNumber(2)
@@ -1217,6 +1480,7 @@ class CompleteResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.List<Completion> get completions => $_getList(2);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(3);
   @$pb.TagNumber(99)
@@ -1233,7 +1497,15 @@ class CompleteResponse extends $pb.GeneratedMessage {
 }
 
 class Completion extends $pb.GeneratedMessage {
-  factory Completion() => create();
+  factory Completion({
+    $core.Map<$core.String, $core.String>? completion,
+  }) {
+    final $result = create();
+    if (completion != null) {
+      $result.completion.addAll(completion);
+    }
+    return $result;
+  }
   Completion._() : super();
   factory Completion.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1280,7 +1552,19 @@ class Completion extends $pb.GeneratedMessage {
 }
 
 class FixesResponse extends $pb.GeneratedMessage {
-  factory FixesResponse() => create();
+  factory FixesResponse({
+    $core.Iterable<ProblemAndFixes>? fixes,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (fixes != null) {
+      $result.fixes.addAll(fixes);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   FixesResponse._() : super();
   factory FixesResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1326,6 +1610,7 @@ class FixesResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.List<ProblemAndFixes> get fixes => $_getList(0);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(1);
   @$pb.TagNumber(99)
@@ -1341,8 +1626,30 @@ class FixesResponse extends $pb.GeneratedMessage {
   ErrorMessage ensureError() => $_ensure(1);
 }
 
+/// Represents a problem detected during analysis, and a set of possible ways of
+/// resolving the problem.
 class ProblemAndFixes extends $pb.GeneratedMessage {
-  factory ProblemAndFixes() => create();
+  factory ProblemAndFixes({
+    $core.Iterable<CandidateFix>? fixes,
+    $core.String? problemMessage,
+    $core.int? offset,
+    $core.int? length,
+  }) {
+    final $result = create();
+    if (fixes != null) {
+      $result.fixes.addAll(fixes);
+    }
+    if (problemMessage != null) {
+      $result.problemMessage = problemMessage;
+    }
+    if (offset != null) {
+      $result.offset = offset;
+    }
+    if (length != null) {
+      $result.length = length;
+    }
+    return $result;
+  }
   ProblemAndFixes._() : super();
   factory ProblemAndFixes.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1427,8 +1734,29 @@ class ProblemAndFixes extends $pb.GeneratedMessage {
   void clearLength() => clearField(4);
 }
 
+/// Represents a possible way of solving an Analysis Problem.
 class CandidateFix extends $pb.GeneratedMessage {
-  factory CandidateFix() => create();
+  factory CandidateFix({
+    $core.String? message,
+    $core.Iterable<SourceEdit>? edits,
+    $core.int? selectionOffset,
+    $core.Iterable<LinkedEditGroup>? linkedEditGroups,
+  }) {
+    final $result = create();
+    if (message != null) {
+      $result.message = message;
+    }
+    if (edits != null) {
+      $result.edits.addAll(edits);
+    }
+    if (selectionOffset != null) {
+      $result.selectionOffset = selectionOffset;
+    }
+    if (linkedEditGroups != null) {
+      $result.linkedEditGroups.addAll(linkedEditGroups);
+    }
+    return $result;
+  }
   CandidateFix._() : super();
   factory CandidateFix.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1507,8 +1835,25 @@ class CandidateFix extends $pb.GeneratedMessage {
   $core.List<LinkedEditGroup> get linkedEditGroups => $_getList(3);
 }
 
+/// Represents a single edit-point change to a source file.
 class SourceEdit extends $pb.GeneratedMessage {
-  factory SourceEdit() => create();
+  factory SourceEdit({
+    $core.int? offset,
+    $core.int? length,
+    $core.String? replacement,
+  }) {
+    final $result = create();
+    if (offset != null) {
+      $result.offset = offset;
+    }
+    if (length != null) {
+      $result.length = length;
+    }
+    if (replacement != null) {
+      $result.replacement = replacement;
+    }
+    return $result;
+  }
   SourceEdit._() : super();
   factory SourceEdit.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1586,7 +1931,23 @@ class SourceEdit extends $pb.GeneratedMessage {
 }
 
 class LinkedEditGroup extends $pb.GeneratedMessage {
-  factory LinkedEditGroup() => create();
+  factory LinkedEditGroup({
+    $core.Iterable<$core.int>? positions,
+    $core.int? length,
+    $core.Iterable<LinkedEditSuggestion>? suggestions,
+  }) {
+    final $result = create();
+    if (positions != null) {
+      $result.positions.addAll(positions);
+    }
+    if (length != null) {
+      $result.length = length;
+    }
+    if (suggestions != null) {
+      $result.suggestions.addAll(suggestions);
+    }
+    return $result;
+  }
   LinkedEditGroup._() : super();
   factory LinkedEditGroup.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1630,9 +1991,11 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<LinkedEditGroup>(create);
   static LinkedEditGroup? _defaultInstance;
 
+  /// The positions of the regions that should be edited simultaneously.
   @$pb.TagNumber(1)
   $core.List<$core.int> get positions => $_getList(0);
 
+  /// The length of the regions that should be edited simultaneously.
   @$pb.TagNumber(2)
   $core.int get length => $_getIZ(1);
   @$pb.TagNumber(2)
@@ -1645,12 +2008,25 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearLength() => clearField(2);
 
+  /// Pre-computed suggestions for what every region might want to be changed to.
   @$pb.TagNumber(3)
   $core.List<LinkedEditSuggestion> get suggestions => $_getList(2);
 }
 
 class LinkedEditSuggestion extends $pb.GeneratedMessage {
-  factory LinkedEditSuggestion() => create();
+  factory LinkedEditSuggestion({
+    $core.String? value,
+    $core.String? kind,
+  }) {
+    final $result = create();
+    if (value != null) {
+      $result.value = value;
+    }
+    if (kind != null) {
+      $result.kind = kind;
+    }
+    return $result;
+  }
   LinkedEditSuggestion._() : super();
   factory LinkedEditSuggestion.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1692,6 +2068,7 @@ class LinkedEditSuggestion extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<LinkedEditSuggestion>(create);
   static LinkedEditSuggestion? _defaultInstance;
 
+  /// The value that could be used to replace all of the linked edit regions.
   @$pb.TagNumber(1)
   $core.String get value => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -1704,6 +2081,7 @@ class LinkedEditSuggestion extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearValue() => clearField(1);
 
+  /// The kind of value being proposed.
   @$pb.TagNumber(2)
   $core.String get kind => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -1717,8 +2095,25 @@ class LinkedEditSuggestion extends $pb.GeneratedMessage {
   void clearKind() => clearField(2);
 }
 
+/// Represents a reformatting of the code.
 class FormatResponse extends $pb.GeneratedMessage {
-  factory FormatResponse() => create();
+  factory FormatResponse({
+    $core.String? newString,
+    $core.int? offset,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (newString != null) {
+      $result.newString = newString;
+    }
+    if (offset != null) {
+      $result.offset = offset;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   FormatResponse._() : super();
   factory FormatResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1761,6 +2156,7 @@ class FormatResponse extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<FormatResponse>(create);
   static FormatResponse? _defaultInstance;
 
+  /// The formatted source code.
   @$pb.TagNumber(1)
   $core.String get newString => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -1773,6 +2169,7 @@ class FormatResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearNewString() => clearField(1);
 
+  /// The (optional) new offset of the cursor; can be `null`.
   @$pb.TagNumber(2)
   $core.int get offset => $_getIZ(1);
   @$pb.TagNumber(2)
@@ -1785,6 +2182,7 @@ class FormatResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearOffset() => clearField(2);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(2);
   @$pb.TagNumber(99)
@@ -1800,8 +2198,21 @@ class FormatResponse extends $pb.GeneratedMessage {
   ErrorMessage ensureError() => $_ensure(2);
 }
 
+/// The response from the `/assists` service call.
 class AssistsResponse extends $pb.GeneratedMessage {
-  factory AssistsResponse() => create();
+  factory AssistsResponse({
+    $core.Iterable<CandidateFix>? assists,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (assists != null) {
+      $result.assists.addAll(assists);
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   AssistsResponse._() : super();
   factory AssistsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1847,6 +2258,7 @@ class AssistsResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.List<CandidateFix> get assists => $_getList(0);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(1);
   @$pb.TagNumber(99)
@@ -1862,8 +2274,76 @@ class AssistsResponse extends $pb.GeneratedMessage {
   ErrorMessage ensureError() => $_ensure(1);
 }
 
+/// The response from the `/version` service call.
 class VersionResponse extends $pb.GeneratedMessage {
-  factory VersionResponse() => create();
+  factory VersionResponse({
+    $core.String? sdkVersion,
+    $core.String? sdkVersionFull,
+    @$core.Deprecated('This field is deprecated.') $core.String? runtimeVersion,
+    @$core.Deprecated('This field is deprecated.')
+    $core.String? appEngineVersion,
+    @$core.Deprecated('This field is deprecated.')
+    $core.String? servicesVersion,
+    $core.String? flutterVersion,
+    @$core.Deprecated('This field is deprecated.')
+    $core.String? flutterDartVersion,
+    @$core.Deprecated('This field is deprecated.')
+    $core.String? flutterDartVersionFull,
+    @$core.Deprecated('This field is deprecated.')
+    $core.Map<$core.String, $core.String>? packageVersions,
+    $core.Iterable<PackageInfo>? packageInfo,
+    $core.Iterable<$core.String>? experiment,
+    $core.String? flutterEngineSha,
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (sdkVersion != null) {
+      $result.sdkVersion = sdkVersion;
+    }
+    if (sdkVersionFull != null) {
+      $result.sdkVersionFull = sdkVersionFull;
+    }
+    if (runtimeVersion != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.runtimeVersion = runtimeVersion;
+    }
+    if (appEngineVersion != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.appEngineVersion = appEngineVersion;
+    }
+    if (servicesVersion != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.servicesVersion = servicesVersion;
+    }
+    if (flutterVersion != null) {
+      $result.flutterVersion = flutterVersion;
+    }
+    if (flutterDartVersion != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.flutterDartVersion = flutterDartVersion;
+    }
+    if (flutterDartVersionFull != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.flutterDartVersionFull = flutterDartVersionFull;
+    }
+    if (packageVersions != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.packageVersions.addAll(packageVersions);
+    }
+    if (packageInfo != null) {
+      $result.packageInfo.addAll(packageInfo);
+    }
+    if (experiment != null) {
+      $result.experiment.addAll(experiment);
+    }
+    if (flutterEngineSha != null) {
+      $result.flutterEngineSha = flutterEngineSha;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   VersionResponse._() : super();
   factory VersionResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -1931,6 +2411,7 @@ class VersionResponse extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<VersionResponse>(create);
   static VersionResponse? _defaultInstance;
 
+  /// The Dart SDK version.
   @$pb.TagNumber(1)
   $core.String get sdkVersion => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -1943,6 +2424,9 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearSdkVersion() => clearField(1);
 
+  ///  The full string of the Dart SDK version, including any channel name.
+  ///
+  ///  E.g., `3.1.0-262.2.beta` vs `3.1.0`.
   @$pb.TagNumber(2)
   $core.String get sdkVersionFull => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -1955,18 +2439,24 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearSdkVersionFull() => clearField(2);
 
+  /// Removed.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.String get runtimeVersion => $_getSZ(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   set runtimeVersion($core.String v) {
     $_setString(2, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.bool hasRuntimeVersion() => $_has(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   void clearRuntimeVersion() => clearField(3);
 
+  /// Removed.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(4)
   $core.String get appEngineVersion => $_getSZ(3);
@@ -1983,6 +2473,7 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearAppEngineVersion() => clearField(4);
 
+  /// Removed.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.String get servicesVersion => $_getSZ(4);
@@ -1999,6 +2490,7 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearServicesVersion() => clearField(5);
 
+  /// The Flutter SDK version.
   @$pb.TagNumber(6)
   $core.String get flutterVersion => $_getSZ(5);
   @$pb.TagNumber(6)
@@ -2011,39 +2503,54 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearFlutterVersion() => clearField(6);
 
+  /// Removed.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.String get flutterDartVersion => $_getSZ(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set flutterDartVersion($core.String v) {
     $_setString(6, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasFlutterDartVersion() => $_has(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearFlutterDartVersion() => clearField(7);
 
+  /// Removed.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.String get flutterDartVersionFull => $_getSZ(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   set flutterDartVersionFull($core.String v) {
     $_setString(7, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasFlutterDartVersionFull() => $_has(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   void clearFlutterDartVersionFull() => clearField(8);
 
+  /// Removed.
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(9)
   $core.Map<$core.String, $core.String> get packageVersions => $_getMap(8);
 
+  /// Package information; each package found in `pubspec.lock` is included.
   @$pb.TagNumber(10)
   $core.List<PackageInfo> get packageInfo => $_getList(9);
 
+  /// Experiments that this server is running.
   @$pb.TagNumber(11)
   $core.List<$core.String> get experiment => $_getList(10);
 
+  /// The Flutter engine SHA, located in bin/internal/engine.version.
   @$pb.TagNumber(12)
   $core.String get flutterEngineSha => $_getSZ(11);
   @$pb.TagNumber(12)
@@ -2056,6 +2563,7 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   void clearFlutterEngineSha() => clearField(12);
 
+  /// Make this response compatible with BadRequest
   @$pb.TagNumber(99)
   ErrorMessage get error => $_getN(12);
   @$pb.TagNumber(99)
@@ -2072,7 +2580,23 @@ class VersionResponse extends $pb.GeneratedMessage {
 }
 
 class PackageInfo extends $pb.GeneratedMessage {
-  factory PackageInfo() => create();
+  factory PackageInfo({
+    $core.String? name,
+    $core.String? version,
+    $core.bool? supported,
+  }) {
+    final $result = create();
+    if (name != null) {
+      $result.name = name;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (supported != null) {
+      $result.supported = supported;
+    }
+    return $result;
+  }
   PackageInfo._() : super();
   factory PackageInfo.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2113,6 +2637,7 @@ class PackageInfo extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<PackageInfo>(create);
   static PackageInfo? _defaultInstance;
 
+  /// The name of this package.
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -2125,6 +2650,7 @@ class PackageInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
+  /// The selected version of this package.
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -2137,6 +2663,8 @@ class PackageInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearVersion() => clearField(2);
 
+  /// Whether this package is supported as a directly importable package,
+  /// or simply available as a transitive dependency of a supported package.
   @$pb.TagNumber(3)
   $core.bool get supported => $_getBF(2);
   @$pb.TagNumber(3)
@@ -2150,8 +2678,17 @@ class PackageInfo extends $pb.GeneratedMessage {
   void clearSupported() => clearField(3);
 }
 
+/// Response from the server when errors are thrown internally
 class BadRequest extends $pb.GeneratedMessage {
-  factory BadRequest() => create();
+  factory BadRequest({
+    ErrorMessage? error,
+  }) {
+    final $result = create();
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
+  }
   BadRequest._() : super();
   factory BadRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -2205,8 +2742,17 @@ class BadRequest extends $pb.GeneratedMessage {
   ErrorMessage ensureError() => $_ensure(0);
 }
 
+/// Individual error messages.
 class ErrorMessage extends $pb.GeneratedMessage {
-  factory ErrorMessage() => create();
+  factory ErrorMessage({
+    $core.String? message,
+  }) {
+    final $result = create();
+    if (message != null) {
+      $result.message = message;
+    }
+    return $result;
+  }
   ErrorMessage._() : super();
   factory ErrorMessage.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>

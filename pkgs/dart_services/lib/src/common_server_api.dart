@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:shelf/shelf.dart';
@@ -12,6 +13,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'common_server_impl.dart' show BadRequest, CommonServerImpl;
 import 'protos/dart_services.pb.dart' as proto;
+import 'shelf_cors.dart' as shelf_cors;
 
 export 'common_server_impl.dart' show log;
 
@@ -240,4 +242,58 @@ class CommonServerApi {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': protobufContentType
   };
+}
+
+Middleware createCustomCorsHeadersMiddleware() {
+  return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers':
+        'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
+  });
+}
+
+Middleware logRequestsToLogger(Logger log) {
+  return (Handler innerHandler) {
+    return (request) {
+      final watch = Stopwatch()..start();
+
+      return Future.sync(() => innerHandler(request)).then((response) {
+        log.info(_formatMessage(request, watch.elapsed, response: response));
+
+        return response;
+      }, onError: (Object error, StackTrace stackTrace) {
+        if (error is HijackException) throw error;
+
+        log.info(_formatMessage(request, watch.elapsed, error: error));
+
+        // ignore: only_throw_errors
+        throw error;
+      });
+    };
+  };
+}
+
+String _formatMessage(
+  Request request,
+  Duration elapsedTime, {
+  Response? response,
+  Object? error,
+}) {
+  final method = request.method;
+  final requestedUri = request.requestedUri;
+  final statusCode = response?.statusCode;
+  final bytes = response?.contentLength;
+  final size = ((bytes ?? 0) + 1023) ~/ 1024;
+
+  final ms = elapsedTime.inMilliseconds;
+  final query = requestedUri.query == '' ? '' : '?${requestedUri.query}';
+
+  var message = '${ms.toString().padLeft(5)}ms ${size.toString().padLeft(4)}k '
+      '$statusCode $method ${requestedUri.path}$query';
+  if (error != null) {
+    message = '$message [$error]';
+  }
+
+  return message;
 }

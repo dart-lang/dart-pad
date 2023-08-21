@@ -493,7 +493,7 @@ abstract class AnalysisServerWrapper {
       Map<String, String> sources, String sourceName, int offset) async {
     if (serverScheduler.queueCount > 0) {
       _logger
-          .info('completeImpl: Scheduler queue: ${serverScheduler.queueCount}');
+          .fine('completeImpl: Scheduler queue: ${serverScheduler.queueCount}');
     }
 
     return serverScheduler.schedule(ClosureTask<CompletionResults>(() async {

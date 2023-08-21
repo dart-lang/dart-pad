@@ -246,8 +246,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
 
   lastOffset = null;
   if (serverBasedCall) {
-    final request = proto.CompileRequest();
-    request.source = src;
+    final request = proto.CompileRequest(source: src);
     await withTimeOut(commonServerImpl.compile(request));
   } else {
     await withTimeOut(compiler.compile(src));

@@ -280,7 +280,7 @@ class AppServices {
   Future<void> _reAnalyze() async {
     try {
       final results = await services.analyze(
-        SourceRequest()..source = appModel.sourceCodeController.text,
+        SourceRequest(source: appModel.sourceCodeController.text),
       );
       final issues = results.issues.toList()..sort(_compareIssues);
       appModel.analysisIssues.value = issues;
