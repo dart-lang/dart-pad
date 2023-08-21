@@ -527,7 +527,6 @@ main() {
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['sdkVersion'], isNotNull);
-        expect(data['runtimeVersion'], isNotNull);
       }
     });
   });

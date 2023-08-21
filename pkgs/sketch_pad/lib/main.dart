@@ -398,7 +398,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     FormatResponse result;
 
     try {
-      result = await appServices.format(SourceRequest()..source = value);
+      result = await appServices.format(SourceRequest(source: value));
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
@@ -430,7 +430,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     try {
       final response =
-          await appServices.build(FlutterBuildRequest()..source = value);
+          await appServices.build(FlutterBuildRequest(source: value));
 
       final artifacts = response.artifacts;
       appServices.executeJavaScript(artifacts['main.dart.js']!);

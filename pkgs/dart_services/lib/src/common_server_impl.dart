@@ -262,12 +262,8 @@ class CommonServerImpl {
       proto.VersionResponse()
         ..sdkVersion = _sdk.version
         ..sdkVersionFull = _sdk.versionFull
-        ..runtimeVersion = vmVersion
-        ..flutterDartVersion = _sdk.version
-        ..flutterDartVersionFull = _sdk.versionFull
         ..flutterVersion = _sdk.flutterVersion
         ..flutterEngineSha = _sdk.engineVersion
-        ..packageVersions.addAll(packageVersions)
         ..packageInfo.addAll(packageInfos)
         ..experiment.addAll(_sdk.experiments),
     );
