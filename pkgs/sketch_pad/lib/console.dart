@@ -54,7 +54,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
-      // constraints: const BoxConstraints(maxHeight: 200),
       child: Stack(
         children: [
           TextField(
