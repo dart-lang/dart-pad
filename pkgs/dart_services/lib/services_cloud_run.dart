@@ -16,9 +16,9 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
 import 'src/github_oauth_handler.dart';
+import 'src/logging.dart';
 import 'src/sdk.dart';
 import 'src/server_cache.dart';
-import 'src/shelf_cors.dart' as shelf_cors;
 
 final Logger _logger = Logger('services');
 
@@ -45,22 +45,21 @@ Future<void> main(List<String> args) async {
   final redisServerUri = results['redis-url'] as String;
 
   Logger.root.level = Level.FINER;
-  Logger.root.onRecord.listen((LogRecord record) {
-    print(record);
-    if (record.stackTrace != null) print(record.stackTrace);
-  });
+  emitLogsToStdout();
 
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
       .map((entry) => '${entry.key}: ${entry.value}')
       .join('\n');
 
-  _logger.info('''Initializing dart-services:
-    port: $port
-    sdkPath: ${sdk.dartSdkPath}
-    redisServerUri: $redisServerUri
-    Cloud Run Environment variables:
-    $cloudRunEnvVars''');
+  _logger.info('''
+Initializing dart-services:
+port: $port
+sdkPath: ${sdk.dartSdkPath}
+redisServerUri: $redisServerUri
+Cloud Run Environment variables:
+$cloudRunEnvVars
+''');
 
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
@@ -70,15 +69,19 @@ Future<void> main(List<String> args) async {
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(
-      int port, String redisServerUri, Sdk sdk) async {
+    int port,
+    String redisServerUri,
+    Sdk sdk,
+  ) async {
     final endpointsServer = EndpointsServer._(redisServerUri, sdk);
-
     await endpointsServer.init();
+
     endpointsServer.server = await shelf.serve(
       endpointsServer.handler,
       InternetAddress.anyIPv4,
       port,
     );
+
     return endpointsServer;
   }
 
@@ -106,32 +109,25 @@ class EndpointsServer {
     commonServerApi = CommonServerApi(_commonServerImpl);
 
     // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
-    GitHubOAuthHandler.setCache(redisServerUri == null
-        ? InMemoryCache()
-        : RedisCache(
-            redisServerUri,
-            sdk,
-            // The name of the Cloud Run revision being run, for more detail please see:
-            // https://cloud.google.com/run/docs/reference/container-contract#env-vars
-            Platform.environment['K_REVISION'],
-          ));
+    GitHubOAuthHandler.setCache(
+      redisServerUri == null
+          ? InMemoryCache()
+          : RedisCache(
+              redisServerUri,
+              sdk,
+              // The name of the Cloud Run revision being run, for more detail please see:
+              // https://cloud.google.com/run/docs/reference/container-contract#env-vars
+              Platform.environment['K_REVISION'],
+            ),
+    );
     GitHubOAuthHandler.addRoutes(commonServerApi.router);
 
     pipeline = const Pipeline()
-        .addMiddleware(logRequests())
-        .addMiddleware(_createCustomCorsHeadersMiddleware());
+        .addMiddleware(logRequestsToLogger(_logger))
+        .addMiddleware(createCustomCorsHeadersMiddleware());
 
     handler = pipeline.addHandler(commonServerApi.router.call);
   }
 
   Future<void> init() => _commonServerImpl.init();
-
-  Middleware _createCustomCorsHeadersMiddleware() {
-    return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers':
-          'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
-    });
-  }
 }
