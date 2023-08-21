@@ -113,9 +113,7 @@ class DartPadMainPage extends StatefulWidget {
 
 class _DartPadMainPageState extends State<DartPadMainPage> {
   final SplitViewController mainSplitter =
-      SplitViewController(weights: [0.52, 0.48]);
-  final SplitViewController uiConsoleSplitter =
-      SplitViewController(weights: [0.58, 0.42]);
+      SplitViewController(weights: [0.50, 0.50]);
 
   late AppModel appModel;
   late AppServices appServices;
@@ -142,6 +140,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   void dispose() {
     appServices.dispose();
+    appModel.dispose();
 
     super.dispose();
   }
@@ -167,11 +166,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               // title widget
               Expanded(
                 child: Center(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: appModel.title,
-                    builder: (BuildContext context, String value, _) {
-                      return Text(value);
-                    },
+                  child: ValueBuilder(
+                    appModel.title,
+                    (String value) => Text(value),
                   ),
                 ),
               ),
@@ -227,13 +224,14 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Format action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.formattingBusy,
-                                      builder: (context, bool value, _) {
+                                    ValueBuilder(
+                                      appModel.formattingBusy,
+                                      (bool value) {
                                         return PointerInterceptor(
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
                                             tooltip: 'Format',
+                                            small: true,
                                             onPressed: value
                                                 ? null
                                                 : _handleFormatting,
@@ -243,9 +241,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                     ),
                                     const SizedBox(width: defaultSpacing),
                                     // Run action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.compilingBusy,
-                                      builder: (context, bool value, _) {
+                                    ValueBuilder<bool>(
+                                      appModel.compilingBusy,
+                                      (bool value) {
                                         return PointerInterceptor(
                                           child: MiniIconButton(
                                             icon: Icons.play_arrow,
@@ -279,77 +277,58 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       ),
                     ],
                   ),
-                  // ),
-                  SplitView(
-                    viewMode: SplitViewMode.Vertical,
-                    gripColor: theme.scaffoldBackgroundColor,
-                    gripColorActive: theme.scaffoldBackgroundColor,
-                    gripSize: defaultGripSize,
-                    controller: uiConsoleSplitter,
+                  Stack(
                     children: [
-                      SectionWidget(
-                        title: 'App',
-                        actions: CompilingStatusWidget(
-                          size: defaultIconSize,
-                          status: appModel.compilingBusy,
-                        ),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            ExecutionWidget(
-                              appServices: appServices,
-                            ),
-                            ValueListenableBuilder<bool>(
-                              valueListenable: appModel.compilingBusy,
-                              builder:
-                                  (BuildContext context, bool compiling, _) {
-                                final isFlutter = appModel.appIsFlutter.value;
+                      ValueListenableBuilder(
+                        valueListenable: appModel.layoutMode,
+                        builder: (context, LayoutMode mode, _) {
+                          return LayoutBuilder(builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            final domHeight =
+                                mode.calcDomHeight(constraints.maxHeight);
+                            final consoleHeight =
+                                mode.calcConsoleHeight(constraints.maxHeight);
 
-                                return AnimatedContainer(
-                                  duration: animationDelay,
-                                  curve: animationCurve,
-                                  color: compiling
-                                      ? const Color.fromARGB(100, 158, 158, 158)
-                                      : const Color.fromARGB(0, 158, 158, 158),
-                                  child: Center(
-                                    child: Text(
-                                      (isFlutter == false) && !compiling
-                                          ? 'Dart only snippet'
-                                          : '',
-                                      style: subtleText,
-                                    ),
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  height: domHeight,
+                                  child: ExecutionWidget(
+                                    // useMinHeight: mode.domIsVisible ? false : true,
+                                    appServices: appServices,
                                   ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                                ),
+                                SizedBox(
+                                  height: consoleHeight,
+                                  child: ConsoleWidget(
+                                    showDivider: mode == LayoutMode.both,
+                                    textController:
+                                        appModel.consoleOutputController,
+                                  ),
+                                ),
+                              ],
+                            );
+                          });
+                        },
                       ),
-                      SectionWidget(
-                        title: 'Console output',
-                        actions: Tooltip(
-                          message: 'Clear',
-                          waitDuration: tooltipDelay,
-                          child: ValueListenableBuilder<bool>(
-                            valueListenable: appModel.consoleHasOutput,
-                            builder: (BuildContext context, bool value, _) {
-                              return IconButton(
-                                icon: const Icon(Icons.playlist_remove),
-                                iconSize: smallIconSize,
-                                splashRadius: defaultIconSize,
-                                constraints: const BoxConstraints(
-                                    minWidth: 20, minHeight: 20),
-                                padding: const EdgeInsets.all(2),
-                                visualDensity: VisualDensity.compact,
-                                onPressed: value ? _clearConsole : null,
-                              );
-                            },
-                          ),
-                        ),
-                        child: ConsoleWidget(
-                          consoleOutputController:
-                              appModel.consoleOutputController,
-                        ),
+                      ValueBuilder(
+                        appModel.compilingBusy,
+                        (compiling) {
+                          final color = theme.colorScheme.backgroundColor;
+
+                          return AnimatedContainer(
+                            color: compiling
+                                ? color.withOpacity(0.8)
+                                : color.withOpacity(0.0),
+                            duration: animationDelay,
+                            curve: animationCurve,
+                            child: compiling
+                                ? const GoldenRatioCenter(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : const SizedBox(width: 1),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -416,24 +395,30 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     }
   }
 
-  void _clearConsole() {
-    appModel.clearConsole();
-
-    appModel.editorStatus.showToast('Console cleared');
-  }
-
   Future<void> _performCompileAndRun() async {
+    const bool useFlutterBuild = false;
+
     final value = appModel.sourceCodeController.text;
     final progress =
         appModel.editorStatus.showMessage(initialText: 'Compiling…');
-    appModel.clearConsole();
 
     try {
-      final response =
-          await appServices.build(FlutterBuildRequest(source: value));
-
-      final artifacts = response.artifacts;
-      appServices.executeJavaScript(artifacts['main.dart.js']!);
+      // ignore: dead_code
+      if (useFlutterBuild) {
+        final response =
+            await appServices.build(FlutterBuildRequest()..source = value);
+        appModel.clearConsole();
+        final artifacts = response.artifacts;
+        appServices.executeJavaScript(artifacts['main.dart.js']!);
+        // ignore: dead_code
+      } else {
+        // ignore: deprecated_member_use_from_same_package
+        final response = await appServices.compile(
+          CompileRequest()..source = value,
+        );
+        appModel.clearConsole();
+        appServices.executeJavaScript(response.result);
+      }
     } catch (error) {
       appModel.editorStatus.showToast('Compilation failed');
 

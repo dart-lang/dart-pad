@@ -5,12 +5,15 @@
 import 'package:flutter/material.dart';
 
 import 'theme.dart';
+import 'widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {
-  final TextEditingController consoleOutputController;
+  final bool showDivider;
+  final TextEditingController textController;
 
   const ConsoleWidget({
-    required this.consoleOutputController,
+    this.showDivider = true,
+    required this.textController,
     super.key,
   });
 
@@ -26,12 +29,12 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     super.initState();
 
     scrollController = ScrollController();
-    widget.consoleOutputController.addListener(_scrollToEnd);
+    widget.textController.addListener(_scrollToEnd);
   }
 
   @override
   void dispose() {
-    widget.consoleOutputController.removeListener(_scrollToEnd);
+    widget.textController.removeListener(_scrollToEnd);
     scrollController?.dispose();
     scrollController = null;
 
@@ -41,18 +44,56 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return TextField(
-      controller: widget.consoleOutputController,
-      scrollController: scrollController,
-      maxLines: null,
-      keyboardType: TextInputType.multiline,
-      textInputAction: TextInputAction.newline,
-      expands: true,
-      decoration: null,
-      style: theme.textTheme.bodyMedium,
-      readOnly: true,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant,
+        border: widget.showDivider
+            ? Border(top: Divider.createBorderSide(context, width: 1.0))
+            : null,
+      ),
+      padding: const EdgeInsets.all(denseSpacing),
+      child: Stack(
+        children: [
+          TextField(
+            controller: widget.textController,
+            scrollController: scrollController,
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            expands: true,
+            decoration: null,
+            style: theme.textTheme.bodyMedium,
+            readOnly: true,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(denseSpacing),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: widget.textController,
+                  builder: (context, value, _) {
+                    return MiniIconButton(
+                      icon: Icons.playlist_remove,
+                      tooltip: 'Clear console',
+                      small: true,
+                      onPressed: value.text.isEmpty ? null : _clearConsole,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _clearConsole() {
+    widget.textController.clear();
   }
 
   void _scrollToEnd() {
