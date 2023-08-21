@@ -25,9 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
       - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
-        # TODO: Remove this after the next Flutter stable release.
         with:
-            channel: 'beta'
+            channel: 'stable'
       - run: flutter pub get
       - run: flutter analyze
       - run: dart format --set-exit-if-changed .
