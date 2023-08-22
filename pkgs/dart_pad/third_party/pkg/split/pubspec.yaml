@@ -4,7 +4,7 @@ homepage: https://github.com/flutter/devtools/tree/master/third_party/packages/s
 version: 0.0.7
 
 environment:
-  sdk: ^3.0.0
+  sdk: ^3.1.0
 
 dependencies:
   js: ^0.6.7
