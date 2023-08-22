@@ -35,7 +35,35 @@ import 'widgets.dart';
 
 const appName = 'DartPad';
 
-final router = GoRouter(
+final router = _createRouter();
+
+void main() async {
+  setPathUrlStrategy();
+
+  runApp(const DartPadApp());
+}
+
+class DartPadApp extends StatefulWidget {
+  const DartPadApp({
+    super.key,
+  });
+
+  @override
+  State<DartPadApp> createState() => _DartPadAppState();
+}
+
+class _DartPadAppState extends State<DartPadApp> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: appName,
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+GoRouter _createRouter() => GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
@@ -70,32 +98,6 @@ final router = GoRouter(
     ),
   ],
 );
-
-void main() async {
-  setPathUrlStrategy();
-
-  runApp(const DartPadApp());
-}
-
-class DartPadApp extends StatefulWidget {
-  const DartPadApp({
-    super.key,
-  });
-
-  @override
-  State<DartPadApp> createState() => _DartPadAppState();
-}
-
-class _DartPadAppState extends State<DartPadApp> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: appName,
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
