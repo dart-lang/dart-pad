@@ -35,8 +35,44 @@ import 'widgets.dart';
 
 const appName = 'DartPad';
 
+final router = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (BuildContext context, GoRouterState state) {
+        final idParam = state.uri.queryParameters['id'];
+        final sampleParam = state.uri.queryParameters['sample'];
+        final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
+        final bool darkMode = themeParam == 'dark';
+        final colorScheme = ColorScheme.fromSwatch(
+          brightness: darkMode ? Brightness.dark : Brightness.light,
+        );
+
+        return Theme(
+          data: ThemeData(
+            colorScheme: colorScheme,
+            // TODO: We should switch to using material 3.
+            useMaterial3: false,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.onPrimary,
+              ),
+            ),
+          ),
+          child: DartPadMainPage(
+            title: appName,
+            sampleId: sampleParam,
+            gistId: idParam,
+          ),
+        );
+      },
+    ),
+  ],
+);
+
 void main() async {
-  setPathUrlStrategy();
+  // setPathUrlStrategy();
 
   runApp(const DartPadApp());
 }
@@ -55,41 +91,7 @@ class _DartPadAppState extends State<DartPadApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: appName,
-      routerConfig: GoRouter(
-        initialLocation: '/',
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (BuildContext context, GoRouterState state) {
-              final idParam = state.uri.queryParameters['id'];
-              final sampleParam = state.uri.queryParameters['sample'];
-              final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
-              final bool darkMode = themeParam == 'dark';
-              final colorScheme = ColorScheme.fromSwatch(
-                brightness: darkMode ? Brightness.dark : Brightness.light,
-              );
-
-              return Theme(
-                data: ThemeData(
-                  colorScheme: colorScheme,
-                  // TODO: We should switch to using material 3.
-                  useMaterial3: false,
-                  textButtonTheme: TextButtonThemeData(
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-                child: DartPadMainPage(
-                  title: appName,
-                  sampleId: sampleParam,
-                  gistId: idParam,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
     );
   }
@@ -100,12 +102,11 @@ class DartPadMainPage extends StatefulWidget {
   final String? sampleId;
   final String? gistId;
 
-  const DartPadMainPage({
+  DartPadMainPage({
     required this.title,
     this.sampleId,
     this.gistId,
-    super.key,
-  });
+  }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
 
   @override
   State<DartPadMainPage> createState() => _DartPadMainPageState();
@@ -668,7 +669,7 @@ class ListSamplesWidget extends StatelessWidget {
 
   void _handleSelection(BuildContext context, String sampleId) {
     final uri = Uri(path: '/', queryParameters: {'sample': sampleId});
-    context.push(uri.toString());
+    context.go(uri.toString());
   }
 }
 
