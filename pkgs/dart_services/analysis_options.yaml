@@ -6,7 +6,6 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
   exclude:
-    - doc/generated/**
     - flutter-sdks/**
     - local_pub_cache/**
     - project_templates/**

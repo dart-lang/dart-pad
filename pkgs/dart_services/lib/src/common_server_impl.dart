@@ -9,7 +9,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 
-import 'analysis_servers.dart';
+import 'analyzer_wrapper.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'project.dart';
@@ -32,11 +32,11 @@ class CommonServerImpl {
   final Sdk _sdk;
 
   late Compiler _compiler;
-  late AnalysisServersWrapper _analysisServers;
+  late AnalyzerWrapper _analysisServer;
 
   // Restarting and health status of the two Analysis Servers
-  bool get isRestarting => _analysisServers.isRestarting;
-  bool get isHealthy => _analysisServers.isHealthy;
+  bool get isRestarting => _analysisServer.isRestarting;
+  bool get isHealthy => _analysisServer.isHealthy;
 
   CommonServerImpl(this._cache, this._sdk);
 
@@ -45,13 +45,13 @@ class CommonServerImpl {
 
     _compiler = Compiler(_sdk);
 
-    _analysisServers = AnalysisServersWrapper(_sdk.dartSdkPath);
-    await _analysisServers.init();
+    _analysisServer = AnalyzerWrapper(_sdk.dartSdkPath);
+    await _analysisServer.init();
   }
 
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
-      _analysisServers.shutdown(),
+      _analysisServer.shutdown(),
       _compiler.dispose(),
       Future<dynamic>.sync(_cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
@@ -62,7 +62,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServers.analyze(request.source, devMode: _sdk.devMode);
+    return _analysisServer.analyze(request.source, devMode: _sdk.devMode);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -100,7 +100,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.complete(request.source, request.offset,
+    return _analysisServer.complete(request.source, request.offset,
         devMode: _sdk.devMode);
   }
 
@@ -112,7 +112,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getFixes(request.source, request.offset,
+    return _analysisServer.getFixes(request.source, request.offset,
         devMode: _sdk.devMode);
   }
 
@@ -124,7 +124,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getAssists(request.source, request.offset,
+    return _analysisServer.getAssists(request.source, request.offset,
         devMode: _sdk.devMode);
   }
 
@@ -133,7 +133,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServers.format(request.source, request.offset,
+    return _analysisServer.format(request.source, request.offset,
         devMode: _sdk.devMode);
   }
 
@@ -146,7 +146,7 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(await _analysisServers
+      ..info.addAll(await _analysisServer
           .dartdoc(request.source, request.offset, devMode: _sdk.devMode));
   }
 
@@ -156,8 +156,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'files\'');
     }
 
-    return _analysisServers.analyzeFiles(
-        request.files, request.activeSourceName,
+    return _analysisServer.analyzeFiles(request.files, request.activeSourceName,
         devMode: _sdk.devMode);
   }
 
@@ -192,7 +191,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.completeFiles(
+    return _analysisServer.completeFiles(
         request.files, request.activeSourceName, request.offset,
         devMode: _sdk.devMode);
   }
@@ -208,7 +207,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getFixesMulti(
+    return _analysisServer.getFixesMulti(
         request.files, request.activeSourceName, request.offset,
         devMode: _sdk.devMode);
   }
@@ -224,7 +223,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getAssistsMulti(
+    return _analysisServer.getAssistsMulti(
         request.files, request.activeSourceName, request.offset,
         devMode: _sdk.devMode);
   }
@@ -242,7 +241,7 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(await _analysisServers.dartdocMulti(
+      ..info.addAll(await _analysisServer.dartdocMulti(
           request.files, request.activeSourceName, request.offset,
           devMode: _sdk.devMode));
   }

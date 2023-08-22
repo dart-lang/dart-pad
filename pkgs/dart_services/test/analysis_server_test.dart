@@ -231,8 +231,7 @@ void defineTests() {
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {
       final sdk = Sdk.create(channel);
-      analysisServer =
-          FlutterAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
+      analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
 

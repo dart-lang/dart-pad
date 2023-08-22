@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/analysis_servers.dart';
+import 'package:dart_services/src/analyzer_wrapper.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/protos/dart_services.pbserver.dart';
@@ -22,8 +22,7 @@ void defineTests() {
 
     setUp(() async {
       final sdk = Sdk.create(channel);
-      analysisServer =
-          FlutterAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
+      analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
 
@@ -46,11 +45,11 @@ void defineTests() {
   group(
       'Flutter SDK analysis_server with analysis '
       'servers', () {
-    late AnalysisServersWrapper analysisServersWrapper;
+    late AnalyzerWrapper analysisServersWrapper;
     late Sdk sdk;
     setUp(() async {
       sdk = Sdk.create(channel);
-      analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
+      analysisServersWrapper = AnalyzerWrapper(sdk.dartSdkPath);
       await analysisServersWrapper.init();
     });
 
@@ -175,7 +174,7 @@ class HelloWorld extends StatelessWidget {
       setUp(() async {
         final sdk = Sdk.create(channel);
         analysisServer =
-            FlutterAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
+            DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
         await analysisServer.init();
       });
 
@@ -199,11 +198,11 @@ class HelloWorld extends StatelessWidget {
     group(
         'Flutter SDK analysis_server with analysis files={}'
         'servers', () {
-      late AnalysisServersWrapper analysisServersWrapper;
+      late AnalyzerWrapper analysisServersWrapper;
       late Sdk sdk;
       setUp(() async {
         sdk = Sdk.create(channel);
-        analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
+        analysisServersWrapper = AnalyzerWrapper(sdk.dartSdkPath);
         await analysisServersWrapper.init();
       });
 
