@@ -63,41 +63,43 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 }
 
-GoRouter _createRouter() => GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (BuildContext context, GoRouterState state) {
-        final idParam = state.uri.queryParameters['id'];
-        final sampleParam = state.uri.queryParameters['sample'];
-        final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
-        final bool darkMode = themeParam == 'dark';
-        final colorScheme = ColorScheme.fromSwatch(
-          brightness: darkMode ? Brightness.dark : Brightness.light,
-        );
+GoRouter _createRouter() {
+  return GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (BuildContext context, GoRouterState state) {
+          final idParam = state.uri.queryParameters['id'];
+          final sampleParam = state.uri.queryParameters['sample'];
+          final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
+          final bool darkMode = themeParam == 'dark';
+          final colorScheme = ColorScheme.fromSwatch(
+            brightness: darkMode ? Brightness.dark : Brightness.light,
+          );
 
-        return Theme(
-          data: ThemeData(
-            colorScheme: colorScheme,
-            // TODO: We should switch to using material 3.
-            useMaterial3: false,
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: colorScheme.onPrimary,
+          return Theme(
+            data: ThemeData(
+              colorScheme: colorScheme,
+              // TODO: We should switch to using material 3.
+              useMaterial3: false,
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.onPrimary,
+                ),
               ),
             ),
-          ),
-          child: DartPadMainPage(
-            title: appName,
-            sampleId: sampleParam,
-            gistId: idParam,
-          ),
-        );
-      },
-    ),
-  ],
-);
+            child: DartPadMainPage(
+              title: appName,
+              sampleId: sampleParam,
+              gistId: idParam,
+            ),
+          );
+        },
+      ),
+    ],
+  );
+}
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
