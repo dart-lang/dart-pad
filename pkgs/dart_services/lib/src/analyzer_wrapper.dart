@@ -20,13 +20,12 @@ import 'pub.dart';
 
 final Logger _logger = Logger('analysis_servers');
 
-class AnalysisServersWrapper {
+class AnalyzerWrapper {
   final String _dartSdkPath;
 
-  AnalysisServersWrapper(this._dartSdkPath);
+  AnalyzerWrapper(this._dartSdkPath);
 
   late DartAnalysisServerWrapper _dartAnalysisServer;
-  late FlutterAnalysisServerWrapper _flutterAnalysisServer;
 
   // If non-null, this value indicates that the server is starting/restarting
   // and holds the time at which that process began. If null, the server is
@@ -44,24 +43,11 @@ class AnalysisServersWrapper {
   Future<void> init() async {
     _logger.fine('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper(dartSdkPath: _dartSdkPath);
-    _flutterAnalysisServer =
-        FlutterAnalysisServerWrapper(dartSdkPath: _dartSdkPath);
-
     await _dartAnalysisServer.init();
-    _logger.info('Dart analysis server initialized.');
-
-    await _flutterAnalysisServer.init();
-    _logger.info('Flutter analysis server initialized.');
+    _logger.info('Analysis server initialized.');
 
     unawaited(_dartAnalysisServer.onExit.then((int code) {
-      _logger.severe('dartAnalysisServer exited, code: $code');
-      if (code != 0) {
-        exit(code);
-      }
-    }));
-
-    unawaited(_flutterAnalysisServer.onExit.then((int code) {
-      _logger.severe('flutterAnalysisServer exited, code: $code');
+      _logger.severe('analysis server exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -82,17 +68,7 @@ class AnalysisServersWrapper {
   Future<dynamic> shutdown() {
     _restartingSince = DateTime.now();
 
-    return Future.wait(<Future<dynamic>>[
-      _flutterAnalysisServer.shutdown(),
-      _dartAnalysisServer.shutdown(),
-    ]);
-  }
-
-  AnalysisServerWrapper _getCorrectAnalysisServer(List<ImportDirective> imports,
-      {required bool devMode}) {
-    return project.usesFlutterWeb(imports, devMode: devMode)
-        ? _flutterAnalysisServer
-        : _dartAnalysisServer;
+    return _dartAnalysisServer.shutdown();
   }
 
   Future<proto.AnalysisResults> analyze(String source,
@@ -107,8 +83,7 @@ class AnalysisServersWrapper {
           activeSourceName,
           0,
           (List<ImportDirective> imports, Location location) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .analyzeFiles(sources, imports: imports),
+              _dartAnalysisServer.analyzeFiles(sources, imports: imports),
           'analysis',
           'Error during analyze on "${sources[activeSourceName]}"',
           devMode: devMode);
@@ -125,8 +100,7 @@ class AnalysisServersWrapper {
           activeSourceName,
           offset,
           (List<ImportDirective> imports, Location location) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .completeFiles(sources, location),
+              _dartAnalysisServer.completeFiles(sources, location),
           'completions',
           'Error during complete on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
@@ -143,8 +117,7 @@ class AnalysisServersWrapper {
           activeSourceName,
           offset,
           (List<ImportDirective> imports, Location location) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .getFixesMulti(sources, location),
+              _dartAnalysisServer.getFixesMulti(sources, location),
           'fixes',
           'Error during fixes on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
@@ -161,29 +134,23 @@ class AnalysisServersWrapper {
           activeSourceName,
           offset,
           (List<ImportDirective> imports, Location location) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .getAssistsMulti(sources, location),
+              _dartAnalysisServer.getAssistsMulti(sources, location),
           'assists',
           'Error during assists on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<proto.FormatResponse> format(String source, int offset,
-          {required bool devMode}) =>
-      _format2({kMainDart: source}, kMainDart, offset, devMode: devMode);
-
-  Future<proto.FormatResponse> _format2(
-          Map<String, String> sources, String activeSourceName, int offset,
-          {required bool devMode}) =>
-      _perfLogAndRestart(
-          sources,
-          activeSourceName,
-          offset,
-          (List<ImportDirective> imports, Location _) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .format(sources[activeSourceName]!, offset),
-          'format',
-          'Error during format on "${sources[activeSourceName]}" at $offset',
-          devMode: devMode);
+      {required bool devMode}) {
+    return _perfLogAndRestart(
+        {kMainDart: source},
+        kMainDart,
+        offset,
+        (List<ImportDirective> imports, Location _) =>
+            _dartAnalysisServer.format(source, offset),
+        'format',
+        'Error during format at $offset',
+        devMode: devMode);
+  }
 
   Future<Map<String, String>> dartdoc(String source, int offset,
           {required bool devMode}) =>
@@ -197,20 +164,20 @@ class AnalysisServersWrapper {
           activeSourceName,
           offset,
           (List<ImportDirective> imports, Location location) =>
-              _getCorrectAnalysisServer(imports, devMode: devMode)
-                  .dartdocMulti(sources, location),
+              _dartAnalysisServer.dartdocMulti(sources, location),
           'dartdoc',
           'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<T> _perfLogAndRestart<T>(
-      Map<String, String> sources,
-      String activeSourceName,
-      int offset,
-      Future<T> Function(List<ImportDirective>, Location) body,
-      String action,
-      String errorDescription,
-      {required bool devMode}) async {
+    Map<String, String> sources,
+    String activeSourceName,
+    int offset,
+    Future<T> Function(List<ImportDirective>, Location) body,
+    String action,
+    String errorDescription, {
+    required bool devMode,
+  }) async {
     activeSourceName = sanitizeAndCheckFilenames(sources, activeSourceName);
     final imports = getAllImportsForFiles(sources);
     final location = Location(activeSourceName, offset);

@@ -23,18 +23,15 @@ import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
 
-/// Flag to determine whether we should dump the communication with the server
-/// to stdout.
-bool dumpServerMessages = false;
-
-const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
-
 // Use very long timeouts to ensure that the server has enough time to restart.
 const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   DartAnalysisServerWrapper({required String dartSdkPath})
-      : _sourceDirPath = ProjectTemplates.projectTemplates.dartPath,
+      // During analysis, we use the Firebase project template. The Firebase
+      // template is separate from the Flutter template only to keep Firebase
+      // references out of app initialization code at runtime.
+      : _sourceDirPath = ProjectTemplates.projectTemplates.firebasePath,
         super(dartSdkPath);
 
   @override
@@ -42,24 +39,6 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 
   @override
   String toString() => 'DartAnalysisServerWrapper<$_sourceDirPath>';
-}
-
-class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper({required String dartSdkPath})
-      : _sourceDirPath = ProjectTemplates
-            .projectTemplates
-            // During analysis, we use the Firebase project template. The
-            // Firebase template is separate from the Flutter template only to
-            // keep Firebase references out of app initialization code at
-            // runtime.
-            .firebasePath,
-        super(dartSdkPath);
-
-  @override
-  final String _sourceDirPath;
-
-  @override
-  String toString() => 'FlutterAnalysisServerWrapper<$_sourceDirPath>';
 }
 
 abstract class AnalysisServerWrapper {
@@ -84,14 +63,6 @@ abstract class AnalysisServerWrapper {
 
     _isInitialized = true;
 
-    void onRead(String str) {
-      if (dumpServerMessages) _logger.info('<-- $str');
-    }
-
-    void onWrite(String str) {
-      if (dumpServerMessages) _logger.info('--> $str');
-    }
-
     final serverArgs = <String>[
       '--client-id=DartPad',
       '--client-version=$_sdkVersion',
@@ -99,8 +70,6 @@ abstract class AnalysisServerWrapper {
     _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
 
     analysisServer = await AnalysisServer.create(
-      onRead: onRead,
-      onWrite: onWrite,
       sdkPath: sdkPath,
       serverArgs: serverArgs,
     );
@@ -116,9 +85,6 @@ abstract class AnalysisServerWrapper {
       listenForCompletions();
 
       await analysisServer.analysis.setAnalysisRoots([_sourceDirPath], []);
-      // Warmup.
-      await _sendAddOverlays({mainPath: _warmupSrc});
-      await _sendRemoveOverlays();
     } catch (err, st) {
       _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
       rethrow;

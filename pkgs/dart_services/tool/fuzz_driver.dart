@@ -70,8 +70,6 @@ Usage: slow_test path_to_test_collection
     fileEntities = [io.File(testCollectionRoot)];
   }
 
-  analysis_server.dumpServerMessages = false;
-
   var counter = 0;
   final sw = Stopwatch()..start();
 
