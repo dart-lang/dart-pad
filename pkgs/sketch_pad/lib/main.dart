@@ -72,7 +72,7 @@ final router = GoRouter(
 );
 
 void main() async {
-  // setPathUrlStrategy();
+  setPathUrlStrategy();
 
   runApp(const DartPadApp());
 }
