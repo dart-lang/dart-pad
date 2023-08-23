@@ -18,13 +18,9 @@ import 'common.dart';
 import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
-import 'scheduler.dart';
 import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
-
-// Use very long timeouts to ensure that the server has enough time to restart.
-const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   DartAnalysisServerWrapper({required String dartSdkPath})
@@ -43,7 +39,6 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 
 abstract class AnalysisServerWrapper {
   final String sdkPath;
-  final TaskScheduler serverScheduler = TaskScheduler();
 
   bool _isInitialized = false;
 
@@ -216,41 +211,37 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<Map<String, String>> dartdocMulti(
-      Map<String, String> sources, Location location) {
-    _logger.fine('dartdoc: Scheduler queue: ${serverScheduler.queueCount}');
-
+      Map<String, String> sources, Location location) async {
     sources = _getOverlayMapWithPaths(sources);
     final sourcepath = _getPathFromName(location.sourceName);
 
-    return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
-      await _loadSources(sources);
+    await _loadSources(sources);
 
-      final result =
-          await analysisServer.analysis.getHover(sourcepath, location.offset);
-      await _unloadSources();
+    final result =
+        await analysisServer.analysis.getHover(sourcepath, location.offset);
+    await _unloadSources();
 
-      if (result.hovers.isEmpty) {
-        return const {};
-      }
+    if (result.hovers.isEmpty) {
+      return const {};
+    }
 
-      final info = result.hovers.first;
+    final info = result.hovers.first;
 
-      return {
-        if (info.elementDescription != null)
-          'description': info.elementDescription!,
-        if (info.elementKind != null) 'kind': info.elementKind!,
-        if (info.dartdoc != null) 'dartdoc': info.dartdoc!,
-        if (info.containingClassDescription != null)
-          'enclosingClassName': info.containingClassDescription!,
-        if (info.containingLibraryName != null)
-          'libraryName': info.containingLibraryName!,
-        if (info.parameter != null) 'parameter': info.parameter!,
-        if (info.isDeprecated != null)
-          'deprecated': info.isDeprecated!.toString(),
-        if (info.staticType != null) 'staticType': info.staticType!,
-        if (info.propagatedType != null) 'propagatedType': info.propagatedType!,
-      };
-    }, timeoutDuration: _analysisServerTimeout));
+    return {
+      if (info.elementDescription != null)
+        'description': info.elementDescription!,
+      if (info.elementKind != null) 'kind': info.elementKind!,
+      if (info.dartdoc != null) 'dartdoc': info.dartdoc!,
+      if (info.containingClassDescription != null)
+        'enclosingClassName': info.containingClassDescription!,
+      if (info.containingLibraryName != null)
+        'libraryName': info.containingLibraryName!,
+      if (info.parameter != null) 'parameter': info.parameter!,
+      if (info.isDeprecated != null)
+        'deprecated': info.isDeprecated!.toString(),
+      if (info.staticType != null) 'staticType': info.staticType!,
+      if (info.propagatedType != null) 'propagatedType': info.propagatedType!,
+    };
   }
 
   Future<proto.AnalysisResults> analyze(String src) {
@@ -258,95 +249,83 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<proto.AnalysisResults> analyzeFiles(Map<String, String> sources,
-      {List<ImportDirective>? imports}) {
-    _logger.fine('analyze: Scheduler queue: ${serverScheduler.queueCount}');
+      {List<ImportDirective>? imports}) async {
+    sources = _getOverlayMapWithPaths(sources);
+    await _loadSources(sources);
+    final errors = <AnalysisError>[];
 
-    return serverScheduler
-        .schedule(ClosureTask<proto.AnalysisResults>(() async {
-      sources = _getOverlayMapWithPaths(sources);
-      await _loadSources(sources);
-      final errors = <AnalysisError>[];
+    // Loop over all files and collect errors (sources now has filenames
+    // with full paths as keys after _getOverlayMapWithPaths() call).
+    for (final sourcepath in sources.keys) {
+      errors
+          .addAll((await analysisServer.analysis.getErrors(sourcepath)).errors);
+    }
+    await _unloadSources();
 
-      // Loop over all files and collect errors (sources now has filenames
-      // with full paths as keys after _getOverlayMapWithPaths() call).
-      for (final sourcepath in sources.keys) {
-        errors.addAll(
-            (await analysisServer.analysis.getErrors(sourcepath)).errors);
+    // Convert the issues to protos.
+    final issues = errors.map((error) {
+      final issue = proto.AnalysisIssue()
+        ..kind = error.severity.toLowerCase()
+        ..code = error.code.toLowerCase()
+        ..line = error.location.startLine
+        ..column = error.location.startColumn
+        ..message = utils.normalizeFilePaths(error.message)
+        ..sourceName = path.basename(error.location.file)
+        ..hasFixes = error.hasFix ?? false
+        ..charStart = error.location.offset
+        ..charLength = error.location.length
+        ..diagnosticMessages.addAll(
+          error.contextMessages?.map((m) => proto.DiagnosticMessage()
+                ..message = utils.normalizeFilePaths(m.message)
+                ..line = m.location.startLine
+                ..charStart = m.location.offset
+                ..charLength = m.location.length) ??
+              [],
+        );
+
+      if (error.url != null) {
+        issue.url = error.url!;
       }
-      await _unloadSources();
 
-      // Convert the issues to protos.
-      final issues = errors.map((error) {
-        final issue = proto.AnalysisIssue()
-          ..kind = error.severity.toLowerCase()
-          ..code = error.code.toLowerCase()
-          ..line = error.location.startLine
-          ..column = error.location.startColumn
-          ..message = utils.normalizeFilePaths(error.message)
-          ..sourceName = path.basename(error.location.file)
-          ..hasFixes = error.hasFix ?? false
-          ..charStart = error.location.offset
-          ..charLength = error.location.length
-          ..diagnosticMessages.addAll(
-            error.contextMessages?.map((m) => proto.DiagnosticMessage()
-                  ..message = utils.normalizeFilePaths(m.message)
-                  ..line = m.location.startLine
-                  ..charStart = m.location.offset
-                  ..charLength = m.location.length) ??
-                [],
-          );
+      if (error.correction != null) {
+        issue.correction = utils.normalizeFilePaths(error.correction!);
+      }
 
-        if (error.url != null) {
-          issue.url = error.url!;
-        }
+      return issue;
+    }).toList();
 
-        if (error.correction != null) {
-          issue.correction = utils.normalizeFilePaths(error.correction!);
-        }
+    issues.sort((a, b) {
+      // Order issues by character position of the bug/warning.
+      return a.charStart.compareTo(b.charStart);
+    });
 
-        return issue;
-      }).toList();
+    // Ensure we have imports if they were not passed in.
+    imports ??= getAllImportsForFiles(sources);
 
-      issues.sort((a, b) {
-        // Order issues by character position of the bug/warning.
-        return a.charStart.compareTo(b.charStart);
-      });
+    // Calculate the package: imports (and defensively sanitize).
+    final packageImports = {
+      ...imports.filterSafePackages(),
+    };
 
-      // Ensure we have imports if they were not passed in.
-      imports ??= getAllImportsForFiles(sources);
-
-      // Calculate the package: imports (and defensively sanitize).
-      final packageImports = {
-        ...?imports?.filterSafePackages(),
-      };
-
-      return proto.AnalysisResults()
-        ..issues.addAll(issues)
-        ..packageImports.addAll(packageImports);
-    }, timeoutDuration: _analysisServerTimeout));
+    return proto.AnalysisResults()
+      ..issues.addAll(issues)
+      ..packageImports.addAll(packageImports);
   }
 
   Future<AssistsResult> _getAssistsImpl(
-      Map<String, String> sources, String sourceName, int offset) {
+      Map<String, String> sources, String sourceName, int offset) async {
     sources = _getOverlayMapWithPaths(sources);
     final path = _getPathFromName(sourceName);
 
-    if (serverScheduler.queueCount > 0) {
-      _logger.fine(
-          'getRefactoringsImpl: Scheduler queue: ${serverScheduler.queueCount}');
+    await _loadSources(sources);
+    final AssistsResult assists;
+    try {
+      assists =
+          await analysisServer.edit.getAssists(path, offset, 1 /* length */);
+    } finally {
+      await _unloadSources();
     }
-
-    return serverScheduler.schedule(ClosureTask<AssistsResult>(() async {
-      await _loadSources(sources);
-      final AssistsResult assists;
-      try {
-        assists =
-            await analysisServer.edit.getAssists(path, offset, 1 /* length */);
-      } finally {
-        await _unloadSources();
-      }
-      return assists;
-    }, timeoutDuration: _analysisServerTimeout));
+    return assists;
   }
 
   /// Convert between the Analysis Server type and the API protocol types.
@@ -457,26 +436,19 @@ abstract class AnalysisServerWrapper {
   /// Internal implementation of the completion mechanism.
   Future<CompletionResults> _completeImpl(
       Map<String, String> sources, String sourceName, int offset) async {
-    if (serverScheduler.queueCount > 0) {
-      _logger
-          .fine('completeImpl: Scheduler queue: ${serverScheduler.queueCount}');
+    sources = _getOverlayMapWithPaths(sources);
+    await _loadSources(sources);
+    final id = await analysisServer.completion.getSuggestions(
+      _getPathFromName(sourceName),
+      offset,
+    );
+    final CompletionResults results;
+    try {
+      results = await getCompletionResults(id.id);
+    } finally {
+      await _unloadSources();
     }
-
-    return serverScheduler.schedule(ClosureTask<CompletionResults>(() async {
-      sources = _getOverlayMapWithPaths(sources);
-      await _loadSources(sources);
-      final id = await analysisServer.completion.getSuggestions(
-        _getPathFromName(sourceName),
-        offset,
-      );
-      final CompletionResults results;
-      try {
-        results = await getCompletionResults(id.id);
-      } finally {
-        await _unloadSources();
-      }
-      return results;
-    }, timeoutDuration: _analysisServerTimeout));
+    return results;
   }
 
   Future<FixesResult> _getFixesImpl(
@@ -484,36 +456,25 @@ abstract class AnalysisServerWrapper {
     sources = _getOverlayMapWithPaths(sources);
     final path = _getPathFromName(sourceName);
 
-    if (serverScheduler.queueCount > 0) {
-      _logger
-          .fine('getFixesImpl: Scheduler queue: ${serverScheduler.queueCount}');
+    await _loadSources(sources);
+    final FixesResult fixes;
+    try {
+      fixes = await analysisServer.edit.getFixes(path, offset);
+    } finally {
+      await _unloadSources();
     }
-
-    return serverScheduler.schedule(ClosureTask<FixesResult>(() async {
-      await _loadSources(sources);
-      final FixesResult fixes;
-      try {
-        fixes = await analysisServer.edit.getFixes(path, offset);
-      } finally {
-        await _unloadSources();
-      }
-      return fixes;
-    }, timeoutDuration: _analysisServerTimeout));
+    return fixes;
   }
 
   Future<FormatResult> _formatImpl(String src, int offset) async {
-    _logger.fine('FormatImpl: Scheduler queue: ${serverScheduler.queueCount}');
-
-    return serverScheduler.schedule(ClosureTask<FormatResult>(() async {
-      await _loadSources({mainPath: src});
-      final FormatResult result;
-      try {
-        result = await analysisServer.edit.format(mainPath, offset, 0);
-      } finally {
-        await _unloadSources();
-      }
-      return result;
-    }, timeoutDuration: _analysisServerTimeout));
+    await _loadSources({mainPath: src});
+    final FormatResult result;
+    try {
+      result = await analysisServer.edit.format(mainPath, offset, 0);
+    } finally {
+      await _unloadSources();
+    }
+    return result;
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {

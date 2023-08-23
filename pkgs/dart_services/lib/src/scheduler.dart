@@ -20,6 +20,7 @@ class TaskScheduler {
       _isActive = true;
       return _performTask(task).whenComplete(_next);
     }
+
     final taskResult = Completer<T>();
     _taskQueue.add(_Task<T>(task, taskResult));
     return taskResult.future;
@@ -31,6 +32,7 @@ class TaskScheduler {
       _isActive = false;
       return;
     }
+
     final first = _taskQueue.removeFirst();
     first.taskResult.complete(_performTask(first.task).whenComplete(_next));
   }
@@ -40,13 +42,14 @@ class TaskScheduler {
 class _Task<T> {
   final Task<T> task;
   final Completer<T> taskResult;
+
   _Task(this.task, this.taskResult);
 }
 
 // Public working data structure.
 abstract class Task<T> {
-  Future<T> perform();
   late Duration timeoutDuration;
+  Future<T> perform();
 }
 
 class ClosureTask<T> extends Task<T> {

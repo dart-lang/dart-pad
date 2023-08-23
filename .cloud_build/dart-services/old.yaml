@@ -31,7 +31,7 @@ steps:
       - '--min-instances=1'
       - '--cpu=2'
       - '--memory=4Gi'
-      - '--concurrency=1'
+      - '--concurrency=2'
       - '--cpu-boost'
     id: Deploy
     dir: pkgs/dart_services
@@ -41,12 +41,12 @@ images:
 options:
   substitutionOption: ALLOW_LOOSE
 substitutions:
-  _GCR_HOSTNAME: us.gcr.io
-  _PLATFORM: managed
-  _LABELS: gcb-trigger-id=e6472250-2fe8-44de-985f-7822fa767bc7
-  _TRIGGER_ID: e6472250-2fe8-44de-985f-7822fa767bc7
-  _SERVICE_NAME: flutter-old-channel
   _DEPLOY_REGION: us-central1
+  _GCR_HOSTNAME: us.gcr.io
+  _LABELS: gcb-trigger-id=e6472250-2fe8-44de-985f-7822fa767bc7
+  _PLATFORM: managed
+  _SERVICE_NAME: flutter-old-channel
+  _TRIGGER_ID: e6472250-2fe8-44de-985f-7822fa767bc7
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed
