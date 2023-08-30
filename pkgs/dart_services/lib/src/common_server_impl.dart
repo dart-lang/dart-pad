@@ -34,10 +34,6 @@ class CommonServerImpl {
   late Compiler _compiler;
   late AnalyzerWrapper _analysisServer;
 
-  // Restarting and health status of the two Analysis Servers
-  bool get isRestarting => _analysisServer.isRestarting;
-  bool get isHealthy => _analysisServer.isHealthy;
-
   CommonServerImpl(this._cache, this._sdk);
 
   Future<void> init() async {
