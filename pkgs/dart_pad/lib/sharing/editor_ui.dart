@@ -322,12 +322,11 @@ class Channel {
   final String dartVersion;
   final String flutterVersion;
   final String engineVersion;
-  final bool hidden;
 
   /// SDK experiment flags enabled for this channel.
   final List<String> experiments;
 
-  static Future<Channel> fromVersion(String name, {bool hidden = false}) async {
+  static Future<Channel> fromVersion(String name) async {
     var rootUrl = urlMapping[name];
     // If the user provided bad URL query parameter (`?channel=nonsense`),
     // default to the stable channel.
@@ -339,7 +338,6 @@ class Channel {
       name: name,
       dartVersion: versionResponse.sdkVersionFull,
       flutterVersion: versionResponse.flutterVersion,
-      hidden: hidden,
       experiments: versionResponse.experiment,
       engineVersion: versionResponse.flutterEngineSha,
     );
@@ -350,7 +348,6 @@ class Channel {
     'beta': betaServerUrl,
     'old': oldServerUrl,
     'master': masterServerUrl,
-    'dev': devServerUrl,
   };
 
   Channel._({
@@ -358,7 +355,6 @@ class Channel {
     required this.dartVersion,
     required this.flutterVersion,
     required this.engineVersion,
-    required this.hidden,
     required this.experiments,
   });
 }

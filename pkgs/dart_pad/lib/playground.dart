@@ -335,36 +335,34 @@ class Playground extends EditorUi implements GistContainer, GistController {
         checkmark.classes.toggle('hide');
       }
 
-      final menuElement = _mdcListItem(children: [
-        DivElement()
-          ..classes.add('channel-item-group')
-          ..children = [
-            checkmark,
-            SpanElement()
-              ..classes.add('channel-menu-right')
-              ..children = [
-                ParagraphElement()
-                  ..classes.add('mdc-list-item__title')
-                  ..text = '${channel.name} channel',
-                ParagraphElement()
-                  ..classes.add('mdc-list-item__details')
-                  ..text =
-                      'Use Flutter version ${channel.flutterVersion} and Dart '
-                          'version ${channel.dartVersion}',
-                if (channel.experiments.isNotEmpty)
+      final menuElement = _mdcListItem(
+        children: [
+          DivElement()
+            ..classes.add('channel-item-group')
+            ..children = [
+              checkmark,
+              SpanElement()
+                ..classes.add('channel-menu-right')
+                ..children = [
+                  ParagraphElement()
+                    ..classes.add('mdc-list-item__title')
+                    ..text = '${channel.name} channel',
                   ParagraphElement()
                     ..classes.add('mdc-list-item__details')
-                    ..text = '+ Dart experiments: '
-                        "--enable-experiment=${channel.experiments.reduce((value, element) => '$value,$element')}",
-              ],
-          ],
-      ])
-        ..classes.add('channel-item');
+                    ..text =
+                        'Use Flutter version ${channel.flutterVersion} and Dart '
+                            'version ${channel.dartVersion}',
+                  if (channel.experiments.isNotEmpty)
+                    ParagraphElement()
+                      ..classes.add('mdc-list-item__details')
+                      ..text = '+ Dart experiments: '
+                          "--enable-experiment=${channel.experiments.reduce((value, element) => '$value,$element')}",
+                ],
+            ],
+        ],
+      )..classes.add('channel-item');
 
-      // The dev channel is hidden unless it's selected via a query parameter.
-      if (!channel.hidden || currentChannel == channel.name) {
-        listElement.children.add(menuElement);
-      }
+      listElement.children.add(menuElement);
     }
 
     return element;
@@ -376,7 +374,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Channel.fromVersion('beta'),
       Channel.fromVersion('old'),
       Channel.fromVersion('master'),
-      Channel.fromVersion('dev', hidden: true),
     ]);
 
     final element = _buildChannelsMenu(channels);

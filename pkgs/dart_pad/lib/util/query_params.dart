@@ -117,7 +117,6 @@ class _QueryParams {
     'stable',
     'beta',
     'old',
-    'dev',
     'master',
   ];
 
