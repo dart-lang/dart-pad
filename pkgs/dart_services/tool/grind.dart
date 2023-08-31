@@ -61,7 +61,6 @@ Future<void> serveNullSafety() async {
     _channel,
     '--port',
     '8084',
-    '--null-safety',
   ]);
 }
 
@@ -276,7 +275,6 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
     '-s',
     dillPath,
-    '--sound-null-safety',
     '--modules=amd',
     '--source-map',
     '-o',
