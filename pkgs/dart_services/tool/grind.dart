@@ -52,18 +52,6 @@ Future<void> serve() async {
   ]);
 }
 
-@Task()
-@Depends(buildStorageArtifacts)
-Future<void> serveNullSafety() async {
-  await _run(Platform.executable, arguments: [
-    path.join('bin', 'server_dev.dart'),
-    '--channel',
-    _channel,
-    '--port',
-    '8084',
-  ]);
-}
-
 const _dartImageName = 'dart';
 final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
