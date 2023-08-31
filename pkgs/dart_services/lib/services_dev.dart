@@ -27,8 +27,7 @@ Future<void> main(List<String> args) async {
   parser
     ..addOption('channel', mandatory: true)
     ..addOption('port', abbr: 'p', defaultsTo: '8080')
-    ..addOption('server-url', defaultsTo: 'http://localhost')
-    ..addFlag('null-safety');
+    ..addOption('server-url', defaultsTo: 'http://localhost');
 
   final result = parser.parse(args);
   final port = int.tryParse(result['port'] as String);
@@ -44,17 +43,15 @@ Future<void> main(List<String> args) async {
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
   final channelName = result['channel'] as String;
-  final nullSafety = result['null-safety'] as bool;
 
-  await EndpointsServer.serve(port, Sdk.create(channelName), nullSafety);
+  await EndpointsServer.serve(port, Sdk.create(channelName));
 
   _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(
-      int port, Sdk sdk, bool nullSafety) async {
-    final endpointsServer = EndpointsServer._(sdk, nullSafety);
+  static Future<EndpointsServer> serve(int port, Sdk sdk) async {
+    final endpointsServer = EndpointsServer._(sdk);
     await endpointsServer.init();
 
     await shelf.serve(endpointsServer.handler, InternetAddress.anyIPv4, port);
@@ -66,11 +63,8 @@ class EndpointsServer {
   late final CommonServerApi commonServerApi;
   late final CommonServerImpl commonServerImpl;
 
-  EndpointsServer._(Sdk sdk, bool nullSafety) {
-    commonServerImpl = CommonServerImpl(
-      _Cache(),
-      sdk,
-    );
+  EndpointsServer._(Sdk sdk) {
+    commonServerImpl = CommonServerImpl(_Cache(), sdk);
     commonServerApi = CommonServerApi(commonServerImpl);
 
     // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.

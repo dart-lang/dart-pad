@@ -51,7 +51,7 @@ $ dart run tool/update_sdk.dart stable
 The Dart Services server depends on generated files. Run the following to generate all the required binaries.
 
 ```bash
-$ FLUTTER_CHANNEL="stable" grind deploy
+$ FLUTTER_CHANNEL="stable" dart tool/grind.dart deploy
 ```
 
 ## Running
@@ -59,7 +59,7 @@ $ FLUTTER_CHANNEL="stable" grind deploy
 To run the server, run:
 
 ```bash
-$ FLUTTER_CHANNEL="stable" grind serve
+$ FLUTTER_CHANNEL="stable" dart tool/grind.dart serve
 ```
 
 The server will run from port 8082 and export several JSON APIs, like
@@ -76,8 +76,8 @@ or:
 `grind deploy` for all tests and checks.
 
 dart-services requires the `redis` package, including the `redis-server` binary,
-to be installed to run tests.  `sudo apt-get install redis-server` will install
-this on Ubuntu, but see [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
+to be installed to run tests. `sudo apt-get install redis-server` will install
+this on Ubuntu; `brew install redis` for macos. See [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
 
 ## Issues and bugs
 
