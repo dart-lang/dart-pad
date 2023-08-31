@@ -31,13 +31,6 @@ const betaServerUrlEnvironmentVar = 'BETA_SERVER_URL';
 const betaServerUrl = String.fromEnvironment(betaServerUrlEnvironmentVar);
 
 /// The environment variable name which specifies the URL of the back-end
-/// server serving "Flutter dev".
-const devServerUrlEnvironmentVar = 'DEV_SERVER_URL';
-
-/// The URL of the "Flutter dev" back-end server.
-const devServerUrl = String.fromEnvironment(devServerUrlEnvironmentVar);
-
-/// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter old" (stable -1).
 const oldServerUrlEnvironmentVar = 'OLD_SERVER_URL';
 
