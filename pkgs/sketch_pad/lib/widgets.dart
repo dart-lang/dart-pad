@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -141,87 +139,6 @@ class ProgressWidget extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class CompilingStatusWidget extends StatefulWidget {
-  final double size;
-  final ValueListenable<bool> status;
-
-  const CompilingStatusWidget({
-    required this.size,
-    required this.status,
-    super.key,
-  });
-
-  @override
-  State<CompilingStatusWidget> createState() => _CompilingStatusWidgetState();
-}
-
-class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
-
-    widget.status.addListener(_statusListener);
-  }
-
-  void _statusListener() {
-    final value = widget.status.value;
-
-    if (value) {
-      controller.repeat();
-    } else {
-      controller.stop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final darkMode = theme.colorScheme.darkMode;
-
-    final gearIcon =
-        Image.asset('assets/gear-96-${darkMode ? 'light' : 'dark'}.png');
-
-    return SizedBox.square(
-      dimension: widget.size,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: widget.status,
-        builder: (context, bool value, _) {
-          return AnimatedOpacity(
-            opacity: value ? 0.6 : 0.0,
-            duration: animationDelay,
-            child: AnimatedBuilder(
-              animation: controller,
-              builder: (BuildContext context, Widget? child) {
-                return Transform.rotate(
-                  angle: controller.value * 2 * math.pi,
-                  child: gearIcon,
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    widget.status.removeListener(_statusListener);
-
-    controller.dispose();
-
-    super.dispose();
   }
 }
 
