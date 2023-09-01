@@ -194,7 +194,7 @@ packages:
     source: hosted
     version: "3.1.1"
   coverage:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: coverage
       sha256: "2fb815080e44a09b85e0f2ca8a820b15053982b2e714b59267719e8a9ff17097"
