@@ -25,13 +25,11 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: support flutter snippets
-
 // TODO: handle large console content
 
 // TODO: explore using the monaco editor
 
-// todo: have a theme toggle
+// TODO: have a theme toggle
 
 const appName = 'DartPad';
 
