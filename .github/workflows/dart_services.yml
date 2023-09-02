@@ -50,9 +50,9 @@ jobs:
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
           # Prepare to run unit tests (but do not actually run tests).
-          dart pub run grinder buildbot
+          dart run grinder buildbot
           # Ensure that we've uploaded the compilation artifacts to google storage.
-          dart pub run grinder validate-storage-artifacts
+          dart run grinder validate-storage-artifacts
           dart test
 
   # Run the benchmarks on the bots to ensure they don't regress.
@@ -74,6 +74,6 @@ jobs:
       - name: Prep the repo
         env:
           FLUTTER_CHANNEL: stable
-        run: dart pub run grinder buildbot
+        run: dart run grinder buildbot
       - name: Run benchmarks
         run: dart benchmark/bench.dart
