@@ -29,14 +29,14 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: stable
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
         run: dart pub get
       - name: Analyze code
         run: dart analyze --fatal-infos .
+      - name: check formatting
+        run: dart format --set-exit-if-changed lib test tool  
       - name: Prepare Flutter
         run: |
           dart run tool/update_sdk.dart ${{ matrix.sdk }}
@@ -44,10 +44,16 @@ jobs:
           flutter doctor -v
           flutter config --enable-web
       - name: Run tests
+        env:
+          FLUTTER_CHANNEL: ${{ matrix.sdk }}
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
-          ./tool/ci.sh ${{ matrix.sdk }}
+          # Prepare to run unit tests (but do not actually run tests).
+          dart run grinder buildbot
+          # Ensure that we've uploaded the compilation artifacts to google storage.
+          dart run grinder validate-storage-artifacts
+          dart test
 
   # Run the benchmarks on the bots to ensure they don't regress.
   benchmark:
@@ -68,6 +74,6 @@ jobs:
       - name: Prep the repo
         env:
           FLUTTER_CHANNEL: stable
-        run: dart pub run grinder buildbot
+        run: dart run grinder buildbot
       - name: Run benchmarks
         run: dart benchmark/bench.dart

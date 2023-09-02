@@ -889,8 +889,8 @@ int countLines(Map<String, String> sources) {
 }
 
 // Character constants.
-const int _lf = 10;
-const int _cr = 13;
+const int $lf = 10;
+const int $cr = 13;
 
 /// Count lines in string (CR, LF or CR-LF can be line separators).
 /// (Gives correct result as opposed to .split('\n').length, which
@@ -905,9 +905,9 @@ int countLinesInString(String str) {
   for (var i = 0; i < end; i++) {
     final previousChar = char;
     char = data[i];
-    if (char != _cr) {
-      if (char != _lf) continue;
-      if (previousChar == _cr) {
+    if (char != $cr) {
+      if (char != $lf) continue;
+      if (previousChar == $cr) {
         sliceStart = i + 1;
         continue;
       }

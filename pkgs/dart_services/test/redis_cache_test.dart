@@ -12,9 +12,12 @@ import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:test/test.dart';
 
-void main() => defineTests();
+void main() async {
+  final hasRedis = await hasRedisServer();
+  defineTests(hasRedis);
+}
 
-void defineTests() {
+void defineTests(bool hasRedis) {
   /// Integration tests for the RedisCache implementation.
   ///
   /// We basically assume that redis and dartis work correctly -- this is
@@ -230,5 +233,17 @@ void defineTests() {
         }
       });
     });
-  });
+  }, skip: hasRedis ? null : 'redis-server not installed');
+}
+
+Future<bool> hasRedisServer() async {
+  // redis-server --version
+  // "Redis server v=7.2.0 sha=00000000:0 malloc=libc bits=64 build=d50c69ff806e6ad2"
+
+  try {
+    final result = await Process.run('redis-server', ['--version']);
+    return result.exitCode == 0;
+  } catch (e) {
+    return false;
+  }
 }

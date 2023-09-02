@@ -7,13 +7,14 @@
 import 'dart:async';
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/logging.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk.dart';
 import 'package:logging/logging.dart';
+
+import 'bench_impl.dart';
 
 void main(List<String> args) async {
   final json = args.contains('--json');
