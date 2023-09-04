@@ -339,6 +339,10 @@ void deploy() {
   log('Deploy via Google Cloud Console');
 }
 
+@Task()
+@Depends(analyze, buildStorageArtifacts)
+void buildbot() {}
+
 @Task('Generate Protobuf classes')
 void generateProtos() async {
   try {
