@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:quiver/cache.dart';
 import 'package:resp_client/resp_client.dart';
 import 'package:resp_client/resp_commands.dart';
 import 'package:resp_client/resp_server.dart';
@@ -15,7 +16,7 @@ import 'sdk.dart';
 abstract class ServerCache {
   Future<String?> get(String key);
 
-  Future<void> set(String key, String value, {Duration? expiration});
+  Future<void> set(String key, String value, {Duration expiration});
 
   Future<void> remove(String key);
 
@@ -219,49 +220,20 @@ class RedisCache implements ServerCache {
 /// An in-memory implementation of [ServerCache] which doesn't support
 /// expiration of entries based on time.
 class InMemoryCache implements ServerCache {
-  static const int maxSize = 512;
-
-  final Map<String, String> _items = {};
-  final List<String> _keys = [];
-
-  @override
-  Future<String?> get(String key) async {
-    final result = _items[key];
-    if (result != null) {
-      _keys.remove(key);
-      _keys.add(key);
-    }
-    return result;
-  }
+  // TODO: This is the only use of package:quiver; consider in-lining it.
+  /// Wrapping an internal cache with a maximum size of 512 entries.
+  final Cache<String, String> _lru =
+      MapCache<String, String>.lru(maximumSize: 512);
 
   @override
-  Future<void> set(String key, String value, {Duration? expiration}) async {
-    _items[key] = value;
-    _keys.remove(key);
-    _keys.add(key);
-  }
+  Future<String?> get(String key) async => _lru.get(key);
 
   @override
-  Future<void> remove(String key) async {
-    _items.remove(key);
-    _keys.remove(key);
-  }
+  Future<void> set(String key, String value, {Duration? expiration}) async =>
+      _lru.set(key, value);
 
   @override
-  Future<void> shutdown() => Future<void>.value();
-}
-
-/// An implementation of [ServerCache] which does not perform caching.
-class NoopCache implements ServerCache {
-  @override
-  Future<String?> get(String key) => Future<String?>.value(null);
-
-  @override
-  Future<void> set(String key, String value, {Duration? expiration}) =>
-      Future<void>.value();
-
-  @override
-  Future<void> remove(String key) => Future<void>.value();
+  Future<void> remove(String key) async => _lru.invalidate(key);
 
   @override
   Future<void> shutdown() => Future<void>.value();
