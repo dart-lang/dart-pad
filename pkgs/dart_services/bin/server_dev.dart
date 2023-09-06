@@ -2,8 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// A dev-time only server; see `bin/server.dart` for the GAE server.
+library;
+
 import 'dart:async';
 
-import 'package:dart_services/server.dart' as server;
+import 'package:dart_services/services_dev.dart' as services_dev;
 
-Future<void> main(List<String> args) async => server.main(args);
+Future<void> main(List<String> args) async {
+  await services_dev.main(args);
+}
