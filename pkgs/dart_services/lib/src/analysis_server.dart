@@ -7,7 +7,6 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -58,11 +57,9 @@ abstract class AnalysisServerWrapper {
 
     _isInitialized = true;
 
-    final serverArgs = <String>[
-      '--client-id=DartPad',
-      '--client-version=$_sdkVersion',
-    ];
-    _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
+    final serverArgs = <String>['--client-id=DartPad'];
+    _logger.info('Starting analysis server '
+        '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})');
 
     analysisServer = await AnalysisServer.create(
       sdkPath: sdkPath,
@@ -84,10 +81,6 @@ abstract class AnalysisServerWrapper {
       _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
       rethrow;
     }
-  }
-
-  String get _sdkVersion {
-    return File(path.join(sdkPath, 'version')).readAsStringSync().trim();
   }
 
   Future<int> get onExit {
