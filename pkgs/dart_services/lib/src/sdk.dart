@@ -36,24 +36,24 @@ class Sdk {
   /// Is this SDK being used in development mode. True if channel is `dev`.
   bool get devMode => _channel == 'dev';
 
-  /// Is this the old channel
+  /// If this is the old channel.
   bool get oldChannel => _channel == 'old';
 
-  /// Is this the stable channel
+  /// If this is the stable channel.
   bool get stableChannel => _channel == 'stable';
 
-  /// Is this the beta channel
+  /// If this is the beta channel.
   bool get betaChannel => _channel == 'beta';
 
-  /// Is this the master channel
-  bool get masterChannel => _channel == 'master';
+  /// If this is the main channel.
+  bool get mainChannel => _channel == 'main';
 
   // Which channel is this SDK?
   final String _channel;
 
   /// Experiments that this SDK is configured with
   List<String> get experiments {
-    if (masterChannel) return const ['inline-class'];
+    if (mainChannel) return const ['inline-class'];
     return const [];
   }
 
