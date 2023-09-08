@@ -32,13 +32,6 @@ RUN dart pub run grinder setup-flutter-sdk
 # Build the dill file
 RUN dart pub run grinder build-storage-artifacts validate-storage-artifacts
 
-# Clear out any arguments the base images might have set and ensure we start
-# the Dart app using custom script enabling debug modes.
-CMD []
-
-ENTRYPOINT [ \
-  "dart", "bin/server.dart", \
-  "--port", "${PORT}", \
-  "--redis-url", "redis://10.0.0.4:6379", \
-  "--channel", "beta" \
-]
+ENTRYPOINT dart bin/server.dart \
+  --redis-url=redis://10.0.0.4:6379 \
+  --channel=beta

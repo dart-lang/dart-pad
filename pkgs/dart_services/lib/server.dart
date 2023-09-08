@@ -23,8 +23,7 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('channel',
         valueHelp: 'channel', help: 'The SDK channel (required).')
-    ..addOption('port',
-        valueHelp: 'port', help: 'The port to listen on (required).')
+    ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
     ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show this usage information.');
@@ -36,29 +35,26 @@ Future<void> main(List<String> args) async {
     exit(0);
   }
 
-  if (results['channel'] == null) {
+  if (!results.wasParsed('channel')) {
     print('error: --channel is required.\n');
     print(parser.usage);
     exit(1);
   }
 
-  if (results['port'] == null) {
-    print('error: --port is required.\n');
-    print(parser.usage);
-    exit(1);
-  }
-
-  if (results['redis-url'] == null) {
+  if (!results.wasParsed('redis-url')) {
     print('warning: no redis server specified.\n');
   }
 
   final channel = results['channel'] as String;
   final sdk = Sdk.create(channel);
 
-  final port = int.tryParse(results['port'] as String);
-  if (port == null) {
-    stdout.writeln('Could not parse port "${results['port']}".');
-    exit(1);
+  var port = 8080;
+
+  // Read port from args; fall back to using an env. variable.
+  if (results.wasParsed('port')) {
+    port = int.parse(results['port'] as String);
+  } else if (Platform.environment.containsKey('PORT')) {
+    port = int.parse(Platform.environment['PORT']!);
   }
 
   Logger.root.level = Level.FINER;
