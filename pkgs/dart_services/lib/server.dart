@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A server for Cloud Run.
-library;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -24,32 +21,50 @@ final Logger _logger = Logger('services');
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('channel', mandatory: true)
-    ..addOption('port', abbr: 'p')
-    ..addOption('redis-url');
+    ..addOption('channel',
+        valueHelp: 'channel', help: 'The SDK channel (required).')
+    ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
+    ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Show this usage information.');
+
   final results = parser.parse(args);
+  if (results['help'] as bool) {
+    print('dart bin/server.dart <options>\n');
+    print(parser.usage);
+    exit(0);
+  }
+
+  if (!results.wasParsed('channel')) {
+    print('error: --channel is required.\n');
+    print(parser.usage);
+    exit(1);
+  }
+
+  if (!results.wasParsed('redis-url')) {
+    print('warning: no redis server specified.\n');
+  }
 
   final channel = results['channel'] as String;
   final sdk = Sdk.create(channel);
 
-  // Cloud Run supplies the port to bind to in the environment.
-  // Allow command line arg to override environment.
-  final port = int.tryParse(results['port'] as String? ?? '') ??
-      int.tryParse(Platform.environment['PORT'] ?? '');
-  if (port == null) {
-    stdout.writeln('Could not parse port value from either environment '
-        '"PORT" or from command line argument "--port".');
-    exit(1);
-  }
+  var port = 8080;
 
-  final redisServerUri = results['redis-url'] as String;
+  // Read port from args; fall back to using an env. variable.
+  if (results.wasParsed('port')) {
+    port = int.parse(results['port'] as String);
+  } else if (Platform.environment.containsKey('PORT')) {
+    port = int.parse(Platform.environment['PORT']!);
+  }
 
   Logger.root.level = Level.FINER;
   emitLogsToStdout();
 
+  final redisServerUri = results['redis-url'] as String?;
+
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
-      .map((entry) => '${entry.key}: ${entry.value}')
+      .map((entry) => '  ${entry.key}: ${entry.value}')
       .join('\n');
 
   _logger.info('''
@@ -58,20 +73,21 @@ port: $port
 sdkPath: ${sdk.dartSdkPath}
 redisServerUri: $redisServerUri
 Cloud Run Environment variables:
-$cloudRunEnvVars
-''');
+$cloudRunEnvVars'''
+      .trim());
 
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
-  await EndpointsServer.serve(port, redisServerUri, sdk);
+  await EndpointsServer.serve(port, sdk, redisServerUri);
+
   _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(
     int port,
-    String redisServerUri,
     Sdk sdk,
+    String? redisServerUri,
   ) async {
     final endpointsServer = EndpointsServer._(redisServerUri, sdk);
     await endpointsServer.init();
@@ -94,16 +110,14 @@ class EndpointsServer {
   late final CommonServerImpl _commonServerImpl;
 
   EndpointsServer._(String? redisServerUri, Sdk sdk) {
+    // The name of the Cloud Run revision being run, for more detail please see:
+    // https://cloud.google.com/run/docs/reference/container-contract#env-vars
+    final serverVersion = Platform.environment['K_REVISION'];
+
     _commonServerImpl = CommonServerImpl(
       redisServerUri == null
-          ? InMemoryCache()
-          : RedisCache(
-              redisServerUri,
-              sdk,
-              // The name of the Cloud Run revision being run, for more detail please see:
-              // https://cloud.google.com/run/docs/reference/container-contract#env-vars
-              Platform.environment['K_REVISION'],
-            ),
+          ? NoopCache()
+          : RedisCache(redisServerUri, sdk, serverVersion),
       sdk,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);
@@ -112,13 +126,7 @@ class EndpointsServer {
     GitHubOAuthHandler.setCache(
       redisServerUri == null
           ? InMemoryCache()
-          : RedisCache(
-              redisServerUri,
-              sdk,
-              // The name of the Cloud Run revision being run, for more detail please see:
-              // https://cloud.google.com/run/docs/reference/container-contract#env-vars
-              Platform.environment['K_REVISION'],
-            ),
+          : RedisCache(redisServerUri, sdk, serverVersion),
     );
     GitHubOAuthHandler.addRoutes(commonServerApi.router);
 

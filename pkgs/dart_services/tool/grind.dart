@@ -44,7 +44,7 @@ void analyzeTest() {}
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
   await _run(Platform.executable, arguments: [
-    path.join('bin', 'server_dev.dart'),
+    path.join('bin', 'server.dart'),
     '--channel',
     _channel,
     '--port',
@@ -291,8 +291,9 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 
   // Emit some good Google Storage upload instructions.
   final version = sdk.versionFull;
-  return '  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js*'
-      ' gs://nnbd_artifacts/$version/';
+  return '  gsutil -h "Cache-Control: public, max-age=604800, immutable" '
+      'cp -z js ${artifactsDir.path}/*.js* '
+      'gs://nnbd_artifacts/$version/';
 }
 
 @Task('Reinitialize the Flutter submodule.')
@@ -305,7 +306,6 @@ void setupFlutterSdk() async {
   final flutterSdkPath = await sdkManager.createFromConfigFile();
 
   // Set up the Flutter SDK the way dart-services needs it.
-
   final flutterBinFlutter = path.join(flutterSdkPath, 'bin', 'flutter');
   await _run(
     flutterBinFlutter,
@@ -332,11 +332,6 @@ void setupFlutterSdk() async {
   );
 }
 
-@Task()
-void fuzz() {
-  log('warning: fuzz testing is a noop, see #301');
-}
-
 @Task('Update generated files and run all checks prior to deployment')
 @Depends(sdkInit, updateDockerVersion, generateProtos, analyze, test,
     validateStorageArtifacts)
@@ -345,7 +340,7 @@ void deploy() {
 }
 
 @Task()
-@Depends(analyze, fuzz, buildStorageArtifacts)
+@Depends(analyze, buildStorageArtifacts)
 void buildbot() {}
 
 @Task('Generate Protobuf classes')
@@ -445,18 +440,22 @@ Future<void> _updateDependenciesFile({
   await runFlutterPackagesGet(flutterToolPath, tempDir.path, log: log);
   final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
-  _pubDependenciesFile(channel: channel)
-      .writeAsStringSync(_jsonEncoder.convert(packageVersions));
+  _pubDependenciesFile(channel: channel).writeAsStringSync(
+    JsonEncoder.withIndent('  ').convert(packageVersions),
+  );
 }
-
-/// An encoder which indents nested elements by two spaces.
-const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Returns the File containing the pub dependencies and their version numbers.
 ///
 /// The file is at `tool/pub_dependencies_{channel}.json`, for the Flutter
 /// channels: stable, beta, dev, old.
 File _pubDependenciesFile({required String channel}) {
-  final versionsFileName = 'pub_dependencies_$channel.json';
-  return File(path.join(Directory.current.path, 'tool', versionsFileName));
+  return File(
+    path.join(
+      Directory.current.path,
+      'tool',
+      'dependencies',
+      'pub_dependencies_$channel.json',
+    ),
+  );
 }
