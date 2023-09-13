@@ -639,11 +639,11 @@ $styleRef$dartRef  </head>
     final metadataResponse = await _client.get(metadataUrl);
 
     if (metadataResponse.statusCode == 404) {
-      throw GistLoaderException(GistLoaderFailureType.contentNotFound);
+      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
     } else if (metadataResponse.statusCode == 403) {
-      throw GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
     } else if (metadataResponse.statusCode != 200) {
-      throw GistLoaderException(GistLoaderFailureType.unknown);
+      throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
     final metadataContent = extractGitHubResponseBody(metadataResponse.body);
@@ -654,7 +654,7 @@ $styleRef$dartRef  </head>
       final yamlMap = yaml.loadYaml(metadataContent);
 
       if (yamlMap is! Map) {
-        throw FormatException();
+        throw const FormatException();
       }
 
       metadata = ExerciseMetadata.fromMap(yamlMap.cast());
@@ -674,12 +674,13 @@ $styleRef$dartRef  </head>
 
       if (contentResponse.statusCode == 404) {
         // Blame the metadata for listing an invalid file.
-        throw GistLoaderException(
+        throw const GistLoaderException(
             GistLoaderFailureType.invalidExerciseMetadata);
       } else if (metadataResponse.statusCode == 403) {
-        throw GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
       } else if (metadataResponse.statusCode != 200) {
-        throw GistLoaderException(GistLoaderFailureType.unknown);
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
 
       return extractGitHubResponseBody(contentResponse.body);

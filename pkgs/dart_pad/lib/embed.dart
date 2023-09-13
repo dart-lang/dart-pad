@@ -476,7 +476,7 @@ class Embed extends EditorUi {
 
   void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
-    deps[Analytics] = Analytics();
+    deps[Analytics] = const Analytics();
 
     final channel = queryParams.channel;
     if (Channel.urlMapping.keys.contains(channel)) {
@@ -1377,7 +1377,7 @@ class EmbedContext extends Context {
 
   /// Counts the number of lines in [str].
   static int countLinesInString(String str) =>
-      LineSplitter().convert(str).length;
+      const LineSplitter().convert(str).length;
 }
 
 final RegExp _flutterUrlExp =

@@ -30,12 +30,13 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
 
     final statusCode = res.statusCode;
     if (statusCode == 404) {
-      throw WorkshopFetchException(WorkshopFetchExceptionType.contentNotFound);
+      throw const WorkshopFetchException(
+          WorkshopFetchExceptionType.contentNotFound);
     } else if (statusCode == 403) {
-      throw WorkshopFetchException(
+      throw const WorkshopFetchException(
           WorkshopFetchExceptionType.rateLimitExceeded);
     } else if (statusCode != 200) {
-      throw WorkshopFetchException(WorkshopFetchExceptionType.unknown);
+      throw const WorkshopFetchException(WorkshopFetchExceptionType.unknown);
     }
 
     return extractGitHubResponseBody(res.body);

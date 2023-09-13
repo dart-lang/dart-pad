@@ -231,7 +231,8 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       _frame = clone;
     }
 
-    return _readyCompleter.future.timeout(Duration(seconds: 1), onTimeout: () {
+    return _readyCompleter.future.timeout(const Duration(seconds: 1),
+        onTimeout: () {
       if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     });
   }

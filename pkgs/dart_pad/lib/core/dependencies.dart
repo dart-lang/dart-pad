@@ -14,7 +14,7 @@ Dependencies get deps => Dependencies.instance;
 /// A simple dependency manager. This class manages a collection of singletons.
 /// You can create separate `Dependency` instances to manage separate sets of
 /// collections (for instance, one for testing). Or, you can use the single
-/// [dependency] instance defined in this library to set up all the singletons
+/// [deps] instance defined in this library to set up all the singletons
 /// for your application.
 ///
 ///     Dependencies dependencies = new Dependencies();
@@ -34,7 +34,7 @@ Dependencies get deps => Dependencies.instance;
 ///     dependencies.setDependency(DogManager, new MockDogManager());
 ///     dependencies.runInZone(executeTests);
 ///
-/// It will execute the method [executeTests] in a new Zone. Any queries to
+/// It will execute the method `executeTests` in a new Zone. Any queries to
 /// [Dependencies.instance] will return the new dependencies set up for that
 /// zone.
 class Dependencies {

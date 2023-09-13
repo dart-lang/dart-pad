@@ -36,13 +36,15 @@ class ExerciseFileMetadata {
 
   ExerciseFileMetadata.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      throw MetadataException('Null json was given to ExerciseFileMetadata().');
+      throw const MetadataException(
+          'Null json was given to ExerciseFileMetadata().');
     }
 
     if (map['name'] == null ||
         map['name'] is! String ||
         (map['name'] as String).isEmpty) {
-      throw MetadataException('The "name" field is required for each file.');
+      throw const MetadataException(
+          'The "name" field is required for each file.');
     }
 
     name = map.containsKey('name') ? map['name'] as String : '';
@@ -63,26 +65,30 @@ class ExerciseMetadata {
 
   ExerciseMetadata.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      throw MetadataException('Null json was given to ExerciseMetadata().');
+      throw const MetadataException(
+          'Null json was given to ExerciseMetadata().');
     }
 
     if (map['name'] == null ||
         map['name'] is! String ||
         (map['name'] as String).isEmpty) {
-      throw MetadataException('The "name" field is required for an exercise.');
+      throw const MetadataException(
+          'The "name" field is required for an exercise.');
     }
 
     if (map['mode'] == null ||
         map['mode'] is! String ||
         !exerciseModeNames.containsKey(map['mode'])) {
-      throw MetadataException('A "mode" field of "dart", "html" or "flutter" '
+      throw const MetadataException(
+          'A "mode" field of "dart", "html" or "flutter" '
           'is required for an exercise.');
     }
 
     if (map['files'] == null ||
         map['files'] is! List ||
         (map['files'] as List).isEmpty) {
-      throw MetadataException('Each exercise must have at least one file in '
+      throw const MetadataException(
+          'Each exercise must have at least one file in '
           'its "files" array.');
     }
 

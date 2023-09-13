@@ -377,7 +377,7 @@ class SearchController {
     }
     // queue up a second attempt at select all because sometimes browser flakes on first
     //  (this sometimes happens on the first time the search dialog is opened)
-    Timer(Duration(milliseconds: 20), () {
+    Timer(const Duration(milliseconds: 20), () {
       findTextInput.focus();
       findTextInput.select();
     });

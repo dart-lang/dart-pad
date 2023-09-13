@@ -71,11 +71,11 @@ void main() async {
   Future<void> waitForPageToStabilize() async {
     while (true) {
       final versionsElement =
-          await driver.findElement(By.id('dartpad-version'));
+          await driver.findElement(const By.id('dartpad-version'));
       if ((await versionsElement.text).isNotEmpty) {
         return;
       }
-      await Future<void>.delayed(Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
     }
   }
 
@@ -85,7 +85,7 @@ void main() async {
         uri: Uri.parse('http://localhost:4444/wd/hub/'),
         desired: Capabilities.chrome);
 
-    await Future<void>.delayed(Duration(milliseconds: 2000));
+    await Future<void>.delayed(const Duration(milliseconds: 2000));
 
     // Go to your page
     await driver.get('http://localhost:8000/');
@@ -97,14 +97,15 @@ void main() async {
   });
 
   Future<void> writeScript(String content) async {
-    final codeMirror = await driver.findElement(By.className('CodeMirror'));
+    final codeMirror =
+        await driver.findElement(const By.className('CodeMirror'));
     content = content.replaceAll('\n', '\\n');
     await driver
         .execute('arguments[0].CodeMirror.setValue("$content");', [codeMirror]);
   }
 
   Future<void> runScript() async {
-    final runButton = await driver.findElement(By.id('run-button'));
+    final runButton = await driver.findElement(const By.id('run-button'));
     await runButton.click();
   }
 
@@ -114,7 +115,7 @@ void main() async {
   Future<String> waitForOutput(String sample) async {
     while (true) {
       final outputPanel =
-          await driver.findElement(By.id('right-output-panel-content'));
+          await driver.findElement(const By.id('right-output-panel-content'));
       final text = await outputPanel.text;
       if (text.contains(sample)) {
         return text;
@@ -123,7 +124,8 @@ void main() async {
   }
 
   test('Version text is displayed', () async {
-    final versionsElement = await driver.findElement(By.id('dartpad-version'));
+    final versionsElement =
+        await driver.findElement(const By.id('dartpad-version'));
     expect(await versionsElement.text, startsWith('Based on Flutter'));
   }, skip: runningInCi);
 

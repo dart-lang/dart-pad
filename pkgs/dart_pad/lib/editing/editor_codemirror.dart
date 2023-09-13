@@ -136,7 +136,8 @@ class CodeMirrorFactory extends EditorFactory {
             }
           },
           hintRenderer: (html.Element element, HintResult hint) {
-            final escapeHtml = HtmlEscape().convert as String Function(String?);
+            final escapeHtml =
+                const HtmlEscape().convert as String Function(String?);
             if (completion.type != 'type-quick_fix') {
               element.innerHtml = escapeHtml(completion.displayString)
                   .replaceFirst(escapeHtml(stringToReplace),
