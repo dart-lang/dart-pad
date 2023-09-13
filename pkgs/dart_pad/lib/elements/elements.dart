@@ -248,7 +248,7 @@ class DToast extends DElement {
     // Add to the DOM, start a timer, make it visible.
     document.body!.children.add(element);
 
-    Timer(Duration(milliseconds: 16), () {
+    Timer(const Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
     });
   }
@@ -331,7 +331,7 @@ abstract class DDialog extends DElement {
     // Add to the DOM, start a timer, make it visible.
     document.body!.children.add(element);
 
-    Timer(Duration(milliseconds: 16), () {
+    Timer(const Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
     });
   }
@@ -342,7 +342,7 @@ abstract class DDialog extends DElement {
     pane.hide();
 
     // Start a timer, hide, remove from dom.
-    Timer(Duration(milliseconds: 16), () {
+    Timer(const Duration(milliseconds: 16), () {
       element.classes.toggle('showing', false);
       element.onTransitionEnd.first.then((event) {
         dispose();

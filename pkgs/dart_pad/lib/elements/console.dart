@@ -124,8 +124,8 @@ class AnsiConsoleHandler {
     0xa5a5a5, // bright white
   ];
 
-  /// We set this to [darkModeAnsiColors] or [lightModeAnsiColors] in constructor
-  /// depending on [_darkMode].
+  /// We set this to [darkModeAnsiColors] or [lightModeAnsiColors] in
+  /// the constructor depending on if `darkMode` is enabled or not.
   late final List<int> _themeModeAnsiColors;
 
   // Certain ranges that are matched here do not contain real graphics rendition

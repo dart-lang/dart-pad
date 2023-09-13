@@ -166,7 +166,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void _initGistStorage() {
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    mutableGist.onChanged.debounce(Duration(milliseconds: 100)).listen((_) {
+    mutableGist.onChanged
+        .debounce(const Duration(milliseconds: 100))
+        .listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
       }
@@ -174,7 +176,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _initLayoutDetection() {
-    mutableGist.onChanged.debounce(Duration(milliseconds: 32)).listen((_) {
+    mutableGist.onChanged
+        .debounce(const Duration(milliseconds: 32))
+        .listen((_) {
       if (hasFlutterContent(context.dartSource)) {
         _changeLayout(Layout.flutter);
       } else if (hasHtmlContent(context.dartSource)) {
@@ -526,7 +530,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     executionService.onStderr.listen((m) => showOutput(m, error: true));
 
     // Set up Google Analytics.
-    deps[Analytics] = Analytics();
+    deps[Analytics] = const Analytics();
 
     // Set up the gist loader.
     deps[GistLoader] = GistLoader.defaultFilters();

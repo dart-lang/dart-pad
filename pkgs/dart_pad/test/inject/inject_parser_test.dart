@@ -18,7 +18,7 @@ void main() {
 
     test('throws with invalid input', () {
       expect(InjectParser(_invalidCodelab).read,
-          throwsA(TypeMatcher<DartPadInjectException>()));
+          throwsA(const TypeMatcher<DartPadInjectException>()));
     });
 
     test('can parse normal snippets', () {

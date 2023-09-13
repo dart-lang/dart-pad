@@ -26,7 +26,7 @@ dev_dependencies:
   angel3_mock_request: ^8.0.0
   async: ^2.11.0
   build_runner: ^2.4.5
-  dart_flutter_team_lints: ^1.0.0
+  dart_flutter_team_lints: ^2.0.0
   grinder: ^0.9.4
   package_config: ^2.1.0
   shelf_router_generator: ^1.0.6

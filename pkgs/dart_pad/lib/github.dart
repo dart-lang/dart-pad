@@ -151,7 +151,7 @@ class GitHubUIController {
 
   void setupGithubGistListeners() {
     _playground.mutableGist.onChanged
-        .debounce(Duration(milliseconds: 100))
+        .debounce(const Duration(milliseconds: 100))
         .listen((_) {
       setUnsavedLocalEdits();
     });
@@ -170,12 +170,12 @@ class GitHubUIController {
       _updateStarredGistMenuState();
     });
     _starUnstarButton.onClick
-        .debounce(Duration(milliseconds: 100))
+        .debounce(const Duration(milliseconds: 100))
         .listen(_starredButtonClickHandler);
 
     // This will only happen when we make 'contenteditable' true while authenticated.
     _titleElement.element.onInput
-        .debounce(Duration(milliseconds: 100))
+        .debounce(const Duration(milliseconds: 100))
         .listen((_) {
       _playground.mutableGist.description = _titleElement.text;
       setUnsavedLocalEdits();

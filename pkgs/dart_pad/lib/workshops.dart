@@ -144,11 +144,11 @@ class WorkshopUi extends EditorUi {
     // Put onchange handler on document and if there are changes
     // store them in local storage.
     editor.document.onChange
-        .debounce(Duration(milliseconds: 500))
+        .debounce(const Duration(milliseconds: 500))
         .listen((_) => _handleChangeInUsersWork());
     editor.document.onChange.listen((_) => busyLight.on());
     editor.document.onChange
-        .debounce(Duration(milliseconds: 1250))
+        .debounce(const Duration(milliseconds: 1250))
         .listen((_) => performAnalysis());
 
     editorFactory.registerCompleter(
@@ -225,7 +225,7 @@ class WorkshopUi extends EditorUi {
     executionService.onStdout.listen(showOutput);
     executionService.onStderr.listen((m) => showOutput(m, error: true));
     // Set up Google Analytics.
-    deps[Analytics] = Analytics();
+    deps[Analytics] = const Analytics();
 
     // Use null safety for workshops
     (deps[DartservicesApi] as DartservicesApi).rootUrl = serverUrl;
@@ -461,7 +461,7 @@ class WorkshopUi extends EditorUi {
     div.children.clear();
     div.setInnerHtml(
         markdown.markdownToHtml(_workshopState.currentStep.instructions,
-            blockSyntaxes: [markdown.TableSyntax()]),
+            blockSyntaxes: [const markdown.TableSyntax()]),
         validator: _htmlValidator);
     hljs.highlightAll();
     div.scrollTop = 0;
