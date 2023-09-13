@@ -441,7 +441,7 @@ Future<void> _updateDependenciesFile({
   final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
   _pubDependenciesFile(channel: channel).writeAsStringSync(
-    JsonEncoder.withIndent('  ').convert(packageVersions),
+    const JsonEncoder.withIndent('  ').convert(packageVersions),
   );
 }
 

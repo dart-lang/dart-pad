@@ -265,8 +265,10 @@ void defineTests() {
 
     test('files={} simple_completion', () async {
       // Just after `i.` on line 3 of [completionCode]
-      final results = await analysisServer
-          .completeFiles({kMainDart: completionCode}, Location(kMainDart, 32));
+      final results = await analysisServer.completeFiles(
+        {kMainDart: completionCode},
+        const Location(kMainDart, 32),
+      );
       expect(results.replacementLength, 0);
       expect(results.replacementOffset, 32);
       final completions =
@@ -290,7 +292,7 @@ void defineTests() {
     test('files={} repro #126 - completions polluted on second request',
         () async {
       final files = <String, String>{kMainDart: completionFilterCode};
-      final location = Location(kMainDart, 17);
+      final location = const Location(kMainDart, 17);
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.completeFiles(files, location).then((results) {
         return analysisServer.completeFiles(files, location).then((results) {
@@ -307,8 +309,10 @@ void defineTests() {
       // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
 
-      final results = await analysisServer
-          .completeFiles({kMainDart: testCode}, Location(kMainDart, 9));
+      final results = await analysisServer.completeFiles(
+        {kMainDart: testCode},
+        const Location(kMainDart, 9),
+      );
       final completions = results.completions;
 
       if (completions.isNotEmpty) {
@@ -322,8 +326,10 @@ void defineTests() {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";
 
-      final results = await analysisServer
-          .completeFiles({kMainDart: testCode}, Location(kMainDart, 14));
+      final results = await analysisServer.completeFiles(
+        {kMainDart: testCode},
+        const Location(kMainDart, 14),
+      );
       final completions = results.completions;
 
       expect(
@@ -341,16 +347,19 @@ void defineTests() {
     test('files={} import_and_other_test', () async {
       final testCode = "import '/'; main() { int a = 0; a. }";
 
-      final results = await analysisServer
-          .completeFiles({kMainDart: testCode}, Location(kMainDart, 34));
+      final results = await analysisServer.completeFiles(
+        {kMainDart: testCode},
+        const Location(kMainDart, 34),
+      );
 
       expect(completionsContains(results, 'abs'), true);
     });
 
     test('files={} myRandomName.dart + simple_quickFix', () async {
       final results = await analysisServer.getFixesMulti(
-          {'myRandomName.dart': quickFixesCode},
-          Location('myRandomName.dart', 25));
+        {'myRandomName.dart': quickFixesCode},
+        const Location('myRandomName.dart', 25),
+      );
 
       expect(results.fixes.length, 2);
 
@@ -390,7 +399,9 @@ void defineTests() {
       final idx = 61;
       expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
       final results = await analysisServer.completeFiles(
-          {kMainDart: completionLargeNamespaces}, Location(kMainDart, 61));
+        {kMainDart: completionLargeNamespaces},
+        const Location(kMainDart, 61),
+      );
       expect(completionsContains(results, 'A'), true);
       expect(completionsContains(results, 'AB'), true);
       expect(completionsContains(results, 'ABC'), true);

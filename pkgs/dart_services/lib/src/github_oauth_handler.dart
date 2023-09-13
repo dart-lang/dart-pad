@@ -32,11 +32,11 @@ class GitHubOAuthHandler {
   /// Entry point called from Dart-Pad to initiate a GitHub OAuth Token request.
   /// NOTE: any change to [entryPointGitHubOAuthInitiate] must also be
   /// reflected in changing value in dart-pad\lib\github.dart's
-  /// [GitHubUIController.entryPointGitHubOAuthInitiate] to
+  /// `GitHubUIController.entryPointGitHubOAuthInitiate` to
   /// match.
   static const entryPointGitHubOAuthInitiate = 'github_oauth_initiate';
 
-  /// Entry point specifed to GitHub when setting up OAuth App that GitHub will
+  /// Entry point specified to GitHub when setting up OAuth App that GitHub will
   /// redirect to after the OAuth process is completed.  This entry point name
   /// here must also match that used in [_returnToAppUrl] member variable (or
   /// set using the K_GITHUB_OAUTH_RETURN_TO_APP_URL environmental variable).
@@ -53,7 +53,7 @@ class GitHubOAuthHandler {
   static late final String _authReturnUrl;
   static late final String _returnToAppUrl;
 
-  static final Duration tenMinuteExpiration = Duration(minutes: 10);
+  static const Duration tenMinuteExpiration = Duration(minutes: 10);
 
   /// Adds the GitHub OAuth api end point routes to the passed in Router.
   static bool addRoutes(Router router) {

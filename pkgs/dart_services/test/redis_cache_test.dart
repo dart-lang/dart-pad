@@ -93,8 +93,8 @@ void defineTests(bool hasRedis) {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         await redisCache.set('expiringkey', 'expiringValue',
-            expiration: Duration(milliseconds: 1));
-        await Future<void>.delayed(Duration(milliseconds: 100));
+            expiration: const Duration(milliseconds: 1));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         await expectLater(await redisCache.get('expiringkey'), isNull);
         expect(logMessages, isEmpty);
       });
@@ -149,7 +149,7 @@ void defineTests(bool hasRedis) {
         try {
           // Wait for a retry message.
           while (logMessages.length < 2) {
-            await Future<void>.delayed(Duration(milliseconds: 50));
+            await Future<void>.delayed(const Duration(milliseconds: 50));
           }
           expect(
               logMessages.join('\n'),
@@ -193,7 +193,9 @@ void defineTests(bool hasRedis) {
               '(aversion): Connected to redis server',
             ]));
       });
-    }, onPlatform: {'windows': Skip('Windows does not have sigstop/sigcont')});
+    }, onPlatform: {
+      'windows': const Skip('Windows does not have sigstop/sigcont'),
+    });
 
     test(
         'Verify cache that starts out connected but breaks retries until reconnection (slow)',
