@@ -11,7 +11,7 @@ dependencies:
   bazel_worker: ^1.0.2
   convert: ^3.1.1
   crypto: ^3.0.3
-  encrypt: ^5.0.1
+  encrypt: ^5.0.2
   http: ^1.0.0
   logging: ^1.2.0
   meta: ^1.9.1
