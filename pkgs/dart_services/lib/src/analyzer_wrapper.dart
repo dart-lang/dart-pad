@@ -71,13 +71,11 @@ class AnalyzerWrapper {
     return _dartAnalysisServer.shutdown();
   }
 
-  Future<proto.AnalysisResults> analyze(String source,
-          {required bool devMode}) =>
-      analyzeFiles({kMainDart: source}, kMainDart, devMode: devMode);
+  Future<proto.AnalysisResults> analyze(String source) =>
+      analyzeFiles({kMainDart: source}, kMainDart);
 
   Future<proto.AnalysisResults> analyzeFiles(
-          Map<String, String> sources, String activeSourceName,
-          {required bool devMode}) =>
+          Map<String, String> sources, String activeSourceName) =>
       _perfLogAndRestart(
           sources,
           activeSourceName,
@@ -85,89 +83,79 @@ class AnalyzerWrapper {
           (List<ImportDirective> imports, Location location) =>
               _dartAnalysisServer.analyzeFiles(sources, imports: imports),
           'analysis',
-          'Error during analyze on "${sources[activeSourceName]}"',
-          devMode: devMode);
+          'Error during analyze on "${sources[activeSourceName]}"');
 
-  Future<proto.CompleteResponse> complete(String source, int offset,
-          {required bool devMode}) =>
-      completeFiles({kMainDart: source}, kMainDart, offset, devMode: devMode);
+  Future<proto.CompleteResponse> complete(String source, int offset) =>
+      completeFiles({kMainDart: source}, kMainDart, offset);
 
   Future<proto.CompleteResponse> completeFiles(
-          Map<String, String> sources, String activeSourceName, int offset,
-          {required bool devMode}) =>
+          Map<String, String> sources, String activeSourceName, int offset) =>
       _perfLogAndRestart(
-          sources,
-          activeSourceName,
-          offset,
-          (List<ImportDirective> imports, Location location) =>
-              _dartAnalysisServer.completeFiles(sources, location),
-          'completions',
-          'Error during complete on "${sources[activeSourceName]}" at $offset',
-          devMode: devMode);
+        sources,
+        activeSourceName,
+        offset,
+        (List<ImportDirective> imports, Location location) =>
+            _dartAnalysisServer.completeFiles(sources, location),
+        'completions',
+        'Error during complete on "${sources[activeSourceName]}" at $offset',
+      );
 
-  Future<proto.FixesResponse> getFixes(String source, int offset,
-          {required bool devMode}) =>
-      getFixesMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+  Future<proto.FixesResponse> getFixes(String source, int offset) =>
+      getFixesMulti({kMainDart: source}, kMainDart, offset);
 
   Future<proto.FixesResponse> getFixesMulti(
-          Map<String, String> sources, String activeSourceName, int offset,
-          {required bool devMode}) =>
+          Map<String, String> sources, String activeSourceName, int offset) =>
       _perfLogAndRestart(
-          sources,
-          activeSourceName,
-          offset,
-          (List<ImportDirective> imports, Location location) =>
-              _dartAnalysisServer.getFixesMulti(sources, location),
-          'fixes',
-          'Error during fixes on "${sources[activeSourceName]}" at $offset',
-          devMode: devMode);
+        sources,
+        activeSourceName,
+        offset,
+        (List<ImportDirective> imports, Location location) =>
+            _dartAnalysisServer.getFixesMulti(sources, location),
+        'fixes',
+        'Error during fixes on "${sources[activeSourceName]}" at $offset',
+      );
 
-  Future<proto.AssistsResponse> getAssists(String source, int offset,
-          {required bool devMode}) =>
-      getAssistsMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+  Future<proto.AssistsResponse> getAssists(String source, int offset) =>
+      getAssistsMulti({kMainDart: source}, kMainDart, offset);
 
   Future<proto.AssistsResponse> getAssistsMulti(
-          Map<String, String> sources, String activeSourceName, int offset,
-          {required bool devMode}) =>
+          Map<String, String> sources, String activeSourceName, int offset) =>
       _perfLogAndRestart(
-          sources,
-          activeSourceName,
-          offset,
-          (List<ImportDirective> imports, Location location) =>
-              _dartAnalysisServer.getAssistsMulti(sources, location),
-          'assists',
-          'Error during assists on "${sources[activeSourceName]}" at $offset',
-          devMode: devMode);
-
-  Future<proto.FormatResponse> format(String source, int offset,
-      {required bool devMode}) {
-    return _perfLogAndRestart(
-        {kMainDart: source},
-        kMainDart,
+        sources,
+        activeSourceName,
         offset,
-        (List<ImportDirective> imports, Location _) =>
-            _dartAnalysisServer.format(source, offset),
-        'format',
-        'Error during format at $offset',
-        devMode: devMode);
+        (List<ImportDirective> imports, Location location) =>
+            _dartAnalysisServer.getAssistsMulti(sources, location),
+        'assists',
+        'Error during assists on "${sources[activeSourceName]}" at $offset',
+      );
+
+  Future<proto.FormatResponse> format(String source, int offset) {
+    return _perfLogAndRestart(
+      {kMainDart: source},
+      kMainDart,
+      offset,
+      (List<ImportDirective> imports, Location _) =>
+          _dartAnalysisServer.format(source, offset),
+      'format',
+      'Error during format at $offset',
+    );
   }
 
-  Future<Map<String, String>> dartdoc(String source, int offset,
-          {required bool devMode}) =>
-      dartdocMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+  Future<Map<String, String>> dartdoc(String source, int offset) =>
+      dartdocMulti({kMainDart: source}, kMainDart, offset);
 
   Future<Map<String, String>> dartdocMulti(
-          Map<String, String> sources, String activeSourceName, int offset,
-          {required bool devMode}) =>
+          Map<String, String> sources, String activeSourceName, int offset) =>
       _perfLogAndRestart(
-          sources,
-          activeSourceName,
-          offset,
-          (List<ImportDirective> imports, Location location) =>
-              _dartAnalysisServer.dartdocMulti(sources, location),
-          'dartdoc',
-          'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
-          devMode: devMode);
+        sources,
+        activeSourceName,
+        offset,
+        (List<ImportDirective> imports, Location location) =>
+            _dartAnalysisServer.dartdocMulti(sources, location),
+        'dartdoc',
+        'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
+      );
 
   Future<T> _perfLogAndRestart<T>(
     Map<String, String> sources,
@@ -175,13 +163,12 @@ class AnalyzerWrapper {
     int offset,
     Future<T> Function(List<ImportDirective>, Location) body,
     String action,
-    String errorDescription, {
-    required bool devMode,
-  }) async {
+    String errorDescription,
+  ) async {
     activeSourceName = sanitizeAndCheckFilenames(sources, activeSourceName);
     final imports = getAllImportsForFiles(sources);
     final location = Location(activeSourceName, offset);
-    await _checkPackageReferences(sources, imports, devMode: devMode);
+    await _checkPackageReferences(sources, imports);
     try {
       final watch = Stopwatch()..start();
       final response = await body(imports, location);
@@ -196,10 +183,11 @@ class AnalyzerWrapper {
 
   /// Check that the set of packages referenced is valid.
   Future<void> _checkPackageReferences(
-      Map<String, String> sources, List<ImportDirective> imports,
-      {required bool devMode}) async {
+    Map<String, String> sources,
+    List<ImportDirective> imports,
+  ) async {
     final unsupportedImports = project.getUnsupportedImports(imports,
-        sourcesFileList: sources.keys.toList(), devMode: devMode);
+        sourcesFileList: sources.keys.toList());
 
     if (unsupportedImports.isNotEmpty) {
       // TODO(srawlins): Do the work so that each unsupported input is its own
