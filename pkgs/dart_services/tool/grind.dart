@@ -56,7 +56,7 @@ const _dartImageName = 'dart';
 final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
   'cloud_run_beta.Dockerfile',
-  'cloud_run_dev.Dockerfile',
+  'cloud_run_main.Dockerfile',
   'cloud_run_old.Dockerfile',
   'cloud_run.Dockerfile',
 ];
@@ -418,10 +418,8 @@ Future<void> _updateDependenciesFile({
     'lints': 'any',
     'flutter_lints': 'any',
     for (final package in firebasePackages) package: 'any',
-    for (final package in supportedFlutterPackages(devMode: sdk.devMode))
-      package: 'any',
-    for (final package in supportedBasicDartPackages(devMode: sdk.devMode))
-      package: 'any',
+    for (final package in supportedFlutterPackages()) package: 'any',
+    for (final package in supportedBasicDartPackages()) package: 'any',
   };
 
   // Overwrite with important constraints.
@@ -448,7 +446,7 @@ Future<void> _updateDependenciesFile({
 /// Returns the File containing the pub dependencies and their version numbers.
 ///
 /// The file is at `tool/pub_dependencies_{channel}.json`, for the Flutter
-/// channels: stable, beta, dev, old.
+/// channels: stable, beta, old.
 File _pubDependenciesFile({required String channel}) {
   return File(
     path.join(

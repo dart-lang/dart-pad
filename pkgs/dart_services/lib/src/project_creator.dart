@@ -40,8 +40,7 @@ class ProjectCreator {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
-    final dependencies =
-        _dependencyVersions(supportedBasicDartPackages(devMode: _sdk.devMode));
+    final dependencies = _dependencyVersions(supportedBasicDartPackages());
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
@@ -90,8 +89,8 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
     await Directory(path.join(projectPath, 'web')).create();
     await File(path.join(projectPath, 'web', 'index.html')).create();
     var packages = {
-      ...supportedBasicDartPackages(devMode: _sdk.devMode),
-      ...supportedFlutterPackages(devMode: _sdk.devMode),
+      ...supportedBasicDartPackages(),
+      ...supportedFlutterPackages(),
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
@@ -128,8 +127,8 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       // configured in JavaScript, before executing Dart. Now add the full set of
       // supported Firebase pacakges. This workaround is a very fragile hack.
       packages = {
-        ...supportedBasicDartPackages(devMode: _sdk.devMode),
-        ...supportedFlutterPackages(devMode: _sdk.devMode),
+        ...supportedBasicDartPackages(),
+        ...supportedFlutterPackages(),
         ...firebasePackages,
       };
       final dependencies = _dependencyVersions(packages);

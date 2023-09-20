@@ -73,7 +73,7 @@ class HelloWorld extends StatelessWidget {
   @override
   Widget build(context) => const Center(child: Text('Hello world'));
 }
-''', devMode: false);
+''');
       expect(results.issues, hasLength(1));
       final issue = results.issues[0];
       expect(issue.line, 3);
@@ -102,7 +102,7 @@ class HelloWorld extends StatelessWidget {
   @override
   Widget build(context) => const Center(child: Text('Hello world'));
 }
-''', devMode: false);
+''');
       expect(results.issues, hasLength(1));
       final issue = results.issues[0];
       expect(issue.line, 4);
@@ -112,26 +112,26 @@ class HelloWorld extends StatelessWidget {
     });
 
     test('analyze counter app', () async {
-      final results = await analysisServersWrapper
-          .analyze(sampleCodeFlutterCounter, devMode: false);
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results = await analysisServersWrapper
-          .analyze(sampleCodeFlutterDraggableCard, devMode: false);
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
       expect(results.issues, isEmpty);
     });
 
     test('analyze counter app', () async {
-      final results = await analysisServersWrapper
-          .analyze(sampleCodeFlutterCounter, devMode: false);
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results = await analysisServersWrapper
-          .analyze(sampleCodeFlutterDraggableCard, devMode: false);
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
       expect(results.issues, isEmpty);
     });
   });
@@ -228,7 +228,7 @@ class HelloWorld extends StatelessWidget {
   Widget build(context) => const Center(child: Text('Hello world'));
 }
 '''
-        }, kMainDart, devMode: false);
+        }, kMainDart);
         expect(results.issues, hasLength(1));
         final issue = results.issues[0];
         expect(issue.line, 3);
@@ -259,7 +259,7 @@ class HelloWorld extends StatelessWidget {
   Widget build(context) => const Center(child: Text('Hello world'));
 }
 '''
-        }, kMainDart, devMode: false);
+        }, kMainDart);
         expect(results.issues, hasLength(1));
         final issue = results.issues[0];
         expect(issue.line, 4);
@@ -269,30 +269,26 @@ class HelloWorld extends StatelessWidget {
       });
 
       test('analyzeFiles counter app files={}', () async {
-        final results = await analysisServersWrapper.analyzeFiles(
-            {kMainDart: sampleCodeFlutterCounter}, kMainDart,
-            devMode: false);
+        final results = await analysisServersWrapper
+            .analyzeFiles({kMainDart: sampleCodeFlutterCounter}, kMainDart);
         expect(results.issues, isEmpty);
       });
 
       test('analyzeFiles Draggable Physics sample files={}', () async {
         final results = await analysisServersWrapper.analyzeFiles(
-            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart,
-            devMode: false);
+            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart);
         expect(results.issues, isEmpty);
       });
 
       test('analyzeFiles counter app files={}', () async {
-        final results = await analysisServersWrapper.analyzeFiles(
-            {kMainDart: sampleCodeFlutterCounter}, kMainDart,
-            devMode: false);
+        final results = await analysisServersWrapper
+            .analyzeFiles({kMainDart: sampleCodeFlutterCounter}, kMainDart);
         expect(results.issues, isEmpty);
       });
 
       test('analyzeFiles Draggable Physics sample files={}', () async {
         final results = await analysisServersWrapper.analyzeFiles(
-            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart,
-            devMode: false);
+            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart);
         expect(results.issues, isEmpty);
       });
     });

@@ -33,9 +33,6 @@ class Sdk {
   /// The current version of the SDK, not including any `-dev` suffix.
   final String version;
 
-  /// Is this SDK being used in development mode. True if channel is `dev`.
-  bool get devMode => _channel == 'dev';
-
   /// If this is the old channel.
   bool get oldChannel => _channel == 'old';
 
@@ -103,7 +100,7 @@ class Sdk {
       path.join(Directory.current.path, 'flutter-sdks');
 }
 
-const channels = ['stable', 'beta', 'dev', 'old', 'main'];
+const channels = ['stable', 'beta', 'old', 'main'];
 
 class DownloadingSdkManager {
   final String channel;
