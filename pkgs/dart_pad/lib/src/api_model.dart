@@ -1,0 +1,212 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:json_annotation/json_annotation.dart';
+
+part 'api_model.g.dart';
+
+@JsonSerializable()
+class SourceRequest {
+  final String source;
+  final int? offset;
+
+  SourceRequest({required this.source, this.offset});
+
+  factory SourceRequest.fromJson(Map<String, dynamic> json) =>
+      _$SourceRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SourceRequestToJson(this);
+}
+
+@JsonSerializable()
+class AnalysisResults {
+  final List<AnalysisIssue> issues;
+
+  AnalysisResults({this.issues = const []});
+
+  factory AnalysisResults.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisResultsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AnalysisResultsToJson(this);
+}
+
+@JsonSerializable()
+class AnalysisIssue {
+  final String kind;
+  final String message;
+  final String? correction;
+  final int charStart;
+  final int charLength;
+  final int line;
+  final int column;
+
+  AnalysisIssue({
+    required this.kind,
+    required this.message,
+    this.correction,
+    this.charStart = -1,
+    this.charLength = 0,
+    this.line = -1,
+    this.column = -1,
+  });
+
+  factory AnalysisIssue.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisIssueFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AnalysisIssueToJson(this);
+}
+
+@JsonSerializable()
+class CompileRequest {
+  final String source;
+
+  CompileRequest({required this.source});
+
+  factory CompileRequest.fromJson(Map<String, dynamic> json) =>
+      _$CompileRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompileRequestToJson(this);
+}
+
+@JsonSerializable()
+class CompileResponse {
+  final String result;
+
+  CompileResponse({required this.result});
+
+  factory CompileResponse.fromJson(Map<String, dynamic> json) =>
+      _$CompileResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompileResponseToJson(this);
+}
+
+@JsonSerializable()
+class FormatResponse {
+  final String newString;
+  final int? offset;
+
+  FormatResponse({
+    required this.newString,
+    required this.offset,
+  });
+
+  factory FormatResponse.fromJson(Map<String, dynamic> json) =>
+      _$FormatResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FormatResponseToJson(this);
+}
+
+@JsonSerializable()
+class FlutterBuildResponse {
+  final Map<String, String> artifacts;
+
+  FlutterBuildResponse({required this.artifacts});
+
+  factory FlutterBuildResponse.fromJson(Map<String, dynamic> json) =>
+      _$FlutterBuildResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FlutterBuildResponseToJson(this);
+}
+
+@JsonSerializable()
+class CompleteResponse {
+  final int replacementOffset;
+  final int replacementLength;
+  final List<CompletionSuggestion> suggestions;
+
+  CompleteResponse({
+    required this.replacementOffset,
+    required this.replacementLength,
+    required this.suggestions,
+  });
+
+  factory CompleteResponse.fromJson(Map<String, dynamic> json) =>
+      _$CompleteResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompleteResponseToJson(this);
+}
+
+@JsonSerializable()
+class CompletionSuggestion {
+  final String kind;
+  final int relevance;
+  final String completion;
+  final int selectionOffset;
+  final bool deprecated;
+  final String? displayText;
+  final List<String>? parameterNames;
+  final CompletionElement? element;
+  final String? returnType;
+
+  CompletionSuggestion({
+    required this.kind,
+    required this.relevance,
+    required this.completion,
+    required this.selectionOffset,
+    required this.deprecated,
+    required this.displayText,
+    required this.parameterNames,
+    required this.element,
+    required this.returnType,
+  });
+
+  factory CompletionSuggestion.fromJson(Map<String, dynamic> json) =>
+      _$CompletionSuggestionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompletionSuggestionToJson(this);
+}
+
+@JsonSerializable()
+class CompletionElement {
+  final String kind;
+  final String? parameters;
+
+  CompletionElement({
+    required this.kind,
+    required this.parameters,
+  });
+
+  factory CompletionElement.fromJson(Map<String, dynamic> json) =>
+      _$CompletionElementFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompletionElementToJson(this);
+}
+
+@JsonSerializable()
+class VersionResponse {
+  final String dartVersion;
+  final String flutterVersion;
+  final List<String> experiments;
+  final List<PackageInfo> packages;
+
+  VersionResponse({
+    required this.dartVersion,
+    required this.flutterVersion,
+    required this.experiments,
+    required this.packages,
+  });
+
+  factory VersionResponse.fromJson(Map<String, dynamic> json) =>
+      _$VersionResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionResponseToJson(this);
+}
+
+@JsonSerializable()
+class PackageInfo {
+  final String name;
+  final String version;
+  final bool supported;
+
+  PackageInfo({
+    required this.name,
+    required this.version,
+    required this.supported,
+  });
+
+  factory PackageInfo.fromJson(Map<String, dynamic> json) =>
+      _$PackageInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageInfoToJson(this);
+}
