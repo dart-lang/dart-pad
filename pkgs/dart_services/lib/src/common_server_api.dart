@@ -52,10 +52,7 @@ class CommonServerApi {
           api.SourceRequest.fromJson(await request.readAsJson());
 
       final result = await serialize(() {
-        return _impl.analysisServer.analyze(
-          sourceRequest.source,
-          devMode: false,
-        );
+        return _impl.analysisServer.analyze(sourceRequest.source);
       });
 
       return ok(api.AnalysisResults(
@@ -167,7 +164,6 @@ class CommonServerApi {
         return _impl.analysisServer.format(
           sourceRequest.source,
           sourceRequest.offset ?? 0,
-          devMode: false,
         );
       });
       return ok(api.FormatResponse(
@@ -327,7 +323,7 @@ class CommonServerApi {
         api.PackageInfo(
           name: packageName,
           version: packageVersions[packageName]!,
-          supported: isSupportedPackage(packageName, devMode: sdk.devMode),
+          supported: isSupportedPackage(packageName),
         ),
     ];
 
