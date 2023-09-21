@@ -76,7 +76,7 @@ const Set<String> firebasePackages = {
 };
 
 /// The set of supported Flutter-oriented packages.
-Set<String> supportedFlutterPackages({required bool devMode}) => {
+Set<String> supportedFlutterPackages() => {
       'animations',
       'creator',
       'firebase_analytics',
@@ -103,20 +103,19 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'riverpod_navigator',
       'shared_preferences',
       'video_player',
-      if (devMode) ...[],
     };
 
 /// The set of packages which indicate that Flutter Web is being used.
-Set<String> _packagesIndicatingFlutter({required bool devMode}) => {
+Set<String> _packagesIndicatingFlutter() => {
       'flutter',
       'flutter_test',
-      ...supportedFlutterPackages(devMode: devMode),
+      ...supportedFlutterPackages(),
       ...firebasePackages,
     };
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
-Set<String> supportedBasicDartPackages({required bool devMode}) => {
+Set<String> supportedBasicDartPackages() => {
       'basics',
       'bloc',
       'characters',
@@ -144,7 +143,6 @@ Set<String> supportedBasicDartPackages({required bool devMode}) => {
       'vector_math',
       'yaml',
       'yaml_edit',
-      if (devMode) ...[]
     };
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
@@ -168,8 +166,7 @@ const Set<String> _allowedDartImports = {
 };
 
 /// Returns whether [imports] denote use of Flutter Web.
-bool usesFlutterWeb(Iterable<ImportDirective> imports,
-    {required bool devMode}) {
+bool usesFlutterWeb(Iterable<ImportDirective> imports) {
   return imports.any((import) {
     final uriString = import.uri.stringValue;
     if (uriString == null) return false;
@@ -177,7 +174,7 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports,
 
     final packageName = _packageNameFromPackageUri(uriString);
     return packageName != null &&
-        _packagesIndicatingFlutter(devMode: devMode).contains(packageName);
+        _packagesIndicatingFlutter().contains(packageName);
   });
 }
 
@@ -212,8 +209,10 @@ String? _packageNameFromPackageUri(String uriString) {
 /// This is done so the list can't be used to bypass unsupported imports.
 /// The function [sanitizeAndCheckFilenames()] was used to sanitize the
 /// filenames.
-List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
-    {List<String>? sourcesFileList, bool devMode = false}) {
+List<ImportDirective> getUnsupportedImports(
+  List<ImportDirective> imports, {
+  List<String>? sourcesFileList,
+}) {
   return imports.where((import) {
     final uriString = import.uri.stringValue;
     if (uriString == null || uriString.isEmpty) {
@@ -238,7 +237,7 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
     if (uri.scheme == 'package') {
       if (uri.pathSegments.isEmpty) return true;
       final package = uri.pathSegments.first;
-      return !isSupportedPackage(package, devMode: devMode);
+      return !isSupportedPackage(package);
     }
 
     // Don't allow file imports.
@@ -246,6 +245,6 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
   }).toList();
 }
 
-bool isSupportedPackage(String package, {required bool devMode}) =>
-    _packagesIndicatingFlutter(devMode: devMode).contains(package) ||
-    supportedBasicDartPackages(devMode: devMode).contains(package);
+bool isSupportedPackage(String package) =>
+    _packagesIndicatingFlutter().contains(package) ||
+    supportedBasicDartPackages().contains(package);

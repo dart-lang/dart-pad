@@ -58,7 +58,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return analysisServer.analyze(request.source, devMode: sdk.devMode);
+    return analysisServer.analyze(request.source);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -96,8 +96,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServer.complete(request.source, request.offset,
-        devMode: sdk.devMode);
+    return analysisServer.complete(request.source, request.offset);
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -108,8 +107,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServer.getFixes(request.source, request.offset,
-        devMode: sdk.devMode);
+    return analysisServer.getFixes(request.source, request.offset);
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -120,8 +118,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServer.getAssists(request.source, request.offset,
-        devMode: sdk.devMode);
+    return analysisServer.getAssists(request.source, request.offset);
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -129,8 +126,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return analysisServer.format(request.source, request.offset,
-        devMode: sdk.devMode);
+    return analysisServer.format(request.source, request.offset);
   }
 
   Future<proto.DocumentResponse> document(proto.SourceRequest request) async {
@@ -142,8 +138,8 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(await analysisServer.dartdoc(request.source, request.offset,
-          devMode: sdk.devMode));
+      ..info
+          .addAll(await analysisServer.dartdoc(request.source, request.offset));
   }
 
   // Beginning of multi files map entry points:
@@ -152,8 +148,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'files\'');
     }
 
-    return analysisServer.analyzeFiles(request.files, request.activeSourceName,
-        devMode: sdk.devMode);
+    return analysisServer.analyzeFiles(request.files, request.activeSourceName);
   }
 
   Future<proto.CompileResponse> compileFiles(
@@ -188,8 +183,7 @@ class CommonServerImpl {
     }
 
     return analysisServer.completeFiles(
-        request.files, request.activeSourceName, request.offset,
-        devMode: sdk.devMode);
+        request.files, request.activeSourceName, request.offset);
   }
 
   Future<proto.FixesResponse> fixesFiles(proto.SourceFilesRequest request) {
@@ -204,8 +198,7 @@ class CommonServerImpl {
     }
 
     return analysisServer.getFixesMulti(
-        request.files, request.activeSourceName, request.offset,
-        devMode: sdk.devMode);
+        request.files, request.activeSourceName, request.offset);
   }
 
   Future<proto.AssistsResponse> assistsFiles(proto.SourceFilesRequest request) {
@@ -220,8 +213,7 @@ class CommonServerImpl {
     }
 
     return analysisServer.getAssistsMulti(
-        request.files, request.activeSourceName, request.offset,
-        devMode: sdk.devMode);
+        request.files, request.activeSourceName, request.offset);
   }
 
   Future<proto.DocumentResponse> documentFiles(
@@ -238,8 +230,7 @@ class CommonServerImpl {
 
     return proto.DocumentResponse()
       ..info.addAll(await analysisServer.dartdocMulti(
-          request.files, request.activeSourceName, request.offset,
-          devMode: sdk.devMode));
+          request.files, request.activeSourceName, request.offset));
   }
   // End of files map entry points.
 
@@ -250,7 +241,7 @@ class CommonServerImpl {
         proto.PackageInfo()
           ..name = packageName
           ..version = packageVersions[packageName]!
-          ..supported = isSupportedPackage(packageName, devMode: sdk.devMode),
+          ..supported = isSupportedPackage(packageName),
     ];
 
     return Future.value(

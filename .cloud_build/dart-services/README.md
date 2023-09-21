@@ -14,5 +14,5 @@ gcloud builds submit \
     COMMIT_SHA=$COMMIT_SHA
 ```
 
-Where `$FLUTTER_CHANNEL` is `stable`, `beta`, `dev`, `main`, or `old`. The
-REPO_NAME and COMMIT_SHA are for adding tags to the Docker image.
+Where `$FLUTTER_CHANNEL` is `stable`, `beta`, `main`, or `old`. The REPO_NAME
+and COMMIT_SHA are for adding tags to the Docker image.
