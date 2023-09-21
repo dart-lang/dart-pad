@@ -105,19 +105,6 @@ final $typed_data.Uint8List compileFilesDDCRequestDescriptor = $convert.base64De
     '5hcGkuQ29tcGlsZUZpbGVzRERDUmVxdWVzdC5GaWxlc0VudHJ5UgVmaWxlcxo4CgpGaWxlc0Vu'
     'dHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
 
-@$core.Deprecated('Use flutterBuildRequestDescriptor instead')
-const FlutterBuildRequest$json = {
-  '1': 'FlutterBuildRequest',
-  '2': [
-    {'1': 'source', '3': 1, '4': 1, '5': 9, '10': 'source'},
-  ],
-};
-
-/// Descriptor for `FlutterBuildRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List flutterBuildRequestDescriptor =
-    $convert.base64Decode(
-        'ChNGbHV0dGVyQnVpbGRSZXF1ZXN0EhYKBnNvdXJjZRgBIAEoCVIGc291cmNl');
-
 @$core.Deprecated('Use flutterBuildResponseDescriptor instead')
 const FlutterBuildResponse$json = {
   '1': 'FlutterBuildResponse',

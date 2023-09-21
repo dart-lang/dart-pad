@@ -431,6 +431,7 @@ abstract class AnalysisServerWrapper {
       Map<String, String> sources, String sourceName, int offset) async {
     sources = _getOverlayMapWithPaths(sources);
     await _loadSources(sources);
+    // TODO: Use getSuggestions2()?
     final id = await analysisServer.completion.getSuggestions(
       _getPathFromName(sourceName),
       offset,

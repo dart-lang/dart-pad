@@ -88,7 +88,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final line = math.max(issue.line - 1, 0);
     final column = math.max(issue.column - 1, 0);
 
-    if (issue.hasLine()) {
+    if (issue.line != -1) {
       codeMirror!.doc.setSelection(
         Position(line, column),
         head: Position(line, column + issue.charLength),
@@ -227,12 +227,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           source: doc.getValue() ?? '',
           offset: offset,
         ))
-        .onError((error, st) => services.CompleteResponse());
+        .onError(
+          (error, st) => services.CompleteResponse(
+              replacementLength: 0, replacementOffset: 0, suggestions: []),
+        );
 
     final replaceOffset = response.replacementOffset;
     final replaceLength = response.replacementLength;
-    final completions = response.completions.map((completion) {
-      return AnalysisCompletion(replaceOffset, replaceLength, completion);
+    final completions = response.suggestions.map((suggestion) {
+      return AnalysisCompletion(replaceOffset, replaceLength, suggestion);
     });
 
     final hints =

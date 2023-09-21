@@ -29,25 +29,25 @@ class BadRequest implements Exception {
 
 class CommonServerImpl {
   final ServerCache _cache;
-  final Sdk _sdk;
+  final Sdk sdk;
 
   late Compiler _compiler;
-  late AnalyzerWrapper _analysisServer;
+  late AnalyzerWrapper analysisServer;
 
-  CommonServerImpl(this._cache, this._sdk);
+  CommonServerImpl(this._cache, this.sdk);
 
   Future<void> init() async {
     log.fine('initing CommonServerImpl');
 
-    _compiler = Compiler(_sdk);
+    _compiler = Compiler(sdk);
 
-    _analysisServer = AnalyzerWrapper(_sdk.dartSdkPath);
-    await _analysisServer.init();
+    analysisServer = AnalyzerWrapper(sdk.dartSdkPath);
+    await analysisServer.init();
   }
 
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
-      _analysisServer.shutdown(),
+      analysisServer.shutdown(),
       _compiler.dispose(),
       Future<dynamic>.sync(_cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
@@ -58,7 +58,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServer.analyze(request.source, devMode: _sdk.devMode);
+    return analysisServer.analyze(request.source, devMode: sdk.devMode);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -79,7 +79,7 @@ class CommonServerImpl {
   }
 
   Future<proto.FlutterBuildResponse> flutterBuild(
-    proto.FlutterBuildRequest request,
+    proto.SourceRequest request,
   ) {
     if (!request.hasSource()) {
       throw BadRequest('Missing parameter: \'source\'');
@@ -96,8 +96,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.complete(request.source, request.offset,
-        devMode: _sdk.devMode);
+    return analysisServer.complete(request.source, request.offset,
+        devMode: sdk.devMode);
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -108,8 +108,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.getFixes(request.source, request.offset,
-        devMode: _sdk.devMode);
+    return analysisServer.getFixes(request.source, request.offset,
+        devMode: sdk.devMode);
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -120,8 +120,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.getAssists(request.source, request.offset,
-        devMode: _sdk.devMode);
+    return analysisServer.getAssists(request.source, request.offset,
+        devMode: sdk.devMode);
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -129,8 +129,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServer.format(request.source, request.offset,
-        devMode: _sdk.devMode);
+    return analysisServer.format(request.source, request.offset,
+        devMode: sdk.devMode);
   }
 
   Future<proto.DocumentResponse> document(proto.SourceRequest request) async {
@@ -142,8 +142,8 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(await _analysisServer
-          .dartdoc(request.source, request.offset, devMode: _sdk.devMode));
+      ..info.addAll(await analysisServer.dartdoc(request.source, request.offset,
+          devMode: sdk.devMode));
   }
 
   // Beginning of multi files map entry points:
@@ -152,8 +152,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'files\'');
     }
 
-    return _analysisServer.analyzeFiles(request.files, request.activeSourceName,
-        devMode: _sdk.devMode);
+    return analysisServer.analyzeFiles(request.files, request.activeSourceName,
+        devMode: sdk.devMode);
   }
 
   Future<proto.CompileResponse> compileFiles(
@@ -187,9 +187,9 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.completeFiles(
+    return analysisServer.completeFiles(
         request.files, request.activeSourceName, request.offset,
-        devMode: _sdk.devMode);
+        devMode: sdk.devMode);
   }
 
   Future<proto.FixesResponse> fixesFiles(proto.SourceFilesRequest request) {
@@ -203,9 +203,9 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.getFixesMulti(
+    return analysisServer.getFixesMulti(
         request.files, request.activeSourceName, request.offset,
-        devMode: _sdk.devMode);
+        devMode: sdk.devMode);
   }
 
   Future<proto.AssistsResponse> assistsFiles(proto.SourceFilesRequest request) {
@@ -219,9 +219,9 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServer.getAssistsMulti(
+    return analysisServer.getAssistsMulti(
         request.files, request.activeSourceName, request.offset,
-        devMode: _sdk.devMode);
+        devMode: sdk.devMode);
   }
 
   Future<proto.DocumentResponse> documentFiles(
@@ -237,9 +237,9 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(await _analysisServer.dartdocMulti(
+      ..info.addAll(await analysisServer.dartdocMulti(
           request.files, request.activeSourceName, request.offset,
-          devMode: _sdk.devMode));
+          devMode: sdk.devMode));
   }
   // End of files map entry points.
 
@@ -250,17 +250,17 @@ class CommonServerImpl {
         proto.PackageInfo()
           ..name = packageName
           ..version = packageVersions[packageName]!
-          ..supported = isSupportedPackage(packageName, devMode: _sdk.devMode),
+          ..supported = isSupportedPackage(packageName, devMode: sdk.devMode),
     ];
 
     return Future.value(
       proto.VersionResponse()
-        ..sdkVersion = _sdk.version
-        ..sdkVersionFull = _sdk.versionFull
-        ..flutterVersion = _sdk.flutterVersion
-        ..flutterEngineSha = _sdk.engineVersion
+        ..sdkVersion = sdk.version
+        ..sdkVersionFull = sdk.versionFull
+        ..flutterVersion = sdk.flutterVersion
+        ..flutterEngineSha = sdk.engineVersion
         ..packageInfo.addAll(packageInfos)
-        ..experiment.addAll(_sdk.experiments),
+        ..experiment.addAll(sdk.experiments),
     );
   }
 

@@ -371,8 +371,15 @@ void generateProtos() async {
   copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
   copy(getDir('lib/src/protos'), getDir('../sketch_pad/lib/src/protos'));
 
-  // generate common_server_proto.g.dart
-  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+  // Re-generate the json encoding / decoding code.
+  await _run(
+    'dart',
+    arguments: ['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
+  );
+  copy(getFile('lib/src/api_model.dart'), getDir('../dart_pad/lib/src'));
+  copy(getFile('lib/src/api_model.dart'), getDir('../sketch_pad/lib/src'));
+  copy(getFile('lib/src/api_model.g.dart'), getDir('../dart_pad/lib/src'));
+  copy(getFile('lib/src/api_model.g.dart'), getDir('../sketch_pad/lib/src'));
 }
 
 Future<void> _run(

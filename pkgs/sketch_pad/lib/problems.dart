@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'model.dart';
-import 'src/protos/dart_services.pb.dart';
+import 'src/api_model.dart';
 import 'theme.dart';
 
 const _rowPadding = 2.0;
@@ -101,15 +101,15 @@ class ProblemWidget extends StatelessWidget {
               )
             ],
           ),
-          if (issue.hasCorrection()) const SizedBox(height: _rowPadding),
-          if (issue.hasCorrection())
+          if (issue.correction != null) const SizedBox(height: _rowPadding),
+          if (issue.correction != null)
             Row(
               children: [
                 const SizedBox.square(dimension: smallIconSize),
                 const SizedBox(width: denseSpacing),
                 Expanded(
                   child: Text(
-                    issue.correction,
+                    issue.correction!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

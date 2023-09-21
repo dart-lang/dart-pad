@@ -45,8 +45,7 @@ class AppModel {
 
   final StatusController editorStatus = StatusController();
 
-  final ValueNotifier<VersionResponse> runtimeVersions =
-      ValueNotifier(VersionResponse());
+  final ValueNotifier<VersionResponse?> runtimeVersions = ValueNotifier(null);
 
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
@@ -241,7 +240,7 @@ class AppServices {
     }
   }
 
-  Future<FlutterBuildResponse> build(FlutterBuildRequest request) async {
+  Future<FlutterBuildResponse> build(SourceRequest request) async {
     try {
       appModel.compilingBusy.value = true;
       return await services.flutterBuild(request);
@@ -287,9 +286,7 @@ class AppServices {
     } catch (error) {
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
-        AnalysisIssue()
-          ..kind = 'error'
-          ..message = message,
+        AnalysisIssue(kind: 'error', message: message),
       ];
     }
   }

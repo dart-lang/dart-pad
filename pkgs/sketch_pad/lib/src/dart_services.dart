@@ -5,127 +5,70 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
-import 'package:protobuf/protobuf.dart';
 
-import 'protos/dart_services.pb.dart';
+import 'api_model.dart';
 
-export 'protos/dart_services.pb.dart';
-
-const _apiPath = 'api/dartservices/v2';
+export 'api_model.dart';
 
 class DartservicesApi {
+  final Client _client;
+  final String rootUrl;
+
   DartservicesApi(this._client, {required this.rootUrl});
 
-  final Client _client;
-  String rootUrl;
+  Future<AnalysisResults> analyze(SourceRequest request) =>
+      _request('analyze', request.toJson(), AnalysisResults.fromJson);
 
-  Future<AnalysisResults> analyze(SourceRequest request) => _request(
-        'analyze',
-        request,
-        AnalysisResults(),
-      );
-
-  Future<AssistsResponse> assists(SourceRequest request) => _request(
-        'assists',
-        request,
-        AssistsResponse(),
-      );
-
-  Future<CompileResponse> compile(CompileRequest request) => _request(
-        'compile',
-        request,
-        CompileResponse(),
-      );
-
-  Future<CompileDDCResponse> compileDDC(CompileRequest request) => _request(
-        'compileDDC',
-        request,
-        CompileDDCResponse(),
-      );
+  Future<CompileResponse> compile(CompileRequest request) =>
+      _request('compile', request.toJson(), CompileResponse.fromJson);
 
   /// Note that this call is experimental and can change at any time.
-  Future<FlutterBuildResponse> flutterBuild(FlutterBuildRequest request) =>
-      _request('_flutterBuild', request, FlutterBuildResponse());
+  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) => _request(
+      '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
 
-  Future<CompleteResponse> complete(SourceRequest request) => _request(
-        'complete',
-        request,
-        CompleteResponse(),
-      );
+  Future<CompleteResponse> complete(SourceRequest request) =>
+      _request('complete', request.toJson(), CompleteResponse.fromJson);
 
-  Future<DocumentResponse> document(SourceRequest request) => _request(
-        'document',
-        request,
-        DocumentResponse(),
-      );
+  // Future<DocumentResponse> document(SourceRequest request) =>
+  //     _request('document', request.toJson(), DocumentResponse.fromJson);
 
-  Future<FixesResponse> fixes(SourceRequest request) => _request(
-        'fixes',
-        request,
-        FixesResponse(),
-      );
+  // Future<FixesResponse> fixes(SourceRequest request) =>
+  //     _request('fixes', request.toJson(), FixesResponse.fromJson);
 
-  Future<FormatResponse> format(SourceRequest request) => _request(
-        'format',
-        request,
-        FormatResponse(),
-      );
+  Future<FormatResponse> format(SourceRequest request) =>
+      _request('format', request.toJson(), FormatResponse.fromJson);
 
-  Future<VersionResponse> version() => _requestGet(
-        'version',
-        VersionRequest(),
-        VersionResponse(),
-      );
+  Future<VersionResponse> version() =>
+      _requestGet('version', {}, VersionResponse.fromJson);
 
-  Future<O> _requestGet<I extends GeneratedMessage, O extends GeneratedMessage>(
+  Future<T> _requestGet<T>(
     String action,
-    I request,
-    O result,
+    Map<String, dynamic> request,
+    T Function(Map<String, dynamic> json) responseFactory,
   ) async {
-    final response = await _client.get(Uri.parse('$rootUrl$_apiPath/$action'));
-
-    final jsonBody = json.decode(response.body);
-    result
-      ..mergeFromProto3Json(jsonBody)
-      ..freeze();
-
-    // 99 is the tag number for error message.
-    if (result.getFieldOrNull(99) != null) {
-      final br = BadRequest()
-        ..mergeFromProto3Json(jsonBody)
-        ..freeze();
-      throw ApiRequestError(br.error.message);
-    } else {
-      return result;
-    }
+    final response =
+        await _client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
+    // TODO: handle responses other than 200
+    final jsonBody = json.decode(response.body) as Map<String, dynamic>;
+    return responseFactory(jsonBody);
   }
 
-  Future<O> _request<I extends GeneratedMessage, O extends GeneratedMessage>(
+  Future<T> _request<T>(
     String action,
-    I request,
-    O result,
+    Map<String, dynamic> request,
+    T Function(Map<String, dynamic> json) responseFactory,
   ) async {
     final response = await _client.post(
-      Uri.parse('$rootUrl$_apiPath/$action'),
+      Uri.parse('${rootUrl}api/dartservices/v3/$action'),
       encoding: utf8,
-      body: json.encode(request.toProto3Json()),
+      body: json.encode(request),
     );
 
-    try {
-      final jsonBody = json.decode(response.body);
-      result
-        ..mergeFromProto3Json(jsonBody)
-        ..freeze();
+    // TODO: handle responses other than 200
 
-      // 99 is the tag number for error message.
-      if (result.getFieldOrNull(99) != null) {
-        final br = BadRequest()
-          ..mergeFromProto3Json(jsonBody)
-          ..freeze();
-        throw ApiRequestError(br.error.message);
-      } else {
-        return result;
-      }
+    try {
+      final jsonBody = json.decode(response.body) as Map<String, dynamic>;
+      return responseFactory(jsonBody);
     } on FormatException {
       final message = '${response.statusCode} ${response.reasonPhrase}';
       throw ApiRequestError('$message: ${response.body}');
