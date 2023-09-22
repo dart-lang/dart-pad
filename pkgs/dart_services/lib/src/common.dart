@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 const kMainDart = 'main.dart';
 const kBootstrapDart = 'bootstrap.dart';
 
@@ -747,44 +745,6 @@ part of testanim;
 $sampleCode3PartFlutterImplicitAnimationsVarious
 ''';
 
-class Lines {
-  final List<int> _starts = <int>[];
-
-  Lines(String source) {
-    final units = source.codeUnits;
-    for (var i = 0; i < units.length; i++) {
-      if (units[i] == 10) _starts.add(i);
-    }
-  }
-
-  /// Return the 0-based line number.
-  int getLineForOffset(int offset) {
-    for (var i = 0; i < _starts.length; i++) {
-      if (offset <= _starts[i]) return i;
-    }
-    return _starts.length;
-  }
-}
-
-/// Returns the version of the current Dart runtime.
-///
-/// The returned `String` is formatted as the [semver](http://semver.org) version
-/// string of the current Dart runtime, possibly followed by whitespace and other
-/// version and build details.
-String get vmVersion => Platform.version;
-
-/// If [str] has leading and trailing quotes, remove them.
-String stripMatchingQuotes(String str) {
-  if (str.length <= 1) return str;
-
-  if (str.startsWith("'") && str.endsWith("'")) {
-    str = str.substring(1, str.length - 1);
-  } else if (str.startsWith('"') && str.endsWith('"')) {
-    str = str.substring(1, str.length - 1);
-  }
-  return str;
-}
-
 class _SourcesGroupFile {
   String filename;
   String content;
@@ -792,16 +752,16 @@ class _SourcesGroupFile {
   _SourcesGroupFile(this.filename, this.content);
 }
 
-///This RegExp matches a variety of possible `main` function definition formats
-///Like:
-/// - `Future<void> main(List<String> args) async {`
-/// - `void main(List<String> args) async {`
-/// - `void main() {`
-/// - `void main( List < String >  args ) async {`
-/// - `void main(Args arg) {`
-/// - `main() {`
-/// - `void main() {}`
-/// - `void main() => runApp(MyApp());`
+/// This RegExp matches a variety of possible `main` function definition formats
+/// Like:
+///   - `Future<void> main(List<String> args) async {`
+///   - `void main(List<String> args) async {`
+///   - `void main() {`
+///   - `void main( List < String >  args ) async {`
+///   - `void main(Args arg) {`
+///   - `main() {`
+///   - `void main() {}`
+///   - `void main() => runApp(MyApp());`
 final RegExp mainFunctionDefinition = RegExp(
     r'''[\s]*(Future)?[\<]?(void)?[\>]?[\s]*main[\s]*\((\s*\w*\s*\<?\s*\w*\s*\>?\s*\w*\s*)?\)\s*(async)?\s*[\{|\=]+''');
 

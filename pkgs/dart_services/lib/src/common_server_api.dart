@@ -55,7 +55,7 @@ class CommonServerApi {
         return _impl.analysisServer.analyze(sourceRequest.source);
       });
 
-      return ok(api.AnalysisResults(
+      return ok(api.AnalysisResponse(
         issues: result.issues.map((issue) {
           return api.AnalysisIssue(
             kind: issue.kind,

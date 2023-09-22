@@ -20,15 +20,15 @@ class SourceRequest {
 }
 
 @JsonSerializable()
-class AnalysisResults {
+class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults({this.issues = const []});
+  AnalysisResponse({this.issues = const []});
 
-  factory AnalysisResults.fromJson(Map<String, dynamic> json) =>
-      _$AnalysisResultsFromJson(json);
+  factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AnalysisResultsToJson(this);
+  Map<String, dynamic> toJson() => _$AnalysisResponseToJson(this);
 }
 
 @JsonSerializable()

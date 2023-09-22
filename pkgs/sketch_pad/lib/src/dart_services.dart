@@ -16,8 +16,8 @@ class DartservicesApi {
 
   DartservicesApi(this._client, {required this.rootUrl});
 
-  Future<AnalysisResults> analyze(SourceRequest request) =>
-      _request('analyze', request.toJson(), AnalysisResults.fromJson);
+  Future<AnalysisResponse> analyze(SourceRequest request) =>
+      _request('analyze', request.toJson(), AnalysisResponse.fromJson);
 
   Future<CompileResponse> compile(CompileRequest request) =>
       _request('compile', request.toJson(), CompileResponse.fromJson);
@@ -39,18 +39,25 @@ class DartservicesApi {
       _request('format', request.toJson(), FormatResponse.fromJson);
 
   Future<VersionResponse> version() =>
-      _requestGet('version', {}, VersionResponse.fromJson);
+      _requestGet('version', VersionResponse.fromJson);
 
   Future<T> _requestGet<T>(
     String action,
-    Map<String, dynamic> request,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
     final response =
         await _client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
-    // TODO: handle responses other than 200
-    final jsonBody = json.decode(response.body) as Map<String, dynamic>;
-    return responseFactory(jsonBody);
+    if (response.statusCode != 200) {
+      throw ApiRequestError(
+          '$action: ${response.statusCode}: ${response.reasonPhrase}');
+    }
+
+    try {
+      return responseFactory(
+          json.decode(response.body) as Map<String, dynamic>);
+    } on FormatException catch (e) {
+      throw ApiRequestError('$action: $e');
+    }
   }
 
   Future<T> _request<T>(
@@ -59,19 +66,19 @@ class DartservicesApi {
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
     final response = await _client.post(
-      Uri.parse('${rootUrl}api/dartservices/v3/$action'),
-      encoding: utf8,
-      body: json.encode(request),
-    );
-
-    // TODO: handle responses other than 200
+        Uri.parse('${rootUrl}api/dartservices/v3/$action'),
+        encoding: utf8,
+        body: json.encode(request));
+    if (response.statusCode != 200) {
+      throw ApiRequestError(
+          '$action: ${response.statusCode}: ${response.reasonPhrase}');
+    }
 
     try {
-      final jsonBody = json.decode(response.body) as Map<String, dynamic>;
-      return responseFactory(jsonBody);
-    } on FormatException {
-      final message = '${response.statusCode} ${response.reasonPhrase}';
-      throw ApiRequestError('$message: ${response.body}');
+      return responseFactory(
+          json.decode(response.body) as Map<String, dynamic>);
+    } on FormatException catch (e) {
+      throw ApiRequestError('$action: $e');
     }
   }
 }

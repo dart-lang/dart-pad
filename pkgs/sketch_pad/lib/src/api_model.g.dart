@@ -18,15 +18,15 @@ Map<String, dynamic> _$SourceRequestToJson(SourceRequest instance) =>
       'offset': instance.offset,
     };
 
-AnalysisResults _$AnalysisResultsFromJson(Map<String, dynamic> json) =>
-    AnalysisResults(
+AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
+    AnalysisResponse(
       issues: (json['issues'] as List<dynamic>?)
               ?.map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
 
-Map<String, dynamic> _$AnalysisResultsToJson(AnalysisResults instance) =>
+Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>
     <String, dynamic>{
       'issues': instance.issues,
     };
