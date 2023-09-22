@@ -108,6 +108,8 @@ class _QueryParams {
         } else {
           params['channel'] = value;
         }
+      } else {
+        params.remove('channel');
       }
       return params;
     });
@@ -116,7 +118,6 @@ class _QueryParams {
   static const List<String> _validChannels = [
     'stable',
     'beta',
-    'old',
     'master',
   ];
 

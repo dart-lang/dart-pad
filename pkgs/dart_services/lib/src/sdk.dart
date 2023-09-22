@@ -33,9 +33,6 @@ class Sdk {
   /// The current version of the SDK, not including any `-dev` suffix.
   final String version;
 
-  /// If this is the old channel.
-  bool get oldChannel => _channel == 'old';
-
   /// If this is the stable channel.
   bool get stableChannel => _channel == 'stable';
 
@@ -100,7 +97,7 @@ class Sdk {
       path.join(Directory.current.path, 'flutter-sdks');
 }
 
-const channels = ['stable', 'beta', 'old', 'main'];
+const channels = ['stable', 'beta', 'main'];
 
 class DownloadingSdkManager {
   final String channel;
