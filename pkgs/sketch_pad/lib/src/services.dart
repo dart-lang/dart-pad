@@ -10,24 +10,25 @@ import 'api_model.dart';
 
 export 'api_model.dart';
 
-class DartservicesApi {
+class Services {
   final Client _client;
   final String rootUrl;
 
-  DartservicesApi(this._client, {required this.rootUrl});
+  Services(this._client, {required this.rootUrl});
 
   Future<AnalysisResponse> analyze(SourceRequest request) =>
-      _request('analyze', request.toJson(), AnalysisResponse.fromJson);
+      _requestPost('analyze', request.toJson(), AnalysisResponse.fromJson);
 
   Future<CompileResponse> compile(CompileRequest request) =>
-      _request('compile', request.toJson(), CompileResponse.fromJson);
+      _requestPost('compile', request.toJson(), CompileResponse.fromJson);
 
   /// Note that this call is experimental and can change at any time.
-  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) => _request(
-      '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
+  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) =>
+      _requestPost(
+          '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
 
   Future<CompleteResponse> complete(SourceRequest request) =>
-      _request('complete', request.toJson(), CompleteResponse.fromJson);
+      _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
   // Future<DocumentResponse> document(SourceRequest request) =>
   //     _request('document', request.toJson(), DocumentResponse.fromJson);
@@ -36,7 +37,7 @@ class DartservicesApi {
   //     _request('fixes', request.toJson(), FixesResponse.fromJson);
 
   Future<FormatResponse> format(SourceRequest request) =>
-      _request('format', request.toJson(), FormatResponse.fromJson);
+      _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
@@ -60,7 +61,7 @@ class DartservicesApi {
     }
   }
 
-  Future<T> _request<T>(
+  Future<T> _requestPost<T>(
     String action,
     Map<String, dynamic> request,
     T Function(Map<String, dynamic> json) responseFactory,

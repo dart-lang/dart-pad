@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+import 'api_model.dart' as api;
 import 'common.dart';
 import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
@@ -100,7 +101,7 @@ abstract class AnalysisServerWrapper {
   Future<proto.CompleteResponse> completeFiles(
       Map<String, String> sources, Location location) async {
     final results =
-        await _completeImpl(sources, location.sourceName, location.offset);
+        await _completeImpl(sources, location.sourceName, location.offset!);
     var suggestions = results.results;
 
     final source = sources[location.sourceName]!;
@@ -145,6 +146,58 @@ abstract class AnalysisServerWrapper {
             }))));
   }
 
+  Future<api.CompleteResponse> completeV3(String source, int offset) async {
+    final results = await _completeImpl2(
+      {kMainDart: source},
+      kMainDart,
+      offset,
+    );
+
+    final suggestions =
+        results.suggestions.where((CompletionSuggestion suggestion) {
+      // Filter suggestions that would require adding an import.
+      return suggestion.isNotImported != true;
+    }).where((CompletionSuggestion suggestion) {
+      if (suggestion.kind != 'IMPORT') return true;
+
+      // We do not want to enable arbitrary discovery of file system resources.
+      // In order to avoid returning local file paths, we only allow returning
+      // import kinds that are dart: or package: imports.
+      return suggestion.completion.startsWith('dart:') ||
+          suggestion.completion.startsWith('package:');
+    }).toList();
+
+    suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
+      if (x.relevance == y.relevance) {
+        return x.completion.compareTo(y.completion);
+      } else {
+        return y.relevance.compareTo(x.relevance);
+      }
+    });
+
+    // print('${suggestions.length} suggestions');
+    // for (final suggestion in suggestions) {
+    //   print('  [${suggestion.relevance}] [${suggestion.completion}] '
+    //       '[${suggestion.kind}] [${suggestion.element?.kind}]');
+    // }
+
+    return api.CompleteResponse(
+      replacementOffset: results.replacementOffset,
+      replacementLength: results.replacementLength,
+      suggestions: suggestions.map((suggestion) {
+        return api.CompletionSuggestion(
+          kind: suggestion.kind,
+          relevance: suggestion.relevance,
+          completion: suggestion.completion,
+          deprecated: suggestion.isDeprecated,
+          displayText: suggestion.displayText,
+          returnType: suggestion.returnType,
+          elementKind: suggestion.element?.kind,
+        );
+      }).toList(),
+    );
+  }
+
   Future<proto.FixesResponse> getFixes(String src, int offset) {
     return getFixesMulti({kMainDart: src}, Location(kMainDart, offset));
   }
@@ -152,7 +205,7 @@ abstract class AnalysisServerWrapper {
   Future<proto.FixesResponse> getFixesMulti(
       Map<String, String> sources, Location location) async {
     final results =
-        await _getFixesImpl(sources, location.sourceName, location.offset);
+        await _getFixesImpl(sources, location.sourceName, location.offset!);
     final responseFixes = results.fixes.map((availableAnalysisErrorFixes) {
       return _convertAnalysisErrorFix(
           availableAnalysisErrorFixes, location.sourceName);
@@ -167,7 +220,8 @@ abstract class AnalysisServerWrapper {
   Future<proto.AssistsResponse> getAssistsMulti(
       Map<String, String> sources, Location location) async {
     final sourceName = location.sourceName;
-    final results = await _getAssistsImpl(sources, sourceName, location.offset);
+    final results =
+        await _getAssistsImpl(sources, sourceName, location.offset!);
     final fixes =
         _convertSourceChangesToCandidateFixes(results.assists, sourceName);
     return proto.AssistsResponse()..assists.addAll(fixes);
@@ -176,7 +230,7 @@ abstract class AnalysisServerWrapper {
   /// Format the source [src] of the single passed in file.  The [offset] is
   /// the current cursor location and a modified offset is returned if necessary
   /// to maintain the cursors original position in the formatted code.
-  Future<proto.FormatResponse> format(String src, int offset) {
+  Future<proto.FormatResponse> format(String src, int? offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
       final edits = editResult.edits;
 
@@ -188,14 +242,15 @@ abstract class AnalysisServerWrapper {
             edit.offset, edit.offset + edit.length, edit.replacement);
       }
 
+      // TODO: Allow offset result to be null.
       return proto.FormatResponse()
         ..newString = src
-        ..offset = editResult.selectionOffset;
+        ..offset = offset == null ? 0 : editResult.selectionOffset;
     }).catchError((dynamic error) {
       _logger.fine('format error: $error');
       return proto.FormatResponse()
         ..newString = src
-        ..offset = offset;
+        ..offset = offset ?? 0;
     });
   }
 
@@ -431,7 +486,6 @@ abstract class AnalysisServerWrapper {
       Map<String, String> sources, String sourceName, int offset) async {
     sources = _getOverlayMapWithPaths(sources);
     await _loadSources(sources);
-    // TODO: Use getSuggestions2()?
     final id = await analysisServer.completion.getSuggestions(
       _getPathFromName(sourceName),
       offset,
@@ -443,6 +497,23 @@ abstract class AnalysisServerWrapper {
       await _unloadSources();
     }
     return results;
+  }
+
+  Future<Suggestions2Result> _completeImpl2(
+      Map<String, String> sources, String sourceName, int offset) async {
+    sources = _getOverlayMapWithPaths(sources);
+    await _loadSources(sources);
+
+    try {
+      return await analysisServer.completion.getSuggestions2(
+        _getPathFromName(sourceName),
+        offset,
+        500,
+      );
+    } finally {
+      // TODO: Remove the need to unload sources.
+      await _unloadSources();
+    }
   }
 
   Future<FixesResult> _getFixesImpl(
@@ -460,11 +531,11 @@ abstract class AnalysisServerWrapper {
     return fixes;
   }
 
-  Future<FormatResult> _formatImpl(String src, int offset) async {
+  Future<FormatResult> _formatImpl(String src, int? offset) async {
     await _loadSources({mainPath: src});
     final FormatResult result;
     try {
-      result = await analysisServer.edit.format(mainPath, offset, 0);
+      result = await analysisServer.edit.format(mainPath, offset ?? 0, 0);
     } finally {
       await _unloadSources();
     }
@@ -551,7 +622,7 @@ abstract class AnalysisServerWrapper {
 
 class Location {
   final String sourceName;
-  final int offset;
+  final int? offset;
 
   const Location(this.sourceName, this.offset);
 }

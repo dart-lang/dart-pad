@@ -17,6 +17,9 @@ class SourceRequest {
       _$SourceRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$SourceRequestToJson(this);
+
+  @override
+  String toString() => 'SourceRequest[source=$source,offset=$offset]';
 }
 
 @JsonSerializable()
@@ -83,11 +86,11 @@ class CompileResponse {
 
 @JsonSerializable()
 class FormatResponse {
-  final String newString;
+  final String source;
   final int? offset;
 
   FormatResponse({
-    required this.newString,
+    required this.source,
     required this.offset,
   });
 
@@ -95,6 +98,9 @@ class FormatResponse {
       _$FormatResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$FormatResponseToJson(this);
+
+  @override
+  String toString() => 'FormatResponse[source=$source,offset=$offset]';
 }
 
 @JsonSerializable()
@@ -132,45 +138,25 @@ class CompletionSuggestion {
   final String kind;
   final int relevance;
   final String completion;
-  final int selectionOffset;
   final bool deprecated;
   final String? displayText;
-  final List<String>? parameterNames;
-  final CompletionElement? element;
   final String? returnType;
+  final String? elementKind;
 
   CompletionSuggestion({
     required this.kind,
     required this.relevance,
     required this.completion,
-    required this.selectionOffset,
     required this.deprecated,
     required this.displayText,
-    required this.parameterNames,
-    required this.element,
     required this.returnType,
+    required this.elementKind,
   });
 
   factory CompletionSuggestion.fromJson(Map<String, dynamic> json) =>
       _$CompletionSuggestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompletionSuggestionToJson(this);
-}
-
-@JsonSerializable()
-class CompletionElement {
-  final String kind;
-  final String? parameters;
-
-  CompletionElement({
-    required this.kind,
-    required this.parameters,
-  });
-
-  factory CompletionElement.fromJson(Map<String, dynamic> json) =>
-      _$CompletionElementFromJson(json);
-
-  Map<String, dynamic> toJson() => _$CompletionElementToJson(this);
 }
 
 @JsonSerializable()

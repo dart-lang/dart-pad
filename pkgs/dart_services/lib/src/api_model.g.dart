@@ -75,13 +75,13 @@ Map<String, dynamic> _$CompileResponseToJson(CompileResponse instance) =>
 
 FormatResponse _$FormatResponseFromJson(Map<String, dynamic> json) =>
     FormatResponse(
-      newString: json['newString'] as String,
+      source: json['source'] as String,
       offset: json['offset'] as int?,
     );
 
 Map<String, dynamic> _$FormatResponseToJson(FormatResponse instance) =>
     <String, dynamic>{
-      'newString': instance.newString,
+      'source': instance.source,
       'offset': instance.offset,
     };
 
@@ -119,16 +119,10 @@ CompletionSuggestion _$CompletionSuggestionFromJson(
       kind: json['kind'] as String,
       relevance: json['relevance'] as int,
       completion: json['completion'] as String,
-      selectionOffset: json['selectionOffset'] as int,
       deprecated: json['deprecated'] as bool,
       displayText: json['displayText'] as String?,
-      parameterNames: (json['parameterNames'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      element: json['element'] == null
-          ? null
-          : CompletionElement.fromJson(json['element'] as Map<String, dynamic>),
       returnType: json['returnType'] as String?,
+      elementKind: json['elementKind'] as String?,
     );
 
 Map<String, dynamic> _$CompletionSuggestionToJson(
@@ -137,24 +131,10 @@ Map<String, dynamic> _$CompletionSuggestionToJson(
       'kind': instance.kind,
       'relevance': instance.relevance,
       'completion': instance.completion,
-      'selectionOffset': instance.selectionOffset,
       'deprecated': instance.deprecated,
       'displayText': instance.displayText,
-      'parameterNames': instance.parameterNames,
-      'element': instance.element,
       'returnType': instance.returnType,
-    };
-
-CompletionElement _$CompletionElementFromJson(Map<String, dynamic> json) =>
-    CompletionElement(
-      kind: json['kind'] as String,
-      parameters: json['parameters'] as String?,
-    );
-
-Map<String, dynamic> _$CompletionElementToJson(CompletionElement instance) =>
-    <String, dynamic>{
-      'kind': instance.kind,
-      'parameters': instance.parameters,
+      'elementKind': instance.elementKind,
     };
 
 VersionResponse _$VersionResponseFromJson(Map<String, dynamic> json) =>

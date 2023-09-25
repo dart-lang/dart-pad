@@ -31,7 +31,7 @@ class CommonServerImpl {
   final ServerCache _cache;
   final Sdk sdk;
 
-  late Compiler _compiler;
+  late Compiler compiler;
   late AnalyzerWrapper analysisServer;
 
   CommonServerImpl(this._cache, this.sdk);
@@ -39,7 +39,7 @@ class CommonServerImpl {
   Future<void> init() async {
     log.fine('initing CommonServerImpl');
 
-    _compiler = Compiler(sdk);
+    compiler = Compiler(sdk);
 
     analysisServer = AnalyzerWrapper(sdk.dartSdkPath);
     await analysisServer.init();
@@ -48,7 +48,7 @@ class CommonServerImpl {
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
-      _compiler.dispose(),
+      compiler.dispose(),
       Future<dynamic>.sync(_cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
   }
@@ -279,7 +279,7 @@ class CommonServerImpl {
       log.fine('CACHE: MISS for compileDart2js');
       final watch = Stopwatch()..start();
 
-      final results = await _compiler.compileFiles(sources,
+      final results = await compiler.compileFiles(sources,
           returnSourceMap: returnSourceMap);
 
       if (results.hasOutput) {
@@ -333,7 +333,7 @@ class CommonServerImpl {
       log.fine('CACHE: MISS for compileDDC');
       final watch = Stopwatch()..start();
 
-      final results = await _compiler.compileFilesDDC(sources);
+      final results = await compiler.compileFilesDDC(sources);
 
       if (results.hasOutput) {
         final lineCount = countLines(sources);
@@ -367,7 +367,7 @@ class CommonServerImpl {
   Future<proto.FlutterBuildResponse> _flutterBuild({
     required String source,
   }) async {
-    final results = await _compiler.flutterBuild(source);
+    final results = await compiler.flutterBuild(source);
     if (results.hasOutput) {
       return proto.FlutterBuildResponse()
         ..artifacts['main.dart.js'] = results.compiledJavaScript!;

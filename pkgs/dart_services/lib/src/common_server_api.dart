@@ -21,7 +21,6 @@ import 'shelf_cors.dart' as shelf_cors;
 
 export 'common_server_impl.dart' show log;
 
-// generated with 'dart run build_runner build'
 part 'common_server_api.g.dart';
 
 const protobufContentType = 'application/x-protobuf';
@@ -69,21 +68,34 @@ class CommonServerApi {
         }).toList(),
       ).toJson());
     } else {
-      return unhandled(apiVersion);
+      return unhandledVersion(apiVersion);
     }
   }
 
-  // todo:
-
   @Route.post('$apiPrefix/compile')
-  Future<Response> compile(Request request, String apiVersion) {
-    return _processRequest(
-      request,
-      decodeFromJSON: (json) =>
-          proto.CompileRequest.create()..mergeFromProto3Json(json),
-      decodeFromProto: proto.CompileRequest.fromBuffer,
-      transform: _impl.compile,
-    );
+  Future<Response> compile(Request request, String apiVersion) async {
+    if (apiVersion == api2) {
+      return _processRequest(
+        request,
+        decodeFromJSON: (json) =>
+            proto.CompileRequest.create()..mergeFromProto3Json(json),
+        decodeFromProto: proto.CompileRequest.fromBuffer,
+        transform: _impl.compile,
+      );
+    } else if (apiVersion == api3) {
+      final sourceRequest =
+          api.SourceRequest.fromJson(await request.readAsJson());
+      final results = await serialize(() {
+        return _impl.compiler.compile(sourceRequest.source);
+      });
+      if (results.hasOutput) {
+        return ok(api.CompileResponse(result: results.compiledJS!).toJson());
+      } else {
+        return failure(results.problems.map((p) => p.message).join('\n'));
+      }
+    } else {
+      return unhandledVersion(apiVersion);
+    }
   }
 
   @Route.post('$apiPrefix/compileDDC')
@@ -97,31 +109,57 @@ class CommonServerApi {
     );
   }
 
-  // todo:
-
   @experimental
   @Route.post('$apiPrefix/_flutterBuild')
-  Future<Response> flutterBuild(Request request, String apiVersion) {
-    return _processRequest(
-      request,
-      decodeFromJSON: (json) =>
-          proto.SourceRequest.create()..mergeFromProto3Json(json),
-      decodeFromProto: proto.SourceRequest.fromBuffer,
-      transform: _impl.flutterBuild,
-    );
+  Future<Response> flutterBuild(Request request, String apiVersion) async {
+    if (apiVersion == api2) {
+      return _processRequest(
+        request,
+        decodeFromJSON: (json) =>
+            proto.SourceRequest.create()..mergeFromProto3Json(json),
+        decodeFromProto: proto.SourceRequest.fromBuffer,
+        transform: _impl.flutterBuild,
+      );
+    } else if (apiVersion == api3) {
+      final sourceRequest =
+          api.SourceRequest.fromJson(await request.readAsJson());
+      final results = await serialize(() {
+        return _impl.compiler.flutterBuild(sourceRequest.source);
+      });
+
+      if (results.hasOutput) {
+        return ok(api.FlutterBuildResponse(
+          artifacts: {
+            'main.dart.js': results.compiledJavaScript!,
+          },
+        ).toJson());
+      } else {
+        return failure(results.compilationIssues ?? '');
+      }
+    } else {
+      return unhandledVersion(apiVersion);
+    }
   }
 
-  // todo:
-
   @Route.post('$apiPrefix/complete')
-  Future<Response> complete(Request request, String apiVersion) {
-    return _processRequest(
-      request,
-      decodeFromJSON: (json) =>
-          proto.SourceRequest.create()..mergeFromProto3Json(json),
-      decodeFromProto: proto.SourceRequest.fromBuffer,
-      transform: _impl.complete,
-    );
+  Future<Response> complete(Request request, String apiVersion) async {
+    if (apiVersion == api2) {
+      return _processRequest(
+        request,
+        decodeFromJSON: (json) =>
+            proto.SourceRequest.create()..mergeFromProto3Json(json),
+        decodeFromProto: proto.SourceRequest.fromBuffer,
+        transform: _impl.complete,
+      );
+    } else if (apiVersion == api3) {
+      final sourceRequest =
+          api.SourceRequest.fromJson(await request.readAsJson());
+      final result = await serialize(() => _impl.analysisServer
+          .completeV3(sourceRequest.source, sourceRequest.offset!));
+      return ok(result.toJson());
+    } else {
+      return unhandledVersion(apiVersion);
+    }
   }
 
   @Route.post('$apiPrefix/fixes')
@@ -163,15 +201,15 @@ class CommonServerApi {
       final result = await serialize(() {
         return _impl.analysisServer.format(
           sourceRequest.source,
-          sourceRequest.offset ?? 0,
+          sourceRequest.offset,
         );
       });
       return ok(api.FormatResponse(
-        newString: result.newString,
+        source: result.newString,
         offset: result.offset,
       ).toJson());
     } else {
-      return unhandled(apiVersion);
+      return unhandledVersion(apiVersion);
     }
   }
 
@@ -197,7 +235,7 @@ class CommonServerApi {
         transform: _impl.version,
       );
     } else {
-      return unhandled(apiVersion);
+      return unhandledVersion(apiVersion);
     }
   }
 
@@ -214,7 +252,7 @@ class CommonServerApi {
     } else if (apiVersion == api3) {
       return ok(version().toJson());
     } else {
-      return unhandled(apiVersion);
+      return unhandledVersion(apiVersion);
     }
   }
 
@@ -303,7 +341,11 @@ class CommonServerApi {
         encoding: utf8, headers: _jsonHeaders);
   }
 
-  Response unhandled(String apiVersion) {
+  Response failure(String message) {
+    return Response.badRequest(body: message);
+  }
+
+  Response unhandledVersion(String apiVersion) {
     return Response.notFound('unhandled api version: $apiVersion');
   }
 
@@ -430,7 +472,7 @@ class _ServerTask<I, O extends GeneratedMessage> extends Task<Response> {
   }
 }
 
-extension on Request {
+extension RequestExtension on Request {
   Future<Map<String, dynamic>> readAsJson() async {
     final body = await readAsString();
     return body.isNotEmpty

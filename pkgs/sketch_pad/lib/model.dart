@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 
 import 'gists.dart';
 import 'samples.g.dart';
-import 'src/dart_services.dart';
+import 'src/services.dart';
 import 'utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
@@ -110,7 +110,7 @@ class AppServices {
   final Channel channel;
 
   late final http.Client httpClient;
-  late final DartservicesApi services;
+  late final Services services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -122,7 +122,7 @@ class AppServices {
 
   AppServices(this.appModel, this.channel) {
     httpClient = http.Client();
-    services = DartservicesApi(httpClient, rootUrl: channel.url);
+    services = Services(httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);

@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:vtable/vtable.dart';
 
-import 'src/dart_services.dart';
+import 'src/services.dart';
 import 'theme.dart';
 
 class VersionTable extends StatelessWidget {

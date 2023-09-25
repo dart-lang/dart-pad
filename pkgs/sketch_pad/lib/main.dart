@@ -19,7 +19,7 @@ import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'src/dart_services.dart';
+import 'src/services.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
@@ -356,9 +356,11 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               }
             },
             keys.findKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find');
             },
             keys.findNextKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find next');
             },
             keys.codeCompletionKeyActivator: () {
@@ -375,23 +377,20 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 
   Future<void> _handleFormatting() async {
-    final value = appModel.sourceCodeController.text;
-
-    FormatResponse result;
-
     try {
-      result = await appServices.format(SourceRequest(source: value));
+      final value = appModel.sourceCodeController.text;
+      final result = await appServices.format(SourceRequest(source: value));
+
+      if (result.source == value) {
+        appModel.editorStatus.showToast('No formatting changes');
+      } else {
+        appModel.editorStatus.showToast('Format successful');
+        appModel.sourceCodeController.text = result.source;
+      }
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
-    }
-
-    if (result.newString == value) {
-      appModel.editorStatus.showToast('No formatting changes');
-    } else {
-      appModel.editorStatus.showToast('Format successful');
-      appModel.sourceCodeController.text = result.newString;
     }
   }
 

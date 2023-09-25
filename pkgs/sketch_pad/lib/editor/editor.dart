@@ -14,7 +14,7 @@ import 'package:codemirror/hints.dart';
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../src/dart_services.dart' as services;
+import '../src/services.dart' as services;
 import '../theme.dart';
 import 'completion.dart';
 
@@ -234,10 +234,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     final replaceOffset = response.replacementOffset;
     final replaceLength = response.replacementLength;
-    final completions = response.suggestions.map((suggestion) {
-      return AnalysisCompletion(replaceOffset, replaceLength, suggestion);
-    });
 
+    final completions = response.suggestions.map((suggestion) =>
+        AnalysisCompletion(replaceOffset, replaceLength, suggestion));
     final hints =
         completions.map((completion) => completion.toCodemirrorHint()).toList();
 

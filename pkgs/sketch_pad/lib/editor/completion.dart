@@ -4,62 +4,36 @@
 
 import 'package:codemirror/hints.dart';
 
-import '../src/dart_services.dart';
+import '../src/api_model.dart';
 
-// TODO: Rework this to use the 'displayText' from the server?
+// TODO: Rework this to use the 'displayText' from the server
 
-class AnalysisCompletion implements Comparable<AnalysisCompletion> {
+class AnalysisCompletion {
   final int offset;
   final int length;
   final CompletionSuggestion suggestion;
 
   AnalysisCompletion(this.offset, this.length, this.suggestion);
 
-  CompletionElement? get _element => suggestion.element;
+  String? get elementKind => suggestion.elementKind;
 
-  String? get kind => suggestion.kind;
+  bool get isConstructor => elementKind == 'CONSTRUCTOR';
 
-  bool get isMethod =>
-      _element?.kind == 'FUNCTION' || _element?.kind == 'METHOD';
-
-  bool get isConstructor => type == 'CONSTRUCTOR';
-
-  String? get parameters => isMethod ? _element!.parameters : null;
-
-  int? get parameterCount =>
-      isMethod ? suggestion.parameterNames?.length : null;
-
-  String get text {
-    final str = suggestion.completion;
-    if (str.startsWith('(') && str.endsWith(')')) {
-      return str.substring(1, str.length - 1);
-    } else {
-      return str;
-    }
-  }
+  bool get isMethod => elementKind == 'FUNCTION' || elementKind == 'METHOD';
 
   String? get returnType => suggestion.returnType;
 
   bool get isDeprecated => suggestion.deprecated;
 
-  int get selectionOffset => suggestion.selectionOffset;
-
-  // FUNCTION, GETTER, CLASS, ...
-  String? get type =>
-      suggestion.element != null ? suggestion.element!.kind : kind;
-
   HintResult toCodemirrorHint() {
-    var displayText = isMethod ? '$text$parameters' : text;
-    if (isMethod && returnType != null) {
-      displayText += ' → $returnType';
-    }
+    var replaceText = suggestion.completion;
 
-    var replaceText = text;
-    if (isMethod) {
-      replaceText += '()';
-    }
-    if (isConstructor) {
-      displayText += '()';
+    var displayText = suggestion.displayText;
+    if (displayText == null) {
+      displayText = suggestion.completion;
+      if (isMethod || isConstructor) {
+        displayText += '()';
+      }
     }
 
     return HintResult(
@@ -70,10 +44,5 @@ class AnalysisCompletion implements Comparable<AnalysisCompletion> {
   }
 
   @override
-  int compareTo(AnalysisCompletion other) {
-    return text.compareTo(other.text);
-  }
-
-  @override
-  String toString() => text;
+  String toString() => suggestion.completion;
 }

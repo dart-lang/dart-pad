@@ -64,16 +64,15 @@ Future<void> main(List<String> args) async {
 
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
-      .map((entry) => '  ${entry.key}: ${entry.value}')
-      .join('\n');
+      .map((entry) => '${entry.key}:${entry.value}')
+      .join(',');
 
   _logger.info('''
-Initializing dart-services:
-port: $port
-sdkPath: ${sdk.dartSdkPath}
-redisServerUri: $redisServerUri
-Cloud Run Environment variables:
-$cloudRunEnvVars'''
+Starting dart-services:
+  port: $port
+  sdkPath: ${sdk.dartSdkPath}
+  redisServerUri: $redisServerUri
+  Cloud Run Environment variables: $cloudRunEnvVars'''
       .trim());
 
   await GitHubOAuthHandler.initFromEnvironmentalVars();
