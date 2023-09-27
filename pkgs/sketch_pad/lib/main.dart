@@ -90,20 +90,21 @@ GoRouter _createRouter() {
 
 ThemeData _createTheme(bool darkMode) {
   final colorScheme = ColorScheme.fromSwatch(
+    cardColor: Color(0xFF1c2834),
     brightness: darkMode ? Brightness.dark : Brightness.light,
   );
   return ThemeData(
     colorScheme: colorScheme,
     useMaterial3: true,
-    scaffoldBackgroundColor: Color(0xFF1c2834),
+    scaffoldBackgroundColor: const Color(0xFF0C141D),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: colorScheme.onPrimary,
       ),
     ),
-    dividerTheme: DividerThemeData(
+    dividerColor: Color(0xFF1c2834),
+    dividerTheme: const DividerThemeData(
       color: Color(0xFF1c2834),
-      thickness: 1.0,
     ),
   );
 }
@@ -163,6 +164,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
+        backgroundColor: theme.dividerColor,
         title: SizedBox(
           height: toolbarItemHeight,
           child: Row(
@@ -214,8 +216,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             child: Center(
               child: SplitView(
                 viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.scaffoldBackgroundColor,
-                gripColorActive: theme.scaffoldBackgroundColor,
+                gripColor: theme.dividerTheme.color!,
+                gripColorActive: theme.dividerTheme.color!,
                 gripSize: defaultGripSize,
                 controller: mainSplitter,
                 children: [
@@ -243,7 +245,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
                                             tooltip: 'Format',
-                                            small: true,
                                             onPressed: value
                                                 ? null
                                                 : _handleFormatting,
@@ -257,9 +258,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                       appModel.compilingBusy,
                                       (bool value) {
                                         return PointerInterceptor(
-                                          child: MiniIconButton(
-                                            icon: Icons.play_arrow,
-                                            tooltip: 'Run',
+                                          child: RunButton(
                                             onPressed: value
                                                 ? null
                                                 : _performCompileAndRun,
@@ -447,6 +446,7 @@ class StatusLineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     final darkTheme = colorScheme.darkMode;
@@ -456,9 +456,7 @@ class StatusLineWidget extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: darkTheme ? colorScheme.surface : colorScheme.primary,
-        border: Border(top: Divider.createBorderSide(context, width: 1.0)),
-
+        color: theme.dividerColor,
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,
@@ -552,14 +550,9 @@ class SectionWidget extends StatelessWidget {
       );
     }
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.all(denseSpacing),
-        child: c,
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(denseSpacing),
+      child: c,
     );
   }
 }

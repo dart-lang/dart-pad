@@ -98,6 +98,34 @@ class MiniIconButton extends StatelessWidget {
   }
 }
 
+class RunButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  const RunButton({this.onPressed, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Run',
+      waitDuration: tooltipDelay,
+      child: TextButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            return Color(0xFF168afd);
+          })
+        ),
+        child: Row(children: [
+          Icon(Icons.play_arrow, color: Colors.black,size: 20.0,),
+          SizedBox(width: 8.0,),
+          Text('Run', style: TextStyle(color: Colors.black),),
+        ],),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+
 class ProgressWidget extends StatelessWidget {
   final StatusController status;
 
@@ -162,6 +190,7 @@ class MediumDialog extends StatelessWidget {
 
       return PointerInterceptor(
         child: AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text(title),
           contentTextStyle: Theme.of(context).textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),

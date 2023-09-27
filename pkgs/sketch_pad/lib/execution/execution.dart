@@ -62,10 +62,10 @@ class ExecutionWidget extends StatefulWidget {
 class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
     return Container(
-      color: colorScheme.surfaceVariant,
+      color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.all(denseSpacing),
       child: HtmlElementView(
         key: _elementViewKey,
