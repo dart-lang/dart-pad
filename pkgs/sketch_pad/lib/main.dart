@@ -72,21 +72,10 @@ GoRouter _createRouter() {
           final sampleParam = state.uri.queryParameters['sample'];
           final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
           final bool darkMode = themeParam == 'dark';
-          final colorScheme = ColorScheme.fromSwatch(
-            brightness: darkMode ? Brightness.dark : Brightness.light,
-          );
+
 
           return Theme(
-            data: ThemeData(
-              colorScheme: colorScheme,
-              // TODO: We should switch to using material 3.
-              useMaterial3: false,
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.onPrimary,
-                ),
-              ),
-            ),
+            data: _createTheme(darkMode),
             child: DartPadMainPage(
               title: appName,
               sampleId: sampleParam,
@@ -96,6 +85,26 @@ GoRouter _createRouter() {
         },
       ),
     ],
+  );
+}
+
+ThemeData _createTheme(bool darkMode) {
+  final colorScheme = ColorScheme.fromSwatch(
+    brightness: darkMode ? Brightness.dark : Brightness.light,
+  );
+  return ThemeData(
+    colorScheme: colorScheme,
+    useMaterial3: true,
+    scaffoldBackgroundColor: Color(0xFF1c2834),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: colorScheme.onPrimary,
+      ),
+    ),
+    dividerTheme: DividerThemeData(
+      color: Color(0xFF1c2834),
+      thickness: 1.0,
+    ),
   );
 }
 
@@ -449,6 +458,7 @@ class StatusLineWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: darkTheme ? colorScheme.surface : colorScheme.primary,
         border: Border(top: Divider.createBorderSide(context, width: 1.0)),
+
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,

@@ -29,7 +29,7 @@ html.Element _codeMirrorFactory(int viewId) {
     'lineNumbers': true,
     'lineWrapping': true,
     'mode': 'dart',
-    'theme': 'monokai',
+    'theme': 'darkpad',
     ...codeMirrorOptions,
   });
 
@@ -213,7 +213,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorMode(bool darkMode) {
-    codeMirror?.setTheme(darkMode ? 'monokai' : 'default');
+    codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
   Future<HintResults> _calculateCompletions() async {

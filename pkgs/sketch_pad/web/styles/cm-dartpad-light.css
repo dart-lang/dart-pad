@@ -1,0 +1,72 @@
+.cm-s-dartpad span {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 400;
+}
+
+.cm-s-dartpad .CodeMirror-matchingbracket {outline: 1px solid #606060;color: #a54a78 !important;}
+.cm-s-dartpad .CodeMirror-selected {background: #e8e8e8 !important;}
+
+.cm-s-dartpad .CodeMirror-gutters { background: #fff !important; border-right: none}
+.cm-s-dartpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: #d0d0d2; }
+.cm-s-dartpad .CodeMirror-linenumber { color: #d0d0d2; }
+.cm-s-dartpad .CodeMirror-cursor { border-left: 1px solid #4a4a4a; }
+.cm-s-dartpad .CodeMirror-cursors.CodeMirror-overwrite .CodeMirror-cursor { margin-top: 2px; width: auto; border-left: none; background-color: #4a4a4a; }
+.cm-s-dartpad { background-color: #fff; color: #4a4a4a; }
+.cm-s-dartpad span.cm-builtin { color: #4a4a4a; }
+.cm-s-dartpad span.cm-comment { color: #5F6368; }
+.cm-s-dartpad span.cm-keyword { color: #007a27;}
+.cm-s-dartpad span.cm-atom { color: #2f4960; }
+.cm-s-dartpad span.cm-variable { color: #0E161F; }
+.cm-s-dartpad span.cm-variable-2 { color: #a54a78;}
+.cm-s-dartpad span.cm-string { color: #bc0056; }
+.cm-s-dartpad span.cm-string-2 { color: #983ab3; }
+.cm-s-dartpad span.cm-number { color: #00786d; }
+.cm-s-dartpad span.cm-attribute { color: #0E161F; }
+.cm-s-dartpad span.cm-qualifier { color: #d32923; }
+.cm-s-dartpad span.cm-meta { color: #00786d; }
+.cm-s-dartpad span.cm-header { color: #0E161F; }
+.cm-s-dartpad span.cm-operator { color: #4a4a4a; }
+.cm-s-dartpad span.cm-def { color: #4a4a4a; }
+.cm-s-dartpad span.cm-tag { color: #007a27; }
+.cm-s-dartpad span.cm-property { color: #a54a78; }
+
+.CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
+  background: #5F6368;
+}
+
+.CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+  background-color: #fff !important;
+}
+
+.cm-s-dartpad .CodeMirror-foldmarker {
+  background-color:rgb(82, 192, 155);
+  color: #000;
+  font-weight: bold !important;
+  cursor: pointer;
+}
+.cm-s-dartpad .CodeMirror-foldgutter {
+  width: .7em;
+}
+.cm-s-dartpad .CodeMirror-foldgutter-open,
+.cm-s-dartpad .CodeMirror-foldgutter-folded {
+  cursor: pointer;
+}
+.cm-s-dartpad .CodeMirror-foldgutter-open:after {
+  content: "\25BE";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: #d0d0d2;
+}
+.cm-s-dartpad .CodeMirror-foldgutter-folded:after {
+  content: "\25B8";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: rgb(82, 192, 155);
+}
+.cm-s-dartpad span.CodeMirror-matchingtag {
+  background-color: #c4c4c4;
+}
