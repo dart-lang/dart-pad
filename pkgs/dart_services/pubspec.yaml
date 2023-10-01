@@ -6,7 +6,7 @@ environment:
 
 dependencies:
   analysis_server_lib: ^0.2.4
-  analyzer: ^5.13.0
+  analyzer: ^6.2.0
   args: ^2.4.2
   bazel_worker: ^1.0.2
   convert: ^3.1.1
