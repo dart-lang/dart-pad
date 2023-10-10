@@ -10,11 +10,11 @@ import 'api_model.dart';
 
 export 'api_model.dart';
 
-class Services {
+class ServicesClient {
   final Client _client;
   final String rootUrl;
 
-  Services(this._client, {required this.rootUrl});
+  ServicesClient(this._client, {required this.rootUrl});
 
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
@@ -25,22 +25,11 @@ class Services {
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
-  // Future<DocumentResponse> document(SourceRequest request) =>
-  //     _request('document', request.toJson(), DocumentResponse.fromJson);
-
-  // Future<FixesResponse> fixes(SourceRequest request) =>
-  //     _request('fixes', request.toJson(), FixesResponse.fromJson);
-
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
   Future<CompileResponse> compile(CompileRequest request) =>
       _requestPost('compile', request.toJson(), CompileResponse.fromJson);
-
-  /// Note that this call is experimental and can change at any time.
-  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) =>
-      _requestPost(
-          '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
 
   void dispose() => _client.close();
 

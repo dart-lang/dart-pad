@@ -77,9 +77,9 @@ Starting dart-services:
 
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
-  await EndpointsServer.serve(port, sdk, redisServerUri);
+  final server = await EndpointsServer.serve(port, sdk, redisServerUri);
 
-  _logger.info('Listening on port $port');
+  _logger.info('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -89,7 +89,7 @@ class EndpointsServer {
     String? redisServerUri,
   ) async {
     final endpointsServer = EndpointsServer._(redisServerUri, sdk);
-    await endpointsServer.init();
+    await endpointsServer._init();
 
     endpointsServer.server = await shelf.serve(
       endpointsServer.handler,
@@ -136,5 +136,9 @@ class EndpointsServer {
     handler = pipeline.addHandler(commonServerApi.router.call);
   }
 
-  Future<void> init() => _commonServerImpl.init();
+  Future<void> _init() => _commonServerImpl.init();
+
+  int get port => server.port;
+
+  Future<void> close() => server.close();
 }

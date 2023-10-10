@@ -58,6 +58,9 @@ class AnalysisIssue {
       _$AnalysisIssueFromJson(json);
 
   Map<String, dynamic> toJson() => _$AnalysisIssueToJson(this);
+
+  @override
+  String toString() => '[$kind] $message';
 }
 
 @JsonSerializable()
@@ -157,6 +160,9 @@ class CompletionSuggestion {
       _$CompletionSuggestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompletionSuggestionToJson(this);
+
+  @override
+  String toString() => '[$relevance] [$kind] $completion';
 }
 
 @JsonSerializable()

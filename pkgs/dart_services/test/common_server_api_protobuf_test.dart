@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:angel3_mock_request/angel3_mock_request.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_api.dart';
 import 'package:dart_services/src/common_server_impl.dart';
@@ -17,6 +16,8 @@ import 'package:logging/logging.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
+
+import 'src/utils.dart';
 
 const preFormattedCode = r'''
 void main()
@@ -74,7 +75,7 @@ void defineTests() {
     final sdk =
         Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     setUpAll(() async {
-      final cache = MockCache();
+      final ServerCache cache = MockCache();
       commonServerImpl = CommonServerImpl(cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
@@ -739,19 +740,4 @@ main() {
     });
   });
   // End of multi file files={} tests group.
-}
-
-class MockCache implements ServerCache {
-  @override
-  Future<String?> get(String key) => Future.value(null);
-
-  @override
-  Future<void> set(String key, String value, {Duration? expiration}) =>
-      Future.value();
-
-  @override
-  Future<void> remove(String key) => Future.value();
-
-  @override
-  Future<void> shutdown() => Future.value();
 }
