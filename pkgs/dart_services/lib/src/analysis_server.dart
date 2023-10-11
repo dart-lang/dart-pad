@@ -175,12 +175,6 @@ abstract class AnalysisServerWrapper {
       }
     });
 
-    // print('${suggestions.length} suggestions');
-    // for (final suggestion in suggestions) {
-    //   print('  [${suggestion.relevance}] [${suggestion.completion}] '
-    //       '[${suggestion.kind}] [${suggestion.element?.kind}]');
-    // }
-
     return api.CompleteResponse(
       replacementOffset: results.replacementOffset,
       replacementLength: results.replacementLength,
@@ -242,7 +236,6 @@ abstract class AnalysisServerWrapper {
             edit.offset, edit.offset + edit.length, edit.replacement);
       }
 
-      // TODO: Allow offset result to be null.
       return proto.FormatResponse()
         ..newString = src
         ..offset = offset == null ? 0 : editResult.selectionOffset;

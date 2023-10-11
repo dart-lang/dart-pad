@@ -128,7 +128,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.localhost, // Channel.beta, Channel.stable, Channel.localhost
+      Channel.beta,
     );
 
     appServices.populateVersions();

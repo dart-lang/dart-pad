@@ -25,9 +25,11 @@ class Services {
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
+  // TODO: Implement document().
   // Future<DocumentResponse> document(SourceRequest request) =>
   //     _request('document', request.toJson(), DocumentResponse.fromJson);
 
+  // TODO: Implement fixes().
   // Future<FixesResponse> fixes(SourceRequest request) =>
   //     _request('fixes', request.toJson(), FixesResponse.fromJson);
 
