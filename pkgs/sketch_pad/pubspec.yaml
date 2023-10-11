@@ -8,6 +8,7 @@ environment:
 dependencies:
   codemirror: any
   collection: any
+  dartpad_shared: any
   flutter:
     sdk: flutter
   fluttering_phrases: any
@@ -33,3 +34,7 @@ flutter:
   assets:
     - assets/dart_logo_128.png
     - assets/flutter_logo_192.png
+
+dependency_overrides:
+  dartpad_shared:
+    path: ../dartpad_shared

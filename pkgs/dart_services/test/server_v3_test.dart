@@ -6,8 +6,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
-import 'package:dart_services/src/client.dart';
 import 'package:dart_services/src/sdk.dart';
+import 'package:dartpad_shared/services.dart';
 import 'package:http/http.dart';
 import 'package:test/test.dart';
 

@@ -4,7 +4,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'api_model.g.dart';
+part 'model.g.dart';
 
 @JsonSerializable()
 class SourceRequest {

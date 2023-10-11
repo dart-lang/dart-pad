@@ -12,6 +12,7 @@ dependencies:
   collection: ^1.18.0
   convert: ^3.1.1
   crypto: ^3.0.3
+  dartpad_shared: any
   encrypt: ^5.0.2
   http: ^1.0.0
   json_annotation: any
@@ -39,3 +40,7 @@ dev_dependencies:
 
 executables:
   services: null
+
+dependency_overrides:
+  dartpad_shared:
+    path: ../dartpad_shared

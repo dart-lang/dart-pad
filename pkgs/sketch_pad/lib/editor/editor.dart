@@ -11,10 +11,10 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:codemirror/codemirror.dart';
 import 'package:codemirror/hints.dart';
+import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../src/services.dart' as services;
 import '../theme.dart';
 import 'completion.dart';
 

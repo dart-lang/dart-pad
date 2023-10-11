@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +20,6 @@ import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'src/services.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';

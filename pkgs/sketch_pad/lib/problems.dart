@@ -4,11 +4,11 @@
 
 import 'dart:math' as math;
 
+import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'model.dart';
-import 'src/api_model.dart';
 import 'theme.dart';
 
 const _rowPadding = 2.0;

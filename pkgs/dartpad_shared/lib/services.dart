@@ -6,15 +6,15 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 
-import 'api_model.dart';
+import 'model.dart';
 
-export 'api_model.dart';
+export 'model.dart';
 
 class ServicesClient {
-  final Client _client;
+  final Client client;
   final String rootUrl;
 
-  ServicesClient(this._client, {required this.rootUrl});
+  ServicesClient(this.client, {required this.rootUrl});
 
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
@@ -25,20 +25,33 @@ class ServicesClient {
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
+  // TODO: Implement document().
+  // Future<DocumentResponse> document(SourceRequest request) =>
+  //     _request('document', request.toJson(), DocumentResponse.fromJson);
+
+  // TODO: Implement fixes().
+  // Future<FixesResponse> fixes(SourceRequest request) =>
+  //     _request('fixes', request.toJson(), FixesResponse.fromJson);
+
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
   Future<CompileResponse> compile(CompileRequest request) =>
       _requestPost('compile', request.toJson(), CompileResponse.fromJson);
 
-  void dispose() => _client.close();
+  /// Note that this call is experimental and can change at any time.
+  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) =>
+      _requestPost(
+          '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
+
+  void dispose() => client.close();
 
   Future<T> _requestGet<T>(
     String action,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
     final response =
-        await _client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
+        await client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
     if (response.statusCode != 200) {
       throw ApiRequestError(
         '$action: ${response.statusCode}: ${response.reasonPhrase}',
@@ -59,7 +72,7 @@ class ServicesClient {
     Map<String, dynamic> request,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
-    final response = await _client.post(
+    final response = await client.post(
         Uri.parse('${rootUrl}api/dartservices/v3/$action'),
         encoding: utf8,
         body: json.encode(request));

@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:codemirror/hints.dart';
-
-import '../src/api_model.dart';
+import 'package:dartpad_shared/model.dart';
 
 // TODO: Rework this to use the 'displayText' from the server
 

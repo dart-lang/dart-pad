@@ -5,13 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import 'api_model.dart' as api;
 import 'common_server_impl.dart' show BadRequest, CommonServerImpl;
 import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;

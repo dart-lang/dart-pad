@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/material.dart';
 import 'package:vtable/vtable.dart';
 
-import 'src/services.dart';
 import 'theme.dart';
 
 class VersionTable extends StatelessWidget {

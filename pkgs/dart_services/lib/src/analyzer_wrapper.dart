@@ -9,10 +9,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 
 import 'analysis_server.dart';
-import 'api_model.dart' as api;
 import 'common.dart';
 import 'common_server_impl.dart' show BadRequest;
 import 'project.dart' as project;

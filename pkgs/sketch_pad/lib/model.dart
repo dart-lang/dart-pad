@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'gists.dart';
 import 'samples.g.dart';
-import 'src/services.dart';
 import 'utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
@@ -110,7 +110,7 @@ class AppServices {
   final Channel channel;
 
   late final http.Client httpClient;
-  late final Services services;
+  late final ServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -122,7 +122,7 @@ class AppServices {
 
   AppServices(this.appModel, this.channel) {
     httpClient = http.Client();
-    services = Services(httpClient, rootUrl: channel.url);
+    services = ServicesClient(httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
