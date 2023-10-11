@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +20,6 @@ import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'src/dart_services.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
@@ -128,7 +128,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.beta, // Channel.beta, Channel.stable, Channel.localhost
+      Channel.beta,
     );
 
     appServices.populateVersions();
@@ -356,9 +356,11 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               }
             },
             keys.findKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find');
             },
             keys.findNextKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find next');
             },
             keys.codeCompletionKeyActivator: () {
@@ -375,26 +377,20 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 
   Future<void> _handleFormatting() async {
-    final value = appModel.sourceCodeController.text;
-
-    FormatResponse result;
-
     try {
-      result = await appServices.format(SourceRequest(source: value));
+      final value = appModel.sourceCodeController.text;
+      final result = await appServices.format(SourceRequest(source: value));
+
+      if (result.source == value) {
+        appModel.editorStatus.showToast('No formatting changes');
+      } else {
+        appModel.editorStatus.showToast('Format successful');
+        appModel.sourceCodeController.text = result.source;
+      }
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
-    }
-
-    if (result.hasError()) {
-      appModel.editorStatus.showToast('Error formatting code');
-      appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
-    } else if (result.newString == value) {
-      appModel.editorStatus.showToast('No formatting changes');
-    } else {
-      appModel.editorStatus.showToast('Format successful');
-      appModel.sourceCodeController.text = result.newString;
     }
   }
 
@@ -408,8 +404,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     try {
       // ignore: dead_code
       if (useFlutterBuild) {
-        final response =
-            await appServices.build(FlutterBuildRequest()..source = value);
+        final response = await appServices.build(SourceRequest(source: value));
         appModel.clearConsole();
         final artifacts = response.artifacts;
         appServices.executeJavaScript(artifacts['main.dart.js']!);
@@ -417,7 +412,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       } else {
         // ignore: deprecated_member_use_from_same_package
         final response = await appServices.compile(
-          CompileRequest()..source = value,
+          CompileRequest(source: value),
         );
         appModel.clearConsole();
         appServices.executeJavaScript(response.result);
@@ -848,10 +843,10 @@ class KeyBindingsTable extends StatelessWidget {
 }
 
 class VersionInfoWidget extends StatefulWidget {
-  final ValueListenable<VersionResponse> runtimeVersions;
+  final ValueListenable<VersionResponse?> versions;
 
   const VersionInfoWidget(
-    this.runtimeVersions, {
+    this.versions, {
     Key? key,
   }) : super(key: key);
 
@@ -864,9 +859,13 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<VersionResponse>(
-      valueListenable: widget.runtimeVersions,
+    return ValueListenableBuilder<VersionResponse?>(
+      valueListenable: widget.versions,
       builder: (content, versions, _) {
+        if (versions == null) {
+          return const SizedBox();
+        }
+
         return TextButton(
           onPressed: () {
             showDialog<void>(
@@ -874,13 +873,13 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               builder: (context) {
                 return MediumDialog(
                   title: 'Runtime Versions',
-                  child: VersionTable(versions: versions),
+                  child: VersionTable(version: versions),
                 );
               },
             );
           },
           child: Text(
-            'Dart ${versions.sdkVersionFull} • Flutter ${versions.flutterVersion}',
+            'Dart ${versions.dartVersion} • Flutter ${versions.flutterVersion}',
           ),
         );
       },

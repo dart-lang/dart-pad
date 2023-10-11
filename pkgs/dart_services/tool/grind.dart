@@ -370,9 +370,6 @@ void generateProtos() async {
   // Copy to the front-end packages.
   copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
   copy(getDir('lib/src/protos'), getDir('../sketch_pad/lib/src/protos'));
-
-  // generate common_server_proto.g.dart
-  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
 }
 
 Future<void> _run(

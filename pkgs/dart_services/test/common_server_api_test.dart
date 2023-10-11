@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:angel3_mock_request/angel3_mock_request.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_api.dart';
 import 'package:dart_services/src/common_server_impl.dart';
@@ -16,6 +14,8 @@ import 'package:dart_services/src/server_cache.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
+
+import 'src/utils.dart';
 
 const preFormattedCode = r'''
 void main()
@@ -70,8 +70,9 @@ void defineTests() {
   group('CommonServerProto JSON', () {
     final sdk =
         Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
+
     setUp(() async {
-      final cache = MockCache();
+      final ServerCache cache = MockCache();
       commonServerImpl = CommonServerImpl(cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
@@ -1085,21 +1086,4 @@ main() {
   });
   // End of multi file files={} tests group.
   //-------------------------------------------------------------------------
-}
-
-class MockCache implements ServerCache {
-  final _cache = HashMap<String, String>();
-
-  @override
-  Future<String?> get(String key) async => _cache[key];
-
-  @override
-  Future<void> set(String key, String value, {Duration? expiration}) async =>
-      _cache[key] = value;
-
-  @override
-  Future<void> remove(String key) async => _cache.remove(key);
-
-  @override
-  Future<void> shutdown() async => _cache.removeWhere((key, value) => true);
 }

@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/material.dart';
 import 'package:vtable/vtable.dart';
 
-import 'src/protos/dart_services.pbserver.dart';
 import 'theme.dart';
 
 class VersionTable extends StatelessWidget {
-  final VersionResponse versions;
+  final VersionResponse version;
 
   const VersionTable({
-    required this.versions,
+    required this.version,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    final packages = versions.packageInfo.where((p) => p.supported).toList();
+    final packages = version.packages.where((p) => p.supported).toList();
 
-    var versionText = 'Based on Dart SDK ${versions.sdkVersionFull} '
-        'and Flutter SDK ${versions.flutterVersion}.';
-    final experiments = versions.experiment.join(', ');
+    var versionText = 'Based on Dart SDK ${version.dartVersion} '
+        'and Flutter SDK ${version.flutterVersion}.';
+    final experiments = version.experiments.join(', ');
     if (experiments.isNotEmpty) {
       versionText += '\n\nEnabled experiments: $experiments.';
     }

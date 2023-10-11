@@ -1,0 +1,14 @@
+name: dartpad_shared
+description: Common code shared between the DartPad frontend and backend.
+publish_to: 'none'
+
+environment:
+  sdk: ^3.1.0
+
+dependencies:
+  http: ^1.1.0
+  json_annotation: ^4.8.0
+
+dev_dependencies:
+  build_runner: ^2.4.5
+  json_serializable: ^6.7.0

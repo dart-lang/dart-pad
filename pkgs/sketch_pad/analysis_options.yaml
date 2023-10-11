@@ -8,5 +8,6 @@ analyzer:
 
 linter:
   rules:
+    - directives_ordering
     - prefer_relative_imports
     - prefer_single_quotes
