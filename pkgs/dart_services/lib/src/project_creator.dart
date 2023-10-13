@@ -40,6 +40,7 @@ class ProjectCreator {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
+
     final dependencies = _dependencyVersions(supportedBasicDartPackages());
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
@@ -210,7 +211,7 @@ Map<String, String> parsePubDependenciesFile({required File dependenciesFile}) {
   return packageVersions.cast<String, String>();
 }
 
-/// Build a return a `pubspec.yaml` file.
+/// Build and return a `pubspec.yaml` file.
 String createPubspec({
   required bool includeFlutterWeb,
   required String dartLanguageVersion,
