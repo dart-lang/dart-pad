@@ -183,5 +183,26 @@ void main() {
         expect(e.body, contains("Expected ';' after this."));
       }
     });
+
+    test('document', () async {
+      final result = await client.document(SourceRequest(
+        source: '''
+void main() {
+  print('hello world');
+}
+''',
+        offset: 18,
+      ));
+
+      expect(
+        result.dartdoc!.toLowerCase(),
+        contains('prints a string representation'),
+      );
+      expect(result.containingLibraryName, 'dart:core');
+      expect(result.elementDescription, isNotNull);
+      expect(result.deprecated, false);
+      expect(result.propagatedType, isNull);
+      expect(result.elementKind, 'function');
+    });
   });
 }

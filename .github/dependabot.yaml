@@ -9,19 +9,3 @@ updates:
     labels:
       - "autosubmit"
       - "type-infra"
-
-  - package-ecosystem: "pub"
-    directory: "/pkgs/dart_pad/"
-    schedule:
-      interval: "monthly"
-    versioning-strategy: increase-if-necessary
-    labels:
-      - "type-infra"
-
-  - package-ecosystem: "pub"
-    directory: "/pkgs/dart_services/"
-    schedule:
-      interval: "monthly"
-    versioning-strategy: increase-if-necessary
-    labels:
-      - "type-infra"

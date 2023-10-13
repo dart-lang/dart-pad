@@ -119,6 +119,30 @@ class FlutterBuildResponse {
 }
 
 @JsonSerializable()
+class DocumentResponse {
+  final String? dartdoc;
+  final String? containingLibraryName;
+  final String? elementDescription;
+  final String? elementKind;
+  final bool? deprecated;
+  final String? propagatedType;
+
+  DocumentResponse({
+    this.dartdoc,
+    this.containingLibraryName,
+    this.elementDescription,
+    this.elementKind,
+    this.deprecated,
+    this.propagatedType,
+  });
+
+  factory DocumentResponse.fromJson(Map<String, dynamic> json) =>
+      _$DocumentResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DocumentResponseToJson(this);
+}
+
+@JsonSerializable()
 class CompleteResponse {
   final int replacementOffset;
   final int replacementLength;

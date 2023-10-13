@@ -285,6 +285,33 @@ abstract class AnalysisServerWrapper {
     };
   }
 
+  Future<api.DocumentResponse> dartdocV3(String src, int offset) async {
+    final location = Location(kMainDart, offset);
+    final sources = _getOverlayMapWithPaths({kMainDart: src});
+    final sourcepath = _getPathFromName(location.sourceName);
+
+    await _loadSources(sources);
+
+    final result =
+        await analysisServer.analysis.getHover(sourcepath, location.offset);
+    await _unloadSources();
+
+    if (result.hovers.isEmpty) {
+      return api.DocumentResponse();
+    }
+
+    final info = result.hovers.first;
+
+    return api.DocumentResponse(
+      dartdoc: info.dartdoc,
+      containingLibraryName: info.containingLibraryName,
+      elementDescription: info.elementDescription,
+      elementKind: info.elementKind,
+      deprecated: info.isDeprecated,
+      propagatedType: info.propagatedType,
+    );
+  }
+
   Future<proto.AnalysisResults> analyze(String src) {
     return analyzeFiles({kMainDart: src});
   }

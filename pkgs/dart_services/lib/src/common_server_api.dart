@@ -214,14 +214,29 @@ class CommonServerApi {
   }
 
   @Route.post('$apiPrefix/document')
-  Future<Response> document(Request request, String apiVersion) {
-    return _processRequest(
-      request,
-      decodeFromJSON: (json) =>
-          proto.SourceRequest.create()..mergeFromProto3Json(json),
-      decodeFromProto: proto.SourceRequest.fromBuffer,
-      transform: _impl.document,
-    );
+  Future<Response> document(Request request, String apiVersion) async {
+    if (apiVersion == api2) {
+      return _processRequest(
+        request,
+        decodeFromJSON: (json) =>
+            proto.SourceRequest.create()..mergeFromProto3Json(json),
+        decodeFromProto: proto.SourceRequest.fromBuffer,
+        transform: _impl.document,
+      );
+    } else if (apiVersion == api3) {
+      final sourceRequest =
+          api.SourceRequest.fromJson(await request.readAsJson());
+
+      final result = await serialize(() {
+        return _impl.analysisServer.dartdocV3(
+          sourceRequest.source,
+          sourceRequest.offset!,
+        );
+      });
+      return ok(result.toJson());
+    } else {
+      return unhandledVersion(apiVersion);
+    }
   }
 
   @Route.post('$apiPrefix/version')

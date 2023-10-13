@@ -97,6 +97,26 @@ Map<String, dynamic> _$FlutterBuildResponseToJson(
       'artifacts': instance.artifacts,
     };
 
+DocumentResponse _$DocumentResponseFromJson(Map<String, dynamic> json) =>
+    DocumentResponse(
+      dartdoc: json['dartdoc'] as String?,
+      elementDescription: json['elementDescription'] as String?,
+      containingLibraryName: json['containingLibraryName'] as String?,
+      elementKind: json['elementKind'] as String?,
+      deprecated: json['deprecated'] as bool?,
+      propagatedType: json['propagatedType'] as String?,
+    );
+
+Map<String, dynamic> _$DocumentResponseToJson(DocumentResponse instance) =>
+    <String, dynamic>{
+      'dartdoc': instance.dartdoc,
+      'elementDescription': instance.elementDescription,
+      'containingLibraryName': instance.containingLibraryName,
+      'elementKind': instance.elementKind,
+      'deprecated': instance.deprecated,
+      'propagatedType': instance.propagatedType,
+    };
+
 CompleteResponse _$CompleteResponseFromJson(Map<String, dynamic> json) =>
     CompleteResponse(
       replacementOffset: json['replacementOffset'] as int,

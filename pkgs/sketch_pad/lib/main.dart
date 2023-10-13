@@ -25,11 +25,13 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: handle large console content
-
 // TODO: explore using the monaco editor
 
 // TODO: have a theme toggle
+
+// TODO: show documentation on hover
+
+// TODO: support changing the flutter sdk channel
 
 const appName = 'DartPad';
 
@@ -128,7 +130,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.beta,
+      Channel.localhost,
     );
 
     appServices.populateVersions();

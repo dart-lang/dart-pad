@@ -154,11 +154,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     _updateCodemirrorMode(darkMode);
 
-    return HtmlElementView(
-      key: _elementViewKey,
-      viewType: _viewType,
-      onPlatformViewCreated: (id) =>
-          _platformViewCreated(id, darkMode: darkMode),
+    return Tooltip(
+      message: 'foo bar',
+      waitDuration: tooltipDelay,
+      child: HtmlElementView(
+        key: _elementViewKey,
+        viewType: _viewType,
+        onPlatformViewCreated: (id) =>
+            _platformViewCreated(id, darkMode: darkMode),
+      ),
     );
   }
 

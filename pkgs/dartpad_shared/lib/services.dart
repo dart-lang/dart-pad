@@ -25,13 +25,12 @@ class ServicesClient {
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
-  // TODO: Implement document().
-  // Future<DocumentResponse> document(SourceRequest request) =>
-  //     _request('document', request.toJson(), DocumentResponse.fromJson);
+  Future<DocumentResponse> document(SourceRequest request) =>
+      _requestPost('document', request.toJson(), DocumentResponse.fromJson);
 
   // TODO: Implement fixes().
   // Future<FixesResponse> fixes(SourceRequest request) =>
-  //     _request('fixes', request.toJson(), FixesResponse.fromJson);
+  //     _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
 
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
@@ -52,18 +51,19 @@ class ServicesClient {
   ) async {
     final response =
         await client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
+
     if (response.statusCode != 200) {
       throw ApiRequestError(
         '$action: ${response.statusCode}: ${response.reasonPhrase}',
         response.body,
       );
-    }
-
-    try {
-      return responseFactory(
-          json.decode(response.body) as Map<String, dynamic>);
-    } on FormatException catch (e) {
-      throw ApiRequestError('$action: $e', response.body);
+    } else {
+      try {
+        return responseFactory(
+            json.decode(response.body) as Map<String, dynamic>);
+      } on FormatException catch (e) {
+        throw ApiRequestError('$action: $e', response.body);
+      }
     }
   }
 
@@ -81,13 +81,13 @@ class ServicesClient {
         '$action: ${response.statusCode}: ${response.reasonPhrase}',
         response.body,
       );
-    }
-
-    try {
-      return responseFactory(
-          json.decode(response.body) as Map<String, dynamic>);
-    } on FormatException catch (e) {
-      throw ApiRequestError('$action: $e', response.body);
+    } else {
+      try {
+        return responseFactory(
+            json.decode(response.body) as Map<String, dynamic>);
+      } on FormatException catch (e) {
+        throw ApiRequestError('$action: $e', response.body);
+      }
     }
   }
 }

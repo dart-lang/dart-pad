@@ -162,6 +162,10 @@ class AnalyzerWrapper {
         'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
       );
 
+  Future<api.DocumentResponse> dartdocV3(String source, int offset) {
+    return _dartAnalysisServer.dartdocV3(source, offset);
+  }
+
   Future<T> _perfLogAndRestart<T>(
     Map<String, String> sources,
     String activeSourceName,
