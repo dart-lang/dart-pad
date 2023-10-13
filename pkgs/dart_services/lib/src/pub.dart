@@ -127,7 +127,7 @@ class PackageResolver {
 name: dartpad_sample
 
 environment:
-  sdk: ^${sdk.version}
+  sdk: ^${sdk.versionFull}
 
 dependencies:
 ${packages.map((package) {

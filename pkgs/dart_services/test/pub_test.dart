@@ -132,8 +132,8 @@ import '../foo.dart';
     late final Sdk sdk;
 
     setUpAll(() {
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-      sdk = Sdk.create(channel);
+      sdk =
+          Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     });
 
     late ServerCache serverCache;
