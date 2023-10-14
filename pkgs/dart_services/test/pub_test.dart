@@ -179,6 +179,19 @@ void main() {
       expect(names, contains('path'));
     });
 
+    test('resolution failure', () async {
+      final result = resolver.pubGet(tempDir, '''
+import 'package:args_12349/args.dart';
+
+void main() {
+  print('hello world');
+}
+''');
+
+      // TODO: test that the exception's message contains "which doesn't exist"
+      expect(result, throwsException);
+    });
+
     test('several packages', () async {
       final result = await resolver.pubGet(tempDir, '''
 import 'package:args/args.dart';
