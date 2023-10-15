@@ -57,7 +57,6 @@ final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
   'cloud_run_beta.Dockerfile',
   'cloud_run_main.Dockerfile',
-  'cloud_run_old.Dockerfile',
   'cloud_run.Dockerfile',
 ];
 
@@ -442,8 +441,8 @@ Future<void> _updateDependenciesFile({
 
 /// Returns the File containing the pub dependencies and their version numbers.
 ///
-/// The file is at `tool/pub_dependencies_{channel}.json`, for the Flutter
-/// channels: stable, beta, old.
+/// The file is at `tool/dependencies/pub_dependencies_{channel}.json`, for
+/// the Flutter channels: stable, beta, main.
 File _pubDependenciesFile({required String channel}) {
   return File(
     path.join(
