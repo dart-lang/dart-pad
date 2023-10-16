@@ -120,6 +120,9 @@ class AnalyzerWrapper {
         'Error during fixes on "${sources[activeSourceName]}" at $offset',
       );
 
+  Future<api.FixesResponse> fixesV3(String source, int offset) =>
+      _dartAnalysisServer.fixesV3(source, offset);
+
   Future<proto.AssistsResponse> getAssists(String source, int offset) =>
       getAssistsMulti({kMainDart: source}, kMainDart, offset);
 

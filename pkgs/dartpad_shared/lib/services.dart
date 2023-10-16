@@ -28,9 +28,8 @@ class ServicesClient {
   Future<DocumentResponse> document(SourceRequest request) =>
       _requestPost('document', request.toJson(), DocumentResponse.fromJson);
 
-  // TODO: Implement fixes().
-  // Future<FixesResponse> fixes(SourceRequest request) =>
-  //     _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
+  Future<FixesResponse> fixes(SourceRequest request) =>
+      _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
 
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);

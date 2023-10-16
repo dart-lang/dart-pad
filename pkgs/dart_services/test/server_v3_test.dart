@@ -204,5 +204,73 @@ void main() {
       expect(result.propagatedType, isNull);
       expect(result.elementKind, 'function');
     });
+
+    test('document empty', () async {
+      final result = await client.document(SourceRequest(
+        source: '''
+void main() {
+  print('hello world');
+}
+''',
+        offset: 15,
+      ));
+
+      expect(result.dartdoc, isNull);
+      expect(result.elementKind, isNull);
+      expect(result.elementDescription, isNull);
+    });
+
+    test('fixes', () async {
+      final result = await client.fixes(SourceRequest(
+        source: '''
+void main() {
+  var foo = 'bar';
+  print('hello world');
+}
+''',
+        offset: 21,
+      ));
+
+      expect(result.fixes, hasLength(3));
+
+      final fix = result.fixes
+          .firstWhereOrNull((fix) => fix.message.contains('Ignore'));
+      expect(fix, isNotNull);
+      expect(fix!.edits, hasLength(1));
+      expect(fix.edits.first.replacement,
+          contains('// ignore: unused_local_variable'));
+    });
+
+    test('fixes empty', () async {
+      final result = await client.fixes(SourceRequest(
+        source: '''
+void main() {
+  var foo = 'bar';
+  print(foo);
+}
+''',
+        offset: 21,
+      ));
+
+      expect(result.fixes, hasLength(0));
+    });
+
+    test('assists', () async {
+      final result = await client.fixes(SourceRequest(
+        source: '''
+void main() => print('hello world');
+''',
+        offset: 13,
+      ));
+
+      expect(result.fixes, hasLength(0));
+      expect(result.assists, isNotEmpty);
+
+      final assist = result.assists.firstWhereOrNull(
+          (assist) => assist.message.contains('Convert to block body'));
+      expect(assist, isNotNull);
+      expect(assist!.edits, hasLength(1));
+      expect(assist.edits.first.replacement, isNotEmpty);
+    });
   });
 }

@@ -14,7 +14,7 @@ dependencies:
   fluttering_phrases: any
   go_router: ^10.0.0
   http: any
-  json_annotation: ^4.8.0
+  json_annotation: ^4.8.1
   pointer_interceptor: ^0.9.0
   protobuf: any
   provider: ^6.0.0
