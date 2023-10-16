@@ -97,6 +97,68 @@ Map<String, dynamic> _$FlutterBuildResponseToJson(
       'artifacts': instance.artifacts,
     };
 
+FixesResponse _$FixesResponseFromJson(Map<String, dynamic> json) =>
+    FixesResponse(
+      fixes: (json['fixes'] as List<dynamic>)
+          .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      assists: (json['assists'] as List<dynamic>)
+          .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$FixesResponseToJson(FixesResponse instance) =>
+    <String, dynamic>{
+      'fixes': instance.fixes,
+      'assists': instance.assists,
+    };
+
+SourceChange _$SourceChangeFromJson(Map<String, dynamic> json) => SourceChange(
+      message: json['message'] as String,
+      edits: (json['edits'] as List<dynamic>)
+          .map((e) => SourceEdit.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$SourceChangeToJson(SourceChange instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'edits': instance.edits,
+    };
+
+SourceEdit _$SourceEditFromJson(Map<String, dynamic> json) => SourceEdit(
+      offset: json['offset'] as int,
+      length: json['length'] as int,
+      replacement: json['replacement'] as String,
+    );
+
+Map<String, dynamic> _$SourceEditToJson(SourceEdit instance) =>
+    <String, dynamic>{
+      'offset': instance.offset,
+      'length': instance.length,
+      'replacement': instance.replacement,
+    };
+
+DocumentResponse _$DocumentResponseFromJson(Map<String, dynamic> json) =>
+    DocumentResponse(
+      dartdoc: json['dartdoc'] as String?,
+      elementKind: json['elementKind'] as String?,
+      elementDescription: json['elementDescription'] as String?,
+      containingLibraryName: json['containingLibraryName'] as String?,
+      deprecated: json['deprecated'] as bool?,
+      propagatedType: json['propagatedType'] as String?,
+    );
+
+Map<String, dynamic> _$DocumentResponseToJson(DocumentResponse instance) =>
+    <String, dynamic>{
+      'dartdoc': instance.dartdoc,
+      'elementKind': instance.elementKind,
+      'elementDescription': instance.elementDescription,
+      'containingLibraryName': instance.containingLibraryName,
+      'deprecated': instance.deprecated,
+      'propagatedType': instance.propagatedType,
+    };
+
 CompleteResponse _$CompleteResponseFromJson(Map<String, dynamic> json) =>
     CompleteResponse(
       replacementOffset: json['replacementOffset'] as int,
