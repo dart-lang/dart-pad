@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 
 import 'analysis_server.dart';
@@ -18,6 +17,7 @@ import 'common_server_impl.dart' show BadRequest;
 import 'project.dart' as project;
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
+import 'shared/model.dart' as api;
 
 final Logger _logger = Logger('analysis_servers');
 

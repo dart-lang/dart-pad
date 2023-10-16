@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
@@ -17,6 +16,7 @@ import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
+import 'shared/model.dart' as api;
 import 'shelf_cors.dart' as shelf_cors;
 
 export 'common_server_impl.dart' show log;
