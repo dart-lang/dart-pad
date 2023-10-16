@@ -57,7 +57,7 @@ final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
   'cloud_run_beta.Dockerfile',
   'cloud_run_main.Dockerfile',
-  'cloud_run.Dockerfile',
+  'cloud_run_stable.Dockerfile',
 ];
 
 /// Returns the Flutter channel provided in environment variables.
@@ -369,6 +369,10 @@ void generateProtos() async {
   // Copy to the front-end packages.
   copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
   copy(getDir('lib/src/protos'), getDir('../sketch_pad/lib/src/protos'));
+
+  // TODO: We'd like to remove this copy operation; that will require work in
+  // the cloud build configuration.
+  copy(getDir('../dartpad_shared/lib'), getDir('lib/src/shared'));
 }
 
 Future<void> _run(
