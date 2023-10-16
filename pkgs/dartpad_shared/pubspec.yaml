@@ -7,8 +7,9 @@ environment:
 
 dependencies:
   http: ^1.1.0
-  json_annotation: ^4.8.0
+  json_annotation: ^4.8.1
 
 dev_dependencies:
   build_runner: ^2.4.5
+  dart_flutter_team_lints: ^2.0.0
   json_serializable: ^6.7.0

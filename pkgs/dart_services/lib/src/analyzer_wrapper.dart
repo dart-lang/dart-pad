@@ -120,6 +120,9 @@ class AnalyzerWrapper {
         'Error during fixes on "${sources[activeSourceName]}" at $offset',
       );
 
+  Future<api.FixesResponse> fixesV3(String source, int offset) =>
+      _dartAnalysisServer.fixesV3(source, offset);
+
   Future<proto.AssistsResponse> getAssists(String source, int offset) =>
       getAssistsMulti({kMainDart: source}, kMainDart, offset);
 
@@ -161,6 +164,10 @@ class AnalyzerWrapper {
         'dartdoc',
         'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
       );
+
+  Future<api.DocumentResponse> dartdocV3(String source, int offset) {
+    return _dartAnalysisServer.dartdocV3(source, offset);
+  }
 
   Future<T> _perfLogAndRestart<T>(
     Map<String, String> sources,

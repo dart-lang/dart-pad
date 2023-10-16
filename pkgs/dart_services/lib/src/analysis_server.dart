@@ -207,6 +207,38 @@ abstract class AnalysisServerWrapper {
     return proto.FixesResponse()..fixes.addAll(responseFixes);
   }
 
+  Future<api.FixesResponse> fixesV3(String src, int offset) async {
+    final mainFile = _getPathFromName(kMainDart);
+    final overlay = {mainFile: src};
+
+    await _loadSources(overlay);
+
+    try {
+      final fixes = await analysisServer.edit.getFixes(mainFile, offset);
+      final assists = await analysisServer.edit.getAssists(mainFile, offset, 1);
+
+      final fixChanges = fixes.fixes.expand((fixes) => fixes.fixes).toList();
+      final assistsChanges = assists.assists;
+
+      // Filter any source changes that want to act on files other than main.dart.
+      fixChanges.removeWhere(
+          (change) => change.edits.any((edit) => edit.file != mainFile));
+      assistsChanges.removeWhere(
+          (change) => change.edits.any((edit) => edit.file != mainFile));
+
+      return api.FixesResponse(
+        fixes: fixChanges.map((change) {
+          return change.toApiSourceChange();
+        }).toList(),
+        assists: assistsChanges.map((change) {
+          return change.toApiSourceChange();
+        }).toList(),
+      );
+    } finally {
+      await _unloadSources();
+    }
+  }
+
   Future<proto.AssistsResponse> getAssists(String src, int offset) async {
     return getAssistsMulti({kMainDart: src}, Location(kMainDart, offset));
   }
@@ -283,6 +315,33 @@ abstract class AnalysisServerWrapper {
       if (info.staticType != null) 'staticType': info.staticType!,
       if (info.propagatedType != null) 'propagatedType': info.propagatedType!,
     };
+  }
+
+  Future<api.DocumentResponse> dartdocV3(String src, int offset) async {
+    final location = Location(kMainDart, offset);
+    final sources = _getOverlayMapWithPaths({kMainDart: src});
+    final sourcepath = _getPathFromName(location.sourceName);
+
+    await _loadSources(sources);
+
+    final result =
+        await analysisServer.analysis.getHover(sourcepath, location.offset);
+    await _unloadSources();
+
+    if (result.hovers.isEmpty) {
+      return api.DocumentResponse();
+    }
+
+    final info = result.hovers.first;
+
+    return api.DocumentResponse(
+      dartdoc: info.dartdoc,
+      containingLibraryName: info.containingLibraryName,
+      elementDescription: info.elementDescription,
+      elementKind: info.elementKind,
+      deprecated: info.isDeprecated,
+      propagatedType: info.propagatedType,
+    );
   }
 
   Future<proto.AnalysisResults> analyze(String src) {
@@ -618,4 +677,20 @@ class Location {
   final int? offset;
 
   const Location(this.sourceName, this.offset);
+}
+
+extension SourceChangeExtension on SourceChange {
+  api.SourceChange toApiSourceChange() {
+    return api.SourceChange(
+      message: message,
+      edits: edits
+          .expand((fileEdit) => fileEdit.edits)
+          .map((edit) => api.SourceEdit(
+                offset: edit.offset,
+                length: edit.length,
+                replacement: edit.replacement,
+              ))
+          .toList(),
+    );
+  }
 }
