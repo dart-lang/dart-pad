@@ -119,6 +119,88 @@ class FlutterBuildResponse {
 }
 
 @JsonSerializable()
+class FixesResponse {
+  final List<SourceChange> fixes;
+  final List<SourceChange> assists;
+
+  FixesResponse({
+    required this.fixes,
+    required this.assists,
+  });
+
+  factory FixesResponse.fromJson(Map<String, dynamic> json) =>
+      _$FixesResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FixesResponseToJson(this);
+}
+
+@JsonSerializable()
+class SourceChange {
+  final String message;
+  final List<SourceEdit> edits;
+  // TODO: Add linked edit groups once we start using them.
+  // final List<LinkedEditGroup> linkedEditGroups;
+
+  SourceChange({
+    required this.message,
+    required this.edits,
+  });
+
+  factory SourceChange.fromJson(Map<String, dynamic> json) =>
+      _$SourceChangeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SourceChangeToJson(this);
+
+  @override
+  String toString() => 'SourceChange [$message]';
+}
+
+@JsonSerializable()
+class SourceEdit {
+  final int offset;
+  final int length;
+  final String replacement;
+
+  SourceEdit({
+    required this.offset,
+    required this.length,
+    required this.replacement,
+  });
+
+  factory SourceEdit.fromJson(Map<String, dynamic> json) =>
+      _$SourceEditFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SourceEditToJson(this);
+
+  @override
+  String toString() => 'SourceEdit [$offset,$length,$replacement]';
+}
+
+@JsonSerializable()
+class DocumentResponse {
+  final String? dartdoc;
+  final String? elementKind;
+  final String? elementDescription;
+  final String? containingLibraryName;
+  final bool? deprecated;
+  final String? propagatedType;
+
+  DocumentResponse({
+    this.dartdoc,
+    this.elementKind,
+    this.elementDescription,
+    this.containingLibraryName,
+    this.deprecated,
+    this.propagatedType,
+  });
+
+  factory DocumentResponse.fromJson(Map<String, dynamic> json) =>
+      _$DocumentResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DocumentResponseToJson(this);
+}
+
+@JsonSerializable()
 class CompleteResponse {
   final int replacementOffset;
   final int replacementLength;
