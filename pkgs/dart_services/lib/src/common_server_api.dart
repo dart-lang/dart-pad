@@ -60,6 +60,7 @@ class CommonServerApi {
             kind: issue.kind,
             message: issue.message,
             correction: issue.hasCorrection() ? issue.correction : null,
+            url: issue.hasUrl() ? issue.url : null,
             charStart: issue.charStart,
             charLength: issue.charLength,
             line: issue.line,
@@ -99,14 +100,32 @@ class CommonServerApi {
   }
 
   @Route.post('$apiPrefix/compileDDC')
-  Future<Response> compileDDC(Request request, String apiVersion) {
-    return _processRequest(
-      request,
-      decodeFromJSON: (json) =>
-          proto.CompileDDCRequest.create()..mergeFromProto3Json(json),
-      decodeFromProto: proto.CompileDDCRequest.fromBuffer,
-      transform: _impl.compileDDC,
-    );
+  Future<Response> compileDDC(Request request, String apiVersion) async {
+    if (apiVersion == api2) {
+      return _processRequest(
+        request,
+        decodeFromJSON: (json) =>
+            proto.CompileDDCRequest.create()..mergeFromProto3Json(json),
+        decodeFromProto: proto.CompileDDCRequest.fromBuffer,
+        transform: _impl.compileDDC,
+      );
+    } else if (apiVersion == api3) {
+      final sourceRequest =
+          api.SourceRequest.fromJson(await request.readAsJson());
+      final results = await serialize(() {
+        return _impl.compiler.compileDDC(sourceRequest.source);
+      });
+      if (results.hasOutput) {
+        return ok(api.CompileDDCResponse(
+          result: results.compiledJS!,
+          modulesBaseUrl: results.modulesBaseUrl!,
+        ).toJson());
+      } else {
+        return failure(results.problems.map((p) => p.message).join('\n'));
+      }
+    } else {
+      return unhandledVersion(apiVersion);
+    }
   }
 
   @experimental
@@ -401,6 +420,7 @@ class CommonServerApi {
     return api.VersionResponse(
       dartVersion: sdk.versionFull,
       flutterVersion: sdk.flutterVersion,
+      engineVersion: sdk.engineVersion,
       experiments: sdk.experiments,
       packages: packages,
     );

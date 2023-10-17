@@ -42,6 +42,7 @@ void defineTests() {
       final result = await client.version();
       expect(result.dartVersion, startsWith('3.'));
       expect(result.flutterVersion, startsWith('3.'));
+      expect(result.engineVersion, isNotEmpty);
       expect(result.packages, isNotEmpty);
     });
 
@@ -174,6 +175,54 @@ void main() {
     test('compile with error', () async {
       try {
         await client.compile(CompileRequest(source: '''
+void main() {
+  print('hello world')
+}
+'''));
+        fail('compile error expected');
+      } on ApiRequestError catch (e) {
+        expect(e.body, contains("Expected ';' after this."));
+      }
+    });
+
+    test('compileDDC', () async {
+      final result = await client.compileDDC(CompileRequest(source: '''
+void main() {
+  print('hello world');
+}
+'''));
+      expect(result.result, isNotEmpty);
+      expect(result.result.length, greaterThanOrEqualTo(1024));
+      expect(result.modulesBaseUrl, isNotEmpty);
+    });
+
+    test('compileDDC flutter', () async {
+      final result = await client.compileDDC(CompileRequest(source: '''
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text('hello world')),
+      ),
+    );
+  }
+}
+'''));
+      expect(result.result, isNotEmpty);
+      expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
+      expect(result.modulesBaseUrl, isNotEmpty);
+    });
+
+    test('compileDDC with error', () async {
+      try {
+        await client.compileDDC(CompileRequest(source: '''
 void main() {
   print('hello world')
 }

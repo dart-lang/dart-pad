@@ -39,6 +39,7 @@ class AnalysisIssue {
   final String kind;
   final String message;
   final String? correction;
+  final String? url;
   final int charStart;
   final int charLength;
   final int line;
@@ -48,6 +49,7 @@ class AnalysisIssue {
     required this.kind,
     required this.message,
     this.correction,
+    this.url,
     this.charStart = -1,
     this.charLength = 0,
     this.line = -1,
@@ -85,6 +87,22 @@ class CompileResponse {
       _$CompileResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompileResponseToJson(this);
+}
+
+@JsonSerializable()
+class CompileDDCResponse {
+  final String result;
+  final String modulesBaseUrl;
+
+  CompileDDCResponse({
+    required this.result,
+    required this.modulesBaseUrl,
+  });
+
+  factory CompileDDCResponse.fromJson(Map<String, dynamic> json) =>
+      _$CompileDDCResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompileDDCResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -140,10 +158,12 @@ class SourceChange {
   final List<SourceEdit> edits;
   // TODO: Add linked edit groups once we start using them.
   // final List<LinkedEditGroup> linkedEditGroups;
+  final int? selectionOffset;
 
   SourceChange({
     required this.message,
     required this.edits,
+    this.selectionOffset,
   });
 
   factory SourceChange.fromJson(Map<String, dynamic> json) =>
@@ -224,6 +244,7 @@ class CompletionSuggestion {
   final int relevance;
   final String completion;
   final bool deprecated;
+  final int selectionOffset;
   final String? displayText;
   final String? returnType;
   final String? elementKind;
@@ -233,6 +254,7 @@ class CompletionSuggestion {
     required this.relevance,
     required this.completion,
     required this.deprecated,
+    required this.selectionOffset,
     required this.displayText,
     required this.returnType,
     required this.elementKind,
@@ -251,12 +273,14 @@ class CompletionSuggestion {
 class VersionResponse {
   final String dartVersion;
   final String flutterVersion;
+  final String engineVersion;
   final List<String> experiments;
   final List<PackageInfo> packages;
 
   VersionResponse({
     required this.dartVersion,
     required this.flutterVersion,
+    required this.engineVersion,
     required this.experiments,
     required this.packages,
   });
