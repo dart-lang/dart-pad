@@ -53,6 +53,7 @@ void main() {
 }
 '''));
       expect(result.issues, isEmpty);
+      expect(result.packageImports, isEmpty);
     });
 
     test('analyze flutter', () async {
@@ -79,6 +80,8 @@ class MyApp extends StatelessWidget {
 
       expect(result, isNotNull);
       expect(result.issues, isEmpty);
+      expect(result.packageImports, isNotEmpty);
+      expect(result.packageImports, contains('flutter'));
     });
 
     test('analyze errors', () async {
