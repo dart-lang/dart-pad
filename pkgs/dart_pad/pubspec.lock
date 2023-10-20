@@ -169,6 +169,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
+  cli_pkg:
+    dependency: transitive
+    description:
+      name: cli_pkg
+      sha256: "716254ea9f38179f64ff36d6e26c6193acd59939baeaf5b932ed13f25b28f6ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   cli_repl:
     dependency: transitive
     description:
@@ -265,6 +273,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.3"
+  dartpad_shared:
+    dependency: "direct main"
+    description:
+      path: "../dartpad_shared"
+      relative: true
+    source: path
+    version: "0.0.0"
   encrypt:
     dependency: "direct main"
     description:
@@ -273,6 +288,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.3"
+  ffi:
+    dependency: transitive
+    description:
+      name: ffi
+      sha256: "7bf0adc28a23d395f19f3f1eb21dd7cfd1dd9f8e1c50051c069122e6853bc878"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   file:
     dependency: transitive
     description:
@@ -357,10 +380,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.6"
+    version: "1.1.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -465,6 +488,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  native_synchronization:
+    dependency: transitive
+    description:
+      name: native_synchronization
+      sha256: ff200fe0a64d733ff7d4dde2005271c297db81007604c8cd21037959858133ab
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   node_interop:
     dependency: transitive
     description:
@@ -497,6 +528,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.3"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: eeb2d1428ee7f4170e2bd498827296a18d4e7fc462b71727d111c0ac7707cfa6
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.1"
   pointycastle:
     dependency: transitive
     description:
@@ -537,14 +576,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
+  retry:
+    dependency: transitive
+    description:
+      name: retry
+      sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   sass:
     dependency: "direct overridden"
     description:
       name: sass
-      sha256: c3ba6203735361e1c779f0d84b650cf7f1c0c94b0e8223b944447b82fb018832
+      sha256: "5dd460578023d236404c3131cd7543399a891189aad130f61a16cc91f4842973"
       url: "https://pub.dev"
     source: hosted
-    version: "1.65.1"
+    version: "1.69.3"
   sass_builder:
     dependency: "direct main"
     description:
@@ -712,6 +759,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.7"
+  test_process:
+    dependency: transitive
+    description:
+      name: test_process
+      sha256: "217f19b538926e4922bdb2a01410100ec4e3beb4cc48eae5ae6b20037b07bbd6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   timing:
     dependency: transitive
     description:
@@ -768,6 +823,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: af5e77e9b83f2f4adc5d3f0a4ece1c7f45a2467b695c2540381bac793e34e556
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.4.2"
   yaml:
     dependency: "direct main"
     description:
