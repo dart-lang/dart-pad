@@ -395,8 +395,12 @@ abstract class AnalysisServerWrapper {
       return issue;
     }).toList();
 
-    issues.sort((a, b) {
-      // Order issues by character position of the bug/warning.
+    issues.sort((proto.AnalysisIssue a, proto.AnalysisIssue b) {
+      // Order issues by severity.
+      final diff = a.severity - b.severity;
+      if (diff != 0) return -diff;
+
+      // Then by character position.
       return a.charStart.compareTo(b.charStart);
     });
 
@@ -696,5 +700,16 @@ extension SourceChangeExtension on SourceChange {
           .toList(),
       selectionOffset: selection?.offset,
     );
+  }
+}
+
+extension AnalysisIssueExtension on proto.AnalysisIssue {
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
   }
 }

@@ -90,6 +90,7 @@ class ExecutionServiceIFrame implements ExecutionService {
   }) {
     final completeScript = StringBuffer();
     final usesRequireJs = modulesBaseUrl != null;
+
     // postMessagePrint:
     completeScript.writeln('''
 var testKey = '$testKey';

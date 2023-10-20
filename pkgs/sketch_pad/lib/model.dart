@@ -17,7 +17,11 @@ import 'utils.dart';
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
 abstract class ExecutionService {
-  Future<void> execute(String javaScript);
+  Future<void> execute(
+    String javaScript, {
+    String? engineVersion,
+    String? modulesBaseUrl,
+  });
   Stream<String> get onStdout;
   Future<void> reset();
   Future<void> tearDown();
@@ -35,6 +39,7 @@ class AppModel {
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
+  final ValueNotifier<List<String>> packageImports = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
@@ -233,7 +238,6 @@ class AppServices {
     }
   }
 
-  @Deprecated('prefer to use `build`')
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
@@ -243,10 +247,10 @@ class AppServices {
     }
   }
 
-  Future<FlutterBuildResponse> build(SourceRequest request) async {
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
-      return await services.flutterBuild(request);
+      return await services.compileDDC(request);
     } finally {
       appModel.compilingBusy.value = false;
     }
@@ -271,12 +275,21 @@ class AppServices {
     _editorService = editorService;
   }
 
-  void executeJavaScript(String javaScript) {
-    final usesFlutter = hasFlutterWebMarker(javaScript);
+  void executeJavaScript(
+    String javaScript, {
+    String? engineVersion,
+    String? modulesBaseUrl,
+  }) {
+    final usesFlutter =
+        modulesBaseUrl != null || hasFlutterWebMarker(javaScript);
     appModel._appIsFlutter = usesFlutter;
     appModel._recalcLayout();
 
-    _executionService?.execute(javaScript);
+    _executionService?.execute(
+      javaScript,
+      engineVersion: engineVersion,
+      modulesBaseUrl: modulesBaseUrl,
+    );
   }
 
   void dispose() {
@@ -290,13 +303,14 @@ class AppServices {
       final results = await services.analyze(
         SourceRequest(source: appModel.sourceCodeController.text),
       );
-      final issues = results.issues.toList()..sort(_compareIssues);
-      appModel.analysisIssues.value = issues;
+      appModel.analysisIssues.value = results.issues;
+      appModel.packageImports.value = results.packageImports;
     } catch (error) {
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
         AnalysisIssue(kind: 'error', message: message),
       ];
+      appModel.packageImports.value = [];
     }
   }
 
@@ -318,13 +332,6 @@ class AppServices {
   }
 }
 
-int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
-  var diff = a.severity - b.severity;
-  if (diff != 0) return -diff;
-
-  return a.charStart - b.charStart;
-}
-
 extension AnalysisIssueExtension on AnalysisIssue {
   int get severity {
     return switch (kind) {
@@ -340,7 +347,7 @@ enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),
   // This channel is only used for local development.
-  localhost('Localhost', 'http://localhost:8082/');
+  localhost('Localhost', 'http://localhost:8080/');
 
   final String displayName;
   final String url;

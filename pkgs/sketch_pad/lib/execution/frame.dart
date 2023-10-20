@@ -28,9 +28,15 @@ class ExecutionServiceImpl implements ExecutionService {
   }
 
   @override
-  Future<void> execute(String javaScript) async {
+  Future<void> execute(
+    String javaScript, {
+    String? engineVersion,
+    String? modulesBaseUrl,
+  }) async {
     return _send('execute', {
-      'js': _decorateJavaScript(javaScript),
+      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
+      if (engineVersion != null)
+        'canvasKitBaseUrl': _createCanvasKitBaseUrl(engineVersion),
     });
   }
 
@@ -43,16 +49,24 @@ class ExecutionServiceImpl implements ExecutionService {
   @override
   Future<void> tearDown() => _reset();
 
-  String _decorateJavaScript(String javaScript) {
+  String _decorateJavaScript(String javaScript, {String? modulesBaseUrl}) {
     final completeScript = StringBuffer();
+    final usesRequireJs = modulesBaseUrl != null;
 
-    // postMessagePrint:
+    // Handle redirecting print messages to the host.
     completeScript.writeln('''
 function dartPrint(message) {
   parent.postMessage(
     {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');  
 }
 ''');
+
+    if (usesRequireJs) {
+      completeScript.writeln('''
+// Unload previous version.
+require.undef('dartpad_main');
+''');
+    }
 
     // The JavaScript exception handling for DartPad catches both errors
     // directly raised by `main()` (in which case we might have useful Dart
@@ -86,7 +100,59 @@ window.onerror = function(message, url, lineNumber, colno, error) {
 };
 ''');
 
+    if (usesRequireJs) {
+      completeScript.writeln('''
+require.config({
+  "baseUrl": "$modulesBaseUrl",
+  "waitSeconds": 60
+});
+''');
+    }
+
     completeScript.writeln(javaScript);
+
+    if (usesRequireJs) {
+      completeScript.writeln('''
+require(['dart_sdk'],
+  function(sdk) {
+    'use strict';
+    sdk.developer._extensions.clear();
+    sdk.dart.hotRestart();
+});
+
+require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
+  // SDK initialization.
+  dart_sdk.dart.setStartAsyncSynchronously(true);
+  dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
+
+  // Loads the `dartpad_main` module and runs its bootstrapped main method.
+  //
+  // DDK provides the user's code in a RequireJS module, which exports an
+  // object that looks something like this:
+  //
+  // {
+  //       [random_tokens]__bootstrap: bootstrap,
+  //       [random_tokens]__main: main
+  // }
+  //
+  // The first of those properties holds the compiled code for the bootstrap
+  // Dart file, which the server uses to wrap the user's code and wait on a
+  // call to dart:ui's `webOnlyInitializePlatform` before executing any of it.
+  //
+  // The loop below iterates over the properties of the exported object,
+  // looking for one that ends in "__bootstrap". Once found, it executes the
+  // bootstrapped main method, which calls the user's main method, which
+  // (presumably) calls runApp and starts Flutter's rendering.
+
+  // TODO: simplify this once we are firmly in a post Flutter 1.24 world.
+  for (var prop in dartpad_main) {
+    if (prop.endsWith("bootstrap")) {
+      dartpad_main[prop].main();
+    }
+  }
+});
+''');
+    }
 
     return completeScript.toString();
   }
@@ -144,4 +210,8 @@ window.onerror = function(message, url, lineNumber, colno, error) {
       }
     }, false);
   }
+}
+
+String _createCanvasKitBaseUrl(String engineSha) {
+  return 'https://www.gstatic.com/flutter-canvaskit/$engineSha/';
 }

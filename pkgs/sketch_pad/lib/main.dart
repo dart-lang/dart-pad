@@ -409,33 +409,46 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 
   Future<void> _performCompileAndRun() async {
-    const bool useFlutterBuild = false;
+    final imports = appModel.packageImports.value;
+    // todo: temp, remove
+    final usesFlutter =
+        true || imports.contains('flutter') || imports.contains('flutter_test');
 
     final value = appModel.sourceCodeController.text;
     final progress =
         appModel.editorStatus.showMessage(initialText: 'Compiling…');
 
     try {
-      // ignore: dead_code
-      if (useFlutterBuild) {
-        final response = await appServices.build(SourceRequest(source: value));
+      if (usesFlutter) {
+        final response =
+            await appServices.compileDDC(CompileRequest(source: value));
+        print('javascript: ${response.result.length ~/ 1024}kb');
+        print('modulesBaseUrl: ${response.modulesBaseUrl}');
         appModel.clearConsole();
-        final artifacts = response.artifacts;
-        appServices.executeJavaScript(artifacts['main.dart.js']!);
-        // ignore: dead_code
+        appServices.executeJavaScript(
+          response.result,
+          engineVersion: appModel.runtimeVersions.value?.engineVersion,
+          modulesBaseUrl: response.modulesBaseUrl,
+        );
       } else {
-        // ignore: deprecated_member_use_from_same_package
         final response = await appServices.compile(
           CompileRequest(source: value),
         );
+        print('javascript: ${response.result.length ~/ 1024}kb');
         appModel.clearConsole();
         appServices.executeJavaScript(response.result);
       }
     } catch (error) {
+      appModel.clearConsole();
+
       appModel.editorStatus.showToast('Compilation failed');
 
-      var message = error is ApiRequestError ? error.message : '$error';
-      appModel.appendLineToConsole(message);
+      if (error is ApiRequestError) {
+        appModel.appendLineToConsole(error.message);
+        appModel.appendLineToConsole(error.body);
+      } else {
+        appModel.appendLineToConsole('$error');
+      }
     } finally {
       progress.close();
     }

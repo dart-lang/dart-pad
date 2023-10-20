@@ -25,8 +25,12 @@ class SourceRequest {
 @JsonSerializable()
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
+  final List<String> packageImports;
 
-  AnalysisResponse({this.issues = const []});
+  AnalysisResponse({
+    required this.issues,
+    required this.packageImports,
+  });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
       _$AnalysisResponseFromJson(json);
