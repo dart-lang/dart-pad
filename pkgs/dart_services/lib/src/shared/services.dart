@@ -37,6 +37,9 @@ class ServicesClient {
   Future<CompileResponse> compile(CompileRequest request) =>
       _requestPost('compile', request.toJson(), CompileResponse.fromJson);
 
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
+      _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
+
   /// Note that this call is experimental and can change at any time.
   Future<FlutterBuildResponse> flutterBuild(SourceRequest request) =>
       _requestPost(

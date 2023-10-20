@@ -184,6 +184,7 @@ abstract class AnalysisServerWrapper {
           relevance: suggestion.relevance,
           completion: suggestion.completion,
           deprecated: suggestion.isDeprecated,
+          selectionOffset: suggestion.selectionOffset,
           displayText: suggestion.displayText,
           returnType: suggestion.returnType,
           elementKind: suggestion.element?.kind,
@@ -685,12 +686,15 @@ extension SourceChangeExtension on SourceChange {
       message: message,
       edits: edits
           .expand((fileEdit) => fileEdit.edits)
-          .map((edit) => api.SourceEdit(
-                offset: edit.offset,
-                length: edit.length,
-                replacement: edit.replacement,
-              ))
+          .map(
+            (edit) => api.SourceEdit(
+              offset: edit.offset,
+              length: edit.length,
+              replacement: edit.replacement,
+            ),
+          )
           .toList(),
+      selectionOffset: selection?.offset,
     );
   }
 }
