@@ -67,6 +67,7 @@ class CommonServerApi {
             column: issue.column,
           );
         }).toList(),
+        packageImports: result.packageImports,
       ).toJson());
     } else {
       return unhandledVersion(apiVersion);

@@ -25,8 +25,12 @@ class SourceRequest {
 @JsonSerializable()
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
+  final List<String> packageImports;
 
-  AnalysisResponse({this.issues = const []});
+  AnalysisResponse({
+    required this.issues,
+    required this.packageImports,
+  });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
       _$AnalysisResponseFromJson(json);
@@ -138,6 +142,11 @@ class FlutterBuildResponse {
 
 @JsonSerializable()
 class FixesResponse {
+  static final FixesResponse empty = FixesResponse(
+    fixes: [],
+    assists: [],
+  );
+
   final List<SourceChange> fixes;
   final List<SourceChange> assists;
 
@@ -222,6 +231,12 @@ class DocumentResponse {
 
 @JsonSerializable()
 class CompleteResponse {
+  static final CompleteResponse empty = CompleteResponse(
+    replacementLength: 0,
+    replacementOffset: 0,
+    suggestions: [],
+  );
+
   final int replacementOffset;
   final int replacementLength;
   final List<CompletionSuggestion> suggestions;
