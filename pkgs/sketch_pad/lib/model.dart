@@ -25,6 +25,7 @@ abstract class ExecutionService {
 
 abstract class EditorService {
   void showCompletions();
+  void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
 }
 
@@ -107,10 +108,10 @@ enum LayoutMode {
 
 class AppServices {
   final AppModel appModel;
-  final Channel channel;
+  final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  late final http.Client httpClient;
-  late final ServicesClient services;
+  final http.Client _httpClient = http.Client();
+  late ServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -120,15 +121,23 @@ class AppServices {
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
-  AppServices(this.appModel, this.channel) {
-    httpClient = http.Client();
-    services = ServicesClient(httpClient, rootUrl: channel.url);
+  AppServices(this.appModel, Channel channel) {
+    _channel.value = channel;
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
   }
 
   EditorService? get editorService => _editorService;
+
+  ValueListenable<Channel> get channel => _channel;
+
+  void setChannel(Channel channel) async {
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    await populateVersions();
+    _channel.value = channel;
+  }
 
   void resetTo({String? type}) {
     type ??= 'dart';
@@ -154,12 +163,6 @@ class AppServices {
       _reAnalyze();
       reanalysisDebouncer = null;
     });
-  }
-
-  void dispose() {
-    httpClient.close();
-
-    appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
   Future<void> populateVersions() async {
@@ -276,6 +279,12 @@ class AppServices {
     _executionService?.execute(javaScript);
   }
 
+  void dispose() {
+    _httpClient.close();
+
+    appModel.sourceCodeController.removeListener(_handleCodeChanged);
+  }
+
   Future<void> _reAnalyze() async {
     try {
       final results = await services.analyze(
@@ -317,12 +326,14 @@ int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
 }
 
 extension AnalysisIssueExtension on AnalysisIssue {
-  int get severity => switch (kind) {
-        'error' => 3,
-        'warning' => 2,
-        'info' => 1,
-        _ => 0,
-      };
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
+  }
 }
 
 enum Channel {
@@ -347,4 +358,8 @@ enum Channel {
 
     return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
+}
+
+extension VersionResponseExtension on VersionResponse {
+  String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }

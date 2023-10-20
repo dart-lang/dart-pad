@@ -31,11 +31,11 @@ import 'widgets.dart';
 
 // TODO: show documentation on hover
 
-// TODO: support changing the flutter sdk channel
+// TODO: implement find / find next
 
 const appName = 'DartPad';
 
-final router = _createRouter();
+final GoRouter router = _createRouter();
 
 void main() async {
   setPathUrlStrategy();
@@ -73,6 +73,8 @@ GoRouter _createRouter() {
           final idParam = state.uri.queryParameters['id'];
           final sampleParam = state.uri.queryParameters['sample'];
           final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
+          final channelParam = state.uri.queryParameters['channel'];
+
           final bool darkMode = themeParam == 'dark';
           final colorScheme = ColorScheme.fromSwatch(
             brightness: darkMode ? Brightness.dark : Brightness.light,
@@ -91,6 +93,7 @@ GoRouter _createRouter() {
             ),
             child: DartPadMainPage(
               title: appName,
+              initialChannel: channelParam,
               sampleId: sampleParam,
               gistId: idParam,
             ),
@@ -103,11 +106,13 @@ GoRouter _createRouter() {
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
+  final String? initialChannel;
   final String? sampleId;
   final String? gistId;
 
   DartPadMainPage({
     required this.title,
+    required this.initialChannel,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -127,10 +132,14 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   void initState() {
     super.initState();
 
+    var channel = widget.initialChannel != null
+        ? Channel.channelForName(widget.initialChannel!)
+        : null;
+
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.beta,
+      channel ?? Channel.defaultChannel,
     );
 
     appServices.populateVersions();
@@ -367,6 +376,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             },
             keys.codeCompletionKeyActivator: () {
               appServices.editorService?.showCompletions();
+            },
+            keys.quickFixKeyActivator: () {
+              appServices.editorService?.showQuickFixes();
             },
           },
           child: Focus(
@@ -667,8 +679,9 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, String sampleId) {
-    final uri = Uri(path: '/', queryParameters: {'sample': sampleId});
-    context.go(uri.toString());
+    context.go(
+      Uri(path: '/', queryParameters: {'sample': sampleId}).toString(),
+    );
   }
 }
 
@@ -679,25 +692,32 @@ class SelectChannelWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Update this control when the channel changes.
     final appServices = Provider.of<AppServices>(context);
 
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.tune, size: smallIconSize),
-        label: Text('${appServices.channel.displayName} channel'),
-        onPressed: () async {
-          final selection = await _showMenu(
-            context,
-            calculatePopupMenuPosition(context, growUpwards: true),
-            appServices.channel,
-          );
-          if (selection != null && context.mounted) {
-            _handleSelection(context, selection);
-          }
-        },
-      ),
+    return ValueListenableBuilder<Channel>(
+      valueListenable: appServices.channel,
+      builder: (context, Channel value, _) {
+        return SizedBox(
+          height: toolbarItemHeight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.tune, size: smallIconSize),
+            label: Container(
+              constraints: const BoxConstraints(minWidth: 95),
+              child: Text('${value.displayName} channel'),
+            ),
+            onPressed: () async {
+              final selection = await _showMenu(
+                context,
+                calculatePopupMenuPosition(context, growUpwards: true),
+                value,
+              );
+              if (selection != null && context.mounted) {
+                _handleSelection(context, selection);
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -725,9 +745,15 @@ class SelectChannelWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, Channel channel) {
-    // TODO: switch channel
+    final appServices = Provider.of<AppServices>(context, listen: false);
 
-    unimplemented(context, 'select channel: $channel');
+    appServices.setChannel(channel);
+
+    // update the url
+    // TODO: preserve id? sample? theme?
+    context.go(
+      Uri(path: '/', queryParameters: {'channel': channel.name}).toString(),
+    );
   }
 }
 
@@ -880,9 +906,7 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               },
             );
           },
-          child: Text(
-            'Dart ${versions.dartVersion} • Flutter ${versions.flutterVersion}',
-          ),
+          child: Text(versions.label),
         );
       },
     );
