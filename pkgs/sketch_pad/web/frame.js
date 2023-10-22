@@ -17,13 +17,13 @@ function replaceJavaScript(value) {
   document.head.appendChild(scriptNode);
 };
 
-// Handles any incoming messages.
-//
-// In particular, understands the following commands: 'execute'.
+// Handles incoming messages.
 function messageHandler(e) {
   var obj = e.data;
 
   if (obj.command === 'execute') {
+    // TODO: Switch to using engineInitializer.initializeEngine(config). See
+    // https://docs.flutter.dev/development/platform-integration/web/initialization.
     window.flutterConfiguration = {
       canvasKitBaseUrl: obj.canvasKitBaseUrl
     };

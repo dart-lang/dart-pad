@@ -409,35 +409,19 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 
   Future<void> _performCompileAndRun() async {
-    final imports = appModel.packageImports.value;
-    // todo: temp, remove
-    final usesFlutter =
-        true || imports.contains('flutter') || imports.contains('flutter_test');
-
-    final value = appModel.sourceCodeController.text;
+    final source = appModel.sourceCodeController.text;
     final progress =
         appModel.editorStatus.showMessage(initialText: 'Compiling…');
 
     try {
-      if (usesFlutter) {
-        final response =
-            await appServices.compileDDC(CompileRequest(source: value));
-        print('javascript: ${response.result.length ~/ 1024}kb');
-        print('modulesBaseUrl: ${response.modulesBaseUrl}');
-        appModel.clearConsole();
-        appServices.executeJavaScript(
-          response.result,
-          engineVersion: appModel.runtimeVersions.value?.engineVersion,
-          modulesBaseUrl: response.modulesBaseUrl,
-        );
-      } else {
-        final response = await appServices.compile(
-          CompileRequest(source: value),
-        );
-        print('javascript: ${response.result.length ~/ 1024}kb');
-        appModel.clearConsole();
-        appServices.executeJavaScript(response.result);
-      }
+      final response =
+          await appServices.compileDDC(CompileRequest(source: source));
+      appModel.clearConsole();
+      appServices.executeJavaScript(
+        response.result,
+        modulesBaseUrl: response.modulesBaseUrl,
+        engineVersion: appModel.runtimeVersions.value?.engineVersion,
+      );
     } catch (error) {
       appModel.clearConsole();
 

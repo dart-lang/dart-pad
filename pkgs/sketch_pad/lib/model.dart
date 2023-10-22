@@ -19,8 +19,8 @@ import 'utils.dart';
 abstract class ExecutionService {
   Future<void> execute(
     String javaScript, {
-    String? engineVersion,
     String? modulesBaseUrl,
+    String? engineVersion,
   });
   Stream<String> get onStdout;
   Future<void> reset();
@@ -277,18 +277,18 @@ class AppServices {
 
   void executeJavaScript(
     String javaScript, {
-    String? engineVersion,
     String? modulesBaseUrl,
+    String? engineVersion,
   }) {
-    final usesFlutter =
-        modulesBaseUrl != null || hasFlutterWebMarker(javaScript);
+    final usesFlutter = hasFlutterWebMarker(javaScript);
+
     appModel._appIsFlutter = usesFlutter;
     appModel._recalcLayout();
 
     _executionService?.execute(
       javaScript,
-      engineVersion: engineVersion,
       modulesBaseUrl: modulesBaseUrl,
+      engineVersion: engineVersion,
     );
   }
 
