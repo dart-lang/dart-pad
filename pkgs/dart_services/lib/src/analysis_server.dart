@@ -397,8 +397,9 @@ abstract class AnalysisServerWrapper {
 
     issues.sort((proto.AnalysisIssue a, proto.AnalysisIssue b) {
       // Order issues by severity.
-      final diff = a.severity - b.severity;
-      if (diff != 0) return -diff;
+      if (a.severity != b.severity) {
+        return b.severity - a.severity;
+      }
 
       // Then by character position.
       return a.charStart.compareTo(b.charStart);
