@@ -11,7 +11,7 @@ class GistLoader {
   final http.Client client = http.Client();
 
   Future<Gist> load(String gistId) async {
-    var response =
+    final response =
         await client.get(Uri.parse('https://api.github.com/gists/$gistId'));
 
     if (response.statusCode != 200) {

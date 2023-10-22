@@ -184,7 +184,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorFromModel() {
-    var value = widget.appModel.sourceCodeController.text;
+    final value = widget.appModel.sourceCodeController.text;
     codeMirror!.doc.setValue(value);
   }
 
@@ -244,7 +244,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // same.
     final memos = <String>{};
     hints.retainWhere((hint) {
-      var memo = '${hint.text}:${hint.displayText}';
+      final memo = '${hint.text}:${hint.displayText}';
       if (memos.contains(memo)) return false;
 
       memos.add(memo);

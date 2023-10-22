@@ -30,7 +30,7 @@ void _initViewFactory() {
 
 html.Element _iFrameFactory(int viewId) {
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  var frame = html.IFrameElement()
+  final frame = html.IFrameElement()
     ..sandbox!.add('allow-scripts')
     ..sandbox!.add('allow-popups')
     ..src = 'frame.html'

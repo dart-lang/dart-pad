@@ -175,7 +175,7 @@ class AppServices {
     // Delay a bit for codemirror to initialize.
     await Future<void>.delayed(const Duration(milliseconds: 1));
 
-    var sample = Samples.getById(sampleId);
+    final sample = Samples.getById(sampleId);
     if (sample != null) {
       appModel.title.value = sample.name;
       appModel.sourceCodeController.text = sample.source;
@@ -195,7 +195,7 @@ class AppServices {
       final gist = await gistLoader.load(gistId);
       progress.close();
 
-      var title = gist.description ?? '';
+      final title = gist.description ?? '';
       appModel.title.value =
           title.length > 40 ? '${title.substring(0, 40)}…' : title;
 
@@ -284,7 +284,7 @@ class AppServices {
       final issues = results.issues.toList()..sort(_compareIssues);
       appModel.analysisIssues.value = issues;
     } catch (error) {
-      var message = error is ApiRequestError ? error.message : '$error';
+      final message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
         AnalysisIssue(kind: 'error', message: message),
       ];
@@ -310,7 +310,7 @@ class AppServices {
 }
 
 int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
-  var diff = a.severity - b.severity;
+  final diff = a.severity - b.severity;
   if (diff != 0) return -diff;
 
   return a.charStart - b.charStart;
