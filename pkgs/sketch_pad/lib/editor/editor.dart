@@ -188,7 +188,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorFromModel() {
-    var value = widget.appModel.sourceCodeController.text;
+    final value = widget.appModel.sourceCodeController.text;
     codeMirror!.doc.setValue(value);
   }
 
@@ -404,7 +404,7 @@ extension SourceChangeExtension on services.SourceChange {
       CodeMirror editor, HintResult hint, Position? from, Position? to) {
     final doc = editor.doc;
 
-    for (var edit in edits) {
+    for (final edit in edits) {
       doc.replaceRange(
         edit.replacement,
         doc.posFromIndex(edit.offset),

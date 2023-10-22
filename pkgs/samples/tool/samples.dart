@@ -42,7 +42,7 @@ class Samples {
 
   void parse() {
     // read the samples
-    var json =
+    final json =
         jsonDecode(File(p.join('lib', 'samples.json')).readAsStringSync());
 
     defaults = (json['defaults'] as Map).cast<String, String>();
@@ -55,13 +55,13 @@ class Samples {
       hadFailure = true;
     }
 
-    for (var entry in defaults.entries) {
+    for (final entry in defaults.entries) {
       if (!File(entry.value).existsSync()) {
         fail('File ${entry.value} not found.');
       }
     }
 
-    for (var sample in samples) {
+    for (final sample in samples) {
       print(sample);
 
       if (sample.id.contains(' ')) {
@@ -90,7 +90,7 @@ class Samples {
 
   void generate() {
     // readme.md
-    var readme = File('README.md');
+    final readme = File('README.md');
     readme.writeAsStringSync(_generateReadmeContent());
 
     // print generation message
@@ -98,8 +98,8 @@ class Samples {
     print('Wrote ${readme.path}');
 
     // samples.g.dart
-    var codeFile = File('../sketch_pad/lib/samples.g.dart');
-    var contents = _generateSourceContent();
+    final codeFile = File('../sketch_pad/lib/samples.g.dart');
+    final contents = _generateSourceContent();
     codeFile.writeAsStringSync(contents);
     print('Wrote ${codeFile.path}');
   }
@@ -109,7 +109,7 @@ class Samples {
 
     print('Verifying sample file generation...');
 
-    var readme = File('README.md');
+    final readme = File('README.md');
     if (readme.readAsStringSync() != _generateReadmeContent()) {
       stderr.writeln('Generated sample files not up-to-date.');
       stderr.writeln('Re-generate by running:');
@@ -126,8 +126,8 @@ class Samples {
   String _generateReadmeContent() {
     const marker = '<!-- samples -->';
 
-    var contents = File('README.md').readAsStringSync();
-    var table = _generateTable();
+    final contents = File('README.md').readAsStringSync();
+    final table = _generateTable();
 
     return contents.substring(0, contents.indexOf(marker) + marker.length + 1) +
         table +
@@ -143,7 +143,7 @@ ${samples.map((s) => s.toTableRow()).join('\n')}
   }
 
   String _generateSourceContent() {
-    var buf = StringBuffer('''
+    final buf = StringBuffer('''
 // Copyright 2023 the Dart project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
@@ -189,8 +189,8 @@ class Samples {
 
     buf.writeln('Map<String, String> _defaults = {');
 
-    for (var entry in defaults.entries) {
-      var source = File(entry.value).readAsStringSync().trimRight();
+    for (final entry in defaults.entries) {
+      final source = File(entry.value).readAsStringSync().trimRight();
       buf.writeln("  '${entry.key}': r'''\n$source\n''',");
     }
 
@@ -202,7 +202,7 @@ class Samples {
   }
 
   String _mapForCategory(String category) {
-    var items = samples.where((s) => s.category == category);
+    final items = samples.where((s) => s.category == category);
     return ''''$category': [
       ${items.map((i) => i.sourceId).join(',\n      ')},
     ]''';
@@ -234,7 +234,7 @@ class Sample implements Comparable<Sample> {
   String get sourceId {
     var gen = id;
     while (gen.contains('-')) {
-      var index = id.indexOf('-');
+      final index = id.indexOf('-');
       gen = gen.substring(0, index) +
           gen.substring(index + 1, index + 2).toUpperCase() +
           gen.substring(index + 2);

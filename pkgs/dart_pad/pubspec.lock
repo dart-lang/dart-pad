@@ -261,10 +261,10 @@ packages:
     dependency: "direct dev"
     description:
       name: dart_flutter_team_lints
-      sha256: "0917c8b64a29532a7e6835e164131c89a5925fbf1e3a4319558b95f4ef623d64"
+      sha256: "091ced68bc78ae8002003065486fd052d556903ba6c68a4d47ca574c80e6013f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   dart_style:
     dependency: transitive
     description:
@@ -436,10 +436,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "5e5a8fdb6c327a998e3e14b611829e080b3bee14bdd9ae41bbc2efac77bc0dca"
+      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.2"
+    version: "3.0.0"
   logging:
     dependency: "direct main"
     description:

@@ -10,7 +10,8 @@ import 'package:test/test.dart';
 void main() {
   group('gists', () {
     test('parses json', () {
-      var gist = Gist.fromJson(jsonDecode(jsonSample) as Map<String, dynamic>);
+      final gist =
+          Gist.fromJson(jsonDecode(jsonSample) as Map<String, dynamic>);
 
       expect(gist.id, 'd3bd83918d21b6d5f778bdc69c3d36d6');
       expect(gist.description, 'Fibonacci');
@@ -19,13 +20,14 @@ void main() {
     });
 
     test('finds main.dart', () {
-      var gist = Gist.fromJson(jsonDecode(jsonSample) as Map<String, dynamic>);
+      final gist =
+          Gist.fromJson(jsonDecode(jsonSample) as Map<String, dynamic>);
 
       expect(gist.mainDartSource, isNotNull);
     });
 
     test('recognizes main.dart missing', () {
-      var gist =
+      final gist =
           Gist.fromJson(jsonDecode(jsonSampleNoMain) as Map<String, dynamic>);
 
       expect(gist.mainDartSource, isNull);

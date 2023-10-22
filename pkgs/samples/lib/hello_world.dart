@@ -3,7 +3,7 @@
 // that can be found in the LICENSE file.
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
   }
 }
