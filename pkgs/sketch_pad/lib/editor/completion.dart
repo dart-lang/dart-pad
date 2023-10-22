@@ -25,7 +25,7 @@ class AnalysisCompletion {
   bool get isDeprecated => suggestion.deprecated;
 
   HintResult toCodemirrorHint() {
-    var replaceText = suggestion.completion;
+    final replaceText = suggestion.completion;
 
     var displayText = suggestion.displayText;
     if (displayText == null) {

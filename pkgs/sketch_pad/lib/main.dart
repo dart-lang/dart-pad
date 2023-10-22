@@ -422,7 +422,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } catch (error) {
       appModel.editorStatus.showToast('Compilation failed');
 
-      var message = error is ApiRequestError ? error.message : '$error';
+      final message = error is ApiRequestError ? error.message : '$error';
       appModel.appendLineToConsole(message);
     } finally {
       progress.close();
@@ -633,10 +633,10 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    var categories = Samples.categories.keys;
+    final categories = Samples.categories.keys;
 
     final menuItems = <PopupMenuEntry<String?>>[
-      for (var category in categories) ...[
+      for (final category in categories) ...[
         const PopupMenuDivider(),
         PopupMenuItem(
           value: null,
@@ -706,7 +706,7 @@ class SelectChannelWidget extends StatelessWidget {
     const itemHeight = 46.0;
 
     final menuItems = <PopupMenuEntry<Channel>>[
-      for (var channel in Channel.valuesWithoutLocalhost)
+      for (final channel in Channel.valuesWithoutLocalhost)
         PopupMenuItem<Channel>(
           value: channel,
           child: PointerInterceptor(
@@ -849,8 +849,8 @@ class VersionInfoWidget extends StatefulWidget {
 
   const VersionInfoWidget(
     this.versions, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
