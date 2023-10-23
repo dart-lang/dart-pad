@@ -15,7 +15,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/analyze',
+    service.analyze,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/compile',
+    service.compile,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/compile',
     service.compile,
   );
   router.add(
@@ -25,7 +35,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/compileDDC',
+    service.compileDDC,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/_flutterBuild',
+    service.flutterBuild,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/_flutterBuild',
     service.flutterBuild,
   );
   router.add(
@@ -35,7 +55,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/complete',
+    service.complete,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/fixes',
+    service.fixes,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/fixes',
     service.fixes,
   );
   router.add(
@@ -45,7 +75,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/assists',
+    service.assists,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/format',
+    service.format,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/format',
     service.format,
   );
   router.add(
@@ -55,12 +95,27 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/document',
+    service.document,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/version',
+    service.versionPost,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/version',
     service.versionPost,
   );
   router.add(
     'GET',
     r'/api/dartservices/<apiVersion>/version',
+    service.versionGet,
+  );
+  router.add(
+    'GET',
+    r'/api/<apiVersion>/version',
     service.versionGet,
   );
   router.add(
@@ -70,7 +125,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/analyzeFiles',
+    service.analyzeFiles,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/compileFiles',
+    service.compileFiles,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/compileFiles',
     service.compileFiles,
   );
   router.add(
@@ -80,7 +145,17 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/compileFilesDDC',
+    service.compileFilesDDC,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/completeFiles',
+    service.completeFiles,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/completeFiles',
     service.completeFiles,
   );
   router.add(
@@ -90,12 +165,27 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/fixesFiles',
+    service.fixesFiles,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/assistsFiles',
     service.assistsFiles,
   );
   router.add(
     'POST',
+    r'/api/<apiVersion>/assistsFiles',
+    service.assistsFiles,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/documentFiles',
+    service.documentFiles,
+  );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/documentFiles',
     service.documentFiles,
   );
   return router;
