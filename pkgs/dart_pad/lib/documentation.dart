@@ -4,15 +4,14 @@
 
 import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
-import 'dart:math' as math;
 
+import 'package:dartpad_shared/services.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
 import 'context.dart';
 import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
-import 'services/dartservices.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
 
@@ -51,20 +50,11 @@ class DocHandler {
 
     final offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    final request = SourceRequest()..offset = offset;
-
-    if (_editor.completionActive) {
-      // If the completion popup is open we create a new source as if the
-      // completion popup was chosen, and ask for the documentation of that
-      // source.
-      request.source =
-          _sourceWithCompletionInserted(_sourceProvider.dartSource, offset);
-    } else {
-      request.source = _sourceProvider.dartSource;
-    }
-
     dartServices
-        .document(request)
+        .document(SourceRequest(
+          source: _sourceProvider.dartSource,
+          offset: offset,
+        ))
         .timeout(documentServiceTimeout)
         .then((DocumentResponse result) {
       final hash = result.hashCode;
@@ -90,33 +80,21 @@ class DocHandler {
     });
   }
 
-  String _sourceWithCompletionInserted(String source, int offset) {
-    final completionText = querySelector('.CodeMirror-hint-active')!.text!;
-    final lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
-    final lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
-    final insertOffset = math.max(lastSpace, lastDot);
-    return _sourceProvider.dartSource.substring(0, insertOffset) +
-        completionText +
-        _sourceProvider.dartSource.substring(offset);
-  }
-
   _DocResult _getHtmlTextFor(DocumentResponse result) {
-    final info = result.info;
-
-    if (info['description'] == null && info['dartdoc'] == null) {
+    if (result.elementDescription == null && result.dartdoc == null) {
       return _DocResult('');
     }
 
-    final libraryName = info['libraryName'];
-    final kind = info['kind']!;
-    final hasDartdoc = info['dartdoc'] != null;
-    final isVariable = kind.contains('variable');
+    final libraryName = result.containingLibraryName;
+    final kind = result.elementKind;
+    final hasDartdoc = result.dartdoc != null;
+    final isVariable = kind?.contains('variable') ?? false;
 
     final apiLink = _dartApiLink(libraryName);
 
-    final propagatedType = info['propagatedType'];
-    final mdDocs = '''# `${info['description']}`\n\n
-${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
+    final propagatedType = result.propagatedType;
+    final mdDocs = '''# `${result.elementDescription}`\n\n
+${hasDartdoc ? "${result.dartdoc}\n\n" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
 $apiLink\n\n''';
@@ -128,7 +106,7 @@ $apiLink\n\n''';
     htmlDocs = htmlDocs.replaceAll('library docs</a>',
         "library docs <span class='launch-icon'></span></a>");
 
-    return _DocResult(htmlDocs, kind.replaceAll(' ', '_'));
+    return _DocResult(htmlDocs, kind?.replaceAll(' ', '_'));
   }
 
   String _dartApiLink(String? libraryName) {

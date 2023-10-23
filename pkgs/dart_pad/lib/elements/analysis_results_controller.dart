@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:dartpad_shared/model.dart';
 import 'package:mdc_web/mdc_web.dart';
 
-import '../services/dartservices.dart';
 import 'button.dart';
 import 'elements.dart';
 
@@ -91,22 +91,16 @@ class AnalysisResultsController {
     final columnElem = DivElement()..classes.add('issue-column');
 
     final hasLineNumber = issue.line >= 1;
-    final lineNumberInfo = hasLineNumber ? 'line ${issue.line}' : '';
-    final additionalSourceInfo = (issue.sourceName == 'main.dart')
-        ? ''
-        : '${hasLineNumber ? ' of ' : ''}${issue.sourceName} ';
-    final locationSeparator =
-        (additionalSourceInfo.isNotEmpty || lineNumberInfo.isNotEmpty)
-            ? ' • '
-            : '';
+    final lineInfo = hasLineNumber ? 'line ${issue.line}' : '';
+    final separator = lineInfo.isNotEmpty ? ' • ' : '';
 
     final messageSpan = DivElement()
-      ..text = '$lineNumberInfo$additionalSourceInfo$locationSeparator$message'
+      ..text = '$lineInfo$separator$message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
 
     // Add a link to the documentation
-    if (issue.url.isNotEmpty) {
+    if (issue.url != null) {
       messageSpan.children.add(AnchorElement()
         ..href = issue.url
         ..text = ' (view docs)'
@@ -115,16 +109,16 @@ class AnalysisResultsController {
     }
 
     // Add the correction, if any.
-    if (issue.correction.isNotEmpty) {
+    if (issue.correction != null) {
       columnElem.children.add(DivElement()
         ..text = issue.correction
         ..classes.add('message'));
     }
 
-    // TODO: This should likely be named contextMessages.
-    for (final diagnostic in issue.diagnosticMessages) {
-      columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
-    }
+    // // TODO: This should likely be named contextMessages.
+    // for (final diagnostic in issue.diagnosticMessages) {
+    //   columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
+    // }
 
     elem.children.add(columnElem);
 
@@ -148,7 +142,6 @@ class AnalysisResultsController {
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
-          sourceName: issue.sourceName,
           line: issue.line,
           charStart: issue.charStart,
           charLength: issue.charLength));
@@ -157,42 +150,42 @@ class AnalysisResultsController {
     return elem;
   }
 
-  Element _createDiagnosticElement(
-      DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue) {
-    final message = diagnosticMessage.message;
+  // Element _createDiagnosticElement(
+  //     DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue) {
+  //   final message = diagnosticMessage.message;
 
-    final elem = DivElement()..classes.addAll(['message', 'clickable']);
-    elem.text = message;
-    elem.onClick.listen((event) {
-      // Stop the mouse event so the outer issue mouse handler doesn't process
-      // it.
-      event.stopPropagation();
+  //   final elem = DivElement()..classes.addAll(['message', 'clickable']);
+  //   elem.text = message;
+  //   elem.onClick.listen((event) {
+  //     // Stop the mouse event so the outer issue mouse handler doesn't process
+  //     // it.
+  //     event.stopPropagation();
 
-      _onClickController.add(Location(
-          //TODO: @timmaffett multi files will need -> diagnosticMessage.sourceName,
-          sourceName: parentIssue.sourceName,
-          // For now if the source name is NOT main.dart then ASSUME that the
-          // line number and charStart could have been adjust because of an
-          // appended test, and use the information for the parentIssue instead.
-          // (It would probably be safe to always do this, but by doing this
-          // we DO NOT change any behavior except for when we have changed the
-          // sourceName to `test.dart` (the only way the sourceName can currently
-          // change until multi file source merged))
-          //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
-          // or 'test.dart' (and in that case we changed line# and charStart).
-          line: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.line
-              : parentIssue.line,
-          charStart: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.charStart
-              : parentIssue.charStart,
-          charLength: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.charLength
-              : parentIssue.charLength));
-    });
+  //     _onClickController.add(Location(
+  //         //TODO: @timmaffett multi files will need -> diagnosticMessage.sourceName,
+  //         sourceName: parentIssue.sourceName,
+  //         // For now if the source name is NOT main.dart then ASSUME that the
+  //         // line number and charStart could have been adjust because of an
+  //         // appended test, and use the information for the parentIssue instead.
+  //         // (It would probably be safe to always do this, but by doing this
+  //         // we DO NOT change any behavior except for when we have changed the
+  //         // sourceName to `test.dart` (the only way the sourceName can currently
+  //         // change until multi file source merged))
+  //         //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
+  //         // or 'test.dart' (and in that case we changed line# and charStart).
+  //         line: parentIssue.sourceName == 'main.dart'
+  //             ? diagnosticMessage.line
+  //             : parentIssue.line,
+  //         charStart: parentIssue.sourceName == 'main.dart'
+  //             ? diagnosticMessage.charStart
+  //             : parentIssue.charStart,
+  //         charLength: parentIssue.sourceName == 'main.dart'
+  //             ? diagnosticMessage.charLength
+  //             : parentIssue.charLength));
+  //   });
 
-    return elem;
-  }
+  //   return elem;
+  // }
 
   void hideToggle() {
     toggle.setAttr('hidden');
@@ -217,13 +210,11 @@ class AnalysisResultsController {
 
 /// A range of text in the file.
 class Location {
-  final String sourceName;
   final int line;
   final int charStart;
   final int charLength;
 
   Location({
-    required this.sourceName,
     required this.line,
     required this.charStart,
     required this.charLength,

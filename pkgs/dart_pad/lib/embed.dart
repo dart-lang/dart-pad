@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:html' hide Console, Document;
 import 'dart:math' as math;
 
+import 'package:dartpad_shared/services.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
@@ -28,7 +29,6 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'search_controller.dart';
 import 'services/common.dart';
-import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
@@ -306,19 +306,19 @@ class Embed extends EditorUi {
       DElement(querySelector('#issues-toggle')!),
       snackbar,
     )..onItemClicked.listen((item) {
-        if (item.sourceName == 'test.dart') {
-          // must be test editor
-          if (!_showTestCode) {
-            _showTestCode = true;
-            showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
-            tabController.setTabVisibility('test', _showTestCode);
-          }
-          tabController.selectTab('test');
-          _jumpToTest(item.line, item.charStart, item.charLength, focus: true);
-        } else {
-          tabController.selectTab('dart');
-          _jumpTo(item.line, item.charStart, item.charLength, focus: true);
-        }
+        // if (item.sourceName == 'test.dart') {
+        //   // must be test editor
+        //   if (!_showTestCode) {
+        //     _showTestCode = true;
+        //     showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+        //     tabController.setTabVisibility('test', _showTestCode);
+        //   }
+        //   tabController.selectTab('test');
+        //   _jumpToTest(item.line, item.charStart, item.charLength, focus: true);
+        // } else {
+        tabController.selectTab('dart');
+        _jumpTo(item.line, item.charStart, item.charLength, focus: true);
+        // }
       });
 
     if (options.mode == EmbedMode.flutter ||
@@ -480,7 +480,10 @@ class Embed extends EditorUi {
 
     final channel = queryParams.channel;
     if (Channel.urlMapping.keys.contains(channel)) {
-      dartServices.rootUrl = Channel.urlMapping[channel]!;
+      deps[ServicesClient] = ServicesClient(
+        dartServices.client,
+        rootUrl: Channel.urlMapping[channel]!,
+      );
     }
 
     updateVersions();
@@ -826,33 +829,33 @@ class Embed extends EditorUi {
       List<AnalysisIssue> issues) {
     final dartSourceLineCount = context.dartSourceLineCount;
     final dartSourceCharCount = context.dartSource.length;
-    issues = issues.map((issue) {
-      if (issue.line > dartSourceLineCount) {
-        // This is in the test source, do we adjust or hide it ?
-        // (We never hide errors).
-        if (issue.kind != 'error' && !_showTestCode) {
-          // We want to remove the message later so flag it.
-          return AnalysisIssue()..line = -99;
-        } else {
-          // Adjust the line number, charStart and set sourceName
-          // to indicate this issue is in the test code.
-          return AnalysisIssue()
-            ..kind = issue.kind
-            ..line = issue.line - dartSourceLineCount - 1
-            ..message = issue.message
-            ..sourceName = 'test.dart'
-            ..hasFixes = issue.hasFixes
-            ..charStart = issue.charStart - dartSourceCharCount
-            ..charLength = issue.charLength
-            ..url = issue.url
-            ..diagnosticMessages.addAll(issue.diagnosticMessages)
-            ..correction = issue.correction;
-        }
-      }
-      return issue;
-    }).toList();
-    issues.removeWhere((issue) => issue.line == -99);
-    return issues;
+    return issues
+        .map((AnalysisIssue issue) {
+          if (issue.line > dartSourceLineCount) {
+            // This is in the test source, do we adjust or hide it ?
+            // (We never hide errors).
+            if (issue.kind != 'error' && !_showTestCode) {
+              return null;
+            } else {
+              // Adjust the line number, charStart and set sourceName
+              // to indicate this issue is in the test code.
+              return AnalysisIssue(
+                kind: issue.kind,
+                message: issue.message,
+                correction: issue.correction,
+                url: issue.url,
+                charStart: issue.charStart - dartSourceCharCount,
+                charLength: issue.charLength,
+                line: issue.line - dartSourceLineCount - 1,
+                column: issue.column,
+              );
+            }
+          } else {
+            return issue;
+          }
+        })
+        .whereType<AnalysisIssue>()
+        .toList();
   }
 
   void _showInstallPage() {
@@ -867,7 +870,7 @@ class Embed extends EditorUi {
 
   Future<void> _format() async {
     final originalSource = context.dartSource;
-    final input = SourceRequest()..source = originalSource;
+    final input = SourceRequest(source: originalSource);
 
     try {
       formatButton.disabled = true;
@@ -880,8 +883,8 @@ class Embed extends EditorUi {
       // Check that the user hasn't edited the source since the format request.
       if (originalSource == context.dartSource) {
         // And, check that the format request did modify the source code.
-        if (originalSource != result.newString) {
-          context.dartSource = result.newString;
+        if (originalSource != result.source) {
+          context.dartSource = result.source;
           unawaited(performAnalysis());
         }
       }
@@ -920,15 +923,15 @@ class Embed extends EditorUi {
     if (focus) context.focus();
   }
 
-  void _jumpToTest(int line, int charStart, int charLength,
-      {bool focus = false}) {
-    final doc = context.testDocument;
+  // void _jumpToTest(int line, int charStart, int charLength,
+  //     {bool focus = false}) {
+  //   final doc = context.testDocument;
 
-    doc.select(
-        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+  //   doc.select(
+  //       doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
-    if (focus) context.focus();
-  }
+  //   if (focus) context.focus();
+  // }
 
   @override
   void clearOutput() {

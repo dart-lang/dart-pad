@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:http/browser_client.dart';
 
 import 'context.dart';
@@ -9,7 +10,6 @@ import 'core/dependencies.dart';
 import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
-import 'services/dartservices.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
 
@@ -17,7 +17,7 @@ Analytics get ga => deps[Analytics] as Analytics;
 
 Context get context => deps[Context] as Context;
 
-DartservicesApi get dartServices => deps[DartservicesApi] as DartservicesApi;
+ServicesClient get dartServices => deps[ServicesClient] as ServicesClient;
 
 EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
 

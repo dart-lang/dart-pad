@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:dartpad_shared/services.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -16,7 +17,6 @@ import '../elements/button.dart';
 import '../elements/dialog.dart';
 import '../elements/elements.dart';
 import '../services/common.dart';
-import '../services/dartservices.dart';
 import '../services/execution.dart';
 import '../util/keymap.dart';
 
@@ -25,7 +25,7 @@ abstract class EditorUi {
 
   ContextBase get context;
 
-  Future<AnalysisResults>? analysisRequest;
+  Future<AnalysisResponse>? analysisRequest;
   late final DBusyLight busyLight;
   late final AnalysisResultsController analysisResultsController;
   late final Editor editor;
@@ -142,7 +142,7 @@ abstract class EditorUi {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() async {
-    final input = SourceRequest()..source = fullDartSource;
+    final input = SourceRequest(source: fullDartSource);
 
     final lines = Lines(input.source);
 
@@ -181,13 +181,13 @@ abstract class EditorUi {
     } catch (e) {
       if (e is! TimeoutException) {
         final message = e is ApiRequestError ? e.message : '$e';
-
         displayIssues([
-          AnalysisIssue()
-            ..kind = 'error'
-            ..line =
-                -1 // set invalid line number, so NO line # will be displayed
-            ..message = message
+          AnalysisIssue(
+            kind: 'error',
+            // set invalid line number, so NO line # will be displayed
+            line: -1,
+            message: message,
+          )
         ]);
       } else {
         logger.severe(e);
@@ -204,7 +204,7 @@ abstract class EditorUi {
     runButton.disabled = true;
 
     final compilationTimer = Stopwatch()..start();
-    final compileRequest = CompileRequest()..source = fullDartSource;
+    final compileRequest = CompileRequest(source: fullDartSource);
 
     try {
       if (shouldCompileDDC) {
@@ -265,18 +265,18 @@ abstract class EditorUi {
 
       // Update the version information for this editor.
       version = Version(
-        response.sdkVersion,
+        response.dartVersion,
         response.flutterVersion,
-        response.flutterEngineSha,
+        response.engineVersion,
       );
 
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       querySelector('#dartpad-version')?.text =
           'Based on Flutter ${response.flutterVersion}'
-          ' Dart SDK ${response.sdkVersionFull}';
-      if (response.packageInfo.isNotEmpty) {
+          ' Dart SDK ${response.dartVersion}';
+      if (response.packages.isNotEmpty) {
         _packageInfo.clear();
-        _packageInfo.addAll(response.packageInfo);
+        _packageInfo.addAll(response.packages);
       }
     } catch (_) {
       // Don't crash the app.
@@ -332,14 +332,14 @@ class Channel {
     // default to the stable channel.
     rootUrl ??= stableServerUrl;
 
-    final dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
+    final dartservicesApi = ServicesClient(browserClient, rootUrl: rootUrl);
     final versionResponse = await dartservicesApi.version();
     return Channel._(
       name: name,
-      dartVersion: versionResponse.sdkVersionFull,
+      dartVersion: versionResponse.dartVersion,
       flutterVersion: versionResponse.flutterVersion,
-      experiments: versionResponse.experiment,
-      engineVersion: versionResponse.flutterEngineSha,
+      experiments: versionResponse.experiments,
+      engineVersion: versionResponse.engineVersion,
     );
   }
 

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:html' hide Console;
 
+import 'package:dartpad_shared/services.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -30,7 +31,6 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'search_controller.dart';
 import 'services/common.dart';
-import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
@@ -226,9 +226,6 @@ class WorkshopUi extends EditorUi {
     executionService.onStderr.listen((m) => showOutput(m, error: true));
     // Set up Google Analytics.
     deps[Analytics] = const Analytics();
-
-    // Use null safety for workshops
-    (deps[DartservicesApi] as DartservicesApi).rootUrl = serverUrl;
 
     analysisResultsController = AnalysisResultsController(
       DElement(querySelector('#issues')!),
@@ -514,7 +511,7 @@ class WorkshopUi extends EditorUi {
 
   Future<void> _format() {
     final originalSource = context.dartSource;
-    final input = SourceRequest()..source = originalSource;
+    final input = SourceRequest(source: originalSource);
     formatButton.disabled = true;
 
     final request = dartServices.format(input).timeout(formatServiceTimeout);
@@ -522,13 +519,13 @@ class WorkshopUi extends EditorUi {
       busyLight.reset();
       formatButton.disabled = false;
 
-      if (result.newString.isEmpty) {
+      if (result.source.isEmpty) {
         logger.fine('Format returned null/empty result');
         return;
       }
 
-      if (originalSource != result.newString) {
-        editor.document.updateValue(result.newString);
+      if (originalSource != result.source) {
+        editor.document.updateValue(result.source);
         showSnackbar('Format successful.');
       } else {
         showSnackbar('No formatting changes.');
