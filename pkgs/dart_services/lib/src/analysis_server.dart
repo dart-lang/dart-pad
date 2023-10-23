@@ -186,8 +186,10 @@ abstract class AnalysisServerWrapper {
           deprecated: suggestion.isDeprecated,
           selectionOffset: suggestion.selectionOffset,
           displayText: suggestion.displayText,
+          parameterNames: suggestion.parameterNames,
           returnType: suggestion.returnType,
           elementKind: suggestion.element?.kind,
+          elementParameters: suggestion.element?.parameters,
         );
       }).toList(),
     );
@@ -699,6 +701,18 @@ extension SourceChangeExtension on SourceChange {
             ),
           )
           .toList(),
+      linkedEditGroups: linkedEditGroups.map((editGroup) {
+        return api.LinkedEditGroup(
+          offsets: editGroup.positions.map((pos) => pos.offset).toList(),
+          length: editGroup.length,
+          suggestions: editGroup.suggestions.map((sug) {
+            return api.LinkedEditSuggestion(
+              value: sug.value,
+              kind: sug.kind,
+            );
+          }).toList(),
+        );
+      }).toList(),
       selectionOffset: selection?.offset,
     );
   }

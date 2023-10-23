@@ -25,7 +25,9 @@ part 'common_server_api.g.dart';
 
 const protobufContentType = 'application/x-protobuf';
 const jsonContentType = 'application/json; charset=utf-8';
-const apiPrefix = '/api/dartservices/<apiVersion>';
+
+const oldApiPrefix = '/api/dartservices/<apiVersion>';
+const newApiPrefix = '/api/<apiVersion>';
 
 const api2 = 'v2';
 const api3 = 'v3';
@@ -36,7 +38,8 @@ class CommonServerApi {
 
   CommonServerApi(this._impl);
 
-  @Route.post('$apiPrefix/analyze')
+  @Route.post('$oldApiPrefix/analyze')
+  @Route.post('$newApiPrefix/analyze')
   Future<Response> analyze(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -74,7 +77,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/compile')
+  @Route.post('$oldApiPrefix/compile')
+  @Route.post('$newApiPrefix/compile')
   Future<Response> compile(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -100,7 +104,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/compileDDC')
+  @Route.post('$oldApiPrefix/compileDDC')
+  @Route.post('$newApiPrefix/compileDDC')
   Future<Response> compileDDC(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -134,7 +139,8 @@ class CommonServerApi {
   }
 
   @experimental
-  @Route.post('$apiPrefix/_flutterBuild')
+  @Route.post('$oldApiPrefix/_flutterBuild')
+  @Route.post('$newApiPrefix/_flutterBuild')
   Future<Response> flutterBuild(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -165,7 +171,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/complete')
+  @Route.post('$oldApiPrefix/complete')
+  @Route.post('$newApiPrefix/complete')
   Future<Response> complete(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -186,7 +193,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/fixes')
+  @Route.post('$oldApiPrefix/fixes')
+  @Route.post('$newApiPrefix/fixes')
   Future<Response> fixes(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -207,7 +215,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/assists')
+  @Route.post('$oldApiPrefix/assists')
+  @Route.post('$newApiPrefix/assists')
   Future<Response> assists(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -222,7 +231,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/format')
+  @Route.post('$oldApiPrefix/format')
+  @Route.post('$newApiPrefix/format')
   Future<Response> format(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -251,7 +261,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/document')
+  @Route.post('$oldApiPrefix/document')
+  @Route.post('$newApiPrefix/document')
   Future<Response> document(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -277,7 +288,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/version')
+  @Route.post('$oldApiPrefix/version')
+  @Route.post('$newApiPrefix/version')
   Future<Response> versionPost(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -292,7 +304,8 @@ class CommonServerApi {
     }
   }
 
-  @Route.get('$apiPrefix/version')
+  @Route.get('$oldApiPrefix/version')
+  @Route.get('$newApiPrefix/version')
   Future<Response> versionGet(Request request, String apiVersion) async {
     if (apiVersion == api2) {
       return _processRequest(
@@ -310,7 +323,8 @@ class CommonServerApi {
   }
 
   // Beginning of multi file map end points:
-  @Route.post('$apiPrefix/analyzeFiles')
+  @Route.post('$oldApiPrefix/analyzeFiles')
+  @Route.post('$newApiPrefix/analyzeFiles')
   Future<Response> analyzeFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -321,7 +335,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/compileFiles')
+  @Route.post('$oldApiPrefix/compileFiles')
+  @Route.post('$newApiPrefix/compileFiles')
   Future<Response> compileFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -332,7 +347,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/compileFilesDDC')
+  @Route.post('$oldApiPrefix/compileFilesDDC')
+  @Route.post('$newApiPrefix/compileFilesDDC')
   Future<Response> compileFilesDDC(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -343,7 +359,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/completeFiles')
+  @Route.post('$oldApiPrefix/completeFiles')
+  @Route.post('$newApiPrefix/completeFiles')
   Future<Response> completeFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -354,7 +371,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/fixesFiles')
+  @Route.post('$oldApiPrefix/fixesFiles')
+  @Route.post('$newApiPrefix/fixesFiles')
   Future<Response> fixesFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -365,7 +383,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/assistsFiles')
+  @Route.post('$oldApiPrefix/assistsFiles')
+  @Route.post('$newApiPrefix/assistsFiles')
   Future<Response> assistsFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
@@ -376,7 +395,8 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/documentFiles')
+  @Route.post('$oldApiPrefix/documentFiles')
+  @Route.post('$newApiPrefix/documentFiles')
   Future<Response> documentFiles(Request request, String apiVersion) {
     return _processRequest(
       request,
