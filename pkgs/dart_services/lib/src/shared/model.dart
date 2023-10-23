@@ -165,13 +165,13 @@ class FixesResponse {
 class SourceChange {
   final String message;
   final List<SourceEdit> edits;
-  // TODO: Add linked edit groups once we start using them.
-  // final List<LinkedEditGroup> linkedEditGroups;
+  final List<LinkedEditGroup> linkedEditGroups;
   final int? selectionOffset;
 
   SourceChange({
     required this.message,
     required this.edits,
+    required this.linkedEditGroups,
     this.selectionOffset,
   });
 
@@ -203,6 +203,40 @@ class SourceEdit {
 
   @override
   String toString() => 'SourceEdit [$offset,$length,$replacement]';
+}
+
+@JsonSerializable()
+class LinkedEditGroup {
+  final List<int> offsets;
+  final int length;
+  final List<LinkedEditSuggestion> suggestions;
+
+  LinkedEditGroup({
+    required this.offsets,
+    required this.length,
+    required this.suggestions,
+  });
+
+  factory LinkedEditGroup.fromJson(Map<String, dynamic> json) =>
+      _$LinkedEditGroupFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LinkedEditGroupToJson(this);
+}
+
+@JsonSerializable()
+class LinkedEditSuggestion {
+  final String value;
+  final String kind;
+
+  LinkedEditSuggestion({
+    required this.value,
+    required this.kind,
+  });
+
+  factory LinkedEditSuggestion.fromJson(Map<String, dynamic> json) =>
+      _$LinkedEditSuggestionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LinkedEditSuggestionToJson(this);
 }
 
 @JsonSerializable()
@@ -261,8 +295,10 @@ class CompletionSuggestion {
   final bool deprecated;
   final int selectionOffset;
   final String? displayText;
+  final List<String>? parameterNames;
   final String? returnType;
   final String? elementKind;
+  final String? elementParameters;
 
   CompletionSuggestion({
     required this.kind,
@@ -271,8 +307,10 @@ class CompletionSuggestion {
     required this.deprecated,
     required this.selectionOffset,
     required this.displayText,
+    required this.parameterNames,
     required this.returnType,
     required this.elementKind,
+    required this.elementParameters,
   });
 
   factory CompletionSuggestion.fromJson(Map<String, dynamic> json) =>

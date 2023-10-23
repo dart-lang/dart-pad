@@ -366,9 +366,6 @@ void generateProtos() async {
     arguments: ['format', '--fix', 'lib/src/protos'],
   );
 
-  // Copy to the dart_pad front-end package.
-  copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
-
   // TODO: We'd like to remove this copy operation; that will require work in
   // the cloud build configuration.
   copy(getDir('../dartpad_shared/lib'), getDir('lib/src/shared'));
