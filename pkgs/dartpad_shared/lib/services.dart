@@ -51,8 +51,7 @@ class ServicesClient {
     String action,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
-    final response =
-        await client.get(Uri.parse('${rootUrl}api/dartservices/v3/$action'));
+    final response = await client.get(Uri.parse('${rootUrl}api/v3/$action'));
 
     if (response.statusCode != 200) {
       throw ApiRequestError(
@@ -74,10 +73,8 @@ class ServicesClient {
     Map<String, dynamic> request,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
-    final response = await client.post(
-        Uri.parse('${rootUrl}api/dartservices/v3/$action'),
-        encoding: utf8,
-        body: json.encode(request));
+    final response = await client.post(Uri.parse('${rootUrl}api/v3/$action'),
+        encoding: utf8, body: json.encode(request));
     if (response.statusCode != 200) {
       throw ApiRequestError(
         '$action: ${response.statusCode}: ${response.reasonPhrase}',

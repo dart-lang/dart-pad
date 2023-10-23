@@ -135,6 +135,9 @@ SourceChange _$SourceChangeFromJson(Map<String, dynamic> json) => SourceChange(
       edits: (json['edits'] as List<dynamic>)
           .map((e) => SourceEdit.fromJson(e as Map<String, dynamic>))
           .toList(),
+      linkedEditGroups: (json['linkedEditGroups'] as List<dynamic>)
+          .map((e) => LinkedEditGroup.fromJson(e as Map<String, dynamic>))
+          .toList(),
       selectionOffset: json['selectionOffset'] as int?,
     );
 
@@ -142,6 +145,7 @@ Map<String, dynamic> _$SourceChangeToJson(SourceChange instance) =>
     <String, dynamic>{
       'message': instance.message,
       'edits': instance.edits,
+      'linkedEditGroups': instance.linkedEditGroups,
       'selectionOffset': instance.selectionOffset,
     };
 
@@ -156,6 +160,36 @@ Map<String, dynamic> _$SourceEditToJson(SourceEdit instance) =>
       'offset': instance.offset,
       'length': instance.length,
       'replacement': instance.replacement,
+    };
+
+LinkedEditGroup _$LinkedEditGroupFromJson(Map<String, dynamic> json) =>
+    LinkedEditGroup(
+      offsets: (json['offsets'] as List<dynamic>).map((e) => e as int).toList(),
+      length: json['length'] as int,
+      suggestions: (json['suggestions'] as List<dynamic>)
+          .map((e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$LinkedEditGroupToJson(LinkedEditGroup instance) =>
+    <String, dynamic>{
+      'offsets': instance.offsets,
+      'length': instance.length,
+      'suggestions': instance.suggestions,
+    };
+
+LinkedEditSuggestion _$LinkedEditSuggestionFromJson(
+        Map<String, dynamic> json) =>
+    LinkedEditSuggestion(
+      value: json['value'] as String,
+      kind: json['kind'] as String,
+    );
+
+Map<String, dynamic> _$LinkedEditSuggestionToJson(
+        LinkedEditSuggestion instance) =>
+    <String, dynamic>{
+      'value': instance.value,
+      'kind': instance.kind,
     };
 
 DocumentResponse _$DocumentResponseFromJson(Map<String, dynamic> json) =>
@@ -203,8 +237,12 @@ CompletionSuggestion _$CompletionSuggestionFromJson(
       deprecated: json['deprecated'] as bool,
       selectionOffset: json['selectionOffset'] as int,
       displayText: json['displayText'] as String?,
+      parameterNames: (json['parameterNames'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       returnType: json['returnType'] as String?,
       elementKind: json['elementKind'] as String?,
+      elementParameters: json['elementParameters'] as String?,
     );
 
 Map<String, dynamic> _$CompletionSuggestionToJson(
@@ -216,8 +254,10 @@ Map<String, dynamic> _$CompletionSuggestionToJson(
       'deprecated': instance.deprecated,
       'selectionOffset': instance.selectionOffset,
       'displayText': instance.displayText,
+      'parameterNames': instance.parameterNames,
       'returnType': instance.returnType,
       'elementKind': instance.elementKind,
+      'elementParameters': instance.elementParameters,
     };
 
 VersionResponse _$VersionResponseFromJson(Map<String, dynamic> json) =>

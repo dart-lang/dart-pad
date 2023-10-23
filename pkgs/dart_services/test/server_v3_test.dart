@@ -80,7 +80,6 @@ class MyApp extends StatelessWidget {
 
       expect(result, isNotNull);
       expect(result.issues, isEmpty);
-      expect(result.packageImports, isNotEmpty);
       expect(result.packageImports, contains('flutter'));
     });
 
@@ -120,7 +119,9 @@ void main() {
       });
       expect(suggestion, isNotNull);
       expect(suggestion!.returnType, 'void');
+      expect(suggestion.parameterNames, isNotEmpty);
       expect(suggestion.elementKind, 'FUNCTION');
+      expect(suggestion.elementParameters, isNotEmpty);
     });
 
     test('format', () async {
@@ -289,6 +290,7 @@ void main() {
           .firstWhereOrNull((fix) => fix.message.contains('Ignore'));
       expect(fix, isNotNull);
       expect(fix!.edits, hasLength(1));
+      expect(fix.linkedEditGroups, isEmpty);
       expect(fix.edits.first.replacement,
           contains('// ignore: unused_local_variable'));
     });
@@ -322,6 +324,8 @@ void main() => print('hello world');
           (assist) => assist.message.contains('Convert to block body'));
       expect(assist, isNotNull);
       expect(assist!.edits, hasLength(1));
+      expect(assist.linkedEditGroups, isEmpty);
+      expect(assist.selectionOffset, greaterThan(0));
       expect(assist.edits.first.replacement, isNotEmpty);
     });
   });
