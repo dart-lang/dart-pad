@@ -61,7 +61,7 @@ bool hasFlutterWebMarker(String javaScript) {
     return true;
   }
 
-  //   define('dartpad_main', ['dart_sdk', 'flutter_web']
+  // define('dartpad_main', ['dart_sdk', 'flutter_web']
   if (javaScript.contains("define('") && javaScript.contains("'flutter_web'")) {
     return true;
   }

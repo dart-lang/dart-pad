@@ -60,8 +60,8 @@ To run the server, run:
 $ FLUTTER_CHANNEL="stable" dart tool/grind.dart serve
 ```
 
-The server will run from port 8082 and export several JSON APIs, like
-`/api/compile` and `/api/analyze`.
+The server will run from port 8080 and export several JSON APIs, like
+`/api/v3/compile` and `/api/v3/analyze`.
 
 ## Testing
 
