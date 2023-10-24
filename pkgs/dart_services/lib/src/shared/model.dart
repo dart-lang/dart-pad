@@ -96,7 +96,7 @@ class CompileResponse {
 @JsonSerializable()
 class CompileDDCResponse {
   final String result;
-  final String modulesBaseUrl;
+  final String? modulesBaseUrl;
 
   CompileDDCResponse({
     required this.result,

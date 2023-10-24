@@ -122,9 +122,13 @@ class CommonServerApi {
         return _impl.compiler.compileDDC(sourceRequest.source);
       });
       if (results.hasOutput) {
+        var modulesBaseUrl = results.modulesBaseUrl;
+        if (modulesBaseUrl != null && modulesBaseUrl.isEmpty) {
+          modulesBaseUrl = null;
+        }
         return ok(api.CompileDDCResponse(
           result: results.compiledJS!,
-          modulesBaseUrl: results.modulesBaseUrl!,
+          modulesBaseUrl: modulesBaseUrl,
         ).toJson());
       } else {
         return failure(results.problems.map((p) => p.message).join('\n'));

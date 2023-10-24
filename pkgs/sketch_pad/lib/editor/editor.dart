@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 
 import '../model.dart';
 import '../theme.dart';
-import 'completion.dart';
 
 final Key _elementViewKey = UniqueKey();
 
@@ -77,9 +76,19 @@ class EditorWidget extends StatefulWidget {
 class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   StreamSubscription<void>? listener;
   CodeMirror? codeMirror;
+  CompletionType completionType = CompletionType.auto;
 
   @override
   void showCompletions() {
+    completionType = CompletionType.manual;
+
+    codeMirror?.execCommand('autocomplete');
+  }
+
+  @override
+  void showQuickFixes() {
+    completionType = CompletionType.quickfix;
+
     codeMirror?.execCommand('autocomplete');
   }
 
@@ -139,12 +148,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     widget.appServices.registerEditorService(this);
 
-    Hints.registerHintsHelperAsync('dart', (
-      CodeMirror editor, [
-      HintsOptions? options,
-    ]) {
-      return _calculateCompletions();
-    });
+    Hints.registerHintsHelperAsync('dart', _completions);
   }
 
   @override
@@ -216,45 +220,52 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     codeMirror?.setTheme(darkMode ? 'monokai' : 'default');
   }
 
-  Future<HintResults> _calculateCompletions() async {
-    final editor = codeMirror!;
-    final doc = editor.doc;
-    final offset = doc.indexFromPos(doc.getCursor()) ?? 0;
+  Future<HintResults> _completions(CodeMirror _, [HintsOptions? __]) async {
+    final operation = completionType;
+    completionType = CompletionType.auto;
 
     final appServices = widget.appServices;
-    final response = await appServices.services
-        .complete(services.SourceRequest(
-          source: doc.getValue() ?? '',
-          offset: offset,
-        ))
-        .onError(
-          (error, st) => services.CompleteResponse(
-              replacementLength: 0, replacementOffset: 0, suggestions: []),
-        );
 
-    final replaceOffset = response.replacementOffset;
-    final replaceLength = response.replacementLength;
+    final editor = codeMirror!;
+    final doc = editor.doc;
+    final source = doc.getValue() ?? '';
+    final sourceOffset = doc.indexFromPos(doc.getCursor()) ?? 0;
 
-    final completions = response.suggestions.map((suggestion) =>
-        AnalysisCompletion(replaceOffset, replaceLength, suggestion));
-    final hints =
-        completions.map((completion) => completion.toCodemirrorHint()).toList();
+    if (operation == CompletionType.quickfix) {
+      final response = await appServices.services
+          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
+          .onError((error, st) => services.FixesResponse.empty);
 
-    // Remove hints where both the replacement text and the display text is the
-    // same.
-    final memos = <String>{};
-    hints.retainWhere((hint) {
-      final memo = '${hint.text}:${hint.displayText}';
-      if (memos.contains(memo)) return false;
+      if (response.fixes.isEmpty && response.assists.isEmpty) {
+        widget.appModel.editorStatus.showToast('No quick fixes available.');
+      }
 
-      memos.add(memo);
-      return true;
-    });
+      return HintResults.fromHints([
+        ...response.fixes.map((change) => change.toHintResult()),
+        ...response.assists.map((change) => change.toHintResult()),
+      ], doc.posFromIndex(sourceOffset), doc.posFromIndex(0));
+    } else {
+      final response = await appServices.services
+          .complete(
+              services.SourceRequest(source: source, offset: sourceOffset))
+          .onError((error, st) => services.CompleteResponse.empty);
 
-    final from = doc.posFromIndex(replaceOffset);
-    final to = doc.posFromIndex(replaceOffset + replaceLength);
+      final offset = response.replacementOffset;
+      final length = response.replacementLength;
+      final hints = response.suggestions
+          .map((suggestion) => suggestion.toHintResult())
+          .toList();
 
-    return HintResults.fromHints(hints, from, to);
+      // Remove hints where both the replacement text and the display text are the
+      // same.
+      final memos = <String>{};
+      hints.retainWhere((hint) {
+        return memos.add('${hint.text}:${hint.displayText}');
+      });
+
+      return HintResults.fromHints(
+          hints, doc.posFromIndex(offset), doc.posFromIndex(offset + length));
+    }
   }
 }
 
@@ -360,3 +371,45 @@ const codeMirrorOptions = {
   'tabSize': 2,
   'viewportMargin': 100,
 };
+
+enum CompletionType {
+  auto,
+  manual,
+  quickfix,
+}
+
+extension CompletionSuggestionExtension on services.CompletionSuggestion {
+  HintResult toHintResult() {
+    var altDisplay = completion;
+    if (elementKind == 'FUNCTION' ||
+        elementKind == 'METHOD' ||
+        elementKind == 'CONSTRUCTOR') {
+      altDisplay = '$altDisplay()';
+    }
+
+    return HintResult(
+      completion,
+      displayText: displayText ?? altDisplay,
+      className: this.deprecated ? 'deprecated' : null,
+    );
+  }
+}
+
+extension SourceChangeExtension on services.SourceChange {
+  HintResult toHintResult() {
+    return HintResult(message, hintApplier: _applySourceChange);
+  }
+
+  void _applySourceChange(
+      CodeMirror editor, HintResult hint, Position? from, Position? to) {
+    final doc = editor.doc;
+
+    for (final edit in edits) {
+      doc.replaceRange(
+        edit.replacement,
+        doc.posFromIndex(edit.offset),
+        doc.posFromIndex(edit.offset + edit.length),
+      );
+    }
+  }
+}

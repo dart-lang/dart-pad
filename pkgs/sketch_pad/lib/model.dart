@@ -17,7 +17,11 @@ import 'utils.dart';
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
 abstract class ExecutionService {
-  Future<void> execute(String javaScript);
+  Future<void> execute(
+    String javaScript, {
+    String? modulesBaseUrl,
+    String? engineVersion,
+  });
   Stream<String> get onStdout;
   Future<void> reset();
   Future<void> tearDown();
@@ -25,6 +29,7 @@ abstract class ExecutionService {
 
 abstract class EditorService {
   void showCompletions();
+  void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
 }
 
@@ -34,6 +39,7 @@ class AppModel {
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
+  final ValueNotifier<List<String>> packageImports = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
@@ -107,10 +113,10 @@ enum LayoutMode {
 
 class AppServices {
   final AppModel appModel;
-  final Channel channel;
+  final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  late final http.Client httpClient;
-  late final ServicesClient services;
+  final http.Client _httpClient = http.Client();
+  late ServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -120,15 +126,23 @@ class AppServices {
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
-  AppServices(this.appModel, this.channel) {
-    httpClient = http.Client();
-    services = ServicesClient(httpClient, rootUrl: channel.url);
+  AppServices(this.appModel, Channel channel) {
+    _channel.value = channel;
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
   }
 
   EditorService? get editorService => _editorService;
+
+  ValueListenable<Channel> get channel => _channel;
+
+  void setChannel(Channel channel) async {
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    await populateVersions();
+    _channel.value = channel;
+  }
 
   void resetTo({String? type}) {
     type ??= 'dart';
@@ -154,12 +168,6 @@ class AppServices {
       _reAnalyze();
       reanalysisDebouncer = null;
     });
-  }
-
-  void dispose() {
-    httpClient.close();
-
-    appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
   Future<void> populateVersions() async {
@@ -230,7 +238,6 @@ class AppServices {
     }
   }
 
-  @Deprecated('prefer to use `build`')
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
@@ -240,10 +247,10 @@ class AppServices {
     }
   }
 
-  Future<FlutterBuildResponse> build(SourceRequest request) async {
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
-      return await services.flutterBuild(request);
+      return await services.compileDDC(request);
     } finally {
       appModel.compilingBusy.value = false;
     }
@@ -268,12 +275,27 @@ class AppServices {
     _editorService = editorService;
   }
 
-  void executeJavaScript(String javaScript) {
+  void executeJavaScript(
+    String javaScript, {
+    String? modulesBaseUrl,
+    String? engineVersion,
+  }) {
     final usesFlutter = hasFlutterWebMarker(javaScript);
+
     appModel._appIsFlutter = usesFlutter;
     appModel._recalcLayout();
 
-    _executionService?.execute(javaScript);
+    _executionService?.execute(
+      javaScript,
+      modulesBaseUrl: modulesBaseUrl,
+      engineVersion: engineVersion,
+    );
+  }
+
+  void dispose() {
+    _httpClient.close();
+
+    appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
   Future<void> _reAnalyze() async {
@@ -281,13 +303,14 @@ class AppServices {
       final results = await services.analyze(
         SourceRequest(source: appModel.sourceCodeController.text),
       );
-      final issues = results.issues.toList()..sort(_compareIssues);
-      appModel.analysisIssues.value = issues;
+      appModel.analysisIssues.value = results.issues;
+      appModel.packageImports.value = results.packageImports;
     } catch (error) {
       final message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
         AnalysisIssue(kind: 'error', message: message),
       ];
+      appModel.packageImports.value = [];
     }
   }
 
@@ -309,27 +332,22 @@ class AppServices {
   }
 }
 
-int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
-  final diff = a.severity - b.severity;
-  if (diff != 0) return -diff;
-
-  return a.charStart - b.charStart;
-}
-
 extension AnalysisIssueExtension on AnalysisIssue {
-  int get severity => switch (kind) {
-        'error' => 3,
-        'warning' => 2,
-        'info' => 1,
-        _ => 0,
-      };
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
+  }
 }
 
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),
   // This channel is only used for local development.
-  localhost('Localhost', 'http://localhost:8082/');
+  localhost('Localhost', 'http://localhost:8080/');
 
   final String displayName;
   final String url;
@@ -347,4 +365,8 @@ enum Channel {
 
     return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
+}
+
+extension VersionResponseExtension on VersionResponse {
+  String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }

@@ -81,7 +81,7 @@ Map<String, dynamic> _$CompileResponseToJson(CompileResponse instance) =>
 CompileDDCResponse _$CompileDDCResponseFromJson(Map<String, dynamic> json) =>
     CompileDDCResponse(
       result: json['result'] as String,
-      modulesBaseUrl: json['modulesBaseUrl'] as String,
+      modulesBaseUrl: json['modulesBaseUrl'] as String?,
     );
 
 Map<String, dynamic> _$CompileDDCResponseToJson(CompileDDCResponse instance) =>
