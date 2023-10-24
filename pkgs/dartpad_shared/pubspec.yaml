@@ -1,5 +1,5 @@
 name: dartpad_shared
-description: Common code shared between the DartPad frontend and backend.
+description: Shared code between the DartPad frontend and backend.
 publish_to: 'none'
 
 environment:
