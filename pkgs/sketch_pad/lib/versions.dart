@@ -21,10 +21,10 @@ class VersionTable extends StatelessWidget {
     final packages = version.packages.where((p) => p.supported).toList();
 
     var versionText = 'Based on Dart SDK ${version.dartVersion} '
-        'and Flutter SDK ${version.flutterVersion}.';
+        'and Flutter SDK ${version.flutterVersion}';
     final experiments = version.experiments.join(', ');
     if (experiments.isNotEmpty) {
-      versionText += '\n\nEnabled experiments: $experiments.';
+      versionText += '\n\nExperiments enabled: $experiments';
     }
 
     return Column(
