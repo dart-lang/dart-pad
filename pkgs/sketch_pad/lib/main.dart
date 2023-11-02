@@ -74,6 +74,7 @@ GoRouter _createRouter() {
           final sampleParam = state.uri.queryParameters['sample'];
           final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
           final channelParam = state.uri.queryParameters['channel'];
+          final embedMode = state.uri.queryParameters['embed'] == 'true';
 
           final bool darkMode = themeParam == 'dark';
 
@@ -83,6 +84,7 @@ GoRouter _createRouter() {
             child: DartPadMainPage(
               title: appName,
               initialChannel: channelParam,
+              embedMode: embedMode,
               sampleId: sampleParam,
               gistId: idParam,
             ),
@@ -119,10 +121,12 @@ class DartPadMainPage extends StatefulWidget {
   final String? initialChannel;
   final String? sampleId;
   final String? gistId;
+  final bool embedMode;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
+    required this.embedMode,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -132,8 +136,7 @@ class DartPadMainPage extends StatefulWidget {
 }
 
 class _DartPadMainPageState extends State<DartPadMainPage> {
-  final SplitViewController mainSplitter =
-      SplitViewController(weights: [0.50, 0.50]);
+  late final SplitViewController mainSplitter;
 
   late AppModel appModel;
   late AppServices appServices;
@@ -141,6 +144,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   void initState() {
     super.initState();
+
+    final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
+    mainSplitter =
+        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize]);
 
     final channel = widget.initialChannel != null
         ? Channel.channelForName(widget.initialChannel!)
@@ -174,53 +181,55 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     final theme = Theme.of(context);
 
     final scaffold = Scaffold(
-      appBar: AppBar(
-        backgroundColor: theme.dividerColor,
-        title: SizedBox(
-          height: toolbarItemHeight,
-          child: Row(
-            children: [
-              dartLogo(width: 32),
-              const SizedBox(width: denseSpacing),
-              const Text(appName),
-              const SizedBox(width: defaultSpacing * 4),
-              NewSnippetWidget(appServices: appServices),
-              const SizedBox(width: denseSpacing),
-              const ListSamplesWidget(),
-              const SizedBox(width: defaultSpacing),
-              // title widget
-              Expanded(
-                child: Center(
-                  child: ValueBuilder(
-                    appModel.title,
-                    (String value) => Text(value),
-                  ),
+      appBar: widget.embedMode
+          ? null
+          : AppBar(
+              backgroundColor: theme.dividerColor,
+              title: SizedBox(
+                height: toolbarItemHeight,
+                child: Row(
+                  children: [
+                    dartLogo(width: 32),
+                    const SizedBox(width: denseSpacing),
+                    const Text(appName),
+                    const SizedBox(width: defaultSpacing * 4),
+                    NewSnippetWidget(appServices: appServices),
+                    const SizedBox(width: denseSpacing),
+                    const ListSamplesWidget(),
+                    const SizedBox(width: defaultSpacing),
+                    // title widget
+                    Expanded(
+                      child: Center(
+                        child: ValueBuilder(
+                          appModel.title,
+                          (String value) => Text(value),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: defaultSpacing),
+                  ],
                 ),
               ),
-              const SizedBox(width: defaultSpacing),
-            ],
-          ),
-        ),
-        actions: [
-          // install sdk
-          TextButton(
-            onPressed: () {
-              url_launcher.launchUrl(
-                Uri.parse('https://docs.flutter.dev/get-started/install'),
-              );
-            },
-            child: const Row(
-              children: [
-                Text('Install SDK'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: smallIconSize),
+              actions: [
+                // install sdk
+                TextButton(
+                  onPressed: () {
+                    url_launcher.launchUrl(
+                      Uri.parse('https://docs.flutter.dev/get-started/install'),
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Text('Install SDK'),
+                      SizedBox(width: denseSpacing),
+                      Icon(Icons.launch, size: smallIconSize),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: denseSpacing),
+                const OverflowMenu(),
               ],
             ),
-          ),
-          const SizedBox(width: denseSpacing),
-          const OverflowMenu(),
-        ],
-      ),
       body: Column(
         children: [
           Expanded(
@@ -358,7 +367,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               ),
             ),
           ),
-          const StatusLineWidget(),
+          if (!widget.embedMode) const StatusLineWidget(),
         ],
       ),
     );
