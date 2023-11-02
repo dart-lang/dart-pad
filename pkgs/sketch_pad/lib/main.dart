@@ -16,6 +16,7 @@ import 'package:vtable/vtable.dart';
 import 'console.dart';
 import 'editor/editor.dart';
 import 'execution/execution.dart';
+import 'extensions.dart';
 import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
@@ -35,8 +36,6 @@ import 'widgets.dart';
 
 const appName = 'DartPad';
 
-final GoRouter router = _createRouter();
-
 void main() async {
   setPathUrlStrategy();
 
@@ -53,67 +52,106 @@ class DartPadApp extends StatefulWidget {
 }
 
 class _DartPadAppState extends State<DartPadApp> {
+  ThemeMode themeMode = ThemeMode.dark;
+  late final GoRouter router;
+
+  @override
+  void initState() {
+    router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: _homePageBuilder,
+        ),
+      ],
+    );
+    super.initState();
+  }
+
+  void handleBrightnessChanged(BuildContext context, bool isLightMode) {
+    if (isLightMode) {
+      setState(() {
+        themeMode = ThemeMode.light;
+      });
+      GoRouter.of(context).replaceQueryParam('theme', 'light');
+    } else {
+      setState(() {
+        themeMode = ThemeMode.dark;
+      });
+      GoRouter.of(context).replaceQueryParam('theme', 'dark');
+    }
+  }
+
+  Widget _homePageBuilder(BuildContext context, GoRouterState state) {
+    final idParam = state.uri.queryParameters['id'];
+    final sampleParam = state.uri.queryParameters['sample'];
+    final themeParam = state.uri.queryParameters['theme'];
+    final channelParam = state.uri.queryParameters['channel'];
+    final embedMode = state.uri.queryParameters['embed'] == 'true';
+
+    final ThemeMode newThemeMode = switch (themeParam) {
+      'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
+      _ => ThemeMode.system,
+    };
+
+    if (newThemeMode != themeMode) {
+      themeMode = newThemeMode;
+    }
+
+    return DartPadMainPage(
+      title: appName,
+      initialChannel: channelParam,
+      embedMode: embedMode,
+      sampleId: sampleParam,
+      gistId: idParam,
+      themeMode: themeMode,
+      handleBrightnessChanged: handleBrightnessChanged,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSwatch(
+      cardColor: Color(0xFF1c2834),
+      brightness: switch (themeMode) {
+        ThemeMode.dark => Brightness.dark,
+        _ => Brightness.light,
+      },
+    );
+
     return MaterialApp.router(
       title: appName,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xff1967D2),
+        brightness: Brightness.light,
+        dividerColor: Color(0xFFF5F5F7),
+        dividerTheme: const DividerThemeData(
+          color: Color(0xFFF5F5F7),
+        ),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFF1c2834),
+        brightness: Brightness.dark,
+        // TODO: delete...
+        // textButtonTheme: TextButtonThemeData(
+        //   style: TextButton.styleFrom(
+        //     foregroundColor: colorScheme.onPrimary,
+        //   ),
+        // ),
+        dividerColor: Color(0xFF1c2834),
+        dividerTheme: const DividerThemeData(
+          color: Color(0xFF1c2834),
+        ),
+      ),
     );
   }
-}
-
-GoRouter _createRouter() {
-  return GoRouter(
-    initialLocation: '/',
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (BuildContext context, GoRouterState state) {
-          final idParam = state.uri.queryParameters['id'];
-          final sampleParam = state.uri.queryParameters['sample'];
-          final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
-          final channelParam = state.uri.queryParameters['channel'];
-          final embedMode = state.uri.queryParameters['embed'] == 'true';
-
-          final bool darkMode = themeParam == 'dark';
-
-
-          return Theme(
-            data: _createTheme(darkMode),
-            child: DartPadMainPage(
-              title: appName,
-              initialChannel: channelParam,
-              embedMode: embedMode,
-              sampleId: sampleParam,
-              gistId: idParam,
-            ),
-          );
-        },
-      ),
-    ],
-  );
-}
-
-ThemeData _createTheme(bool darkMode) {
-  final colorScheme = ColorScheme.fromSwatch(
-    cardColor: Color(0xFF1c2834),
-    brightness: darkMode ? Brightness.dark : Brightness.light,
-  );
-  return ThemeData(
-    colorScheme: colorScheme,
-    useMaterial3: true,
-    scaffoldBackgroundColor: const Color(0xFF0C141D),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: colorScheme.onPrimary,
-      ),
-    ),
-    dividerColor: Color(0xFF1c2834),
-    dividerTheme: const DividerThemeData(
-      color: Color(0xFF1c2834),
-    ),
-  );
 }
 
 class DartPadMainPage extends StatefulWidget {
@@ -122,11 +160,15 @@ class DartPadMainPage extends StatefulWidget {
   final String? sampleId;
   final String? gistId;
   final bool embedMode;
+  final ThemeMode themeMode;
+  final void Function(BuildContext, bool) handleBrightnessChanged;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
+    required this.themeMode,
     required this.embedMode,
+    required this.handleBrightnessChanged,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -228,6 +270,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                 ),
                 const SizedBox(width: denseSpacing),
                 const OverflowMenu(),
+                _BrightnessButton(
+                  handleBrightnessChange: widget.handleBrightnessChanged,
+                ),
               ],
             ),
       body: Column(
@@ -250,6 +295,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               EditorWidget(
                                 appModel: appModel,
                                 appServices: appServices,
+                                themeMode: widget.themeMode,
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(denseSpacing),
@@ -918,6 +964,33 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
           child: Text(versions.label),
         );
       },
+    );
+  }
+}
+
+class _BrightnessButton extends StatelessWidget {
+  const _BrightnessButton({
+    required this.handleBrightnessChange,
+    this.showTooltipBelow = true,
+  });
+
+  final void Function(BuildContext, bool) handleBrightnessChange;
+  final bool showTooltipBelow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      preferBelow: showTooltipBelow,
+      message: 'Toggle brightness',
+      child: IconButton(
+        icon: Theme.of(context).brightness == Brightness.light
+            ? const Icon(Icons.dark_mode_outlined)
+            : const Icon(Icons.light_mode_outlined),
+        onPressed: () {
+          final isBright = Theme.of(context).brightness == Brightness.light;
+          handleBrightnessChange(context, !isBright);
+        },
+      ),
     );
   }
 }

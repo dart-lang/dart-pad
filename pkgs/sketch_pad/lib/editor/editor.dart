@@ -15,7 +15,6 @@ import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../theme.dart';
 
 final Key _elementViewKey = UniqueKey();
 
@@ -60,10 +59,12 @@ void _initViewFactory() {
 class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
+  final ThemeMode themeMode;
 
   EditorWidget({
     required this.appModel,
     required this.appServices,
+    required this.themeMode,
     super.key,
   }) {
     _initViewFactory();
@@ -153,8 +154,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final darkMode = theme.colorScheme.darkMode;
+    final darkMode = widget.themeMode == ThemeMode.dark;
 
     _updateCodemirrorMode(darkMode);
 
