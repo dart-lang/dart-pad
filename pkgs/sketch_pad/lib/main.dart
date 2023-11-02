@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
+
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +40,8 @@ const appName = 'DartPad';
 
 final GoRouter router = _createRouter();
 
+const exclusiveQueryParams = ['id', 'sample'];
+
 void main() async {
   setPathUrlStrategy();
 
@@ -70,10 +75,13 @@ GoRouter _createRouter() {
       GoRoute(
         path: '/',
         builder: (BuildContext context, GoRouterState state) {
-          final idParam = state.uri.queryParameters['id'];
-          final sampleParam = state.uri.queryParameters['sample'];
           final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
           final channelParam = state.uri.queryParameters['channel'];
+          final idParam = state.uri.queryParameters['id'];
+          var sampleParam = state.uri.queryParameters['sample'];
+          if (idParam == null && sampleParam == null) {
+            sampleParam = 'dart';
+          }
 
           final bool darkMode = themeParam == 'dark';
           final colorScheme = ColorScheme.fromSwatch(
@@ -147,7 +155,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appServices.performInitialLoad(
       sampleId: widget.sampleId,
       gistId: widget.gistId,
-      fallbackSnippet: Samples.getDefault(type: 'dart'),
     );
   }
 
@@ -308,7 +315,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                 SizedBox(
                                   height: domHeight,
                                   child: ExecutionWidget(
-                                    // useMinHeight: mode.domIsVisible ? false : true,
                                     appServices: appServices,
                                   ),
                                 ),
@@ -576,10 +582,11 @@ class NewSnippetWidget extends StatelessWidget {
         icon: const Icon(Icons.add_circle),
         label: const Text('New'),
         onPressed: () async {
+          final router = GoRouter.of(context);
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
           if (selection != null) {
-            _handleSelection(appServices, selection);
+            _handleSelection(appServices, selection, router);
           }
         },
       ),
@@ -613,8 +620,18 @@ class NewSnippetWidget extends StatelessWidget {
     );
   }
 
-  void _handleSelection(AppServices appServices, bool dartSample) {
+  void _handleSelection(
+    AppServices appServices,
+    bool dartSample,
+    GoRouter router,
+  ) {
     appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
+
+    final params = Map.of(Uri.parse(html.window.location.href).queryParameters);
+    params.remove('id');
+    params['sample'] = dartSample ? 'dart' : 'flutter';
+
+    router.go(Uri(path: '/', queryParameters: params).toString());
   }
 }
 
@@ -660,7 +677,7 @@ class ListSamplesWidget extends StatelessWidget {
             child: PointerInterceptor(
               child: ListTile(
                 leading: sample.isDart ? dartLogo() : flutterLogo(),
-                title: Text(sample.name),
+                title: Text(sample.name!),
               ),
             ),
           );
@@ -676,8 +693,10 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, String sampleId) {
-    context.go(
-      Uri(path: '/', queryParameters: {'sample': sampleId}).toString(),
+    context.goRetainQueryParams(
+      path: '/',
+      params: {'sample': sampleId},
+      removeAny: exclusiveQueryParams,
     );
   }
 }
@@ -747,9 +766,9 @@ class SelectChannelWidget extends StatelessWidget {
     appServices.setChannel(channel);
 
     // update the url
-    // TODO: preserve id? sample? theme?
-    context.go(
-      Uri(path: '/', queryParameters: {'channel': channel.name}).toString(),
+    context.goRetainQueryParams(
+      path: '/',
+      params: {'channel': channel.name},
     );
   }
 }
@@ -907,5 +926,24 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
         );
       },
     );
+  }
+}
+
+extension GoRouterExtension on BuildContext {
+  void goRetainQueryParams({
+    required String path,
+    required Map<String, String> params,
+    List<String> removeAny = const [],
+  }) {
+    final existingParams = Uri.parse(html.window.location.href).queryParameters;
+
+    final newMap = Map.of(existingParams);
+    for (final key in removeAny) {
+      newMap.remove(key);
+    }
+    newMap.addAll(params);
+
+    final uri = Uri(path: path, queryParameters: newMap);
+    go(uri.toString());
   }
 }

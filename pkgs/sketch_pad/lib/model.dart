@@ -146,7 +146,8 @@ class AppServices {
 
   void resetTo({String? type}) {
     type ??= 'dart';
-    final source = Samples.getDefault(type: type);
+
+    final source = Samples.getDefault(type: type)!;
 
     // reset the source
     appModel.sourceCodeController.text = source;
@@ -178,22 +179,25 @@ class AppServices {
   Future<void> performInitialLoad({
     String? sampleId,
     String? gistId,
-    required String fallbackSnippet,
   }) async {
+    final fallbackSource = Samples.getDefault(type: 'dart')!;
+
     // Delay a bit for codemirror to initialize.
     await Future<void>.delayed(const Duration(milliseconds: 1));
 
-    final sample = Samples.getById(sampleId);
-    if (sample != null) {
-      appModel.title.value = sample.name;
-      appModel.sourceCodeController.text = sample.source;
-      appModel.appReady.value = true;
-      return;
-    }
-
     if (gistId == null) {
-      appModel.sourceCodeController.text = fallbackSnippet;
+      final sample = Samples.getById(sampleId);
+
+      if (sample == null) {
+        appModel.editorStatus.showToast('Error loading sample');
+        appModel.sourceCodeController.text = fallbackSource;
+      } else {
+        appModel.title.value = sample.name ?? generateSnippetName();
+        appModel.sourceCodeController.text = sample.source;
+      }
+
       appModel.appReady.value = true;
+
       return;
     }
 
@@ -210,7 +214,7 @@ class AppServices {
       final source = gist.mainDartSource;
       if (source == null) {
         appModel.editorStatus.showToast('main.dart not found');
-        appModel.sourceCodeController.text = fallbackSnippet;
+        appModel.sourceCodeController.text = fallbackSource;
       } else {
         appModel.sourceCodeController.text = source;
       }
@@ -222,7 +226,7 @@ class AppServices {
 
       appModel.appendLineToConsole('Error loading gist: $e');
 
-      appModel.sourceCodeController.text = fallbackSnippet;
+      appModel.sourceCodeController.text = fallbackSource;
       appModel.appReady.value = true;
     } finally {
       gistLoader.dispose();

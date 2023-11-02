@@ -8,15 +8,15 @@ import 'package:collection/collection.dart';
 
 class Sample {
   final String category;
-  final String name;
   final String id;
   final String source;
+  final String? name;
 
   Sample({
     required this.category,
-    required this.name,
     required this.id,
     required this.source,
+    this.name,
   });
 
   bool get isDart => category == 'Dart';
@@ -44,9 +44,20 @@ class Samples {
     ],
   };
 
-  static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
+  static Sample? getById(String? id) {
+    final sample = all.firstWhereOrNull((s) => s.id == id);
+    if (sample != null) {
+      return sample;
+    }
 
-  static String getDefault({required String type}) => _defaults[type]!;
+    if (_defaults.containsKey(id)) {
+      return Sample(category: id!, id: id, source: _defaults[id]!);
+    }
+
+    return null;
+  }
+
+  static String? getDefault({required String type}) => _defaults[type];
 }
 
 Map<String, String> _defaults = {
@@ -92,7 +103,7 @@ final _fibonacci = Sample(
 // that can be found in the LICENSE file.
 
 void main() {
-  var i = 20;
+  const i = 20;
 
   print('fibonacci($i) = ${fibonacci(i)}');
 }
@@ -114,7 +125,7 @@ final _helloWorld = Sample(
 // that can be found in the LICENSE file.
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
   }
 }
@@ -154,9 +165,9 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   const MyHomePage({
-    Key? key,
+    super.key,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();

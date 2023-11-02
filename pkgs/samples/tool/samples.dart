@@ -154,15 +154,15 @@ import 'package:collection/collection.dart';
 
 class Sample {
   final String category;
-  final String name;
   final String id;
   final String source;
+  final String? name;
 
   Sample({
     required this.category,
-    required this.name,
     required this.id,
     required this.source,
+    this.name,
   });
 
   bool get isDart => category == 'Dart';
@@ -180,9 +180,20 @@ class Samples {
     ${categories.map((category) => _mapForCategory(category)).join(',\n    ')},
   };
 
-  static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
+  static Sample? getById(String? id) {
+    final sample = all.firstWhereOrNull((s) => s.id == id);
+    if (sample != null) {
+      return sample;
+    }
 
-  static String getDefault({required String type}) => _defaults[type]!;
+    if (_defaults.containsKey(id)) {
+      return Sample(category: id!, id: id, source: _defaults[id]!);
+    }
+
+    return null;
+  }
+
+  static String? getDefault({required String type}) => _defaults[type];
 }
 
 ''');
