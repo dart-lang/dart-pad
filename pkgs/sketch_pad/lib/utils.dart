@@ -56,9 +56,17 @@ RelativeRect calculatePopupMenuPosition(
 }
 
 bool hasFlutterWebMarker(String javaScript) {
-  const marker = 'window.flutterConfiguration';
+  const marker1 = 'window.flutterConfiguration';
+  if (javaScript.contains(marker1)) {
+    return true;
+  }
 
-  return javaScript.contains(marker);
+  // define('dartpad_main', ['dart_sdk', 'flutter_web']
+  if (javaScript.contains("define('") && javaScript.contains("'flutter_web'")) {
+    return true;
+  }
+
+  return false;
 }
 
 extension ColorExtension on Color {

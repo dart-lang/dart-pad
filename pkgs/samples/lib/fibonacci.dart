@@ -3,7 +3,7 @@
 // that can be found in the LICENSE file.
 
 void main() {
-  var i = 20;
+  const i = 20;
 
   print('fibonacci($i) = ${fibonacci(i)}');
 }

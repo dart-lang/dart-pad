@@ -48,7 +48,7 @@ Future<void> serve() async {
     '--channel',
     _channel,
     '--port',
-    '8082',
+    '8080',
   ]);
 }
 
@@ -57,8 +57,7 @@ final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
   'cloud_run_beta.Dockerfile',
   'cloud_run_main.Dockerfile',
-  'cloud_run_old.Dockerfile',
-  'cloud_run.Dockerfile',
+  'cloud_run_stable.Dockerfile',
 ];
 
 /// Returns the Flutter channel provided in environment variables.
@@ -367,12 +366,9 @@ void generateProtos() async {
     arguments: ['format', '--fix', 'lib/src/protos'],
   );
 
-  // Copy to the front-end packages.
-  copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
-  copy(getDir('lib/src/protos'), getDir('../sketch_pad/lib/src/protos'));
-
-  // generate common_server_proto.g.dart
-  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+  // TODO: We'd like to remove this copy operation; that will require work in
+  // the cloud build configuration.
+  copy(getDir('../dartpad_shared/lib'), getDir('lib/src/shared'));
 }
 
 Future<void> _run(
@@ -445,8 +441,8 @@ Future<void> _updateDependenciesFile({
 
 /// Returns the File containing the pub dependencies and their version numbers.
 ///
-/// The file is at `tool/pub_dependencies_{channel}.json`, for the Flutter
-/// channels: stable, beta, old.
+/// The file is at `tool/dependencies/pub_dependencies_{channel}.json`, for
+/// the Flutter channels: stable, beta, main.
 File _pubDependenciesFile({required String channel}) {
   return File(
     path.join(

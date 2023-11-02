@@ -34,11 +34,6 @@ message CompileFilesDDCRequest {
   map<string, string> files = 1;
 }
 
-message FlutterBuildRequest {
-  // The Dart source.
-  string source = 1;
-}
-
 message FlutterBuildResponse {
   map<string, string> artifacts = 1;
 

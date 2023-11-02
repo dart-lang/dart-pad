@@ -7,7 +7,7 @@ steps:
       - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA'
       - .
       - '-f'
-      - cloud_run.Dockerfile
+      - cloud_run_stable.Dockerfile
     id: Build
     dir: pkgs/dart_services
   - name: gcr.io/cloud-builders/docker

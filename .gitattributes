@@ -1,3 +1,4 @@
 pkgs/dart_pad/lib/src/protos/** linguist-generated=true
-pkgs/sketch_pad/lib/src/protos/** linguist-generated=true
+pkgs/dart_services/lib/src/shared/** linguist-generated=true
+pkgs/sketch_pad/lib/samples.g.dart linguist-generated=true
 pkgs/sketch_pad/web/codemirror/** linguist-generated=true

@@ -19,8 +19,8 @@ class Hyperlink extends StatefulWidget {
     required this.url,
     this.displayText,
     this.style,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<Hyperlink> createState() => _HyperlinkState();
@@ -179,14 +179,14 @@ class MediumDialog extends StatelessWidget {
     required this.title,
     this.smaller = false,
     required this.child,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      var width = smaller ? 400.0 : 500.0;
-      var height = smaller ? 325.0 : 400.0;
+      final width = smaller ? 400.0 : 500.0;
+      final height = smaller ? 325.0 : 400.0;
 
       return PointerInterceptor(
         child: AlertDialog(

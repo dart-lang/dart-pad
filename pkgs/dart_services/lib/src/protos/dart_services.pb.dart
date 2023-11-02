@@ -297,69 +297,6 @@ class CompileFilesDDCRequest extends $pb.GeneratedMessage {
   $core.Map<$core.String, $core.String> get files => $_getMap(0);
 }
 
-class FlutterBuildRequest extends $pb.GeneratedMessage {
-  factory FlutterBuildRequest({
-    $core.String? source,
-  }) {
-    final $result = create();
-    if (source != null) {
-      $result.source = source;
-    }
-    return $result;
-  }
-  FlutterBuildRequest._() : super();
-  factory FlutterBuildRequest.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory FlutterBuildRequest.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'FlutterBuildRequest',
-      package:
-          const $pb.PackageName(_omitMessageNames ? '' : 'dart_services.api'),
-      createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'source')
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  FlutterBuildRequest clone() => FlutterBuildRequest()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  FlutterBuildRequest copyWith(void Function(FlutterBuildRequest) updates) =>
-      super.copyWith((message) => updates(message as FlutterBuildRequest))
-          as FlutterBuildRequest;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static FlutterBuildRequest create() => FlutterBuildRequest._();
-  FlutterBuildRequest createEmptyInstance() => create();
-  static $pb.PbList<FlutterBuildRequest> createRepeated() =>
-      $pb.PbList<FlutterBuildRequest>();
-  @$core.pragma('dart2js:noInline')
-  static FlutterBuildRequest getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<FlutterBuildRequest>(create);
-  static FlutterBuildRequest? _defaultInstance;
-
-  /// The Dart source.
-  @$pb.TagNumber(1)
-  $core.String get source => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set source($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasSource() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSource() => clearField(1);
-}
-
 class FlutterBuildResponse extends $pb.GeneratedMessage {
   factory FlutterBuildResponse({
     $core.Map<$core.String, $core.String>? artifacts,

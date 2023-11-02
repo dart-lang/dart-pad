@@ -17,6 +17,7 @@ import 'common.dart';
 import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
+import 'shared/model.dart' as api;
 import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
@@ -100,7 +101,7 @@ abstract class AnalysisServerWrapper {
   Future<proto.CompleteResponse> completeFiles(
       Map<String, String> sources, Location location) async {
     final results =
-        await _completeImpl(sources, location.sourceName, location.offset);
+        await _completeImpl(sources, location.sourceName, location.offset!);
     var suggestions = results.results;
 
     final source = sources[location.sourceName]!;
@@ -145,6 +146,55 @@ abstract class AnalysisServerWrapper {
             }))));
   }
 
+  Future<api.CompleteResponse> completeV3(String source, int offset) async {
+    final results = await _completeImpl2(
+      {kMainDart: source},
+      kMainDart,
+      offset,
+    );
+
+    final suggestions =
+        results.suggestions.where((CompletionSuggestion suggestion) {
+      // Filter suggestions that would require adding an import.
+      return suggestion.isNotImported != true;
+    }).where((CompletionSuggestion suggestion) {
+      if (suggestion.kind != 'IMPORT') return true;
+
+      // We do not want to enable arbitrary discovery of file system resources.
+      // In order to avoid returning local file paths, we only allow returning
+      // import kinds that are dart: or package: imports.
+      return suggestion.completion.startsWith('dart:') ||
+          suggestion.completion.startsWith('package:');
+    }).toList();
+
+    suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
+      if (x.relevance == y.relevance) {
+        return x.completion.compareTo(y.completion);
+      } else {
+        return y.relevance.compareTo(x.relevance);
+      }
+    });
+
+    return api.CompleteResponse(
+      replacementOffset: results.replacementOffset,
+      replacementLength: results.replacementLength,
+      suggestions: suggestions.map((suggestion) {
+        return api.CompletionSuggestion(
+          kind: suggestion.kind,
+          relevance: suggestion.relevance,
+          completion: suggestion.completion,
+          deprecated: suggestion.isDeprecated,
+          selectionOffset: suggestion.selectionOffset,
+          displayText: suggestion.displayText,
+          parameterNames: suggestion.parameterNames,
+          returnType: suggestion.returnType,
+          elementKind: suggestion.element?.kind,
+          elementParameters: suggestion.element?.parameters,
+        );
+      }).toList(),
+    );
+  }
+
   Future<proto.FixesResponse> getFixes(String src, int offset) {
     return getFixesMulti({kMainDart: src}, Location(kMainDart, offset));
   }
@@ -152,12 +202,44 @@ abstract class AnalysisServerWrapper {
   Future<proto.FixesResponse> getFixesMulti(
       Map<String, String> sources, Location location) async {
     final results =
-        await _getFixesImpl(sources, location.sourceName, location.offset);
+        await _getFixesImpl(sources, location.sourceName, location.offset!);
     final responseFixes = results.fixes.map((availableAnalysisErrorFixes) {
       return _convertAnalysisErrorFix(
           availableAnalysisErrorFixes, location.sourceName);
     });
     return proto.FixesResponse()..fixes.addAll(responseFixes);
+  }
+
+  Future<api.FixesResponse> fixesV3(String src, int offset) async {
+    final mainFile = _getPathFromName(kMainDart);
+    final overlay = {mainFile: src};
+
+    await _loadSources(overlay);
+
+    try {
+      final fixes = await analysisServer.edit.getFixes(mainFile, offset);
+      final assists = await analysisServer.edit.getAssists(mainFile, offset, 1);
+
+      final fixChanges = fixes.fixes.expand((fixes) => fixes.fixes).toList();
+      final assistsChanges = assists.assists;
+
+      // Filter any source changes that want to act on files other than main.dart.
+      fixChanges.removeWhere(
+          (change) => change.edits.any((edit) => edit.file != mainFile));
+      assistsChanges.removeWhere(
+          (change) => change.edits.any((edit) => edit.file != mainFile));
+
+      return api.FixesResponse(
+        fixes: fixChanges.map((change) {
+          return change.toApiSourceChange();
+        }).toList(),
+        assists: assistsChanges.map((change) {
+          return change.toApiSourceChange();
+        }).toList(),
+      );
+    } finally {
+      await _unloadSources();
+    }
   }
 
   Future<proto.AssistsResponse> getAssists(String src, int offset) async {
@@ -167,7 +249,8 @@ abstract class AnalysisServerWrapper {
   Future<proto.AssistsResponse> getAssistsMulti(
       Map<String, String> sources, Location location) async {
     final sourceName = location.sourceName;
-    final results = await _getAssistsImpl(sources, sourceName, location.offset);
+    final results =
+        await _getAssistsImpl(sources, sourceName, location.offset!);
     final fixes =
         _convertSourceChangesToCandidateFixes(results.assists, sourceName);
     return proto.AssistsResponse()..assists.addAll(fixes);
@@ -176,7 +259,7 @@ abstract class AnalysisServerWrapper {
   /// Format the source [src] of the single passed in file.  The [offset] is
   /// the current cursor location and a modified offset is returned if necessary
   /// to maintain the cursors original position in the formatted code.
-  Future<proto.FormatResponse> format(String src, int offset) {
+  Future<proto.FormatResponse> format(String src, int? offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
       final edits = editResult.edits;
 
@@ -190,12 +273,12 @@ abstract class AnalysisServerWrapper {
 
       return proto.FormatResponse()
         ..newString = src
-        ..offset = editResult.selectionOffset;
+        ..offset = offset == null ? 0 : editResult.selectionOffset;
     }).catchError((dynamic error) {
       _logger.fine('format error: $error');
       return proto.FormatResponse()
         ..newString = src
-        ..offset = offset;
+        ..offset = offset ?? 0;
     });
   }
 
@@ -235,6 +318,33 @@ abstract class AnalysisServerWrapper {
       if (info.staticType != null) 'staticType': info.staticType!,
       if (info.propagatedType != null) 'propagatedType': info.propagatedType!,
     };
+  }
+
+  Future<api.DocumentResponse> dartdocV3(String src, int offset) async {
+    final location = Location(kMainDart, offset);
+    final sources = _getOverlayMapWithPaths({kMainDart: src});
+    final sourcepath = _getPathFromName(location.sourceName);
+
+    await _loadSources(sources);
+
+    final result =
+        await analysisServer.analysis.getHover(sourcepath, location.offset);
+    await _unloadSources();
+
+    if (result.hovers.isEmpty) {
+      return api.DocumentResponse();
+    }
+
+    final info = result.hovers.first;
+
+    return api.DocumentResponse(
+      dartdoc: info.dartdoc,
+      containingLibraryName: info.containingLibraryName,
+      elementDescription: info.elementDescription,
+      elementKind: info.elementKind,
+      deprecated: info.isDeprecated,
+      propagatedType: info.propagatedType,
+    );
   }
 
   Future<proto.AnalysisResults> analyze(String src) {
@@ -287,8 +397,13 @@ abstract class AnalysisServerWrapper {
       return issue;
     }).toList();
 
-    issues.sort((a, b) {
-      // Order issues by character position of the bug/warning.
+    issues.sort((proto.AnalysisIssue a, proto.AnalysisIssue b) {
+      // Order issues by severity.
+      if (a.severity != b.severity) {
+        return b.severity - a.severity;
+      }
+
+      // Then by character position.
       return a.charStart.compareTo(b.charStart);
     });
 
@@ -444,6 +559,23 @@ abstract class AnalysisServerWrapper {
     return results;
   }
 
+  Future<Suggestions2Result> _completeImpl2(
+      Map<String, String> sources, String sourceName, int offset) async {
+    sources = _getOverlayMapWithPaths(sources);
+    await _loadSources(sources);
+
+    try {
+      return await analysisServer.completion.getSuggestions2(
+        _getPathFromName(sourceName),
+        offset,
+        500,
+      );
+    } finally {
+      // TODO: Remove the need to unload sources.
+      await _unloadSources();
+    }
+  }
+
   Future<FixesResult> _getFixesImpl(
       Map<String, String> sources, String sourceName, int offset) async {
     sources = _getOverlayMapWithPaths(sources);
@@ -459,11 +591,11 @@ abstract class AnalysisServerWrapper {
     return fixes;
   }
 
-  Future<FormatResult> _formatImpl(String src, int offset) async {
+  Future<FormatResult> _formatImpl(String src, int? offset) async {
     await _loadSources({mainPath: src});
     final FormatResult result;
     try {
-      result = await analysisServer.edit.format(mainPath, offset, 0);
+      result = await analysisServer.edit.format(mainPath, offset ?? 0, 0);
     } finally {
       await _unloadSources();
     }
@@ -550,7 +682,49 @@ abstract class AnalysisServerWrapper {
 
 class Location {
   final String sourceName;
-  final int offset;
+  final int? offset;
 
   const Location(this.sourceName, this.offset);
+}
+
+extension SourceChangeExtension on SourceChange {
+  api.SourceChange toApiSourceChange() {
+    return api.SourceChange(
+      message: message,
+      edits: edits
+          .expand((fileEdit) => fileEdit.edits)
+          .map(
+            (edit) => api.SourceEdit(
+              offset: edit.offset,
+              length: edit.length,
+              replacement: edit.replacement,
+            ),
+          )
+          .toList(),
+      linkedEditGroups: linkedEditGroups.map((editGroup) {
+        return api.LinkedEditGroup(
+          offsets: editGroup.positions.map((pos) => pos.offset).toList(),
+          length: editGroup.length,
+          suggestions: editGroup.suggestions.map((sug) {
+            return api.LinkedEditSuggestion(
+              value: sug.value,
+              kind: sug.kind,
+            );
+          }).toList(),
+        );
+      }).toList(),
+      selectionOffset: selection?.offset,
+    );
+  }
+}
+
+extension AnalysisIssueExtension on proto.AnalysisIssue {
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
+  }
 }

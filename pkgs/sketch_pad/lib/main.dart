@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,21 +20,22 @@ import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'src/dart_services.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: handle large console content
-
 // TODO: explore using the monaco editor
 
 // TODO: have a theme toggle
 
+// TODO: show documentation on hover
+
+// TODO: implement find / find next
+
 const appName = 'DartPad';
 
-final router = _createRouter();
+final GoRouter router = _createRouter();
 
 void main() async {
   setPathUrlStrategy();
@@ -71,6 +73,8 @@ GoRouter _createRouter() {
           final idParam = state.uri.queryParameters['id'];
           final sampleParam = state.uri.queryParameters['sample'];
           final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
+          final channelParam = state.uri.queryParameters['channel'];
+
           final bool darkMode = themeParam == 'dark';
 
 
@@ -78,6 +82,7 @@ GoRouter _createRouter() {
             data: _createTheme(darkMode),
             child: DartPadMainPage(
               title: appName,
+              initialChannel: channelParam,
               sampleId: sampleParam,
               gistId: idParam,
             ),
@@ -111,11 +116,13 @@ ThemeData _createTheme(bool darkMode) {
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
+  final String? initialChannel;
   final String? sampleId;
   final String? gistId;
 
   DartPadMainPage({
     required this.title,
+    required this.initialChannel,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -135,10 +142,14 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   void initState() {
     super.initState();
 
+    final channel = widget.initialChannel != null
+        ? Channel.channelForName(widget.initialChannel!)
+        : null;
+
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.beta, // Channel.beta, Channel.stable, Channel.localhost
+      channel ?? Channel.defaultChannel,
     );
 
     appServices.populateVersions();
@@ -364,13 +375,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               }
             },
             keys.findKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find');
             },
             keys.findNextKeyActivator: () {
+              // TODO:
               unimplemented(context, 'find next');
             },
             keys.codeCompletionKeyActivator: () {
               appServices.editorService?.showCompletions();
+            },
+            keys.quickFixKeyActivator: () {
+              appServices.editorService?.showQuickFixes();
             },
           },
           child: Focus(
@@ -383,58 +399,48 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 
   Future<void> _handleFormatting() async {
-    final value = appModel.sourceCodeController.text;
-
-    FormatResponse result;
-
     try {
-      result = await appServices.format(SourceRequest(source: value));
+      final value = appModel.sourceCodeController.text;
+      final result = await appServices.format(SourceRequest(source: value));
+
+      if (result.source == value) {
+        appModel.editorStatus.showToast('No formatting changes');
+      } else {
+        appModel.editorStatus.showToast('Format successful');
+        appModel.sourceCodeController.text = result.source;
+      }
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
     }
-
-    if (result.hasError()) {
-      appModel.editorStatus.showToast('Error formatting code');
-      appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
-    } else if (result.newString == value) {
-      appModel.editorStatus.showToast('No formatting changes');
-    } else {
-      appModel.editorStatus.showToast('Format successful');
-      appModel.sourceCodeController.text = result.newString;
-    }
   }
 
   Future<void> _performCompileAndRun() async {
-    const bool useFlutterBuild = false;
-
-    final value = appModel.sourceCodeController.text;
+    final source = appModel.sourceCodeController.text;
     final progress =
         appModel.editorStatus.showMessage(initialText: 'Compiling…');
 
     try {
-      // ignore: dead_code
-      if (useFlutterBuild) {
-        final response =
-            await appServices.build(FlutterBuildRequest()..source = value);
-        appModel.clearConsole();
-        final artifacts = response.artifacts;
-        appServices.executeJavaScript(artifacts['main.dart.js']!);
-        // ignore: dead_code
-      } else {
-        // ignore: deprecated_member_use_from_same_package
-        final response = await appServices.compile(
-          CompileRequest()..source = value,
-        );
-        appModel.clearConsole();
-        appServices.executeJavaScript(response.result);
-      }
+      final response =
+          await appServices.compileDDC(CompileRequest(source: source));
+      appModel.clearConsole();
+      appServices.executeJavaScript(
+        response.result,
+        modulesBaseUrl: response.modulesBaseUrl,
+        engineVersion: appModel.runtimeVersions.value?.engineVersion,
+      );
     } catch (error) {
+      appModel.clearConsole();
+
       appModel.editorStatus.showToast('Compilation failed');
 
-      var message = error is ApiRequestError ? error.message : '$error';
-      appModel.appendLineToConsole(message);
+      if (error is ApiRequestError) {
+        appModel.appendLineToConsole(error.message);
+        appModel.appendLineToConsole(error.body);
+      } else {
+        appModel.appendLineToConsole('$error');
+      }
     } finally {
       progress.close();
     }
@@ -639,10 +645,10 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    var categories = Samples.categories.keys;
+    final categories = Samples.categories.keys;
 
     final menuItems = <PopupMenuEntry<String?>>[
-      for (var category in categories) ...[
+      for (final category in categories) ...[
         const PopupMenuDivider(),
         PopupMenuItem(
           value: null,
@@ -673,8 +679,9 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, String sampleId) {
-    final uri = Uri(path: '/', queryParameters: {'sample': sampleId});
-    context.go(uri.toString());
+    context.go(
+      Uri(path: '/', queryParameters: {'sample': sampleId}).toString(),
+    );
   }
 }
 
@@ -685,25 +692,32 @@ class SelectChannelWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Update this control when the channel changes.
     final appServices = Provider.of<AppServices>(context);
 
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.tune, size: smallIconSize),
-        label: Text('${appServices.channel.displayName} channel'),
-        onPressed: () async {
-          final selection = await _showMenu(
-            context,
-            calculatePopupMenuPosition(context, growUpwards: true),
-            appServices.channel,
-          );
-          if (selection != null && context.mounted) {
-            _handleSelection(context, selection);
-          }
-        },
-      ),
+    return ValueListenableBuilder<Channel>(
+      valueListenable: appServices.channel,
+      builder: (context, Channel value, _) {
+        return SizedBox(
+          height: toolbarItemHeight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.tune, size: smallIconSize),
+            label: Container(
+              constraints: const BoxConstraints(minWidth: 95),
+              child: Text('${value.displayName} channel'),
+            ),
+            onPressed: () async {
+              final selection = await _showMenu(
+                context,
+                calculatePopupMenuPosition(context, growUpwards: true),
+                value,
+              );
+              if (selection != null && context.mounted) {
+                _handleSelection(context, selection);
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -712,7 +726,7 @@ class SelectChannelWidget extends StatelessWidget {
     const itemHeight = 46.0;
 
     final menuItems = <PopupMenuEntry<Channel>>[
-      for (var channel in Channel.valuesWithoutLocalhost)
+      for (final channel in Channel.valuesWithoutLocalhost)
         PopupMenuItem<Channel>(
           value: channel,
           child: PointerInterceptor(
@@ -731,9 +745,15 @@ class SelectChannelWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, Channel channel) {
-    // TODO: switch channel
+    final appServices = Provider.of<AppServices>(context, listen: false);
 
-    unimplemented(context, 'select channel: $channel');
+    appServices.setChannel(channel);
+
+    // update the url
+    // TODO: preserve id? sample? theme?
+    context.go(
+      Uri(path: '/', queryParameters: {'channel': channel.name}).toString(),
+    );
   }
 }
 
@@ -851,12 +871,12 @@ class KeyBindingsTable extends StatelessWidget {
 }
 
 class VersionInfoWidget extends StatefulWidget {
-  final ValueListenable<VersionResponse> runtimeVersions;
+  final ValueListenable<VersionResponse?> versions;
 
   const VersionInfoWidget(
-    this.runtimeVersions, {
-    Key? key,
-  }) : super(key: key);
+    this.versions, {
+    super.key,
+  });
 
   @override
   State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
@@ -867,9 +887,13 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<VersionResponse>(
-      valueListenable: widget.runtimeVersions,
+    return ValueListenableBuilder<VersionResponse?>(
+      valueListenable: widget.versions,
       builder: (content, versions, _) {
+        if (versions == null) {
+          return const SizedBox();
+        }
+
         return TextButton(
           onPressed: () {
             showDialog<void>(
@@ -877,14 +901,12 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               builder: (context) {
                 return MediumDialog(
                   title: 'Runtime Versions',
-                  child: VersionTable(versions: versions),
+                  child: VersionTable(version: versions),
                 );
               },
             );
           },
-          child: Text(
-            'Dart ${versions.sdkVersionFull} • Flutter ${versions.flutterVersion}',
-          ),
+          child: Text(versions.label),
         );
       },
     );

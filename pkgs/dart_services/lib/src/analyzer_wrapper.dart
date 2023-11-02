@@ -17,6 +17,7 @@ import 'common_server_impl.dart' show BadRequest;
 import 'project.dart' as project;
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
+import 'shared/model.dart' as api;
 
 final Logger _logger = Logger('analysis_servers');
 
@@ -100,6 +101,10 @@ class AnalyzerWrapper {
         'Error during complete on "${sources[activeSourceName]}" at $offset',
       );
 
+  Future<api.CompleteResponse> completeV3(String source, int offset) {
+    return _dartAnalysisServer.completeV3(source, offset);
+  }
+
   Future<proto.FixesResponse> getFixes(String source, int offset) =>
       getFixesMulti({kMainDart: source}, kMainDart, offset);
 
@@ -114,6 +119,9 @@ class AnalyzerWrapper {
         'fixes',
         'Error during fixes on "${sources[activeSourceName]}" at $offset',
       );
+
+  Future<api.FixesResponse> fixesV3(String source, int offset) =>
+      _dartAnalysisServer.fixesV3(source, offset);
 
   Future<proto.AssistsResponse> getAssists(String source, int offset) =>
       getAssistsMulti({kMainDart: source}, kMainDart, offset);
@@ -130,7 +138,7 @@ class AnalyzerWrapper {
         'Error during assists on "${sources[activeSourceName]}" at $offset',
       );
 
-  Future<proto.FormatResponse> format(String source, int offset) {
+  Future<proto.FormatResponse> format(String source, int? offset) {
     return _perfLogAndRestart(
       {kMainDart: source},
       kMainDart,
@@ -157,10 +165,14 @@ class AnalyzerWrapper {
         'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
       );
 
+  Future<api.DocumentResponse> dartdocV3(String source, int offset) {
+    return _dartAnalysisServer.dartdocV3(source, offset);
+  }
+
   Future<T> _perfLogAndRestart<T>(
     Map<String, String> sources,
     String activeSourceName,
-    int offset,
+    int? offset,
     Future<T> Function(List<ImportDirective>, Location) body,
     String action,
     String errorDescription,

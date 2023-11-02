@@ -65,11 +65,11 @@ cd dart-services
 dart pub get
 # Change the SDK version dart-services serves to the one you currently have installed
 grind update-docker-version
-# Begin serving the backend locally on port 8082.
+# Begin serving the backend locally on port 8080.
 FLUTTER_CHANNEL="stable" grind serve &
 
 cd ../dart-pad
-# Begin serving the front-end locally on port 8000, with the given backend on the default port 8082 this is defined in tools/grind.dart
+# Begin serving the front-end locally on port 8000, with the given backend on the default port 8080 this is defined in tools/grind.dart
 grind serve-local-backend
 ```
 

@@ -5,19 +5,23 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'gists.dart';
 import 'samples.g.dart';
-import 'src/dart_services.dart';
 import 'utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
 abstract class ExecutionService {
-  Future<void> execute(String javaScript);
+  Future<void> execute(
+    String javaScript, {
+    String? modulesBaseUrl,
+    String? engineVersion,
+  });
   Stream<String> get onStdout;
   Future<void> reset();
   Future<void> tearDown();
@@ -25,6 +29,7 @@ abstract class ExecutionService {
 
 abstract class EditorService {
   void showCompletions();
+  void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
 }
 
@@ -34,6 +39,7 @@ class AppModel {
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
+  final ValueNotifier<List<String>> packageImports = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
@@ -45,8 +51,7 @@ class AppModel {
 
   final StatusController editorStatus = StatusController();
 
-  final ValueNotifier<VersionResponse> runtimeVersions =
-      ValueNotifier(VersionResponse());
+  final ValueNotifier<VersionResponse?> runtimeVersions = ValueNotifier(null);
 
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
@@ -108,10 +113,10 @@ enum LayoutMode {
 
 class AppServices {
   final AppModel appModel;
-  final Channel channel;
+  final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  late final http.Client httpClient;
-  late final DartservicesApi services;
+  final http.Client _httpClient = http.Client();
+  late ServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -121,15 +126,23 @@ class AppServices {
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
-  AppServices(this.appModel, this.channel) {
-    httpClient = http.Client();
-    services = DartservicesApi(httpClient, rootUrl: channel.url);
+  AppServices(this.appModel, Channel channel) {
+    _channel.value = channel;
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
   }
 
   EditorService? get editorService => _editorService;
+
+  ValueListenable<Channel> get channel => _channel;
+
+  void setChannel(Channel channel) async {
+    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    await populateVersions();
+    _channel.value = channel;
+  }
 
   void resetTo({String? type}) {
     type ??= 'dart';
@@ -157,12 +170,6 @@ class AppServices {
     });
   }
 
-  void dispose() {
-    httpClient.close();
-
-    appModel.sourceCodeController.removeListener(_handleCodeChanged);
-  }
-
   Future<void> populateVersions() async {
     final version = await services.version();
     appModel.runtimeVersions.value = version;
@@ -176,7 +183,7 @@ class AppServices {
     // Delay a bit for codemirror to initialize.
     await Future<void>.delayed(const Duration(milliseconds: 1));
 
-    var sample = Samples.getById(sampleId);
+    final sample = Samples.getById(sampleId);
     if (sample != null) {
       appModel.title.value = sample.name;
       appModel.sourceCodeController.text = sample.source;
@@ -196,7 +203,7 @@ class AppServices {
       final gist = await gistLoader.load(gistId);
       progress.close();
 
-      var title = gist.description ?? '';
+      final title = gist.description ?? '';
       appModel.title.value =
           title.length > 40 ? '${title.substring(0, 40)}…' : title;
 
@@ -231,7 +238,6 @@ class AppServices {
     }
   }
 
-  @Deprecated('prefer to use `build`')
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
@@ -241,10 +247,10 @@ class AppServices {
     }
   }
 
-  Future<FlutterBuildResponse> build(FlutterBuildRequest request) async {
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
-      return await services.flutterBuild(request);
+      return await services.compileDDC(request);
     } finally {
       appModel.compilingBusy.value = false;
     }
@@ -269,12 +275,27 @@ class AppServices {
     _editorService = editorService;
   }
 
-  void executeJavaScript(String javaScript) {
+  void executeJavaScript(
+    String javaScript, {
+    String? modulesBaseUrl,
+    String? engineVersion,
+  }) {
     final usesFlutter = hasFlutterWebMarker(javaScript);
+
     appModel._appIsFlutter = usesFlutter;
     appModel._recalcLayout();
 
-    _executionService?.execute(javaScript);
+    _executionService?.execute(
+      javaScript,
+      modulesBaseUrl: modulesBaseUrl,
+      engineVersion: engineVersion,
+    );
+  }
+
+  void dispose() {
+    _httpClient.close();
+
+    appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
   Future<void> _reAnalyze() async {
@@ -282,15 +303,14 @@ class AppServices {
       final results = await services.analyze(
         SourceRequest(source: appModel.sourceCodeController.text),
       );
-      final issues = results.issues.toList()..sort(_compareIssues);
-      appModel.analysisIssues.value = issues;
+      appModel.analysisIssues.value = results.issues;
+      appModel.packageImports.value = results.packageImports;
     } catch (error) {
-      var message = error is ApiRequestError ? error.message : '$error';
+      final message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
-        AnalysisIssue()
-          ..kind = 'error'
-          ..message = message,
+        AnalysisIssue(kind: 'error', message: message),
       ];
+      appModel.packageImports.value = [];
     }
   }
 
@@ -312,27 +332,22 @@ class AppServices {
   }
 }
 
-int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
-  var diff = a.severity - b.severity;
-  if (diff != 0) return -diff;
-
-  return a.charStart - b.charStart;
-}
-
 extension AnalysisIssueExtension on AnalysisIssue {
-  int get severity => switch (kind) {
-        'error' => 3,
-        'warning' => 2,
-        'info' => 1,
-        _ => 0,
-      };
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
+  }
 }
 
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),
   // This channel is only used for local development.
-  localhost('Localhost', 'http://localhost:8082/');
+  localhost('Localhost', 'http://localhost:8080/');
 
   final String displayName;
   final String url;
@@ -350,4 +365,8 @@ enum Channel {
 
     return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
+}
+
+extension VersionResponseExtension on VersionResponse {
+  String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }

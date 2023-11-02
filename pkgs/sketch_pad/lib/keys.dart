@@ -32,13 +32,19 @@ const ShortcutActivator codeCompletionKeyActivator = SingleActivator(
   LogicalKeyboardKey.space,
   control: true,
 );
+final ShortcutActivator quickFixKeyActivator = SingleActivator(
+  LogicalKeyboardKey.period,
+  meta: _mac,
+  control: _nonMac,
+);
 
 // map of key activator names
 
 final List<(String, ShortcutActivator)> keyBindings = [
   ('Code completion', codeCompletionKeyActivator),
-  ('Find Next', findNextKeyActivator),
   ('Find', findKeyActivator),
+  ('Find Next', findNextKeyActivator),
+  ('Quick Fixes', quickFixKeyActivator),
   ('Reload', reloadKeyActivator),
 ];
 

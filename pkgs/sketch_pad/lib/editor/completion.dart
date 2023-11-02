@@ -2,84 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:codemirror/hints.dart';
+import 'package:dartpad_shared/model.dart';
 
-import '../src/dart_services.dart' as services;
+// TODO: Rework this to use the 'displayText' from the server
 
-class AnalysisCompletion implements Comparable<AnalysisCompletion> {
+class AnalysisCompletion {
   final int offset;
   final int length;
+  final CompletionSuggestion suggestion;
 
-  final Map<String, dynamic> _map;
+  AnalysisCompletion(this.offset, this.length, this.suggestion);
 
-  AnalysisCompletion(this.offset, this.length, services.Completion completion)
-      : _map = Map<String, dynamic>.from(completion.completion) {
-    // TODO: We need to pass this completion info better.
-    _convert('element');
-    _convert('parameterNames');
-    _convert('parameterTypes');
+  String? get elementKind => suggestion.elementKind;
 
-    if (_map.containsKey('element')) {
-      _element!.remove('location');
-    }
-  }
+  bool get isConstructor => elementKind == 'CONSTRUCTOR';
 
-  Map<String, dynamic>? get _element =>
-      _map['element'] as Map<String, dynamic>?;
+  bool get isMethod => elementKind == 'FUNCTION' || elementKind == 'METHOD';
 
-  // Convert maps and lists that have been passed as json.
-  void _convert(String key) {
-    if (_map[key] is String) {
-      _map[key] = jsonDecode(_map[key] as String);
-    }
-  }
+  String? get returnType => suggestion.returnType;
 
-  String? get kind => _map['kind'] as String?;
-
-  bool get isMethod =>
-      _element?['kind'] == 'FUNCTION' || _element?['kind'] == 'METHOD';
-
-  bool get isConstructor => type == 'CONSTRUCTOR';
-
-  String? get parameters =>
-      isMethod ? _element!['parameters'] as String? : null;
-
-  int? get parameterCount =>
-      isMethod ? _map['parameterNames'].length as int? : null;
-
-  String get text {
-    final str = _map['completion'] as String;
-    if (str.startsWith('(') && str.endsWith(')')) {
-      return str.substring(1, str.length - 1);
-    } else {
-      return str;
-    }
-  }
-
-  String? get returnType => _map['returnType'] as String?;
-
-  bool get isDeprecated => _map['isDeprecated'] == 'true';
-
-  int get selectionOffset => _int(_map['selectionOffset'] as String?);
-
-  // FUNCTION, GETTER, CLASS, ...
-  String? get type =>
-      _map.containsKey('element') ? _element!['kind'] as String? : kind;
+  bool get isDeprecated => suggestion.deprecated;
 
   HintResult toCodemirrorHint() {
-    var displayText = isMethod ? '$text$parameters' : text;
-    if (isMethod && returnType != null) {
-      displayText += ' → $returnType';
-    }
+    final replaceText = suggestion.completion;
 
-    var replaceText = text;
-    if (isMethod) {
-      replaceText += '()';
-    }
-    if (isConstructor) {
-      displayText += '()';
+    var displayText = suggestion.displayText;
+    if (displayText == null) {
+      displayText = suggestion.completion;
+      if (isMethod || isConstructor) {
+        displayText += '()';
+      }
     }
 
     return HintResult(
@@ -90,12 +43,5 @@ class AnalysisCompletion implements Comparable<AnalysisCompletion> {
   }
 
   @override
-  int compareTo(AnalysisCompletion other) {
-    return text.compareTo(other.text);
-  }
-
-  @override
-  String toString() => text;
-
-  int _int(String? val) => val == null ? 0 : int.parse(val);
+  String toString() => suggestion.completion;
 }

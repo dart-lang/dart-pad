@@ -8,11 +8,13 @@ environment:
 dependencies:
   codemirror: any
   collection: any
+  dartpad_shared: any
   flutter:
     sdk: flutter
   fluttering_phrases: any
   go_router: ^10.0.0
   http: any
+  json_annotation: ^4.8.1
   pointer_interceptor: ^0.9.0
   protobuf: any
   provider: ^6.0.0
@@ -24,7 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.0
   test: any
 
 flutter:
@@ -32,3 +34,7 @@ flutter:
   assets:
     - assets/dart_logo_128.png
     - assets/flutter_logo_192.png
+
+dependency_overrides:
+  dartpad_shared:
+    path: ../dartpad_shared

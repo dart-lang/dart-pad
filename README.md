@@ -11,6 +11,7 @@ and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 | --- | --- | --- |
 | [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart_pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
 | [dart_services](pkgs/dart_services/) | The backend service for DartPad. | [![dart_services](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml) |
+| [dartpad_shared](pkgs/dartpad_shared/) | Shared code between the DartPad frontend and backend. | [![dartpad_shared](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_shared.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_shared.yml) |
 | [samples](pkgs/samples/) | Sample code snippets for DartPad. | [![samples](https://github.com/dart-lang/dart-pad/actions/workflows/samples.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/samples.yml) |
 | [sketch_pad](pkgs/sketch_pad/) | An experimental redux of the DartPad UI. | [![sketch_pad](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml) |
 
