@@ -10,7 +10,7 @@
     "redirects": [
       {
         "regex": "/([a-zA-Z0-9]+)",
-        "destination": "/index.html?id=:1",
+        "destination": "/?id=:1",
         "type": 301
       }
     ],
