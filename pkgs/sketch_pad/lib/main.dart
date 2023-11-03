@@ -52,7 +52,7 @@ class DartPadApp extends StatefulWidget {
 }
 
 class _DartPadAppState extends State<DartPadApp> {
-  ThemeMode themeMode = ThemeMode.dark;
+  ThemeMode themeMode = ThemeMode.system;
   late final GoRouter router;
 
   @override
@@ -69,6 +69,8 @@ class _DartPadAppState extends State<DartPadApp> {
     super.initState();
   }
 
+  // Changes the `themeMode` from the system default to either light or dark.
+  // Also changes the `theme` query parameter in the URL.
   void handleBrightnessChanged(BuildContext context, bool isLightMode) {
     if (isLightMode) {
       setState(() {
@@ -90,15 +92,22 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
 
+    // Change the `themeMode` field when the query parameter is included in the
+    // URL
     final ThemeMode newThemeMode = switch (themeParam) {
       'dark' => ThemeMode.dark,
       'light' => ThemeMode.light,
       _ => ThemeMode.system,
     };
 
-    if (newThemeMode != themeMode) {
-      themeMode = newThemeMode;
-    }
+    // Use a post frame callback to avoid calling setState() during the build().
+    // Is there a way to listen for when GoRouter's location changes without
+    // being in the build phase?
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        themeMode = newThemeMode;
+      });
+    });
 
     return DartPadMainPage(
       title: appName,
@@ -106,21 +115,13 @@ class _DartPadAppState extends State<DartPadApp> {
       embedMode: embedMode,
       sampleId: sampleParam,
       gistId: idParam,
-      themeMode: themeMode,
+      brightness: Theme.of(context).brightness,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSwatch(
-      cardColor: Color(0xFF1c2834),
-      brightness: switch (themeMode) {
-        ThemeMode.dark => Brightness.dark,
-        _ => Brightness.light,
-      },
-    );
-
     return MaterialApp.router(
       title: appName,
       routerConfig: router,
@@ -128,27 +129,31 @@ class _DartPadAppState extends State<DartPadApp> {
       themeMode: themeMode,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xff1967D2),
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: Color(0xff1967D2)).copyWith(
+          surface: const Color(0xFFF5F5F7),
+        ),
         brightness: Brightness.light,
-        dividerColor: Color(0xFFF5F5F7),
+        dividerColor: const Color(0xFFF5F5F7),
         dividerTheme: const DividerThemeData(
           color: Color(0xFFF5F5F7),
         ),
+        scaffoldBackgroundColor: Colors.white,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF1c2834),
         brightness: Brightness.dark,
-        // TODO: delete...
-        // textButtonTheme: TextButtonThemeData(
-        //   style: TextButton.styleFrom(
-        //     foregroundColor: colorScheme.onPrimary,
-        //   ),
-        // ),
         dividerColor: Color(0xFF1c2834),
         dividerTheme: const DividerThemeData(
           color: Color(0xFF1c2834),
         ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all(Colors.white),
+          ),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0C141D),
       ),
     );
   }
@@ -160,13 +165,13 @@ class DartPadMainPage extends StatefulWidget {
   final String? sampleId;
   final String? gistId;
   final bool embedMode;
-  final ThemeMode themeMode;
+  final Brightness brightness;
   final void Function(BuildContext, bool) handleBrightnessChanged;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
-    required this.themeMode,
+    required this.brightness,
     required this.embedMode,
     required this.handleBrightnessChanged,
     this.sampleId,
@@ -295,7 +300,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               EditorWidget(
                                 appModel: appModel,
                                 appServices: appServices,
-                                themeMode: widget.themeMode,
+                                brightness: widget.brightness,
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(denseSpacing),
@@ -338,7 +343,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               Container(
                                 alignment: Alignment.bottomRight,
                                 padding: const EdgeInsets.all(denseSpacing),
-                                child: ProgressWidget(
+                                child: StatusWidget(
                                   status: appModel.editorStatus,
                                 ),
                               ),
@@ -391,7 +396,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       ValueBuilder(
                         appModel.compilingBusy,
                         (compiling) {
-                          final color = theme.colorScheme.backgroundColor;
+                          final color = theme.colorScheme.surface;
 
                           return AnimatedContainer(
                             color: compiling
@@ -734,9 +739,7 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, String sampleId) {
-    context.go(
-      Uri(path: '/', queryParameters: {'sample': sampleId}).toString(),
-    );
+    GoRouter.of(context).replaceQueryParam('sample', sampleId);
   }
 }
 

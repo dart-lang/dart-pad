@@ -59,12 +59,12 @@ void _initViewFactory() {
 class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
-  final ThemeMode themeMode;
+  final Brightness brightness;
 
   EditorWidget({
     required this.appModel,
     required this.appServices,
-    required this.themeMode,
+    required this.brightness,
     super.key,
   }) {
     _initViewFactory();
@@ -154,7 +154,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   Widget build(BuildContext context) {
-    final darkMode = widget.themeMode == ThemeMode.dark;
+    final darkMode = widget.brightness == Brightness.dark;
 
     _updateCodemirrorMode(darkMode);
 
