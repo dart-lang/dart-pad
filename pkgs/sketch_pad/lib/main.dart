@@ -130,7 +130,7 @@ class _DartPadAppState extends State<DartPadApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
-            ColorScheme.fromSeed(seedColor: Color(0xff1967D2)).copyWith(
+            ColorScheme.fromSeed(seedColor: const Color(0xff1967D2)).copyWith(
           surface: const Color(0xFFF5F5F7),
         ),
         brightness: Brightness.light,
@@ -144,7 +144,7 @@ class _DartPadAppState extends State<DartPadApp> {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF1c2834),
         brightness: Brightness.dark,
-        dividerColor: Color(0xFF1c2834),
+        dividerColor: const Color(0xFF1c2834),
         dividerTheme: const DividerThemeData(
           color: Color(0xFF1c2834),
         ),
@@ -515,7 +515,6 @@ class StatusLineWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
 
     final appModel = Provider.of<AppModel>(context);
@@ -974,16 +973,14 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
 class _BrightnessButton extends StatelessWidget {
   const _BrightnessButton({
     required this.handleBrightnessChange,
-    this.showTooltipBelow = true,
   });
 
   final void Function(BuildContext, bool) handleBrightnessChange;
-  final bool showTooltipBelow;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      preferBelow: showTooltipBelow,
+      preferBelow: true,
       message: 'Toggle brightness',
       child: IconButton(
         icon: Theme.of(context).brightness == Brightness.light
