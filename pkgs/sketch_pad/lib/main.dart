@@ -67,6 +67,7 @@ class _DartPadAppState extends State<DartPadApp> {
   @override
   void initState() {
     router.routeInformationProvider.addListener(_setTheme);
+    _setTheme();
     super.initState();
   }
 
