@@ -57,13 +57,11 @@ class MiniIconButton extends StatelessWidget {
   final String tooltip;
   final bool small;
   final VoidCallback? onPressed;
-  final Color? color;
 
   const MiniIconButton({
     required this.icon,
     required this.tooltip,
     this.onPressed,
-    this.color,
     this.small = false,
     super.key,
   });
@@ -72,46 +70,91 @@ class MiniIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     const smallIconContrants = BoxConstraints(minWidth: 30, minHeight: 30);
 
+    final brightness = Theme.of(context).brightness;
     final colorScheme = Theme.of(context).colorScheme;
-    final darkTheme = colorScheme.darkMode;
-    final backgroundColor =
-        darkTheme ? colorScheme.surface.lighter : colorScheme.primary.darker;
+    final backgroundColor = switch (brightness) {
+      Brightness.light => colorScheme.surface.darker,
+      Brightness.dark => colorScheme.surface.lighter,
+    };
 
     return Tooltip(
       message: tooltip,
       waitDuration: tooltipDelay,
-      child: Material(
-        elevation: 2,
-        type: MaterialType.circle,
-        color: backgroundColor,
-        child: IconButton(
-          icon: Icon(icon),
-          iconSize: small ? 18 : smallIconSize,
-          splashRadius: small ? 18 : smallIconSize,
-          visualDensity: VisualDensity.compact,
-          constraints: small ? smallIconContrants : null,
-          onPressed: onPressed,
-          color: color,
+      child: IconButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(const CircleBorder()),
+          backgroundColor: MaterialStateProperty.all(backgroundColor),
+        ),
+        icon: Icon(icon),
+        iconSize: small ? 18 : smallIconSize,
+        splashRadius: small ? 18 : smallIconSize,
+        visualDensity: VisualDensity.compact,
+        constraints: small ? smallIconContrants : null,
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+class RunButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  const RunButton({this.onPressed, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Run',
+      waitDuration: tooltipDelay,
+      child: TextButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
+          backgroundColor: MaterialStateProperty.resolveWith(
+            (states) {
+              return const Color(0xFF168afd);
+            },
+          ),
+        ),
+        onPressed: onPressed,
+        child: const Row(
+          children: [
+            Icon(
+              Icons.play_arrow,
+              color: Colors.black,
+              size: 20.0,
+            ),
+            SizedBox(
+              width: 8.0,
+            ),
+            Text(
+              'Run',
+              style: TextStyle(color: Colors.black),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class ProgressWidget extends StatelessWidget {
+// Displays messages with the status of the editor through the
+// [StatusController].
+class StatusWidget extends StatelessWidget {
   final StatusController status;
 
-  const ProgressWidget({
+  const StatusWidget({
     required this.status,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final colorScheme = Theme.of(context).colorScheme;
-    final darkTheme = colorScheme.darkMode;
-    final backgroundColor =
-        darkTheme ? colorScheme.surface.lighter : colorScheme.primary.darker;
+    final backgroundColor = switch (brightness) {
+      Brightness.light => colorScheme.surface.darker,
+      Brightness.dark => colorScheme.surface.lighter,
+    };
 
     return ValueListenableBuilder(
       valueListenable: status.state,
@@ -123,8 +166,8 @@ class ProgressWidget extends StatelessWidget {
               : animationDelay,
           curve: animationCurve,
           child: Material(
-            color: backgroundColor,
             shape: const StadiumBorder(),
+            color: backgroundColor,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: denseSpacing,
@@ -162,6 +205,7 @@ class MediumDialog extends StatelessWidget {
 
       return PointerInterceptor(
         child: AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text(title),
           contentTextStyle: Theme.of(context).textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),

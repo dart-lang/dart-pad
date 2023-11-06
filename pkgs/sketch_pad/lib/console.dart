@@ -44,13 +44,12 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant,
+        color: theme.scaffoldBackgroundColor,
         border: widget.showDivider
-            ? Border(top: Divider.createBorderSide(context, width: 1.0))
+            ? Border(top: Divider.createBorderSide(context, width: 8.0))
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
@@ -79,7 +78,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                     return MiniIconButton(
                       icon: Icons.playlist_remove,
                       tooltip: 'Clear console',
-                      small: true,
                       onPressed: value.text.isEmpty ? null : _clearConsole,
                     );
                   },
