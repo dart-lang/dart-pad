@@ -66,14 +66,15 @@ class _DartPadAppState extends State<DartPadApp> {
 
   @override
   void initState() {
-    router.routeInformationProvider.addListener(_setTheme);
     super.initState();
+    router.routeInformationProvider.addListener(_setTheme);
+    _setTheme();
   }
 
   @override
   void dispose() {
-    super.dispose();
     router.routeInformationProvider.removeListener(_setTheme);
+    super.dispose();
   }
 
   // Changes the `themeMode` from the system default to either light or dark.
