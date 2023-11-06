@@ -59,12 +59,10 @@ void _initViewFactory() {
 class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
-  final Brightness brightness;
 
   EditorWidget({
     required this.appModel,
     required this.appServices,
-    required this.brightness,
     super.key,
   }) {
     _initViewFactory();
