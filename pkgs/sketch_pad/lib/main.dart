@@ -52,62 +52,68 @@ class DartPadApp extends StatefulWidget {
 }
 
 class _DartPadAppState extends State<DartPadApp> {
+  late final GoRouter router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: _homePageBuilder,
+      ),
+    ],
+  );
+
   ThemeMode themeMode = ThemeMode.system;
-  late final GoRouter router;
 
   @override
   void initState() {
-    router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: _homePageBuilder,
-        ),
-      ],
-    );
+    router.routeInformationProvider.addListener(_setTheme);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    router.routeInformationProvider.removeListener(_setTheme);
   }
 
   // Changes the `themeMode` from the system default to either light or dark.
   // Also changes the `theme` query parameter in the URL.
   void handleBrightnessChanged(BuildContext context, bool isLightMode) {
     if (isLightMode) {
-      setState(() {
-        themeMode = ThemeMode.light;
-      });
       GoRouter.of(context).replaceQueryParam('theme', 'light');
     } else {
-      setState(() {
-        themeMode = ThemeMode.dark;
-      });
       GoRouter.of(context).replaceQueryParam('theme', 'dark');
     }
+    _setTheme();
+  }
+
+  void _setTheme() {
+    final params = router.routeInformationProvider.value.uri.queryParameters;
+    final themeParam = params.containsKey('theme') ? params['theme'] : null;
+
+    setState(() {
+      switch (themeParam) {
+        case 'dark':
+          setState(() {
+            themeMode = ThemeMode.dark;
+          });
+        case 'light':
+          setState(() {
+            themeMode = ThemeMode.light;
+          });
+        case _:
+          setState(() {
+            themeMode = ThemeMode.system;
+          });
+      }
+    });
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
     final idParam = state.uri.queryParameters['id'];
     final sampleParam = state.uri.queryParameters['sample'];
-    final themeParam = state.uri.queryParameters['theme'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
-
-    // Change the `themeMode` field when the query parameter is included in the
-    // URL
-    final ThemeMode newThemeMode = switch (themeParam) {
-      'dark' => ThemeMode.dark,
-      'light' => ThemeMode.light,
-      _ => ThemeMode.system,
-    };
-
-    // Use a post frame callback to avoid calling setState() during the build().
-    // Is there a way to listen for when GoRouter's location changes without
-    // being in the build phase?
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        themeMode = newThemeMode;
-      });
-    });
 
     return DartPadMainPage(
       title: appName,
