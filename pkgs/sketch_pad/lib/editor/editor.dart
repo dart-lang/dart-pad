@@ -154,7 +154,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   Widget build(BuildContext context) {
-    final darkMode = widget.brightness == Brightness.dark;
+    final darkMode = Theme.of(context).brightness == Brightness.dark;
 
     _updateCodemirrorMode(darkMode);
 

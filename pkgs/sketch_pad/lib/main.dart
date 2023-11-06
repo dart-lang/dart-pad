@@ -115,7 +115,6 @@ class _DartPadAppState extends State<DartPadApp> {
       embedMode: embedMode,
       sampleId: sampleParam,
       gistId: idParam,
-      brightness: Theme.of(context).brightness,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
@@ -130,30 +129,30 @@ class _DartPadAppState extends State<DartPadApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
-            ColorScheme.fromSeed(seedColor: const Color(0xff1967D2)).copyWith(
-          surface: const Color(0xFFF5F5F7),
+            ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
+          surface: lightSurfaceColor,
         ),
         brightness: Brightness.light,
-        dividerColor: const Color(0xFFF5F5F7),
-        dividerTheme: const DividerThemeData(
-          color: Color(0xFFF5F5F7),
+        dividerColor: lightSurfaceColor,
+        dividerTheme: DividerThemeData(
+          color: lightSurfaceColor,
         ),
         scaffoldBackgroundColor: Colors.white,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF1c2834),
+        colorSchemeSeed: darkPrimaryColor,
         brightness: Brightness.dark,
-        dividerColor: const Color(0xFF1c2834),
-        dividerTheme: const DividerThemeData(
-          color: Color(0xFF1c2834),
+        dividerColor: darkSurfaceColor,
+        dividerTheme: DividerThemeData(
+          color: darkSurfaceColor,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
             foregroundColor: MaterialStateProperty.all(Colors.white),
           ),
         ),
-        scaffoldBackgroundColor: const Color(0xFF0C141D),
+        scaffoldBackgroundColor: darkScaffoldColor,
       ),
     );
   }
@@ -165,13 +164,11 @@ class DartPadMainPage extends StatefulWidget {
   final String? sampleId;
   final String? gistId;
   final bool embedMode;
-  final Brightness brightness;
   final void Function(BuildContext, bool) handleBrightnessChanged;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
-    required this.brightness,
     required this.embedMode,
     required this.handleBrightnessChanged,
     this.sampleId,
@@ -226,7 +223,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final scaffold = Scaffold(
       appBar: widget.embedMode
           ? null
@@ -300,7 +296,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               EditorWidget(
                                 appModel: appModel,
                                 appServices: appServices,
-                                brightness: widget.brightness,
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(denseSpacing),
@@ -979,6 +974,7 @@ class _BrightnessButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isBright = Theme.of(context).brightness == Brightness.light;
     return Tooltip(
       preferBelow: true,
       message: 'Toggle brightness',
@@ -987,7 +983,6 @@ class _BrightnessButton extends StatelessWidget {
             ? const Icon(Icons.dark_mode_outlined)
             : const Icon(Icons.light_mode_outlined),
         onPressed: () {
-          final isBright = Theme.of(context).brightness == Brightness.light;
           handleBrightnessChange(context, !isBright);
         },
       ),
