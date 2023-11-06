@@ -15,8 +15,6 @@ extension GoRouteHelpers on GoRouter {
     }
 
     final newUri = routeInformationProvider.value.uri;
-    go(newUri
-        .replace(queryParameters: newQueryParameters)
-        .toString());
+    go(newUri.replace(queryParameters: newQueryParameters).toString());
   }
 }

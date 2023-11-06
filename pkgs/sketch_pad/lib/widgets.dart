@@ -107,11 +107,14 @@ class RunButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
-            shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4.0))),
-            backgroundColor: MaterialStateProperty.resolveWith((states) {
+          shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
+          backgroundColor: MaterialStateProperty.resolveWith(
+            (states) {
               return const Color(0xFF168afd);
-            },),),
+            },
+          ),
+        ),
         onPressed: onPressed,
         child: const Row(
           children: [
