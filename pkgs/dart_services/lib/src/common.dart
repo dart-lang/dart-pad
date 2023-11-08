@@ -52,11 +52,11 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Hey there, boo!'),
+          title: const Text('Hello, World!'),
         ),
         body: const Center(
           child: Text(
-            'You are pretty okay.',
+            'Hello, World!',
           ),
         ),
       ),
