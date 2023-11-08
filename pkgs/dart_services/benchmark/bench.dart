@@ -19,7 +19,7 @@ import 'bench_impl.dart';
 void main(List<String> args) async {
   final json = args.contains('--json');
   final harness = BenchmarkHarness(asJson: json);
-  final compiler = Compiler(Sdk.create(stableChannel));
+  final compiler = Compiler(Sdk());
 
   Logger.root.level = Level.INFO;
   emitLogsToStdout();
@@ -57,7 +57,7 @@ class AnalyzerBenchmark extends Benchmark {
     String name,
     this.source,
   )   : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk.create(stableChannel).dartSdkPath),
+            dartSdkPath: Sdk().dartSdkPath),
         super('analyzer.$name');
 
   @override
@@ -106,7 +106,7 @@ class AnalysisServerBenchmark extends Benchmark {
 
   AnalysisServerBenchmark(String name, this.source)
       : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk.create(stableChannel).dartSdkPath),
+            dartSdkPath: Sdk().dartSdkPath),
         super('completion.$name');
 
   @override

@@ -73,7 +73,7 @@ void defineTests() {
 
   group('CommonServerProto JSON', () {
     final sdk =
-        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
+        Sdk();
     setUpAll(() async {
       final ServerCache cache = MockCache();
       commonServerImpl = CommonServerImpl(cache, sdk);
@@ -409,7 +409,7 @@ main() {
   // Beginning of multi file files={} group tests:
   group('CommonServerProto JSON Multi File Group files={}', () {
     final sdk =
-        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
+        Sdk();
     setUpAll(() async {
       final cache = MockCache();
       commonServerImpl = CommonServerImpl(cache, sdk);

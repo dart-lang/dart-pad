@@ -247,7 +247,7 @@ class CommonServerImpl {
     return Future.value(
       proto.VersionResponse()
         ..sdkVersion = sdk.version
-        ..sdkVersionFull = sdk.versionFull
+        ..sdkVersionFull = sdk.dartVersion
         ..flutterVersion = sdk.flutterVersion
         ..flutterEngineSha = sdk.engineVersion
         ..packageInfo.addAll(packageInfos)

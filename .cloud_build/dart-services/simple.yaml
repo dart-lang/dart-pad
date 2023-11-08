@@ -1,0 +1,65 @@
+steps:
+  # Precache Flutter web SDK
+  - name: 'gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}'
+    id: Precache Flutter web SDK
+    entrypoint: flutter
+    args:
+      - 'precache'
+      - '--web'
+      - '--no-android'
+      - '--no-linux'
+      - '--no-windows'
+      - '--no-macos'
+      - '--no-fuchsia'
+    dir: pkgs/dart_services
+
+  # Build storage artifacts
+  - name: 'gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}'
+    id: Build storage artifacts
+    entrypoint: dart
+    args:
+      - 'pub'
+      - 'run'
+      - 'grinder'
+      - 'build-storage-artifacts'
+    env:
+      - 'FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}'
+    dir: pkgs/dart_services
+
+  # Save flutter version to a file
+  - name: 'gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}'
+    id: Save flutter version
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo $(cat /opt/flutter/version) > /workspace/flutter_version.txt
+    env:
+      - 'FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}'
+    dir: pkgs/dart_services
+
+  # Upload storage artifacts
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: Upload storage artifacts
+    entrypoint: bash
+    args:
+      - -c
+      - |
+          gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js artifacts/*.js* gs://${_STORAGE_BUCKET}/$(cat /workspace/flutter_version.txt)/
+    env:
+      - 'FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}'
+    dir: pkgs/dart_services
+
+  # Validate storage artifacts
+  - name: 'gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}'
+    id: Validate storage artifacts
+    entrypoint: dart
+    args:
+      - 'run'
+      - 'grinder'
+      - 'validate-storage-artifacts'
+      - |
+        --bucket=${_STORAGE_BUCKET}
+    env:
+      - 'FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}'
+    dir: pkgs/dart_services

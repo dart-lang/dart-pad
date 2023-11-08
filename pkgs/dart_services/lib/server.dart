@@ -45,8 +45,7 @@ Future<void> main(List<String> args) async {
     print('warning: no redis server specified.\n');
   }
 
-  final channel = results['channel'] as String;
-  final sdk = Sdk.create(channel);
+  final sdk = Sdk();
 
   var port = 8080;
 

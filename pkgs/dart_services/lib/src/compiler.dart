@@ -225,7 +225,7 @@ class Compiler {
         final results = DDCCompilationResults(
           compiledJS: processedJs,
           modulesBaseUrl: 'https://storage.googleapis.com/nnbd_artifacts'
-              '/${_sdk.versionFull}/',
+              '/${_sdk.dartVersion}/',
         );
         return results;
       }

@@ -23,7 +23,7 @@ void defineTests() {
     setUpAll(() async {
       final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
 
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       server = await EndpointsServer.serve(0, sdk, null);
 
       httpClient = Client();

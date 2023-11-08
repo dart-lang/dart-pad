@@ -9,10 +9,11 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
-final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-final languageVersion = readDartLanguageVersion(channel);
 
 void main() => defineTests();
+
+final sdk = Sdk();
+String get languageVersion => sdk.dartVersion;
 
 void defineTests() {
   Future<ProjectCreator> projectCreator() async {
@@ -24,11 +25,10 @@ void defineTests() {
     await dependenciesFile.create();
     final templatesPath = d.dir('project_templates');
     await templatesPath.create();
-    final sdk = Sdk.create(channel);
     return ProjectCreator(
       sdk,
       templatesPath.io.path,
-      dartLanguageVersion: readDartLanguageVersion(channel),
+      dartLanguageVersion: sdk.dartVersion,
       dependenciesFile: dependenciesFile.io,
       log: (_) {},
     );

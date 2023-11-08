@@ -64,8 +64,6 @@ void main() async {
 }
 ''';
 
-final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-
 void main() => defineTests();
 
 void defineTests() {
@@ -79,7 +77,7 @@ void defineTests() {
   group('Platform SDK analysis_server', () {
     late Sdk sdk;
     setUp(() async {
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -230,7 +228,7 @@ void defineTests() {
 
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      final sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -253,7 +251,7 @@ void defineTests() {
   group('Platform SDK analysis_server multifile files={}', () {
     late Sdk sdk;
     setUp(() async {
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });

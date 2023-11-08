@@ -144,7 +144,7 @@ class RedisCache implements ServerCache {
     // the `rc` here is a differentiator to keep the `resp_client` documents
     // separate from the `dartis` documents.
     return 'server:rc:$serverVersion:'
-        'dart:${_sdk.versionFull}:'
+        'dart:${_sdk.dartVersion}:'
         'flutter:${_sdk.flutterVersion}+$key';
   }
 

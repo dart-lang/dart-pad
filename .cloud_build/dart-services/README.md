@@ -8,8 +8,8 @@ To deploy a new version manually, run:
 ```
 gcloud builds submit \
   --config $FLUTTER_CHANNEL.yaml \
-  --project=dart-services \
-  --substitutions REPO_NAME=dart-pad COMMIT_SHA=$COMMIT_SHA
+  --project=$GCP_PROJECT \
+  --substitutions REPO_NAME=dart-pad,COMMIT_SHA=$COMMIT_SHA
 ```
 
 Where `$FLUTTER_CHANNEL` is `stable`, `beta`, or `main`. The REPO_NAME and
