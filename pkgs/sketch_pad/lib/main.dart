@@ -28,8 +28,6 @@ import 'widgets.dart';
 
 // TODO: explore using the monaco editor
 
-// TODO: have a theme toggle
-
 // TODO: show documentation on hover
 
 // TODO: implement find / find next
@@ -67,6 +65,7 @@ class _DartPadAppState extends State<DartPadApp> {
   @override
   void initState() {
     super.initState();
+
     router.routeInformationProvider.addListener(_setTheme);
     _setTheme();
   }
@@ -74,6 +73,7 @@ class _DartPadAppState extends State<DartPadApp> {
   @override
   void dispose() {
     router.routeInformationProvider.removeListener(_setTheme);
+
     super.dispose();
   }
 
@@ -104,7 +104,7 @@ class _DartPadAppState extends State<DartPadApp> {
           });
         case _:
           setState(() {
-            themeMode = ThemeMode.system;
+            themeMode = ThemeMode.dark;
           });
       }
     });
@@ -272,15 +272,15 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                     children: [
                       Text('Install SDK'),
                       SizedBox(width: denseSpacing),
-                      Icon(Icons.launch, size: smallIconSize),
+                      Icon(Icons.launch, size: 18),
                     ],
                   ),
                 ),
                 const SizedBox(width: denseSpacing),
-                const OverflowMenu(),
                 _BrightnessButton(
                   handleBrightnessChange: widget.handleBrightnessChanged,
                 ),
+                const OverflowMenu(),
               ],
             ),
       body: Column(
@@ -318,6 +318,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
                                             tooltip: 'Format',
+                                            small: true,
                                             onPressed: value
                                                 ? null
                                                 : _handleFormatting,
@@ -562,7 +563,13 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://dart.dev/tools/dartpad/privacy';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Text('Privacy notice'),
+            child: const Row(
+              children: [
+                Text('Privacy notice'),
+                SizedBox(width: denseSpacing),
+                Icon(Icons.launch, size: 16),
+              ],
+            ),
           ),
           const SizedBox(width: defaultSpacing),
           TextButton(
@@ -570,7 +577,13 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://github.com/dart-lang/dart-pad/issues';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Text('Feedback'),
+            child: const Row(
+              children: [
+                Text('Feedback'),
+                SizedBox(width: denseSpacing),
+                Icon(Icons.launch, size: 16),
+              ],
+            ),
           ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
@@ -803,15 +816,17 @@ class SelectChannelWidget extends StatelessWidget {
     );
   }
 
-  void _handleSelection(BuildContext context, Channel channel) {
+  void _handleSelection(BuildContext context, Channel channel) async {
     final appServices = Provider.of<AppServices>(context, listen: false);
 
-    appServices.setChannel(channel);
-
     // update the url
-    // TODO: preserve id? sample? theme?
-    context.go(
-      Uri(path: '/', queryParameters: {'channel': channel.name}).toString(),
+    GoRouter.of(context).replaceQueryParam('channel', channel.name);
+
+    final version = await appServices.setChannel(channel);
+
+    appServices.appModel.editorStatus.showToast(
+      'Switched to Dart ${version.dartVersion} '
+      'and Flutter ${version.flutterVersion}',
     );
   }
 }

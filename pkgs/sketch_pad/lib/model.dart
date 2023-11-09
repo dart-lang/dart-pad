@@ -138,10 +138,11 @@ class AppServices {
 
   ValueListenable<Channel> get channel => _channel;
 
-  void setChannel(Channel channel) async {
+  Future<VersionResponse> setChannel(Channel channel) async {
     services = ServicesClient(_httpClient, rootUrl: channel.url);
-    await populateVersions();
+    final versionResponse = await populateVersions();
     _channel.value = channel;
+    return versionResponse;
   }
 
   void resetTo({String? type}) {
@@ -170,9 +171,10 @@ class AppServices {
     });
   }
 
-  Future<void> populateVersions() async {
+  Future<VersionResponse> populateVersions() async {
     final version = await services.version();
     appModel.runtimeVersions.value = version;
+    return version;
   }
 
   Future<void> performInitialLoad({
