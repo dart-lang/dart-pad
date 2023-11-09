@@ -35,7 +35,8 @@ class CommonServerImpl {
   late Compiler compiler;
   late AnalyzerWrapper analysisServer;
 
-  CommonServerImpl(this.sdk, this._cache, {this.storageBucket = 'nnbd_artifacts'});
+  CommonServerImpl(this.sdk, this._cache,
+      {this.storageBucket = 'nnbd_artifacts'});
 
   Future<void> init() async {
     log.fine('initing CommonServerImpl');

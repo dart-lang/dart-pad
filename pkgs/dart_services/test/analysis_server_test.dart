@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;

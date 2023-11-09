@@ -346,6 +346,8 @@ extension AnalysisIssueExtension on AnalysisIssue {
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),
+  experiments(
+      'Experiments', 'https://dart-service-cloud-run-bf56vp4mjq-uw.a.run.app/'),
   // This channel is only used for local development.
   localhost('Localhost', 'http://localhost:8080/');
 

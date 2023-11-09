@@ -56,8 +56,8 @@ class AnalyzerBenchmark extends Benchmark {
   AnalyzerBenchmark(
     String name,
     this.source,
-  )   : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk().dartSdkPath),
+  )   : analysisServer =
+            DartAnalysisServerWrapper(dartSdkPath: Sdk().dartSdkPath),
         super('analyzer.$name');
 
   @override
@@ -105,8 +105,8 @@ class AnalysisServerBenchmark extends Benchmark {
   final AnalysisServerWrapper analysisServer;
 
   AnalysisServerBenchmark(String name, this.source)
-      : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk().dartSdkPath),
+      : analysisServer =
+            DartAnalysisServerWrapper(dartSdkPath: Sdk().dartSdkPath),
         super('completion.$name');
 
   @override

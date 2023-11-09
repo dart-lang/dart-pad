@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
 import 'package:dart_services/src/sdk.dart';
@@ -21,8 +19,6 @@ void defineTests() {
     late final ServicesClient client;
 
     setUpAll(() async {
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-
       sdk = Sdk();
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 

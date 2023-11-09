@@ -23,7 +23,10 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
     ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
-    ..addOption('storage-bucket', valueHelp: 'name', help: 'The name of the Cloud Storage bucket for compilation artifacts.', defaultsTo: 'nnb_artifacts')
+    ..addOption('storage-bucket',
+        valueHelp: 'name',
+        help: 'The name of the Cloud Storage bucket for compilation artifacts.',
+        defaultsTo: 'nnb_artifacts')
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show this usage information.');
 

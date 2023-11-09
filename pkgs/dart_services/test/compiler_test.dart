@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/sdk.dart';
@@ -18,7 +16,6 @@ void defineTests() {
     late Compiler compiler;
 
     setUpAll(() async {
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
       compiler = Compiler(Sdk(), 'nnbd_artifacts');
       await compiler.warmup();
     });

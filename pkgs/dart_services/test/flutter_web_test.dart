@@ -57,10 +57,8 @@ void defineTests() {
     });
 
     test('getUnsupportedImport does now allow package:unsupported', () {
-      final unsupported =
-          _FakeImportDirective('package:unsupported');
-      expect(getUnsupportedImports([unsupported]),
-          contains(unsupported));
+      final unsupported = _FakeImportDirective('package:unsupported');
+      expect(getUnsupportedImports([unsupported]), contains(unsupported));
     });
 
     test('getUnsupportedImport does now allow local imports', () {

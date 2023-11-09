@@ -74,7 +74,8 @@ class Sdk {
             'git', 'rev-parse --abbrev-ref HEAD'.split(' ').toList(),
             workingDirectory: sdkPath)
         .stdout
-        .toString().trim();
+        .toString()
+        .trim();
   }
 
   Sdk() {

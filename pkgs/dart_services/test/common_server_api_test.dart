@@ -464,8 +464,7 @@ main() {
   //-------------------------------------------------------------------------
   // Beginning of multi file files={} tests group:
   group('CommonServerProto JSON for Multi file group files={}', () {
-    final sdk =
-        Sdk();
+    final sdk = Sdk();
     setUp(() async {
       final cache = MockCache();
       commonServerImpl = CommonServerImpl(sdk, cache);

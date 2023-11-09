@@ -29,7 +29,8 @@ class Compiler {
 
   final ProjectTemplates _projectTemplates;
 
-  Compiler(Sdk sdk, String storageBucket) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
+  Compiler(Sdk sdk, String storageBucket)
+      : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
 
   Compiler._(this._sdk, this._dartPath, this._storageBucket)
       : _ddcDriver = BazelWorkerDriver(

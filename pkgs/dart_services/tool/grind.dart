@@ -39,7 +39,6 @@ void analyzeTest() {}
 @Task()
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
-  final sdk = _getSdk();
   await _run(Platform.executable, arguments: [
     path.join('bin', 'server.dart'),
     '--port',
@@ -276,7 +275,6 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
-
 
   final args = context.invocation.arguments;
   final bucket = switch (args.hasOption('bucket')) {
