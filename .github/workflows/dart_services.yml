@@ -27,8 +27,8 @@ jobs:
       matrix:
         sdk: [stable, beta, main]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+      - uses: actions/checkout
+      - uses: subosito/flutter-action
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
@@ -43,11 +43,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
-          # Prepare to run unit tests (but do not actually run tests).
-          dart run grinder buildbot
-          # Ensure that we've uploaded the compilation artifacts to google storage.
-          dart run grinder validate-storage-artifacts
-          dart test
+          dart run grinder test
 
   # Run the benchmarks on the bots to ensure they don't regress.
   benchmark:
@@ -56,8 +52,8 @@ jobs:
       run:
         working-directory: pkgs/dart_services/
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+      - uses: actions/checkout
+      - uses: subosito/flutter-action
       - run: sudo apt-get install -y protobuf-compiler redis
       - run: dart pub get
       - name: Download the Flutter SDK
