@@ -20,17 +20,21 @@ final Expando _expando = Expando(_viewType);
 
 bool _viewFactoryInited = false;
 
-void _initViewFactory() {
+void _initViewFactory(bool ignorePointer) {
   if (_viewFactoryInited) return;
 
   _viewFactoryInited = true;
 
-  ui_web.platformViewRegistry.registerViewFactory(_viewType, _iFrameFactory);
+  ui_web.platformViewRegistry.registerViewFactory(
+      _viewType, (int viewId) => _iFrameFactory(viewId, ignorePointer));
 }
 
-html.Element _iFrameFactory(int viewId) {
+html.IFrameElement? frame;
+
+html.Element _iFrameFactory(int viewId, bool ignorePointer) {
+  print('iFrameFactory');
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  final frame = html.IFrameElement()
+  frame = html.IFrameElement()
     ..sandbox!.add('allow-scripts')
     ..sandbox!.add('allow-popups')
     ..src = 'frame.html'
@@ -38,21 +42,26 @@ html.Element _iFrameFactory(int viewId) {
     ..style.width = '100%'
     ..style.height = '100%';
 
-  final executionService = ExecutionServiceImpl(frame);
+  final executionService = ExecutionServiceImpl(frame!);
 
-  _expando[frame] = executionService;
+  _expando[frame!] = executionService;
 
-  return frame;
+  return frame!;
 }
 
 class ExecutionWidget extends StatefulWidget {
   final AppServices appServices;
 
+  /// Whether the iframe ignores pointer events, for when gestures need to be
+  /// handled by the Flutter app.
+  final bool ignorePointer;
+
   ExecutionWidget({
     required this.appServices,
+    this.ignorePointer = false,
     super.key,
   }) {
-    _initViewFactory();
+    _initViewFactory(ignorePointer);
   }
 
   @override
@@ -63,6 +72,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    frame?.style.pointerEvents = widget.ignorePointer ? 'none' : 'auto';
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -71,6 +81,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         key: _elementViewKey,
         viewType: _viewType,
         onPlatformViewCreated: (int id) {
+          print('onPlatformViewCreated $id');
           final frame =
               ui_web.platformViewRegistry.getViewById(id) as html.Element;
           final executionService = _expando[frame] as ExecutionService;
