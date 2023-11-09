@@ -54,9 +54,7 @@ const _dockerFileNames = [
   'cloud_run_stable.Dockerfile',
 ];
 
-/// Returns the appropriate SDK for the given Flutter channel.
-///
-/// The Flutter SDK directory must be already created by [sdkInit].
+/// Creates an SDK.
 Sdk _getSdk() => Sdk();
 
 @Task('Update the docker and SDK versions')
