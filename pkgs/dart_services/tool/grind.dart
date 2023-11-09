@@ -42,8 +42,6 @@ Future<void> serve() async {
   final sdk = _getSdk();
   await _run(Platform.executable, arguments: [
     path.join('bin', 'server.dart'),
-    '--channel',
-    sdk.channel,
     '--port',
     '8080',
   ]);

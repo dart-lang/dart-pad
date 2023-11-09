@@ -19,7 +19,7 @@ void defineTests() {
 
     setUpAll(() async {
       final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-      compiler = Compiler(Sdk());
+      compiler = Compiler(Sdk(), 'nnbd_artifacts');
       await compiler.warmup();
     });
 

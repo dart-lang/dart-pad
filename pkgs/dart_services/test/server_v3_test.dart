@@ -24,7 +24,7 @@ void defineTests() {
       final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
 
       sdk = Sdk();
-      server = await EndpointsServer.serve(0, sdk, null);
+      server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
       httpClient = Client();
       client = ServicesClient(

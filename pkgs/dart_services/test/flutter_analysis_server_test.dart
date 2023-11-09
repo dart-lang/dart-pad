@@ -144,7 +144,7 @@ class HelloWorld extends StatelessWidget {
     setUp(() async {
       cache = _MockCache();
       final sdk = Sdk();
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      commonServerImpl = CommonServerImpl(sdk, cache);
       await commonServerImpl.init();
     });
 
@@ -301,7 +301,7 @@ class HelloWorld extends StatelessWidget {
       setUp(() async {
         cache = _MockCache();
         final sdk = Sdk();
-        commonServerImpl = CommonServerImpl(cache, sdk);
+        commonServerImpl = CommonServerImpl(sdk, cache);
         await commonServerImpl.init();
       });
 

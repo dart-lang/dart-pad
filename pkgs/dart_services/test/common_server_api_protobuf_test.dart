@@ -76,7 +76,7 @@ void defineTests() {
         Sdk();
     setUpAll(() async {
       final ServerCache cache = MockCache();
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      commonServerImpl = CommonServerImpl(sdk, cache);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -412,7 +412,7 @@ main() {
         Sdk();
     setUpAll(() async {
       final cache = MockCache();
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      commonServerImpl = CommonServerImpl(sdk, cache);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 

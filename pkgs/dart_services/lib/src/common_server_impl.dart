@@ -30,16 +30,17 @@ class BadRequest implements Exception {
 class CommonServerImpl {
   final ServerCache _cache;
   final Sdk sdk;
+  final String storageBucket;
 
   late Compiler compiler;
   late AnalyzerWrapper analysisServer;
 
-  CommonServerImpl(this._cache, this.sdk);
+  CommonServerImpl(this.sdk, this._cache, {this.storageBucket = 'nnbd_artifacts'});
 
   Future<void> init() async {
     log.fine('initing CommonServerImpl');
 
-    compiler = Compiler(sdk);
+    compiler = Compiler(sdk, storageBucket);
 
     analysisServer = AnalyzerWrapper(sdk.dartSdkPath);
     await analysisServer.init();
