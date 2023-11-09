@@ -58,8 +58,6 @@ jobs:
       - run: dart pub get
       - name: Download the Flutter SDK
         run: |
-          dart run tool/update_sdk.dart stable
-          export PATH=$PATH:$PWD/flutter-sdks/stable/bin
           flutter doctor -v
       - name: Prep the repo
         env:
