@@ -37,12 +37,6 @@ jobs:
         run: dart analyze --fatal-infos .
       - name: check formatting
         run: dart format --set-exit-if-changed lib test tool  
-      - name: Prepare Flutter
-        run: |
-          dart run tool/update_sdk.dart ${{ matrix.sdk }}
-          export PATH=$PATH:$PWD/flutter-sdks/${{ matrix.sdk }}/bin
-          flutter doctor -v
-          flutter config --enable-web
       - name: Run tests
         env:
           FLUTTER_CHANNEL: ${{ matrix.sdk }}
