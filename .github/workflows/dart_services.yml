@@ -27,8 +27,8 @@ jobs:
       matrix:
         sdk: [stable, beta, main]
     steps:
-      - uses: actions/checkout
-      - uses: subosito/flutter-action
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
@@ -52,8 +52,8 @@ jobs:
       run:
         working-directory: pkgs/dart_services/
     steps:
-      - uses: actions/checkout
-      - uses: subosito/flutter-action
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
       - run: sudo apt-get install -y protobuf-compiler redis
       - run: dart pub get
       - name: Download the Flutter SDK
