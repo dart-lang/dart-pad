@@ -68,8 +68,6 @@ class MiniIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const smallIconContrants = BoxConstraints(minWidth: 30, minHeight: 30);
-
     final brightness = Theme.of(context).brightness;
     final colorScheme = Theme.of(context).colorScheme;
     final backgroundColor = switch (brightness) {
@@ -86,10 +84,9 @@ class MiniIconButton extends StatelessWidget {
           backgroundColor: MaterialStateProperty.all(backgroundColor),
         ),
         icon: Icon(icon),
-        iconSize: small ? 18 : smallIconSize,
-        splashRadius: small ? 18 : smallIconSize,
+        iconSize: small ? 16 : smallIconSize,
+        splashRadius: small ? 16 : smallIconSize,
         visualDensity: VisualDensity.compact,
-        constraints: small ? smallIconContrants : null,
         onPressed: onPressed,
       ),
     );
