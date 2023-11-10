@@ -41,7 +41,7 @@ class CommonServerImpl {
   Future<void> init() async {
     log.fine('initing CommonServerImpl');
 
-    compiler = Compiler(sdk, storageBucket);
+    compiler = Compiler(sdk, storageBucket: storageBucket);
 
     analysisServer = AnalyzerWrapper(sdk.dartSdkPath);
     await analysisServer.init();

@@ -58,10 +58,7 @@ class Sdk {
     return env['FLUTTER_ROOT']!;
   }
 
-  String get sdkPath {
-    _sdkPath ??= _getSdkPath();
-    return _sdkPath!;
-  }
+  String get sdkPath => _sdkPath ??= _getSdkPath();
 
   String get channel {
     _channel ??= _getChannel();

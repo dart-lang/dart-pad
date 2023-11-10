@@ -19,7 +19,7 @@ import 'bench_impl.dart';
 void main(List<String> args) async {
   final json = args.contains('--json');
   final harness = BenchmarkHarness(asJson: json);
-  final compiler = Compiler(Sdk(), 'nnbd_artifacts');
+  final compiler = Compiler(Sdk(), storageBucket: 'nnbd_artifacts');
 
   Logger.root.level = Level.INFO;
   emitLogsToStdout();

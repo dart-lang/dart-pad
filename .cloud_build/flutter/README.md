@@ -13,9 +13,8 @@ Where `$GCP_PROJECT` is the Google Cloud project name.
 This creates and uploads these images:
 
 - gcr.io/$PROJECT_ID/flutter:main
-- gcr.io/$PROJECT_ID/flutter:dev
+- gcr.io/$PROJECT_ID/flutter:beta
 - gcr.io/$PROJECT_ID/flutter:stable
-- gcr.io/$PROJECT_ID/flutter:latest
 
 Original source: [cloud-builders-community][].
 

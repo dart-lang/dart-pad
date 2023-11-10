@@ -16,7 +16,7 @@ void defineTests() {
     late Compiler compiler;
 
     setUpAll(() async {
-      compiler = Compiler(Sdk(), 'nnbd_artifacts');
+      compiler = Compiler(Sdk(), storageBucket: 'nnbd_artifacts');
       await compiler.warmup();
     });
 
