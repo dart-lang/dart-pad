@@ -45,6 +45,7 @@ class ExecutionServiceImpl implements ExecutionService {
   @override
   Stream<String> get onStdout => _stdoutController.stream;
 
+  @override
   html.IFrameElement get frame => _frame;
 
   @override
