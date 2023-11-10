@@ -20,21 +20,17 @@ final Expando _expando = Expando(_viewType);
 
 bool _viewFactoryInited = false;
 
-void _initViewFactory(bool ignorePointer) {
+void _initViewFactory() {
   if (_viewFactoryInited) return;
 
   _viewFactoryInited = true;
 
-  ui_web.platformViewRegistry.registerViewFactory(
-      _viewType, (int viewId) => _iFrameFactory(viewId, ignorePointer));
+  ui_web.platformViewRegistry.registerViewFactory(_viewType, _iFrameFactory);
 }
 
-html.IFrameElement? frame;
-
-html.Element _iFrameFactory(int viewId, bool ignorePointer) {
-  print('iFrameFactory');
+html.Element _iFrameFactory(int viewId) {
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  frame = html.IFrameElement()
+  final frame = html.IFrameElement()
     ..sandbox!.add('allow-scripts')
     ..sandbox!.add('allow-popups')
     ..src = 'frame.html'
@@ -42,11 +38,11 @@ html.Element _iFrameFactory(int viewId, bool ignorePointer) {
     ..style.width = '100%'
     ..style.height = '100%';
 
-  final executionService = ExecutionServiceImpl(frame!);
+  final executionService = ExecutionServiceImpl(frame);
 
-  _expando[frame!] = executionService;
+  _expando[frame] = executionService;
 
-  return frame!;
+  return frame;
 }
 
 class ExecutionWidget extends StatefulWidget {
@@ -61,7 +57,7 @@ class ExecutionWidget extends StatefulWidget {
     this.ignorePointer = false,
     super.key,
   }) {
-    _initViewFactory(ignorePointer);
+    _initViewFactory();
   }
 
   @override
@@ -72,7 +68,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    frame?.style.pointerEvents = widget.ignorePointer ? 'none' : 'auto';
+    widget.appServices.executionService?.frame.style.pointerEvents = widget.ignorePointer ? 'none' : 'auto';
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -81,7 +77,6 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         key: _elementViewKey,
         viewType: _viewType,
         onPlatformViewCreated: (int id) {
-          print('onPlatformViewCreated $id');
           final frame =
               ui_web.platformViewRegistry.getViewById(id) as html.Element;
           final executionService = _expando[frame] as ExecutionService;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:html' as html;
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
@@ -23,6 +24,7 @@ abstract class ExecutionService {
     String? engineVersion,
   });
   Stream<String> get onStdout;
+  html.IFrameElement get frame;
   Future<void> reset();
   Future<void> tearDown();
 }
@@ -135,6 +137,7 @@ class AppServices {
   }
 
   EditorService? get editorService => _editorService;
+  ExecutionService? get executionService => _executionService;
 
   ValueListenable<Channel> get channel => _channel;
 
