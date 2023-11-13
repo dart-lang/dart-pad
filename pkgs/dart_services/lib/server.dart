@@ -21,10 +21,12 @@ final Logger _logger = Logger('services');
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('channel',
-        valueHelp: 'channel', help: 'The SDK channel (required).')
     ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
     ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
+    ..addOption('storage-bucket',
+        valueHelp: 'name',
+        help: 'The name of the Cloud Storage bucket for compilation artifacts.',
+        defaultsTo: 'nnb_artifacts')
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show this usage information.');
 
@@ -35,18 +37,11 @@ Future<void> main(List<String> args) async {
     exit(0);
   }
 
-  if (!results.wasParsed('channel')) {
-    print('error: --channel is required.\n');
-    print(parser.usage);
-    exit(1);
-  }
-
   if (!results.wasParsed('redis-url')) {
     print('warning: no redis server specified.\n');
   }
 
-  final channel = results['channel'] as String;
-  final sdk = Sdk.create(channel);
+  final sdk = Sdk();
 
   var port = 8080;
 
@@ -61,6 +56,8 @@ Future<void> main(List<String> args) async {
   emitLogsToStdout();
 
   final redisServerUri = results['redis-url'] as String?;
+  final storageBucket =
+      results['storage-bucket'] as String? ?? 'nnbd_artifacts';
 
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
@@ -77,7 +74,8 @@ Starting dart-services:
 
   await GitHubOAuthHandler.initFromEnvironmentalVars();
 
-  final server = await EndpointsServer.serve(port, sdk, redisServerUri);
+  final server =
+      await EndpointsServer.serve(port, sdk, redisServerUri, storageBucket);
 
   _logger.info('Listening on port ${server.port}');
 }
@@ -87,8 +85,10 @@ class EndpointsServer {
     int port,
     Sdk sdk,
     String? redisServerUri,
+    String storageBucket,
   ) async {
-    final endpointsServer = EndpointsServer._(redisServerUri, sdk);
+    final endpointsServer =
+        EndpointsServer._(sdk, redisServerUri, storageBucket);
     await endpointsServer._init();
 
     endpointsServer.server = await shelf.serve(
@@ -108,16 +108,17 @@ class EndpointsServer {
   late final CommonServerApi commonServerApi;
   late final CommonServerImpl _commonServerImpl;
 
-  EndpointsServer._(String? redisServerUri, Sdk sdk) {
+  EndpointsServer._(Sdk sdk, String? redisServerUri, String storageBucket) {
     // The name of the Cloud Run revision being run, for more detail please see:
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
 
     _commonServerImpl = CommonServerImpl(
+      sdk,
       redisServerUri == null
           ? NoopCache()
           : RedisCache(redisServerUri, sdk, serverVersion),
-      sdk,
+      storageBucket: storageBucket,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);
 

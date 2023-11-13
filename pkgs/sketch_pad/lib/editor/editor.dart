@@ -15,7 +15,6 @@ import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../theme.dart';
 
 final Key _elementViewKey = UniqueKey();
 
@@ -28,7 +27,7 @@ html.Element _codeMirrorFactory(int viewId) {
     'lineNumbers': true,
     'lineWrapping': true,
     'mode': 'dart',
-    'theme': 'monokai',
+    'theme': 'darkpad',
     ...codeMirrorOptions,
   });
 
@@ -153,8 +152,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final darkMode = theme.colorScheme.darkMode;
+    final darkMode = Theme.of(context).brightness == Brightness.dark;
 
     _updateCodemirrorMode(darkMode);
 
@@ -217,7 +215,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorMode(bool darkMode) {
-    codeMirror?.setTheme(darkMode ? 'monokai' : 'default');
+    codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
   Future<HintResults> _completions(CodeMirror _, [HintsOptions? __]) async {

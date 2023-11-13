@@ -25,6 +25,7 @@ abstract class ExecutionService {
   Stream<String> get onStdout;
   Future<void> reset();
   Future<void> tearDown();
+  set ignorePointer(bool ignorePointer);
 }
 
 abstract class EditorService {
@@ -56,8 +57,17 @@ class AppModel {
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
+  final ValueNotifier<SplitDragState> splitViewDragState =
+      ValueNotifier(SplitDragState.inactive);
+
+  final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
+
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
+
+    splitDragStateManager.onSplitDragUpdated.listen((value) {
+      splitViewDragState.value = value;
+    });
   }
 
   void appendLineToConsole(String str) {
@@ -135,13 +145,15 @@ class AppServices {
   }
 
   EditorService? get editorService => _editorService;
+  ExecutionService? get executionService => _executionService;
 
   ValueListenable<Channel> get channel => _channel;
 
-  void setChannel(Channel channel) async {
+  Future<VersionResponse> setChannel(Channel channel) async {
     services = ServicesClient(_httpClient, rootUrl: channel.url);
-    await populateVersions();
+    final versionResponse = await populateVersions();
     _channel.value = channel;
+    return versionResponse;
   }
 
   void resetTo({String? type}) {
@@ -170,9 +182,10 @@ class AppServices {
     });
   }
 
-  Future<void> populateVersions() async {
+  Future<VersionResponse> populateVersions() async {
     final version = await services.version();
     appModel.runtimeVersions.value = version;
+    return version;
   }
 
   Future<void> performInitialLoad({
@@ -370,3 +383,28 @@ enum Channel {
 extension VersionResponseExtension on VersionResponse {
   String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }
+
+class SplitDragStateManager {
+  final _splitDragStateController =
+      StreamController<SplitDragState>.broadcast();
+  late final Stream<SplitDragState> onSplitDragUpdated;
+  late final StreamSubscription<SplitDragState> _subscription;
+
+  SplitDragStateManager(
+      {Duration timeout = const Duration(milliseconds: 100)}) {
+    onSplitDragUpdated = _splitDragStateController.stream.timeout(timeout,
+        onTimeout: (eventSink) {
+      eventSink.add(SplitDragState.inactive);
+    });
+  }
+
+  void handleSplitChanged() {
+    _splitDragStateController.add(SplitDragState.active);
+  }
+
+  void dispose() {
+    _subscription.cancel();
+  }
+}
+
+enum SplitDragState { inactive, active }

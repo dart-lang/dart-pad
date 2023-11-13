@@ -7,6 +7,13 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "regex": "/([a-zA-Z0-9]+)",
+        "destination": "/?id=:1",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "**",

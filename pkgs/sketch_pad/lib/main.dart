@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,7 @@ import 'package:vtable/vtable.dart';
 import 'console.dart';
 import 'editor/editor.dart';
 import 'execution/execution.dart';
+import 'extensions.dart';
 import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
@@ -27,15 +30,11 @@ import 'widgets.dart';
 
 // TODO: explore using the monaco editor
 
-// TODO: have a theme toggle
-
 // TODO: show documentation on hover
 
 // TODO: implement find / find next
 
 const appName = 'DartPad';
-
-final GoRouter router = _createRouter();
 
 void main() async {
   setPathUrlStrategy();
@@ -53,55 +52,119 @@ class DartPadApp extends StatefulWidget {
 }
 
 class _DartPadAppState extends State<DartPadApp> {
+  late final GoRouter router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: _homePageBuilder,
+      ),
+    ],
+  );
+
+  ThemeMode themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+
+    router.routeInformationProvider.addListener(_setTheme);
+    _setTheme();
+  }
+
+  @override
+  void dispose() {
+    router.routeInformationProvider.removeListener(_setTheme);
+
+    super.dispose();
+  }
+
+  // Changes the `themeMode` from the system default to either light or dark.
+  // Also changes the `theme` query parameter in the URL.
+  void handleBrightnessChanged(BuildContext context, bool isLightMode) {
+    if (isLightMode) {
+      GoRouter.of(context).replaceQueryParam('theme', 'light');
+    } else {
+      GoRouter.of(context).replaceQueryParam('theme', 'dark');
+    }
+    _setTheme();
+  }
+
+  void _setTheme() {
+    final params = router.routeInformationProvider.value.uri.queryParameters;
+    final themeParam = params.containsKey('theme') ? params['theme'] : null;
+
+    setState(() {
+      switch (themeParam) {
+        case 'dark':
+          setState(() {
+            themeMode = ThemeMode.dark;
+          });
+        case 'light':
+          setState(() {
+            themeMode = ThemeMode.light;
+          });
+        case _:
+          setState(() {
+            themeMode = ThemeMode.dark;
+          });
+      }
+    });
+  }
+
+  Widget _homePageBuilder(BuildContext context, GoRouterState state) {
+    final idParam = state.uri.queryParameters['id'];
+    final sampleParam = state.uri.queryParameters['sample'];
+    final channelParam = state.uri.queryParameters['channel'];
+    final embedMode = state.uri.queryParameters['embed'] == 'true';
+
+    return DartPadMainPage(
+      title: appName,
+      initialChannel: channelParam,
+      embedMode: embedMode,
+      sampleId: sampleParam,
+      gistId: idParam,
+      handleBrightnessChanged: handleBrightnessChanged,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: appName,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
+          surface: lightSurfaceColor,
+        ),
+        brightness: Brightness.light,
+        dividerColor: lightSurfaceColor,
+        dividerTheme: DividerThemeData(
+          color: lightSurfaceColor,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: darkPrimaryColor,
+        brightness: Brightness.dark,
+        dividerColor: darkSurfaceColor,
+        dividerTheme: DividerThemeData(
+          color: darkSurfaceColor,
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all(Colors.white),
+          ),
+        ),
+        scaffoldBackgroundColor: darkScaffoldColor,
+      ),
     );
   }
-}
-
-GoRouter _createRouter() {
-  return GoRouter(
-    initialLocation: '/',
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (BuildContext context, GoRouterState state) {
-          final idParam = state.uri.queryParameters['id'];
-          final sampleParam = state.uri.queryParameters['sample'];
-          final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
-          final channelParam = state.uri.queryParameters['channel'];
-
-          final bool darkMode = themeParam == 'dark';
-          final colorScheme = ColorScheme.fromSwatch(
-            brightness: darkMode ? Brightness.dark : Brightness.light,
-          );
-
-          return Theme(
-            data: ThemeData(
-              colorScheme: colorScheme,
-              // TODO: We should switch to using material 3.
-              useMaterial3: false,
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            child: DartPadMainPage(
-              title: appName,
-              initialChannel: channelParam,
-              sampleId: sampleParam,
-              gistId: idParam,
-            ),
-          );
-        },
-      ),
-    ],
-  );
 }
 
 class DartPadMainPage extends StatefulWidget {
@@ -109,10 +172,14 @@ class DartPadMainPage extends StatefulWidget {
   final String? initialChannel;
   final String? sampleId;
   final String? gistId;
+  final bool embedMode;
+  final void Function(BuildContext, bool) handleBrightnessChanged;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
+    required this.embedMode,
+    required this.handleBrightnessChanged,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -122,8 +189,7 @@ class DartPadMainPage extends StatefulWidget {
 }
 
 class _DartPadMainPageState extends State<DartPadMainPage> {
-  final SplitViewController mainSplitter =
-      SplitViewController(weights: [0.50, 0.50]);
+  late final SplitViewController mainSplitter;
 
   late AppModel appModel;
   late AppServices appServices;
@@ -131,6 +197,13 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   void initState() {
     super.initState();
+
+    final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
+    mainSplitter =
+        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
+          ..addListener(() {
+            appModel.splitDragStateManager.handleSplitChanged();
+          });
 
     final channel = widget.initialChannel != null
         ? Channel.channelForName(widget.initialChannel!)
@@ -162,62 +235,67 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final scaffold = Scaffold(
-      appBar: AppBar(
-        title: SizedBox(
-          height: toolbarItemHeight,
-          child: Row(
-            children: [
-              dartLogo(width: 32),
-              const SizedBox(width: denseSpacing),
-              const Text(appName),
-              const SizedBox(width: defaultSpacing * 4),
-              NewSnippetWidget(appServices: appServices),
-              const SizedBox(width: denseSpacing),
-              const ListSamplesWidget(),
-              const SizedBox(width: defaultSpacing),
-              // title widget
-              Expanded(
-                child: Center(
-                  child: ValueBuilder(
-                    appModel.title,
-                    (String value) => Text(value),
-                  ),
+      appBar: widget.embedMode
+          ? null
+          : AppBar(
+              backgroundColor: theme.dividerColor,
+              title: SizedBox(
+                height: toolbarItemHeight,
+                child: Row(
+                  children: [
+                    dartLogo(width: 32),
+                    const SizedBox(width: denseSpacing),
+                    const Text(appName),
+                    const SizedBox(width: defaultSpacing * 4),
+                    NewSnippetWidget(appServices: appServices),
+                    const SizedBox(width: denseSpacing),
+                    const ListSamplesWidget(),
+                    const SizedBox(width: defaultSpacing),
+                    // title widget
+                    Expanded(
+                      child: Center(
+                        child: ValueBuilder(
+                          appModel.title,
+                          (String value) => Text(value),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: defaultSpacing),
+                  ],
                 ),
               ),
-              const SizedBox(width: defaultSpacing),
-            ],
-          ),
-        ),
-        actions: [
-          // install sdk
-          TextButton(
-            onPressed: () {
-              url_launcher.launchUrl(
-                Uri.parse('https://docs.flutter.dev/get-started/install'),
-              );
-            },
-            child: const Row(
-              children: [
-                Text('Install SDK'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: smallIconSize),
+              actions: [
+                // install sdk
+                TextButton(
+                  onPressed: () {
+                    url_launcher.launchUrl(
+                      Uri.parse('https://docs.flutter.dev/get-started/install'),
+                    );
+                  },
+                  child: const Row(
+                    children: [
+                      Text('Install SDK'),
+                      SizedBox(width: denseSpacing),
+                      Icon(Icons.launch, size: 18),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: denseSpacing),
+                _BrightnessButton(
+                  handleBrightnessChange: widget.handleBrightnessChanged,
+                ),
+                const OverflowMenu(),
               ],
             ),
-          ),
-          const SizedBox(width: denseSpacing),
-          const OverflowMenu(),
-        ],
-      ),
       body: Column(
         children: [
           Expanded(
             child: Center(
               child: SplitView(
                 viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.scaffoldBackgroundColor,
-                gripColorActive: theme.scaffoldBackgroundColor,
+                gripColor: theme.dividerTheme.color!,
+                gripColorActive: theme.dividerTheme.color!,
                 gripSize: defaultGripSize,
                 controller: mainSplitter,
                 children: [
@@ -259,9 +337,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                       appModel.compilingBusy,
                                       (bool value) {
                                         return PointerInterceptor(
-                                          child: MiniIconButton(
-                                            icon: Icons.play_arrow,
-                                            tooltip: 'Run',
+                                          child: RunButton(
                                             onPressed: value
                                                 ? null
                                                 : _performCompileAndRun,
@@ -275,7 +351,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               Container(
                                 alignment: Alignment.bottomRight,
                                 padding: const EdgeInsets.all(denseSpacing),
-                                child: ProgressWidget(
+                                child: StatusWidget(
                                   status: appModel.editorStatus,
                                 ),
                               ),
@@ -307,10 +383,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               children: [
                                 SizedBox(
                                   height: domHeight,
-                                  child: ExecutionWidget(
-                                    // useMinHeight: mode.domIsVisible ? false : true,
-                                    appServices: appServices,
-                                  ),
+                                  child: ListenableBuilder(
+                                      listenable: appModel.splitViewDragState,
+                                      builder: (context, _) {
+                                        return ExecutionWidget(
+                                          appServices: appServices,
+                                          // Ignore pointer events while the Splitter
+                                          // is being dragged.
+                                          ignorePointer: appModel
+                                                  .splitViewDragState.value ==
+                                              SplitDragState.active,
+                                        );
+                                      }),
                                 ),
                                 SizedBox(
                                   height: consoleHeight,
@@ -328,7 +412,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       ValueBuilder(
                         appModel.compilingBusy,
                         (compiling) {
-                          final color = theme.colorScheme.backgroundColor;
+                          final color = theme.colorScheme.surface;
 
                           return AnimatedContainer(
                             color: compiling
@@ -350,7 +434,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               ),
             ),
           ),
-          const StatusLineWidget(),
+          if (!widget.embedMode) const StatusLineWidget(),
         ],
       ),
     );
@@ -444,17 +528,16 @@ class StatusLineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
 
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: darkTheme ? colorScheme.surface : colorScheme.primary,
-        border: Border(top: Divider.createBorderSide(context, width: 1.0)),
+        color: theme.dividerColor,
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,
@@ -493,7 +576,13 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://dart.dev/tools/dartpad/privacy';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Text('Privacy notice'),
+            child: const Row(
+              children: [
+                Text('Privacy notice'),
+                SizedBox(width: denseSpacing),
+                Icon(Icons.launch, size: 16),
+              ],
+            ),
           ),
           const SizedBox(width: defaultSpacing),
           TextButton(
@@ -501,7 +590,13 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://github.com/dart-lang/dart-pad/issues';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Text('Feedback'),
+            child: const Row(
+              children: [
+                Text('Feedback'),
+                SizedBox(width: denseSpacing),
+                Icon(Icons.launch, size: 16),
+              ],
+            ),
           ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
@@ -548,14 +643,9 @@ class SectionWidget extends StatelessWidget {
       );
     }
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.all(denseSpacing),
-        child: c,
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(denseSpacing),
+      child: c,
     );
   }
 }
@@ -676,9 +766,7 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   void _handleSelection(BuildContext context, String sampleId) {
-    context.go(
-      Uri(path: '/', queryParameters: {'sample': sampleId}).toString(),
-    );
+    GoRouter.of(context).replaceQueryParam('sample', sampleId);
   }
 }
 
@@ -741,15 +829,17 @@ class SelectChannelWidget extends StatelessWidget {
     );
   }
 
-  void _handleSelection(BuildContext context, Channel channel) {
+  void _handleSelection(BuildContext context, Channel channel) async {
     final appServices = Provider.of<AppServices>(context, listen: false);
 
-    appServices.setChannel(channel);
-
     // update the url
-    // TODO: preserve id? sample? theme?
-    context.go(
-      Uri(path: '/', queryParameters: {'channel': channel.name}).toString(),
+    GoRouter.of(context).replaceQueryParam('channel', channel.name);
+
+    final version = await appServices.setChannel(channel);
+
+    appServices.appModel.editorStatus.showToast(
+      'Switched to Dart ${version.dartVersion} '
+      'and Flutter ${version.flutterVersion}',
     );
   }
 }
@@ -906,6 +996,31 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
           child: Text(versions.label),
         );
       },
+    );
+  }
+}
+
+class _BrightnessButton extends StatelessWidget {
+  const _BrightnessButton({
+    required this.handleBrightnessChange,
+  });
+
+  final void Function(BuildContext, bool) handleBrightnessChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final isBright = Theme.of(context).brightness == Brightness.light;
+    return Tooltip(
+      preferBelow: true,
+      message: 'Toggle brightness',
+      child: IconButton(
+        icon: Theme.of(context).brightness == Brightness.light
+            ? const Icon(Icons.dark_mode_outlined)
+            : const Icon(Icons.light_mode_outlined),
+        onPressed: () {
+          handleBrightnessChange(context, !isBright);
+        },
+      ),
     );
   }
 }

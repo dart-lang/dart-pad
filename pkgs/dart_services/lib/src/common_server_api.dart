@@ -443,7 +443,7 @@ class CommonServerApi {
     ];
 
     return api.VersionResponse(
-      dartVersion: sdk.versionFull,
+      dartVersion: sdk.dartVersion,
       flutterVersion: sdk.flutterVersion,
       engineVersion: sdk.engineVersion,
       experiments: sdk.experiments,

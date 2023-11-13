@@ -31,11 +31,11 @@ jobs:
           - sdk: stable
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         with:
           sdk: ${{ matrix.sdk }}
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
 
       - name: Install apt dependencies
         run: sudo apt-get install -y protobuf-compiler
