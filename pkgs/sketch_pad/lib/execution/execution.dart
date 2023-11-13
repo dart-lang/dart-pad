@@ -68,8 +68,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    widget.appServices.executionService?.frame.style.pointerEvents =
-        widget.ignorePointer ? 'none' : 'auto';
+    widget.appServices.executionService?.ignorePointer = widget.ignorePointer;
 
     return Container(
       color: theme.scaffoldBackgroundColor,

@@ -25,9 +25,9 @@ abstract class ExecutionService {
     String? engineVersion,
   });
   Stream<String> get onStdout;
-  html.IFrameElement get frame;
   Future<void> reset();
   Future<void> tearDown();
+  set ignorePointer(bool ignorePointer);
 }
 
 abstract class EditorService {
