@@ -73,6 +73,14 @@ or:
 
 `grind deploy` for all tests and checks.
 
+## Redis
+
+You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS. 
+
+See the [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
+
+To configure the server to use the local redis cache, run `dart bin/server.dart` with the `redis-url` flag.
+
 ## Issues and bugs
 
 Please file reports on the
