@@ -25,12 +25,16 @@ class Compiler {
   final Sdk _sdk;
   final String _dartPath;
   final BazelWorkerDriver _ddcDriver;
+  final String _storageBucket;
 
   final ProjectTemplates _projectTemplates;
 
-  Compiler(Sdk sdk) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'));
+  Compiler(
+    Sdk sdk, {
+    required String storageBucket,
+  }) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
 
-  Compiler._(this._sdk, this._dartPath)
+  Compiler._(this._sdk, this._dartPath, this._storageBucket)
       : _ddcDriver = BazelWorkerDriver(
             () => Process.start(_dartPath, [
                   path.join(_sdk.dartSdkPath, 'bin', 'snapshots',
@@ -224,8 +228,8 @@ class Compiler {
 
         final results = DDCCompilationResults(
           compiledJS: processedJs,
-          modulesBaseUrl: 'https://storage.googleapis.com/nnbd_artifacts'
-              '/${_sdk.versionFull}/',
+          modulesBaseUrl: 'https://storage.googleapis.com/$_storageBucket'
+              '/${_sdk.dartVersion}/',
         );
         return results;
       }

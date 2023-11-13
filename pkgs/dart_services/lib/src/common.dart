@@ -52,11 +52,11 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Hey there, boo!'),
+          title: const Text('Hello, World!'),
         ),
         body: const Center(
           child: Text(
-            'You are pretty okay.',
+            'Hello, World!',
           ),
         ),
       ),
@@ -69,9 +69,11 @@ void main() async {
 const sampleCodeFlutterCounter = r'''
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -87,7 +89,10 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({
+    super.key,
+    required this.title,
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();

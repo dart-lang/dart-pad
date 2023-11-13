@@ -20,7 +20,7 @@ void defineTests() {
     final dartUiImport = _FakeImportDirective('dart:ui');
     final packageFlutterImport = _FakeImportDirective('package:flutter/');
 
-    test('inited', () async {
+    test('initializes', () async {
       expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
       final file = File(path.join(
           projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
@@ -57,10 +57,8 @@ void defineTests() {
     });
 
     test('getUnsupportedImport does now allow package:unsupported', () {
-      final usupportedPackageImport =
-          _FakeImportDirective('package:unsupported');
-      expect(getUnsupportedImports([usupportedPackageImport]),
-          contains(usupportedPackageImport));
+      final unsupported = _FakeImportDirective('package:unsupported');
+      expect(getUnsupportedImports([unsupported]), contains(unsupported));
     });
 
     test('getUnsupportedImport does now allow local imports', () {
@@ -74,7 +72,7 @@ void defineTests() {
     });
   });
 
-  group('project inited', () {
+  group('project initializes', () {
     test('packagesFilePath', () async {
       final packageConfig = File(path.join(
           projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));

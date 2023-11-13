@@ -22,10 +22,6 @@ Future<void> main(List<String> args) async {
   return grind(args);
 }
 
-@Task('Make sure SDKs are appropriately initialized')
-@Depends(setupFlutterSdk)
-void sdkInit() {}
-
 @Task()
 @Depends(buildProjectTemplates)
 void analyze() async {
@@ -45,8 +41,6 @@ void analyzeTest() {}
 Future<void> serve() async {
   await _run(Platform.executable, arguments: [
     path.join('bin', 'server.dart'),
-    '--channel',
-    _channel,
     '--port',
     '8080',
   ]);
@@ -60,19 +54,8 @@ const _dockerFileNames = [
   'cloud_run_stable.Dockerfile',
 ];
 
-/// Returns the Flutter channel provided in environment variables.
-final String _channel = () {
-  final channel = Platform.environment['FLUTTER_CHANNEL'];
-  if (channel == null) {
-    throw StateError('Must provide FLUTTER_CHANNEL');
-  }
-  return channel;
-}();
-
-/// Returns the appropriate SDK for the given Flutter channel.
-///
-/// The Flutter SDK directory must be already created by [sdkInit].
-Sdk _getSdk() => Sdk.create(_channel);
+/// Creates an SDK.
+Sdk _getSdk() => Sdk();
 
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
@@ -98,14 +81,18 @@ final List<String> compilationArtifacts = [
 
 @Task('validate that we have the correct compilation artifacts available in '
     'google storage')
-@Depends(sdkInit)
 void validateStorageArtifacts() async {
+  final args = context.invocation.arguments;
   final sdk = _getSdk();
-  print('validate-storage-artifacts version: ${sdk.version}');
-  final version = sdk.versionFull;
+  final version = sdk.dartVersion;
+  final bucket = switch (args.hasOption('bucket')) {
+    true => args.getOption('bucket'),
+    false => 'nnbd_artifacts',
+  };
 
-  const urlBase = 'https://storage.googleapis.com/nnbd_artifacts/';
+  print('validate-storage-artifacts version: ${sdk.version} bucket: $bucket');
 
+  final urlBase = 'https://storage.googleapis.com/$bucket/';
   for (final artifact in compilationArtifacts) {
     await _validateExists(Uri.parse('$urlBase$version/$artifact'));
   }
@@ -129,7 +116,6 @@ Future<void> _validateExists(Uri url) async {
 /// * the Flutter project template,
 /// * the Firebase project template.
 @Task('build the project templates')
-@Depends(sdkInit)
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
   final templatesDirectory = Directory(templatesPath);
@@ -142,8 +128,8 @@ void buildProjectTemplates() async {
   final projectCreator = ProjectCreator(
     sdk,
     templatesPath,
-    dartLanguageVersion: readDartLanguageVersion(_channel),
-    dependenciesFile: _pubDependenciesFile(channel: _channel),
+    dartLanguageVersion: sdk.dartVersion,
+    dependenciesFile: _pubDependenciesFile(channel: sdk.channel),
     log: log,
   );
   await projectCreator.buildDartProjectTemplate();
@@ -154,7 +140,7 @@ void buildProjectTemplates() async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-@Depends(sdkInit, updatePubDependencies)
+@Depends(updatePubDependencies)
 void buildStorageArtifacts() async {
   final sdk = _getSdk();
   delete(getDir('artifacts'));
@@ -165,7 +151,7 @@ void buildStorageArtifacts() async {
 
   try {
     instructions
-        .add(await _buildStorageArtifacts(temp, sdk, channel: _channel));
+        .add(await _buildStorageArtifacts(temp, sdk, channel: sdk.channel));
   } finally {
     temp.deleteSync(recursive: true);
   }
@@ -181,7 +167,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   final dependenciesFile = _pubDependenciesFile(channel: channel);
   final pubspec = createPubspec(
     includeFlutterWeb: true,
-    dartLanguageVersion: readDartLanguageVersion(_channel),
+    dartLanguageVersion: sdk.dartVersion,
     dependencies: parsePubDependenciesFile(dependenciesFile: dependenciesFile),
   );
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
@@ -258,7 +244,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     'flutter_ddc_sdk_sound.dill',
   );
 
-  final args = <String>[
+  final arguments = <String>[
     path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
     '-s',
     dillPath,
@@ -271,7 +257,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 
   await _run(
     compilerPath,
-    arguments: args,
+    arguments: arguments,
     workingDirectory: dir.path,
   );
 
@@ -288,51 +274,21 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
+  final args = context.invocation.arguments;
+  final bucket = switch (args.hasOption('bucket')) {
+    true => args.getOption('bucket'),
+    false => 'nnbd_artifacts',
+  };
+
   // Emit some good Google Storage upload instructions.
-  final version = sdk.versionFull;
+  final version = sdk.dartVersion;
   return '  gsutil -h "Cache-Control: public, max-age=604800, immutable" '
       'cp -z js ${artifactsDir.path}/*.js* '
-      'gs://nnbd_artifacts/$version/';
-}
-
-@Task('Reinitialize the Flutter submodule.')
-void setupFlutterSdk() async {
-  print('setup-flutter-sdk channel: $_channel');
-
-  // Download the SDK into ./flutter-sdks/
-  final sdkManager = DownloadingSdkManager(_channel);
-  print('Flutter version: ${sdkManager.flutterVersion}');
-  final flutterSdkPath = await sdkManager.createFromConfigFile();
-
-  // Set up the Flutter SDK the way dart-services needs it.
-  final flutterBinFlutter = path.join(flutterSdkPath, 'bin', 'flutter');
-  await _run(
-    flutterBinFlutter,
-    arguments: ['doctor'],
-  );
-
-  await _run(
-    flutterBinFlutter,
-    arguments: ['config', '--enable-web'],
-  );
-
-  await _run(
-    flutterBinFlutter,
-    arguments: [
-      'precache',
-      '--web',
-      '--no-android',
-      '--no-ios',
-      '--no-linux',
-      '--no-windows',
-      '--no-macos',
-      '--no-fuchsia',
-    ],
-  );
+      'gs://$bucket/$version/';
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(sdkInit, updateDockerVersion, generateProtos, analyze, test,
+@Depends(updateDockerVersion, generateProtos, analyze, test,
     validateStorageArtifacts)
 void deploy() {
   log('Deploy via Google Cloud Console');
@@ -389,11 +345,11 @@ Future<void> _run(
 }
 
 @Task('Update pubspec dependency versions')
-@Depends(sdkInit, buildProjectTemplates)
+@Depends(buildProjectTemplates)
 void updatePubDependencies() async {
   final sdk = _getSdk();
   await _updateDependenciesFile(
-      flutterToolPath: sdk.flutterToolPath, channel: _channel, sdk: sdk);
+      flutterToolPath: sdk.flutterToolPath, channel: sdk.channel, sdk: sdk);
 }
 
 /// Updates the "dependencies file".
@@ -427,7 +383,7 @@ Future<void> _updateDependenciesFile({
 
   final pubspec = createPubspec(
     includeFlutterWeb: true,
-    dartLanguageVersion: readDartLanguageVersion(_channel),
+    dartLanguageVersion: sdk.dartVersion,
     dependencies: dependencies,
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);

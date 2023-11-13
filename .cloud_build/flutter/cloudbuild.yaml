@@ -5,6 +5,7 @@
 # $ gcloud builds submit . --config=cloudbuild.yaml
 
 steps:
+  # Main channel
   - name: 'docker:stable'
     args: [
       'build', '.',
@@ -13,6 +14,7 @@ steps:
     ]
     dir: .cloud_build/flutter
 
+  # Beta channel
   - name: 'docker:stable'
     args: [
       'build', '.',
@@ -21,6 +23,7 @@ steps:
     ]
     dir: .cloud_build/flutter
 
+  # Stable channel
   - name: 'docker:stable'
     args: [
       'build', '.',
@@ -30,6 +33,7 @@ steps:
     ]
     dir: .cloud_build/flutter
 
+  # Verify image runs the `flutter` command.
   - name: 'gcr.io/$PROJECT_ID/flutter'
     args: ['--help']
     dir: .cloud_build/flutter

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
@@ -64,8 +62,6 @@ void main() async {
 }
 ''';
 
-final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-
 void main() => defineTests();
 
 void defineTests() {
@@ -79,7 +75,7 @@ void defineTests() {
   group('Platform SDK analysis_server', () {
     late Sdk sdk;
     setUp(() async {
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -230,7 +226,7 @@ void defineTests() {
 
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      final sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -253,7 +249,7 @@ void defineTests() {
   group('Platform SDK analysis_server multifile files={}', () {
     late Sdk sdk;
     setUp(() async {
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });

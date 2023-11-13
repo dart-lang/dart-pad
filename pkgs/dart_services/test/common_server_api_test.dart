@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_api.dart';
@@ -68,12 +67,11 @@ void defineTests() {
   }
 
   group('CommonServerProto JSON', () {
-    final sdk =
-        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
+    final sdk = Sdk();
 
     setUp(() async {
       final ServerCache cache = MockCache();
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      commonServerImpl = CommonServerImpl(sdk, cache);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -465,11 +463,10 @@ main() {
   //-------------------------------------------------------------------------
   // Beginning of multi file files={} tests group:
   group('CommonServerProto JSON for Multi file group files={}', () {
-    final sdk =
-        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
+    final sdk = Sdk();
     setUp(() async {
       final cache = MockCache();
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      commonServerImpl = CommonServerImpl(sdk, cache);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 

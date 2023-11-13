@@ -28,7 +28,7 @@ jobs:
         sdk: [stable, beta, main]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
@@ -37,23 +37,13 @@ jobs:
         run: dart analyze --fatal-infos .
       - name: check formatting
         run: dart format --set-exit-if-changed lib test tool  
-      - name: Prepare Flutter
-        run: |
-          dart run tool/update_sdk.dart ${{ matrix.sdk }}
-          export PATH=$PATH:$PWD/flutter-sdks/${{ matrix.sdk }}/bin
-          flutter doctor -v
-          flutter config --enable-web
       - name: Run tests
         env:
           FLUTTER_CHANNEL: ${{ matrix.sdk }}
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
-          # Prepare to run unit tests (but do not actually run tests).
-          dart run grinder buildbot
-          # Ensure that we've uploaded the compilation artifacts to google storage.
-          dart run grinder validate-storage-artifacts
-          dart test
+          dart run grinder test
 
   # Run the benchmarks on the bots to ensure they don't regress.
   benchmark:
@@ -63,13 +53,11 @@ jobs:
         working-directory: pkgs/dart_services/
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
       - run: sudo apt-get install -y protobuf-compiler redis
       - run: dart pub get
       - name: Download the Flutter SDK
         run: |
-          dart run tool/update_sdk.dart stable
-          export PATH=$PATH:$PWD/flutter-sdks/stable/bin
           flutter doctor -v
       - name: Prep the repo
         env:

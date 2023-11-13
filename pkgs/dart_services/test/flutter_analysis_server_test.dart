@@ -21,7 +21,7 @@ void defineTests() {
     late AnalysisServerWrapper analysisServer;
 
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      final sdk = Sdk();
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -48,7 +48,7 @@ void defineTests() {
     late AnalyzerWrapper analysisServersWrapper;
     late Sdk sdk;
     setUp(() async {
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       analysisServersWrapper = AnalyzerWrapper(sdk.dartSdkPath);
       await analysisServersWrapper.init();
     });
@@ -143,8 +143,8 @@ class HelloWorld extends StatelessWidget {
 
     setUp(() async {
       cache = _MockCache();
-      final sdk = Sdk.create(channel);
-      commonServerImpl = CommonServerImpl(cache, sdk);
+      final sdk = Sdk();
+      commonServerImpl = CommonServerImpl(sdk, cache);
       await commonServerImpl.init();
     });
 
@@ -172,7 +172,7 @@ class HelloWorld extends StatelessWidget {
       late AnalysisServerWrapper analysisServer;
 
       setUp(() async {
-        final sdk = Sdk.create(channel);
+        final sdk = Sdk();
         analysisServer =
             DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
         await analysisServer.init();
@@ -201,7 +201,7 @@ class HelloWorld extends StatelessWidget {
       late AnalyzerWrapper analysisServersWrapper;
       late Sdk sdk;
       setUp(() async {
-        sdk = Sdk.create(channel);
+        sdk = Sdk();
         analysisServersWrapper = AnalyzerWrapper(sdk.dartSdkPath);
         await analysisServersWrapper.init();
       });
@@ -300,8 +300,8 @@ class HelloWorld extends StatelessWidget {
 
       setUp(() async {
         cache = _MockCache();
-        final sdk = Sdk.create(channel);
-        commonServerImpl = CommonServerImpl(cache, sdk);
+        final sdk = Sdk();
+        commonServerImpl = CommonServerImpl(sdk, cache);
         await commonServerImpl.init();
       });
 

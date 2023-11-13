@@ -52,8 +52,7 @@ void defineTests(bool hasRedis) {
 
     setUpAll(() async {
       redisProcess = await startRedisProcessAndDrainIO(9501);
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-      sdk = Sdk.create(channel);
+      sdk = Sdk();
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
       });
