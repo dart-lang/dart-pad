@@ -46,6 +46,11 @@ class ExecutionServiceImpl implements ExecutionService {
   Stream<String> get onStdout => _stdoutController.stream;
 
   @override
+  set ignorePointer(bool ignorePointer) {
+    _frame.style.pointerEvents = ignorePointer ? 'none' : 'auto';
+  }
+
+  @override
   Future<void> reset() => _reset();
 
   @override

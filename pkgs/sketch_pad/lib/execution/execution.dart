@@ -48,8 +48,13 @@ html.Element _iFrameFactory(int viewId) {
 class ExecutionWidget extends StatefulWidget {
   final AppServices appServices;
 
+  /// Whether the iframe ignores pointer events, for when gestures need to be
+  /// handled by the Flutter app.
+  final bool ignorePointer;
+
   ExecutionWidget({
     required this.appServices,
+    this.ignorePointer = false,
     super.key,
   }) {
     _initViewFactory();
@@ -63,6 +68,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    widget.appServices.executionService?.ignorePointer = widget.ignorePointer;
 
     return Container(
       color: theme.scaffoldBackgroundColor,

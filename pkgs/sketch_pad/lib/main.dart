@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -198,7 +200,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
-        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize]);
+        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
+          ..addListener(() {
+            appModel.splitDragStateManager.handleSplitChanged();
+          });
 
     final channel = widget.initialChannel != null
         ? Channel.channelForName(widget.initialChannel!)
@@ -378,10 +383,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               children: [
                                 SizedBox(
                                   height: domHeight,
-                                  child: ExecutionWidget(
-                                    // useMinHeight: mode.domIsVisible ? false : true,
-                                    appServices: appServices,
-                                  ),
+                                  child: ListenableBuilder(
+                                      listenable: appModel.splitViewDragState,
+                                      builder: (context, _) {
+                                        return ExecutionWidget(
+                                          appServices: appServices,
+                                          // Ignore pointer events while the Splitter
+                                          // is being dragged.
+                                          ignorePointer: appModel
+                                                  .splitViewDragState.value ==
+                                              SplitDragState.active,
+                                        );
+                                      }),
                                 ),
                                 SizedBox(
                                   height: consoleHeight,
