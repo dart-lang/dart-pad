@@ -59,8 +59,17 @@ class AppModel {
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
+  final ValueNotifier<SplitDragState> splitViewDragState =
+      ValueNotifier(SplitDragState.inactive);
+
+  final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
+
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
+
+    splitDragStateManager.onSplitDragUpdated.listen((value) {
+      splitViewDragState.value = value;
+    });
   }
 
   void appendLineToConsole(String str) {
@@ -376,3 +385,28 @@ enum Channel {
 extension VersionResponseExtension on VersionResponse {
   String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }
+
+class SplitDragStateManager {
+  final _splitDragStateController =
+      StreamController<SplitDragState>.broadcast();
+  late final Stream<SplitDragState> onSplitDragUpdated;
+  late final StreamSubscription<SplitDragState> _subscription;
+
+  SplitDragStateManager(
+      {Duration timeout = const Duration(milliseconds: 100)}) {
+    onSplitDragUpdated = _splitDragStateController.stream.timeout(timeout,
+        onTimeout: (eventSink) {
+      eventSink.add(SplitDragState.inactive);
+    });
+  }
+
+  void handleSplitChanged() {
+    _splitDragStateController.add(SplitDragState.active);
+  }
+
+  void dispose() {
+    _subscription.cancel();
+  }
+}
+
+enum SplitDragState { inactive, active }

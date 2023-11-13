@@ -190,8 +190,6 @@ class DartPadMainPage extends StatefulWidget {
 
 class _DartPadMainPageState extends State<DartPadMainPage> {
   late final SplitViewController mainSplitter;
-  final splitDragStateManager = SplitDragStateManager();
-  var splitDragState = SplitDragState.inactive;
 
   late AppModel appModel;
   late AppServices appServices;
@@ -204,14 +202,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     mainSplitter =
         SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
           ..addListener(() {
-            splitDragStateManager.handleSplitChanged();
+            appModel.splitDragStateManager.handleSplitChanged();
           });
-
-    splitDragStateManager.onSplitDragUpdated.listen((value) {
-      setState(() {
-        splitDragState = value;
-      });
-    });
 
     final channel = widget.initialChannel != null
         ? Channel.channelForName(widget.initialChannel!)
@@ -391,13 +383,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               children: [
                                 SizedBox(
                                   height: domHeight,
-                                  child: ExecutionWidget(
-                                    appServices: appServices,
-                                    // Ignore pointer events while the Splitter
-                                    // is being dragged.
-                                    ignorePointer:
-                                        splitDragState == SplitDragState.active,
-                                  ),
+                                  child: ListenableBuilder(
+                                      listenable: appModel.splitViewDragState,
+                                      builder: (context, _) {
+                                        return ExecutionWidget(
+                                          appServices: appServices,
+                                          // Ignore pointer events while the Splitter
+                                          // is being dragged.
+                                          ignorePointer: appModel
+                                                  .splitViewDragState.value ==
+                                              SplitDragState.active,
+                                        );
+                                      }),
                                 ),
                                 SizedBox(
                                   height: consoleHeight,
@@ -1027,28 +1024,3 @@ class _BrightnessButton extends StatelessWidget {
     );
   }
 }
-
-class SplitDragStateManager {
-  final _splitDragStateController =
-      StreamController<SplitDragState>.broadcast();
-  late final Stream<SplitDragState> onSplitDragUpdated;
-  late final StreamSubscription<SplitDragState> _subscription;
-
-  SplitDragStateManager(
-      {Duration timeout = const Duration(milliseconds: 100)}) {
-    onSplitDragUpdated = _splitDragStateController.stream.timeout(timeout,
-        onTimeout: (eventSink) {
-      eventSink.add(SplitDragState.inactive);
-    });
-  }
-
-  void handleSplitChanged() {
-    _splitDragStateController.add(SplitDragState.active);
-  }
-
-  void dispose() {
-    _subscription.cancel();
-  }
-}
-
-enum SplitDragState { inactive, active }
