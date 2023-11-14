@@ -12,7 +12,7 @@ import '../context.dart';
 import '../dart_pad.dart';
 import '../editing/codemirror_options.dart';
 import '../editing/editor.dart';
-import '../elements/analysis_results_controller.dart';
+import '../elements/analysis_results_controller.dart' hide Location;
 import '../elements/button.dart';
 import '../elements/dialog.dart';
 import '../elements/elements.dart';
@@ -162,16 +162,18 @@ abstract class EditorUi {
       displayIssues(result.issues);
 
       currentDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
-        final startLine = lines.getLineForOffset(issue.charStart);
+        final location = issue.location;
+        final startLine = lines.getLineForOffset(location.charStart);
         final endLine =
-            lines.getLineForOffset(issue.charStart + issue.charLength);
+            lines.getLineForOffset(location.charStart + location.charLength);
         final offsetForStartLine = lines.offsetForLine(startLine);
 
-        final start = Position(startLine, issue.charStart - offsetForStartLine);
-        final end = Position(
-            endLine, issue.charStart + issue.charLength - offsetForStartLine);
+        final start =
+            Position(startLine, location.charStart - offsetForStartLine);
+        final end = Position(endLine,
+            location.charStart + location.charLength - offsetForStartLine);
 
-        return Annotation(issue.kind, issue.message, issue.line,
+        return Annotation(issue.kind, issue.message, location.line,
             start: start, end: end);
       }).toList());
 
@@ -184,9 +186,9 @@ abstract class EditorUi {
         displayIssues([
           AnalysisIssue(
             kind: 'error',
-            // set invalid line number, so NO line # will be displayed
-            line: -1,
             message: message,
+            // set invalid line number, so NO line # will be displayed
+            location: Location(line: -1),
           )
         ]);
       } else {

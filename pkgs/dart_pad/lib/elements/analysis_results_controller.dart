@@ -90,8 +90,8 @@ class AnalysisResultsController {
 
     final columnElem = DivElement()..classes.add('issue-column');
 
-    final hasLineNumber = issue.line >= 1;
-    final lineInfo = hasLineNumber ? 'line ${issue.line}' : '';
+    final hasLineNumber = issue.location.line >= 1;
+    final lineInfo = hasLineNumber ? 'line ${issue.location.line}' : '';
     final separator = lineInfo.isNotEmpty ? ' • ' : '';
 
     final messageSpan = DivElement()
@@ -113,6 +113,11 @@ class AnalysisResultsController {
       columnElem.children.add(DivElement()
         ..text = issue.correction
         ..classes.add('message'));
+    }
+
+    // TODO: This should likely be named contextMessages.
+    for (final diagnostic in issue.contextMessages ?? <DiagnosticMessage>[]) {
+      columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
     }
 
     elem.children.add(columnElem);
@@ -137,12 +142,53 @@ class AnalysisResultsController {
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
-        line: issue.line,
-        charStart: issue.charStart,
-        charLength: issue.charLength,
+        line: issue.location.line,
+        charStart: issue.location.charStart,
+        charLength: issue.location.charLength,
         // ignore: deprecated_member_use
         inTestSource: issue.sourceName == 'test.dart',
       ));
+    });
+
+    return elem;
+  }
+
+  Element _createDiagnosticElement(
+      DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue) {
+    final message = diagnosticMessage.message;
+
+    final elem = DivElement()..classes.addAll(['message', 'clickable']);
+    elem.text = message;
+    elem.onClick.listen((event) {
+      // Stop the mouse event so the outer issue mouse handler doesn't process
+      // it.
+      event.stopPropagation();
+
+      _onClickController.add(Location(
+          // TODO(timmaffett): multi files will need -> diagnosticMessage.sourceName,
+          // ignore: deprecated_member_use
+          inTestSource: parentIssue.sourceName == 'test.dart',
+          // For now if the source name is NOT main.dart then ASSUME that the
+          // line number and charStart could have been adjust because of an
+          // appended test, and use the information for the parentIssue instead.
+          // (It would probably be safe to always do this, but by doing this
+          // we DO NOT change any behavior except for when we have changed the
+          // sourceName to `test.dart` (the only way the sourceName can currently
+          // change until multi file source merged))
+          //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
+          // or 'test.dart' (and in that case we changed line# and charStart).
+          // ignore: deprecated_member_use
+          line: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.location.line
+              : parentIssue.location.line,
+          // ignore: deprecated_member_use
+          charStart: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.location.charStart
+              : parentIssue.location.charStart,
+          // ignore: deprecated_member_use
+          charLength: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.location.charLength
+              : parentIssue.location.charLength));
     });
 
     return elem;

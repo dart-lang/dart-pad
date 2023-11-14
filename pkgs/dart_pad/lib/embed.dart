@@ -18,7 +18,7 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'editing/editor_codemirror.dart';
-import 'elements/analysis_results_controller.dart';
+import 'elements/analysis_results_controller.dart' hide Location;
 import 'elements/button.dart';
 import 'elements/console.dart';
 import 'elements/counter.dart';
@@ -831,7 +831,7 @@ class Embed extends EditorUi {
     final dartSourceCharCount = context.dartSource.length;
     return issues
         .map((AnalysisIssue issue) {
-          if (issue.line > dartSourceLineCount) {
+          if (issue.location.line > dartSourceLineCount) {
             if (issue.kind != 'error' && !_showTestCode) {
               return null;
             } else {
@@ -840,13 +840,15 @@ class Embed extends EditorUi {
               return AnalysisIssue(
                 kind: issue.kind,
                 message: issue.message,
+                location: Location(
+                  charStart: issue.location.charStart - dartSourceCharCount,
+                  charLength: issue.location.charLength,
+                  line: issue.location.line - dartSourceLineCount - 1,
+                  column: issue.location.column,
+                ),
                 sourceName: 'test.dart',
                 correction: issue.correction,
                 url: issue.url,
-                charStart: issue.charStart - dartSourceCharCount,
-                charLength: issue.charLength,
-                line: issue.line - dartSourceLineCount - 1,
-                column: issue.column,
               );
             }
           } else {
