@@ -306,19 +306,19 @@ class Embed extends EditorUi {
       DElement(querySelector('#issues-toggle')!),
       snackbar,
     )..onItemClicked.listen((item) {
-        // if (item.sourceName == 'test.dart') {
-        //   // must be test editor
-        //   if (!_showTestCode) {
-        //     _showTestCode = true;
-        //     showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
-        //     tabController.setTabVisibility('test', _showTestCode);
-        //   }
-        //   tabController.selectTab('test');
-        //   _jumpToTest(item.line, item.charStart, item.charLength, focus: true);
-        // } else {
-        tabController.selectTab('dart');
-        _jumpTo(item.line, item.charStart, item.charLength, focus: true);
-        // }
+        if (item.inTestSource) {
+          // must be test editor
+          if (!_showTestCode) {
+            _showTestCode = true;
+            showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+            tabController.setTabVisibility('test', _showTestCode);
+          }
+          tabController.selectTab('test');
+          _jumpToTest(item.line, item.charStart, item.charLength, focus: true);
+        } else {
+          tabController.selectTab('dart');
+          _jumpTo(item.line, item.charStart, item.charLength, focus: true);
+        }
       });
 
     if (options.mode == EmbedMode.flutter ||
@@ -832,8 +832,6 @@ class Embed extends EditorUi {
     return issues
         .map((AnalysisIssue issue) {
           if (issue.line > dartSourceLineCount) {
-            // This is in the test source, do we adjust or hide it ?
-            // (We never hide errors).
             if (issue.kind != 'error' && !_showTestCode) {
               return null;
             } else {
@@ -842,6 +840,7 @@ class Embed extends EditorUi {
               return AnalysisIssue(
                 kind: issue.kind,
                 message: issue.message,
+                sourceName: 'test.dart',
                 correction: issue.correction,
                 url: issue.url,
                 charStart: issue.charStart - dartSourceCharCount,
@@ -923,15 +922,15 @@ class Embed extends EditorUi {
     if (focus) context.focus();
   }
 
-  // void _jumpToTest(int line, int charStart, int charLength,
-  //     {bool focus = false}) {
-  //   final doc = context.testDocument;
+  void _jumpToTest(int line, int charStart, int charLength,
+      {bool focus = false}) {
+    final doc = context.testDocument;
 
-  //   doc.select(
-  //       doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
-  //   if (focus) context.focus();
-  // }
+    if (focus) context.focus();
+  }
 
   @override
   void clearOutput() {

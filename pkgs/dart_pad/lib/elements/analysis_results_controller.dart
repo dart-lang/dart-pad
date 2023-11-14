@@ -115,11 +115,6 @@ class AnalysisResultsController {
         ..classes.add('message'));
     }
 
-    // // TODO: This should likely be named contextMessages.
-    // for (final diagnostic in issue.diagnosticMessages) {
-    //   columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
-    // }
-
     elem.children.add(columnElem);
 
     final copyButton = MDCButton(ButtonElement(), isIcon: true);
@@ -142,50 +137,16 @@ class AnalysisResultsController {
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
-          line: issue.line,
-          charStart: issue.charStart,
-          charLength: issue.charLength));
+        line: issue.line,
+        charStart: issue.charStart,
+        charLength: issue.charLength,
+        // ignore: deprecated_member_use
+        inTestSource: issue.sourceName == 'test.dart',
+      ));
     });
 
     return elem;
   }
-
-  // Element _createDiagnosticElement(
-  //     DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue) {
-  //   final message = diagnosticMessage.message;
-
-  //   final elem = DivElement()..classes.addAll(['message', 'clickable']);
-  //   elem.text = message;
-  //   elem.onClick.listen((event) {
-  //     // Stop the mouse event so the outer issue mouse handler doesn't process
-  //     // it.
-  //     event.stopPropagation();
-
-  //     _onClickController.add(Location(
-  //         //TODO: @timmaffett multi files will need -> diagnosticMessage.sourceName,
-  //         sourceName: parentIssue.sourceName,
-  //         // For now if the source name is NOT main.dart then ASSUME that the
-  //         // line number and charStart could have been adjust because of an
-  //         // appended test, and use the information for the parentIssue instead.
-  //         // (It would probably be safe to always do this, but by doing this
-  //         // we DO NOT change any behavior except for when we have changed the
-  //         // sourceName to `test.dart` (the only way the sourceName can currently
-  //         // change until multi file source merged))
-  //         //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
-  //         // or 'test.dart' (and in that case we changed line# and charStart).
-  //         line: parentIssue.sourceName == 'main.dart'
-  //             ? diagnosticMessage.line
-  //             : parentIssue.line,
-  //         charStart: parentIssue.sourceName == 'main.dart'
-  //             ? diagnosticMessage.charStart
-  //             : parentIssue.charStart,
-  //         charLength: parentIssue.sourceName == 'main.dart'
-  //             ? diagnosticMessage.charLength
-  //             : parentIssue.charLength));
-  //   });
-
-  //   return elem;
-  // }
 
   void hideToggle() {
     toggle.setAttr('hidden');
@@ -214,10 +175,14 @@ class Location {
   final int charStart;
   final int charLength;
 
+  /// Whether this is from an auxillary, synthetic test file.
+  final bool inTestSource;
+
   Location({
     required this.line,
     required this.charStart,
     required this.charLength,
+    this.inTestSource = false,
   });
 }
 

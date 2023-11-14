@@ -44,6 +44,8 @@ class AnalysisIssue {
   final String message;
   final String? correction;
   final String? url;
+  @Deprecated('Remove this once no longer referenced')
+  final String? sourceName;
   final int charStart;
   final int charLength;
   final int line;
@@ -54,6 +56,7 @@ class AnalysisIssue {
     required this.message,
     this.correction,
     this.url,
+    this.sourceName,
     this.charStart = -1,
     this.charLength = 0,
     this.line = -1,
