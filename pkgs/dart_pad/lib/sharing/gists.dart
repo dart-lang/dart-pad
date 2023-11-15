@@ -108,8 +108,7 @@ class GistLoader {
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
   static const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
-  static const String _mainApiDocsUrl =
-      'https://main-api.flutter.dev/snippets';
+  static const String _mainApiDocsUrl = 'https://main-api.flutter.dev/snippets';
 
   static const String gistAlreadyForked = 'GIST_ALREADY_FORK';
   static const String gistNotFound = 'GIST_NOT_FOUND';
