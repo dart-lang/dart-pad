@@ -19,7 +19,7 @@ void defineTests() {
         case 'https://api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(stableAPIDocSample, 200));
         case 'https://main-api.flutter.dev/snippets/material.AppBar.1.dart':
-          return Future.value(http.Response(masterAPIDocSample, 200));
+          return Future.value(http.Response(mainAPIDocSample, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.yaml':
           return Future.value(http.Response(basicDartMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad_metadata.yaml?ref=some_branch':
@@ -104,7 +104,7 @@ void defineTests() {
         final gist = await loader.loadGistFromAPIDocs(
             'material.AppBar.1', FlutterSdkChannel.master);
         final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
-        expect(contents.content, masterAPIDocSample);
+        expect(contents.content, mainAPIDocSample);
       });
       test('Throws correct exception for nonexistent sample', () async {
         final loader = GistLoader(client: mockClient);
@@ -273,7 +273,7 @@ final validGist = '''
 
 final stableAPIDocSample =
     'This is some sample code from the stable API Doc server.';
-final masterAPIDocSample =
+final mainAPIDocSample =
     'This is some sample code from the master API Doc server.';
 
 /// Create a GitHub API-like contents response for the provided content.
