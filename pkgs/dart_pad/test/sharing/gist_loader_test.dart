@@ -18,7 +18,7 @@ void defineTests() {
           return Future.value(http.Response(validGist, 200));
         case 'https://api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(stableAPIDocSample, 200));
-        case 'https://master-api.flutter.dev/snippets/material.AppBar.1.dart':
+        case 'https://main-api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(masterAPIDocSample, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.yaml':
           return Future.value(http.Response(basicDartMetadata, 200));
