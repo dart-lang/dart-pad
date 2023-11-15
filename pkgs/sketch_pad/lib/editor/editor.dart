@@ -93,13 +93,13 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   void jumpTo(services.AnalysisIssue issue) {
-    final line = math.max(issue.line - 1, 0);
-    final column = math.max(issue.column - 1, 0);
+    final line = math.max(issue.location.line - 1, 0);
+    final column = math.max(issue.location.column - 1, 0);
 
-    if (issue.line != -1) {
+    if (issue.location.line != -1) {
       codeMirror!.doc.setSelection(
         Position(line, column),
-        head: Position(line, column + issue.charLength),
+        head: Position(line, column + issue.location.charLength),
       );
     } else {
       codeMirror?.doc.setSelection(Position(0, 0));
@@ -202,12 +202,12 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     }
 
     for (final issue in issues) {
-      final line = math.max(issue.line - 1, 0);
-      final column = math.max(issue.column - 1, 0);
+      final line = math.max(issue.location.line - 1, 0);
+      final column = math.max(issue.location.column - 1, 0);
 
       doc.markText(
         Position(line, column),
-        Position(line, column + issue.charLength),
+        Position(line, column + issue.location.charLength),
         className: 'squiggle-${issue.kind}',
         title: issue.message,
       );

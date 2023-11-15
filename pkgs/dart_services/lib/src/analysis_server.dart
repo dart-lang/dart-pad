@@ -381,6 +381,7 @@ abstract class AnalysisServerWrapper {
           error.contextMessages?.map((m) => proto.DiagnosticMessage()
                 ..message = utils.normalizeFilePaths(m.message)
                 ..line = m.location.startLine
+                ..column = m.location.startColumn
                 ..charStart = m.location.offset
                 ..charLength = m.location.length) ??
               [],

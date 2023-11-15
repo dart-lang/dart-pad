@@ -888,6 +888,7 @@ class DiagnosticMessage extends $pb.GeneratedMessage {
     $core.int? line,
     $core.int? charStart,
     $core.int? charLength,
+    $core.int? column,
   }) {
     final $result = create();
     if (message != null) {
@@ -901,6 +902,9 @@ class DiagnosticMessage extends $pb.GeneratedMessage {
     }
     if (charLength != null) {
       $result.charLength = charLength;
+    }
+    if (column != null) {
+      $result.column = column;
     }
     return $result;
   }
@@ -923,6 +927,7 @@ class DiagnosticMessage extends $pb.GeneratedMessage {
         protoName: 'charStart')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'charLength', $pb.PbFieldType.O3,
         protoName: 'charLength')
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'column', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -995,6 +1000,18 @@ class DiagnosticMessage extends $pb.GeneratedMessage {
   $core.bool hasCharLength() => $_has(3);
   @$pb.TagNumber(4)
   void clearCharLength() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get column => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set column($core.int v) {
+    $_setSignedInt32(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasColumn() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearColumn() => clearField(5);
 }
 
 class VersionRequest extends $pb.GeneratedMessage {

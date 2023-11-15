@@ -321,7 +321,7 @@ class AppServices {
     } catch (error) {
       final message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
-        AnalysisIssue(kind: 'error', message: message),
+        AnalysisIssue(kind: 'error', message: message, location: Location()),
       ];
       appModel.packageImports.value = [];
     }

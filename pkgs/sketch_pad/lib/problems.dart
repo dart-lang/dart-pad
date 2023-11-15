@@ -93,7 +93,7 @@ class ProblemWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                ' line ${issue.line}, col ${issue.column}',
+                ' line ${issue.location.line}, col ${issue.location.column}',
                 maxLines: 1,
                 overflow: TextOverflow.clip,
                 textAlign: TextAlign.end,
