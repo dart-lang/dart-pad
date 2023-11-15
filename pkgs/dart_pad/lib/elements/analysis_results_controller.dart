@@ -115,7 +115,6 @@ class AnalysisResultsController {
         ..classes.add('message'));
     }
 
-    // TODO: This should likely be named contextMessages.
     for (final diagnostic in issue.contextMessages ?? <DiagnosticMessage>[]) {
       columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
     }
