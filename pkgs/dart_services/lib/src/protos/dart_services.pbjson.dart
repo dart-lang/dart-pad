@@ -271,6 +271,7 @@ const DiagnosticMessage$json = {
     {'1': 'line', '3': 2, '4': 1, '5': 5, '10': 'line'},
     {'1': 'charStart', '3': 3, '4': 1, '5': 5, '10': 'charStart'},
     {'1': 'charLength', '3': 4, '4': 1, '5': 5, '10': 'charLength'},
+    {'1': 'column', '3': 5, '4': 1, '5': 5, '10': 'column'},
   ],
 };
 
@@ -278,7 +279,7 @@ const DiagnosticMessage$json = {
 final $typed_data.Uint8List diagnosticMessageDescriptor = $convert.base64Decode(
     'ChFEaWFnbm9zdGljTWVzc2FnZRIYCgdtZXNzYWdlGAEgASgJUgdtZXNzYWdlEhIKBGxpbmUYAi'
     'ABKAVSBGxpbmUSHAoJY2hhclN0YXJ0GAMgASgFUgljaGFyU3RhcnQSHgoKY2hhckxlbmd0aBgE'
-    'IAEoBVIKY2hhckxlbmd0aA==');
+    'IAEoBVIKY2hhckxlbmd0aBIWCgZjb2x1bW4YBSABKAVSBmNvbHVtbg==');
 
 @$core.Deprecated('Use versionRequestDescriptor instead')
 const VersionRequest$json = {

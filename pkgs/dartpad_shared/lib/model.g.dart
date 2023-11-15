@@ -38,24 +38,50 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
     AnalysisIssue(
       kind: json['kind'] as String,
       message: json['message'] as String,
+      location: Location.fromJson(json['location'] as Map<String, dynamic>),
       correction: json['correction'] as String?,
       url: json['url'] as String?,
-      charStart: json['charStart'] as int? ?? -1,
-      charLength: json['charLength'] as int? ?? 0,
-      line: json['line'] as int? ?? -1,
-      column: json['column'] as int? ?? -1,
+      contextMessages: (json['contextMessages'] as List<dynamic>?)
+          ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      sourceName: json['sourceName'] as String? ?? 'main.dart',
     );
 
 Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
     <String, dynamic>{
       'kind': instance.kind,
       'message': instance.message,
+      'location': instance.location,
       'correction': instance.correction,
       'url': instance.url,
+      'contextMessages': instance.contextMessages,
+      'sourceName': instance.sourceName,
+    };
+
+Location _$LocationFromJson(Map<String, dynamic> json) => Location(
+      charStart: json['charStart'] as int? ?? -1,
+      charLength: json['charLength'] as int? ?? 0,
+      line: json['line'] as int? ?? -1,
+      column: json['column'] as int? ?? -1,
+    );
+
+Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
       'charStart': instance.charStart,
       'charLength': instance.charLength,
       'line': instance.line,
       'column': instance.column,
+    };
+
+DiagnosticMessage _$DiagnosticMessageFromJson(Map<String, dynamic> json) =>
+    DiagnosticMessage(
+      message: json['message'] as String,
+      location: Location.fromJson(json['location'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$DiagnosticMessageToJson(DiagnosticMessage instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'location': instance.location,
     };
 
 CompileRequest _$CompileRequestFromJson(Map<String, dynamic> json) =>

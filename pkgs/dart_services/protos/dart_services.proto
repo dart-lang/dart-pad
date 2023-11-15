@@ -91,6 +91,7 @@ message DiagnosticMessage {
   int32 line = 2;
   int32 charStart = 3;
   int32 charLength = 4;
+  int32 column = 5;
 }
 
 message VersionRequest {}

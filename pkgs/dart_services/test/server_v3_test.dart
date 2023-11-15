@@ -95,7 +95,7 @@ void main() {
           issue.message,
           contains(
               "A value of type 'String' can't be assigned to a variable of type 'int'"));
-      expect(issue.line, 2);
+      expect(issue.location.line, 2);
     });
 
     test('complete', () async {

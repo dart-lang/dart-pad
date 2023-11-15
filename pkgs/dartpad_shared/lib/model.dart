@@ -42,22 +42,21 @@ class AnalysisResponse {
 class AnalysisIssue {
   final String kind;
   final String message;
+  final Location location;
   final String? correction;
   final String? url;
-  final int charStart;
-  final int charLength;
-  final int line;
-  final int column;
+  final List<DiagnosticMessage>? contextMessages;
+  @Deprecated('Remove this once no longer referenced')
+  final String sourceName;
 
   AnalysisIssue({
     required this.kind,
     required this.message,
+    required this.location,
     this.correction,
     this.url,
-    this.charStart = -1,
-    this.charLength = 0,
-    this.line = -1,
-    this.column = -1,
+    this.contextMessages,
+    this.sourceName = 'main.dart',
   });
 
   factory AnalysisIssue.fromJson(Map<String, dynamic> json) =>
@@ -67,6 +66,42 @@ class AnalysisIssue {
 
   @override
   String toString() => '[$kind] $message';
+}
+
+@JsonSerializable()
+class Location {
+  final int charStart;
+  final int charLength;
+  final int line;
+  final int column;
+
+  Location({
+    this.charStart = -1,
+    this.charLength = 0,
+    this.line = -1,
+    this.column = -1,
+  });
+
+  factory Location.fromJson(Map<String, dynamic> json) =>
+      _$LocationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LocationToJson(this);
+}
+
+@JsonSerializable()
+class DiagnosticMessage {
+  final String message;
+  final Location location;
+
+  DiagnosticMessage({
+    required this.message,
+    required this.location,
+  });
+
+  factory DiagnosticMessage.fromJson(Map<String, dynamic> json) =>
+      _$DiagnosticMessageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DiagnosticMessageToJson(this);
 }
 
 @JsonSerializable()

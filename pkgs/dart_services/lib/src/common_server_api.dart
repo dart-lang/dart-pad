@@ -17,6 +17,7 @@ import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
 import 'shared/model.dart' as api;
+import 'shared/services.dart';
 import 'shelf_cors.dart' as shelf_cors;
 
 export 'common_server_impl.dart' show log;
@@ -62,12 +63,25 @@ class CommonServerApi {
           return api.AnalysisIssue(
             kind: issue.kind,
             message: issue.message,
+            location: api.Location(
+              charStart: issue.charStart,
+              charLength: issue.charLength,
+              line: issue.line,
+              column: issue.column,
+            ),
             correction: issue.hasCorrection() ? issue.correction : null,
             url: issue.hasUrl() ? issue.url : null,
-            charStart: issue.charStart,
-            charLength: issue.charLength,
-            line: issue.line,
-            column: issue.column,
+            contextMessages: issue.diagnosticMessages.map((diagnostic) {
+              return api.DiagnosticMessage(
+                message: diagnostic.message,
+                location: Location(
+                  charStart: diagnostic.charStart,
+                  charLength: diagnostic.charLength,
+                  line: diagnostic.line,
+                  column: diagnostic.column,
+                ),
+              );
+            }).toList(),
           );
         }).toList(),
         packageImports: result.packageImports,
