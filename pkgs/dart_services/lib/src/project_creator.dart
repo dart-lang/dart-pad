@@ -210,7 +210,7 @@ Map<String, String> parsePubDependenciesFile({required File dependenciesFile}) {
   return packageVersions.cast<String, String>();
 }
 
-/// Build a return a `pubspec.yaml` file.
+/// Build and return a `pubspec.yaml` file.
 String createPubspec({
   required bool includeFlutterWeb,
   required String dartLanguageVersion,
