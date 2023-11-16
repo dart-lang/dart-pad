@@ -46,9 +46,9 @@ jobs:
       - name: Create template projects and populate the custom pub cache
         run: dart run grinder build-project-templates
 
-      - name: Run tests
-        run: dart test
-
       # Build the web artifacts on the bots to ensure they don't regress.
       - name: Build web artifacts
         run: dart run grinder build-storage-artifacts
+
+      - name: Run tests
+        run: dart test
