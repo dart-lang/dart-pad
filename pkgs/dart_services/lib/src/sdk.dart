@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -26,17 +27,17 @@ class Sdk {
   /// The current version of the SDK, not including any `-dev` suffix.
   late final String version;
 
+  // The channel for this SDK.
+  late final String channel;
+
   /// If this is the stable channel.
-  bool get stableChannel => _channel == 'stable';
+  bool get stableChannel => channel == 'stable';
 
   /// If this is the beta channel.
-  bool get betaChannel => _channel == 'beta';
+  bool get betaChannel => channel == 'beta';
 
   /// If this is the main channel.
-  bool get mainChannel => _channel == 'main';
-
-  // Which channel is this SDK?
-  String? _channel;
+  bool get mainChannel => channel == 'main';
 
   // The directory that contains this SDK
   String? _sdkPath;
@@ -60,33 +61,21 @@ class Sdk {
 
   String get sdkPath => _sdkPath ??= _getSdkPath();
 
-  String get channel {
-    _channel ??= _getChannel();
-    return _channel!;
-  }
-
-  /// Returns the Flutter channel provided in environment variables.
-  String _getChannel() {
-    return Process.runSync(
-            'git', 'rev-parse --abbrev-ref HEAD'.split(' ').toList(),
-            workingDirectory: sdkPath)
-        .stdout
-        .toString()
-        .trim();
-  }
-
   Sdk() {
-    final flutterBinPath = path.join(sdkPath, 'bin');
-    _flutterBinPath = flutterBinPath;
-    dartSdkPath = path.join(flutterBinPath, 'cache', 'dart-sdk');
+    _flutterBinPath = path.join(sdkPath, 'bin');
+
+    dartSdkPath = path.join(_flutterBinPath, 'cache', 'dart-sdk');
     dartVersion = _readVersionFile(dartSdkPath);
-    flutterVersion = _readVersionFile(sdkPath);
-    final engineVersionPath =
-        path.join(flutterBinPath, 'internal', 'engine.version');
-    engineVersion = _readFile(engineVersionPath);
     version = dartVersion.contains('-')
         ? dartVersion.substring(0, dartVersion.indexOf('-'))
         : dartVersion;
+
+    // flutter --version --machine
+    final versions = _callFlutterVersion();
+
+    flutterVersion = versions['flutterVersion'] as String;
+    channel = versions['channel'] as String;
+    engineVersion = versions['engineRevision'] as String;
   }
 
   /// The path to the 'flutter' tool (binary).
@@ -94,6 +83,15 @@ class Sdk {
 
   String get flutterWebSdkPath {
     return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
+  }
+
+  Map<String, dynamic> _callFlutterVersion() {
+    final str = Process.runSync(
+      flutterToolPath,
+      ['--version', '--machine'],
+      workingDirectory: sdkPath,
+    ).stdout.toString().trim();
+    return jsonDecode(str) as Map<String, dynamic>;
   }
 
   static String _readVersionFile(String filePath) =>
