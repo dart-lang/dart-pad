@@ -86,12 +86,25 @@ class Sdk {
   }
 
   Map<String, dynamic> _callFlutterVersion() {
-    final str = Process.runSync(
-      flutterToolPath,
-      ['--version', '--machine'],
-      workingDirectory: sdkPath,
-    ).stdout.toString().trim();
-    return jsonDecode(str) as Map<String, dynamic>;
+    // Note that we try twice here as the 'flutter --version --machine' command
+    // can (erroneously) emit non-json text to stdout (for example, an initial
+    // analytics disclaimer).
+
+    try {
+      final str = Process.runSync(
+        flutterToolPath,
+        ['--version', '--machine'],
+        workingDirectory: sdkPath,
+      ).stdout.toString().trim();
+      return jsonDecode(str) as Map<String, dynamic>;
+    } on FormatException {
+      final str = Process.runSync(
+        flutterToolPath,
+        ['--version', '--machine'],
+        workingDirectory: sdkPath,
+      ).stdout.toString().trim();
+      return jsonDecode(str) as Map<String, dynamic>;
+    }
   }
 
   static String _readVersionFile(String filePath) =>

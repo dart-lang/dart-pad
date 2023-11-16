@@ -30,6 +30,7 @@ jobs:
       - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
         with:
             channel: ${{ matrix.sdk }}
+      - run: flutter --version
 
       - name: Install apt dependencies
         run: sudo apt-get install -y protobuf-compiler redis
