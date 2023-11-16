@@ -12,12 +12,11 @@ on:
       - '.github/workflows/dart_services.yml'
       - 'pkgs/dart_services/**'
   schedule:
-    - cron: '0 0 * * 0' # weekly
+    - cron: '0 0 * * *' # daily
 
 jobs:
-  # Check code formatting, static analysis, and build on a single OS (linux)
-  # against Dart stable and beta.
-  analyze:
+  # Check code formatting, static analysis, and build on a single OS (linux).
+  verify:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,39 +28,27 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
-      - name: Install dependencies
-        run: sudo apt-get install -y protobuf-compiler redis
-      - name: Install dependencies
-        run: dart pub get
-      - name: Analyze code
-        run: dart analyze --fatal-infos .
-      - name: check formatting
-        run: dart format --set-exit-if-changed lib test tool  
-      - name: Run tests
-        env:
-          FLUTTER_CHANNEL: ${{ matrix.sdk }}
-        run: |
-          export PATH=$PATH:$HOME/.pub-cache/bin
-          dart pub global activate protoc_plugin
-          dart run grinder test
+        with:
+            channel: ${{ matrix.sdk }}
 
-  # Run the benchmarks on the bots to ensure they don't regress.
-  benchmark:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: pkgs/dart_services/
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
-      - run: sudo apt-get install -y protobuf-compiler redis
-      - run: dart pub get
-      - name: Download the Flutter SDK
-        run: |
-          flutter doctor -v
-      - name: Prep the repo
-        env:
-          FLUTTER_CHANNEL: stable
-        run: dart run grinder buildbot
-      - name: Run benchmarks
-        run: dart benchmark/bench.dart
+      - name: Install apt dependencies
+        run: sudo apt-get install -y protobuf-compiler redis
+
+      - name: Install dart dependencies
+        run: dart pub get
+
+      - name: Analyze project source
+        run: dart analyze --fatal-infos
+
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed bin lib test tool
+
+      - name: Create template projects and populate the custom pub cache
+        run: dart run grinder build-project-templates
+
+      - name: Run tests
+        run: dart test
+
+      # Build the web artifacts on the bots to ensure they don't regress.
+      - name: Build web artifacts
+        run: dart run grinder build-storage-artifacts

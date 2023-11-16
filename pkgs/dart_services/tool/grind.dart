@@ -23,20 +23,6 @@ Future<void> main(List<String> args) async {
 }
 
 @Task()
-@Depends(buildProjectTemplates)
-void analyze() async {
-  await _run('dart', arguments: ['analyze']);
-}
-
-@Task()
-@Depends(buildStorageArtifacts)
-Future<void> test() => _run(Platform.executable, arguments: ['test']);
-
-@DefaultTask()
-@Depends(analyze, test)
-void analyzeTest() {}
-
-@Task()
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
   await _run(Platform.executable, arguments: [
@@ -46,33 +32,8 @@ Future<void> serve() async {
   ]);
 }
 
-const _dartImageName = 'dart';
-final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
-const _dockerFileNames = [
-  'cloud_run_beta.Dockerfile',
-  'cloud_run_main.Dockerfile',
-  'cloud_run_stable.Dockerfile',
-];
-
 /// Creates an SDK.
 Sdk _getSdk() => Sdk();
-
-@Task('Update the docker and SDK versions')
-void updateDockerVersion() {
-  final platformVersion = Platform.version.split(' ').first;
-  for (final dockerFileName in _dockerFileNames) {
-    final dockerFile = File(dockerFileName);
-    final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
-      if (s.contains(_dockerVersionMatcher)) {
-        return 'FROM $_dartImageName:$platformVersion';
-      }
-      return s;
-    }).toList();
-    dockerImageLines.add('');
-
-    dockerFile.writeAsStringSync(dockerImageLines.join('\n'));
-  }
-}
 
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
@@ -288,15 +249,10 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(updateDockerVersion, generateProtos, analyze, test,
-    validateStorageArtifacts)
+@Depends(buildProjectTemplates, validateStorageArtifacts)
 void deploy() {
   log('Deploy via Google Cloud Console');
 }
-
-@Task()
-@Depends(analyze, buildStorageArtifacts)
-void buildbot() {}
 
 @Task('Generate Protobuf classes')
 void generateProtos() async {
