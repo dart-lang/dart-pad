@@ -7,8 +7,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-const stableChannel = 'stable';
-
 class Sdk {
   /// The path to the Flutter binaries.
   late final String _flutterBinPath;
@@ -76,7 +74,7 @@ class Sdk {
     flutterVersion = versions['flutterVersion'] as String;
     engineVersion = versions['engineRevision'] as String;
 
-    // Report the 'master' channel to 'main';
+    // Report the 'master' channel as 'main';
     final tempChannel = versions['channel'] as String;
     channel = tempChannel == 'master' ? 'main' : tempChannel;
   }
@@ -94,26 +92,22 @@ class Sdk {
     // analytics disclaimer).
 
     try {
-      final str = Process.runSync(
+      return jsonDecode(Process.runSync(
         flutterToolPath,
         ['--version', '--machine'],
         workingDirectory: sdkPath,
-      ).stdout.toString().trim();
-      return jsonDecode(str) as Map<String, dynamic>;
+      ).stdout.toString().trim()) as Map<String, dynamic>;
     } on FormatException {
-      final str = Process.runSync(
+      return jsonDecode(Process.runSync(
         flutterToolPath,
         ['--version', '--machine'],
         workingDirectory: sdkPath,
-      ).stdout.toString().trim();
-      return jsonDecode(str) as Map<String, dynamic>;
+      ).stdout.toString().trim()) as Map<String, dynamic>;
     }
   }
 
-  static String _readVersionFile(String filePath) =>
-      _readFile(path.join(filePath, 'version'));
+  static String _readVersionFile(String filePath) {
+    final file = File(path.join(filePath, 'version'));
+    return file.readAsStringSync().trim();
+  }
 }
-
-const channels = ['stable', 'beta', 'main'];
-
-String _readFile(String filePath) => File(filePath).readAsStringSync().trim();
