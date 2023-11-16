@@ -74,8 +74,11 @@ class Sdk {
     final versions = _callFlutterVersion();
 
     flutterVersion = versions['flutterVersion'] as String;
-    channel = versions['channel'] as String;
     engineVersion = versions['engineRevision'] as String;
+
+    // Report the 'master' channel to 'main';
+    final tempChannel = versions['channel'] as String;
+    channel = tempChannel == 'master' ? 'main' : tempChannel;
   }
 
   /// The path to the 'flutter' tool (binary).
