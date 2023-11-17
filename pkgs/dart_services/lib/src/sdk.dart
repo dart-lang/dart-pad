@@ -86,6 +86,19 @@ class Sdk {
     return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
   }
 
+  bool get usesNewBootstrapEngine {
+    final uiWebPackage =
+        path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'lib', 'ui_web');
+    final initializationLibrary =
+        path.join(uiWebPackage, 'ui_web', 'initialization.dart');
+
+    final file = File(initializationLibrary);
+    if (!file.existsSync()) return false;
+
+    // Look for 'Future<void> bootstrapEngine({ ... }) { ... }'.
+    return file.readAsStringSync().contains('bootstrapEngine(');
+  }
+
   Map<String, dynamic> _callFlutterVersion() {
     // Note that we try twice here as the 'flutter --version --machine' command
     // can (erroneously) emit non-json text to stdout (for example, an initial
