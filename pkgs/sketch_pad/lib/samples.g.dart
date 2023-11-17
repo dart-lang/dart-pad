@@ -92,7 +92,7 @@ final _fibonacci = Sample(
 // that can be found in the LICENSE file.
 
 void main() {
-  var i = 20;
+  const i = 20;
 
   print('fibonacci($i) = ${fibonacci(i)}');
 }
@@ -114,7 +114,7 @@ final _helloWorld = Sample(
 // that can be found in the LICENSE file.
 
 void main() {
-  for (int i = 0; i < 10; i++) {
+  for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
   }
 }
@@ -154,9 +154,9 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   const MyHomePage({
-    Key? key,
+    super.key,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();

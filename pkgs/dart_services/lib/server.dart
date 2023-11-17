@@ -26,7 +26,7 @@ Future<void> main(List<String> args) async {
     ..addOption('storage-bucket',
         valueHelp: 'name',
         help: 'The name of the Cloud Storage bucket for compilation artifacts.',
-        defaultsTo: 'nnb_artifacts')
+        defaultsTo: 'nnbd_artifacts')
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show this usage information.');
 

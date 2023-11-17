@@ -245,7 +245,11 @@ void main() {
 
       expect(
         result.dartdoc!.toLowerCase(),
-        contains('prints a string representation'),
+        anyOf(
+          // Support both pre and post Dart 3.3.0.
+          contains('prints a string representation'),
+          contains('prints an object to the console'),
+        ),
       );
       expect(result.containingLibraryName, 'dart:core');
       expect(result.elementDescription, isNotNull);

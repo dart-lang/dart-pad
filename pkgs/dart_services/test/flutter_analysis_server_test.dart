@@ -13,7 +13,8 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:test/test.dart';
 
-final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+final channel = Platform.environment['FLUTTER_CHANNEL'] ?? 'stable';
+
 void main() => defineTests();
 
 void defineTests() {

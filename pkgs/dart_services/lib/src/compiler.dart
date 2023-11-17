@@ -179,8 +179,15 @@ class Compiler {
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
 
       final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
-      final bootstrapContents =
-          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+      String bootstrapContents;
+      if (usingFlutter) {
+        bootstrapContents = _sdk.usesNewBootstrapEngine
+            ? kBootstrapFlutterCode
+            : kBootstrapFlutterCode_3_16;
+      } else {
+        bootstrapContents = kBootstrapDartCode;
+      }
+
       await File(bootstrapPath).writeAsString(bootstrapContents);
 
       files.forEach((filename, content) async {
@@ -195,7 +202,7 @@ class Compiler {
           '-s',
           _projectTemplates.summaryFilePath,
           '-s',
-          '${_sdk.flutterWebSdkPath}/flutter_ddc_sdk_sound.dill',
+          '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill',
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
