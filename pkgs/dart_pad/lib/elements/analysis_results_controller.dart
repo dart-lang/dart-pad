@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:dartpad_shared/model.dart';
 import 'package:mdc_web/mdc_web.dart';
 
-import '../services/dartservices.dart';
 import 'button.dart';
 import 'elements.dart';
 
@@ -90,23 +90,17 @@ class AnalysisResultsController {
 
     final columnElem = DivElement()..classes.add('issue-column');
 
-    final hasLineNumber = issue.line >= 1;
-    final lineNumberInfo = hasLineNumber ? 'line ${issue.line}' : '';
-    final additionalSourceInfo = (issue.sourceName == 'main.dart')
-        ? ''
-        : '${hasLineNumber ? ' of ' : ''}${issue.sourceName} ';
-    final locationSeparator =
-        (additionalSourceInfo.isNotEmpty || lineNumberInfo.isNotEmpty)
-            ? ' • '
-            : '';
+    final hasLineNumber = issue.location.line >= 1;
+    final lineInfo = hasLineNumber ? 'line ${issue.location.line}' : '';
+    final separator = lineInfo.isNotEmpty ? ' • ' : '';
 
     final messageSpan = DivElement()
-      ..text = '$lineNumberInfo$additionalSourceInfo$locationSeparator$message'
+      ..text = '$lineInfo$separator$message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
 
     // Add a link to the documentation
-    if (issue.url.isNotEmpty) {
+    if (issue.url != null) {
       messageSpan.children.add(AnchorElement()
         ..href = issue.url
         ..text = ' (view docs)'
@@ -115,14 +109,13 @@ class AnalysisResultsController {
     }
 
     // Add the correction, if any.
-    if (issue.correction.isNotEmpty) {
+    if (issue.correction != null) {
       columnElem.children.add(DivElement()
         ..text = issue.correction
         ..classes.add('message'));
     }
 
-    // TODO: This should likely be named contextMessages.
-    for (final diagnostic in issue.diagnosticMessages) {
+    for (final diagnostic in issue.contextMessages ?? <DiagnosticMessage>[]) {
       columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
     }
 
@@ -148,10 +141,12 @@ class AnalysisResultsController {
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
-          sourceName: issue.sourceName,
-          line: issue.line,
-          charStart: issue.charStart,
-          charLength: issue.charLength));
+        line: issue.location.line,
+        charStart: issue.location.charStart,
+        charLength: issue.location.charLength,
+        // ignore: deprecated_member_use
+        inTestSource: issue.sourceName == 'test.dart',
+      ));
     });
 
     return elem;
@@ -169,8 +164,9 @@ class AnalysisResultsController {
       event.stopPropagation();
 
       _onClickController.add(Location(
-          //TODO: @timmaffett multi files will need -> diagnosticMessage.sourceName,
-          sourceName: parentIssue.sourceName,
+          // TODO(timmaffett): multi files will need -> diagnosticMessage.sourceName,
+          // ignore: deprecated_member_use
+          inTestSource: parentIssue.sourceName == 'test.dart',
           // For now if the source name is NOT main.dart then ASSUME that the
           // line number and charStart could have been adjust because of an
           // appended test, and use the information for the parentIssue instead.
@@ -180,15 +176,18 @@ class AnalysisResultsController {
           // change until multi file source merged))
           //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
           // or 'test.dart' (and in that case we changed line# and charStart).
+          // ignore: deprecated_member_use
           line: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.line
-              : parentIssue.line,
+              ? diagnosticMessage.location.line
+              : parentIssue.location.line,
+          // ignore: deprecated_member_use
           charStart: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.charStart
-              : parentIssue.charStart,
+              ? diagnosticMessage.location.charStart
+              : parentIssue.location.charStart,
+          // ignore: deprecated_member_use
           charLength: parentIssue.sourceName == 'main.dart'
-              ? diagnosticMessage.charLength
-              : parentIssue.charLength));
+              ? diagnosticMessage.location.charLength
+              : parentIssue.location.charLength));
     });
 
     return elem;
@@ -217,16 +216,18 @@ class AnalysisResultsController {
 
 /// A range of text in the file.
 class Location {
-  final String sourceName;
   final int line;
   final int charStart;
   final int charLength;
 
+  /// Whether this is from an auxillary, synthetic test file.
+  final bool inTestSource;
+
   Location({
-    required this.sourceName,
     required this.line,
     required this.charStart,
     required this.charLength,
+    this.inTestSource = false,
   });
 }
 

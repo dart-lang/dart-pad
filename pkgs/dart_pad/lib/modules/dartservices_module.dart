@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../services/common.dart';
-import '../services/dartservices.dart';
 
 // When sending requests from a browser we sanitize the headers to avoid
 // client side warnings for any blacklisted headers.
@@ -60,7 +60,7 @@ class DartServicesModule extends Module {
   Future<void> init() {
     final client = SanitizingBrowserClient();
     deps[BrowserClient] = client;
-    deps[DartservicesApi] = DartservicesApi(client, rootUrl: serverUrl);
+    deps[ServicesClient] = ServicesClient(client, rootUrl: serverUrl);
     return Future.value();
   }
 }

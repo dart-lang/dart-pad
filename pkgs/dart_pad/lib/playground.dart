@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:html' hide Console;
 
+import 'package:dartpad_shared/services.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
@@ -35,7 +36,6 @@ import 'modules/dartservices_module.dart';
 import 'playground_context.dart';
 import 'search_controller.dart';
 import 'services/common.dart';
-import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
 import 'sharing/editor_ui.dart';
@@ -805,7 +805,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   Future<void> _format() {
     final originalSource = context.dartSource;
-    final input = SourceRequest()..source = originalSource;
+    final input = SourceRequest(source: originalSource);
     _formatButton.disabled = true;
 
     final request = dartServices.format(input).timeout(formatServiceTimeout);
@@ -813,13 +813,13 @@ class Playground extends EditorUi implements GistContainer, GistController {
       busyLight.reset();
       _formatButton.disabled = false;
 
-      if (result.newString.isEmpty) {
+      if (result.source.isEmpty) {
         _logger.fine('Format returned null/empty result');
         return;
       }
 
-      if (originalSource != result.newString) {
-        context.dartSource = result.newString;
+      if (originalSource != result.source) {
+        context.dartSource = result.source;
         showSnackbar('Format successful.');
       } else {
         showSnackbar('No formatting changes.');
@@ -942,7 +942,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
     final buttonText =
         _channelsDropdownButton.querySelector('.mdc-button__label')!;
     buttonText.text = '$channel channel';
-    dartServices.rootUrl = Channel.urlMapping[channel]!;
+    deps[ServicesClient] = ServicesClient(
+      dartServices.client,
+      rootUrl: Channel.urlMapping[channel]!,
+    );
     updateVersions();
     performAnalysis();
 

@@ -6,7 +6,6 @@ environment:
   sdk: ^3.1.0
 
 dependencies:
-  async: ^2.11.0
   checked_yaml: ^2.0.3
   codemirror: ^0.7.10+5.65.13
   collection: ^1.17.2
