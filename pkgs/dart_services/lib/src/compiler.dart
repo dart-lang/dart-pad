@@ -195,7 +195,7 @@ class Compiler {
           '-s',
           _projectTemplates.summaryFilePath,
           '-s',
-          '${_sdk.flutterWebSdkPath}/flutter_ddc_sdk_sound.dill',
+          '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill',
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
