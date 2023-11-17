@@ -67,11 +67,7 @@ The server will run from port 8080 and export several JSON APIs, like
 
 To run tests:
 
-`dart tool/grind.dart test`
-
-or:
-
-`grind deploy` for all tests and checks.
+`dart test`
 
 ## Redis
 

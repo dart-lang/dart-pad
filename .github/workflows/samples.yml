@@ -30,4 +30,3 @@ jobs:
       - run: dart format --set-exit-if-changed .
       - run: dart tool/samples.dart --verify
       - run: flutter build web
-      # - run: flutter test

@@ -23,20 +23,6 @@ Future<void> main(List<String> args) async {
 }
 
 @Task()
-@Depends(buildProjectTemplates)
-void analyze() async {
-  await _run('dart', arguments: ['analyze']);
-}
-
-@Task()
-@Depends(buildStorageArtifacts)
-Future<void> test() => _run(Platform.executable, arguments: ['test']);
-
-@DefaultTask()
-@Depends(analyze, test)
-void analyzeTest() {}
-
-@Task()
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
   await _run(Platform.executable, arguments: [
@@ -44,34 +30,6 @@ Future<void> serve() async {
     '--port',
     '8080',
   ]);
-}
-
-const _dartImageName = 'dart';
-final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
-const _dockerFileNames = [
-  'cloud_run_beta.Dockerfile',
-  'cloud_run_main.Dockerfile',
-  'cloud_run_stable.Dockerfile',
-];
-
-/// Creates an SDK.
-Sdk _getSdk() => Sdk();
-
-@Task('Update the docker and SDK versions')
-void updateDockerVersion() {
-  final platformVersion = Platform.version.split(' ').first;
-  for (final dockerFileName in _dockerFileNames) {
-    final dockerFile = File(dockerFileName);
-    final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
-      if (s.contains(_dockerVersionMatcher)) {
-        return 'FROM $_dartImageName:$platformVersion';
-      }
-      return s;
-    }).toList();
-    dockerImageLines.add('');
-
-    dockerFile.writeAsStringSync(dockerImageLines.join('\n'));
-  }
 }
 
 final List<String> compilationArtifacts = [
@@ -83,7 +41,7 @@ final List<String> compilationArtifacts = [
     'google storage')
 void validateStorageArtifacts() async {
   final args = context.invocation.arguments;
-  final sdk = _getSdk();
+  final sdk = Sdk();
   final version = sdk.dartVersion;
   final bucket = switch (args.hasOption('bucket')) {
     true => args.getOption('bucket'),
@@ -124,7 +82,7 @@ void buildProjectTemplates() async {
     await templatesDirectory.delete(recursive: true);
   }
 
-  final sdk = _getSdk();
+  final sdk = Sdk();
   final projectCreator = ProjectCreator(
     sdk,
     templatesPath,
@@ -142,7 +100,7 @@ void buildProjectTemplates() async {
 @Task('build the sdk compilation artifacts for upload to google storage')
 @Depends(updatePubDependencies)
 void buildStorageArtifacts() async {
-  final sdk = _getSdk();
+  final sdk = Sdk();
   delete(getDir('artifacts'));
   final instructions = <String>[];
 
@@ -227,8 +185,8 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   }
 
   // Make sure
-  // flutter-sdks/<channel>/bin/cache/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
-  // is installed.
+  // <flutter-sdk>/bin/cache/flutter_web_sdk/kernel/ddc_outline_sound.dill is
+  // installed.
   await _run(
     sdk.flutterToolPath,
     arguments: ['precache', '--web'],
@@ -236,12 +194,12 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   );
 
   // Build the artifacts using DDC:
-  // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
+  // dart-sdk/bin/dartdevc -s kernel/ddc_outline_sound.dill
   //     --modules=amd package:flutter/animation.dart ...
   final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dart');
   final dillPath = path.join(
     sdk.flutterWebSdkPath,
-    'flutter_ddc_sdk_sound.dill',
+    'ddc_outline_sound.dill',
   );
 
   final arguments = <String>[
@@ -288,15 +246,10 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(updateDockerVersion, generateProtos, analyze, test,
-    validateStorageArtifacts)
+@Depends(buildProjectTemplates, validateStorageArtifacts)
 void deploy() {
   log('Deploy via Google Cloud Console');
 }
-
-@Task()
-@Depends(analyze, buildStorageArtifacts)
-void buildbot() {}
 
 @Task('Generate Protobuf classes')
 void generateProtos() async {
@@ -347,7 +300,7 @@ Future<void> _run(
 @Task('Update pubspec dependency versions')
 @Depends(buildProjectTemplates)
 void updatePubDependencies() async {
-  final sdk = _getSdk();
+  final sdk = Sdk();
   await _updateDependenciesFile(
       flutterToolPath: sdk.flutterToolPath, channel: sdk.channel, sdk: sdk);
 }
