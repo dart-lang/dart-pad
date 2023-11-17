@@ -185,8 +185,8 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   }
 
   // Make sure
-  // flutter-sdks/<channel>/bin/cache/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
-  // is installed.
+  // <flutter-sdk>/bin/cache/flutter_web_sdk/kernel/ddc_outline_sound.dill is
+  // installed.
   await _run(
     sdk.flutterToolPath,
     arguments: ['precache', '--web'],
@@ -194,12 +194,12 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   );
 
   // Build the artifacts using DDC:
-  // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
+  // dart-sdk/bin/dartdevc -s kernel/ddc_outline_sound.dill
   //     --modules=amd package:flutter/animation.dart ...
   final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dart');
   final dillPath = path.join(
     sdk.flutterWebSdkPath,
-    'flutter_ddc_sdk_sound.dill',
+    'ddc_outline_sound.dill',
   );
 
   final arguments = <String>[
