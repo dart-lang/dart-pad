@@ -24,7 +24,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import 'server_cache.dart';
+import 'caching.dart';
 
 final Logger _logger = Logger('github_oauth_handler');
 

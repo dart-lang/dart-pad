@@ -16,7 +16,7 @@ void defineTests() {
   final request =
       shelf.Request('GET', Uri.parse('http://example.com/index.html'));
 
-  group('The corsHeaders middleware', () {
+  group('shelf_cors', () {
     test('adds default CORS headers to the response', () async {
       final middleware = shelf_cors.createCorsHeadersMiddleware();
       final handler = middleware(handleAll);

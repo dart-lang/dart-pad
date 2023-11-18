@@ -43,6 +43,7 @@ class AnalysisIssue {
   final String kind;
   final String message;
   final Location location;
+  final String? code;
   final String? correction;
   final String? url;
   final List<DiagnosticMessage>? contextMessages;
@@ -53,6 +54,7 @@ class AnalysisIssue {
     required this.kind,
     required this.message,
     required this.location,
+    this.code,
     this.correction,
     this.url,
     this.contextMessages,
@@ -63,6 +65,15 @@ class AnalysisIssue {
       _$AnalysisIssueFromJson(json);
 
   Map<String, dynamic> toJson() => _$AnalysisIssueToJson(this);
+
+  int get severity {
+    return switch (kind) {
+      'error' => 3,
+      'warning' => 2,
+      'info' => 1,
+      _ => 0,
+    };
+  }
 
   @override
   String toString() => '[$kind] $message';
@@ -161,18 +172,6 @@ class FormatResponse {
 
   @override
   String toString() => 'FormatResponse[source=$source,offset=$offset]';
-}
-
-@JsonSerializable()
-class FlutterBuildResponse {
-  final Map<String, String> artifacts;
-
-  FlutterBuildResponse({required this.artifacts});
-
-  factory FlutterBuildResponse.fromJson(Map<String, dynamic> json) =>
-      _$FlutterBuildResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FlutterBuildResponseToJson(this);
 }
 
 @JsonSerializable()

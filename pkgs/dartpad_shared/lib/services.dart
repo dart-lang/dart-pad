@@ -40,11 +40,6 @@ class ServicesClient {
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
-  /// Note that this call is experimental and can change at any time.
-  Future<FlutterBuildResponse> flutterBuild(SourceRequest request) =>
-      _requestPost(
-          '_flutterBuild', request.toJson(), FlutterBuildResponse.fromJson);
-
   void dispose() => client.close();
 
   Future<T> _requestGet<T>(

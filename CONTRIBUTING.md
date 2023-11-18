@@ -42,15 +42,12 @@ Contributions made by corporations are covered by a different agreement than the
 
 * To run the DartPad against the regular serving backend:
 
-Install the [`protoc` compiler](https://grpc.io/docs/protoc-installation/).
-
 Run these commands:
 
 ```bash
 # Get all Dart dependencies
 dart pub get
-# Install the Dart protobuf compiler & grinder tool
-dart pub global activate protoc_plugin
+# Install the Dart grinder tool
 dart pub global activate grinder
 # Serve
 grind serve

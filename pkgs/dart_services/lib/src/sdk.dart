@@ -46,15 +46,15 @@ class Sdk {
     return const [];
   }
 
-  // When running with `dart run`, the FLUTTER_ROOT environment variable is
-  // set automatically.
   String _getSdkPath() {
-    final env = Platform.environment;
-    if (!env.containsKey('FLUTTER_ROOT') || env['FLUTTER_ROOT']!.isEmpty) {
-      throw Exception('No FLUTTER_ROOT variable set');
-    }
+    // <flutter-sdk>/bin/cache/dart-sdk
+    final dart = Platform.resolvedExecutable;
+    final dartSdk = path.dirname(path.dirname(dart));
+    final flutterSdk = path.dirname(path.dirname(path.dirname(dartSdk)));
 
-    return env['FLUTTER_ROOT']!;
+    // todo: verify that this is a flutter sdk
+
+    return flutterSdk;
   }
 
   String get sdkPath => _sdkPath ??= _getSdkPath();
