@@ -14,10 +14,10 @@ void main() => defineTests();
 void defineTests() {
   group('analysis', () {
     final sdk = Sdk();
-    late DartAnalysisServerWrapper analysisServer;
+    late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
-      analysisServer = DartAnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
+      analysisServer = AnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
 
@@ -46,7 +46,7 @@ void defineTests() {
       expect(issue.code, 'prefer_typing_uninitialized_variables');
     });
 
-    test('repro #126 - completions polluted on second request', () async {
+    test('completions polluted on second request (repro #126)', () async {
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer
           .completeV3(completionFilterCode, 17)
@@ -62,7 +62,7 @@ void defineTests() {
       });
     });
 
-    test('import_test', () async {
+    test('disallow path imports', () async {
       // We're testing here that we don't have any path imports - we don't want
       // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
@@ -103,7 +103,7 @@ void defineTests() {
       expect(completionsContains(results, 'abs'), true);
     });
 
-    test('simple_quickFix', () async {
+    test('quickFix simple', () async {
       final results = await analysisServer.fixesV3(quickFixesCode, 25);
       final changes = results.fixes;
 
@@ -118,7 +118,7 @@ void defineTests() {
           changes.map((e) => e.edits.first.replacement), contains(equals(';')));
     });
 
-    test('simple_format', () async {
+    test('format simple', () async {
       final results = await analysisServer.format(badFormatCode, 0);
       expect(results.source, formattedCode);
     });
@@ -170,10 +170,10 @@ void defineTests() {
 
   group('analysis flutter', () {
     final sdk = Sdk();
-    late DartAnalysisServerWrapper analysisServer;
+    late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
-      analysisServer = DartAnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
+      analysisServer = AnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
 

@@ -15,26 +15,24 @@ import 'common_server.dart';
 import 'project_templates.dart' as project;
 import 'project_templates.dart';
 import 'pub.dart';
+import 'sdk.dart';
 import 'shared/model.dart' as api;
 import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
 
-// todo: remove this class?
-class AnalyzerWrapper {
-  final String dartSdkPath;
+class Analyzer {
+  final Sdk sdk;
 
-  late DartAnalysisServerWrapper _dartAnalysisServer;
+  late AnalysisServerWrapper analysisServer;
 
-  AnalyzerWrapper(this.dartSdkPath);
+  Analyzer(this.sdk);
 
   Future<void> init() async {
-    _logger.fine('Beginning AnalysisServersWrapper init().');
-    _dartAnalysisServer = DartAnalysisServerWrapper(sdkPath: dartSdkPath);
-    await _dartAnalysisServer.init();
-    _logger.info('Analysis server initialized.');
+    analysisServer = AnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
+    await analysisServer.init();
 
-    unawaited(_dartAnalysisServer.onExit.then((int code) {
+    unawaited(analysisServer.onExit.then((int code) {
       _logger.severe('analysis server exited, code: $code');
       if (code != 0) {
         exit(code);
@@ -42,69 +40,38 @@ class AnalyzerWrapper {
     }));
   }
 
-  // todo: inline this
-  Future<api.AnalysisResponse> analyze(String source) {
-    return _perfLogAndRestart(
-      source,
-      kMainDart,
-      0,
-      (List<ImportDirective> imports, int? offset) =>
-          _dartAnalysisServer.analyze(source, imports: imports),
-      'analysis',
-      'Error during analyze',
-    );
-  }
-
-  // todo: inline this
-  Future<api.CompleteResponse> completeV3(String source, int offset) {
-    // todo: sanitize imports
-    return _dartAnalysisServer.completeV3(source, offset);
-  }
-
-  // todo: inline this
-  Future<api.FixesResponse> fixesV3(String source, int offset) {
-    // todo: sanitize imports
-    return _dartAnalysisServer.fixesV3(source, offset);
-  }
-
-  // todo: inline this
-  Future<api.FormatResponse> format(String source, int? offset) {
-    return _perfLogAndRestart(
-      source,
-      kMainDart,
-      offset,
-      (List<ImportDirective> imports, int? offset) =>
-          _dartAnalysisServer.format(source, offset),
-      'format',
-      'Error during format at $offset',
-    );
-  }
-
-  // todo: inline this
-  Future<api.DocumentResponse> dartdocV3(String source, int offset) {
-    // todo: sanitize imports
-    return _dartAnalysisServer.dartdocV3(source, offset);
-  }
-
-  Future<T> _perfLogAndRestart<T>(
-    String source,
-    String activeSourceName,
-    int? offset,
-    Future<T> Function(List<ImportDirective>, int?) body,
-    String action,
-    String errorDescription,
-  ) async {
+  Future<api.AnalysisResponse> analyze(String source) async {
     final imports = getAllImportsFor(source);
+
+    // TODO(srawlins): Do the work so that each unsupported input is its own
+    // error with a proper SourceSpan.
     await _checkPackageReferences(imports);
-    try {
-      final watch = Stopwatch()..start();
-      final response = await body(imports, offset);
-      _logger.fine('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      _logger.severe(errorDescription, e, st);
-      rethrow;
-    }
+
+    return analysisServer.analyze(source, imports: imports);
+  }
+
+  Future<api.CompleteResponse> completeV3(String source, int offset) async {
+    await _checkPackageReferences(getAllImportsFor(source));
+
+    return analysisServer.completeV3(source, offset);
+  }
+
+  Future<api.FixesResponse> fixesV3(String source, int offset) async {
+    await _checkPackageReferences(getAllImportsFor(source));
+
+    return analysisServer.fixesV3(source, offset);
+  }
+
+  Future<api.FormatResponse> format(String source, int? offset) async {
+    await _checkPackageReferences(getAllImportsFor(source));
+
+    return analysisServer.format(source, offset);
+  }
+
+  Future<api.DocumentResponse> dartdocV3(String source, int offset) async {
+    await _checkPackageReferences(getAllImportsFor(source));
+
+    return analysisServer.dartdocV3(source, offset);
   }
 
   /// Check that the set of packages referenced is valid.
@@ -115,8 +82,6 @@ class AnalyzerWrapper {
     );
 
     if (unsupportedImports.isNotEmpty) {
-      // TODO(srawlins): Do the work so that each unsupported input is its own
-      // error, with a proper SourceSpan.
       final unsupportedUris =
           unsupportedImports.map((import) => import.uri.stringValue);
       throw BadRequest('Unsupported import(s): $unsupportedUris');
@@ -124,18 +89,18 @@ class AnalyzerWrapper {
   }
 
   Future<void> shutdown() {
-    return _dartAnalysisServer.shutdown();
+    return analysisServer.shutdown();
   }
 }
 
-class DartAnalysisServerWrapper {
+class AnalysisServerWrapper {
   final String sdkPath;
   final String projectPath;
 
   /// Instance to handle communication with the server.
   late AnalysisServer analysisServer;
 
-  DartAnalysisServerWrapper({
+  AnalysisServerWrapper({
     required this.sdkPath,
     String? projectPath,
   }) :
@@ -198,13 +163,21 @@ class DartAnalysisServerWrapper {
     }).where((CompletionSuggestion suggestion) {
       if (suggestion.kind != 'IMPORT') return true;
 
-      // todo: filter package suggestions to allowlisted packages
-
       // We do not want to enable arbitrary discovery of file system resources.
       // In order to avoid returning local file paths, we only allow returning
       // import kinds that are dart: or package: imports.
-      return suggestion.completion.startsWith('dart:') ||
-          suggestion.completion.startsWith('package:');
+      if (suggestion.completion.startsWith('dart:')) {
+        return true;
+      }
+
+      // Filter package suggestions to allowlisted packages.
+      if (suggestion.completion.startsWith('package:')) {
+        var packageName = suggestion.completion.substring('package:'.length);
+        packageName = packageName.split('/').first;
+        return isSupportedPackage(packageName);
+      }
+
+      return false;
     }).toList();
 
     suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
@@ -237,34 +210,29 @@ class DartAnalysisServerWrapper {
 
   Future<api.FixesResponse> fixesV3(String src, int offset) async {
     final mainFile = _getPathFromName(kMainDart);
-    final overlay = {mainFile: src};
 
-    await _loadSources(overlay);
+    await _loadSources({mainFile: src});
 
-    try {
-      final fixes = await analysisServer.edit.getFixes(mainFile, offset);
-      final assists = await analysisServer.edit.getAssists(mainFile, offset, 1);
+    final fixes = await analysisServer.edit.getFixes(mainFile, offset);
+    final assists = await analysisServer.edit.getAssists(mainFile, offset, 1);
 
-      final fixChanges = fixes.fixes.expand((fixes) => fixes.fixes).toList();
-      final assistsChanges = assists.assists;
+    final fixChanges = fixes.fixes.expand((fixes) => fixes.fixes).toList();
+    final assistsChanges = assists.assists;
 
-      // Filter any source changes that want to act on files other than main.dart.
-      fixChanges.removeWhere(
-          (change) => change.edits.any((edit) => edit.file != mainFile));
-      assistsChanges.removeWhere(
-          (change) => change.edits.any((edit) => edit.file != mainFile));
+    // Filter any source changes that want to act on files other than main.dart.
+    fixChanges.removeWhere(
+        (change) => change.edits.any((edit) => edit.file != mainFile));
+    assistsChanges.removeWhere(
+        (change) => change.edits.any((edit) => edit.file != mainFile));
 
-      return api.FixesResponse(
-        fixes: fixChanges.map((change) {
-          return change.toApiSourceChange();
-        }).toList(),
-        assists: assistsChanges.map((change) {
-          return change.toApiSourceChange();
-        }).toList(),
-      );
-    } finally {
-      await _unloadSources();
-    }
+    return api.FixesResponse(
+      fixes: fixChanges.map((change) {
+        return change.toApiSourceChange();
+      }).toList(),
+      assists: assistsChanges.map((change) {
+        return change.toApiSourceChange();
+      }).toList(),
+    );
   }
 
   /// Format the source [src] of the single passed in file. The [offset] is the
@@ -293,13 +261,11 @@ class DartAnalysisServerWrapper {
   }
 
   Future<api.DocumentResponse> dartdocV3(String src, int offset) async {
-    final sources = _getOverlayMapWithPaths({kMainDart: src});
     final sourcepath = _getPathFromName(kMainDart);
 
-    await _loadSources(sources);
+    await _loadSources(_getOverlayMapWithPaths({kMainDart: src}));
 
     final result = await analysisServer.analysis.getHover(sourcepath, offset);
-    await _unloadSources();
 
     if (result.hovers.isEmpty) {
       return api.DocumentResponse();
@@ -331,7 +297,6 @@ class DartAnalysisServerWrapper {
       errors
           .addAll((await analysisServer.analysis.getErrors(sourcepath)).errors);
     }
-    await _unloadSources();
 
     final issues = errors.map((error) {
       final issue = api.AnalysisIssue(
@@ -385,43 +350,24 @@ class DartAnalysisServerWrapper {
   }
 
   /// Cleanly shutdown the Analysis Server.
-  Future<void> shutdown() {
-    // TODO(jcollins-g): calling dispose() sometimes prevents
-    // --pause-isolates-on-exit from working; fix.
-    return analysisServer.server
-        .shutdown()
-        .timeout(const Duration(seconds: 1))
-        // At runtime, it appears that [ServerDomain.shutdown] returns a
-        // `Future<Map<dynamic, dynamic>>`.
-        .catchError((_) => <dynamic, dynamic>{});
+  Future<void> shutdown() async {
+    await analysisServer.server.shutdown().timeout(const Duration(seconds: 1));
   }
 
   Future<Suggestions2Result> _completeImpl(
       Map<String, String> sources, String sourceName, int offset) async {
-    sources = _getOverlayMapWithPaths(sources);
-    await _loadSources(sources);
+    await _loadSources(_getOverlayMapWithPaths(sources));
 
-    try {
-      return await analysisServer.completion.getSuggestions2(
-        _getPathFromName(sourceName),
-        offset,
-        500,
-      );
-    } finally {
-      // TODO: Remove the need to unload sources.
-      await _unloadSources();
-    }
+    return await analysisServer.completion.getSuggestions2(
+      _getPathFromName(sourceName),
+      offset,
+      500,
+    );
   }
 
   Future<FormatResult> _formatImpl(String src, int? offset) async {
     await _loadSources({mainPath: src});
-    final FormatResult result;
-    try {
-      result = await analysisServer.edit.format(mainPath, offset ?? 0, 0);
-    } finally {
-      await _unloadSources();
-    }
-    return result;
+    return await analysisServer.edit.format(mainPath, offset ?? 0, 0);
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
@@ -435,50 +381,27 @@ class DartAnalysisServerWrapper {
   String _getPathFromName(String sourceName) =>
       path.join(projectPath, sourceName);
 
-  final Set<String> _overlayPaths = <String>{};
+  List<String> _overlayPaths = [];
 
   /// Loads [sources] as file system overlays to the analysis server.
   ///
   /// The analysis server then begins to analyze these as priority files.
   Future<void> _loadSources(Map<String, String> sources) async {
-    if (_overlayPaths.isNotEmpty) {
-      throw StateError(
-          'There should be no overlay paths while loading sources, but we '
-          'have: $_overlayPaths');
-    }
-    await _sendAddOverlays(sources);
-    await analysisServer.analysis.setPriorityFiles(sources.keys.toList());
-  }
-
-  Future<void> _unloadSources() async {
-    await _sendRemoveOverlays();
-    await analysisServer.analysis.setPriorityFiles([]);
-  }
-
-  /// Sends [overlays] to the analysis server.
-  Future<void> _sendAddOverlays(Map<String, String> overlays) async {
-    final contentOverlays = overlays.map((overlayPath, content) =>
-        MapEntry(overlayPath, AddContentOverlay(content)));
-
-    _logger.fine('About to send analysis.updateContent');
-    _logger.fine('  ${contentOverlays.keys}');
-
-    _overlayPaths.addAll(contentOverlays.keys);
-
-    await analysisServer.analysis.updateContent(contentOverlays);
-  }
-
-  Future<void> _sendRemoveOverlays() async {
-    _logger.fine('About to send analysis.updateContent remove overlays:');
-    _logger.fine('  $_overlayPaths');
-
-    final contentOverlays = {
+    // Remove all the existing overlays.
+    final contentOverlays = <String, ContentOverlayType>{
       for (final overlayPath in _overlayPaths)
         overlayPath: RemoveContentOverlay()
     };
-    _overlayPaths.clear();
+
+    // Add (or replace) new overlays for the given files.
+    for (final sourceEntry in sources.entries) {
+      contentOverlays[sourceEntry.key] = AddContentOverlay(sourceEntry.value);
+    }
 
     await analysisServer.analysis.updateContent(contentOverlays);
+    await analysisServer.analysis.setPriorityFiles(sources.keys.toList());
+
+    _overlayPaths = sources.keys.toList();
   }
 
   final Map<String, Completer<CompletionResults>> _completionCompleters =

@@ -76,74 +76,74 @@ const Set<String> firebasePackages = {
 };
 
 /// The set of supported Flutter-oriented packages.
-Set<String> supportedFlutterPackages() => {
-      'animations',
-      'creator',
-      'firebase_analytics',
-      'firebase_database',
-      'firebase_messaging',
-      'firebase_storage',
-      'flame',
-      'flame_fire_atlas',
-      'flame_forge2d',
-      'flame_splash_screen',
-      'flame_tiled',
-      'flutter_adaptive_scaffold',
-      'flutter_bloc',
-      'flutter_hooks',
-      'flutter_lints',
-      'flutter_map',
-      'flutter_processing',
-      'flutter_riverpod',
-      'flutter_svg',
-      'go_router',
-      'google_fonts',
-      'hooks_riverpod',
-      'provider',
-      'riverpod_navigator',
-      'shared_preferences',
-      'video_player',
-    };
+const Set<String> supportedFlutterPackages = {
+  'animations',
+  'creator',
+  'firebase_analytics',
+  'firebase_database',
+  'firebase_messaging',
+  'firebase_storage',
+  'flame',
+  'flame_fire_atlas',
+  'flame_forge2d',
+  'flame_splash_screen',
+  'flame_tiled',
+  'flutter_adaptive_scaffold',
+  'flutter_bloc',
+  'flutter_hooks',
+  'flutter_lints',
+  'flutter_map',
+  'flutter_processing',
+  'flutter_riverpod',
+  'flutter_svg',
+  'go_router',
+  'google_fonts',
+  'hooks_riverpod',
+  'provider',
+  'riverpod_navigator',
+  'shared_preferences',
+  'video_player',
+};
 
 /// The set of packages which indicate that Flutter Web is being used.
-Set<String> _packagesIndicatingFlutter() => {
-      'flutter',
-      'flutter_test',
-      ...supportedFlutterPackages(),
-      ...firebasePackages,
-    };
+const Set<String> _packagesIndicatingFlutter = {
+  'flutter',
+  'flutter_test',
+  ...supportedFlutterPackages,
+  ...firebasePackages,
+};
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
-Set<String> supportedBasicDartPackages() => {
-      'basics',
-      'bloc',
-      'characters',
-      'collection',
-      'cross_file',
-      'dartz',
-      'english_words',
-      'equatable',
-      'fast_immutable_collections',
-      'http',
-      'intl',
-      'js',
-      'lints',
-      'matcher',
-      'meta',
-      'path',
-      'petitparser',
-      'quiver',
-      'riverpod',
-      'rohd',
-      'rohd_vf',
-      'rxdart',
-      'timezone',
-      'tuple',
-      'vector_math',
-      'yaml',
-      'yaml_edit',
-    };
+const Set<String> supportedBasicDartPackages = {
+  'basics',
+  'bloc',
+  'characters',
+  'collection',
+  'cross_file',
+  'dartz',
+  'english_words',
+  'equatable',
+  'fast_immutable_collections',
+  'http',
+  'intl',
+  'js',
+  'lints',
+  'matcher',
+  'meta',
+  'path',
+  'petitparser',
+  'quiver',
+  'riverpod',
+  'rohd',
+  'rohd_vf',
+  'rxdart',
+  'timezone',
+  'tuple',
+  'vector_math',
+  'yaml',
+  'yaml_edit',
+};
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
 /// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
@@ -174,7 +174,7 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports) {
 
     final packageName = _packageNameFromPackageUri(uriString);
     return packageName != null &&
-        _packagesIndicatingFlutter().contains(packageName);
+        _packagesIndicatingFlutter.contains(packageName);
   });
 }
 
@@ -218,10 +218,12 @@ List<ImportDirective> getUnsupportedImports(
     if (uriString == null || uriString.isEmpty) {
       return false;
     }
+
     // All non-VM 'dart:' imports are ok.
     if (uriString.startsWith('dart:')) {
       return !_allowedDartImports.contains(uriString);
     }
+
     // Filenames from within this compilation files={} sources file set
     // are OK. (These filenames have been sanitized to prevent 'package:'
     // (and other) prefixes, so the a filename cannot be used to bypass
@@ -245,6 +247,7 @@ List<ImportDirective> getUnsupportedImports(
   }).toList();
 }
 
-bool isSupportedPackage(String package) =>
-    _packagesIndicatingFlutter().contains(package) ||
-    supportedBasicDartPackages().contains(package);
+bool isSupportedPackage(String package) {
+  return _packagesIndicatingFlutter.contains(package) ||
+      supportedBasicDartPackages.contains(package);
+}

@@ -6,52 +6,48 @@ A server backend to support DartPad.
 
 ## What is it? What does it do?
 
-This project is a small, stateless Dart server, which powers the front-end of DartPad.
-It provides many of DartPad's features, including static analysis (errors and warnings),
-compilation to JavaScript, code completion, dartdoc information, code formatting, and
-quick fixes for issues.
+This project is a small, stateless Dart server, which powers the front-end of
+DartPad. It provides many of DartPad's features, including static analysis
+(errors and warnings), compilation to JavaScript, code completion, dartdoc
+information, code formatting, and quick fixes for issues.
 
 ## Getting set up
 
-This project is built with [grinder](https://pub.dev/packages/grinder). To install, please run:
+### Initialize Flutter
 
-```bash
-$ dart pub global activate grinder
-```
+The Flutter SDK needs to be downloaded and setup; see
+https://docs.flutter.dev/get-started/install.
 
-## Initialize Flutter
-
-The Flutter SDK needs to be downloaded and setup.
-
-```bash
-$ dart pub get
-$ dart run tool/update_sdk.dart stable
-```
-
-## Build the subsidiary files
-
-The Dart Services server depends on generated files. Run the following to generate all the required binaries.
-
-```bash
-$ dart tool/grind.dart deploy
-```
-
-## Running
+### Running
 
 To run the server, run:
 
 ```bash
-$ dart tool/grind.dart serve
+$ dart bin/server.dart
 ```
 
 The server will run from port 8080 and export several JSON APIs, like
-`/api/v3/compile` and `/api/v3/analyze`.
+`/api/v3/analyze` and `/api/v3/compile`.
 
-## Testing
+### Testing
 
 To run tests:
 
 `dart test`
+
+### Re-renerating source
+
+To rebuild the shelf router, run:
+
+```
+dart run build_runner build --delete-conflicting-outputs
+```
+
+And to update the shared code from dartpad_shared, run:
+
+```
+dart tool/grind.dart copy-shared-source
+```
 
 ## Redis
 
@@ -63,12 +59,11 @@ To configure the server to use the local redis cache, run `dart bin/server.dart`
 
 ## Issues and bugs
 
-Please file reports on the
-[GitHub Issue Tracker for DartPad](https://github.com/dart-lang/dart-pad/issues).
+Please report issues at https://github.com/dart-lang/dart-pad/issues.
 
 ## License and Contributing
 
 Contributions welcome! Please read this short
-[guide](https://github.com/dart-lang/dart-services/wiki/Contributing) first.
+[guide](https://github.com/dart-lang/dart-pad/blob/main/CONTRIBUTING.md) first.
 You can view our license
-[here](https://github.com/dart-lang/dart-services/blob/master/LICENSE).
+[here](https://github.com/dart-lang/dart-pad/blob/main/LICENSE).

@@ -34,8 +34,8 @@ class CommonServerImpl {
   final ServerCache cache;
   final String storageBucket;
 
+  late Analyzer analyzer;
   late Compiler compiler;
-  late AnalyzerWrapper analysisServer;
 
   CommonServerImpl(
     this.sdk,
@@ -46,10 +46,10 @@ class CommonServerImpl {
   Future<void> init() async {
     log.fine('initing CommonServerImpl');
 
-    compiler = Compiler(sdk, storageBucket: storageBucket);
+    analyzer = Analyzer(sdk);
+    await analyzer.init();
 
-    analysisServer = AnalyzerWrapper(sdk.dartSdkPath);
-    await analysisServer.init();
+    compiler = Compiler(sdk, storageBucket: storageBucket);
   }
 
   Future<void> shutdown() async {
@@ -57,7 +57,7 @@ class CommonServerImpl {
 
     await cache.shutdown();
 
-    await analysisServer.shutdown();
+    await analyzer.shutdown();
     await compiler.dispose();
   }
 }
@@ -83,7 +83,7 @@ class CommonServerApi {
         api.SourceRequest.fromJson(await request.readAsJson());
 
     final result = await serialize(() {
-      return impl.analysisServer.analyze(sourceRequest.source);
+      return impl.analyzer.analyze(sourceRequest.source);
     });
 
     return ok(result.toJson());
@@ -139,8 +139,8 @@ class CommonServerApi {
     final sourceRequest =
         api.SourceRequest.fromJson(await request.readAsJson());
 
-    final result = await serialize(() => impl.analysisServer
-        .completeV3(sourceRequest.source, sourceRequest.offset!));
+    final result = await serialize(() =>
+        impl.analyzer.completeV3(sourceRequest.source, sourceRequest.offset!));
 
     return ok(result.toJson());
   }
@@ -152,8 +152,8 @@ class CommonServerApi {
     final sourceRequest =
         api.SourceRequest.fromJson(await request.readAsJson());
 
-    final result = await serialize(() => impl.analysisServer
-        .fixesV3(sourceRequest.source, sourceRequest.offset!));
+    final result = await serialize(() =>
+        impl.analyzer.fixesV3(sourceRequest.source, sourceRequest.offset!));
 
     return ok(result.toJson());
   }
@@ -166,7 +166,7 @@ class CommonServerApi {
         api.SourceRequest.fromJson(await request.readAsJson());
 
     final result = await serialize(() {
-      return impl.analysisServer.format(
+      return impl.analyzer.format(
         sourceRequest.source,
         sourceRequest.offset,
       );
@@ -183,7 +183,7 @@ class CommonServerApi {
         api.SourceRequest.fromJson(await request.readAsJson());
 
     final result = await serialize(() {
-      return impl.analysisServer.dartdocV3(
+      return impl.analyzer.dartdocV3(
         sourceRequest.source,
         sourceRequest.offset!,
       );

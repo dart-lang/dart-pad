@@ -52,7 +52,15 @@ class Sdk {
     final dartSdk = path.dirname(path.dirname(dart));
     final flutterSdk = path.dirname(path.dirname(path.dirname(dartSdk)));
 
-    // todo: verify that this is a flutter sdk
+    // Verify that this is a flutter sdk; check for bin/, packages/, and
+    // packages/flutter/.
+    final packages = path.join(flutterSdk, 'packages');
+    if (!FileSystemEntity.isDirectorySync(flutterSdk) ||
+        !FileSystemEntity.isDirectorySync(path.join(flutterSdk, 'bin')) ||
+        !FileSystemEntity.isDirectorySync(packages) ||
+        !FileSystemEntity.isDirectorySync(path.join(packages, 'flutter'))) {
+      throw StateError('flutter sdk not found (from $dartSdk)');
+    }
 
     return flutterSdk;
   }

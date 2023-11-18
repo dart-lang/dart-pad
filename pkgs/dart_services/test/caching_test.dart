@@ -11,8 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:test/test.dart';
 
-// todo: move this away from using a log for testing
-
 void main() async {
   final hasRedis = await hasRedisServer();
   defineTests(hasRedis);

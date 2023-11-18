@@ -29,12 +29,11 @@ const _flutterPackages = [
 
 /// This is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
-final Map<String, String> _nullSafePackageVersions =
-    packageVersionsFromPubspecLock(
-        project.ProjectTemplates.projectTemplates.firebasePath);
+final Map<String, String> _packageVersions = packageVersionsFromPubspecLock(
+    project.ProjectTemplates.projectTemplates.firebasePath);
 
 /// Returns a mapping of Pub package name to package version.
-Map<String, String> getPackageVersions() => _nullSafePackageVersions;
+Map<String, String> getPackageVersions() => _packageVersions;
 
 /// Returns a mapping of Pub package name to package version, retrieving data
 /// from the project template's `pubspec.lock` file.
