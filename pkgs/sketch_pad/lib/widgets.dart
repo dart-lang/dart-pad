@@ -245,24 +245,3 @@ class GoldenRatioCenter extends StatelessWidget {
     );
   }
 }
-
-class ValueBuilder<T> extends StatelessWidget {
-  final ValueListenable<T> listenable;
-  final Widget Function(T value) builder;
-
-  const ValueBuilder(
-    this.listenable,
-    this.builder, {
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: listenable,
-      builder: (BuildContext context, T value, Widget? child) {
-        return builder(value);
-      },
-    );
-  }
-}
