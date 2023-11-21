@@ -255,9 +255,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                     // title widget
                     Expanded(
                       child: Center(
-                        child: ValueBuilder(
-                          appModel.title,
-                          (String value) => Text(value),
+                        child: ValueListenableBuilder<String>(
+                          valueListenable: appModel.title,
+                          builder: (_, String value, __) => Text(value),
                         ),
                       ),
                     ),
@@ -316,9 +316,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Format action
-                                    ValueBuilder(
-                                      appModel.formattingBusy,
-                                      (bool value) {
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: appModel.formattingBusy,
+                                      builder: (_, bool value, __) {
                                         return PointerInterceptor(
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
@@ -333,9 +333,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                     ),
                                     const SizedBox(width: defaultSpacing),
                                     // Run action
-                                    ValueBuilder<bool>(
-                                      appModel.compilingBusy,
-                                      (bool value) {
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: appModel.compilingBusy,
+                                      builder: (_, bool value, __) {
                                         return PointerInterceptor(
                                           child: RunButton(
                                             onPressed: value
@@ -409,9 +409,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           });
                         },
                       ),
-                      ValueBuilder(
-                        appModel.compilingBusy,
-                        (compiling) {
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.compilingBusy,
+                        builder: (_, bool compiling, __) {
                           final color = theme.colorScheme.surface;
 
                           return AnimatedContainer(

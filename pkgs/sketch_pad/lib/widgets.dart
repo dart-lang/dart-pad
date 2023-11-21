@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -242,27 +241,6 @@ class GoldenRatioCenter extends StatelessWidget {
     return Container(
       alignment: const Alignment(0.0, -(1.618 / 4)),
       child: child,
-    );
-  }
-}
-
-class ValueBuilder<T> extends StatelessWidget {
-  final ValueListenable<T> listenable;
-  final Widget Function(T value) builder;
-
-  const ValueBuilder(
-    this.listenable,
-    this.builder, {
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: listenable,
-      builder: (BuildContext context, T value, Widget? child) {
-        return builder(value);
-      },
     );
   }
 }
