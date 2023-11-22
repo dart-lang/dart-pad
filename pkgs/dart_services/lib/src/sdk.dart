@@ -8,22 +8,23 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 class Sdk {
+  /// The path to the Dart SDK (vended into the Flutter SDK).
+  late final String dartSdkPath;
+
+  /// The path to the Flutter SDK.
+  late final String flutterSdkPath;
+
   /// The path to the Flutter binaries.
   late final String _flutterBinPath;
 
-  /// The path to the Dart SDK.
-  late final String dartSdkPath;
-
-  /// The current version of the SDK, including any `-dev` suffix.
+  /// The current version of the Dart SDK, including any `-dev` suffix.
   late final String dartVersion;
 
+  /// The current version of the Flutter SDK.
   late final String flutterVersion;
 
-  /// The current version of the Flutter engine
+  /// The current version of the Flutter engine.
   late final String engineVersion;
-
-  /// The current version of the SDK, not including any `-dev` suffix.
-  late final String version;
 
   // The channel for this SDK.
   late final String channel;
@@ -37,44 +38,36 @@ class Sdk {
   /// If this is the main channel.
   bool get mainChannel => channel == 'main';
 
-  // The directory that contains this SDK
-  String? _sdkPath;
-
   /// Experiments that this SDK is configured with
   List<String> get experiments {
     if (mainChannel) return const ['inline-class'];
     return const [];
   }
 
-  String _getSdkPath() {
+  void _initPaths() {
     // <flutter-sdk>/bin/cache/dart-sdk
-    final dart = Platform.resolvedExecutable;
-    final dartSdk = path.dirname(path.dirname(dart));
-    final flutterSdk = path.dirname(path.dirname(path.dirname(dartSdk)));
+    final dartVM = Platform.resolvedExecutable;
+
+    dartSdkPath = path.dirname(path.dirname(dartVM));
+    flutterSdkPath = path.dirname(path.dirname(path.dirname(dartSdkPath)));
+    _flutterBinPath = path.join(flutterSdkPath, 'bin');
 
     // Verify that this is a flutter sdk; check for bin/, packages/, and
     // packages/flutter/.
-    final packages = path.join(flutterSdk, 'packages');
-    if (!FileSystemEntity.isDirectorySync(flutterSdk) ||
-        !FileSystemEntity.isDirectorySync(path.join(flutterSdk, 'bin')) ||
+    final packages = path.join(flutterSdkPath, 'packages');
+    if (!FileSystemEntity.isDirectorySync(flutterSdkPath) ||
+        !FileSystemEntity.isDirectorySync(path.join(flutterSdkPath, 'bin')) ||
         !FileSystemEntity.isDirectorySync(packages) ||
         !FileSystemEntity.isDirectorySync(path.join(packages, 'flutter'))) {
-      throw StateError('flutter sdk not found (from $dartSdk)');
+      throw StateError('flutter sdk not found (from $dartSdkPath)');
     }
-
-    return flutterSdk;
   }
 
-  String get sdkPath => _sdkPath ??= _getSdkPath();
-
   Sdk() {
-    _flutterBinPath = path.join(sdkPath, 'bin');
+    _initPaths();
 
     dartSdkPath = path.join(_flutterBinPath, 'cache', 'dart-sdk');
     dartVersion = _readVersionFile(dartSdkPath);
-    version = dartVersion.contains('-')
-        ? dartVersion.substring(0, dartVersion.indexOf('-'))
-        : dartVersion;
 
     // flutter --version --machine
     final versions = _callFlutterVersion();
@@ -116,13 +109,13 @@ class Sdk {
       return jsonDecode(Process.runSync(
         flutterToolPath,
         ['--version', '--machine'],
-        workingDirectory: sdkPath,
+        workingDirectory: flutterSdkPath,
       ).stdout.toString().trim()) as Map<String, dynamic>;
     } on FormatException {
       return jsonDecode(Process.runSync(
         flutterToolPath,
         ['--version', '--machine'],
-        workingDirectory: sdkPath,
+        workingDirectory: flutterSdkPath,
       ).stdout.toString().trim()) as Map<String, dynamic>;
     }
   }

@@ -48,7 +48,8 @@ void validateStorageArtifacts() async {
     false => 'nnbd_artifacts',
   };
 
-  print('validate-storage-artifacts version: ${sdk.version} bucket: $bucket');
+  print(
+      'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket');
 
   final urlBase = 'https://storage.googleapis.com/$bucket/';
   for (final artifact in compilationArtifacts) {
