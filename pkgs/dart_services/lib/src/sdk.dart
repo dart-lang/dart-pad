@@ -66,7 +66,6 @@ class Sdk {
   Sdk() {
     _initPaths();
 
-    dartSdkPath = path.join(_flutterBinPath, 'cache', 'dart-sdk');
     dartVersion = _readVersionFile(dartSdkPath);
 
     // flutter --version --machine
