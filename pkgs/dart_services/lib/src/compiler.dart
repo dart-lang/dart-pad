@@ -68,7 +68,7 @@ class Compiler {
     sanitizeAndCheckFilenames(files);
     final imports = getAllImportsForFiles(files);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: files.keys.toList());
+        getUnsupportedImports(imports, sourceFiles: files.keys.toSet());
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
         for (final import in unsupportedImports)
@@ -155,7 +155,7 @@ class Compiler {
     sanitizeAndCheckFilenames(files);
     final imports = getAllImportsForFiles(files);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: files.keys.toList());
+        getUnsupportedImports(imports, sourceFiles: files.keys.toSet());
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
         for (final import in unsupportedImports)

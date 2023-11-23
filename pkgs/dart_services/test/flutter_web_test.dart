@@ -41,11 +41,11 @@ void defineTests() {
       expect(isUnsupportedImport('dart:ui'), isFalse);
     });
 
-    test('getUnsupportedImport allows package:flutter', () {
+    test('isUnsupportedImport allows package:flutter', () {
       expect(isUnsupportedImport('package:flutter'), isFalse);
     });
 
-    test('getUnsupportedImport allows package:path', () {
+    test('isUnsupportedImport allows package:path', () {
       expect(isUnsupportedImport('package:path'), isFalse);
     });
 
@@ -53,8 +53,15 @@ void defineTests() {
       expect(isUnsupportedImport('package:unsupported'), isTrue);
     });
 
-    test('isUnsupportedImport does not allow local imports', () {
+    test('isUnsupportedImport does not allow random local imports', () {
       expect(isUnsupportedImport('foo.dart'), isTrue);
+    });
+
+    test('isUnsupportedImport allows specified local imports', () {
+      expect(
+        isUnsupportedImport('foo.dart', sourceFiles: {'foo.dart'}),
+        isFalse,
+      );
     });
 
     test('isUnsupportedImport does not allow VM-only imports', () {

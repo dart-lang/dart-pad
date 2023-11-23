@@ -199,7 +199,7 @@ class AnalyzerWrapper {
     List<ImportDirective> imports,
   ) async {
     final unsupportedImports = project.getUnsupportedImports(imports,
-        sourcesFileList: sources.keys.toList());
+        sourceFiles: sources.keys.toSet());
 
     if (unsupportedImports.isNotEmpty) {
       // TODO(srawlins): Do the work so that each unsupported input is its own

@@ -207,10 +207,10 @@ String? _packageNameFromPackageUri(String uriString) {
 }
 
 /// Goes through imports list and returns list of unsupported imports.
-/// Optional [sourcesFileList] contains a list of the source filenames
+/// Optional [sourceFiles] contains a list of the source filenames
 /// which are all part of this overall sources file set (these are to
 /// be allowed).
-/// Note: The filenames in [sourcesFileList] were sanitized of any
+/// Note: The filenames in [sourceFiles] were sanitized of any
 /// 'package:'/etc syntax as the file set arrives from the endpoint,
 /// and before being passed to [getUnsupportedImports].
 /// This is done so the list can't be used to bypass unsupported imports.
@@ -218,10 +218,11 @@ String? _packageNameFromPackageUri(String uriString) {
 /// filenames.
 List<ImportDirective> getUnsupportedImports(
   List<ImportDirective> imports, {
-  List<String>? sourcesFileList,
+  Set<String>? sourceFiles,
 }) {
   return imports
-      .where((import) => isUnsupportedImport(import.uri.stringValue))
+      .where((import) => isUnsupportedImport(import.uri.stringValue,
+          sourceFiles: sourceFiles ?? const {}))
       .toList(growable: false);
 }
 
@@ -230,7 +231,7 @@ List<ImportDirective> getUnsupportedImports(
 @visibleForTesting
 bool isUnsupportedImport(
   String? importString, {
-  List<String>? sourcesFileList,
+  Set<String> sourceFiles = const {},
 }) {
   if (importString == null || importString.isEmpty) {
     return false;
@@ -243,7 +244,7 @@ bool isUnsupportedImport(
   // are OK. (These filenames have been sanitized to prevent 'package:'
   // (and other) prefixes, so the a filename cannot be used to bypass
   // import restrictions (see comment above)).
-  if (sourcesFileList != null && sourcesFileList.contains(importString)) {
+  if (sourceFiles.contains(importString)) {
     return false;
   }
 
