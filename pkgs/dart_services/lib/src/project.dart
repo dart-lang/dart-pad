@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Sets of project template directory paths.
@@ -76,74 +77,74 @@ const Set<String> firebasePackages = {
 };
 
 /// The set of supported Flutter-oriented packages.
-Set<String> supportedFlutterPackages() => {
-      'animations',
-      'creator',
-      'firebase_analytics',
-      'firebase_database',
-      'firebase_messaging',
-      'firebase_storage',
-      'flame',
-      'flame_fire_atlas',
-      'flame_forge2d',
-      'flame_splash_screen',
-      'flame_tiled',
-      'flutter_adaptive_scaffold',
-      'flutter_bloc',
-      'flutter_hooks',
-      'flutter_lints',
-      'flutter_map',
-      'flutter_processing',
-      'flutter_riverpod',
-      'flutter_svg',
-      'go_router',
-      'google_fonts',
-      'hooks_riverpod',
-      'provider',
-      'riverpod_navigator',
-      'shared_preferences',
-      'video_player',
-    };
+const Set<String> supportedFlutterPackages = {
+  'animations',
+  'creator',
+  'firebase_analytics',
+  'firebase_database',
+  'firebase_messaging',
+  'firebase_storage',
+  'flame',
+  'flame_fire_atlas',
+  'flame_forge2d',
+  'flame_splash_screen',
+  'flame_tiled',
+  'flutter_adaptive_scaffold',
+  'flutter_bloc',
+  'flutter_hooks',
+  'flutter_lints',
+  'flutter_map',
+  'flutter_processing',
+  'flutter_riverpod',
+  'flutter_svg',
+  'go_router',
+  'google_fonts',
+  'hooks_riverpod',
+  'provider',
+  'riverpod_navigator',
+  'shared_preferences',
+  'video_player',
+};
 
 /// The set of packages which indicate that Flutter Web is being used.
-Set<String> _packagesIndicatingFlutter() => {
-      'flutter',
-      'flutter_test',
-      ...supportedFlutterPackages(),
-      ...firebasePackages,
-    };
+const Set<String> _packagesIndicatingFlutter = {
+  'flutter',
+  'flutter_test',
+  ...supportedFlutterPackages,
+  ...firebasePackages,
+};
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
-Set<String> supportedBasicDartPackages() => {
-      'basics',
-      'bloc',
-      'characters',
-      'collection',
-      'cross_file',
-      'dartz',
-      'english_words',
-      'equatable',
-      'fast_immutable_collections',
-      'http',
-      'intl',
-      'js',
-      'lints',
-      'matcher',
-      'meta',
-      'path',
-      'petitparser',
-      'quiver',
-      'riverpod',
-      'rohd',
-      'rohd_vf',
-      'rxdart',
-      'timezone',
-      'tuple',
-      'vector_math',
-      'yaml',
-      'yaml_edit',
-    };
+const Set<String> supportedBasicDartPackages = {
+  'basics',
+  'bloc',
+  'characters',
+  'collection',
+  'cross_file',
+  'dartz',
+  'english_words',
+  'equatable',
+  'fast_immutable_collections',
+  'http',
+  'intl',
+  'js',
+  'lints',
+  'matcher',
+  'meta',
+  'path',
+  'petitparser',
+  'quiver',
+  'riverpod',
+  'rohd',
+  'rohd_vf',
+  'rxdart',
+  'timezone',
+  'tuple',
+  'vector_math',
+  'yaml',
+  'yaml_edit',
+};
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
 /// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
@@ -166,27 +167,33 @@ const Set<String> _allowedDartImports = {
 };
 
 /// Returns whether [imports] denote use of Flutter Web.
-bool usesFlutterWeb(Iterable<ImportDirective> imports) {
-  return imports.any((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null) return false;
-    if (uriString == 'dart:ui') return true;
+bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
+    imports.any((import) => isFlutterWebImport(import.uri.stringValue));
 
-    final packageName = _packageNameFromPackageUri(uriString);
-    return packageName != null &&
-        _packagesIndicatingFlutter().contains(packageName);
-  });
+/// Whether the [importString] represents an import
+/// that denotes use of Flutter Web.
+@visibleForTesting
+bool isFlutterWebImport(String? importString) {
+  if (importString == null) return false;
+  if (importString == 'dart:ui') return true;
+
+  final packageName = _packageNameFromPackageUri(importString);
+  return packageName != null &&
+      _packagesIndicatingFlutter.contains(packageName);
 }
 
 /// Returns whether [imports] denote use of Firebase.
-bool usesFirebase(Iterable<ImportDirective> imports) {
-  return imports.any((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null) return false;
+bool usesFirebase(Iterable<ImportDirective> imports) =>
+    imports.any((import) => isFirebaseImport(import.uri.stringValue));
 
-    final packageName = _packageNameFromPackageUri(uriString);
-    return packageName != null && firebasePackages.contains(packageName);
-  });
+/// Whether the [importString] represents an import
+/// that denotes use of a Firebase package.
+@visibleForTesting
+bool isFirebaseImport(String? importString) {
+  if (importString == null) return false;
+
+  final packageName = _packageNameFromPackageUri(importString);
+  return packageName != null && firebasePackages.contains(packageName);
 }
 
 /// If [uriString] represents a 'package:' URI, then returns the package name;
@@ -213,38 +220,47 @@ List<ImportDirective> getUnsupportedImports(
   List<ImportDirective> imports, {
   List<String>? sourcesFileList,
 }) {
-  return imports.where((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null || uriString.isEmpty) {
-      return false;
-    }
-    // All non-VM 'dart:' imports are ok.
-    if (uriString.startsWith('dart:')) {
-      return !_allowedDartImports.contains(uriString);
-    }
-    // Filenames from within this compilation files={} sources file set
-    // are OK. (These filenames have been sanitized to prevent 'package:'
-    // (and other) prefixes, so the a filename cannot be used to bypass
-    // import restrictions (see comment above)).
-    if (sourcesFileList != null && sourcesFileList.contains(uriString)) {
-      return false;
-    }
+  return imports
+      .where((import) => isUnsupportedImport(import.uri.stringValue))
+      .toList(growable: false);
+}
 
-    final uri = Uri.tryParse(uriString);
-    if (uri == null) return false;
+/// Whether the [importString] represents an import
+/// that is unsupported.
+@visibleForTesting
+bool isUnsupportedImport(
+  String? importString, {
+  List<String>? sourcesFileList,
+}) {
+  if (importString == null || importString.isEmpty) {
+    return false;
+  }
+  // All non-VM 'dart:' imports are ok.
+  if (importString.startsWith('dart:')) {
+    return !_allowedDartImports.contains(importString);
+  }
+  // Filenames from within this compilation files={} sources file set
+  // are OK. (These filenames have been sanitized to prevent 'package:'
+  // (and other) prefixes, so the a filename cannot be used to bypass
+  // import restrictions (see comment above)).
+  if (sourcesFileList != null && sourcesFileList.contains(importString)) {
+    return false;
+  }
 
-    // We allow a specific set of package imports.
-    if (uri.scheme == 'package') {
-      if (uri.pathSegments.isEmpty) return true;
-      final package = uri.pathSegments.first;
-      return !isSupportedPackage(package);
-    }
+  final uri = Uri.tryParse(importString);
+  if (uri == null) return false;
 
-    // Don't allow file imports.
-    return true;
-  }).toList();
+  // We allow a specific set of package imports.
+  if (uri.scheme == 'package') {
+    if (uri.pathSegments.isEmpty) return true;
+    final package = uri.pathSegments.first;
+    return !isSupportedPackage(package);
+  }
+
+  // Don't allow file imports.
+  return true;
 }
 
 bool isSupportedPackage(String package) =>
-    _packagesIndicatingFlutter().contains(package) ||
-    supportedBasicDartPackages().contains(package);
+    _packagesIndicatingFlutter.contains(package) ||
+    supportedBasicDartPackages.contains(package);

@@ -323,8 +323,8 @@ Future<void> _updateDependenciesFile({
     'lints': 'any',
     'flutter_lints': 'any',
     for (final package in firebasePackages) package: 'any',
-    for (final package in supportedFlutterPackages()) package: 'any',
-    for (final package in supportedBasicDartPackages()) package: 'any',
+    for (final package in supportedFlutterPackages) package: 'any',
+    for (final package in supportedBasicDartPackages) package: 'any',
   };
 
   // Overwrite with important constraints.
