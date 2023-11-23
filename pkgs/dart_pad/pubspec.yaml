@@ -3,7 +3,7 @@ description: The front end of DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.2.0
 
 dependencies:
   checked_yaml: ^2.0.3
