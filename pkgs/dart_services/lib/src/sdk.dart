@@ -45,22 +45,23 @@ class Sdk {
   }
 
   void _initPaths() {
-    // <flutter-sdk>/bin/cache/dart-sdk
-    final dartVM = Platform.resolvedExecutable;
+    // Note below, 'Platform.resolvedExecutable' will not lead to a real SDK if
+    // we've been compiled into an AOT binary. In those cases we fall back to
+    // looking for a 'FLUTTER_ROOT' environment variable.
 
-    dartSdkPath = path.dirname(path.dirname(dartVM));
-    flutterSdkPath = path.dirname(path.dirname(path.dirname(dartSdkPath)));
-    _flutterBinPath = path.join(flutterSdkPath, 'bin');
-
-    // Verify that this is a flutter sdk; check for bin/, packages/, and
-    // packages/flutter/.
-    final packages = path.join(flutterSdkPath, 'packages');
-    if (!FileSystemEntity.isDirectorySync(flutterSdkPath) ||
-        !FileSystemEntity.isDirectorySync(path.join(flutterSdkPath, 'bin')) ||
-        !FileSystemEntity.isDirectorySync(packages) ||
-        !FileSystemEntity.isDirectorySync(path.join(packages, 'flutter'))) {
-      throw StateError('flutter sdk not found (from $dartSdkPath)');
+    // <flutter-sdk>/bin/cache/dart-sdk/bin/dart
+    String? potentialPath = path.dirname(path.dirname(
+        path.dirname(path.dirname(path.dirname(Platform.resolvedExecutable)))));
+    if (!_validFlutterSdk(potentialPath)) {
+      potentialPath = Platform.environment['FLUTTER_ROOT'];
+      if (potentialPath == null || !_validFlutterSdk(potentialPath)) {
+        throw StateError('Flutter SDK not found');
+      }
     }
+
+    flutterSdkPath = potentialPath;
+    _flutterBinPath = path.join(flutterSdkPath, 'bin');
+    dartSdkPath = path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
   }
 
   Sdk() {
@@ -122,5 +123,22 @@ class Sdk {
   static String _readVersionFile(String filePath) {
     final file = File(path.join(filePath, 'version'));
     return file.readAsStringSync().trim();
+  }
+
+  static bool _validFlutterSdk(String sdkPath) {
+    // Verify that this is a Flutter sdk; check for bin/, packages/, and
+    // packages/flutter/.
+    if (!FileSystemEntity.isDirectorySync(sdkPath) ||
+        !FileSystemEntity.isDirectorySync(path.join(sdkPath, 'bin'))) {
+      return false;
+    }
+
+    final packages = path.join(sdkPath, 'packages');
+    if (!FileSystemEntity.isDirectorySync(packages) ||
+        !FileSystemEntity.isDirectorySync(path.join(packages, 'flutter'))) {
+      return false;
+    }
+
+    return true;
   }
 }
