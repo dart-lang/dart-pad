@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Sets of project template directory paths.
@@ -166,27 +167,33 @@ const Set<String> _allowedDartImports = {
 };
 
 /// Returns whether [imports] denote use of Flutter Web.
-bool usesFlutterWeb(Iterable<ImportDirective> imports) {
-  return imports.any((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null) return false;
-    if (uriString == 'dart:ui') return true;
+bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
+    imports.any((import) => isFlutterWebImport(import.uri.stringValue));
 
-    final packageName = _packageNameFromPackageUri(uriString);
-    return packageName != null &&
-        _packagesIndicatingFlutter.contains(packageName);
-  });
+/// Whether the [importString] represents an import
+/// that denotes use of Flutter Web.
+@visibleForTesting
+bool isFlutterWebImport(String? importString) {
+  if (importString == null) return false;
+  if (importString == 'dart:ui') return true;
+
+  final packageName = _packageNameFromPackageUri(importString);
+  return packageName != null &&
+      _packagesIndicatingFlutter.contains(packageName);
 }
 
 /// Returns whether [imports] denote use of Firebase.
-bool usesFirebase(Iterable<ImportDirective> imports) {
-  return imports.any((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null) return false;
+bool usesFirebase(Iterable<ImportDirective> imports) =>
+    imports.any((import) => isFirebaseImport(import.uri.stringValue));
 
-    final packageName = _packageNameFromPackageUri(uriString);
-    return packageName != null && firebasePackages.contains(packageName);
-  });
+/// Whether the [importString] represents an import
+/// that denotes use of a Firebase package.
+@visibleForTesting
+bool isFirebaseImport(String? importString) {
+  if (importString == null) return false;
+
+  final packageName = _packageNameFromPackageUri(importString);
+  return packageName != null && firebasePackages.contains(packageName);
 }
 
 /// If [uriString] represents a 'package:' URI, then returns the package name;
@@ -200,54 +207,60 @@ String? _packageNameFromPackageUri(String uriString) {
 }
 
 /// Goes through imports list and returns list of unsupported imports.
-///
-/// Optional [sourcesFileList] contains a list of the source filenames
+/// Optional [sourceFiles] contains a list of the source filenames
 /// which are all part of this overall sources file set (these are to
 /// be allowed).
 ///
-/// Note: The filenames in [sourcesFileList] were sanitized of any
-/// 'package:'/etc syntax as the file set arrives from the endpoint, and before
-/// being passed to [getUnsupportedImports]. This is done so the list can't be
-/// used to bypass unsupported imports.
+/// Note: The filenames in [sourceFiles] were sanitized of any
+/// 'package:'/etc syntax as the file set arrives from the endpoint, and
+/// before being passed to [getUnsupportedImports].This is done so
+/// the list can't be used to bypass unsupported imports.
 List<ImportDirective> getUnsupportedImports(
   List<ImportDirective> imports, {
-  List<String>? sourcesFileList,
+  Set<String>? sourceFiles,
 }) {
-  return imports.where((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null || uriString.isEmpty) {
-      return false;
-    }
-
-    // All non-VM 'dart:' imports are ok.
-    if (uriString.startsWith('dart:')) {
-      return !_allowedDartImports.contains(uriString);
-    }
-
-    // Filenames from within this compilation files={} sources file set
-    // are OK. (These filenames have been sanitized to prevent 'package:'
-    // (and other) prefixes, so the a filename cannot be used to bypass
-    // import restrictions (see comment above)).
-    if (sourcesFileList != null && sourcesFileList.contains(uriString)) {
-      return false;
-    }
-
-    final uri = Uri.tryParse(uriString);
-    if (uri == null) return false;
-
-    // We allow a specific set of package imports.
-    if (uri.scheme == 'package') {
-      if (uri.pathSegments.isEmpty) return true;
-      final package = uri.pathSegments.first;
-      return !isSupportedPackage(package);
-    }
-
-    // Don't allow file imports.
-    return true;
-  }).toList();
+  return imports
+      .where((import) => isUnsupportedImport(import.uri.stringValue,
+          sourceFiles: sourceFiles ?? const {}))
+      .toList(growable: false);
 }
 
-bool isSupportedPackage(String package) {
-  return _packagesIndicatingFlutter.contains(package) ||
-      supportedBasicDartPackages.contains(package);
+/// Whether the [importString] represents an import
+/// that is unsupported.
+@visibleForTesting
+bool isUnsupportedImport(
+  String? importString, {
+  Set<String> sourceFiles = const {},
+}) {
+  if (importString == null || importString.isEmpty) {
+    return false;
+  }
+  // All non-VM 'dart:' imports are ok.
+  if (importString.startsWith('dart:')) {
+    return !_allowedDartImports.contains(importString);
+  }
+  // Filenames from within this compilation files={} sources file set
+  // are OK. (These filenames have been sanitized to prevent 'package:'
+  // (and other) prefixes, so the a filename cannot be used to bypass
+  // import restrictions (see comment above)).
+  if (sourceFiles.contains(importString)) {
+    return false;
+  }
+
+  final uri = Uri.tryParse(importString);
+  if (uri == null) return false;
+
+  // We allow a specific set of package imports.
+  if (uri.scheme == 'package') {
+    if (uri.pathSegments.isEmpty) return true;
+    final package = uri.pathSegments.first;
+    return !isSupportedPackage(package);
+  }
+
+  // Don't allow file imports.
+  return true;
 }
+
+bool isSupportedPackage(String package) =>
+    _packagesIndicatingFlutter.contains(package) ||
+    supportedBasicDartPackages.contains(package);

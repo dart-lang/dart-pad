@@ -52,7 +52,7 @@ class Compiler {
   }) async {
     final imports = getAllImportsFor(source);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: [kMainDart]);
+        getUnsupportedImports(imports, sourceFiles: {kMainDart});
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
         for (final import in unsupportedImports)
@@ -121,7 +121,7 @@ class Compiler {
   Future<DDCCompilationResults> compileDDC(String source) async {
     final imports = getAllImportsFor(source);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: [kMainDart]);
+        getUnsupportedImports(imports, sourceFiles: {kMainDart});
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
         for (final import in unsupportedImports)

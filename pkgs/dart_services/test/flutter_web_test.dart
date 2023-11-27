@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:dart_services/src/project_templates.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -16,10 +15,6 @@ void defineTests() {
   final projectTemplates = ProjectTemplates.projectTemplates;
 
   group('FlutterWebManager', () {
-    final dartHtmlImport = _FakeImportDirective('dart:html');
-    final dartUiImport = _FakeImportDirective('dart:ui');
-    final packageFlutterImport = _FakeImportDirective('package:flutter/');
-
     test('initializes', () async {
       expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
       final file = File(path.join(
@@ -27,48 +22,50 @@ void defineTests() {
       expect(await file.exists(), isTrue);
     });
 
-    test('usesFlutterWeb', () {
-      expect(usesFlutterWeb({_FakeImportDirective('')}), isFalse);
-      expect(usesFlutterWeb({dartHtmlImport}), isFalse);
-      expect(usesFlutterWeb({dartUiImport}), isTrue);
-      expect(usesFlutterWeb({packageFlutterImport}), isTrue);
+    test('isFlutterWebImport', () {
+      expect(isFlutterWebImport(''), isFalse);
+      expect(isFlutterWebImport('dart:html'), isFalse);
+      expect(isFlutterWebImport('dart:ui'), isTrue);
+      expect(isFlutterWebImport('package:flutter/'), isTrue);
     });
 
-    test('getUnsupportedImport allows current library import', () {
-      expect(getUnsupportedImports([_FakeImportDirective('')]), isEmpty);
+    test('isUnsupportedImport allows current library import', () {
+      expect(isUnsupportedImport(''), isFalse);
     });
 
-    test('getUnsupportedImport allows dart:html', () {
+    test('isUnsupportedImport allows dart:html', () {
+      expect(isUnsupportedImport('dart:html'), isFalse);
+    });
+
+    test('isUnsupportedImport allows dart:ui', () {
+      expect(isUnsupportedImport('dart:ui'), isFalse);
+    });
+
+    test('isUnsupportedImport allows package:flutter', () {
+      expect(isUnsupportedImport('package:flutter'), isFalse);
+    });
+
+    test('isUnsupportedImport allows package:path', () {
+      expect(isUnsupportedImport('package:path'), isFalse);
+    });
+
+    test('isUnsupportedImport does not allow package:unsupported', () {
+      expect(isUnsupportedImport('package:unsupported'), isTrue);
+    });
+
+    test('isUnsupportedImport does not allow random local imports', () {
+      expect(isUnsupportedImport('foo.dart'), isTrue);
+    });
+
+    test('isUnsupportedImport allows specified local imports', () {
       expect(
-          getUnsupportedImports([_FakeImportDirective('dart:html')]), isEmpty);
+        isUnsupportedImport('foo.dart', sourceFiles: {'foo.dart'}),
+        isFalse,
+      );
     });
 
-    test('getUnsupportedImport allows dart:ui', () {
-      expect(getUnsupportedImports([dartUiImport]), isEmpty);
-    });
-
-    test('getUnsupportedImport allows package:flutter', () {
-      expect(getUnsupportedImports([packageFlutterImport]), isEmpty);
-    });
-
-    test('getUnsupportedImport allows package:path', () {
-      final packagePathImport = _FakeImportDirective('package:path');
-      expect(getUnsupportedImports([packagePathImport]), isEmpty);
-    });
-
-    test('getUnsupportedImport does now allow package:unsupported', () {
-      final unsupported = _FakeImportDirective('package:unsupported');
-      expect(getUnsupportedImports([unsupported]), contains(unsupported));
-    });
-
-    test('getUnsupportedImport does now allow local imports', () {
-      final localFooImport = _FakeImportDirective('foo.dart');
-      expect(getUnsupportedImports([localFooImport]), contains(localFooImport));
-    });
-
-    test('getUnsupportedImport does not allow VM-only imports', () {
-      final dartIoImport = _FakeImportDirective('dart:io');
-      expect(getUnsupportedImports([dartIoImport]), contains(dartIoImport));
+    test('isUnsupportedImport does not allow VM-only imports', () {
+      expect(isUnsupportedImport('dart:io'), isTrue);
     });
   });
 
@@ -93,24 +90,4 @@ void defineTests() {
       expect(file.existsSync(), isTrue);
     });
   });
-}
-
-class _FakeImportDirective implements ImportDirective {
-  @override
-  final _FakeStringLiteral uri;
-
-  _FakeImportDirective(String uri) : uri = _FakeStringLiteral(uri);
-
-  @override
-  dynamic noSuchMethod(_) => throw UnimplementedError();
-}
-
-class _FakeStringLiteral implements StringLiteral {
-  @override
-  final String stringValue;
-
-  _FakeStringLiteral(this.stringValue);
-
-  @override
-  dynamic noSuchMethod(_) => throw UnimplementedError();
 }

@@ -125,7 +125,7 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       // `flutter packages get` has been run with a _subset_ of all supported
       // Firebase packages, the ones that don't require a Firebase app to be
       // configured in JavaScript, before executing Dart. Now add the full set of
-      // supported Firebase pacakges. This workaround is a very fragile hack.
+      // supported Firebase packages. This workaround is a very fragile hack.
       packages = {
         ...supportedBasicDartPackages,
         ...supportedFlutterPackages,
