@@ -78,7 +78,7 @@ class Analyzer {
   Future<void> _checkPackageReferences(List<ImportDirective> imports) async {
     final unsupportedImports = project.getUnsupportedImports(
       imports,
-      sourcesFileList: [kMainDart],
+      sourceFiles: {kMainDart},
     );
 
     if (unsupportedImports.isNotEmpty) {
