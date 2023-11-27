@@ -6,7 +6,7 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'project.dart';
+import 'project_templates.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
@@ -40,7 +40,7 @@ class ProjectCreator {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
-    final dependencies = _dependencyVersions(supportedBasicDartPackages());
+    final dependencies = _dependencyVersions(supportedBasicDartPackages);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
@@ -48,9 +48,10 @@ class ProjectCreator {
       dependencies: dependencies,
     ));
 
-    // todo: run w/ the correct sdk
     final exitCode = await _runDartPubGet(projectDirectory);
-    if (exitCode != 0) throw StateError('pub get failed ($exitCode)');
+    if (exitCode != 0) {
+      throw StateError('pub get failed ($exitCode)');
+    }
 
     var contents = '''
 include: package:lints/recommended.yaml
@@ -75,8 +76,9 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
   /// Depending on [firebaseStyle], Firebase packages are included in
   /// `pubspec.yaml` which affects how `flutter packages get` will register
   /// plugins.
-  Future<void> buildFlutterProjectTemplate(
-      {required FirebaseStyle firebaseStyle}) async {
+  Future<void> buildFlutterProjectTemplate({
+    required FirebaseStyle firebaseStyle,
+  }) async {
     final projectDirName = firebaseStyle == FirebaseStyle.none
         ? 'flutter_project'
         : 'firebase_project';
@@ -89,8 +91,8 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
     await Directory(path.join(projectPath, 'web')).create();
     await File(path.join(projectPath, 'web', 'index.html')).create();
     var packages = {
-      ...supportedBasicDartPackages(),
-      ...supportedFlutterPackages(),
+      ...supportedBasicDartPackages,
+      ...supportedFlutterPackages,
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
@@ -103,12 +105,10 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       dependencies: dependencies,
     ));
 
-    final exitCode = await runFlutterPackagesGet(
-      _sdk.flutterToolPath,
-      projectPath,
-      log: _log,
-    );
-    if (exitCode != 0) throw StateError('flutter pub get failed ($exitCode)');
+    final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
+    if (exitCode != 0) {
+      throw StateError('flutter pub get failed ($exitCode)');
+    }
 
     // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
     // Context: https://github.com/flutter/flutter/pull/106921
@@ -127,8 +127,8 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       // configured in JavaScript, before executing Dart. Now add the full set of
       // supported Firebase pacakges. This workaround is a very fragile hack.
       packages = {
-        ...supportedBasicDartPackages(),
-        ...supportedFlutterPackages(),
+        ...supportedBasicDartPackages,
+        ...supportedFlutterPackages,
         ...firebasePackages,
       };
       final dependencies = _dependencyVersions(packages);
@@ -139,15 +139,15 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
         dependencies: dependencies,
       ));
 
-      final exitCode = await runFlutterPackagesGet(
-        _sdk.flutterToolPath,
-        projectPath,
-        log: _log,
-      );
-      if (exitCode != 0) throw StateError('flutter pub get failed ($exitCode)');
+      final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
+      if (exitCode != 0) {
+        throw StateError('flutter pub get failed ($exitCode)');
+      }
     }
+
     var contents = '''
 include: package:flutter_lints/flutter.yaml
+
 linter:
   rules:
     avoid_print: false
@@ -155,6 +155,7 @@ linter:
 ''';
     if (_sdk.experiments.isNotEmpty) {
       contents += '''
+
 analyzer:
   enable-experiment:
 ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
@@ -238,16 +239,18 @@ dependencies:
   return content;
 }
 
-Future<int> runFlutterPackagesGet(
-  String flutterToolPath,
+Future<int> runFlutterPubGet(
+  Sdk sdk,
   String projectPath, {
   required LogFunction log,
 }) async {
-  final process = await runWithLogging(flutterToolPath,
-      arguments: ['packages', 'get'],
-      workingDirectory: projectPath,
-      environment: {'PUB_CACHE': _pubCachePath},
-      log: log);
+  final process = await runWithLogging(
+    sdk.flutterToolPath,
+    arguments: ['pub', 'get'],
+    workingDirectory: projectPath,
+    environment: {'PUB_CACHE': _pubCachePath},
+    log: log,
+  );
   return process.exitCode;
 }
 

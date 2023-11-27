@@ -39,6 +39,7 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       kind: json['kind'] as String,
       message: json['message'] as String,
       location: Location.fromJson(json['location'] as Map<String, dynamic>),
+      code: json['code'] as String?,
       correction: json['correction'] as String?,
       url: json['url'] as String?,
       contextMessages: (json['contextMessages'] as List<dynamic>?)
@@ -52,6 +53,7 @@ Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
       'kind': instance.kind,
       'message': instance.message,
       'location': instance.location,
+      'code': instance.code,
       'correction': instance.correction,
       'url': instance.url,
       'contextMessages': instance.contextMessages,
@@ -126,18 +128,6 @@ Map<String, dynamic> _$FormatResponseToJson(FormatResponse instance) =>
     <String, dynamic>{
       'source': instance.source,
       'offset': instance.offset,
-    };
-
-FlutterBuildResponse _$FlutterBuildResponseFromJson(
-        Map<String, dynamic> json) =>
-    FlutterBuildResponse(
-      artifacts: Map<String, String>.from(json['artifacts'] as Map),
-    );
-
-Map<String, dynamic> _$FlutterBuildResponseToJson(
-        FlutterBuildResponse instance) =>
-    <String, dynamic>{
-      'artifacts': instance.artifacts,
     };
 
 FixesResponse _$FixesResponseFromJson(Map<String, dynamic> json) =>

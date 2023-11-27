@@ -5,12 +5,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:logging/logging.dart';
 import 'package:resp_client/resp_client.dart';
 import 'package:resp_client/resp_commands.dart';
 import 'package:resp_client/resp_server.dart';
 
-import 'common_server_impl.dart' show log;
 import 'sdk.dart';
+
+final Logger log = Logger('caching');
 
 abstract class ServerCache {
   Future<String?> get(String key);

@@ -4,10 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:dart_services/src/server_cache.dart';
-
-export 'package:angel3_mock_request/angel3_mock_request.dart'
-    show MockHttpRequest, MockHttpResponse;
+import 'package:dart_services/src/caching.dart';
 
 class MockCache implements ServerCache {
   final _cache = HashMap<String, String>();

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
-library;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -13,7 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'project.dart';
+import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 
@@ -44,8 +41,8 @@ class Compiler {
             maxWorkers: 1),
         _projectTemplates = ProjectTemplates.projectTemplates;
 
-  Future<CompilationResults> warmup({bool useHtml = false}) async {
-    return compile(useHtml ? sampleCodeWeb : sampleCode);
+  Future<CompilationResults> warmup() async {
+    return compile('void main() => print("hello");');
   }
 
   /// Compile the given string and return the resulting [CompilationResults].
@@ -53,22 +50,9 @@ class Compiler {
     String source, {
     bool returnSourceMap = false,
   }) async {
-    return compileFiles({kMainDart: source}, returnSourceMap: returnSourceMap);
-  }
-
-  /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compileFiles(
-    final Map<String, String> files, {
-    bool returnSourceMap = false,
-  }) async {
-    if (files.isEmpty) {
-      return CompilationResults(
-          problems: [CompilationProblem._('file list empty')]);
-    }
-    sanitizeAndCheckFilenames(files);
-    final imports = getAllImportsForFiles(files);
+    final imports = getAllImportsFor(source);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: files.keys.toList());
+        getUnsupportedImports(imports, sourcesFileList: [kMainDart]);
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
         for (final import in unsupportedImports)
@@ -76,12 +60,12 @@ class Compiler {
       ]);
     }
 
-    final temp = await Directory.systemTemp.createTemp('dartpad');
+    final temp = Directory.systemTemp.createTempSync('dartpad');
     _logger.fine('Temp directory created: ${temp.path}');
 
     try {
-      await copyPath(_projectTemplates.dartPath, temp.path);
-      await Directory(path.join(temp.path, 'lib')).create(recursive: true);
+      _copyPath(_projectTemplates.dartPath, temp.path);
+      Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
 
       final arguments = <String>[
         'compile',
@@ -98,10 +82,7 @@ class Compiler {
         path.join('lib', kMainDart),
       ];
 
-      files.forEach((filename, content) async {
-        await File(path.join(temp.path, 'lib', filename))
-            .writeAsString(content);
-      });
+      File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
 
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
@@ -118,11 +99,11 @@ class Compiler {
         return results;
       } else {
         String? sourceMap;
-        if (returnSourceMap && await mainSourceMap.exists()) {
-          sourceMap = await mainSourceMap.readAsString();
+        if (returnSourceMap && mainSourceMap.existsSync()) {
+          sourceMap = mainSourceMap.readAsStringSync();
         }
         final results = CompilationResults(
-          compiledJS: await mainJs.readAsString(),
+          compiledJS: mainJs.readAsStringSync(),
           sourceMap: sourceMap,
         );
         return results;
@@ -131,31 +112,16 @@ class Compiler {
       _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
-      await temp.delete(recursive: true);
+      temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String source) async {
-    return compileFilesDDC({kMainDart: source});
-  }
-
-  /// Compile the given set of source files and return the resulting
-  /// [DDCCompilationResults].
-  ///
-  /// [files] is a map containing the source files in the format
-  /// `{ "filename1":"sourcecode1" ... "filenameN":"sourcecodeN"}`.
-  Future<DDCCompilationResults> compileFilesDDC(
-      Map<String, String> files) async {
-    if (files.isEmpty) {
-      return DDCCompilationResults.failed(
-          [CompilationProblem._('file list empty')]);
-    }
-    sanitizeAndCheckFilenames(files);
-    final imports = getAllImportsForFiles(files);
+    final imports = getAllImportsFor(source);
     final unsupportedImports =
-        getUnsupportedImports(imports, sourcesFileList: files.keys.toList());
+        getUnsupportedImports(imports, sourcesFileList: [kMainDart]);
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
         for (final import in unsupportedImports)
@@ -163,20 +129,20 @@ class Compiler {
       ]);
     }
 
-    final temp = await Directory.systemTemp.createTemp('dartpad');
+    final temp = Directory.systemTemp.createTempSync('dartpad');
     _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
       if (usesFirebase(imports)) {
-        await copyPath(_projectTemplates.firebasePath, temp.path);
+        _copyPath(_projectTemplates.firebasePath, temp.path);
       } else if (usingFlutter) {
-        await copyPath(_projectTemplates.flutterPath, temp.path);
+        _copyPath(_projectTemplates.flutterPath, temp.path);
       } else {
-        await copyPath(_projectTemplates.dartPath, temp.path);
+        _copyPath(_projectTemplates.dartPath, temp.path);
       }
 
-      await Directory(path.join(temp.path, 'lib')).create(recursive: true);
+      Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
 
       final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
       String bootstrapContents;
@@ -188,12 +154,8 @@ class Compiler {
         bootstrapContents = kBootstrapDartCode;
       }
 
-      await File(bootstrapPath).writeAsString(bootstrapContents);
-
-      files.forEach((filename, content) async {
-        await File(path.join(temp.path, 'lib', filename))
-            .writeAsString(content);
-      });
+      File(bootstrapPath).writeAsStringSync(bootstrapContents);
+      File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
 
       final arguments = <String>[
         '--modules=amd',
@@ -230,7 +192,8 @@ class Compiler {
         // adding the code to a script tag in an iframe rather than loading it
         // as an individual file from baseURL. As a workaround, this replace
         // statement injects a name into the module definition.
-        final processedJs = (await mainJs.readAsString())
+        final processedJs = mainJs
+            .readAsStringSync()
             .replaceFirst('define([', "define('dartpad_main', [");
 
         final results = DDCCompilationResults(
@@ -244,71 +207,8 @@ class Compiler {
       _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
-      await temp.delete(recursive: true);
+      temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}');
-    }
-  }
-
-  /// Compile the given source file and return the resulting
-  /// [FlutterBuildResults].
-  Future<FlutterBuildResults> flutterBuild(String source) async {
-    final unsupportedImports = getUnsupportedImports(getAllImportsFor(source));
-    if (unsupportedImports.isNotEmpty) {
-      final message =
-          unsupportedImports.map((import) => import.uri.stringValue).join('\n');
-      return FlutterBuildResults.failed(message);
-    }
-
-    // TODO: Recycle this project directory.
-    final tempDir = await Directory.systemTemp.createTemp('dartpad');
-
-    try {
-      await copyPath(_projectTemplates.flutterPath, tempDir.path);
-
-      // Update lib/main.dart.
-      final sourceFile = File(path.join(tempDir.path, 'lib', kMainDart));
-      sourceFile.parent.createSync();
-      sourceFile.writeAsStringSync(source);
-
-      final arguments = <String>[
-        'build',
-        'web',
-
-        // This disables minification.
-        '--dart2js-optimization=O1',
-
-        // With the web renderer, we don't need to load other (skiawasm) resources.
-        // TODO(devoncarew): Look into use the skiawasm backend.
-        '--web-renderer=html',
-
-        // This disables the service worker / caching path.
-        '--pwa-strategy=none',
-
-        '--no-tree-shake-icons',
-
-        if (_sdk.experiments.isNotEmpty)
-          '--enable-experiment=${_sdk.experiments.join(",")}',
-      ];
-
-      // TODO: Serialize this request - only one can run at a time.
-      final result = await Process.run(
-        _sdk.flutterToolPath,
-        arguments,
-        workingDirectory: tempDir.path,
-      );
-
-      if (result.exitCode != 0) {
-        return FlutterBuildResults.failed(
-            '${result.stdout}\n${result.stderr}'.trim());
-      }
-
-      // Return the compiled build/web/main.dart.js file.
-      final jsOutFile =
-          File(path.join(tempDir.path, 'build', 'web', 'main.dart.js'));
-      return FlutterBuildResults.success(
-          compiledJavaScript: jsOutFile.readAsStringSync());
-    } finally {
-      await tempDir.delete(recursive: true);
     }
   }
 
@@ -364,21 +264,6 @@ class DDCCompilationResults {
       : 'Compilation errors: ${problems.join('\n')}';
 }
 
-class FlutterBuildResults {
-  final String? compiledJavaScript;
-  final String? compilationIssues;
-
-  FlutterBuildResults.success({required this.compiledJavaScript})
-      : compilationIssues = null;
-
-  FlutterBuildResults.failed(this.compilationIssues)
-      : compiledJavaScript = null;
-
-  bool get hasOutput => compiledJavaScript != null;
-
-  bool get success => compilationIssues == null;
-}
-
 /// An issue associated with [CompilationResults].
 class CompilationProblem implements Comparable<CompilationProblem> {
   final String message;
@@ -401,19 +286,20 @@ class CompilationProblem implements Comparable<CompilationProblem> {
 /// * If [from] and [to] are canonically the same, no operation occurs.
 ///
 /// Returns a future that completes when complete.
-Future<void> copyPath(String from, String to) async {
+void _copyPath(String from, String to) {
   if (_doNothing(from, to)) {
     return;
   }
-  await Directory(to).create(recursive: true);
-  await for (final file in Directory(from).list(recursive: true)) {
+
+  Directory(to).createSync(recursive: true);
+  for (final file in Directory(from).listSync(recursive: true)) {
     final copyTo = path.join(to, path.relative(file.path, from: from));
     if (file is Directory) {
-      await Directory(copyTo).create(recursive: true);
+      Directory(copyTo).createSync(recursive: true);
     } else if (file is File) {
-      await File(file.path).copy(copyTo);
+      File(file.path).copySync(copyTo);
     } else if (file is Link) {
-      await Link(copyTo).create(await file.target(), recursive: true);
+      Link(copyTo).createSync(file.targetSync(), recursive: true);
     }
   }
 }
