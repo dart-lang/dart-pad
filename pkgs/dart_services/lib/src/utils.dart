@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -51,9 +53,9 @@ Future<Process> runWithLogging(
   required void Function(String) log,
 }) async {
   log([
-    'Running $executable ${arguments.join(' ')}',
-    if (workingDirectory != null) "from directory: '$workingDirectory'",
-    if (environment.isNotEmpty) 'with additional environment: $environment',
+    '${path.basename(executable)} ${arguments.join(' ')}:',
+    if (workingDirectory != null) 'cwd: $workingDirectory',
+    if (environment.isNotEmpty) 'env: $environment',
   ].join('\n  '));
 
   final process = await Process.start(executable, arguments,
@@ -61,9 +63,70 @@ Future<Process> runWithLogging(
       environment: environment,
       includeParentEnvironment: true,
       runInShell: Platform.isWindows);
-  process.stdout.listen((out) => log(systemEncoding.decode(out)));
-  process.stderr.listen((err) => log(systemEncoding.decode(err)));
+  process.stdout.listen((out) => log(systemEncoding.decode(out).trimRight()));
+  process.stderr.listen((out) => log(systemEncoding.decode(out).trimRight()));
   return process;
+}
+
+class TaskScheduler {
+  final Queue<_SchedulerTask<dynamic>> _taskQueue =
+      Queue<_SchedulerTask<dynamic>>();
+  bool _isActive = false;
+
+  int get queueCount => _taskQueue.length;
+
+  Future<T> _performTask<T>(SchedulerTask<T> task) {
+    return task.perform().timeout(task.timeoutDuration);
+  }
+
+  Future<T> schedule<T>(SchedulerTask<T> task) {
+    if (!_isActive) {
+      _isActive = true;
+      return _performTask(task).whenComplete(_next);
+    }
+
+    final taskResult = Completer<T>();
+    _taskQueue.add(_SchedulerTask<T>(task, taskResult));
+    return taskResult.future;
+  }
+
+  void _next() {
+    assert(_isActive);
+    if (_taskQueue.isEmpty) {
+      _isActive = false;
+      return;
+    }
+
+    final first = _taskQueue.removeFirst();
+    first.taskResult.complete(_performTask(first.task).whenComplete(_next));
+  }
+}
+
+// Internal unit of scheduling.
+class _SchedulerTask<T> {
+  final SchedulerTask<T> task;
+  final Completer<T> taskResult;
+
+  _SchedulerTask(this.task, this.taskResult);
+}
+
+// Public working data structure.
+abstract class SchedulerTask<T> {
+  late Duration timeoutDuration;
+  Future<T> perform();
+}
+
+class ClosureTask<T> extends SchedulerTask<T> {
+  final Future<T> Function() _closure;
+
+  ClosureTask(this._closure, {required Duration timeoutDuration}) {
+    this.timeoutDuration = timeoutDuration;
+  }
+
+  @override
+  Future<T> perform() {
+    return _closure();
+  }
 }
 
 /// A pattern which matches a possible path.

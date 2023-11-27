@@ -210,12 +210,11 @@ String? _packageNameFromPackageUri(String uriString) {
 /// Optional [sourceFiles] contains a list of the source filenames
 /// which are all part of this overall sources file set (these are to
 /// be allowed).
+///
 /// Note: The filenames in [sourceFiles] were sanitized of any
-/// 'package:'/etc syntax as the file set arrives from the endpoint,
-/// and before being passed to [getUnsupportedImports].
-/// This is done so the list can't be used to bypass unsupported imports.
-/// The function [sanitizeAndCheckFilenames()] was used to sanitize the
-/// filenames.
+/// 'package:'/etc syntax as the file set arrives from the endpoint, and
+/// before being passed to [getUnsupportedImports].This is done so
+/// the list can't be used to bypass unsupported imports.
 List<ImportDirective> getUnsupportedImports(
   List<ImportDirective> imports, {
   Set<String>? sourceFiles,

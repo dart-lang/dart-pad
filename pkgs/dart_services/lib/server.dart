@@ -10,12 +10,11 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 
-import 'src/common_server_api.dart';
-import 'src/common_server_impl.dart';
-import 'src/github_oauth_handler.dart';
+import 'src/caching.dart';
+import 'src/common_server.dart';
 import 'src/logging.dart';
+import 'src/oauth_handler.dart';
 import 'src/sdk.dart';
-import 'src/server_cache.dart';
 
 final Logger _logger = Logger('services');
 
@@ -105,41 +104,53 @@ class EndpointsServer {
   late final Pipeline pipeline;
   late final Handler handler;
 
-  late final CommonServerApi commonServerApi;
-  late final CommonServerImpl _commonServerImpl;
+  late final CommonServerApi commonServer;
 
   EndpointsServer._(Sdk sdk, String? redisServerUri, String storageBucket) {
     // The name of the Cloud Run revision being run, for more detail please see:
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
 
-    _commonServerImpl = CommonServerImpl(
+    final cache = redisServerUri == null
+        ? NoopCache()
+        : RedisCache(redisServerUri, sdk, serverVersion);
+
+    commonServer = CommonServerApi(CommonServerImpl(
       sdk,
-      redisServerUri == null
-          ? NoopCache()
-          : RedisCache(redisServerUri, sdk, serverVersion),
+      cache,
       storageBucket: storageBucket,
-    );
-    commonServerApi = CommonServerApi(_commonServerImpl);
+    ));
 
     // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
-    GitHubOAuthHandler.setCache(
-      redisServerUri == null
-          ? InMemoryCache()
-          : RedisCache(redisServerUri, sdk, serverVersion),
-    );
-    GitHubOAuthHandler.addRoutes(commonServerApi.router);
+    GitHubOAuthHandler.setCache(cache);
+    GitHubOAuthHandler.addRoutes(commonServer.router);
 
     pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))
-        .addMiddleware(createCustomCorsHeadersMiddleware());
+        .addMiddleware(createCustomCorsHeadersMiddleware())
+        .addMiddleware(exceptionResponse());
 
-    handler = pipeline.addHandler(commonServerApi.router.call);
+    handler = pipeline.addHandler(commonServer.router.call);
   }
 
-  Future<void> _init() => _commonServerImpl.init();
+  Future<void> _init() => commonServer.init();
 
   int get port => server.port;
 
-  Future<void> close() => server.close();
+  Future<void> close() async {
+    await commonServer.shutdown();
+    await server.close();
+  }
+}
+
+Middleware exceptionResponse() {
+  return (Handler handler) {
+    return (Request request) async {
+      try {
+        return await handler(request);
+      } catch (e) {
+        return Response.badRequest(body: e is BadRequest ? e.message : '$e');
+      }
+    };
+  };
 }

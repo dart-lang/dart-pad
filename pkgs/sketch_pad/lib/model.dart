@@ -345,17 +345,6 @@ class AppServices {
   }
 }
 
-extension AnalysisIssueExtension on AnalysisIssue {
-  int get severity {
-    return switch (kind) {
-      'error' => 3,
-      'warning' => 2,
-      'info' => 1,
-      _ => 0,
-    };
-  }
-}
-
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),

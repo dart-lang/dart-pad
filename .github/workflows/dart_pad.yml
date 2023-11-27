@@ -37,9 +37,6 @@ jobs:
           sdk: ${{ matrix.sdk }}
       - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
 
-      - name: Install apt dependencies
-        run: sudo apt-get install -y protobuf-compiler
-
       - name: Install dart dependencies
         run: dart pub get
 
@@ -52,5 +49,4 @@ jobs:
       - name: Run buildbot
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
-          dart pub global activate protoc_plugin
           dart run tool/grind.dart buildbot

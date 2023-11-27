@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import 'project.dart' as project;
+import 'project_templates.dart' as project;
 
 /// Extract all imports from [dartSource] source code.
 List<ImportDirective> getAllImportsFor(String? dartSource) {
@@ -17,15 +17,6 @@ List<ImportDirective> getAllImportsFor(String? dartSource) {
 
   final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
   return unit.directives.whereType<ImportDirective>().toList();
-}
-
-/// Takes a map {"filename":"sourcecode"..."filenameN":"sourcecodeN"}
-/// of source files and extracts the imports from each file's sourcecode and
-/// returns an overall list of all imports across all files in the set.
-List<ImportDirective> getAllImportsForFiles(Map<String, String> files) {
-  return [
-    for (final sourcecode in files.values) ...getAllImportsFor(sourcecode)
-  ];
 }
 
 /// Flutter packages which do not have version numbers in pubspec.lock.
@@ -38,12 +29,11 @@ const _flutterPackages = [
 
 /// This is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
-final Map<String, String> _nullSafePackageVersions =
-    packageVersionsFromPubspecLock(
-        project.ProjectTemplates.projectTemplates.firebasePath);
+final Map<String, String> _packageVersions = packageVersionsFromPubspecLock(
+    project.ProjectTemplates.projectTemplates.firebasePath);
 
 /// Returns a mapping of Pub package name to package version.
-Map<String, String> getPackageVersions() => _nullSafePackageVersions;
+Map<String, String> getPackageVersions() => _packageVersions;
 
 /// Returns a mapping of Pub package name to package version, retrieving data
 /// from the project template's `pubspec.lock` file.
@@ -77,13 +67,13 @@ Map<String, String> packageVersionsFromPubspecLock(String templatePath) {
   return packageVersions;
 }
 
-extension ImportIterableExtensions on Iterable<ImportDirective> {
-  /// Returns the names of packages that are referenced in this collection.
-  /// These package names are sanitized defensively.
-  Iterable<String> filterSafePackages() {
-    return where((import) => !import.uri.stringValue!.startsWith('package:../'))
-        .map((import) => Uri.parse(import.uri.stringValue!))
-        .where((uri) => uri.scheme == 'package' && uri.pathSegments.isNotEmpty)
-        .map((uri) => uri.pathSegments.first);
-  }
+/// Returns the names of packages that are referenced in this collection.
+/// These package names are sanitized defensively.
+List<String> filterSafePackages(List<ImportDirective> imports) {
+  return imports
+      .where((import) => !import.uri.stringValue!.startsWith('package:../'))
+      .map((import) => Uri.parse(import.uri.stringValue!))
+      .where((uri) => uri.scheme == 'package' && uri.pathSegments.isNotEmpty)
+      .map((uri) => uri.pathSegments.first)
+      .toList();
 }

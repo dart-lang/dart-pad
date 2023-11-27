@@ -1,4 +1,5 @@
 name: dart_services
+description: The backend service for DartPad.
 publish_to: none
 
 environment:
@@ -16,16 +17,13 @@ dependencies:
   http: ^1.0.0
   json_annotation: any
   logging: ^1.2.0
-  meta: ^1.9.1
   path: ^1.8.3
-  protobuf: ^3.0.0
   resp_client: ^1.2.0
   shelf: ^1.4.1
   shelf_router: ^1.1.4
   yaml: ^3.1.2
 
 dev_dependencies:
-  angel3_mock_request: ^8.0.0
   async: ^2.11.0
   build_runner: ^2.4.5
   dart_flutter_team_lints: ^2.1.1
@@ -36,6 +34,3 @@ dev_dependencies:
   synchronized: ^3.1.0
   test: ^1.24.3
   test_descriptor: ^2.0.1
-
-executables:
-  services: null
