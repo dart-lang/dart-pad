@@ -28,3 +28,5 @@ config.properties
 
 # Editor configuration
 .vscode/
+
+bin/server
