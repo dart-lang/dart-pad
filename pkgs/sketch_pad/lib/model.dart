@@ -348,6 +348,7 @@ class AppServices {
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
   beta('Beta', 'https://beta.api.dartpad.dev/'),
+  main('Main', 'https://master.api.dartpad.dev/'),
   // This channel is only used for local development.
   localhost('Localhost', 'http://localhost:8080/');
 
@@ -362,7 +363,7 @@ enum Channel {
     return values.whereNot((channel) => channel == localhost).toList();
   }
 
-  static Channel? channelForName(String name) {
+  static Channel? forName(String name) {
     name = name.trim().toLowerCase();
 
     return Channel.values.firstWhereOrNull((c) => c.name == name);

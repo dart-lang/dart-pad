@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'experiments.dart';
+
 class Sdk {
   /// The path to the Dart SDK (vended into the Flutter SDK).
   late final String dartSdkPath;
@@ -38,11 +40,9 @@ class Sdk {
   /// If this is the main channel.
   bool get mainChannel => channel == 'main';
 
-  /// Experiments that this SDK is configured with
-  List<String> get experiments {
-    if (mainChannel) return const ['inline-class'];
-    return const [];
-  }
+  /// The experiments to use for the current channel.
+  List<String> get experiments =>
+      (mainChannel || betaChannel) ? enabledExperiments : const [];
 
   void _initPaths() {
     // Note below, 'Platform.resolvedExecutable' will not lead to a real SDK if

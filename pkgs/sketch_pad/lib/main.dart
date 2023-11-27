@@ -206,7 +206,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
           });
 
     final channel = widget.initialChannel != null
-        ? Channel.channelForName(widget.initialChannel!)
+        ? Channel.forName(widget.initialChannel!)
         : null;
 
     appModel = AppModel();
