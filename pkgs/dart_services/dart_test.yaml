@@ -1,0 +1,6 @@
+# Configure test execution; documentation available at:
+# https://github.com/dart-lang/test/blob/master/pkgs/test/doc/configuration.md.
+
+# Some of the project_creator_test.dart tests don't like to run in parallel with
+# other tests.
+concurrency: 1

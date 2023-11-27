@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:convert' show JsonEncoder;
 import 'dart:io';
 
-import 'package:dart_services/src/project.dart';
 import 'package:dart_services/src/project_creator.dart';
+import 'package:dart_services/src/project_templates.dart';
 import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/utils.dart';
@@ -48,7 +48,8 @@ void validateStorageArtifacts() async {
     false => 'nnbd_artifacts',
   };
 
-  print('validate-storage-artifacts version: ${sdk.version} bucket: $bucket');
+  print(
+      'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket');
 
   final urlBase = 'https://storage.googleapis.com/$bucket/';
   for (final artifact in compilationArtifacts) {
@@ -120,8 +121,11 @@ void buildStorageArtifacts() async {
   }
 }
 
-Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
-    {required String channel}) async {
+Future<String> _buildStorageArtifacts(
+  Directory dir,
+  Sdk sdk, {
+  required String channel,
+}) async {
   final dependenciesFile = _pubDependenciesFile(channel: channel);
   final pubspec = createPubspec(
     includeFlutterWeb: true,
@@ -150,7 +154,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 </html>
 ''');
 
-  await runFlutterPackagesGet(sdk.flutterToolPath, dir.path, log: log);
+  await runFlutterPubGet(sdk, dir.path, log: log);
 
   // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
   // Context: https://github.com/flutter/flutter/pull/106921
@@ -251,30 +255,8 @@ void deploy() {
   log('Deploy via Google Cloud Console');
 }
 
-@Task('Generate Protobuf classes')
-void generateProtos() async {
-  try {
-    await _run(
-      'protoc',
-      arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
-    );
-  } catch (e) {
-    print('Error running "protoc"; make sure the Protocol Buffer compiler is '
-        'installed (see README.md)');
-  }
-
-  // reformat generated classes so CI checks don't fail
-  await _run(
-    'dart',
-    arguments: ['format', '--fix', 'lib/src/protos'],
-  );
-
-  // And reformat again, for $REASONS
-  await _run(
-    'dart',
-    arguments: ['format', '--fix', 'lib/src/protos'],
-  );
-
+@Task('Copy shared source from dartpad_shared')
+void copySharedSource() async {
   // TODO: We'd like to remove this copy operation; that will require work in
   // the cloud build configuration.
   copy(getDir('../dartpad_shared/lib'), getDir('lib/src/shared'));
@@ -301,8 +283,7 @@ Future<void> _run(
 @Depends(buildProjectTemplates)
 void updatePubDependencies() async {
   final sdk = Sdk();
-  await _updateDependenciesFile(
-      flutterToolPath: sdk.flutterToolPath, channel: sdk.channel, sdk: sdk);
+  await _updateDependenciesFile(channel: sdk.channel, sdk: sdk);
 }
 
 /// Updates the "dependencies file".
@@ -313,7 +294,6 @@ void updatePubDependencies() async {
 ///
 /// See [_pubDependenciesFile] for the location of the dependencies files.
 Future<void> _updateDependenciesFile({
-  required String flutterToolPath,
   required String channel,
   required Sdk sdk,
 }) async {
@@ -323,8 +303,8 @@ Future<void> _updateDependenciesFile({
     'lints': 'any',
     'flutter_lints': 'any',
     for (final package in firebasePackages) package: 'any',
-    for (final package in supportedFlutterPackages()) package: 'any',
-    for (final package in supportedBasicDartPackages()) package: 'any',
+    for (final package in supportedFlutterPackages) package: 'any',
+    for (final package in supportedBasicDartPackages) package: 'any',
   };
 
   // Overwrite with important constraints.
@@ -340,7 +320,7 @@ Future<void> _updateDependenciesFile({
     dependencies: dependencies,
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
-  await runFlutterPackagesGet(flutterToolPath, tempDir.path, log: log);
+  await runFlutterPubGet(sdk, tempDir.path, log: log);
   final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
   _pubDependenciesFile(channel: channel).writeAsStringSync(

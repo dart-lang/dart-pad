@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:shelf/shelf.dart';
 
 /// Middleware which adds [CORS headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
 /// to shelf responses. Also handles preflight (OPTIONS) requests.
 ///
 /// By default, allows access from everywhere.
-Middleware createCorsHeadersMiddleware(
-    {Map<String, String> corsHeaders = const {
-      'Access-Control-Allow-Origin': '*'
-    }}) {
+Middleware createCorsHeadersMiddleware({
+  Map<String, String> corsHeaders = const {'Access-Control-Allow-Origin': '*'},
+}) {
   // Handle preflight (OPTIONS) requests by just adding headers and an empty
   // response.
   FutureOr<Response?> handleOptionsRequest(Request request) {

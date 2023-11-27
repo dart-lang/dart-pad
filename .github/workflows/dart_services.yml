@@ -32,9 +32,6 @@ jobs:
             channel: ${{ matrix.sdk }}
       - run: flutter --version
 
-      - name: Install apt dependencies
-        run: sudo apt-get install -y protobuf-compiler redis
-
       - name: Install dart dependencies
         run: dart pub get
 

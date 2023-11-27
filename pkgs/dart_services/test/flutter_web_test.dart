@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:dart_services/src/project.dart';
+import 'package:dart_services/src/project_templates.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -72,7 +72,7 @@ void defineTests() {
     });
   });
 
-  group('project initializes', () {
+  group('flutter web project', () {
     test('packagesFilePath', () async {
       final packageConfig = File(path.join(
           projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
