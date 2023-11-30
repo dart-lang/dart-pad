@@ -43,8 +43,8 @@ final ShortcutActivator quickFixKeyActivator = SingleActivator(
 final List<(String, ShortcutActivator)> keyBindings = [
   ('Code completion', codeCompletionKeyActivator),
   ('Find', findKeyActivator),
-  ('Find Next', findNextKeyActivator),
-  ('Quick Fixes', quickFixKeyActivator),
+  ('Find next', findNextKeyActivator),
+  ('Quick fixes', quickFixKeyActivator),
   ('Reload', reloadKeyActivator),
 ];
 

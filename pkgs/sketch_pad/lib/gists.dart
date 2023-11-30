@@ -15,7 +15,8 @@ class GistLoader {
         await client.get(Uri.parse('https://api.github.com/gists/$gistId'));
 
     if (response.statusCode != 200) {
-      throw 'unable to load gist (${response.statusCode} ${response.reasonPhrase}})';
+      throw Exception('Unable to load gist '
+          '(${response.statusCode} ${response.reasonPhrase}})');
     }
 
     return Gist.fromJson(jsonDecode(response.body) as Map<String, dynamic>);

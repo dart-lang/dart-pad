@@ -890,7 +890,7 @@ class OverflowMenu extends StatelessWidget {
           value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
           child: PointerInterceptor(
             child: const ListTile(
-              title: Text('Sharing Guide'),
+              title: Text('Sharing guide'),
               trailing: Icon(Icons.launch),
             ),
           ),
@@ -987,7 +987,7 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               context: context,
               builder: (context) {
                 return MediumDialog(
-                  title: 'Runtime Versions',
+                  title: 'Runtime versions',
                   child: VersionTable(version: versions),
                 );
               },
