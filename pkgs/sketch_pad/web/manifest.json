@@ -1,11 +1,11 @@
 {
-    "name": "SketchPad",
-    "short_name": "SketchPad",
+    "name": "DartPad",
+    "short_name": "DartPad",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "An experimental redux of the DartPad UI.",
+    "description": "An online Dart editor with support for console and Flutter apps.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
