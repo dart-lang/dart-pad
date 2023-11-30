@@ -148,8 +148,14 @@ Middleware exceptionResponse() {
     return (Request request) async {
       try {
         return await handler(request);
-      } catch (e) {
-        return Response.badRequest(body: e is BadRequest ? e.message : '$e');
+      } catch (e, st) {
+        if (e is BadRequest) {
+          return Response.badRequest(body: e.message);
+        }
+
+        _logger.severe('${request.requestedUri.path} $e', null, st);
+
+        return Response.badRequest(body: '$e');
       }
     };
   };

@@ -6,13 +6,23 @@ import 'package:logging/logging.dart';
 
 const bool verboseLogging = false;
 
+final _wsRegex = RegExp(r' \s+');
+
 void emitLogsToStdout() {
   Logger.root.onRecord.listen((LogRecord record) {
     if (verboseLogging || record.level >= Level.INFO) {
-      print('[${record.level.name.toLowerCase()}] ${record.message}');
+      var stackTrace = '';
       if (record.stackTrace != null) {
-        print(record.stackTrace);
+        var lines = record.stackTrace!.toString().split('\n').take(5).join(' ');
+        lines = lines.replaceAll(_wsRegex, ' ');
+        stackTrace = ' $lines';
       }
+
+      print(
+        '[${record.level.name.toLowerCase()}] '
+        '${record.message}'
+        '$stackTrace',
+      );
     }
   });
 }

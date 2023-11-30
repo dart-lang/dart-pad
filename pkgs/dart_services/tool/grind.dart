@@ -22,16 +22,6 @@ Future<void> main(List<String> args) async {
   return grind(args);
 }
 
-@Task()
-@Depends(buildStorageArtifacts)
-Future<void> serve() async {
-  await _run(Platform.executable, arguments: [
-    path.join('bin', 'server.dart'),
-    '--port',
-    '8080',
-  ]);
-}
-
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
   'flutter_web.js',

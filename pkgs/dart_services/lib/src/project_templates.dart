@@ -213,7 +213,7 @@ String? _packageNameFromPackageUri(String uriString) {
 ///
 /// Note: The filenames in [sourceFiles] were sanitized of any
 /// 'package:'/etc syntax as the file set arrives from the endpoint, and
-/// before being passed to [getUnsupportedImports].This is done so
+/// before being passed to [getUnsupportedImports]. This is done so
 /// the list can't be used to bypass unsupported imports.
 List<ImportDirective> getUnsupportedImports(
   List<ImportDirective> imports, {
