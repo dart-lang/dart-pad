@@ -140,7 +140,7 @@ class CommonServerApi {
         api.SourceRequest.fromJson(await request.readAsJson());
 
     final result = await serialize(() =>
-        impl.analyzer.completeV3(sourceRequest.source, sourceRequest.offset!));
+        impl.analyzer.complete(sourceRequest.source, sourceRequest.offset!));
 
     return ok(result.toJson());
   }
@@ -152,8 +152,8 @@ class CommonServerApi {
     final sourceRequest =
         api.SourceRequest.fromJson(await request.readAsJson());
 
-    final result = await serialize(() =>
-        impl.analyzer.fixesV3(sourceRequest.source, sourceRequest.offset!));
+    final result = await serialize(
+        () => impl.analyzer.fixes(sourceRequest.source, sourceRequest.offset!));
 
     return ok(result.toJson());
   }
@@ -183,7 +183,7 @@ class CommonServerApi {
         api.SourceRequest.fromJson(await request.readAsJson());
 
     final result = await serialize(() {
-      return impl.analyzer.dartdocV3(
+      return impl.analyzer.dartdoc(
         sourceRequest.source,
         sourceRequest.offset!,
       );

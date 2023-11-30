@@ -49,10 +49,7 @@ class ServicesClient {
     final response = await client.get(Uri.parse('${rootUrl}api/v3/$action'));
 
     if (response.statusCode != 200) {
-      throw ApiRequestError(
-        '$action: ${response.statusCode}: ${response.reasonPhrase}',
-        response.body,
-      );
+      throw ApiRequestError(action, response.body);
     } else {
       try {
         return responseFactory(
@@ -68,13 +65,13 @@ class ServicesClient {
     Map<String, dynamic> request,
     T Function(Map<String, dynamic> json) responseFactory,
   ) async {
-    final response = await client.post(Uri.parse('${rootUrl}api/v3/$action'),
-        encoding: utf8, body: json.encode(request));
+    final response = await client.post(
+      Uri.parse('${rootUrl}api/v3/$action'),
+      encoding: utf8,
+      body: json.encode(request),
+    );
     if (response.statusCode != 200) {
-      throw ApiRequestError(
-        '$action: ${response.statusCode}: ${response.reasonPhrase}',
-        response.body,
-      );
+      throw ApiRequestError(action, response.body);
     } else {
       try {
         return responseFactory(
@@ -93,5 +90,5 @@ class ApiRequestError implements Exception {
   final String body;
 
   @override
-  String toString() => '$message\n$body';
+  String toString() => '$message: $body';
 }

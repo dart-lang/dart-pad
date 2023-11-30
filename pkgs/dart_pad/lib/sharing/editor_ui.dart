@@ -182,11 +182,10 @@ abstract class EditorUi {
       return !hasErrors && !hasWarnings;
     } catch (e) {
       if (e is! TimeoutException) {
-        final message = e is ApiRequestError ? e.message : '$e';
         displayIssues([
           AnalysisIssue(
             kind: 'error',
-            message: message,
+            message: '$e',
             // set invalid line number, so NO line # will be displayed
             location: Location(line: -1),
           )
@@ -250,10 +249,9 @@ abstract class EditorUi {
       return true;
     } catch (e) {
       ga.sendException('${e.runtimeType}');
-      final message = e is ApiRequestError ? e.message : '$e';
       showSnackbar('Error compiling to JavaScript');
       clearOutput();
-      showOutput('Error compiling to JavaScript:\n$message', error: true);
+      showOutput('Error compiling to JavaScript:\n$e', error: true);
       return false;
     } finally {
       runButton.disabled = false;

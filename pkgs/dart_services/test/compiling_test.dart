@@ -92,6 +92,15 @@ void defineTests() {
           contains('Error: Expected \';\' after this.'));
     });
 
+    test('compileDDC with no main', () async {
+      final result = await compiler.compileDDC(sampleCodeNoMain);
+      expect(result.success, false);
+      expect(result.problems.length, 1);
+      expect(result.problems.first.message,
+          contains("Error: Method not found: 'main'"));
+      expect(result.problems.first.message, startsWith('main.dart:'));
+    });
+
     test('compileDDC with multiple errors', () async {
       final result = await compiler.compileDDC(sampleCodeErrors);
       expect(result.success, false);
@@ -172,7 +181,7 @@ void main() { missingMethod ('foo'); }
       final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
       expect(result.problems.single.message,
-          equals('unsupported import: foo.dart'));
+          contains("Error when reading 'lib/foo.dart'"));
     });
 
     test('bad import - http', () async {
@@ -183,7 +192,7 @@ void main() { missingMethod ('foo'); }
       final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
       expect(result.problems.single.message,
-          equals('unsupported import: http://example.com'));
+          contains("Error when reading 'http://example.com'"));
     });
 
     test('multiple bad imports', () async {
@@ -192,11 +201,11 @@ import 'package:foo';
 import 'package:bar';
 ''';
       final result = await compiler.compile(code);
-      expect(result.problems, hasLength(2));
-      expect(result.problems[0].message,
-          equals('unsupported import: package:foo'));
-      expect(result.problems[1].message,
-          equals('unsupported import: package:bar'));
+      expect(result.problems, hasLength(1));
+      expect(result.problems.single.message,
+          contains("Invalid package URI 'package:foo'"));
+      expect(result.problems.single.message,
+          contains("Invalid package URI 'package:bar'"));
     });
 
     test('disallow compiler warnings', () async {

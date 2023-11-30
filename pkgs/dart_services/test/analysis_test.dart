@@ -25,7 +25,7 @@ void defineTests() {
 
     test('simple_completion', () async {
       // Just after `i.` on line 3 of [completionCode]
-      final results = await analysisServer.completeV3(completionCode, 32);
+      final results = await analysisServer.complete(completionCode, 32);
       expect(results.replacementLength, 0);
       expect(results.replacementOffset, 32);
       final completions = results.suggestions.map((c) => c.completion).toList();
@@ -48,11 +48,9 @@ void defineTests() {
 
     test('completions polluted on second request (repro #126)', () async {
       // https://github.com/dart-lang/dart-services/issues/126
-      return analysisServer
-          .completeV3(completionFilterCode, 17)
-          .then((results) {
+      return analysisServer.complete(completionFilterCode, 17).then((results) {
         return analysisServer
-            .completeV3(completionFilterCode, 17)
+            .complete(completionFilterCode, 17)
             .then((results) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
@@ -66,7 +64,7 @@ void defineTests() {
       // We're testing here that we don't have any path imports - we don't want
       // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
-      final results = await analysisServer.completeV3(testCode, 9);
+      final results = await analysisServer.complete(testCode, 9);
       final completions = results.suggestions;
 
       if (completions.isNotEmpty) {
@@ -81,7 +79,7 @@ void defineTests() {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";
 
-      final results = await analysisServer.completeV3(testCode, 14);
+      final results = await analysisServer.complete(testCode, 14);
       final completions = results.suggestions;
 
       expect(
@@ -98,13 +96,13 @@ void defineTests() {
 
     test('import_and_other_test', () async {
       final testCode = "import '/'; main() { int a = 0; a. }";
-      final results = await analysisServer.completeV3(testCode, 34);
+      final results = await analysisServer.complete(testCode, 34);
 
       expect(completionsContains(results, 'abs'), true);
     });
 
     test('quickFix simple', () async {
-      final results = await analysisServer.fixesV3(quickFixesCode, 25);
+      final results = await analysisServer.fixes(quickFixesCode, 25);
       final changes = results.fixes;
 
       expect(changes, isNotEmpty);
@@ -149,7 +147,7 @@ void defineTests() {
       final idx = 61;
       expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
       final results =
-          await analysisServer.completeV3(completionLargeNamespaces, 61);
+          await analysisServer.complete(completionLargeNamespaces, 61);
       expect(completionsContains(results, 'A'), true);
       expect(completionsContains(results, 'AB'), true);
       expect(completionsContains(results, 'ABC'), true);

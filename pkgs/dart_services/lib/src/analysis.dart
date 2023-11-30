@@ -50,28 +50,26 @@ class Analyzer {
     return analysisServer.analyze(source, imports: imports);
   }
 
-  Future<api.CompleteResponse> completeV3(String source, int offset) async {
+  Future<api.CompleteResponse> complete(String source, int offset) async {
     await _checkPackageReferences(getAllImportsFor(source));
 
-    return analysisServer.completeV3(source, offset);
+    return analysisServer.complete(source, offset);
   }
 
-  Future<api.FixesResponse> fixesV3(String source, int offset) async {
+  Future<api.FixesResponse> fixes(String source, int offset) async {
     await _checkPackageReferences(getAllImportsFor(source));
 
-    return analysisServer.fixesV3(source, offset);
+    return analysisServer.fixes(source, offset);
   }
 
   Future<api.FormatResponse> format(String source, int? offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.format(source, offset);
   }
 
-  Future<api.DocumentResponse> dartdocV3(String source, int offset) async {
+  Future<api.DocumentResponse> dartdoc(String source, int offset) async {
     await _checkPackageReferences(getAllImportsFor(source));
 
-    return analysisServer.dartdocV3(source, offset);
+    return analysisServer.dartdoc(source, offset);
   }
 
   /// Check that the set of packages referenced is valid.
@@ -83,8 +81,9 @@ class Analyzer {
 
     if (unsupportedImports.isNotEmpty) {
       final unsupportedUris =
-          unsupportedImports.map((import) => import.uri.stringValue);
-      throw BadRequest('Unsupported import(s): $unsupportedUris');
+          unsupportedImports.map((import) => import.uri.stringValue).toList();
+      final plural = unsupportedUris.length == 1 ? 'import' : 'imports';
+      throw BadRequest('unsupported $plural ${unsupportedUris.join(', ')}');
     }
   }
 
@@ -149,7 +148,7 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.CompleteResponse> completeV3(String source, int offset) async {
+  Future<api.CompleteResponse> complete(String source, int offset) async {
     final results = await _completeImpl(
       {kMainDart: source},
       kMainDart,
@@ -208,7 +207,7 @@ class AnalysisServerWrapper {
     );
   }
 
-  Future<api.FixesResponse> fixesV3(String src, int offset) async {
+  Future<api.FixesResponse> fixes(String src, int offset) async {
     final mainFile = _getPathFromName(kMainDart);
 
     await _loadSources({mainFile: src});
@@ -260,7 +259,7 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.DocumentResponse> dartdocV3(String src, int offset) async {
+  Future<api.DocumentResponse> dartdoc(String src, int offset) async {
     final sourcepath = _getPathFromName(kMainDart);
 
     await _loadSources(_getOverlayMapWithPaths({kMainDart: src}));

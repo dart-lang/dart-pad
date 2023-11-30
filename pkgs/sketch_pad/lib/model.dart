@@ -319,9 +319,12 @@ class AppServices {
       appModel.analysisIssues.value = results.issues;
       appModel.packageImports.value = results.packageImports;
     } catch (error) {
-      final message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
-        AnalysisIssue(kind: 'error', message: message, location: Location()),
+        AnalysisIssue(
+          kind: 'error',
+          message: '$error',
+          location: Location(line: 0, column: 0),
+        ),
       ];
       appModel.packageImports.value = [];
     }

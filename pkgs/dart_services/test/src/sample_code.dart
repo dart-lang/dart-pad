@@ -518,6 +518,12 @@ void main() {
 }
 ''';
 
+const sampleCodeNoMain = '''
+void missing_main() {
+  print("hello");
+}
+''';
+
 const sampleCodeErrors = '''
 void main() {
   print1("hello");

@@ -50,16 +50,6 @@ class Compiler {
     String source, {
     bool returnSourceMap = false,
   }) async {
-    final imports = getAllImportsFor(source);
-    final unsupportedImports =
-        getUnsupportedImports(imports, sourceFiles: {kMainDart});
-    if (unsupportedImports.isNotEmpty) {
-      return CompilationResults(problems: [
-        for (final import in unsupportedImports)
-          CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
-      ]);
-    }
-
     final temp = Directory.systemTemp.createTempSync('dartpad');
     _logger.fine('Temp directory created: ${temp.path}');
 
@@ -120,14 +110,6 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String source) async {
     final imports = getAllImportsFor(source);
-    final unsupportedImports =
-        getUnsupportedImports(imports, sourceFiles: {kMainDart});
-    if (unsupportedImports.isNotEmpty) {
-      return DDCCompilationResults.failed([
-        for (final import in unsupportedImports)
-          CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
-      ]);
-    }
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
     _logger.fine('Temp directory created: ${temp.path}');
@@ -183,8 +165,9 @@ class Compiler {
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
-        return DDCCompilationResults.failed(
-            [CompilationProblem._(response.output)]);
+        return DDCCompilationResults.failed([
+          CompilationProblem._(_rewritePaths(response.output)),
+        ]);
       } else {
         // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
         // a result, the JS code produced above does *not* provide a name for
@@ -312,4 +295,26 @@ bool _doNothing(String from, String to) {
     throw ArgumentError('Cannot copy from $from to $to');
   }
   return false;
+}
+
+/// Remove any references to 'bootstrap.dart' and replace with referenced to
+/// 'main.dart'.
+String _rewritePaths(String output) {
+  final lines = output.split('\n');
+
+  return lines.map((line) {
+    final token1 = 'lib/bootstrap.dart:';
+    var index = line.indexOf(token1);
+    if (index != -1) {
+      return 'main.dart:${line.substring(index + token1.length)}';
+    }
+
+    final token2 = 'lib/main.dart:';
+    index = line.indexOf(token2);
+    if (index != -1) {
+      return 'main.dart:${line.substring(index + token2.length)}';
+    }
+
+    return line;
+  }).join('\n');
 }
