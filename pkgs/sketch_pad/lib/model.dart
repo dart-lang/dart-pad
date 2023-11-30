@@ -160,16 +160,17 @@ class AppServices {
     type ??= 'dart';
     final source = Samples.getDefault(type: type);
 
-    // reset the source
+    // Reset the source.
     appModel.sourceCodeController.text = source;
 
-    // reset the title
+    // Reset the title.
     appModel.title.value = generateSnippetName();
 
-    // reset the console
+    // Reset the console.
     appModel.clearConsole();
 
-    // TODO: reset the execution area
+    // Reset the execution area.
+    executionService?.reset();
 
     appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
   }
