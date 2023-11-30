@@ -117,11 +117,13 @@ class _DartPadAppState extends State<DartPadApp> {
     final sampleParam = state.uri.queryParameters['sample'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
+    final runOnLoad = state.uri.queryParameters['run'] == 'true';
 
     return DartPadMainPage(
       title: appName,
       initialChannel: channelParam,
       embedMode: embedMode,
+      runOnLoad: runOnLoad,
       sampleId: sampleParam,
       gistId: idParam,
       handleBrightnessChanged: handleBrightnessChanged,
@@ -173,12 +175,14 @@ class DartPadMainPage extends StatefulWidget {
   final String? sampleId;
   final String? gistId;
   final bool embedMode;
+  final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
 
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
     required this.embedMode,
+    required this.runOnLoad,
     required this.handleBrightnessChanged,
     this.sampleId,
     this.gistId,
@@ -217,11 +221,16 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     appServices.populateVersions();
 
-    appServices.performInitialLoad(
-      sampleId: widget.sampleId,
-      gistId: widget.gistId,
-      fallbackSnippet: Samples.getDefault(type: 'dart'),
-    );
+    appServices
+        .performInitialLoad(
+            sampleId: widget.sampleId,
+            gistId: widget.gistId,
+            fallbackSnippet: Samples.getDefault(type: 'dart'))
+        .then((value) {
+      if (widget.runOnLoad) {
+        _performCompileAndRun();
+      }
+    });
   }
 
   @override
