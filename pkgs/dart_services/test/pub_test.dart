@@ -70,58 +70,5 @@ void main() { }
             ]));
       });
     });
-
-    group('filterSafePackagesFromImports', () {
-      test('empty', () {
-        const source = '''import 'package:';
-void main() { }
-''';
-        expect(filterSafePackages(getAllImportsFor(source)), isEmpty);
-      });
-
-      test('simple', () {
-        const source = '''
-import 'package:foo/foo.dart';
-import 'package:bar/bar.dart';
-void main() { }
-''';
-        expect(filterSafePackages(getAllImportsFor(source)),
-            unorderedEquals(['foo', 'bar']));
-      });
-
-      test('defensive', () {
-        const source = '''
-library woot;
-import 'dart:math';
-import 'package:../foo/foo.dart';
-void main() { }
-''';
-        final imports = getAllImportsFor(source);
-        expect(imports, hasLength(2));
-        expect(imports[0].uri.stringValue, equals('dart:math'));
-        expect(imports[1].uri.stringValue, equals('package:../foo/foo.dart'));
-        expect(filterSafePackages(imports), isEmpty);
-      });
-
-      test('negative dart import', () {
-        const source = '''
-import 'dart:../bar.dart';
-''';
-        final imports = getAllImportsFor(source);
-        expect(imports, hasLength(1));
-        expect(imports.single.uri.stringValue, equals('dart:../bar.dart'));
-        expect(filterSafePackages(imports), isEmpty);
-      });
-
-      test('negative path import', () {
-        const source = '''
-import '../foo.dart';
-''';
-        final imports = getAllImportsFor(source);
-        expect(imports, hasLength(1));
-        expect(imports.single.uri.stringValue, equals('../foo.dart'));
-        expect(filterSafePackages(imports), isEmpty);
-      });
-    });
   });
 }

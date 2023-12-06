@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  group('server v3', () {
+  group('server', () {
     late final Sdk sdk;
     late final EndpointsServer server;
     late final Client httpClient;
@@ -96,6 +96,22 @@ void main() {
           contains(
               "A value of type 'String' can't be assigned to a variable of type 'int'"));
       expect(issue.location.line, 2);
+    });
+
+    test('analyze unsupported import', () async {
+      final result = await client.analyze(SourceRequest(source: r'''
+import 'package:foo_bar/foo_bar.dart';
+
+void main() => print('hello world');
+'''));
+
+      expect(result.issues, isNotEmpty);
+
+      final issue = result.issues.first;
+      expect(issue.kind, 'warning');
+      expect(
+          issue.message, contains("Unsupported package: 'package:foo_bar'."));
+      expect(issue.location.line, 1);
     });
 
     test('complete', () async {

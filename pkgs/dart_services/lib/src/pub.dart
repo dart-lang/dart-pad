@@ -67,13 +67,10 @@ Map<String, String> packageVersionsFromPubspecLock(String templatePath) {
   return packageVersions;
 }
 
-/// Returns the names of packages that are referenced in this collection.
-/// These package names are sanitized defensively.
-List<String> filterSafePackages(List<ImportDirective> imports) {
-  return imports
-      .where((import) => !import.uri.stringValue!.startsWith('package:../'))
-      .map((import) => Uri.parse(import.uri.stringValue!))
-      .where((uri) => uri.scheme == 'package' && uri.pathSegments.isNotEmpty)
-      .map((uri) => uri.pathSegments.first)
-      .toList();
+extension ImportDirectiveExtension on ImportDirective {
+  bool get dartImport => Uri.parse(uri.stringValue!).scheme == 'dart';
+
+  bool get packageImport => Uri.parse(uri.stringValue!).scheme == 'package';
+
+  String get packageName => Uri.parse(uri.stringValue!).pathSegments.first;
 }
