@@ -111,18 +111,18 @@ a {
 }
 
 // Code annotations
-.squiggle-error {
-  border-bottom: 2px solid $dark-squiggle-error-color;
+
+.squiggle-info {
+  border-bottom: 2px solid $dark-squiggle-info-color;
 }
 
 .squiggle-warning {
   border-bottom: 2px solid $dark-squiggle-warning-color;
 }
 
-.squiggle-info {
-  border-bottom: 2px solid $dark-squiggle-info-color;
+.squiggle-error {
+  border-bottom: 2px solid $dark-squiggle-error-color;
 }
-
 
 .clickable {
   cursor: pointer;
