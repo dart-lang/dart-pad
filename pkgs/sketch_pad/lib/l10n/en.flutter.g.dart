@@ -20,8 +20,8 @@ class MessagesLocalizations {
 
   static List<Locale> get supportedLocales {
     return Messages.knownLocales.map((e) {
-      var split = e.split('_');
-      var code = split.length > 1 ? split[1] : null;
+      final split = e.split('_');
+      final code = split.length > 1 ? split[1] : null;
       return Locale(split.first, code);
     }).toList();
   }
