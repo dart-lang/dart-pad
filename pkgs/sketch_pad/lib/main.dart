@@ -149,6 +149,7 @@ class _DartPadAppState extends State<DartPadApp> {
         Locale('de'), // German
         Locale('ar'), // Arabic
       ],
+      // locale: const Locale('ar'), //DO_NOT_SUBMIT: Uncomment this to test UI
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
