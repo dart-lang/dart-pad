@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
@@ -137,6 +138,17 @@ class _DartPadAppState extends State<DartPadApp> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('es'), // Spanish
+        Locale('de'), // German
+        Locale('ar'), // Arabic
+      ],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
