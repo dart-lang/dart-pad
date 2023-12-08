@@ -1,0 +1,10 @@
+{
+    "@@locale": "de",
+    "@@x-reference": "en.arb",
+    "newPad": "Neu",
+    "samples": "Beispiele",
+    "installSdk": "SDK installieren",
+    "privacyNotice": "Datenschutzerklärung",
+    "feedback": "Feedback",
+    "channelSelection": "{channelName} channel"
+}

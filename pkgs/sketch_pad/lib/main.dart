@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +20,7 @@ import 'editor/editor.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
+import 'l10n/en.flutter.g.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -138,18 +138,14 @@ class _DartPadAppState extends State<DartPadApp> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      localizationsDelegates: [...MessagesLocalizations.localizationsDelegates],
       supportedLocales: const [
         Locale('en'), // English
         Locale('es'), // Spanish
         Locale('de'), // German
         Locale('ar'), // Arabic
       ],
-      // locale: const Locale('ar'), //DO_NOT_SUBMIT: Uncomment this to test UI
+      locale: const Locale('de'), //DO_NOT_SUBMIT: Uncomment this to test UI
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
@@ -295,11 +291,11 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       Uri.parse('https://docs.flutter.dev/get-started/install'),
                     );
                   },
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Text('Install SDK'),
-                      SizedBox(width: denseSpacing),
-                      Icon(Icons.launch, size: 18),
+                      Text(MessagesLocalizations.of(context)!.installSdk),
+                      const SizedBox(width: denseSpacing),
+                      const Icon(Icons.launch, size: 18),
                     ],
                   ),
                 ),
@@ -598,11 +594,11 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://dart.dev/tools/dartpad/privacy';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Row(
+            child: Row(
               children: [
-                Text('Privacy notice'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
+                Text(MessagesLocalizations.of(context)!.privacyNotice),
+                const SizedBox(width: denseSpacing),
+                const Icon(Icons.launch, size: 16),
               ],
             ),
           ),
@@ -612,11 +608,11 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://github.com/dart-lang/dart-pad/issues';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Row(
+            child: Row(
               children: [
-                Text('Feedback'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
+                Text(MessagesLocalizations.of(context)!.feedback),
+                const SizedBox(width: denseSpacing),
+                const Icon(Icons.launch, size: 16),
               ],
             ),
           ),
@@ -686,7 +682,7 @@ class NewSnippetWidget extends StatelessWidget {
       height: toolbarItemHeight,
       child: TextButton.icon(
         icon: const Icon(Icons.add_circle),
-        label: const Text('New'),
+        label: Text(MessagesLocalizations.of(context)!.newPad),
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
@@ -741,7 +737,7 @@ class ListSamplesWidget extends StatelessWidget {
       height: toolbarItemHeight,
       child: TextButton.icon(
         icon: const Icon(Icons.playlist_add_outlined),
-        label: const Text('Samples'),
+        label: Text(MessagesLocalizations.of(context)!.samples),
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
@@ -810,7 +806,8 @@ class SelectChannelWidget extends StatelessWidget {
             icon: const Icon(Icons.tune, size: smallIconSize),
             label: Container(
               constraints: const BoxConstraints(minWidth: 95),
-              child: Text('${value.displayName} channel'),
+              child: Text(MessagesLocalizations.of(context)!
+                  .channelSelection(value.displayName)),
             ),
             onPressed: () async {
               final selection = await _showMenu(
