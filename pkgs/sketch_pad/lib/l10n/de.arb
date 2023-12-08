@@ -1,6 +1,6 @@
 {
     "@@locale": "de",
-    "@@x-reference": "en.arb",
+    "@@x-template": "en.arb",
     "newPad": "Neu",
     "samples": "Beispiele",
     "installSdk": "SDK installieren",
