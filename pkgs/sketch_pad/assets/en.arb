@@ -1,0 +1,35 @@
+{
+    "@@locale": "en_US",
+    "@@context": "pagename",
+    "newPad": "New",
+    "@newPad": {
+        "description": "Button to create a new pad"
+    },
+    "samples": "Samples",
+    "@samples": {
+        "description": "Button to show a list of all samples"
+    },
+    "installSdk": "Install SDK",
+    "@installSdk": {
+        "description": "Button to follow external link to webpage helping on installing the Dart SDK"
+    },
+    "privacyNotice": "Privacy Notice",
+    "@privacyNotice": {
+        "description": "Button to show privacy notice on external web page"
+    },
+    "feedback": "Feedback",
+    "@feedback": {
+        "description": "Button to give feedback on external web page"
+    },
+    "stableChannel": "{channelName} channel",
+    "@stableChannel": {
+        "description": "Text field describing the Dart SDK channel selected by the user",
+        "placeholders": {
+            "channelName": {
+                "type": "String",
+                "description": "The name of the channel",
+                "example": "Stable"
+            }
+        }
+    }
+}
