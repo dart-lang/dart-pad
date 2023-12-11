@@ -72,32 +72,17 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
   /// `analysis_options.yaml`, and `web/index.html`.
-  ///
-  /// Depending on [firebaseStyle], Firebase packages are included in
-  /// `pubspec.yaml` which affects how `flutter packages get` will register
-  /// plugins.
-  Future<void> buildFlutterProjectTemplate({
-    required FirebaseStyle firebaseStyle,
-  }) async {
-    final projectDirName = firebaseStyle == FirebaseStyle.none
-        ? 'flutter_project'
-        : 'firebase_project';
-    final projectPath = path.join(
-      _templatesPath,
-      projectDirName,
-    );
+  Future<void> buildFlutterProjectTemplate() async {
+    final projectPath = path.join(_templatesPath, 'flutter_project');
     await Directory(projectPath).create(recursive: true);
     await Directory(path.join(projectPath, 'lib')).create();
     await Directory(path.join(projectPath, 'web')).create();
     await File(path.join(projectPath, 'web', 'index.html')).create();
-    var packages = {
+
+    final dependencies = _dependencyVersions({
       ...supportedBasicDartPackages,
       ...supportedFlutterPackages,
-      if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
-      if (firebaseStyle == FirebaseStyle.flutterFire)
-        ...registerableFirebasePackages,
-    };
-    final dependencies = _dependencyVersions(packages);
+    });
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
@@ -119,30 +104,6 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       Directory(path.join(projectPath, 'lib')).createSync();
       pluginRegistrant.copySync(
           path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'));
-    }
-
-    if (firebaseStyle != FirebaseStyle.none) {
-      // `flutter packages get` has been run with a _subset_ of all supported
-      // Firebase packages, the ones that don't require a Firebase app to be
-      // configured in JavaScript, before executing Dart. Now add the full set of
-      // supported Firebase packages. This workaround is a very fragile hack.
-      packages = {
-        ...supportedBasicDartPackages,
-        ...supportedFlutterPackages,
-        ...firebasePackages,
-      };
-      final dependencies = _dependencyVersions(packages);
-      File(path.join(projectPath, 'pubspec.yaml'))
-          .writeAsStringSync(createPubspec(
-        includeFlutterWeb: true,
-        dartLanguageVersion: _dartLanguageVersion,
-        dependencies: dependencies,
-      ));
-
-      final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
-      if (exitCode != 0) {
-        throw StateError('flutter pub get failed ($exitCode)');
-      }
     }
 
     var contents = '''
@@ -179,29 +140,10 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
   Map<String, String> _dependencyVersions(Iterable<String> packages) {
     final allVersions =
         parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
-    final result = {
+    return {
       for (final package in packages) package: allVersions[package] ?? 'any',
     };
-
-    // Overwrite with important constraints.
-    for (final entry in overrideVersionConstraints().entries) {
-      if (result.containsKey(entry.key)) {
-        result[entry.key] = entry.value;
-      }
-    }
-
-    return result;
   }
-}
-
-/// A mapping of version constraints for certain packages.
-Map<String, String> overrideVersionConstraints() {
-  // Ensure that pub version solving keeps these at sane minimum versions.
-  return {
-    'firebase_auth': '^4.2.0',
-    'firebase_auth_web': '^5.2.0',
-    'cloud_firestore_platform_interface': '^5.10.0',
-  };
 }
 
 /// Parses [dependenciesFile] as a JSON Map of Strings.
@@ -259,12 +201,4 @@ String get _pubCachePath {
   final pubCachePath = path.join(Directory.current.path, 'local_pub_cache');
   Directory(pubCachePath).createSync();
   return pubCachePath;
-}
-
-enum FirebaseStyle {
-  /// Indicates that no Firebase is used.
-  none,
-
-  /// Indicates that the "pure Dart" Flutterfire packages are used.
-  flutterFire,
 }

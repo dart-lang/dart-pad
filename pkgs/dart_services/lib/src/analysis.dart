@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -74,11 +75,9 @@ class AnalysisServerWrapper {
     required this.sdkPath,
     String? projectPath,
   }) :
-        // During analysis, we use the Firebase project template. The Firebase
-        // template is separate from the Flutter template only to keep Firebase
-        // references out of app initialization code at runtime.
+        // During analysis, we use the Flutter project template.
         projectPath =
-            projectPath ?? ProjectTemplates.projectTemplates.firebasePath;
+            projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
 
   String get mainPath => _getPathFromName(kMainDart);
 
@@ -311,40 +310,34 @@ class AnalysisServerWrapper {
     final importIssues = <api.AnalysisIssue>[];
 
     for (final import in imports) {
-      final start = import.firstTokenAfterCommentAndMetadata;
-      final end = import.endToken;
-
-      Lines? lines;
-
+      // ignore dart: imports.
       if (import.dartImport) {
-        // ignore dart: imports.
-      } else if (import.packageImport) {
-        if (!isSupportedPackage(import.packageName)) {
-          lines ??= Lines(source);
+        continue;
+      }
 
+      if (import.packageImport) {
+        final packageName = import.packageName;
+
+        if (isFirebasePackage(packageName)) {
+          // TODO: Update the 'more info' url.
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
-            message: "Unsupported package: 'package:${import.packageName}'.",
-            location: api.Location(
-              charStart: start.charOffset,
-              charLength: end.charEnd - start.charOffset,
-              line: lines.lineForOffset(start.charOffset),
-              column: lines.columnForOffset(start.charOffset),
-            ),
+            message: 'Firebase is no longer supported by DartPad.',
+            url: 'https://github.com/dart-lang/dart-pad',
+            location: import.getLocation(source),
+          ));
+        } else if (!isSupportedPackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Unsupported package: 'package:$packageName'.",
+            location: import.getLocation(source),
           ));
         }
       } else {
-        lines ??= Lines(source);
-
         importIssues.add(api.AnalysisIssue(
           kind: 'error',
           message: 'Import type not supported.',
-          location: api.Location(
-            charStart: start.charOffset,
-            charLength: end.charEnd - start.charOffset,
-            line: lines.lineForOffset(start.charOffset),
-            column: lines.columnForOffset(start.charOffset),
-          ),
+          location: import.getLocation(source),
         ));
       }
     }
@@ -464,6 +457,20 @@ extension SourceChangeExtension on SourceChange {
         );
       }).toList(),
       selectionOffset: selection?.offset,
+    );
+  }
+}
+
+extension AnnotatedNodeExtension on AnnotatedNode {
+  api.Location getLocation(String source) {
+    final lines = Lines(source);
+    final start = firstTokenAfterCommentAndMetadata;
+
+    return api.Location(
+      charStart: start.charOffset,
+      charLength: endToken.charEnd - start.charOffset,
+      line: lines.lineForOffset(start.charOffset),
+      column: lines.columnForOffset(start.charOffset),
     );
   }
 }

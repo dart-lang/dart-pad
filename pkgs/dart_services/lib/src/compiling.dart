@@ -116,9 +116,7 @@ class Compiler {
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
-      if (usesFirebase(imports)) {
-        _copyPath(_projectTemplates.firebasePath, temp.path);
-      } else if (usingFlutter) {
+      if (usingFlutter) {
         _copyPath(_projectTemplates.flutterPath, temp.path);
       } else {
         _copyPath(_projectTemplates.dartPath, temp.path);

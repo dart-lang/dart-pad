@@ -13,8 +13,6 @@ class ProjectTemplates {
   ProjectTemplates._({
     required this.dartPath,
     required this.flutterPath,
-    required this.firebasePath,
-    required this.firebaseDeprecatedPath,
     required this.summaryFilePath,
   });
 
@@ -27,9 +25,6 @@ class ProjectTemplates {
     return ProjectTemplates._(
       dartPath: path.join(basePath, 'dart_project'),
       flutterPath: path.join(basePath, 'flutter_project'),
-      firebasePath: path.join(basePath, 'firebase_project'),
-      firebaseDeprecatedPath:
-          path.join(basePath, 'firebase_deprecated_project'),
       summaryFilePath: summaryFilePath,
     );
   }
@@ -37,14 +32,8 @@ class ProjectTemplates {
   /// The path to the plain Dart project template path.
   final String dartPath;
 
-  /// The path to the Flutter (without Firebase) project template path.
+  /// The path to the Flutter project template path.
   final String flutterPath;
-
-  /// The path to the Firebase (with Flutter) project template path.
-  final String firebasePath;
-
-  /// The path to the deprecated Firebase (with Flutter) project template path.
-  final String firebaseDeprecatedPath;
 
   /// The path to summary files.
   final String summaryFilePath;
@@ -55,40 +44,10 @@ class ProjectTemplates {
       path.join(Directory.current.path, 'project_templates');
 }
 
-/// The set of Firebase packages which are used in both deprecated Firebase
-/// projects and "pure Dart" Flutterfire projects.
-const Set<String> coreFirebasePackages = {
-  'firebase_core',
-};
-
-/// The set of Firebase packages which can be registered in the generated
-/// registrant file. Theoretically this should be _all_ plugins, but there
-/// are bugs. See https://github.com/dart-lang/dart-pad/issues/2033 and
-/// https://github.com/FirebaseExtended/flutterfire/issues/3962.
-const Set<String> registerableFirebasePackages = {
-  'cloud_firestore',
-  'firebase_auth',
-};
-
-/// The set of Firebase packages which indicate that Firebase is being used.
-const Set<String> firebasePackages = {
-  ...coreFirebasePackages,
-  ...registerableFirebasePackages,
-};
-
 /// The set of supported Flutter-oriented packages.
 const Set<String> supportedFlutterPackages = {
   'animations',
   'creator',
-  'firebase_analytics',
-  'firebase_database',
-  'firebase_messaging',
-  'firebase_storage',
-  'flame',
-  'flame_fire_atlas',
-  'flame_forge2d',
-  'flame_splash_screen',
-  'flame_tiled',
   'flutter_adaptive_scaffold',
   'flutter_bloc',
   'flutter_hooks',
@@ -111,7 +70,6 @@ const Set<String> _packagesIndicatingFlutter = {
   'flutter',
   'flutter_test',
   ...supportedFlutterPackages,
-  ...firebasePackages,
 };
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
@@ -170,8 +128,8 @@ const Set<String> _allowedDartImports = {
 bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
     imports.any((import) => isFlutterWebImport(import.uri.stringValue));
 
-/// Whether the [importString] represents an import
-/// that denotes use of Flutter Web.
+/// Whether the [importString] represents an import that denotes use of Flutter
+/// Web.
 @visibleForTesting
 bool isFlutterWebImport(String? importString) {
   if (importString == null) return false;
@@ -182,18 +140,21 @@ bool isFlutterWebImport(String? importString) {
       _packagesIndicatingFlutter.contains(packageName);
 }
 
-/// Returns whether [imports] denote use of Firebase.
-bool usesFirebase(Iterable<ImportDirective> imports) =>
-    imports.any((import) => isFirebaseImport(import.uri.stringValue));
+/// The core set of Firebase packages.
+const Set<String> firebasePackages = {
+  'cloud_firestore',
+  'firebase_auth',
+  'firebase_core',
+  'flame',
+};
 
-/// Whether the [importString] represents an import
-/// that denotes use of a Firebase package.
-@visibleForTesting
-bool isFirebaseImport(String? importString) {
-  if (importString == null) return false;
+bool isFirebasePackage(String packageName) {
+  if (firebasePackages.contains(packageName)) return true;
 
-  final packageName = _packageNameFromPackageUri(importString);
-  return packageName != null && firebasePackages.contains(packageName);
+  if (packageName.startsWith('firebase_')) return true;
+  if (packageName.startsWith('flame_')) return true;
+
+  return false;
 }
 
 /// If [uriString] represents a 'package:' URI, then returns the package name;
