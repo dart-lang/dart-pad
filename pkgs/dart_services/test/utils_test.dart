@@ -62,4 +62,42 @@ void defineTests() {
       );
     });
   });
+
+  group('Lines', () {
+    test('empty string', () {
+      final lines = Lines('');
+      expect(lines.lineForOffset(0), 1);
+      expect(lines.lineForOffset(1), 1);
+      expect(lines.columnForOffset(0), 1);
+      expect(lines.columnForOffset(1), 1);
+    });
+
+    test('lineForOffset', () {
+      final lines = Lines('one\ntwo\nthree');
+      expect(lines.lineForOffset(0), 1);
+      expect(lines.lineForOffset(1), 1);
+      expect(lines.lineForOffset(2), 1);
+      expect(lines.lineForOffset(3), 1);
+      expect(lines.lineForOffset(4), 2);
+      expect(lines.lineForOffset(5), 2);
+      expect(lines.lineForOffset(6), 2);
+      expect(lines.lineForOffset(7), 2);
+      expect(lines.lineForOffset(8), 3);
+      expect(lines.lineForOffset(9), 3);
+      expect(lines.lineForOffset(10), 3);
+      expect(lines.lineForOffset(11), 3);
+      expect(lines.lineForOffset(12), 3);
+      expect(lines.lineForOffset(13), 3);
+
+      expect(lines.lineForOffset(14), 3);
+    });
+
+    test('columnForOffset', () {
+      final lines = Lines('one\ntwo\nthree');
+      expect(lines.columnForOffset(0), 1);
+      expect(lines.columnForOffset(1), 2);
+      expect(lines.columnForOffset(2), 3);
+      expect(lines.columnForOffset(3), 4);
+    });
+  });
 }

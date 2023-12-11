@@ -6,18 +6,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'common_server.dart';
-import 'project_templates.dart' as project;
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 import 'shared/model.dart' as api;
 import 'utils.dart' as utils;
+import 'utils.dart';
 
 final Logger _logger = Logger('analysis_server');
 
@@ -41,24 +39,14 @@ class Analyzer {
   }
 
   Future<api.AnalysisResponse> analyze(String source) async {
-    final imports = getAllImportsFor(source);
-
-    // TODO(srawlins): Do the work so that each unsupported input is its own
-    // error with a proper SourceSpan.
-    await _checkPackageReferences(imports);
-
-    return analysisServer.analyze(source, imports: imports);
+    return analysisServer.analyze(source);
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.complete(source, offset);
   }
 
   Future<api.FixesResponse> fixes(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.fixes(source, offset);
   }
 
@@ -67,24 +55,7 @@ class Analyzer {
   }
 
   Future<api.DocumentResponse> dartdoc(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.dartdoc(source, offset);
-  }
-
-  /// Check that the set of packages referenced is valid.
-  Future<void> _checkPackageReferences(List<ImportDirective> imports) async {
-    final unsupportedImports = project.getUnsupportedImports(
-      imports,
-      sourceFiles: {kMainDart},
-    );
-
-    if (unsupportedImports.isNotEmpty) {
-      final unsupportedUris =
-          unsupportedImports.map((import) => import.uri.stringValue).toList();
-      final plural = unsupportedUris.length == 1 ? 'import' : 'imports';
-      throw BadRequest('unsupported $plural ${unsupportedUris.join(', ')}');
-    }
   }
 
   Future<void> shutdown() {
@@ -282,10 +253,7 @@ class AnalysisServerWrapper {
     );
   }
 
-  Future<api.AnalysisResponse> analyze(
-    String source, {
-    List<ImportDirective>? imports,
-  }) async {
+  Future<api.AnalysisResponse> analyze(String source) async {
     final sources = _getOverlayMapWithPaths({kMainDart: source});
     await _loadSources(sources);
 
@@ -339,12 +307,57 @@ class AnalysisServerWrapper {
       return a.location.charStart.compareTo(b.location.charStart);
     });
 
-    // Ensure we have imports if they were not passed in.
-    imports ??= getAllImportsFor(source);
+    final imports = getAllImportsFor(source);
+    final importIssues = <api.AnalysisIssue>[];
+
+    for (final import in imports) {
+      final start = import.firstTokenAfterCommentAndMetadata;
+      final end = import.endToken;
+
+      Lines? lines;
+
+      if (import.dartImport) {
+        // ignore dart: imports.
+      } else if (import.packageImport) {
+        if (!isSupportedPackage(import.packageName)) {
+          lines ??= Lines(source);
+
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Unsupported package: 'package:${import.packageName}'.",
+            location: api.Location(
+              charStart: start.charOffset,
+              charLength: end.charEnd - start.charOffset,
+              line: lines.lineForOffset(start.charOffset),
+              column: lines.columnForOffset(start.charOffset),
+            ),
+          ));
+        }
+      } else {
+        lines ??= Lines(source);
+
+        importIssues.add(api.AnalysisIssue(
+          kind: 'error',
+          message: 'Import type not supported.',
+          location: api.Location(
+            charStart: start.charOffset,
+            charLength: end.charEnd - start.charOffset,
+            line: lines.lineForOffset(start.charOffset),
+            column: lines.columnForOffset(start.charOffset),
+          ),
+        ));
+      }
+    }
 
     return api.AnalysisResponse(
-      issues: issues,
-      packageImports: filterSafePackages(imports),
+      issues: [
+        ...importIssues,
+        ...issues,
+      ],
+      packageImports: imports
+          .where((import) => import.packageImport)
+          .map((import) => import.packageName)
+          .toList(),
     );
   }
 
