@@ -322,6 +322,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                 padding: const EdgeInsets.all(denseSpacing),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
+                                  // We use explicit directionality here in
+                                  // order to have the format and run buttons on
+                                  // the right hand side of the editing area.
+                                  textDirection: TextDirection.ltr,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Format action
