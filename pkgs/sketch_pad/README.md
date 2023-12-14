@@ -25,7 +25,10 @@ configure the `flutter run` web server to pass CORS headers for
 
 ## Localization
 
-To add a new locale:
-* Copy and rename `de.arb`, and add the translated strings. Use the descriptions in `en.arb` as a reference.
+To add a new locale, say `ar`:
+* Copy `de.arb` and rename to `ar.arb`
+* Set the `"locale"` key in the file to `ar`.
+* Add the translated strings to the file. Use the descriptions in `en.arb` as a reference.
 * Add the locale to the `supportedLocales` in `main.dart`.
+* Add `lib/ar.json` to the assets in the `pubspec.yaml`
 * Run `dart run build_runner build -d` to regenerate the calling code.
