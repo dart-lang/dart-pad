@@ -23,4 +23,9 @@ We pass the `--disable-web-security` flag to Chrome as we're not able to
 configure the `flutter run` web server to pass CORS headers for
 `AssetManifest.json`, `FontManifest.json`, and other resources.
 
-## Regenerating message files
+## Localization
+
+To add a new locale:
+* Copy and rename `de.arb`, and add the translated strings. Use the descriptions in `en.arb` as a reference.
+* Add the locale to the `supportedLocales` in `main.dart`.
+* Run `dart run build_runner build -d` to regenerate the calling code.
