@@ -354,10 +354,6 @@ class AnalysisServerWrapper {
         ...importIssues,
         ...issues,
       ],
-      packageImports: imports
-          .where((import) => import.packageImport)
-          .map((import) => import.packageName)
-          .toList(),
     );
   }
 

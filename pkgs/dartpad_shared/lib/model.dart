@@ -25,11 +25,13 @@ class SourceRequest {
 @JsonSerializable()
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
+
+  @Deprecated('This field was unused and will be removed in a future update.')
   final List<String> packageImports;
 
   AnalysisResponse({
     required this.issues,
-    required this.packageImports,
+    this.packageImports = const [],
   });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
