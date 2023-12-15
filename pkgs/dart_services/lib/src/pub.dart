@@ -12,9 +12,7 @@ import 'package:yaml/yaml.dart';
 import 'project_templates.dart' as project;
 
 /// Extract all imports from [dartSource] source code.
-List<ImportDirective> getAllImportsFor(String? dartSource) {
-  if (dartSource == null) return [];
-
+List<ImportDirective> getAllImportsFor(String dartSource) {
   final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
   return unit.directives.whereType<ImportDirective>().toList();
 }

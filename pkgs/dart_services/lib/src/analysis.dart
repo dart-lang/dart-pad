@@ -83,7 +83,7 @@ class AnalysisServerWrapper {
   String get mainPath => _getPathFromName(kMainDart);
 
   Future<void> init() async {
-    final serverArgs = <String>['--client-id=DartPad'];
+    const serverArgs = <String>['--client-id=DartPad'];
     _logger.info('Starting analysis server '
         '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})');
 
@@ -231,11 +231,11 @@ class AnalysisServerWrapper {
   }
 
   Future<api.DocumentResponse> dartdoc(String src, int offset) async {
-    final sourcepath = _getPathFromName(kMainDart);
+    final sourcePath = _getPathFromName(kMainDart);
 
     await _loadSources(_getOverlayMapWithPaths({kMainDart: src}));
 
-    final result = await analysisServer.analysis.getHover(sourcepath, offset);
+    final result = await analysisServer.analysis.getHover(sourcePath, offset);
 
     if (result.hovers.isEmpty) {
       return api.DocumentResponse();
@@ -260,9 +260,9 @@ class AnalysisServerWrapper {
     final errors = <AnalysisError>[];
 
     // Loop over all files and collect errors.
-    for (final sourcepath in sources.keys) {
+    for (final sourcePath in sources.keys) {
       errors
-          .addAll((await analysisServer.analysis.getErrors(sourcepath)).errors);
+          .addAll((await analysisServer.analysis.getErrors(sourcePath)).errors);
     }
 
     final issues = errors.map((error) {
@@ -310,18 +310,16 @@ class AnalysisServerWrapper {
     final imports = getAllImportsFor(source);
     final importIssues = <api.AnalysisIssue>[];
 
+    late final lines = Lines(source);
+
     for (final import in imports) {
       final start = import.firstTokenAfterCommentAndMetadata;
       final end = import.endToken;
-
-      Lines? lines;
 
       if (import.dartImport) {
         // ignore dart: imports.
       } else if (import.packageImport) {
         if (!isSupportedPackage(import.packageName)) {
-          lines ??= Lines(source);
-
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
             message: "Unsupported package: 'package:${import.packageName}'.",
@@ -334,8 +332,6 @@ class AnalysisServerWrapper {
           ));
         }
       } else {
-        lines ??= Lines(source);
-
         importIssues.add(api.AnalysisIssue(
           kind: 'error',
           message: 'Import type not supported.',
