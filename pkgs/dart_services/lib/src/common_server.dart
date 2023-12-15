@@ -228,10 +228,11 @@ class CommonServerApi {
     final packageVersions = getPackageVersions();
 
     final packages = [
-      for (final packageName in packageVersions.keys)
+      for (final MapEntry(key: packageName, value: packageVersion)
+          in packageVersions.entries)
         api.PackageInfo(
           name: packageName,
-          version: packageVersions[packageName]!,
+          version: packageVersion,
           supported: isSupportedPackage(packageName),
         ),
     ];

@@ -16,7 +16,6 @@ void defineTests() {
 
     setUpAll(() async {
       compiler = Compiler(Sdk(), storageBucket: 'nnbd_artifacts');
-      await compiler.warmup();
     });
 
     tearDownAll(() async {

@@ -11,11 +11,17 @@ final _wsRegex = RegExp(r' \s+');
 void emitLogsToStdout() {
   Logger.root.onRecord.listen((LogRecord record) {
     if (verboseLogging || record.level >= Level.INFO) {
-      var stackTrace = '';
-      if (record.stackTrace != null) {
-        var lines = record.stackTrace!.toString().split('\n').take(5).join(' ');
-        lines = lines.replaceAll(_wsRegex, ' ');
+      final String stackTrace;
+      if (record.stackTrace case final recordStackTrace?) {
+        final lines = recordStackTrace
+            .toString()
+            .split('\n')
+            .take(5)
+            .join(' ')
+            .replaceAll(_wsRegex, ' ');
         stackTrace = ' $lines';
+      } else {
+        stackTrace = '';
       }
 
       print(
