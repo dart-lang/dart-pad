@@ -350,6 +350,7 @@ class AnalysisServerWrapper {
         ...importIssues,
         ...issues,
       ],
+      packageImports: [],
     );
   }
 

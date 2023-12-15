@@ -27,11 +27,11 @@ class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
   @Deprecated('This field was unused and will be removed in a future update.')
-  final List<String> packageImports;
+  final List<String>? packageImports;
 
   AnalysisResponse({
     required this.issues,
-    this.packageImports = const [],
+    this.packageImports,
   });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
