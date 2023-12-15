@@ -4,10 +4,11 @@
 
 // ignore_for_file: avoid_web_libraries_in_flutter
 
-import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
+import 'package:web/helpers.dart' as web_helpers;
+import 'package:web/web.dart' as web;
 
 import '../model.dart';
 import '../theme.dart';
@@ -28,11 +29,11 @@ void _initViewFactory() {
   ui_web.platformViewRegistry.registerViewFactory(_viewType, _iFrameFactory);
 }
 
-html.Element _iFrameFactory(int viewId) {
+web.Element _iFrameFactory(int viewId) {
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  final frame = html.IFrameElement()
-    ..sandbox!.add('allow-scripts')
-    ..sandbox!.add('allow-popups')
+  final frame = web_helpers.createIFrameElement()
+    ..sandbox.add('allow-scripts')
+    ..sandbox.add('allow-popups')
     ..src = 'frame.html'
     ..style.border = 'none'
     ..style.width = '100%'
@@ -78,7 +79,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         viewType: _viewType,
         onPlatformViewCreated: (int id) {
           final frame =
-              ui_web.platformViewRegistry.getViewById(id) as html.Element;
+              ui_web.platformViewRegistry.getViewById(id) as web.Element;
           final executionService = _expando[frame] as ExecutionService;
           widget.appServices.registerExecutionService(executionService);
         },

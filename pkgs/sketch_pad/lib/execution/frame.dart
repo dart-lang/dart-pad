@@ -5,7 +5,10 @@
 // ignore_for_file: avoid_web_libraries_in_flutter
 
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'dart:js_util';
+import 'package:web/helpers.dart';
+import 'package:web/web.dart' as web;
 
 import '../model.dart';
 
@@ -13,17 +16,12 @@ class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =
       StreamController<String>.broadcast();
 
-  html.IFrameElement _frame;
+  web.HTMLIFrameElement _frame;
   late String _frameSrc;
   Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceImpl(this._frame) {
-    final src = _frame.src;
-    if (src == null) {
-      throw StateError('invalid iframe src');
-    }
-    _frameSrc = src;
-
+    _frameSrc = _frame.src;
     _initListener();
   }
 
@@ -137,23 +135,22 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     final message = {
       'command': command,
       ...params,
-    };
-    _frame.contentWindow!.postMessage(message, '*');
+    }.toJSBox;
+    // TODO: Use dartpad.dev instead of '*'?
+    _frame.contentWindow!.postMessage(message, '*'.toJS);
     return Future.value();
   }
 
   /// Destroy and reload the iframe.
   Future<void> _reset() {
-    if (_frame.parent != null) {
+    if (_frame.parentElement != null) {
       _readyCompleter = Completer();
 
-      final clone = _frame.clone(false) as html.IFrameElement;
+      final clone = _frame.clone(false) as web.HTMLIFrameElement;
       clone.src = _frameSrc;
 
-      final children = _frame.parent!.children;
-      final index = children.indexOf(_frame);
-      children.insert(index, clone);
-      _frame.parent!.children.remove(_frame);
+      _frame.parentElement!.appendChild(clone);
+      _frame.parentElement!.removeChild(_frame);
       _frame = clone;
     }
 
@@ -164,9 +161,9 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    html.window.addEventListener('message', (event) {
-      if (event is html.MessageEvent) {
-        final data = (event.data as Map).cast<String, dynamic>();
+    web.window.addEventListener('message', (web.Event event) {
+      if (event is web.MessageEvent) {
+        final data = dartify(event.data) as Map<Object?,Object?>;
         if (data['sender'] != 'frame') {
           return;
         }
@@ -184,7 +181,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
           _stdoutController.add(data['message'] as String);
         }
       }
-    }, false);
+    }.toJS, false.toJS);
   }
 }
 

@@ -21,6 +21,7 @@ dependencies:
   url_launcher: any
   url_strategy: any
   vtable: ^0.4.0
+  web: ^0.4.0
 
 dev_dependencies:
   flutter_test:
