@@ -8,6 +8,7 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl4x/intl4x.dart' as intl;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -64,6 +65,7 @@ class _DartPadAppState extends State<DartPadApp> {
   );
 
   ThemeMode themeMode = ThemeMode.system;
+  Locale? locale;
 
   @override
   void initState() {
@@ -89,6 +91,10 @@ class _DartPadAppState extends State<DartPadApp> {
       GoRouter.of(context).replaceQueryParam('theme', 'dark');
     }
     _setTheme();
+  }
+
+  void handleLocaleChanged(Locale l) {
+    setState(() => locale = l);
   }
 
   void _setTheme() {
@@ -128,6 +134,7 @@ class _DartPadAppState extends State<DartPadApp> {
       sampleId: sampleParam,
       gistId: idParam,
       handleBrightnessChanged: handleBrightnessChanged,
+      handleLocaleChanged: handleLocaleChanged,
     );
   }
 
@@ -139,6 +146,7 @@ class _DartPadAppState extends State<DartPadApp> {
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       localizationsDelegates: [...MessagesLocalizations.localizationsDelegates],
+      locale: locale,
       supportedLocales: const [
         Locale('en'), // English
         Locale('de'), // German
@@ -183,6 +191,7 @@ class DartPadMainPage extends StatefulWidget {
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
+  final void Function(Locale l) handleLocaleChanged;
 
   DartPadMainPage({
     required this.title,
@@ -190,6 +199,7 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
+    required this.handleLocaleChanged,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -449,7 +459,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               ),
             ),
           ),
-          if (!widget.embedMode) const StatusLineWidget(),
+          if (!widget.embedMode)
+            StatusLineWidget(handleLocaleChanged: widget.handleLocaleChanged),
         ],
       ),
     );
@@ -539,7 +550,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 }
 
 class StatusLineWidget extends StatelessWidget {
-  const StatusLineWidget({super.key});
+  final void Function(Locale l) handleLocaleChanged;
+  const StatusLineWidget({super.key, required this.handleLocaleChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -619,6 +631,10 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(
             height: 26,
             child: SelectChannelWidget(),
+          ),
+          SizedBox(
+            height: 26,
+            child: SelectLocaleWidget(handleLocaleChanged: handleLocaleChanged),
           ),
         ],
       ),
@@ -782,6 +798,77 @@ class ListSamplesWidget extends StatelessWidget {
 
   void _handleSelection(BuildContext context, String sampleId) {
     GoRouter.of(context).replaceQueryParam('sample', sampleId);
+  }
+}
+
+class SelectLocaleWidget extends StatelessWidget {
+  final void Function(Locale l) handleLocaleChanged;
+  const SelectLocaleWidget({super.key, required this.handleLocaleChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context);
+
+    return ValueListenableBuilder<Channel>(
+      valueListenable: appServices.channel,
+      builder: (context, Channel value, _) {
+        return SizedBox(
+          height: toolbarItemHeight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.language, size: smallIconSize),
+            label: Text(getDisplayName(Localizations.localeOf(context))),
+            onPressed: () async {
+              final selection = await _showMenu(
+                context,
+                calculatePopupMenuPosition(context, growUpwards: true),
+                value,
+              );
+              if (selection != null && context.mounted) {
+                _handleSelection(context, selection);
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<Locale?> _showMenu(
+      BuildContext context, RelativeRect position, Channel current) {
+    const itemHeight = 46.0;
+
+    final menuItems = [
+      for (final locale in context
+          .findAncestorWidgetOfExactType<MaterialApp>()!
+          .supportedLocales)
+        PopupMenuItem<Locale>(
+          value: locale,
+          child: PointerInterceptor(
+            child: ListTile(
+              title: Text(getDisplayName(locale)),
+            ),
+          ),
+        )
+    ];
+
+    return showMenu<Locale>(
+      context: context,
+      position: position.shift(Offset(0, -1 * menuItems.length * itemHeight)),
+      items: menuItems,
+    );
+  }
+
+  String getDisplayName(Locale locale) => intl.Intl()
+      .displayNames()
+      .ofLanguage(intl.Locale.parse(locale.toLanguageTag()));
+
+  void _handleSelection(BuildContext context, Locale locale) async {
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    handleLocaleChanged(locale);
+    appServices.appModel.editorStatus.showToast(
+      MessagesLocalizations.of(context)!
+          .switchedLocaleTo(getDisplayName(locale)),
+    );
   }
 }
 

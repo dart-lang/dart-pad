@@ -16,6 +16,7 @@ dependencies:
   fluttering_phrases: ^1.0.0
   go_router: ^12.1.0
   http: any
+  intl4x: ^0.7.0
   json_annotation: ^4.8.1
   messages: ^0.1.0
   pointer_interceptor: ^0.9.0
