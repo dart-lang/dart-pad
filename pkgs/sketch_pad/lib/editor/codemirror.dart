@@ -24,7 +24,8 @@ class CodeMirror {
   external factory CodeMirror.fromTextArea(HTMLTextAreaElement textArea);
   external static String get version;
   external static Commands commands;
-  external static void registerHelper(String type, String mode, JSFunction helper);
+  external static void registerHelper(
+      String type, String mode, JSFunction helper);
 }
 
 extension CodeMirrorExtension on CodeMirror {
@@ -38,8 +39,10 @@ extension CodeMirrorExtension on CodeMirror {
   external JSAny execCommand(String command, [JSAny? object]);
   external Events events;
   external void on(String event, JSFunction callback);
-  external JSFunction showHint;
   external Commands commands;
+  external Position getCursor();
+  external JSAny? getHelper(Position pos, String name);
+  external JSFunction showHint;
 
   void setReadOnly(bool value, [bool noCursor = false]) {
     if (value) {
@@ -56,9 +59,7 @@ extension CodeMirrorExtension on CodeMirror {
 
 @JS()
 @staticInterop
-class Commands {
-
-}
+class Commands {}
 
 extension CommandsExtension on Commands {
   external set goLineLeft(JSFunction callback);
@@ -69,9 +70,7 @@ extension CommandsExtension on Commands {
 
 @JS()
 @staticInterop
-class Events {
-
-}
+class Events {}
 
 extension EventsExtension on Events {
   external set change(JSFunction callback);
@@ -79,8 +78,7 @@ extension EventsExtension on Events {
 
 @JS()
 @staticInterop
-class Doc {
-}
+class Doc {}
 
 extension DocExtension on Doc {
   external void setValue(String value);
@@ -90,7 +88,12 @@ extension DocExtension on Doc {
   external String? getSelection(String s);
   external void setSelection(Position position, [Position head]);
   external JSArray getAllMarks();
-  external TextMarker markText(Position from, Position to, MarkTextOptions options);
+  external TextMarker markText(
+      Position from, Position to, MarkTextOptions options);
+  external int? indexFromPos(Position pos);
+  external void replaceRange(String replacement, Position from,
+      [Position? to, String? origin]);
+  external Position posFromIndex(int index);
 }
 
 @JS()
@@ -108,8 +111,7 @@ extension PositionExtension on Position {
 @JS()
 @staticInterop
 @anonymous
-class TextMarker {
-}
+class TextMarker {}
 
 extension TextMarkerExtension on TextMarker {
   external void clear();
@@ -119,9 +121,88 @@ extension TextMarkerExtension on TextMarker {
 @staticInterop
 @anonymous
 class MarkTextOptions {
-  external factory MarkTextOptions({String className, String title,});
+  external factory MarkTextOptions({
+    String className,
+    String title,
+  });
 }
+
 extension MarkTextOptionsExtension on MarkTextOptions {
   external String className;
   external String title;
 }
+
+// @JS()
+// @staticInterop
+// @anonymous
+// class HintsOptions {
+//   external factory HintsOptions({
+//     bool completeSingle,
+//     String alignWithWord,
+//     bool closeOnUnfocus,
+//   });
+// }
+//
+// extension HintsOptionsExtension on HintsOptions {
+//   external bool completeSingle;
+//   external bool alignWithWord;
+//   external bool closeOnUnfocus;
+// }
+
+@JS()
+@staticInterop
+@anonymous
+class HintResults {
+  external factory HintResults({JSArray list, Position from, Position to});
+}
+
+extension HintResultsExtension on HintResults {
+  external JSArray/*<HintResult>*/ list;
+  external Position from;
+  external Position to;
+}
+
+@JS()
+@staticInterop
+@anonymous
+class HintResult {
+  external factory HintResult({
+    String? text,
+    String? displayText,
+    String? className,
+    Position? from,
+    Position? to,
+    JSFunction? hintRenderer,
+    JSFunction? hintApplier,
+  });
+}
+
+extension HintResultExtension on HintResult {
+  external String? text;
+
+  external String? displayText;
+
+  external String? className;
+
+  external Position? from;
+
+  external Position? to;
+  external JSFunction? hintRenderer;
+  external JSFunction? hintApplier;
+}
+
+@JS()
+@staticInterop
+@anonymous
+class HintOptions {
+
+}
+
+
+
+// @JS()
+// typedef HintRenderer = void Function(Element element, HintResult hint);
+//
+// @JS()
+// typedef HintApplier = void Function(
+//     CodeMirror editor, HintResult hint, Position? from, Position? to);

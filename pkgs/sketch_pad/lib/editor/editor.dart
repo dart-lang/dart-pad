@@ -140,8 +140,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     codeMirror!.on(
       'change',
-      ([JSAny? event, JSAny? a, JSAny? b]) {
-        print('onChange');
+      ([JSAny? _, JSAny? __, JSAny? ___]) {
         _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
       }.toJS,
     );
@@ -154,16 +153,33 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     widget.appServices.registerEditorService(this);
 
-    codeMirror!.showHint =
-        (JSAny myThis, [JSAny? editor, JSAny? hintsFunc, JSAny? opt]) {
-      print('showHint callback');
+    // CodeMirror.commands.autocomplete = (JSAny? obj) {
+    //   print('autocomplete command callback');
+    //
+    //   var pos = codeMirror!.getCursor();
+    //
+    // }.toJS;
+
+    // Attempt to port Hints class from codemirror.dart
+    codeMirror!.showHint = (HintOptions? obj) {
+      var pos = codeMirror!.getCursor();
+      var helper = codeMirror!.getHelper(pos, 'hint');
+      var options = {'hint': helper}.jsify();
+      // codeMirror.callMethod()
+      // codeMirror!.showHint.callAsFunction(null, options);
+      _completions().then((HintResults c) {
+        print('from: ${c.from.ch}:${c.to.ch}');
+        print('to: ${c.to}');
+        print('HintResults: ${c.list.toDart}');
+      });
     }.toJS;
     CodeMirror.commands.autocomplete = codeMirror!.showHint;
+
     CodeMirror.registerHelper(
         'hint',
         'dart',
-        (JSAny win, JSAny editor, bool showHints, [JSAny? options]) {
-          // TODO: hints helper...
+        (CodeMirror editor,
+            [JSAny? options]) {
           print('Hints helper!');
         }.toJS);
   }
@@ -239,53 +255,59 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
-  // Future<HintResults> _completions(CodeMirror _, [HintsOptions? __]) async {
-  //   final operation = completionType;
-  //   completionType = CompletionType.auto;
-  //
-  //   final appServices = widget.appServices;
-  //
-  //   final editor = codeMirror!;
-  //   final doc = editor.doc;
-  //   final source = doc.getValue() ?? '';
-  //   final sourceOffset = doc.indexFromPos(doc.getCursor()) ?? 0;
-  //
-  //   if (operation == CompletionType.quickfix) {
-  //     final response = await appServices.services
-  //         .fixes(services.SourceRequest(source: source, offset: sourceOffset))
-  //         .onError((error, st) => services.FixesResponse.empty);
-  //
-  //     if (response.fixes.isEmpty && response.assists.isEmpty) {
-  //       widget.appModel.editorStatus.showToast('No quick fixes available.');
-  //     }
-  //
-  //     return HintResults.fromHints([
-  //       ...response.fixes.map((change) => change.toHintResult()),
-  //       ...response.assists.map((change) => change.toHintResult()),
-  //     ], doc.posFromIndex(sourceOffset), doc.posFromIndex(0));
-  //   } else {
-  //     final response = await appServices.services
-  //         .complete(
-  //             services.SourceRequest(source: source, offset: sourceOffset))
-  //         .onError((error, st) => services.CompleteResponse.empty);
-  //
-  //     final offset = response.replacementOffset;
-  //     final length = response.replacementLength;
-  //     final hints = response.suggestions
-  //         .map((suggestion) => suggestion.toHintResult())
-  //         .toList();
-  //
-  //     // Remove hints where both the replacement text and the display text are the
-  //     // same.
-  //     final memos = <String>{};
-  //     hints.retainWhere((hint) {
-  //       return memos.add('${hint.text}:${hint.displayText}');
-  //     });
-  //
-  //     return HintResults.fromHints(
-  //         hints, doc.posFromIndex(offset), doc.posFromIndex(offset + length));
-  //   }
-  // }
+  Future<HintResults> _completions() async {
+    final operation = completionType;
+    completionType = CompletionType.auto;
+
+    final appServices = widget.appServices;
+
+    final editor = codeMirror!;
+    final doc = editor.getDoc();
+    final source = doc.getValue() ?? '';
+    final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
+
+    if (operation == CompletionType.quickfix) {
+      final response = await appServices.services
+          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
+          .onError((error, st) => services.FixesResponse.empty);
+
+      if (response.fixes.isEmpty && response.assists.isEmpty) {
+        widget.appModel.editorStatus.showToast('No quick fixes available.');
+      }
+
+      return HintResults(
+        list: [
+          ...response.fixes.map((change) => change.toHintResult()),
+          ...response.assists.map((change) => change.toHintResult()),
+        ].jsify() as JSArray,
+        from: doc.posFromIndex(sourceOffset),
+        to: doc.posFromIndex(0),
+      );
+    } else {
+      final response = await appServices.services
+          .complete(
+              services.SourceRequest(source: source, offset: sourceOffset))
+          .onError((error, st) => services.CompleteResponse.empty);
+
+      final offset = response.replacementOffset;
+      final length = response.replacementLength;
+      final hints = response.suggestions
+          .map((suggestion) => suggestion.toHintResult())
+          .toList();
+
+      // Remove hints where both the replacement text and the display text are the
+      // same.
+      final memos = <String>{};
+      hints.retainWhere((hint) {
+        return memos.add('${hint.text}:${hint.displayText}');
+      });
+
+      return HintResults(
+          list: hints.jsify() as JSArray,
+          from: doc.posFromIndex(offset),
+          to: doc.posFromIndex(offset + length));
+    }
+  }
 }
 
 // codemirror commands
@@ -398,37 +420,37 @@ enum CompletionType {
 }
 
 extension CompletionSuggestionExtension on services.CompletionSuggestion {
-  // HintResult toHintResult() {
-  //   var altDisplay = completion;
-  //   if (elementKind == 'FUNCTION' ||
-  //       elementKind == 'METHOD' ||
-  //       elementKind == 'CONSTRUCTOR') {
-  //     altDisplay = '$altDisplay()';
-  //   }
-  //
-  //   return HintResult(
-  //     completion,
-  //     displayText: displayText ?? altDisplay,
-  //     className: this.deprecated ? 'deprecated' : null,
-  //   );
-  // }
+  HintResult toHintResult() {
+    var altDisplay = completion;
+    if (elementKind == 'FUNCTION' ||
+        elementKind == 'METHOD' ||
+        elementKind == 'CONSTRUCTOR') {
+      altDisplay = '$altDisplay()';
+    }
+
+    return HintResult(
+      text: completion,
+      displayText: displayText ?? altDisplay,
+      className: this.deprecated ? 'deprecated' : null,
+    );
+  }
 }
 
 extension SourceChangeExtension on services.SourceChange {
-  // HintResult toHintResult() {
-  //   return HintResult(message, hintApplier: _applySourceChange);
-  // }
-  //
-  // void _applySourceChange(
-  //     CodeMirror editor, HintResult hint, Position? from, Position? to) {
-  //   final doc = editor.doc;
-  //
-  //   for (final edit in edits) {
-  //     doc.replaceRange(
-  //       edit.replacement,
-  //       doc.posFromIndex(edit.offset),
-  //       doc.posFromIndex(edit.offset + edit.length),
-  //     );
-  //   }
-  // }
+  HintResult toHintResult() {
+    return HintResult(text: message, hintApplier: _applySourceChange.toJS);
+  }
+
+  void _applySourceChange(
+      CodeMirror editor, HintResult hint, Position? from, Position? to) {
+    final doc = editor.getDoc();
+
+    for (final edit in edits) {
+      doc.replaceRange(
+        edit.replacement,
+        doc.posFromIndex(edit.offset),
+        doc.posFromIndex(edit.offset + edit.length),
+      );
+    }
+  }
 }
