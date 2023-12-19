@@ -189,8 +189,7 @@ extension HintOptionsExtension on HintOptions {
 
 @JS()
 @staticInterop
-class Hint {
-}
+class Hint {}
 
 extension HintExtension on Hint {
   external JSAny dart;
