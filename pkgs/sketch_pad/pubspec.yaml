@@ -6,7 +6,6 @@ environment:
   sdk: ^3.2.0
 
 dependencies:
-  codemirror: any
   collection: any
   dartpad_shared: any
   flutter:
