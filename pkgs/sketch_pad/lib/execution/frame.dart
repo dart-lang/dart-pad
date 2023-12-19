@@ -135,7 +135,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     final message = {
       'command': command,
       ...params,
-    }.toJSBox;
+    }.jsify();
     // TODO: Use dartpad.dev instead of '*'?
     _frame.contentWindow!.postMessage(message, '*'.toJS);
     return Future.value();
@@ -163,7 +163,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   void _initListener() {
     web.window.addEventListener('message', (web.Event event) {
       if (event is web.MessageEvent) {
-        final data = dartify(event.data) as Map<Object?,Object?>;
+        final data = event.data.dartify() as Map<Object?,Object?>;
         if (data['sender'] != 'frame') {
           return;
         }
