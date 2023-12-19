@@ -247,7 +247,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     final editor = codeMirror!;
     final doc = editor.getDoc();
-    final source = doc.getValue() ?? '';
+    final source = doc.getValue();
     final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
 
     if (operation == CompletionType.quickfix) {
