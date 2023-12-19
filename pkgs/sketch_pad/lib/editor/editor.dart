@@ -35,12 +35,12 @@ web.Element _codeMirrorFactory(int viewId) {
       }.jsify());
 
   CodeMirror.commands.goLineLeft =
-      ((JSObject? obj) => _handleGoLineLeft(codeMirror)).toJS;
+      ((JSObject? _) => _handleGoLineLeft(codeMirror)).toJS;
   CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
-      ((JSObject? obj) =>
+      ((JSObject? _) =>
           _indentIfMultiLineSelectionElseInsertSoftTab(codeMirror)).toJS;
   CodeMirror.commands.weHandleElsewhere =
-      ((JSObject? obj) => _weHandleElsewhere(codeMirror)).toJS;
+      ((JSObject? _) => _weHandleElsewhere(codeMirror)).toJS;
 
   _expando[div] = codeMirror;
 
