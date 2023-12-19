@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -310,37 +311,35 @@ class AnalysisServerWrapper {
     final imports = getAllImportsFor(source);
     final importIssues = <api.AnalysisIssue>[];
 
-    late final lines = Lines(source);
-
     for (final import in imports) {
-      final start = import.firstTokenAfterCommentAndMetadata;
-      final end = import.endToken;
-
+      // Ignore `dart:` core library imports.
       if (import.dartImport) {
-        // ignore dart: imports.
-      } else if (import.packageImport) {
-        if (!isSupportedPackage(import.packageName)) {
+        continue;
+      }
+
+      if (import.packageImport) {
+        final packageName = import.packageName;
+        if (!isSupportedPackage(packageName)) {
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
-            message: "Unsupported package: 'package:${import.packageName}'.",
-            location: api.Location(
-              charStart: start.charOffset,
-              charLength: end.charEnd - start.charOffset,
-              line: lines.lineForOffset(start.charOffset),
-              column: lines.columnForOffset(start.charOffset),
-            ),
+            message: "Unsupported package: 'package:$packageName'.",
+            location: import.getLocation(source),
+          ));
+        } else if (isDeprecatedPackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Deprecated package: 'package:$packageName'.",
+            correction: 'Try removing the import and usages of the package.',
+            url: 'https://github.com/dart-lang/dart-pad/wiki/'
+                'Package-and-plugin-support#deprecated-packages',
+            location: import.getLocation(source),
           ));
         }
       } else {
         importIssues.add(api.AnalysisIssue(
           kind: 'error',
           message: 'Import type not supported.',
-          location: api.Location(
-            charStart: start.charOffset,
-            charLength: end.charEnd - start.charOffset,
-            line: lines.lineForOffset(start.charOffset),
-            column: lines.columnForOffset(start.charOffset),
-          ),
+          location: import.getLocation(source),
         ));
       }
     }
@@ -457,6 +456,20 @@ extension SourceChangeExtension on SourceChange {
         );
       }).toList(),
       selectionOffset: selection?.offset,
+    );
+  }
+}
+
+extension AnnotatedNodeExtension on AnnotatedNode {
+  api.Location getLocation(String source) {
+    final lines = Lines(source);
+    final start = firstTokenAfterCommentAndMetadata;
+
+    return api.Location(
+      charStart: start.charOffset,
+      charLength: endToken.charEnd - start.charOffset,
+      line: lines.lineForOffset(start.charOffset),
+      column: lines.columnForOffset(start.charOffset),
     );
   }
 }
