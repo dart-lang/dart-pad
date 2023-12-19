@@ -5,38 +5,42 @@
 // ignore_for_file: avoid_web_libraries_in_flutter
 
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
-import 'package:codemirror/codemirror.dart';
-import 'package:codemirror/hints.dart';
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
+import 'package:web/helpers.dart' as web_helpers;
+import 'package:web/web.dart' as web;
 
 import '../model.dart';
+import 'codemirror.dart';
 
 final Key _elementViewKey = UniqueKey();
 
-html.Element _codeMirrorFactory(int viewId) {
-  final div = html.DivElement()
+web.Element _codeMirrorFactory(int viewId) {
+  final div = web_helpers.createElementTag('div') as web.HTMLDivElement
     ..style.width = '100%'
     ..style.height = '100%';
 
-  final codeMirror = CodeMirror.fromElement(div, options: <String, dynamic>{
-    'lineNumbers': true,
-    'lineWrapping': true,
-    'mode': 'dart',
-    'theme': 'darkpad',
-    ...codeMirrorOptions,
-  });
+  final codeMirror = CodeMirror(
+      div,
+      <String, dynamic>{
+        'lineNumbers': true,
+        'lineWrapping': true,
+        'mode': 'dart',
+        'theme': 'darkpad',
+        ...codeMirrorOptions,
+      }.jsify());
 
-  CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
-  CodeMirror.addCommand(
-    'indentIfMultiLineSelectionElseInsertSoftTab',
-    _indentIfMultiLineSelectionElseInsertSoftTab,
-  );
-  CodeMirror.addCommand('weHandleElsewhere', _weHandleElsewhere);
+  CodeMirror.commands.goLineLeft =
+      ((JSObject? _) => _handleGoLineLeft(codeMirror)).toJS;
+  CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
+      ((JSObject? _) =>
+          _indentIfMultiLineSelectionElseInsertSoftTab(codeMirror)).toJS;
+  CodeMirror.commands.weHandleElsewhere =
+      ((JSObject? _) => _weHandleElsewhere(codeMirror)).toJS;
 
   _expando[div] = codeMirror;
 
@@ -97,12 +101,12 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final column = math.max(issue.location.column - 1, 0);
 
     if (issue.location.line != -1) {
-      codeMirror!.doc.setSelection(
-        Position(line, column),
-        head: Position(line, column + issue.location.charLength),
-      );
+      codeMirror!.getDoc().setSelection(
+            Position(line: line, ch: column),
+            Position(line: line, ch: column + issue.location.charLength),
+          );
     } else {
-      codeMirror?.doc.setSelection(Position(0, 0));
+      codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
 
     codeMirror?.focus();
@@ -116,7 +120,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
-    final div = ui_web.platformViewRegistry.getViewById(id) as html.Element;
+    final div = ui_web.platformViewRegistry.getViewById(id) as web.Element;
     codeMirror = _expando[div] as CodeMirror;
 
     // read only
@@ -127,17 +131,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     // contents
     final contents = widget.appModel.sourceCodeController.text;
-    codeMirror!.doc.setValue(contents);
+    codeMirror!.getDoc().setValue(contents);
 
     // darkmode
     _updateCodemirrorMode(darkMode);
 
     Timer.run(() => codeMirror!.refresh());
 
-    listener?.cancel();
-    listener = codeMirror!.onChange.listen((event) {
-      _updateModelFromCodemirror(codeMirror!.doc.getValue() ?? '');
-    });
+    codeMirror!.on(
+      'change',
+      ([JSAny? _, JSAny? __, JSAny? ___]) {
+        _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
+      }.toJS,
+    );
 
     final appModel = widget.appModel;
 
@@ -147,7 +153,20 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     widget.appServices.registerEditorService(this);
 
-    Hints.registerHintsHelperAsync('dart', _completions);
+    CodeMirror.commands.autocomplete = (CodeMirror codeMirror) {
+      _completions().then((completions) {
+        codeMirror.showHint(
+            HintOptions(hint: CodeMirror.hint.dart, results: completions));
+      });
+      return JSObject();
+    }.toJS;
+
+    CodeMirror.registerHelper(
+        'hint',
+        'dart',
+        (CodeMirror editor, [HintOptions? options]) {
+          return options!.results;
+        }.toJS);
   }
 
   @override
@@ -187,7 +206,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   void _updateCodemirrorFromModel() {
     final value = widget.appModel.sourceCodeController.text;
-    codeMirror!.doc.setValue(value);
+    codeMirror?.getDoc().setValue(value);
   }
 
   void _updateEditableStatus() {
@@ -195,9 +214,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateIssues(List<services.AnalysisIssue> issues) {
-    final doc = codeMirror!.doc;
+    final doc = codeMirror!.getDoc();
 
-    for (final marker in doc.getAllMarks()) {
+    for (final marker in doc.getAllMarks().toDart.cast<TextMarker>()) {
       marker.clear();
     }
 
@@ -206,10 +225,12 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       final column = math.max(issue.location.column - 1, 0);
 
       doc.markText(
-        Position(line, column),
-        Position(line, column + issue.location.charLength),
-        className: 'squiggle-${issue.kind}',
-        title: issue.message,
+        Position(line: line, ch: column),
+        Position(line: line, ch: column + issue.location.charLength),
+        MarkTextOptions(
+          className: 'squiggle-${issue.kind}',
+          title: issue.message,
+        ),
       );
     }
   }
@@ -218,16 +239,16 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
-  Future<HintResults> _completions(CodeMirror _, [HintsOptions? __]) async {
+  Future<HintResults> _completions() async {
     final operation = completionType;
     completionType = CompletionType.auto;
 
     final appServices = widget.appServices;
 
     final editor = codeMirror!;
-    final doc = editor.doc;
-    final source = doc.getValue() ?? '';
-    final sourceOffset = doc.indexFromPos(doc.getCursor()) ?? 0;
+    final doc = editor.getDoc();
+    final source = doc.getValue();
+    final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
 
     if (operation == CompletionType.quickfix) {
       final response = await appServices.services
@@ -238,10 +259,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         widget.appModel.editorStatus.showToast('No quick fixes available.');
       }
 
-      return HintResults.fromHints([
-        ...response.fixes.map((change) => change.toHintResult()),
-        ...response.assists.map((change) => change.toHintResult()),
-      ], doc.posFromIndex(sourceOffset), doc.posFromIndex(0));
+      return HintResults(
+        list: [
+          ...response.fixes.map((change) => change.toHintResult(editor)),
+          ...response.assists.map((change) => change.toHintResult(editor)),
+        ].jsify() as JSArray,
+        from: doc.posFromIndex(sourceOffset),
+        to: doc.posFromIndex(0),
+      );
     } else {
       final response = await appServices.services
           .complete(
@@ -261,26 +286,29 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         return memos.add('${hint.text}:${hint.displayText}');
       });
 
-      return HintResults.fromHints(
-          hints, doc.posFromIndex(offset), doc.posFromIndex(offset + length));
+      return HintResults(
+          list: hints.jsify() as JSArray,
+          from: doc.posFromIndex(offset),
+          to: doc.posFromIndex(offset + length));
     }
   }
 }
 
 // codemirror commands
 
-void _handleGoLineLeft(CodeMirror editor) {
+JSAny? _handleGoLineLeft(CodeMirror editor) {
   // Change the cmd-left behavior to move the cursor to the leftmost non-ws
   // char.
   editor.execCommand('goLineLeftSmart');
+  return JSObject();
 }
 
 void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
   // Make it so that we can insertSoftTab when no selection or selection on 1
   // line but if there is multiline selection we indentMore (this gives us a
   // more typical coding editor behavior).
-  if (editor.doc.somethingSelected()) {
-    final selection = editor.doc.getSelection('\n');
+  if (editor.getDoc().somethingSelected()) {
+    final selection = editor.getDoc().getSelection('\n');
     if (selection != null && selection.contains('\n')) {
       // Multi-line selection
       editor.execCommand('indentMore');
@@ -386,7 +414,7 @@ extension CompletionSuggestionExtension on services.CompletionSuggestion {
     }
 
     return HintResult(
-      completion,
+      text: completion,
       displayText: displayText ?? altDisplay,
       className: this.deprecated ? 'deprecated' : null,
     );
@@ -394,20 +422,21 @@ extension CompletionSuggestionExtension on services.CompletionSuggestion {
 }
 
 extension SourceChangeExtension on services.SourceChange {
-  HintResult toHintResult() {
-    return HintResult(message, hintApplier: _applySourceChange);
+  HintResult toHintResult(CodeMirror codeMirror) {
+    return HintResult(text: message, hint: _applySourceChange(codeMirror));
   }
 
-  void _applySourceChange(
-      CodeMirror editor, HintResult hint, Position? from, Position? to) {
-    final doc = editor.doc;
+  JSFunction _applySourceChange(CodeMirror codeMirror) {
+    return (HintResult hint, Position? from, Position? to) {
+      final doc = codeMirror.getDoc();
 
-    for (final edit in edits) {
-      doc.replaceRange(
-        edit.replacement,
-        doc.posFromIndex(edit.offset),
-        doc.posFromIndex(edit.offset + edit.length),
-      );
-    }
+      for (final edit in edits) {
+        doc.replaceRange(
+          edit.replacement,
+          doc.posFromIndex(edit.offset),
+          doc.posFromIndex(edit.offset + edit.length),
+        );
+      }
+    }.toJS;
   }
 }
