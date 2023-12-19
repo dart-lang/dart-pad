@@ -24,6 +24,7 @@ class CodeMirror {
   external factory CodeMirror.fromTextArea(HTMLTextAreaElement textArea);
   external static String get version;
   external static Commands commands;
+  external static Hint hint;
   external static void registerHelper(
       String type, String mode, JSFunction helper);
 }
@@ -42,7 +43,7 @@ extension CodeMirrorExtension on CodeMirror {
   external Commands commands;
   external Position getCursor();
   external JSAny? getHelper(Position pos, String name);
-  external JSFunction showHint;
+  external void showHint(HintOptions? options);
 
   void setReadOnly(bool value, [bool noCursor = false]) {
     if (value) {
@@ -132,23 +133,6 @@ extension MarkTextOptionsExtension on MarkTextOptions {
   external String title;
 }
 
-// @JS()
-// @staticInterop
-// @anonymous
-// class HintsOptions {
-//   external factory HintsOptions({
-//     bool completeSingle,
-//     String alignWithWord,
-//     bool closeOnUnfocus,
-//   });
-// }
-//
-// extension HintsOptionsExtension on HintsOptions {
-//   external bool completeSingle;
-//   external bool alignWithWord;
-//   external bool closeOnUnfocus;
-// }
-
 @JS()
 @staticInterop
 @anonymous
@@ -195,14 +179,19 @@ extension HintResultExtension on HintResult {
 @staticInterop
 @anonymous
 class HintOptions {
-
+  external factory HintOptions({JSAny hint, HintResults results});
 }
 
+extension HintOptionsExtension on HintOptions {
+  external JSAny hint;
+  external HintResults results;
+}
 
+@JS()
+@staticInterop
+class Hint {
+}
 
-// @JS()
-// typedef HintRenderer = void Function(Element element, HintResult hint);
-//
-// @JS()
-// typedef HintApplier = void Function(
-//     CodeMirror editor, HintResult hint, Position? from, Position? to);
+extension HintExtension on Hint {
+  external JSAny dart;
+}

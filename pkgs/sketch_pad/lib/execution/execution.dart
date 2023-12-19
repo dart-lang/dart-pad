@@ -19,12 +19,12 @@ final Key _elementViewKey = UniqueKey();
 const String _viewType = 'dartpad-execution';
 final Expando _expando = Expando(_viewType);
 
-bool _viewFactoryInited = false;
+bool _viewFactoryInitialized = false;
 
 void _initViewFactory() {
-  if (_viewFactoryInited) return;
+  if (_viewFactoryInitialized) return;
 
-  _viewFactoryInited = true;
+  _viewFactoryInitialized = true;
 
   ui_web.platformViewRegistry.registerViewFactory(_viewType, _iFrameFactory);
 }

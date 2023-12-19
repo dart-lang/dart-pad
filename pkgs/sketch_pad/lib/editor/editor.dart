@@ -153,34 +153,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     widget.appServices.registerEditorService(this);
 
-    // CodeMirror.commands.autocomplete = (JSAny? obj) {
-    //   print('autocomplete command callback');
-    //
-    //   var pos = codeMirror!.getCursor();
-    //
-    // }.toJS;
-
-    // Attempt to port Hints class from codemirror.dart
-    codeMirror!.showHint = (HintOptions? obj) {
-      var pos = codeMirror!.getCursor();
-      var helper = codeMirror!.getHelper(pos, 'hint');
-      var options = {'hint': helper}.jsify();
-      // codeMirror.callMethod()
-      // codeMirror!.showHint.callAsFunction(null, options);
-      _completions().then((HintResults c) {
-        print('from: ${c.from.ch}:${c.to.ch}');
-        print('to: ${c.to}');
-        print('HintResults: ${c.list.toDart}');
+    CodeMirror.commands.autocomplete = (CodeMirror codeMirror) {
+      _completions().then((completions) {
+        codeMirror.showHint(
+            HintOptions(hint: CodeMirror.hint.dart, results: completions));
       });
+      return JSObject();
     }.toJS;
-    CodeMirror.commands.autocomplete = codeMirror!.showHint;
 
     CodeMirror.registerHelper(
         'hint',
         'dart',
-        (CodeMirror editor,
-            [JSAny? options]) {
-          print('Hints helper!');
+        (CodeMirror editor, [HintOptions? options]) {
+          return options!.results;
         }.toJS);
   }
 
@@ -232,7 +217,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final doc = codeMirror!.getDoc();
 
     for (final marker in doc.getAllMarks().toDart.cast<TextMarker>()) {
-      // TODO:
       marker.clear();
     }
 
