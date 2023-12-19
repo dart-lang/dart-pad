@@ -261,8 +261,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
       return HintResults(
         list: [
-          ...response.fixes.map((change) => change.toHintResult(codeMirror!)),
-          ...response.assists.map((change) => change.toHintResult(codeMirror!)),
+          ...response.fixes.map((change) => change.toHintResult(editor)),
+          ...response.assists.map((change) => change.toHintResult(editor)),
         ].jsify() as JSArray,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
