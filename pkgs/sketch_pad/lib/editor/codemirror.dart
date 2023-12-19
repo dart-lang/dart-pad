@@ -157,7 +157,7 @@ class HintResult {
     Position? from,
     Position? to,
     JSFunction? hintRenderer,
-    JSFunction? hintApplier,
+    JSFunction? hint,
   });
 }
 
@@ -172,7 +172,7 @@ extension HintResultExtension on HintResult {
 
   external Position? to;
   external JSFunction? hintRenderer;
-  external JSFunction? hintApplier;
+  external JSFunction? hint;
 }
 
 @JS()

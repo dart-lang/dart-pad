@@ -261,8 +261,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
       return HintResults(
         list: [
-          ...response.fixes.map((change) => change.toHintResult()),
-          ...response.assists.map((change) => change.toHintResult()),
+          ...response.fixes.map((change) => change.toHintResult(codeMirror!)),
+          ...response.assists.map((change) => change.toHintResult(codeMirror!)),
         ].jsify() as JSArray,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
@@ -296,10 +296,11 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
 // codemirror commands
 
-void _handleGoLineLeft(CodeMirror editor) {
+JSAny? _handleGoLineLeft(CodeMirror editor) {
   // Change the cmd-left behavior to move the cursor to the leftmost non-ws
   // char.
   editor.execCommand('goLineLeftSmart');
+  return JSObject();
 }
 
 void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
@@ -421,20 +422,21 @@ extension CompletionSuggestionExtension on services.CompletionSuggestion {
 }
 
 extension SourceChangeExtension on services.SourceChange {
-  HintResult toHintResult() {
-    return HintResult(text: message, hintApplier: _applySourceChange.toJS);
+  HintResult toHintResult(CodeMirror codeMirror) {
+    return HintResult(text: message, hint: _applySourceChange(codeMirror));
   }
 
-  void _applySourceChange(
-      CodeMirror editor, HintResult hint, Position? from, Position? to) {
-    final doc = editor.getDoc();
+  JSFunction _applySourceChange(CodeMirror codeMirror) {
+    return (HintResult hint, Position? from, Position? to) {
+      final doc = codeMirror.getDoc();
 
-    for (final edit in edits) {
-      doc.replaceRange(
-        edit.replacement,
-        doc.posFromIndex(edit.offset),
-        doc.posFromIndex(edit.offset + edit.length),
-      );
-    }
+      for (final edit in edits) {
+        doc.replaceRange(
+          edit.replacement,
+          doc.posFromIndex(edit.offset),
+          doc.posFromIndex(edit.offset + edit.length),
+        );
+      }
+    }.toJS;
   }
 }
