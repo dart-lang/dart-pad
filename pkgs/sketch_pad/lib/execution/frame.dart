@@ -10,6 +10,7 @@ import 'package:web/helpers.dart';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
+import 'frame_utils.dart';
 
 class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =
@@ -136,7 +137,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       ...params,
     }.jsify();
     // TODO: Use dartpad.dev instead of '*'?
-    _frame.contentWindow!.postMessage(message, '*'.toJS);
+    _frame.safelyPostMessage(message, '*');
     return Future.value();
   }
 
