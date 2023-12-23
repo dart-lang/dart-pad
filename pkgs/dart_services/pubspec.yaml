@@ -18,6 +18,7 @@ dependencies:
   path: ^1.8.3
   resp_client: ^1.2.0
   shelf: ^1.4.1
+  shelf_gzip: ^4.1.0
   shelf_router: ^1.1.4
   yaml: ^3.1.2
 
