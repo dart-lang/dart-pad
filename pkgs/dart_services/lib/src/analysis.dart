@@ -123,18 +123,14 @@ class AnalysisServerWrapper {
   Future<api.CompleteResponse> complete(String source, int offset) async {
     const maxResults = 500;
 
-    // Request 2x the max number of completion results. The analysis server
-    // doesn't return sorted results, which is super concerning when also asking
-    // it to only return the first n number of results (how are these n items
-    // selected?).
     final results = await _completeImpl(
       {kMainDart: source},
       kMainDart,
       offset,
-      maxResults: maxResults * 2,
+      maxResults: maxResults,
     );
 
-    var suggestions =
+    final suggestions =
         results.suggestions.where((CompletionSuggestion suggestion) {
       // Filter suggestions that would require adding an import.
       return suggestion.isNotImported != true;
@@ -156,17 +152,7 @@ class AnalysisServerWrapper {
       }
 
       return false;
-    }).toList();
-
-    suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
-      if (x.relevance == y.relevance) {
-        return x.completion.compareTo(y.completion);
-      } else {
-        return y.relevance.compareTo(x.relevance);
-      }
     });
-
-    suggestions = suggestions.take(maxResults).toList();
 
     return api.CompleteResponse(
       replacementOffset: results.replacementOffset,
