@@ -73,6 +73,8 @@ steps:
       - PROJECT_ID=$PROJECT_ID
       - --build-arg
       - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
+      - --build-arg
+      - BUILD_SHA=${SHORT_SHA}
       - .
     dir: pkgs/dart_services
 
