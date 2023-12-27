@@ -363,6 +363,7 @@ class VersionResponse {
   final String dartVersion;
   final String flutterVersion;
   final String engineVersion;
+  final String? serverRevision;
   final List<String> experiments;
   final List<PackageInfo> packages;
 
@@ -370,6 +371,7 @@ class VersionResponse {
     required this.dartVersion,
     required this.flutterVersion,
     required this.engineVersion,
+    this.serverRevision,
     required this.experiments,
     required this.packages,
   });

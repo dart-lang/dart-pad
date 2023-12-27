@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -241,6 +242,7 @@ class CommonServerApi {
       dartVersion: sdk.dartVersion,
       flutterVersion: sdk.flutterVersion,
       engineVersion: sdk.engineVersion,
+      serverRevision: Platform.environment['K_REVISION'],
       experiments: sdk.experiments,
       packages: packages,
     );
