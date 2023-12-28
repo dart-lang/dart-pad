@@ -242,7 +242,7 @@ class CommonServerApi {
       dartVersion: sdk.dartVersion,
       flutterVersion: sdk.flutterVersion,
       engineVersion: sdk.engineVersion,
-      serverRevision: Platform.environment['K_REVISION'],
+      serverRevision: Platform.environment['BUILD_SHA'],
       experiments: sdk.experiments,
       packages: packages,
     );
