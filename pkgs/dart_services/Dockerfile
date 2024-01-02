@@ -12,5 +12,7 @@ RUN dart compile exe bin/server.dart -o bin/server
 
 RUN dart run grinder build-project-templates
 
+ENV BUILD_SHA=$BUILD_SHA
+
 EXPOSE 8080
 CMD ["/app/bin/server"]
