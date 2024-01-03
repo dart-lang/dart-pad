@@ -6,6 +6,5 @@
     "installSdk": "SDK installieren",
     "privacyNotice": "Datenschutzerklärung",
     "feedback": "Feedback",
-    "channelSelection": "{channelName} channel",
-    "switchedLocaleTo": "Zu {locale} gewechselt"
+    "channelSelection": "{channelName} channel"
 }

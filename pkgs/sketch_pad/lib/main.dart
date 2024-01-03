@@ -824,7 +824,7 @@ class SelectLocaleWidget extends StatelessWidget {
                 value,
               );
               if (selection != null && context.mounted) {
-                _handleSelection(context, selection);
+                handleLocaleChanged(selection);
               }
             },
           ),
@@ -861,15 +861,6 @@ class SelectLocaleWidget extends StatelessWidget {
   String getDisplayName(Locale locale) => intl.Intl()
       .displayNames()
       .ofLanguage(intl.Locale.parse(locale.toLanguageTag()));
-
-  void _handleSelection(BuildContext context, Locale locale) async {
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    handleLocaleChanged(locale);
-    appServices.appModel.editorStatus.showToast(
-      MessagesLocalizations.of(context)!
-          .switchedLocaleTo(getDisplayName(locale)),
-    );
-  }
 }
 
 class SelectChannelWidget extends StatelessWidget {

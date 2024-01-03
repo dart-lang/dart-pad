@@ -15,8 +15,8 @@ class Messages {
   final Map<String, MessageList> _messages = {};
 
   static const carbs = {
-    'en': ('lib/l10n/en.json', '+6SmU+Pe'),
-    'de': ('lib/l10n/de.json', '0O1C0hUg')
+    'en': ('lib/l10n/en.json', '/JmmZcLq'),
+    'de': ('lib/l10n/de.json', '8HMbX1u8')
   };
 
   IntlObject intlObject;
@@ -46,7 +46,7 @@ class Messages {
   }
 
   void loadAllLocales() {
-    for (final locale in knownLocales) {
+    for (var locale in knownLocales) {
       loadLocale(locale);
     }
   }
@@ -63,7 +63,4 @@ class Messages {
   String get privacyNotice => _currentMessages.generateStringAtIndex(4, []);
 
   String get samples => _currentMessages.generateStringAtIndex(5, []);
-
-  String switchedLocaleTo(String locale) =>
-      _currentMessages.generateStringAtIndex(6, [locale]);
 }

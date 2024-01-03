@@ -30,15 +30,5 @@
                 "example": "Stable"
             }
         }
-    },
-    "switchedLocaleTo": "Switched locale to {locale}",
-    "@switchedLocaleTo": {
-        "description": "Message toast to display after switching to a new locale",
-        "placeholders": {
-            "locale": {
-                "type": "String",
-                "description": "The displayname of the new locale."
-            }
-        }
     }
 }
