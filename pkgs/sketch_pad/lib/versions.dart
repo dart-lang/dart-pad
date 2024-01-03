@@ -6,6 +6,7 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/material.dart';
 import 'package:vtable/vtable.dart';
 
+import 'l10n/en.flutter.g.dart';
 import 'theme.dart';
 
 class VersionTable extends StatelessWidget {
@@ -20,11 +21,12 @@ class VersionTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final packages = version.packages.where((p) => p.supported).toList();
 
-    var versionText = 'Based on Dart SDK ${version.dartVersion} '
-        'and Flutter SDK ${version.flutterVersion}';
+    var versionText = context.messagesLocalizations!
+        .basedOnDartAndFlutter(version.dartVersion, version.flutterVersion);
     final experiments = version.experiments.join(', ');
     if (experiments.isNotEmpty) {
-      versionText += '\n\nExperiments enabled: $experiments';
+      versionText +=
+          '\n\n${context.messagesLocalizations!.experimentsEnabled(experiments)}';
     }
 
     return Column(
@@ -40,13 +42,13 @@ class VersionTable extends StatelessWidget {
             items: packages,
             columns: [
               VTableColumn(
-                label: 'Package',
+                label: context.messagesLocalizations!.package,
                 width: 250,
                 grow: 0.7,
                 transformFunction: (p) => 'package:${p.name}',
               ),
               VTableColumn(
-                label: 'Version',
+                label: context.messagesLocalizations!.version,
                 width: 70,
                 grow: 0.3,
                 transformFunction: (p) => p.version,

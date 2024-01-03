@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'gists.dart';
+import 'l10n/en.flutter.g.dart';
 import 'samples.g.dart';
 import 'utils.dart';
 
@@ -155,7 +156,7 @@ class AppServices {
     return versionResponse;
   }
 
-  void resetTo({String? type}) {
+  void resetTo({String? type, required BuildContext context}) {
     type ??= 'dart';
     final source = Samples.getDefault(type: type);
 
@@ -171,7 +172,8 @@ class AppServices {
     // Reset the execution area.
     executionService?.reset();
 
-    appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
+    appModel.editorStatus.showToast(
+        MessagesLocalizations.of(context)!.createNewSnippet(titleCase(type)));
   }
 
   void _handleCodeChanged() {

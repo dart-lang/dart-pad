@@ -15,8 +15,8 @@ class Messages {
   final Map<String, MessageList> _messages = {};
 
   static const carbs = {
-    'en': ('lib/l10n/en.json', '/JmmZcLq'),
-    'de': ('lib/l10n/de.json', '8HMbX1u8')
+    'en': ('lib/l10n/en.json', 'GiyBDj/n'),
+    'de': ('lib/l10n/de.json', 'fhb5q58f')
   };
 
   IntlObject intlObject;
@@ -46,21 +46,86 @@ class Messages {
   }
 
   void loadAllLocales() {
-    for (final locale in knownLocales) {
+    for (var locale in knownLocales) {
       loadLocale(locale);
     }
   }
 
+  String basedOnDartAndFlutter(
+    String dartVersion,
+    String flutterVersion,
+  ) =>
+      _currentMessages.generateStringAtIndex(0, [dartVersion, flutterVersion]);
+
   String channelSelection(String channelName) =>
-      _currentMessages.generateStringAtIndex(0, [channelName]);
+      _currentMessages.generateStringAtIndex(1, [channelName]);
 
-  String get feedback => _currentMessages.generateStringAtIndex(1, []);
+  String get clearConsole => _currentMessages.generateStringAtIndex(2, []);
 
-  String get installSdk => _currentMessages.generateStringAtIndex(2, []);
+  String get codeCompletion => _currentMessages.generateStringAtIndex(3, []);
 
-  String get newPad => _currentMessages.generateStringAtIndex(3, []);
+  String get command => _currentMessages.generateStringAtIndex(4, []);
 
-  String get privacyNotice => _currentMessages.generateStringAtIndex(4, []);
+  String get compilationFailed => _currentMessages.generateStringAtIndex(5, []);
 
-  String get samples => _currentMessages.generateStringAtIndex(5, []);
+  String createNewSnippet(String type) =>
+      _currentMessages.generateStringAtIndex(6, [type]);
+
+  String get dartpadGithub => _currentMessages.generateStringAtIndex(7, []);
+
+  String get errorFormatting => _currentMessages.generateStringAtIndex(8, []);
+
+  String experimentsEnabled(String experiments) =>
+      _currentMessages.generateStringAtIndex(9, [experiments]);
+
+  String get feedback => _currentMessages.generateStringAtIndex(10, []);
+
+  String get find => _currentMessages.generateStringAtIndex(11, []);
+
+  String get findNext => _currentMessages.generateStringAtIndex(12, []);
+
+  String get format => _currentMessages.generateStringAtIndex(13, []);
+
+  String get formatSuccesful => _currentMessages.generateStringAtIndex(14, []);
+
+  String get installSdk => _currentMessages.generateStringAtIndex(15, []);
+
+  String get keyboardShortcut => _currentMessages.generateStringAtIndex(16, []);
+
+  String get keyboardShortcuts =>
+      _currentMessages.generateStringAtIndex(17, []);
+
+  String get newPad => _currentMessages.generateStringAtIndex(18, []);
+
+  String newSnippet(String type) =>
+      _currentMessages.generateStringAtIndex(19, [type]);
+
+  String get noFormattingChanges =>
+      _currentMessages.generateStringAtIndex(20, []);
+
+  String get package => _currentMessages.generateStringAtIndex(21, []);
+
+  String get privacyNotice => _currentMessages.generateStringAtIndex(22, []);
+
+  String get quickFixes => _currentMessages.generateStringAtIndex(23, []);
+
+  String get reload => _currentMessages.generateStringAtIndex(24, []);
+
+  String get runButton => _currentMessages.generateStringAtIndex(25, []);
+
+  String get runtimeVersions => _currentMessages.generateStringAtIndex(26, []);
+
+  String get samples => _currentMessages.generateStringAtIndex(27, []);
+
+  String get sharingGuide => _currentMessages.generateStringAtIndex(28, []);
+
+  String switchedToDartAndFlutter(
+    String dartVersion,
+    String flutterVersion,
+  ) =>
+      _currentMessages.generateStringAtIndex(29, [dartVersion, flutterVersion]);
+
+  String get toggleBrightness => _currentMessages.generateStringAtIndex(30, []);
+
+  String get version => _currentMessages.generateStringAtIndex(31, []);
 }

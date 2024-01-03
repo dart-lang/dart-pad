@@ -350,7 +350,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                         return PointerInterceptor(
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
-                                            tooltip: 'Format',
+                                            tooltip: context
+                                                .messagesLocalizations!.format,
                                             small: true,
                                             onPressed: value
                                                 ? null
@@ -509,13 +510,19 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       final result = await appServices.format(SourceRequest(source: value));
 
       if (result.source == value) {
-        appModel.editorStatus.showToast('No formatting changes');
+        appModel.editorStatus
+            // ignore: use_build_context_synchronously
+            .showToast(context.messagesLocalizations!.noFormattingChanges);
       } else {
-        appModel.editorStatus.showToast('Format successful');
+        appModel.editorStatus
+            // ignore: use_build_context_synchronously
+            .showToast(context.messagesLocalizations!.formatSuccesful);
         appModel.sourceCodeController.text = result.source;
       }
     } catch (error) {
-      appModel.editorStatus.showToast('Error formatting code');
+      appModel.editorStatus
+          // ignore: use_build_context_synchronously
+          .showToast(context.messagesLocalizations!.errorFormatting);
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
     }
@@ -538,7 +545,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } catch (error) {
       appModel.clearConsole();
 
-      appModel.editorStatus.showToast('Compilation failed');
+      appModel.editorStatus
+          // ignore: use_build_context_synchronously
+          .showToast(context.messagesLocalizations!.compilationFailed);
 
       if (error is ApiRequestError) {
         appModel.appendLineToConsole(error.message);
@@ -576,7 +585,7 @@ class StatusLineWidget extends StatelessWidget {
       child: Row(
         children: [
           Tooltip(
-            message: 'Keyboard shortcuts',
+            message: context.messagesLocalizations!.keyboardShortcuts,
             waitDuration: tooltipDelay,
             child: IconButton(
               icon: const Icon(Icons.keyboard),
@@ -590,9 +599,11 @@ class StatusLineWidget extends StatelessWidget {
                   context: context,
                   builder: (context) {
                     return MediumDialog(
-                      title: 'Keyboard shortcuts',
+                      title: context.messagesLocalizations!.keyboardShortcuts,
                       smaller: true,
-                      child: KeyBindingsTable(bindings: keys.keyBindings),
+                      child: KeyBindingsTable(
+                          bindings:
+                              keys.keyBindings(context.messagesLocalizations!)),
                     );
                   },
                 );
@@ -703,7 +714,8 @@ class NewSnippetWidget extends StatelessWidget {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
           if (selection != null) {
-            _handleSelection(appServices, selection);
+            // ignore: use_build_context_synchronously
+            _handleSelection(appServices, selection, context);
           }
         },
       ),
@@ -720,7 +732,7 @@ class NewSnippetWidget extends StatelessWidget {
           child: PointerInterceptor(
             child: ListTile(
               leading: dartLogo(),
-              title: const Text('New Dart snippet'),
+              title: Text(context.messagesLocalizations!.newSnippet('Dart')),
             ),
           ),
         ),
@@ -729,7 +741,7 @@ class NewSnippetWidget extends StatelessWidget {
           child: PointerInterceptor(
             child: ListTile(
               leading: flutterLogo(),
-              title: const Text('New Flutter snippet'),
+              title: Text(context.messagesLocalizations!.newSnippet('Flutter')),
             ),
           ),
         ),
@@ -737,8 +749,12 @@ class NewSnippetWidget extends StatelessWidget {
     );
   }
 
-  void _handleSelection(AppServices appServices, bool dartSample) {
-    appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
+  void _handleSelection(
+      AppServices appServices, bool dartSample, BuildContext context) {
+    appServices.resetTo(
+      type: dartSample ? 'dart' : 'flutter',
+      context: context,
+    );
   }
 }
 
@@ -940,10 +956,9 @@ class SelectChannelWidget extends StatelessWidget {
 
     final version = await appServices.setChannel(channel);
 
-    appServices.appModel.editorStatus.showToast(
-      'Switched to Dart ${version.dartVersion} '
-      'and Flutter ${version.flutterVersion}',
-    );
+    // ignore: use_build_context_synchronously
+    appServices.appModel.editorStatus.showToast(context.messagesLocalizations!
+        .switchedToDartAndFlutter(version.dartVersion, version.flutterVersion));
   }
 }
 
@@ -992,18 +1007,18 @@ class OverflowMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
           child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('Sharing guide'),
-              trailing: Icon(Icons.launch),
+            child: ListTile(
+              title: Text(context.messagesLocalizations!.sharingGuide),
+              trailing: const Icon(Icons.launch),
             ),
           ),
         ),
         PopupMenuItem(
           value: 'https://github.com/dart-lang/dart-pad',
           child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('DartPad on GitHub'),
-              trailing: Icon(Icons.launch),
+            child: ListTile(
+              title: Text(context.messagesLocalizations!.dartpadGithub),
+              trailing: const Icon(Icons.launch),
             ),
           ),
         ),
@@ -1034,13 +1049,13 @@ class KeyBindingsTable extends StatelessWidget {
             items: bindings,
             columns: [
               VTableColumn(
-                label: 'Command',
+                label: context.messagesLocalizations!.command,
                 width: 100,
                 grow: 0.5,
                 transformFunction: (binding) => binding.$1,
               ),
               VTableColumn(
-                label: 'Keyboard shortcut',
+                label: context.messagesLocalizations!.keyboardShortcut,
                 width: 100,
                 grow: 0.5,
                 alignment: Alignment.centerRight,
@@ -1090,7 +1105,7 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               context: context,
               builder: (context) {
                 return MediumDialog(
-                  title: 'Runtime versions',
+                  title: context.messagesLocalizations!.runtimeVersions,
                   child: VersionTable(version: versions),
                 );
               },
@@ -1115,7 +1130,7 @@ class _BrightnessButton extends StatelessWidget {
     final isBright = Theme.of(context).brightness == Brightness.light;
     return Tooltip(
       preferBelow: true,
-      message: 'Toggle brightness',
+      message: context.messagesLocalizations!.toggleBrightness,
       child: IconButton(
         icon: Theme.of(context).brightness == Brightness.light
             ? const Icon(Icons.dark_mode_outlined)

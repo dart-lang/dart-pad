@@ -30,5 +30,140 @@
                 "example": "Stable"
             }
         }
+    },
+    "toggleBrightness": "Toggle brightness",
+    "@toggleBrightness": {
+        "description": "Toggle brightness button tooltip"
+    },
+    "runButton": "Run",
+    "@runButton": {
+        "description": "Run button"
+    },
+    "clearConsole": "Clear console",
+    "@clearConsole": {
+        "description": "Clear Console button tooltip"
+    },
+    "format": "Format",
+    "@format": {
+        "description": "Format tooltip"
+    },
+    "noFormattingChanges": "No formatting changes",
+    "@noFormattingChanges": {
+        "description": "No formatting changes toast"
+    },
+    "formatSuccesful": "Format successful",
+    "@formatSuccesful": {
+        "description": "Format succesful toast"
+    },
+    "errorFormatting": "Error formatting code",
+    "@errorFormatting": {
+        "description": "Error formatting code toast"
+    },
+    "compilationFailed": "Compilation failed",
+    "@compilationFailed": {
+        "description": "Compilation failed"
+    },
+    "keyboardShortcuts": "Keyboard shortcuts",
+    "@keyboardShortcuts": {
+        "description": "Keyboard shortcuts tooltip"
+    },
+    "newSnippet": "New {type} snippet",
+    "@newSnippet": {
+        "description": "New snippet for type",
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "switchedToDartAndFlutter": "Switched to Dart {dartVersion} and Flutter {flutterVersion}",
+    "@switchedToDartAndFlutter": {
+        "description": "switchedToDartAndFlutter",
+        "placeholders": {
+            "dartVersion": {
+                "type": "String"
+            },
+            "flutterVersion": {
+                "type": "String"
+            }
+        }
+    },
+    "sharingGuide": "Sharing Guide",
+    "@sharingGuide": {
+        "description": "Sharing Guide button"
+    },
+    "dartpadGithub": "DartPad on GitHub",
+    "@dartpadGithub": {
+        "description": "Dartpad on Github button"
+    },
+    "command": "Command",
+    "@command": {
+        "description": "command table header"
+    },
+    "keyboardShortcut": "Keyboard shortcut",
+    "@keyboardShortcut": {
+        "description": "Keyboard shortcut table header"
+    },
+    "runtimeVersions": "Runtime versions",
+    "@runtimeVersions": {
+        "description": "Runtime versions"
+    },
+    "basedOnDartAndFlutter": "Based on Dart SDK {dartVersion} and Flutter SDK {flutterVersion}",
+    "@basedOnDartAndFlutter": {
+        "description": "Based on Dart and Flutter title",
+        "placeholders": {
+            "dartVersion": {
+                "type": "String"
+            },
+            "flutterVersion": {
+                "type": "String"
+            }
+        }
+    },
+    "experimentsEnabled": "Experiments enabled: {experiments}",
+    "@experimentsEnabled": {
+        "description": "Experiments enabled",
+        "placeholders": {
+            "experiments": {
+                "type": "String"
+            }
+        }
+    },
+    "package": "Package",
+    "@package": {
+        "description": "Package table header"
+    },
+    "version": "Version",
+    "@version": {
+        "description": "Version table header"
+    },
+    "createNewSnippet": "Created new {type} snippet",
+    "@createNewSnippet": {
+        "description": "Create new snippet toast",
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "codeCompletion": "Code completion",
+    "@codeCompletion": {
+        "description": "Code completion keyboard shortcut"
+    },
+    "find": "Find",
+    "@find": {
+        "description": "Find keyboard shortcut"
+    },
+    "findNext": "Find next",
+    "@findNext": {
+        "description": "Find next keyboard shortcut"
+    },
+    "quickFixes": "Quick fixes",
+    "@quickFixes": {
+        "description": "Quick fixes keyboard shortcut"
+    },
+    "reload": "Reload",
+    "@reload": {
+        "description": "Reload keyboard shortcut"
     }
 }

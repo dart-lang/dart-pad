@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'l10n/en.flutter.g.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -99,7 +100,7 @@ class RunButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Run',
+      message: context.messagesLocalizations!.runButton,
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
