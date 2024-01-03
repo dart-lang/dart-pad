@@ -811,7 +811,6 @@ class SelectLocaleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appServices = Provider.of<AppServices>(context);
-
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
       builder: (context, Channel value, _) {
@@ -819,7 +818,10 @@ class SelectLocaleWidget extends StatelessWidget {
           height: toolbarItemHeight,
           child: TextButton.icon(
             icon: const Icon(Icons.language, size: smallIconSize),
-            label: Text(getDisplayName(Localizations.localeOf(context))),
+            label: Text(getDisplayName(
+              Localizations.localeOf(context),
+              Localizations.localeOf(context),
+            )),
             onPressed: () async {
               final selection = await _showMenu(
                 context,
@@ -848,7 +850,10 @@ class SelectLocaleWidget extends StatelessWidget {
           value: locale,
           child: PointerInterceptor(
             child: ListTile(
-              title: Text(getDisplayName(locale)),
+              title: Text(getDisplayName(
+                Localizations.localeOf(context),
+                locale,
+              )),
             ),
           ),
         )
@@ -861,9 +866,10 @@ class SelectLocaleWidget extends StatelessWidget {
     );
   }
 
-  String getDisplayName(Locale locale) => intl.Intl()
-      .displayNames()
-      .ofLanguage(intl.Locale.parse(locale.toLanguageTag()));
+  String getDisplayName(Locale locale, Locale target) =>
+      intl.Intl(locale: intl.Locale.parse(locale.toLanguageTag()))
+          .displayNames()
+          .ofLanguage(intl.Locale.parse(target.toLanguageTag()));
 }
 
 class SelectChannelWidget extends StatelessWidget {
