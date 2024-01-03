@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
+import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
@@ -103,7 +104,6 @@ class EndpointsServer {
 
   late final HttpServer server;
 
-  late final Pipeline pipeline;
   late final Handler handler;
 
   late final CommonServerApi commonServer;
@@ -127,10 +127,11 @@ class EndpointsServer {
     GitHubOAuthHandler.setCache(cache);
     GitHubOAuthHandler.addRoutes(commonServer.router);
 
-    pipeline = const Pipeline()
+    final pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))
         .addMiddleware(createCustomCorsHeadersMiddleware())
-        .addMiddleware(exceptionResponse());
+        .addMiddleware(exceptionResponse())
+        .addMiddleware(gzipMiddleware);
 
     handler = pipeline.addHandler(commonServer.router.call);
   }

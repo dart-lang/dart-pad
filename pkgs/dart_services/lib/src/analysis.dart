@@ -121,10 +121,13 @@ class AnalysisServerWrapper {
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
+    const maxResults = 500;
+
     final results = await _completeImpl(
       {kMainDart: source},
       kMainDart,
       offset,
+      maxResults: maxResults,
     );
 
     final suggestions =
@@ -149,14 +152,6 @@ class AnalysisServerWrapper {
       }
 
       return false;
-    }).toList();
-
-    suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
-      if (x.relevance == y.relevance) {
-        return x.completion.compareTo(y.completion);
-      } else {
-        return y.relevance.compareTo(x.relevance);
-      }
     });
 
     return api.CompleteResponse(
@@ -359,13 +354,17 @@ class AnalysisServerWrapper {
   }
 
   Future<Suggestions2Result> _completeImpl(
-      Map<String, String> sources, String sourceName, int offset) async {
+    Map<String, String> sources,
+    String sourceName,
+    int offset, {
+    required int maxResults,
+  }) async {
     await _loadSources(_getOverlayMapWithPaths(sources));
 
     return await analysisServer.completion.getSuggestions2(
       _getPathFromName(sourceName),
       offset,
-      500,
+      maxResults,
     );
   }
 

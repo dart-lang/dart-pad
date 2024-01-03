@@ -35,7 +35,7 @@ To run tests:
 
 `dart test`
 
-### Re-renerating source
+### Re-generating source
 
 To rebuild the shelf router, run:
 
