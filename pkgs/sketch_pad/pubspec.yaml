@@ -33,7 +33,7 @@ dev_dependencies:
   test: any
   build_runner: 2.4.6
   build_runner_core: 7.2.10
-  flutter_messages: ^0.1.2
+  flutter_messages: ^0.3.0
   build_verify: ^3.1.0
 
 flutter:
