@@ -11,13 +11,12 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'common_server.dart';
-import 'project_templates.dart' as project;
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 import 'shared/model.dart' as api;
 import 'utils.dart' as utils;
+import 'utils.dart';
 
 final Logger _logger = Logger('analysis_server');
 
@@ -41,24 +40,14 @@ class Analyzer {
   }
 
   Future<api.AnalysisResponse> analyze(String source) async {
-    final imports = getAllImportsFor(source);
-
-    // TODO(srawlins): Do the work so that each unsupported input is its own
-    // error with a proper SourceSpan.
-    await _checkPackageReferences(imports);
-
-    return analysisServer.analyze(source, imports: imports);
+    return analysisServer.analyze(source);
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.complete(source, offset);
   }
 
   Future<api.FixesResponse> fixes(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.fixes(source, offset);
   }
 
@@ -67,24 +56,7 @@ class Analyzer {
   }
 
   Future<api.DocumentResponse> dartdoc(String source, int offset) async {
-    await _checkPackageReferences(getAllImportsFor(source));
-
     return analysisServer.dartdoc(source, offset);
-  }
-
-  /// Check that the set of packages referenced is valid.
-  Future<void> _checkPackageReferences(List<ImportDirective> imports) async {
-    final unsupportedImports = project.getUnsupportedImports(
-      imports,
-      sourceFiles: {kMainDart},
-    );
-
-    if (unsupportedImports.isNotEmpty) {
-      final unsupportedUris =
-          unsupportedImports.map((import) => import.uri.stringValue).toList();
-      final plural = unsupportedUris.length == 1 ? 'import' : 'imports';
-      throw BadRequest('unsupported $plural ${unsupportedUris.join(', ')}');
-    }
   }
 
   Future<void> shutdown() {
@@ -112,7 +84,7 @@ class AnalysisServerWrapper {
   String get mainPath => _getPathFromName(kMainDart);
 
   Future<void> init() async {
-    final serverArgs = <String>['--client-id=DartPad'];
+    const serverArgs = <String>['--client-id=DartPad'];
     _logger.info('Starting analysis server '
         '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})');
 
@@ -149,10 +121,13 @@ class AnalysisServerWrapper {
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
+    const maxResults = 500;
+
     final results = await _completeImpl(
       {kMainDart: source},
       kMainDart,
       offset,
+      maxResults: maxResults,
     );
 
     final suggestions =
@@ -177,14 +152,6 @@ class AnalysisServerWrapper {
       }
 
       return false;
-    }).toList();
-
-    suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
-      if (x.relevance == y.relevance) {
-        return x.completion.compareTo(y.completion);
-      } else {
-        return y.relevance.compareTo(x.relevance);
-      }
     });
 
     return api.CompleteResponse(
@@ -260,11 +227,11 @@ class AnalysisServerWrapper {
   }
 
   Future<api.DocumentResponse> dartdoc(String src, int offset) async {
-    final sourcepath = _getPathFromName(kMainDart);
+    final sourcePath = _getPathFromName(kMainDart);
 
     await _loadSources(_getOverlayMapWithPaths({kMainDart: src}));
 
-    final result = await analysisServer.analysis.getHover(sourcepath, offset);
+    final result = await analysisServer.analysis.getHover(sourcePath, offset);
 
     if (result.hovers.isEmpty) {
       return api.DocumentResponse();
@@ -282,19 +249,16 @@ class AnalysisServerWrapper {
     );
   }
 
-  Future<api.AnalysisResponse> analyze(
-    String source, {
-    List<ImportDirective>? imports,
-  }) async {
+  Future<api.AnalysisResponse> analyze(String source) async {
     final sources = _getOverlayMapWithPaths({kMainDart: source});
     await _loadSources(sources);
 
     final errors = <AnalysisError>[];
 
     // Loop over all files and collect errors.
-    for (final sourcepath in sources.keys) {
+    for (final sourcePath in sources.keys) {
       errors
-          .addAll((await analysisServer.analysis.getErrors(sourcepath)).errors);
+          .addAll((await analysisServer.analysis.getErrors(sourcePath)).errors);
     }
 
     final issues = errors.map((error) {
@@ -339,12 +303,48 @@ class AnalysisServerWrapper {
       return a.location.charStart.compareTo(b.location.charStart);
     });
 
-    // Ensure we have imports if they were not passed in.
-    imports ??= getAllImportsFor(source);
+    final imports = getAllImportsFor(source);
+    final importIssues = <api.AnalysisIssue>[];
+
+    for (final import in imports) {
+      // Ignore `dart:` core library imports.
+      if (import.dartImport) {
+        continue;
+      }
+
+      if (import.packageImport) {
+        final packageName = import.packageName;
+        if (!isSupportedPackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Unsupported package: 'package:$packageName'.",
+            location: import.getLocation(source),
+          ));
+        } else if (isDeprecatedPackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Deprecated package: 'package:$packageName'.",
+            correction: 'Try removing the import and usages of the package.',
+            url: 'https://github.com/dart-lang/dart-pad/wiki/'
+                'Package-and-plugin-support#deprecated-packages',
+            location: import.getLocation(source),
+          ));
+        }
+      } else {
+        importIssues.add(api.AnalysisIssue(
+          kind: 'error',
+          message: 'Import type not supported.',
+          location: import.getLocation(source),
+        ));
+      }
+    }
 
     return api.AnalysisResponse(
-      issues: issues,
-      packageImports: filterSafePackages(imports),
+      issues: [
+        ...importIssues,
+        ...issues,
+      ],
+      packageImports: [],
     );
   }
 
@@ -354,13 +354,17 @@ class AnalysisServerWrapper {
   }
 
   Future<Suggestions2Result> _completeImpl(
-      Map<String, String> sources, String sourceName, int offset) async {
+    Map<String, String> sources,
+    String sourceName,
+    int offset, {
+    required int maxResults,
+  }) async {
     await _loadSources(_getOverlayMapWithPaths(sources));
 
     return await analysisServer.completion.getSuggestions2(
       _getPathFromName(sourceName),
       offset,
-      500,
+      maxResults,
     );
   }
 
@@ -451,6 +455,20 @@ extension SourceChangeExtension on SourceChange {
         );
       }).toList(),
       selectionOffset: selection?.offset,
+    );
+  }
+}
+
+extension AnnotatedNodeExtension on AnnotatedNode {
+  api.Location getLocation(String source) {
+    final lines = Lines(source);
+    final start = firstTokenAfterCommentAndMetadata;
+
+    return api.Location(
+      charStart: start.charOffset,
+      charLength: endToken.charEnd - start.charOffset,
+      line: lines.lineForOffset(start.charOffset),
+      column: lines.columnForOffset(start.charOffset),
     );
   }
 }

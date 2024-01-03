@@ -69,8 +69,7 @@ Future<Process> runWithLogging(
 }
 
 class TaskScheduler {
-  final Queue<_SchedulerTask<dynamic>> _taskQueue =
-      Queue<_SchedulerTask<dynamic>>();
+  final Queue<_SchedulerTask<Object?>> _taskQueue = Queue();
   bool _isActive = false;
 
   int get queueCount => _taskQueue.length;
@@ -112,16 +111,17 @@ class _SchedulerTask<T> {
 
 // Public working data structure.
 abstract class SchedulerTask<T> {
-  late Duration timeoutDuration;
+  final Duration timeoutDuration;
+
+  SchedulerTask({required this.timeoutDuration});
+
   Future<T> perform();
 }
 
 class ClosureTask<T> extends SchedulerTask<T> {
   final Future<T> Function() _closure;
 
-  ClosureTask(this._closure, {required Duration timeoutDuration}) {
-    this.timeoutDuration = timeoutDuration;
-  }
+  ClosureTask(this._closure, {required super.timeoutDuration});
 
   @override
   Future<T> perform() {
@@ -134,3 +134,37 @@ class ClosureTask<T> extends SchedulerTask<T> {
 /// This pattern is essentially "possibly some letters and colons, followed by a
 /// slash, followed by non-whitespace."
 final _possiblePathPattern = RegExp(r'[a-zA-Z:]*\/\S*');
+
+class Lines {
+  final List<int> _starts = [];
+
+  Lines(String source) {
+    final units = source.codeUnits;
+    var nextIsEol = true;
+    for (var i = 0; i < units.length; i++) {
+      if (nextIsEol) {
+        nextIsEol = false;
+        _starts.add(i);
+      }
+      if (units[i] == 10) nextIsEol = true;
+    }
+  }
+
+  /// Return the 1-based line number.
+  int lineForOffset(int offset) {
+    if (_starts.isEmpty) return 1;
+    for (var i = 1; i < _starts.length; i++) {
+      if (offset < _starts[i]) return i;
+    }
+    return _starts.length;
+  }
+
+  /// Return the 1-based column number.
+  int columnForOffset(int offset) {
+    if (_starts.isEmpty) return 1;
+    for (var i = _starts.length - 1; i >= 0; i--) {
+      if (offset >= _starts[i]) return offset - _starts[i] + 1;
+    }
+    return 1;
+  }
+}

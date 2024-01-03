@@ -25,11 +25,13 @@ class SourceRequest {
 @JsonSerializable()
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
-  final List<String> packageImports;
+
+  @Deprecated('This field was unused and will be removed in a future update.')
+  final List<String>? packageImports;
 
   AnalysisResponse({
     required this.issues,
-    required this.packageImports,
+    this.packageImports,
   });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
@@ -361,6 +363,7 @@ class VersionResponse {
   final String dartVersion;
   final String flutterVersion;
   final String engineVersion;
+  final String? serverRevision;
   final List<String> experiments;
   final List<PackageInfo> packages;
 
@@ -368,6 +371,7 @@ class VersionResponse {
     required this.dartVersion,
     required this.flutterVersion,
     required this.engineVersion,
+    this.serverRevision,
     required this.experiments,
     required this.packages,
   });

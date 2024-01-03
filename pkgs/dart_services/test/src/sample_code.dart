@@ -4,7 +4,7 @@
 
 const sampleCode = '''
 void main() {
-  print("hello");
+  print('hello');
 }
 ''';
 
@@ -12,7 +12,7 @@ const sampleCodeWeb = """
 import 'dart:html';
 
 void main() {
-  print("hello");
+  print('hello');
   querySelector('#foo')?.text = 'bar';
 }
 """;
@@ -114,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
 // From https://gist.github.com/RedBrogdon/e0a2e942e85fde2cd39b2741ff0c49e5
 const sampleCodeFlutterSunflower = r'''
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 const Color primaryColor = Colors.orange;
@@ -254,7 +255,7 @@ const sampleCodeFlutterDraggableCard = '''
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
-main() {
+void main() {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,

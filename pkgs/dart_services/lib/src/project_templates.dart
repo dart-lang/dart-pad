@@ -146,6 +146,11 @@ const Set<String> supportedBasicDartPackages = {
   'yaml_edit',
 };
 
+/// The set of all packages whose support in DartPad is deprecated.
+const Set<String> _deprecatedPackages = {
+  'tuple',
+};
+
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
 /// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
 const Set<String> _allowedDartImports = {
@@ -264,3 +269,8 @@ bool isUnsupportedImport(
 bool isSupportedPackage(String package) =>
     _packagesIndicatingFlutter.contains(package) ||
     supportedBasicDartPackages.contains(package);
+
+/// If the specified [package] is deprecated in DartPad and
+/// slated to be removed in a future update.
+bool isDeprecatedPackage(String package) =>
+    _deprecatedPackages.contains(package);

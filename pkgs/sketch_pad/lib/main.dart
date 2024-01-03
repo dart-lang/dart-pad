@@ -7,13 +7,13 @@ import 'dart:async';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
 import 'package:intl4x/intl4x.dart' as intl;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
-import 'package:url_strategy/url_strategy.dart';
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
@@ -39,8 +39,7 @@ import 'widgets.dart';
 const appName = 'DartPad';
 
 void main() async {
-  setPathUrlStrategy();
-
+  usePathUrlStrategy();
   runApp(const DartPadApp());
 }
 
@@ -338,6 +337,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                 padding: const EdgeInsets.all(denseSpacing),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
+                                  // We use explicit directionality here in
+                                  // order to have the format and run buttons on
+                                  // the right hand side of the editing area.
+                                  textDirection: TextDirection.ltr,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Format action
