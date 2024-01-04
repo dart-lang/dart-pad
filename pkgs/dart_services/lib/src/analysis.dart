@@ -312,7 +312,7 @@ class AnalysisServerWrapper {
         if (!isSupportedCoreLibrary(libraryName)) {
           importIssues.add(api.AnalysisIssue(
             kind: 'error',
-            message: "Unsupported core library: 'dart:$libraryName'.",
+            message: "Unsupported library on the web: 'dart:$libraryName'.",
             correction: 'Try removing the import and usages of the library.',
             location: import.getLocation(source),
           ));

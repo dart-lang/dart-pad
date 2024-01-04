@@ -80,7 +80,7 @@ void defineTests() {
 
       expect(results.issues, hasLength(1));
       final issue = results.issues.first;
-      expect(issue.message, contains('Unsupported core library'));
+      expect(issue.message, contains('Unsupported library on the web'));
     });
 
     test('Warn on deprecated web library imports', () async {
