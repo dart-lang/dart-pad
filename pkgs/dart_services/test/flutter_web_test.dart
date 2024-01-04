@@ -29,43 +29,36 @@ void defineTests() {
       expect(isFlutterWebImport('package:flutter/'), isTrue);
     });
 
-    test('isUnsupportedImport allows current library import', () {
-      expect(isUnsupportedImport(''), isFalse);
+    test('isSupportedCoreLibrary allows dart:html', () {
+      expect(isSupportedCoreLibrary('html'), isTrue);
     });
 
-    test('isUnsupportedImport allows dart:html', () {
-      expect(isUnsupportedImport('dart:html'), isFalse);
+    test('isSupportedCoreLibrary allows dart:ui', () {
+      expect(isSupportedCoreLibrary('ui'), isTrue);
     });
 
-    test('isUnsupportedImport allows dart:ui', () {
-      expect(isUnsupportedImport('dart:ui'), isFalse);
+    test('isSupportedCoreLibrary does not allow VM-only imports', () {
+      expect(isSupportedCoreLibrary('io'), isFalse);
     });
 
-    test('isUnsupportedImport allows package:flutter', () {
-      expect(isUnsupportedImport('package:flutter'), isFalse);
+    test('isSupportedCoreLibrary does not allow superseded web libraries', () {
+      expect(isSupportedCoreLibrary('web_gl'), isFalse);
     });
 
-    test('isUnsupportedImport allows package:path', () {
-      expect(isUnsupportedImport('package:path'), isFalse);
+    test('isSupportedPackage allows package:flutter', () {
+      expect(isSupportedPackage('flutter'), isTrue);
     });
 
-    test('isUnsupportedImport does not allow package:unsupported', () {
-      expect(isUnsupportedImport('package:unsupported'), isTrue);
+    test('isSupportedPackage allows package:path', () {
+      expect(isSupportedPackage('path'), isTrue);
     });
 
-    test('isUnsupportedImport does not allow random local imports', () {
-      expect(isUnsupportedImport('foo.dart'), isTrue);
+    test('isSupportedPackage does not allow package:unsupported', () {
+      expect(isSupportedPackage('unsupported'), isFalse);
     });
 
-    test('isUnsupportedImport allows specified local imports', () {
-      expect(
-        isUnsupportedImport('foo.dart', sourceFiles: {'foo.dart'}),
-        isFalse,
-      );
-    });
-
-    test('isUnsupportedImport does not allow VM-only imports', () {
-      expect(isUnsupportedImport('dart:io'), isTrue);
+    test('isSupportedPackage does not allow random local imports', () {
+      expect(isSupportedPackage('foo.dart'), isFalse);
     });
   });
 

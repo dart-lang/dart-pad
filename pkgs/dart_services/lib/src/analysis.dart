@@ -307,8 +307,24 @@ class AnalysisServerWrapper {
     final importIssues = <api.AnalysisIssue>[];
 
     for (final import in imports) {
-      // Ignore `dart:` core library imports.
       if (import.dartImport) {
+        final libraryName = import.packageName;
+        if (!isSupportedCoreLibrary(libraryName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'error',
+            message: "Unsupported core library: 'dart:$libraryName'.",
+            correction: 'Try removing the import and usages of the library.',
+            location: import.getLocation(source),
+          ));
+        } else if (isDeprecatedCoreWebLibrary(libraryName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'info', // TODO(parlough): Expand to 'warning' in future.
+            message: "Deprecated core web library: 'dart:$libraryName'.",
+            correction: 'Try using static JS interop instead.',
+            url: 'https://dart.dev/go/next-gen-js-interop',
+            location: import.getLocation(source),
+          ));
+        }
         continue;
       }
 

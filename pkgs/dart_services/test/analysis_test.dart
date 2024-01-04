@@ -75,6 +75,22 @@ void defineTests() {
       }
     });
 
+    test('Error on VM library imports', () async {
+      final results = await analysisServer.analyze(unsupportedCoreLibrary);
+
+      expect(results.issues, hasLength(1));
+      final issue = results.issues.first;
+      expect(issue.message, contains('Unsupported core library'));
+    });
+
+    test('Warn on deprecated web library imports', () async {
+      final results = await analysisServer.analyze(deprecatedWebLibrary);
+
+      expect(results.issues, hasLength(1));
+      final issue = results.issues.first;
+      expect(issue.message, contains('Deprecated core web library'));
+    });
+
     test('import_dart_core_test', () async {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";
@@ -323,5 +339,21 @@ const lintWarningTrigger = '''
 void main() async {
   var unknown;
   print(unknown);
+}
+''';
+
+const unsupportedCoreLibrary = '''
+import 'dart:io' as io;
+
+void main() {
+  print(io.exitCode);
+}
+''';
+
+const deprecatedWebLibrary = '''
+import 'dart:js' as js;
+
+void main() {
+  print(js.context);
 }
 ''';
