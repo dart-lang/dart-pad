@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
+import 'package:intl4x/intl4x.dart' as intl;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -20,6 +21,7 @@ import 'editor/editor.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
+import 'l10n/en.flutter.g.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -62,6 +64,7 @@ class _DartPadAppState extends State<DartPadApp> {
   );
 
   ThemeMode themeMode = ThemeMode.system;
+  Locale? locale;
 
   @override
   void initState() {
@@ -87,6 +90,10 @@ class _DartPadAppState extends State<DartPadApp> {
       GoRouter.of(context).replaceQueryParam('theme', 'dark');
     }
     _setTheme();
+  }
+
+  void handleLocaleChanged(Locale l) {
+    setState(() => locale = l);
   }
 
   void _setTheme() {
@@ -126,6 +133,7 @@ class _DartPadAppState extends State<DartPadApp> {
       sampleId: sampleParam,
       gistId: idParam,
       handleBrightnessChanged: handleBrightnessChanged,
+      handleLocaleChanged: handleLocaleChanged,
     );
   }
 
@@ -136,6 +144,12 @@ class _DartPadAppState extends State<DartPadApp> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
+      localizationsDelegates: [...MessagesLocalizations.localizationsDelegates],
+      locale: locale,
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('de'), // German
+      ],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme:
@@ -176,6 +190,7 @@ class DartPadMainPage extends StatefulWidget {
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
+  final void Function(Locale l) handleLocaleChanged;
 
   DartPadMainPage({
     required this.title,
@@ -183,6 +198,7 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
+    required this.handleLocaleChanged,
     this.sampleId,
     this.gistId,
   }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
@@ -281,11 +297,11 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       Uri.parse('https://docs.flutter.dev/get-started/install'),
                     );
                   },
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Text('Install SDK'),
-                      SizedBox(width: denseSpacing),
-                      Icon(Icons.launch, size: 18),
+                      Text(MessagesLocalizations.of(context)!.installSdk),
+                      const SizedBox(width: denseSpacing),
+                      const Icon(Icons.launch, size: 18),
                     ],
                   ),
                 ),
@@ -334,7 +350,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                         return PointerInterceptor(
                                           child: MiniIconButton(
                                             icon: Icons.format_align_left,
-                                            tooltip: 'Format',
+                                            tooltip: context
+                                                .messagesLocalizations!.format,
                                             small: true,
                                             onPressed: value
                                                 ? null
@@ -446,7 +463,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               ),
             ),
           ),
-          if (!widget.embedMode) const StatusLineWidget(),
+          if (!widget.embedMode)
+            StatusLineWidget(handleLocaleChanged: widget.handleLocaleChanged),
         ],
       ),
     );
@@ -492,13 +510,19 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       final result = await appServices.format(SourceRequest(source: value));
 
       if (result.source == value) {
-        appModel.editorStatus.showToast('No formatting changes');
+        appModel.editorStatus
+            // ignore: use_build_context_synchronously
+            .showToast(context.messagesLocalizations!.noFormattingChanges);
       } else {
-        appModel.editorStatus.showToast('Format successful');
+        appModel.editorStatus
+            // ignore: use_build_context_synchronously
+            .showToast(context.messagesLocalizations!.formatSuccesful);
         appModel.sourceCodeController.text = result.source;
       }
     } catch (error) {
-      appModel.editorStatus.showToast('Error formatting code');
+      appModel.editorStatus
+          // ignore: use_build_context_synchronously
+          .showToast(context.messagesLocalizations!.errorFormatting);
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
     }
@@ -521,7 +545,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } catch (error) {
       appModel.clearConsole();
 
-      appModel.editorStatus.showToast('Compilation failed');
+      appModel.editorStatus
+          // ignore: use_build_context_synchronously
+          .showToast(context.messagesLocalizations!.compilationFailed);
 
       if (error is ApiRequestError) {
         appModel.appendLineToConsole(error.message);
@@ -536,7 +562,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 }
 
 class StatusLineWidget extends StatelessWidget {
-  const StatusLineWidget({super.key});
+  final void Function(Locale l) handleLocaleChanged;
+  const StatusLineWidget({super.key, required this.handleLocaleChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -558,7 +585,7 @@ class StatusLineWidget extends StatelessWidget {
       child: Row(
         children: [
           Tooltip(
-            message: 'Keyboard shortcuts',
+            message: context.messagesLocalizations!.keyboardShortcuts,
             waitDuration: tooltipDelay,
             child: IconButton(
               icon: const Icon(Icons.keyboard),
@@ -572,9 +599,11 @@ class StatusLineWidget extends StatelessWidget {
                   context: context,
                   builder: (context) {
                     return MediumDialog(
-                      title: 'Keyboard shortcuts',
+                      title: context.messagesLocalizations!.keyboardShortcuts,
                       smaller: true,
-                      child: KeyBindingsTable(bindings: keys.keyBindings),
+                      child: KeyBindingsTable(
+                          bindings:
+                              keys.keyBindings(context.messagesLocalizations!)),
                     );
                   },
                 );
@@ -588,11 +617,11 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://dart.dev/tools/dartpad/privacy';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Row(
+            child: Row(
               children: [
-                Text('Privacy notice'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
+                Text(MessagesLocalizations.of(context)!.privacyNotice),
+                const SizedBox(width: denseSpacing),
+                const Icon(Icons.launch, size: 16),
               ],
             ),
           ),
@@ -602,11 +631,11 @@ class StatusLineWidget extends StatelessWidget {
               const url = 'https://github.com/dart-lang/dart-pad/issues';
               url_launcher.launchUrl(Uri.parse(url));
             },
-            child: const Row(
+            child: Row(
               children: [
-                Text('Feedback'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
+                Text(MessagesLocalizations.of(context)!.feedback),
+                const SizedBox(width: denseSpacing),
+                const Icon(Icons.launch, size: 16),
               ],
             ),
           ),
@@ -616,6 +645,10 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(
             height: 26,
             child: SelectChannelWidget(),
+          ),
+          SizedBox(
+            height: 26,
+            child: SelectLocaleWidget(handleLocaleChanged: handleLocaleChanged),
           ),
         ],
       ),
@@ -676,12 +709,13 @@ class NewSnippetWidget extends StatelessWidget {
       height: toolbarItemHeight,
       child: TextButton.icon(
         icon: const Icon(Icons.add_circle),
-        label: const Text('New'),
+        label: Text(MessagesLocalizations.of(context)!.newPad),
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
           if (selection != null) {
-            _handleSelection(appServices, selection);
+            // ignore: use_build_context_synchronously
+            _handleSelection(appServices, selection, context);
           }
         },
       ),
@@ -698,7 +732,7 @@ class NewSnippetWidget extends StatelessWidget {
           child: PointerInterceptor(
             child: ListTile(
               leading: dartLogo(),
-              title: const Text('New Dart snippet'),
+              title: Text(context.messagesLocalizations!.newSnippet('Dart')),
             ),
           ),
         ),
@@ -707,7 +741,7 @@ class NewSnippetWidget extends StatelessWidget {
           child: PointerInterceptor(
             child: ListTile(
               leading: flutterLogo(),
-              title: const Text('New Flutter snippet'),
+              title: Text(context.messagesLocalizations!.newSnippet('Flutter')),
             ),
           ),
         ),
@@ -715,8 +749,12 @@ class NewSnippetWidget extends StatelessWidget {
     );
   }
 
-  void _handleSelection(AppServices appServices, bool dartSample) {
-    appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
+  void _handleSelection(
+      AppServices appServices, bool dartSample, BuildContext context) {
+    appServices.resetTo(
+      type: dartSample ? 'dart' : 'flutter',
+      context: context,
+    );
   }
 }
 
@@ -731,7 +769,7 @@ class ListSamplesWidget extends StatelessWidget {
       height: toolbarItemHeight,
       child: TextButton.icon(
         icon: const Icon(Icons.playlist_add_outlined),
-        label: const Text('Samples'),
+        label: Text(MessagesLocalizations.of(context)!.samples),
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
@@ -782,6 +820,74 @@ class ListSamplesWidget extends StatelessWidget {
   }
 }
 
+class SelectLocaleWidget extends StatelessWidget {
+  final void Function(Locale l) handleLocaleChanged;
+  const SelectLocaleWidget({super.key, required this.handleLocaleChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context);
+    return ValueListenableBuilder<Channel>(
+      valueListenable: appServices.channel,
+      builder: (context, Channel value, _) {
+        return SizedBox(
+          height: toolbarItemHeight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.language, size: smallIconSize),
+            label: Text(getDisplayName(
+              Localizations.localeOf(context),
+              Localizations.localeOf(context),
+            )),
+            onPressed: () async {
+              final selection = await _showMenu(
+                context,
+                calculatePopupMenuPosition(context, growUpwards: true),
+                value,
+              );
+              if (selection != null && context.mounted) {
+                handleLocaleChanged(selection);
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<Locale?> _showMenu(
+      BuildContext context, RelativeRect position, Channel current) {
+    const itemHeight = 46.0;
+
+    final menuItems = [
+      for (final locale in context
+          .findAncestorWidgetOfExactType<MaterialApp>()!
+          .supportedLocales)
+        PopupMenuItem<Locale>(
+          value: locale,
+          child: PointerInterceptor(
+            child: ListTile(
+              title: Text(getDisplayName(
+                Localizations.localeOf(context),
+                locale,
+              )),
+            ),
+          ),
+        )
+    ];
+
+    return showMenu<Locale>(
+      context: context,
+      position: position.shift(Offset(0, -1 * menuItems.length * itemHeight)),
+      items: menuItems,
+    );
+  }
+
+  String getDisplayName(Locale locale, Locale target) =>
+      intl.Intl(locale: intl.Locale.parse(locale.toLanguageTag()))
+          .displayNames()
+          .ofLanguage(intl.Locale.parse(target.toLanguageTag()));
+}
+
 class SelectChannelWidget extends StatelessWidget {
   const SelectChannelWidget({
     super.key,
@@ -800,7 +906,8 @@ class SelectChannelWidget extends StatelessWidget {
             icon: const Icon(Icons.tune, size: smallIconSize),
             label: Container(
               constraints: const BoxConstraints(minWidth: 95),
-              child: Text('${value.displayName} channel'),
+              child: Text(MessagesLocalizations.of(context)!
+                  .channelSelection(value.displayName)),
             ),
             onPressed: () async {
               final selection = await _showMenu(
@@ -849,10 +956,9 @@ class SelectChannelWidget extends StatelessWidget {
 
     final version = await appServices.setChannel(channel);
 
-    appServices.appModel.editorStatus.showToast(
-      'Switched to Dart ${version.dartVersion} '
-      'and Flutter ${version.flutterVersion}',
-    );
+    // ignore: use_build_context_synchronously
+    appServices.appModel.editorStatus.showToast(context.messagesLocalizations!
+        .switchedToDartAndFlutter(version.dartVersion, version.flutterVersion));
   }
 }
 
@@ -901,18 +1007,18 @@ class OverflowMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
           child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('Sharing guide'),
-              trailing: Icon(Icons.launch),
+            child: ListTile(
+              title: Text(context.messagesLocalizations!.sharingGuide),
+              trailing: const Icon(Icons.launch),
             ),
           ),
         ),
         PopupMenuItem(
           value: 'https://github.com/dart-lang/dart-pad',
           child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('DartPad on GitHub'),
-              trailing: Icon(Icons.launch),
+            child: ListTile(
+              title: Text(context.messagesLocalizations!.dartpadGithub),
+              trailing: const Icon(Icons.launch),
             ),
           ),
         ),
@@ -943,13 +1049,13 @@ class KeyBindingsTable extends StatelessWidget {
             items: bindings,
             columns: [
               VTableColumn(
-                label: 'Command',
+                label: context.messagesLocalizations!.command,
                 width: 100,
                 grow: 0.5,
                 transformFunction: (binding) => binding.$1,
               ),
               VTableColumn(
-                label: 'Keyboard shortcut',
+                label: context.messagesLocalizations!.keyboardShortcut,
                 width: 100,
                 grow: 0.5,
                 alignment: Alignment.centerRight,
@@ -999,7 +1105,7 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               context: context,
               builder: (context) {
                 return MediumDialog(
-                  title: 'Runtime versions',
+                  title: context.messagesLocalizations!.runtimeVersions,
                   child: VersionTable(version: versions),
                 );
               },
@@ -1024,7 +1130,7 @@ class _BrightnessButton extends StatelessWidget {
     final isBright = Theme.of(context).brightness == Brightness.light;
     return Tooltip(
       preferBelow: true,
-      message: 'Toggle brightness',
+      message: context.messagesLocalizations!.toggleBrightness,
       child: IconButton(
         icon: Theme.of(context).brightness == Brightness.light
             ? const Icon(Icons.dark_mode_outlined)

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'l10n/en.g.dart';
 import 'theme.dart';
 
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
@@ -40,13 +41,13 @@ final ShortcutActivator quickFixKeyActivator = SingleActivator(
 
 // map of key activator names
 
-final List<(String, ShortcutActivator)> keyBindings = [
-  ('Code completion', codeCompletionKeyActivator),
-  ('Find', findKeyActivator),
-  ('Find next', findNextKeyActivator),
-  ('Quick fixes', quickFixKeyActivator),
-  ('Reload', reloadKeyActivator),
-];
+List<(String, ShortcutActivator)> keyBindings(Messages messages) => [
+      (messages.codeCompletion, codeCompletionKeyActivator),
+      (messages.find, findKeyActivator),
+      (messages.findNext, findNextKeyActivator),
+      (messages.quickFixes, quickFixKeyActivator),
+      (messages.reload, reloadKeyActivator),
+    ];
 
 extension SingleActivatorExtension on SingleActivator {
   // Note that this only works in debug mode.

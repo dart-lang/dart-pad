@@ -10,8 +10,12 @@ dependencies:
   dartpad_shared: any
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  intl4x: ^0.7.0
+  messages: ^0.1.0
   fluttering_phrases: ^1.0.0
   go_router: ^13.0.0
   http: ^1.1.2
@@ -28,12 +32,18 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   test: any
+  build_runner: 2.4.6
+  build_runner_core: 7.2.10
+  flutter_messages: ^0.3.0
+  build_verify: ^3.1.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/dart_logo_128.png
     - assets/flutter_logo_192.png
+    - lib/l10n/en.json
+    - lib/l10n/de.json
 
 dependency_overrides:
   dartpad_shared:

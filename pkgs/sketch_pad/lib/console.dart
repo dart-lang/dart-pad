@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'l10n/en.flutter.g.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -77,7 +78,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                   builder: (context, value, _) {
                     return MiniIconButton(
                       icon: Icons.playlist_remove,
-                      tooltip: 'Clear console',
+                      tooltip: context.messagesLocalizations!.clearConsole,
                       onPressed: value.text.isEmpty ? null : _clearConsole,
                     );
                   },
