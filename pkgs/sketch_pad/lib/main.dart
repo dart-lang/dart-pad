@@ -665,6 +665,19 @@ class SectionWidget extends StatelessWidget {
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
 
+  static final _menuItems = [
+    (
+      label: 'New Dart snippet',
+      icon: dartLogo(width: 12),
+      kind: 'dart',
+    ),
+    (
+      label: 'New Flutter snippet',
+      icon: flutterLogo(width: 12),
+      kind: 'flutter'
+    ),
+  ];
+
   const NewSnippetWidget({
     required this.appServices,
     super.key,
@@ -672,113 +685,67 @@ class NewSnippetWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.add_circle),
-        label: const Text('New'),
-        onPressed: () async {
-          final selection =
-              await _showMenu(context, calculatePopupMenuPosition(context));
-          if (selection != null) {
-            _handleSelection(appServices, selection);
-          }
-        },
-      ),
-    );
-  }
-
-  Future<bool?> _showMenu(BuildContext context, RelativeRect position) {
-    return showMenu<bool>(
-      context: context,
-      position: position,
-      items: <PopupMenuEntry<bool>>[
-        PopupMenuItem(
-          value: true,
-          child: PointerInterceptor(
-            child: ListTile(
-              leading: dartLogo(),
-              title: const Text('New Dart snippet'),
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.add_circle),
+          label: const Text('New'),
+        );
+      },
+      menuChildren: [
+        for (final item in _menuItems)
+          PointerInterceptor(
+            child: MenuItemButton(
+              leadingIcon: item.icon,
+              child: Text(item.label),
+              onPressed: () => appServices.resetTo(type: item.kind),
             ),
-          ),
-        ),
-        PopupMenuItem(
-          value: false,
-          child: PointerInterceptor(
-            child: ListTile(
-              leading: flutterLogo(),
-              title: const Text('New Flutter snippet'),
-            ),
-          ),
-        ),
+          )
       ],
     );
-  }
-
-  void _handleSelection(AppServices appServices, bool dartSample) {
-    appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
   }
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  const ListSamplesWidget({
-    super.key,
-  });
+  const ListSamplesWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.playlist_add_outlined),
-        label: const Text('Samples'),
-        onPressed: () async {
-          final selection =
-              await _showMenu(context, calculatePopupMenuPosition(context));
-          if (selection != null && context.mounted) {
-            _handleSelection(context, selection);
-          }
-        },
-      ),
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.playlist_add_outlined),
+          label: const Text('Samples'),
+        );
+      },
+      menuChildren: _buildMenuItems(context),
     );
   }
 
-  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
+  List<Widget> _buildMenuItems(BuildContext context) {
     final categories = Samples.categories.keys;
 
-    final menuItems = <PopupMenuEntry<String?>>[
+    final menuItems = [
       for (final category in categories) ...[
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: null,
-          enabled: false,
-          child: PointerInterceptor(
-            child: ListTile(title: Text(category)),
-          ),
+        MenuItemButton(
+          onPressed: null,
+          child: Text(category),
         ),
-        ...Samples.categories[category]!.map((sample) {
-          return PopupMenuItem(
-            value: sample.id,
-            child: PointerInterceptor(
-              child: ListTile(
-                leading: sample.isDart ? dartLogo() : flutterLogo(),
-                title: Text(sample.name),
-              ),
-            ),
-          );
-        }),
-      ],
+        for (final sample in Samples.categories[category]!)
+          MenuItemButton(
+            leadingIcon:
+                sample.isDart ? dartLogo(width: 12) : flutterLogo(width: 12),
+            onPressed: () =>
+                GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            child: Text(sample.name),
+          ),
+        const Divider(),
+      ]
     ];
 
-    return showMenu<String?>(
-      context: context,
-      position: position,
-      items: menuItems.skip(1).toList(),
-    );
-  }
-
-  void _handleSelection(BuildContext context, String sampleId) {
-    GoRouter.of(context).replaceQueryParam('sample', sampleId);
+    return menuItems.map((e) => PointerInterceptor(child: e)).toList();
   }
 }
 
@@ -790,58 +757,30 @@ class SelectChannelWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appServices = Provider.of<AppServices>(context);
+    final channels = Channel.valuesWithoutLocalhost;
 
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
-      builder: (context, Channel value, _) {
-        return SizedBox(
-          height: toolbarItemHeight,
-          child: TextButton.icon(
+      builder: (context, Channel value, _) => MenuAnchor(
+        builder: (context, MenuController controller, Widget? child) {
+          return TextButton.icon(
+            onPressed: () => controller.toggleMenuState(),
             icon: const Icon(Icons.tune, size: smallIconSize),
-            label: Container(
-              constraints: const BoxConstraints(minWidth: 95),
-              child: Text('${value.displayName} channel'),
-            ),
-            onPressed: () async {
-              final selection = await _showMenu(
-                context,
-                calculatePopupMenuPosition(context, growUpwards: true),
-                value,
-              );
-              if (selection != null && context.mounted) {
-                _handleSelection(context, selection);
-              }
-            },
+            label: Text('${value.displayName} channel'),
+          );
+        },
+        menuChildren: List<MenuItemButton>.generate(
+          channels.length,
+          (int index) => MenuItemButton(
+            onPressed: () => _onTap(context, channels[index]),
+            child: Text('${channels[index].displayName} channel'),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Future<Channel?> _showMenu(
-      BuildContext context, RelativeRect position, Channel current) {
-    const itemHeight = 46.0;
-
-    final menuItems = <PopupMenuEntry<Channel>>[
-      for (final channel in Channel.valuesWithoutLocalhost)
-        PopupMenuItem<Channel>(
-          value: channel,
-          child: PointerInterceptor(
-            child: ListTile(
-              title: Text(channel.displayName),
-            ),
-          ),
-        )
-    ];
-
-    return showMenu<Channel>(
-      context: context,
-      position: position.shift(Offset(0, -1 * menuItems.length * itemHeight)),
-      items: menuItems,
-    );
-  }
-
-  void _handleSelection(BuildContext context, Channel channel) async {
+  void _onTap(BuildContext context, Channel channel) async {
     final appServices = Provider.of<AppServices>(context, listen: false);
 
     // update the url
@@ -859,65 +798,49 @@ class SelectChannelWidget extends StatelessWidget {
 class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
+  static const _menuItems = [
+    (
+      label: 'dart.dev',
+      uri: 'https://dart.dev',
+    ),
+    (
+      label: 'flutter.dec',
+      uri: 'https://flutter.dev',
+    ),
+    (
+      label: 'Sharing guide',
+      uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
+    ),
+    (
+      label: 'DartPad on GitHub',
+      uri: 'https://github.com/dart-lang/dart-pad',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.more_vert),
-      splashRadius: defaultSplashRadius,
-      onPressed: () async {
-        final selection =
-            await _showMenu(context, calculatePopupMenuPosition(context));
-        if (selection != null) {
-          url_launcher.launchUrl(Uri.parse(selection));
-        }
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return IconButton(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.more_vert),
+        );
       },
+      menuChildren: [
+        for (final item in _menuItems)
+          PointerInterceptor(
+            child: MenuItemButton(
+              trailingIcon: const Icon(Icons.launch),
+              onPressed: () => _onSelected(context, item.uri),
+              child: Text(item.label),
+            ),
+          )
+      ],
     );
   }
 
-  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    return showMenu<String?>(
-      context: context,
-      position: position,
-      items: <PopupMenuEntry<String?>>[
-        PopupMenuItem(
-          value: 'https://dart.dev',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('dart.dev'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'https://flutter.dev',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('flutter.dev'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('Sharing guide'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'https://github.com/dart-lang/dart-pad',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('DartPad on GitHub'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-      ],
-    );
+  void _onSelected(BuildContext context, String uri) {
+    url_launcher.launchUrl(Uri.parse(uri));
   }
 }
 
@@ -1034,5 +957,15 @@ class _BrightnessButton extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+extension MenuControllerToggleMenu on MenuController {
+  void toggleMenuState() {
+    if (isOpen) {
+      close();
+    } else {
+      open();
+    }
   }
 }
