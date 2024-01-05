@@ -46,7 +46,7 @@ class Messages {
   }
 
   void loadAllLocales() {
-    for (var locale in knownLocales) {
+    for (final locale in knownLocales) {
       loadLocale(locale);
     }
   }
