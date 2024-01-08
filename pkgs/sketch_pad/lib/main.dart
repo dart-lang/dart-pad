@@ -28,8 +28,6 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: explore using the monaco editor
-
 // TODO: show documentation on hover
 
 // TODO: implement find / find next
@@ -112,8 +110,10 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final idParam = state.uri.queryParameters['id'];
-    final sampleParam = state.uri.queryParameters['sample'];
+    final builtinSampleId = state.uri.queryParameters['sample'];
+    final gistId = state.uri.queryParameters['id'];
+    final flutterSampleId = state.uri.queryParameters['sample_id'];
+    final flutterSampleChannel = state.uri.queryParameters['sample_channel'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
@@ -123,8 +123,10 @@ class _DartPadAppState extends State<DartPadApp> {
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
-      sampleId: sampleParam,
-      gistId: idParam,
+      builtinSampleId: builtinSampleId,
+      gistId: gistId,
+      flutterSampleId: flutterSampleId,
+      flutterSampleChannel: flutterSampleChannel,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
@@ -171,11 +173,13 @@ class _DartPadAppState extends State<DartPadApp> {
 class DartPadMainPage extends StatefulWidget {
   final String title;
   final String? initialChannel;
-  final String? sampleId;
-  final String? gistId;
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
+  final String? builtinSampleId;
+  final String? gistId;
+  final String? flutterSampleId;
+  final String? flutterSampleChannel;
 
   DartPadMainPage({
     required this.title,
@@ -183,9 +187,15 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
-    this.sampleId,
+    this.builtinSampleId,
     this.gistId,
-  }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
+    this.flutterSampleId,
+    this.flutterSampleChannel,
+  }) : super(
+          key: ValueKey(
+            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
+          ),
+        );
 
   @override
   State<DartPadMainPage> createState() => _DartPadMainPageState();
@@ -222,8 +232,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     appServices
         .performInitialLoad(
-            sampleId: widget.sampleId,
+            sampleId: widget.builtinSampleId,
             gistId: widget.gistId,
+            flutterSampleId: widget.flutterSampleId,
+            flutterSampleChannel: widget.flutterSampleChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
       if (widget.runOnLoad) {
