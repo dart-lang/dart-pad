@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
@@ -14,12 +12,12 @@ import '../model.dart';
 import '../theme.dart';
 import 'frame.dart';
 
-final Key _elementViewKey = UniqueKey();
-
 const String _viewType = 'dartpad-execution';
-final Expando _expando = Expando(_viewType);
 
 bool _viewFactoryInitialized = false;
+ExecutionService? executionServiceInstance;
+
+final Key _elementViewKey = UniqueKey();
 
 void _initViewFactory() {
   if (_viewFactoryInitialized) return;
@@ -39,9 +37,7 @@ web.Element _iFrameFactory(int viewId) {
     ..style.width = '100%'
     ..style.height = '100%';
 
-  final executionService = ExecutionServiceImpl(frame);
-
-  _expando[frame] = executionService;
+  executionServiceInstance = ExecutionServiceImpl(frame);
 
   return frame;
 }
@@ -78,10 +74,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         key: _elementViewKey,
         viewType: _viewType,
         onPlatformViewCreated: (int id) {
-          final frame =
-              ui_web.platformViewRegistry.getViewById(id) as web.Element;
-          final executionService = _expando[frame] as ExecutionService;
-          widget.appServices.registerExecutionService(executionService);
+          widget.appServices.registerExecutionService(executionServiceInstance);
         },
       ),
     );
