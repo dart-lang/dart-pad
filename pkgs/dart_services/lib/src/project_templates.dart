@@ -151,27 +151,42 @@ const Set<String> _deprecatedPackages = {
   'tuple',
 };
 
-/// A set of all allowed `dart:` imports. Currently includes non-VM libraries
-/// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
-const Set<String> _allowedDartImports = {
-  'dart:async',
-  'dart:collection',
-  'dart:convert',
-  'dart:core',
-  'dart:developer',
-  'dart:math',
-  'dart:typed_data',
-  'dart:html',
-  'dart:indexed_db',
-  'dart:js',
-  'dart:js_util',
-  'dart:svg',
-  'dart:web_audio',
-  'dart:web_gl',
-  'dart:ui',
+/// The set of core web libraries whose support in
+/// DartPad or Dart is deprecated.
+const Set<String> _deprecatedCoreWebLibraries = {
+  'js',
 };
 
-/// Returns whether [imports] denote use of Flutter Web.
+/// A set of all allowed `dart:` libraries, includes
+/// all libraries from "Core", some from "Web", and none from "VM".
+const Set<String> _allowedCoreLibraries = {
+  'async',
+  'collection',
+  'convert',
+  'core',
+  'developer',
+  'math',
+  'typed_data',
+
+  'html', // TODO(parlough): Deprecate soon.
+  'js_util', // TODO(parlough): Deprecate soon.
+  'js_interop',
+  'js_interop_unsafe',
+  ..._deprecatedCoreWebLibraries,
+
+  'ui',
+};
+
+/// Whether [libraryName] is the name of a supported `dart:` core library.
+bool isSupportedCoreLibrary(String libraryName) =>
+    _allowedCoreLibraries.contains(libraryName);
+
+/// Whether [libraryName] is the name of a supported, but deprecated,
+/// `dart:` core web library.
+bool isDeprecatedCoreWebLibrary(String libraryName) =>
+    _deprecatedCoreWebLibraries.contains(libraryName);
+
+/// Whether [imports] denote use of Flutter Web.
 bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
     imports.any((import) => isFlutterWebImport(import.uri.stringValue));
 
@@ -209,61 +224,6 @@ String? _packageNameFromPackageUri(String uriString) {
   if (uri.scheme != 'package') return null;
   if (uri.pathSegments.isEmpty) return null;
   return uri.pathSegments.first;
-}
-
-/// Goes through imports list and returns list of unsupported imports.
-/// Optional [sourceFiles] contains a list of the source filenames
-/// which are all part of this overall sources file set (these are to
-/// be allowed).
-///
-/// Note: The filenames in [sourceFiles] were sanitized of any
-/// 'package:'/etc syntax as the file set arrives from the endpoint, and
-/// before being passed to [getUnsupportedImports]. This is done so
-/// the list can't be used to bypass unsupported imports.
-List<ImportDirective> getUnsupportedImports(
-  List<ImportDirective> imports, {
-  Set<String>? sourceFiles,
-}) {
-  return imports
-      .where((import) => isUnsupportedImport(import.uri.stringValue,
-          sourceFiles: sourceFiles ?? const {}))
-      .toList(growable: false);
-}
-
-/// Whether the [importString] represents an import
-/// that is unsupported.
-@visibleForTesting
-bool isUnsupportedImport(
-  String? importString, {
-  Set<String> sourceFiles = const {},
-}) {
-  if (importString == null || importString.isEmpty) {
-    return false;
-  }
-  // All non-VM 'dart:' imports are ok.
-  if (importString.startsWith('dart:')) {
-    return !_allowedDartImports.contains(importString);
-  }
-  // Filenames from within this compilation files={} sources file set
-  // are OK. (These filenames have been sanitized to prevent 'package:'
-  // (and other) prefixes, so the a filename cannot be used to bypass
-  // import restrictions (see comment above)).
-  if (sourceFiles.contains(importString)) {
-    return false;
-  }
-
-  final uri = Uri.tryParse(importString);
-  if (uri == null) return false;
-
-  // We allow a specific set of package imports.
-  if (uri.scheme == 'package') {
-    if (uri.pathSegments.isEmpty) return true;
-    final package = uri.pathSegments.first;
-    return !isSupportedPackage(package);
-  }
-
-  // Don't allow file imports.
-  return true;
 }
 
 bool isSupportedPackage(String package) =>

@@ -151,6 +151,7 @@ include: package:flutter_lints/flutter.yaml
 linter:
   rules:
     avoid_print: false
+    avoid_web_libraries_in_flutter: false
     use_key_in_widget_constructors: false
 ''';
     if (_sdk.experiments.isNotEmpty) {
