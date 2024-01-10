@@ -110,10 +110,9 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final builtinSampleId = state.uri.queryParameters['sample'];
     final gistId = state.uri.queryParameters['id'];
+    final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
-    final flutterSampleChannel = state.uri.queryParameters['sample_channel'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
@@ -123,10 +122,9 @@ class _DartPadAppState extends State<DartPadApp> {
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
-      builtinSampleId: builtinSampleId,
       gistId: gistId,
+      builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
-      flutterSampleChannel: flutterSampleChannel,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
@@ -176,10 +174,9 @@ class DartPadMainPage extends StatefulWidget {
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
-  final String? builtinSampleId;
   final String? gistId;
+  final String? builtinSampleId;
   final String? flutterSampleId;
-  final String? flutterSampleChannel;
 
   DartPadMainPage({
     required this.title,
@@ -187,10 +184,9 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
-    this.builtinSampleId,
     this.gistId,
+    this.builtinSampleId,
     this.flutterSampleId,
-    this.flutterSampleChannel,
   }) : super(
           key: ValueKey(
             'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -232,10 +228,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     appServices
         .performInitialLoad(
-            sampleId: widget.builtinSampleId,
             gistId: widget.gistId,
+            sampleId: widget.builtinSampleId,
             flutterSampleId: widget.flutterSampleId,
-            flutterSampleChannel: widget.flutterSampleChannel,
+            channel: widget.initialChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
       if (widget.runOnLoad) {

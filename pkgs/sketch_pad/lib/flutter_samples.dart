@@ -4,9 +4,6 @@
 
 import 'package:http/http.dart' as http;
 
-const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
-const String _mainApiDocsUrl = 'https://main-api.flutter.dev/snippets';
-
 class FlutterSampleLoader {
   final http.Client client = http.Client();
 
@@ -14,10 +11,10 @@ class FlutterSampleLoader {
     required String sampleId,
     String? channel,
   }) async {
-    // There are only two hosted versions of the docs: master and stable.
-    final sampleUrl = channel == 'master'
-        ? '$_mainApiDocsUrl/$sampleId.dart'
-        : '$_stableApiDocsUrl/$sampleId.dart';
+    // There are only two hosted versions of the docs: master/main and stable.
+    final sampleUrl = (channel == 'master' || channel == 'main')
+        ? 'https://main-api.flutter.dev/snippets/$sampleId.dart'
+        : 'https://api.flutter.dev/snippets/$sampleId.dart';
 
     final response = await client.get(Uri.parse(sampleUrl));
 

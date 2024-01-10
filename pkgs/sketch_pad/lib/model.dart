@@ -190,10 +190,10 @@ class AppServices {
   }
 
   Future<void> performInitialLoad({
-    String? sampleId,
     String? gistId,
+    String? sampleId,
     String? flutterSampleId,
-    String? flutterSampleChannel,
+    String? channel,
     required String fallbackSnippet,
   }) async {
     // Delay a bit for codemirror to initialize.
@@ -214,7 +214,7 @@ class AppServices {
       try {
         final sample = await loader.loadFlutterSample(
           sampleId: flutterSampleId,
-          channel: flutterSampleChannel,
+          channel: channel,
         );
         progress.close();
 
