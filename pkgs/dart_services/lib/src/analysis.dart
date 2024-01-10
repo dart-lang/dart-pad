@@ -325,10 +325,7 @@ class AnalysisServerWrapper {
             location: import.getLocation(source),
           ));
         }
-        continue;
-      }
-
-      if (import.packageImport) {
+      } else if (import.packageImport) {
         final packageName = import.packageName;
         if (!isSupportedPackage(packageName)) {
           importIssues.add(api.AnalysisIssue(
