@@ -27,11 +27,8 @@ function messageHandler(e) {
 };
 
 function runFlutterApp(compiledScript) {
-  console.log(compiledScript);
   var blob = new Blob([compiledScript], {type: 'text/javascript'});
   var url = URL.createObjectURL(blob);
-  console.log(url);
-  window.trustedTypes = null;
   _flutter.loader.loadEntrypoint({
     entrypointUrl: url,
     onEntrypointLoaded: function(engineInitializer) {
