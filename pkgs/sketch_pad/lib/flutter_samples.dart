@@ -12,9 +12,11 @@ class FlutterSampleLoader {
     String? channel,
   }) async {
     // There are only two hosted versions of the docs: master/main and stable.
-    final sampleUrl = (channel == 'master' || channel == 'main')
-        ? 'https://main-api.flutter.dev/snippets/$sampleId.dart'
-        : 'https://api.flutter.dev/snippets/$sampleId.dart';
+    final sampleUrl = switch (channel) {
+      'master' => 'https://main-api.flutter.dev/snippets/$sampleId.dart',
+      'main' => 'https://main-api.flutter.dev/snippets/$sampleId.dart',
+      _ => 'https://api.flutter.dev/snippets/$sampleId.dart',
+    };
 
     final response = await client.get(Uri.parse(sampleUrl));
 
