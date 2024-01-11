@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
@@ -189,8 +190,10 @@ class AppServices {
   }
 
   Future<void> performInitialLoad({
-    String? sampleId,
     String? gistId,
+    String? sampleId,
+    String? flutterSampleId,
+    String? channel,
     required String fallbackSnippet,
   }) async {
     // Delay a bit for codemirror to initialize.
@@ -204,42 +207,75 @@ class AppServices {
       return;
     }
 
-    if (gistId == null) {
-      appModel.sourceCodeController.text = fallbackSnippet;
-      appModel.appReady.value = true;
+    if (flutterSampleId != null) {
+      final loader = FlutterSampleLoader();
+      final progress =
+          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      try {
+        final sample = await loader.loadFlutterSample(
+          sampleId: flutterSampleId,
+          channel: channel,
+        );
+        progress.close();
+
+        appModel.title.value = flutterSampleId;
+        appModel.sourceCodeController.text = sample;
+
+        appModel.appReady.value = true;
+      } catch (e) {
+        appModel.editorStatus.showToast('Error loading sample');
+        progress.close();
+
+        appModel.appendLineToConsole('Error loading sample: $e');
+
+        appModel.sourceCodeController.text = fallbackSnippet;
+        appModel.appReady.value = true;
+      } finally {
+        loader.dispose();
+      }
+
       return;
     }
 
-    final gistLoader = GistLoader();
-    final progress = appModel.editorStatus.showMessage(initialText: 'Loading…');
-    try {
-      final gist = await gistLoader.load(gistId);
-      progress.close();
+    if (gistId != null) {
+      final gistLoader = GistLoader();
+      final progress =
+          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      try {
+        final gist = await gistLoader.load(gistId);
+        progress.close();
 
-      final title = gist.description ?? '';
-      appModel.title.value =
-          title.length > 40 ? '${title.substring(0, 40)}…' : title;
+        final title = gist.description ?? '';
+        appModel.title.value =
+            title.length > 40 ? '${title.substring(0, 40)}…' : title;
 
-      final source = gist.mainDartSource;
-      if (source == null) {
-        appModel.editorStatus.showToast('main.dart not found');
+        final source = gist.mainDartSource;
+        if (source == null) {
+          appModel.editorStatus.showToast('main.dart not found');
+          appModel.sourceCodeController.text = fallbackSnippet;
+        } else {
+          appModel.sourceCodeController.text = source;
+        }
+
+        appModel.appReady.value = true;
+      } catch (e) {
+        appModel.editorStatus.showToast('Error loading gist');
+        progress.close();
+
+        appModel.appendLineToConsole('Error loading gist: $e');
+
         appModel.sourceCodeController.text = fallbackSnippet;
-      } else {
-        appModel.sourceCodeController.text = source;
+        appModel.appReady.value = true;
+      } finally {
+        gistLoader.dispose();
       }
 
-      appModel.appReady.value = true;
-    } catch (e) {
-      appModel.editorStatus.showToast('Error loading gist');
-      progress.close();
-
-      appModel.appendLineToConsole('Error loading gist: $e');
-
-      appModel.sourceCodeController.text = fallbackSnippet;
-      appModel.appReady.value = true;
-    } finally {
-      gistLoader.dispose();
+      return;
     }
+
+    // Neither gistId nor flutterSampleId were passed in.
+    appModel.sourceCodeController.text = fallbackSnippet;
+    appModel.appReady.value = true;
   }
 
   Future<FormatResponse> format(SourceRequest request) async {
