@@ -77,6 +77,7 @@ _flutter.loader = null;
       ];
       if (window.trustedTypes) {
         this.policy = trustedTypes.createPolicy(policyName, {
+          // TODO (johnpryan): Change this function back to the real implementation
           createScriptURL: function(url) {
             const parsed = new URL(url, window.location);
             return parsed.toString();
