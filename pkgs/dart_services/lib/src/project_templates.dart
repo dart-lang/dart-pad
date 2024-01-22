@@ -149,6 +149,8 @@ const Set<String> supportedBasicDartPackages = {
 /// The set of all packages whose support in DartPad is deprecated.
 const Set<String> _deprecatedPackages = {
   'tuple',
+  'flutter_processing',
+  'riverpod_navigator',
 };
 
 /// The set of core web libraries whose support in
