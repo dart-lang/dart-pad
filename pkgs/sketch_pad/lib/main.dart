@@ -361,8 +361,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                             onPressed: value
                                                 ? null
                                                 : _performCompileAndRun,
-                                            disabled:
-                                                appModel.compilingBusy.value,
                                           ),
                                         );
                                       },

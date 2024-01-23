@@ -93,9 +93,8 @@ class MiniIconButton extends StatelessWidget {
 }
 
 class RunButton extends StatelessWidget {
-  final bool disabled;
   final VoidCallback? onPressed;
-  const RunButton({this.disabled = false, this.onPressed, super.key});
+  const RunButton({this.onPressed, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +107,7 @@ class RunButton extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
           backgroundColor: MaterialStateProperty.resolveWith(
             (states) {
-              if (disabled) {
+              if (onPressed == null) {
                 return Colors.transparent;
               }
               return const Color(0xFF168afd);
