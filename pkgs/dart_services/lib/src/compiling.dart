@@ -14,7 +14,7 @@ import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 
-Logger _logger = Logger('compiler');
+final Logger _logger = Logger('compiler');
 
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
@@ -40,10 +40,6 @@ class Compiler {
                 ]),
             maxWorkers: 1),
         _projectTemplates = ProjectTemplates.projectTemplates;
-
-  Future<CompilationResults> warmup() async {
-    return compile('void main() => print("hello");');
-  }
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
@@ -160,7 +156,7 @@ class Compiler {
       _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}"');
 
       final response =
-          await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
+          await _ddcDriver.doWork(WorkRequest(arguments: arguments));
 
       if (response.exitCode != 0) {
         return DDCCompilationResults.failed([

@@ -69,8 +69,7 @@ Future<Process> runWithLogging(
 }
 
 class TaskScheduler {
-  final Queue<_SchedulerTask<dynamic>> _taskQueue =
-      Queue<_SchedulerTask<dynamic>>();
+  final Queue<_SchedulerTask<Object?>> _taskQueue = Queue();
   bool _isActive = false;
 
   int get queueCount => _taskQueue.length;
@@ -112,16 +111,17 @@ class _SchedulerTask<T> {
 
 // Public working data structure.
 abstract class SchedulerTask<T> {
-  late Duration timeoutDuration;
+  final Duration timeoutDuration;
+
+  SchedulerTask({required this.timeoutDuration});
+
   Future<T> perform();
 }
 
 class ClosureTask<T> extends SchedulerTask<T> {
   final Future<T> Function() _closure;
 
-  ClosureTask(this._closure, {required Duration timeoutDuration}) {
-    this.timeoutDuration = timeoutDuration;
-  }
+  ClosureTask(this._closure, {required super.timeoutDuration});
 
   @override
   Future<T> perform() {
@@ -136,7 +136,7 @@ class ClosureTask<T> extends SchedulerTask<T> {
 final _possiblePathPattern = RegExp(r'[a-zA-Z:]*\/\S*');
 
 class Lines {
-  final _starts = <int>[];
+  final List<int> _starts = [];
 
   Lines(String source) {
     final units = source.codeUnits;

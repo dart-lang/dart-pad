@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
+import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
@@ -42,13 +43,15 @@ Future<void> main(List<String> args) async {
 
   final sdk = Sdk();
 
-  var port = 8080;
+  final int port;
 
   // Read port from args; fall back to using an env. variable.
   if (results.wasParsed('port')) {
     port = int.parse(results['port'] as String);
-  } else if (Platform.environment.containsKey('PORT')) {
-    port = int.parse(Platform.environment['PORT']!);
+  } else if (Platform.environment['PORT'] case final environmentPath?) {
+    port = int.parse(environmentPath);
+  } else {
+    port = 8080;
   }
 
   Logger.root.level = Level.FINER;
@@ -101,7 +104,6 @@ class EndpointsServer {
 
   late final HttpServer server;
 
-  late final Pipeline pipeline;
   late final Handler handler;
 
   late final CommonServerApi commonServer;
@@ -125,10 +127,11 @@ class EndpointsServer {
     GitHubOAuthHandler.setCache(cache);
     GitHubOAuthHandler.addRoutes(commonServer.router);
 
-    pipeline = const Pipeline()
+    final pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))
         .addMiddleware(createCustomCorsHeadersMiddleware())
-        .addMiddleware(exceptionResponse());
+        .addMiddleware(exceptionResponse())
+        .addMiddleware(gzipMiddleware);
 
     handler = pipeline.addHandler(commonServer.router.call);
   }

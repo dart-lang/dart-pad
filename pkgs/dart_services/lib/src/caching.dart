@@ -173,16 +173,16 @@ class RedisCache implements ServerCache {
   }
 
   @override
-  Future<dynamic> remove(String key) async {
+  Future<void> remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when removing key $key');
-      return null;
+      return;
     }
 
     final commands = RespCommandsTier2(redisClient!);
     try {
-      return commands.del([key]).timeout(cacheOperationTimeout,
+      await commands.del([key]).timeout(cacheOperationTimeout,
           onTimeout: () async {
         log.warning('$_logPrefix: timeout on remove operation for key $key');
         await _connection?.close();

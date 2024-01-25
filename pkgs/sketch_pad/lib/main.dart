@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
-import 'package:url_strategy/url_strategy.dart';
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
@@ -28,8 +28,6 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: explore using the monaco editor
-
 // TODO: show documentation on hover
 
 // TODO: implement find / find next
@@ -37,8 +35,7 @@ import 'widgets.dart';
 const appName = 'DartPad';
 
 void main() async {
-  setPathUrlStrategy();
-
+  usePathUrlStrategy();
   runApp(const DartPadApp());
 }
 
@@ -113,8 +110,9 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final idParam = state.uri.queryParameters['id'];
-    final sampleParam = state.uri.queryParameters['sample'];
+    final gistId = state.uri.queryParameters['id'];
+    final builtinSampleId = state.uri.queryParameters['sample'];
+    final flutterSampleId = state.uri.queryParameters['sample_id'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
@@ -124,8 +122,9 @@ class _DartPadAppState extends State<DartPadApp> {
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
-      sampleId: sampleParam,
-      gistId: idParam,
+      gistId: gistId,
+      builtinSampleId: builtinSampleId,
+      flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
@@ -172,11 +171,12 @@ class _DartPadAppState extends State<DartPadApp> {
 class DartPadMainPage extends StatefulWidget {
   final String title;
   final String? initialChannel;
-  final String? sampleId;
-  final String? gistId;
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
+  final String? gistId;
+  final String? builtinSampleId;
+  final String? flutterSampleId;
 
   DartPadMainPage({
     required this.title,
@@ -184,9 +184,14 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
-    this.sampleId,
     this.gistId,
-  }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
+    this.builtinSampleId,
+    this.flutterSampleId,
+  }) : super(
+          key: ValueKey(
+            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
+          ),
+        );
 
   @override
   State<DartPadMainPage> createState() => _DartPadMainPageState();
@@ -223,8 +228,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     appServices
         .performInitialLoad(
-            sampleId: widget.sampleId,
             gistId: widget.gistId,
+            sampleId: widget.builtinSampleId,
+            flutterSampleId: widget.flutterSampleId,
+            channel: widget.initialChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
       if (widget.runOnLoad) {
@@ -322,6 +329,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                 padding: const EdgeInsets.all(denseSpacing),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
+                                  // We use explicit directionality here in
+                                  // order to have the format and run buttons on
+                                  // the right hand side of the editing area.
+                                  textDirection: TextDirection.ltr,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Format action

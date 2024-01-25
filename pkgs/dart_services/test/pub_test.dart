@@ -10,10 +10,6 @@ void main() => defineTests();
 void defineTests() {
   group('pub', () {
     group('getAllImportsFor', () {
-      test('null', () {
-        expect(getAllImportsFor(null), isEmpty);
-      });
-
       test('empty', () {
         expect(getAllImportsFor(''), isEmpty);
         expect(getAllImportsFor('   \n '), isEmpty);

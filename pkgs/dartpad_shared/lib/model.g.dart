@@ -23,8 +23,8 @@ AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
       issues: (json['issues'] as List<dynamic>)
           .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
           .toList(),
-      packageImports: (json['packageImports'] as List<dynamic>)
-          .map((e) => e as String)
+      packageImports: (json['packageImports'] as List<dynamic>?)
+          ?.map((e) => e as String)
           .toList(),
     );
 
@@ -281,6 +281,7 @@ VersionResponse _$VersionResponseFromJson(Map<String, dynamic> json) =>
       dartVersion: json['dartVersion'] as String,
       flutterVersion: json['flutterVersion'] as String,
       engineVersion: json['engineVersion'] as String,
+      serverRevision: json['serverRevision'] as String?,
       experiments: (json['experiments'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -294,6 +295,7 @@ Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
       'dartVersion': instance.dartVersion,
       'flutterVersion': instance.flutterVersion,
       'engineVersion': instance.engineVersion,
+      'serverRevision': instance.serverRevision,
       'experiments': instance.experiments,
       'packages': instance.packages,
     };

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -228,10 +229,11 @@ class CommonServerApi {
     final packageVersions = getPackageVersions();
 
     final packages = [
-      for (final packageName in packageVersions.keys)
+      for (final MapEntry(key: packageName, value: packageVersion)
+          in packageVersions.entries)
         api.PackageInfo(
           name: packageName,
-          version: packageVersions[packageName]!,
+          version: packageVersion,
           supported: isSupportedPackage(packageName),
         ),
     ];
@@ -240,6 +242,7 @@ class CommonServerApi {
       dartVersion: sdk.dartVersion,
       flutterVersion: sdk.flutterVersion,
       engineVersion: sdk.engineVersion,
+      serverRevision: Platform.environment['BUILD_SHA'],
       experiments: sdk.experiments,
       packages: packages,
     );
