@@ -75,11 +75,9 @@ class AnalysisServerWrapper {
     required this.sdkPath,
     String? projectPath,
   }) :
-        // During analysis, we use the Firebase project template. The Firebase
-        // template is separate from the Flutter template only to keep Firebase
-        // references out of app initialization code at runtime.
+        // During analysis, we use the Flutter project template.
         projectPath =
-            projectPath ?? ProjectTemplates.projectTemplates.firebasePath;
+            projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
 
   String get mainPath => _getPathFromName(kMainDart);
 
@@ -327,7 +325,16 @@ class AnalysisServerWrapper {
         }
       } else if (import.packageImport) {
         final packageName = import.packageName;
-        if (!isSupportedPackage(packageName)) {
+
+        if (isFirebasePackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: 'Firebase is no longer supported by DartPad.',
+            url:
+                'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
+            location: import.getLocation(source),
+          ));
+        } else if (!isSupportedPackage(packageName)) {
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
             message: "Unsupported package: 'package:$packageName'.",
