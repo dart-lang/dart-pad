@@ -327,11 +327,10 @@ class AnalysisServerWrapper {
         final packageName = import.packageName;
 
         if (isFirebasePackage(packageName)) {
-          // TODO: Update the 'more info' url.
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
             message: 'Firebase is no longer supported by DartPad.',
-            url: 'https://github.com/dart-lang/dart-pad',
+            url: 'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
             location: import.getLocation(source),
           ));
         } else if (!isSupportedPackage(packageName)) {
