@@ -29,7 +29,6 @@ import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'elements/tab_expand_controller.dart';
-import 'github.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -84,8 +83,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   bool _rightSplitterConfigured = false;
   TabExpandController? _tabExpandController;
 
-  late GitHubUIController _githubUIController;
-
   @override
   late PlaygroundContext context;
   Layout? _layout;
@@ -110,8 +107,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _checkLocalStorage();
     _initPlayground();
     _initBusyLights();
-
-    _githubUIController = GitHubUIController(this);
 
     _initGistNameHeader();
     _initGistStorage();
@@ -737,8 +732,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       return;
     }
 
-    _githubUIController.hideGistStarredButton();
-
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     var loadedFromSaved = false;
@@ -769,8 +762,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
           _editableGist.getGistFile(file.name).content = file.content;
         }
       }
-
-      _githubUIController.getStarReportOnLoadingGist(gistId);
 
       clearOutput();
 
