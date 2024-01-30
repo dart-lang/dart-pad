@@ -21,3 +21,4 @@ linter:
     - prefer_final_in_for_each
     - prefer_final_locals
     - use_enums
+    - unreachable_from_main

@@ -428,18 +428,6 @@ a {
     margin-right: 14px;
 }
 
-#unsaved-local-edit {
-  display: inline-flex;
-  background-color: orangered;
-  color: white;
-  font-size: 10px;
-  border-radius: 5px;
-  padding: 2px 4px;
-  height: 14px;
-  margin-top: 3px;
-  margin-right: 20px;
-}
-
 #github-menu-button {
   display: inline-block;
   background: url('../pictures/github_icon.svg') center no-repeat;
@@ -449,11 +437,7 @@ a {
   padding: 4px 4px;
   filter: invert(100%);
   margin-left: 8px;
-}
-
-#gist_star_button {
-  display: inline-flex;
-  margin-right: 30px;
+  opacity: .5;
 }
 
 #github-avatar {
@@ -467,14 +451,6 @@ a {
 #github-avatar[src] {
   outline: grey 1px solid;
   filter: invert(100%);
-}
-#logged_in_as {
-  text-align: center;
-  color:  grey;
-  font-size: 14px;
-}
-#logged_in_as_text {
-  user-select: none;
 }
 
 .channel-item {
