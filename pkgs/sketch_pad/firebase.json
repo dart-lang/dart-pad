@@ -7,6 +7,33 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/embed-dart.html",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-flutter.html",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-flutter_showcase.html",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-html.html",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-inline.html",
+        "destination": "/?embed=true",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "**",
@@ -53,10 +80,22 @@
       {
         "source": "**",
         "headers": [
-          { "key": "Cross-Origin-Opener-Policy", "value":  "same-origin"},
-          { "key": "Cross-Origin-Embedder-Policy", "value":  "credentialless"},
-          { "key": "X-Content-Type-Options", "value":  "nosniff"},
-          { "key": "Referrer-Policy", "value":  "strict-origin-when-cross-origin"}
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin"
+          },
+          {
+            "key": "Cross-Origin-Embedder-Policy",
+            "value": "credentialless"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          }
         ]
       }
     ]
