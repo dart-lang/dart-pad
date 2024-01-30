@@ -19,12 +19,12 @@
         "type": 301
       },
       {
-        "source": "/embed-inline.html",
+        "source": "/embed-flutter_showcase.html",
         "destination": "/?embed=true",
         "type": 301
       },
       {
-        "source": "/embed-flutter_showcase.html",
+        "source": "/embed-html.html",
         "destination": "/?embed=true",
         "type": 301
       },
