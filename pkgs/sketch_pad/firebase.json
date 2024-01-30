@@ -10,17 +10,17 @@
     "redirects": [
       {
         "source": "/embed-dart.html",
-        "destination": "/index.html?embed=true",
+        "destination": "/?embed=true",
         "type": 301
       },
       {
         "source": "/embed-flutter.html",
-        "destination": "/index.html?embed=true",
+        "destination": "/?embed=true",
         "type": 301
       },
       {
         "source": "/embed-inline.html",
-        "destination": "/index.html?embed=true",
+        "destination": "/?embed=true",
         "type": 301
       }
     ],
