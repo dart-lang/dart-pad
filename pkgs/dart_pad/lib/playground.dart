@@ -1079,26 +1079,23 @@ class NewPadDialog {
   final MDCRipple _dartButton;
   final MDCRipple _flutterButton;
   final MDCButton _cancelButton;
-  final MDCSwitch _htmlSwitch;
 
   NewPadDialog()
       : assert(querySelector('#new-pad-dialog') != null),
         assert(querySelector('#new-pad-select-dart') != null),
         assert(querySelector('#new-pad-select-flutter') != null),
         assert(querySelector('#new-pad-cancel-button') != null),
-        assert(querySelector('#new-pad-html-switch') != null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')!),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')!),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')!),
         _cancelButton =
-            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
-        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch'));
+            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement);
 
   Future<Layout?> show() {
     final completer = Completer<Layout?>();
 
     void completeDart() {
-      completer.complete(_htmlSwitch.checked! ? Layout.html : Layout.dart);
+      completer.complete(Layout.dart);
     }
 
     final dartSub = _dartButton.root.onClick.listen((_) {
