@@ -384,10 +384,6 @@ a {
   .dart-container {
     @include layout-vertical;
     @include layout-center;
-
-    #new-pad-html-switch-container {
-      margin-top: 8px;
-    }
   }
 
   .select-project-button {
@@ -408,10 +404,6 @@ a {
       max-height: 120px;
       margin-bottom: 16px;
     }
-  }
-
-  label[for=new-pad-html-switch] {
-    margin-left: 8px;
   }
 }
 
