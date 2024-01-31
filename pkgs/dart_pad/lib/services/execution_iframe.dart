@@ -41,9 +41,7 @@ class ExecutionServiceIFrame implements ExecutionService {
     String javaScript, {
     String? modulesBaseUrl,
     bool addRequireJs = false,
-    bool addFirebaseJs = false,
     bool destroyFrame = false,
-    bool useLegacyCanvasKit = false,
     String? canvasKitBaseUrl,
   }) async {
     if (destroyFrame) {
@@ -52,12 +50,9 @@ class ExecutionServiceIFrame implements ExecutionService {
     return _send('execute', {
       'html': html,
       'css': css,
-      'js': _decorateJavaScript(javaScript,
-          modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebaseJs),
+      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
       'addRequireJs': addRequireJs,
-      'addFirebaseJs': addFirebaseJs,
       'destroyFrame': destroyFrame,
-      'useLegacyCanvasKit': useLegacyCanvasKit,
       'canvasKitBaseUrl': canvasKitBaseUrl,
     });
   }
@@ -83,11 +78,8 @@ class ExecutionServiceIFrame implements ExecutionService {
   @override
   String get testResultDecoration => frameTestResultDecoration;
 
-  String _decorateJavaScript(
-    String javaScript, {
-    required String? modulesBaseUrl,
-    required bool requireFirebase,
-  }) {
+  String _decorateJavaScript(String javaScript,
+      {required String? modulesBaseUrl}) {
     final completeScript = StringBuffer();
     final usesRequireJs = modulesBaseUrl != null;
 

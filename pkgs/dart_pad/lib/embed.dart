@@ -33,7 +33,6 @@ import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
-import 'util/detect_flutter.dart';
 import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
@@ -938,9 +937,6 @@ class Embed extends EditorUi {
   void clearOutput() {
     consoleExpandController.clear();
   }
-
-  @override
-  bool get shouldAddFirebaseJs => hasFirebaseContent(fullDartSource);
 
   @override
   bool get shouldCompileDDC =>
