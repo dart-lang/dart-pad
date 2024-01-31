@@ -89,6 +89,10 @@
             "value": "credentialless"
           },
           {
+            "key": "Cross-Origin-Resource-Policy",
+            "value": "cross-origin"
+          },
+          {
             "key": "X-Content-Type-Options",
             "value": "nosniff"
           },
