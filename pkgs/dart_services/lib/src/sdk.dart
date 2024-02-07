@@ -60,7 +60,10 @@ final class Sdk {
     required this.engineVersion,
   }) : _flutterBinPath = flutterBinPath;
 
-  factory Sdk() {
+  /// Create an [Sdk] to track the location and version information
+  /// of the Flutter SDK used to run `dart_services`, or if not valid,
+  /// the one configured using the `FLUTTER_ROOT` environment variable.
+  factory Sdk.fromLocalFlutter() {
     // Note below, 'Platform.resolvedExecutable' will not lead to a real SDK if
     // we've been compiled into an AOT binary. In those cases we fall back to
     // looking for a 'FLUTTER_ROOT' environment variable.

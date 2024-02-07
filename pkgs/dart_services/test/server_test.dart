@@ -19,7 +19,7 @@ void defineTests() {
     late final ServicesClient client;
 
     setUpAll(() async {
-      sdk = Sdk();
+      sdk = Sdk.fromLocalFlutter();
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
       httpClient = Client();

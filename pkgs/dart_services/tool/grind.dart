@@ -31,7 +31,7 @@ final List<String> compilationArtifacts = [
     'google storage')
 void validateStorageArtifacts() async {
   final args = context.invocation.arguments;
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
   final version = sdk.dartVersion;
   final bucket = switch (args.hasOption('bucket')) {
     true => args.getOption('bucket'),
@@ -72,7 +72,7 @@ void buildProjectTemplates() async {
     await templatesDirectory.delete(recursive: true);
   }
 
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
   final projectCreator = ProjectCreator(
     sdk,
     templatesPath,
@@ -87,7 +87,7 @@ void buildProjectTemplates() async {
 @Task('build the sdk compilation artifacts for upload to google storage')
 @Depends(updatePubDependencies)
 void buildStorageArtifacts() async {
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
   delete(getDir('artifacts'));
   final instructions = <String>[];
 
@@ -268,7 +268,7 @@ Future<void> _run(
 @Task('Update pubspec dependency versions')
 @Depends(buildProjectTemplates)
 void updatePubDependencies() async {
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
   await _updateDependenciesFile(channel: sdk.channel, sdk: sdk);
 }
 

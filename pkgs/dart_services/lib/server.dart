@@ -41,7 +41,7 @@ Future<void> main(List<String> args) async {
     print('warning: no redis server specified.\n');
   }
 
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
 
   final int port;
 

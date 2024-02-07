@@ -10,7 +10,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 void main() => defineTests();
 
 void defineTests() {
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
 
   final languageVersion = sdk.dartVersion;
 
