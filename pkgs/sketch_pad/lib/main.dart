@@ -148,6 +148,11 @@ class _DartPadAppState extends State<DartPadApp> {
           color: lightSurfaceColor,
         ),
         scaffoldBackgroundColor: Colors.white,
+        menuButtonTheme: MenuButtonThemeData(
+          style: MenuItemButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
@@ -163,6 +168,11 @@ class _DartPadAppState extends State<DartPadApp> {
           ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
+        menuButtonTheme: MenuButtonThemeData(
+          style: MenuItemButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+          ),
+        ),
       ),
     );
   }
@@ -668,14 +678,10 @@ class NewSnippetWidget extends StatelessWidget {
   static final _menuItems = [
     (
       label: 'New Dart snippet',
-      icon: dartLogo(width: 12),
+      icon: dartLogo(),
       kind: 'dart',
     ),
-    (
-      label: 'New Flutter snippet',
-      icon: flutterLogo(width: 12),
-      kind: 'flutter'
-    ),
+    (label: 'New Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
   ];
 
   const NewSnippetWidget({
@@ -698,7 +704,10 @@ class NewSnippetWidget extends StatelessWidget {
           PointerInterceptor(
             child: MenuItemButton(
               leadingIcon: item.icon,
-              child: Text(item.label),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                child: Text(item.label),
+              ),
               onPressed: () => appServices.resetTo(type: item.kind),
             ),
           )
@@ -735,11 +744,13 @@ class ListSamplesWidget extends StatelessWidget {
         ),
         for (final sample in Samples.categories[category]!)
           MenuItemButton(
-            leadingIcon:
-                sample.isDart ? dartLogo(width: 12) : flutterLogo(width: 12),
+            leadingIcon: sample.isDart ? dartLogo() : flutterLogo(),
             onPressed: () =>
                 GoRouter.of(context).replaceQueryParam('sample', sample.id),
-            child: Text(sample.name),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text(sample.name),
+            ),
           ),
         const Divider(),
       ]
@@ -773,7 +784,10 @@ class SelectChannelWidget extends StatelessWidget {
           channels.length,
           (int index) => MenuItemButton(
             onPressed: () => _onTap(context, channels[index]),
-            child: Text('${channels[index].displayName} channel'),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('${channels[index].displayName} channel'),
+            ),
           ),
         ),
       ),
@@ -832,7 +846,10 @@ class OverflowMenu extends StatelessWidget {
             child: MenuItemButton(
               trailingIcon: const Icon(Icons.launch),
               onPressed: () => _onSelected(context, item.uri),
-              child: Text(item.label),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                child: Text(item.label),
+              ),
             ),
           )
       ],
