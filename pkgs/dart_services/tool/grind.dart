@@ -59,11 +59,10 @@ Future<void> _validateExists(Uri url) async {
   }
 }
 
-/// Builds the three project templates:
+/// Builds the two project templates:
 ///
 /// * the Dart project template,
 /// * the Flutter project template,
-/// * the Firebase project template.
 @Task('build the project templates')
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
@@ -82,10 +81,7 @@ void buildProjectTemplates() async {
     log: log,
   );
   await projectCreator.buildDartProjectTemplate();
-  await projectCreator.buildFlutterProjectTemplate(
-      firebaseStyle: FirebaseStyle.none);
-  await projectCreator.buildFlutterProjectTemplate(
-      firebaseStyle: FirebaseStyle.flutterFire);
+  await projectCreator.buildFlutterProjectTemplate();
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
@@ -280,7 +276,7 @@ void updatePubDependencies() async {
 ///
 /// The new set of dependency packages, and their version numbers, is determined
 /// by resolving versions of direct and indirect dependencies of a Flutter web
-/// app with Firebase plugins in a scratch pub package.
+/// app in a scratch pub package.
 ///
 /// See [_pubDependenciesFile] for the location of the dependencies files.
 Future<void> _updateDependenciesFile({
@@ -289,25 +285,15 @@ Future<void> _updateDependenciesFile({
 }) async {
   final tempDir = Directory.systemTemp.createTempSync('pubspec-scratch');
 
-  final dependencies = <String, String>{
-    'lints': 'any',
-    'flutter_lints': 'any',
-    for (final package in firebasePackages) package: 'any',
-    for (final package in supportedFlutterPackages) package: 'any',
-    for (final package in supportedBasicDartPackages) package: 'any',
-  };
-
-  // Overwrite with important constraints.
-  for (final entry in overrideVersionConstraints().entries) {
-    if (dependencies.containsKey(entry.key)) {
-      dependencies[entry.key] = entry.value;
-    }
-  }
-
   final pubspec = createPubspec(
     includeFlutterWeb: true,
     dartLanguageVersion: sdk.dartVersion,
-    dependencies: dependencies,
+    dependencies: {
+      'lints': 'any',
+      'flutter_lints': 'any',
+      for (final package in supportedFlutterPackages) package: 'any',
+      for (final package in supportedBasicDartPackages) package: 'any',
+    },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
   await runFlutterPubGet(sdk, tempDir.path, log: log);
