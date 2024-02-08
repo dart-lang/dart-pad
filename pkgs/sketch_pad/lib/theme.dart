@@ -28,6 +28,8 @@ Color darkPrimaryColor = const Color(0xFF1c2834);
 Color darkSurfaceColor = const Color(0xFF1c2834);
 Color darkScaffoldColor = const Color(0xFF0C141D);
 
+Color runButtonColor = const Color(0xFF168afd);
+
 const Color subtleColor = Colors.grey;
 
 // TODO: Look into using ThemeData in places where we're currently using
