@@ -24,12 +24,21 @@ const double toolbarItemHeight = 40.0;
 Color lightPrimaryColor = const Color(0xff1967D2);
 Color lightSurfaceColor = const Color(0xFFF5F5F7);
 Color lightDividerColor = const Color(0xFFDCE2E8);
+Color lightErrorColor = Colors.red.shade400;
+Color lightWarningColor = Colors.yellow.shade700;
+Color lightInfoColor = Colors.blue.shade400;
+Color lightIssueColor = Colors.grey.shade400;
 
 Color darkPrimaryColor = const Color(0xFF1c2834);
 Color darkSurfaceColor = const Color(0xFF1C2834);
 Color darkDividerColor = const Color(0xFF1C2834);
 Color darkScaffoldColor = const Color(0xFF0C141D);
 Color darkLinkButtonColor = Colors.white;
+Color darkErrorColor = Colors.red.shade500;
+Color darkWarningColor = Colors.yellow.shade500;
+Color darkInfoColor = Colors.blue.shade500;
+Color darkIssueColor = Colors.grey.shade700;
+
 
 const Color subtleColor = Colors.grey;
 

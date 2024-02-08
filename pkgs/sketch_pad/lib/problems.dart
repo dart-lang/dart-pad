@@ -139,13 +139,13 @@ extension AnalysisIssueExtension on AnalysisIssue {
   Color colorFor({bool darkMode = true}) {
     switch (kind) {
       case 'error':
-        return darkMode ? Colors.red : Colors.red;
+        return darkMode ? darkErrorColor : lightErrorColor;
       case 'warning':
-        return darkMode ? Colors.yellow : Colors.yellow;
+        return darkMode ? darkWarningColor : lightWarningColor;
       case 'info':
-        return darkMode ? Colors.blue : Colors.blue.shade300;
+        return darkMode ? darkInfoColor : lightInfoColor;
       default:
-        return darkMode ? Colors.grey : Colors.grey;
+        return darkMode ? darkIssueColor : lightIssueColor;
     }
   }
 
