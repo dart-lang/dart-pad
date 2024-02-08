@@ -51,7 +51,7 @@ void defineTests(bool hasRedis) {
 
     setUpAll(() async {
       redisProcess = await startRedisProcessAndDrainIO(9501);
-      sdk = Sdk();
+      sdk = Sdk.fromLocalFlutter();
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
       });

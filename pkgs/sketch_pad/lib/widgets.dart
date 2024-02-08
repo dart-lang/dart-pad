@@ -107,7 +107,11 @@ class RunButton extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
           backgroundColor: MaterialStateProperty.resolveWith(
             (states) {
-              return const Color(0xFF168afd);
+              if (states.contains(MaterialState.disabled)) {
+                return runButtonColor.withOpacity(0.4);
+              }
+
+              return runButtonColor;
             },
           ),
         ),

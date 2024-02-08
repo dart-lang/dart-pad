@@ -20,9 +20,6 @@ abstract class ExecutionService {
   /// DDC. RequireJS will then be added to the iframe, and will be used to load
   /// the Dart and Flutter SDKs.
   ///
-  /// [addFirebaseJs] should be `true` when the script imports any Firebase
-  /// libraries. Firebase JS SDKs will then be added to the iframe.
-  ///
   /// If [destroyFrame] is `true`, this method destroys and rebuilds the
   /// execution frame, instead of just replacing its contents.
   Future<void> execute(
@@ -31,9 +28,7 @@ abstract class ExecutionService {
     String javaScript, {
     String? modulesBaseUrl,
     bool addRequireJs = false,
-    bool addFirebaseJs = false,
     bool destroyFrame = false,
-    bool useLegacyCanvasKit,
     String canvasKitBaseUrl,
   });
 

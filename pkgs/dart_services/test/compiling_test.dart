@@ -15,7 +15,8 @@ void defineTests() {
     late Compiler compiler;
 
     setUpAll(() async {
-      compiler = Compiler(Sdk(), storageBucket: 'nnbd_artifacts');
+      compiler =
+          Compiler(Sdk.fromLocalFlutter(), storageBucket: 'nnbd_artifacts');
     });
 
     tearDownAll(() async {

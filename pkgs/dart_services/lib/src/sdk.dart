@@ -9,83 +9,109 @@ import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
 
-class Sdk {
+/// Information about the device's currently configured Flutter SDK
+/// and its embedded Dart SDK.
+final class Sdk {
   /// The path to the Dart SDK (vended into the Flutter SDK).
-  late final String dartSdkPath;
+  final String dartSdkPath;
 
   /// The path to the Flutter SDK.
-  late final String flutterSdkPath;
+  final String flutterSdkPath;
+
+  /// The path to the Flutter CLI tool.
+  final String flutterToolPath;
 
   /// The path to the Flutter binaries.
-  late final String _flutterBinPath;
+  final String _flutterBinPath;
 
   /// The current version of the Dart SDK, including any `-dev` suffix.
-  late final String dartVersion;
+  final String dartVersion;
 
   /// The current version of the Flutter SDK.
-  late final String flutterVersion;
+  final String flutterVersion;
 
   /// The current version of the Flutter engine.
-  late final String engineVersion;
+  final String engineVersion;
 
-  // The channel for this SDK.
-  late final String channel;
+  /// The channel for this SDK.
+  final String channel;
 
-  /// If this is the stable channel.
+  /// If this [Sdk] is from the `stable` channel.
   bool get stableChannel => channel == 'stable';
 
-  /// If this is the beta channel.
+  /// If this [Sdk] is from the `beta` channel.
   bool get betaChannel => channel == 'beta';
 
-  /// If this is the main channel.
+  /// If this [Sdk] is from the `main` channel.
   bool get mainChannel => channel == 'main';
 
-  /// The experiments to use for the current channel.
+  /// The experiments to use for the current [channel].
   List<String> get experiments =>
       (mainChannel || betaChannel) ? enabledExperiments : const [];
 
-  void _initPaths() {
+  Sdk._({
+    required this.channel,
+    required this.dartSdkPath,
+    required this.dartVersion,
+    required String flutterBinPath,
+    required this.flutterToolPath,
+    required this.flutterSdkPath,
+    required this.flutterVersion,
+    required this.engineVersion,
+  }) : _flutterBinPath = flutterBinPath;
+
+  /// Create an [Sdk] to track the location and version information
+  /// of the Flutter SDK used to run `dart_services`, or if not valid,
+  /// the one configured using the `FLUTTER_ROOT` environment variable.
+  factory Sdk.fromLocalFlutter() {
     // Note below, 'Platform.resolvedExecutable' will not lead to a real SDK if
     // we've been compiled into an AOT binary. In those cases we fall back to
     // looking for a 'FLUTTER_ROOT' environment variable.
 
     // <flutter-sdk>/bin/cache/dart-sdk/bin/dart
-    String? potentialPath = path.dirname(path.dirname(
+    final potentialFlutterSdkPath = path.dirname(path.dirname(
         path.dirname(path.dirname(path.dirname(Platform.resolvedExecutable)))));
-    if (!_validFlutterSdk(potentialPath)) {
-      potentialPath = Platform.environment['FLUTTER_ROOT'];
-      if (potentialPath == null || !_validFlutterSdk(potentialPath)) {
+
+    final String flutterSdkPath;
+    if (_validFlutterSdk(potentialFlutterSdkPath)) {
+      flutterSdkPath = potentialFlutterSdkPath;
+    } else {
+      final flutterRootPath = Platform.environment['FLUTTER_ROOT'];
+      if (flutterRootPath == null || !_validFlutterSdk(flutterRootPath)) {
         throw StateError('Flutter SDK not found');
       }
+      flutterSdkPath = flutterRootPath;
     }
 
-    flutterSdkPath = potentialPath;
-    _flutterBinPath = path.join(flutterSdkPath, 'bin');
-    dartSdkPath = path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
-  }
+    final flutterBinPath = path.join(flutterSdkPath, 'bin');
+    final flutterToolPath = path.join(flutterBinPath, 'flutter');
+    final dartSdkPath = path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
+    final dartVersion = _readDartSdkVersionFile(dartSdkPath);
 
-  Sdk() {
-    _initPaths();
+    final versions = _retrieveFlutterVersion(flutterSdkPath, flutterToolPath);
 
-    dartVersion = _readVersionFile(dartSdkPath);
+    final flutterVersion = versions['flutterVersion'] as String;
+    final engineVersion = versions['engineRevision'] as String;
 
-    // flutter --version --machine
-    final versions = _callFlutterVersion();
-
-    flutterVersion = versions['flutterVersion'] as String;
-    engineVersion = versions['engineRevision'] as String;
-
+    final rawChannel = versions['channel'] as String;
     // Report the 'master' channel as 'main';
-    final tempChannel = versions['channel'] as String;
-    channel = tempChannel == 'master' ? 'main' : tempChannel;
+    final channel = rawChannel == 'master' ? 'main' : rawChannel;
+    assert(const {'stable', 'beta', 'main'}.contains(channel));
+
+    return Sdk._(
+      channel: channel,
+      dartSdkPath: dartSdkPath,
+      dartVersion: dartVersion,
+      flutterSdkPath: flutterSdkPath,
+      flutterBinPath: flutterBinPath,
+      flutterToolPath: flutterToolPath,
+      flutterVersion: flutterVersion,
+      engineVersion: engineVersion,
+    );
   }
 
-  /// The path to the 'flutter' tool (binary).
-  String get flutterToolPath => path.join(_flutterBinPath, 'flutter');
-
-  String get flutterWebSdkPath {
-    return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
-  }
+  String get flutterWebSdkPath =>
+      path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
 
   bool get usesNewBootstrapEngine {
     final uiWebPackage =
@@ -100,7 +126,10 @@ class Sdk {
     return file.readAsStringSync().contains('bootstrapEngine(');
   }
 
-  Map<String, dynamic> _callFlutterVersion() {
+  static Map<String, Object?> _retrieveFlutterVersion(
+    String flutterSdkPath,
+    String flutterToolPath,
+  ) {
     // Note that we try twice here as the 'flutter --version --machine' command
     // can (erroneously) emit non-json text to stdout (for example, an initial
     // analytics disclaimer).
@@ -110,17 +139,17 @@ class Sdk {
         flutterToolPath,
         ['--version', '--machine'],
         workingDirectory: flutterSdkPath,
-      ).stdout.toString().trim()) as Map<String, dynamic>;
+      ).stdout.toString().trim()) as Map<String, Object?>;
     } on FormatException {
       return jsonDecode(Process.runSync(
         flutterToolPath,
         ['--version', '--machine'],
         workingDirectory: flutterSdkPath,
-      ).stdout.toString().trim()) as Map<String, dynamic>;
+      ).stdout.toString().trim()) as Map<String, Object?>;
     }
   }
 
-  static String _readVersionFile(String filePath) {
+  static String _readDartSdkVersionFile(String filePath) {
     final file = File(path.join(filePath, 'version'));
     return file.readAsStringSync().trim();
   }

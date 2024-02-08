@@ -48,6 +48,11 @@ class ProjectTemplates {
 const Set<String> supportedFlutterPackages = {
   'animations',
   'creator',
+  'flame',
+  'flame_fire_atlas',
+  'flame_forge2d',
+  'flame_splash_screen',
+  'flame_tiled',
   'flutter_adaptive_scaffold',
   'flutter_bloc',
   'flutter_hooks',
@@ -167,14 +172,12 @@ const Set<String> firebasePackages = {
   'cloud_firestore',
   'firebase_auth',
   'firebase_core',
-  'flame',
 };
 
 bool isFirebasePackage(String packageName) {
   if (firebasePackages.contains(packageName)) return true;
 
   if (packageName.startsWith('firebase_')) return true;
-  if (packageName.startsWith('flame_')) return true;
 
   return false;
 }
