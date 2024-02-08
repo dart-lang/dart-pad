@@ -39,7 +39,6 @@ Color darkWarningColor = Colors.yellow.shade500;
 Color darkInfoColor = Colors.blue.shade500;
 Color darkIssueColor = Colors.grey.shade700;
 
-
 const Color subtleColor = Colors.grey;
 
 // TODO: Look into using ThemeData in places where we're currently using
