@@ -833,7 +833,7 @@ class OverflowMenu extends StatelessWidget {
       uri: 'https://dart.dev',
     ),
     (
-      label: 'flutter.dec',
+      label: 'flutter.dev',
       uri: 'https://flutter.dev',
     ),
     (
