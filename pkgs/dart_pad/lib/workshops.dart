@@ -35,7 +35,6 @@ import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
-import 'util/detect_flutter.dart';
 import 'util/query_params.dart';
 import 'workshops/workshops.dart';
 
@@ -561,9 +560,6 @@ class WorkshopUi extends EditorUi {
   @override
   bool get shouldCompileDDC =>
       _workshopState.workshop.type == WorkshopType.flutter;
-
-  @override
-  bool get shouldAddFirebaseJs => hasFirebaseContent(editor.document.value);
 
   @override
   void clearOutput() {
