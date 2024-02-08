@@ -65,7 +65,8 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
             textInputAction: TextInputAction.newline,
             expands: true,
             decoration: null,
-            style: theme.textTheme.bodyMedium,
+            style:
+                theme.textTheme.bodyMedium!.copyWith(fontFamily: 'RobotoMono'),
             readOnly: true,
           ),
           Padding(
