@@ -13,7 +13,7 @@ void main() => defineTests();
 
 void defineTests() {
   group('analysis', () {
-    final sdk = Sdk();
+    final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
@@ -183,7 +183,7 @@ void defineTests() {
   });
 
   group('analysis flutter', () {
-    final sdk = Sdk();
+    final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
