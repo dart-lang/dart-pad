@@ -770,7 +770,6 @@ class ListSamplesWidget extends StatelessWidget {
               child: Text(sample.name),
             ),
           ),
-        const Divider(),
       ]
     ];
 
