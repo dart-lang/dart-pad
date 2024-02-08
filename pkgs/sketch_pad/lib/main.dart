@@ -755,7 +755,10 @@ class ListSamplesWidget extends StatelessWidget {
       for (final category in categories) ...[
         MenuItemButton(
           onPressed: null,
-          child: Text(category),
+          child: Text(
+            category,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
         for (final sample in Samples.categories[category]!)
           MenuItemButton(
