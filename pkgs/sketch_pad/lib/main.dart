@@ -692,11 +692,11 @@ class NewSnippetWidget extends StatelessWidget {
 
   static final _menuItems = [
     (
-      label: 'New Dart snippet',
+      label: 'Dart snippet',
       icon: dartLogo(),
       kind: 'dart',
     ),
-    (label: 'New Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
+    (label: 'Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
   ];
 
   const NewSnippetWidget({
