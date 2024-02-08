@@ -23,7 +23,7 @@ const double toolbarItemHeight = 40.0;
 
 Color lightPrimaryColor = const Color(0xff1967D2);
 Color lightSurfaceColor = const Color(0xFFF5F5F7);
-Color lightDividerColor = const Color(0xFFC7C7C7);
+Color lightDividerColor = const Color(0xFFDCE2E8);
 
 Color darkPrimaryColor = const Color(0xFF1c2834);
 Color darkSurfaceColor = const Color(0xFF1C2834);
