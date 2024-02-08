@@ -141,11 +141,12 @@ class _DartPadAppState extends State<DartPadApp> {
         colorScheme:
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
+          onSurface: Colors.black,
         ),
         brightness: Brightness.light,
-        dividerColor: lightSurfaceColor,
+        dividerColor: lightDividerColor,
         dividerTheme: DividerThemeData(
-          color: lightSurfaceColor,
+          color: lightDividerColor,
         ),
         scaffoldBackgroundColor: Colors.white,
         menuButtonTheme: MenuButtonThemeData(
@@ -156,11 +157,15 @@ class _DartPadAppState extends State<DartPadApp> {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: darkPrimaryColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: darkPrimaryColor).copyWith(
+          brightness: Brightness.dark,
+          surface: darkSurfaceColor,
+          onSurface: Colors.white,
+        ),
         brightness: Brightness.dark,
-        dividerColor: darkSurfaceColor,
+        dividerColor: darkDividerColor,
         dividerTheme: DividerThemeData(
-          color: darkSurfaceColor,
+          color: darkDividerColor,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
@@ -265,14 +270,16 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       appBar: widget.embedMode
           ? null
           : AppBar(
-              backgroundColor: theme.dividerColor,
+              backgroundColor: theme.colorScheme.surface,
               title: SizedBox(
                 height: toolbarItemHeight,
                 child: Row(
                   children: [
                     dartLogo(width: 32),
                     const SizedBox(width: denseSpacing),
-                    const Text(appName),
+                    Text(appName,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(width: defaultSpacing * 4),
                     NewSnippetWidget(appServices: appServices),
                     const SizedBox(width: denseSpacing),
@@ -320,8 +327,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             child: Center(
               child: SplitView(
                 viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.dividerTheme.color!,
-                gripColorActive: theme.dividerTheme.color!,
+                gripColor: theme.colorScheme.surface,
+                gripColorActive: theme.colorScheme.surface,
                 gripSize: defaultGripSize,
                 controller: mainSplitter,
                 children: [
@@ -567,7 +574,7 @@ class StatusLineWidget extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.dividerColor,
+        color: theme.colorScheme.surface,
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,

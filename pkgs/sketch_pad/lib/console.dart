@@ -49,7 +49,9 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         border: widget.showDivider
-            ? Border(top: Divider.createBorderSide(context, width: 8.0))
+            ? Border(
+                top: Divider.createBorderSide(context,
+                    width: 8.0, color: theme.colorScheme.surface))
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
