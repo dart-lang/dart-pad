@@ -29,6 +29,7 @@ Color darkPrimaryColor = const Color(0xFF1c2834);
 Color darkSurfaceColor = const Color(0xFF1C2834);
 Color darkDividerColor = const Color(0xFF1C2834);
 Color darkScaffoldColor = const Color(0xFF0C141D);
+Color darkLinkButtonColor = Colors.white;
 
 const Color subtleColor = Colors.grey;
 
