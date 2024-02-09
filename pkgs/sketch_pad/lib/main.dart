@@ -587,26 +587,20 @@ class StatusLineWidget extends StatelessWidget {
           Tooltip(
             message: 'Keyboard shortcuts',
             waitDuration: tooltipDelay,
-            child: IconButton(
-              icon: const Icon(Icons.keyboard),
-              iconSize: smallIconSize,
-              splashRadius: defaultIconSize,
-              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-              padding: const EdgeInsets.all(2),
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                showDialog<void>(
-                  context: context,
-                  builder: (context) {
-                    return MediumDialog(
-                      title: 'Keyboard shortcuts',
-                      smaller: true,
-                      child: KeyBindingsTable(bindings: keys.keyBindings),
-                    );
-                  },
-                );
-              },
-              color: textColor,
+            child: TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (context) => MediumDialog(
+                  title: 'Keyboard shortcuts',
+                  smaller: true,
+                  child: KeyBindingsTable(bindings: keys.keyBindings),
+                ),
+              ),
+              child: Icon(
+                Icons.keyboard,
+                color: textColor,
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(width: defaultSpacing),
@@ -640,10 +634,7 @@ class StatusLineWidget extends StatelessWidget {
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: defaultSpacing),
-          const SizedBox(
-            height: 26,
-            child: SelectChannelWidget(),
-          ),
+          const SizedBox(height: 26, child: SelectChannelWidget()),
         ],
       ),
     );

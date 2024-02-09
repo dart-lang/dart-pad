@@ -39,6 +39,8 @@ Color darkWarningColor = Colors.yellow.shade500;
 Color darkInfoColor = Colors.blue.shade500;
 Color darkIssueColor = Colors.grey.shade700;
 
+Color runButtonColor = const Color(0xFF168afd);
+
 const Color subtleColor = Colors.grey;
 
 // TODO: Look into using ThemeData in places where we're currently using

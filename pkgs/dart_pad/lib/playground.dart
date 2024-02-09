@@ -823,9 +823,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   @override
   bool get shouldCompileDDC => hasFlutterContent(context.dartSource);
 
-  @override
-  bool get shouldAddFirebaseJs => hasFirebaseContent(context.dartSource);
-
   void _handleSave() => ga.sendEvent('main', 'save');
 
   @override
