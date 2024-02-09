@@ -34,6 +34,12 @@ flutter:
   assets:
     - assets/dart_logo_128.png
     - assets/flutter_logo_192.png
+  fonts:
+    - family: RobotoMono
+      fonts:
+        - asset: assets/fonts/RobotoMono-Regular.ttf
+        - asset: assets/fonts/RobotoMono-Bold.ttf
+          weight: 700
 
 dependency_overrides:
   dartpad_shared:
