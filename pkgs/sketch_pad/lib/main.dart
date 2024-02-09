@@ -571,9 +571,6 @@ class StatusLineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final textColor = colorScheme.onPrimaryContainer;
 
     final appModel = Provider.of<AppModel>(context);
 

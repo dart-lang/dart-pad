@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 
 import 'model.dart';
 import 'theme.dart';
-import 'utils.dart';
 
 const _rowPadding = 2.0;
 
