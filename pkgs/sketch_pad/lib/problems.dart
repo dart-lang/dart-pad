@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import 'model.dart';
 import 'theme.dart';
+import 'utils.dart';
 
 const _rowPadding = 2.0;
 
@@ -44,7 +45,6 @@ class ProblemsTableWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surfaceVariant,
-          border: Border(top: Divider.createBorderSide(context, width: 1.0)),
         ),
         padding: const EdgeInsets.all(denseSpacing),
         child: ListView.builder(

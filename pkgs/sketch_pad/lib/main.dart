@@ -142,6 +142,8 @@ class _DartPadAppState extends State<DartPadApp> {
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
           onSurface: Colors.black,
+          surfaceVariant: lightSurfaceVariantColor,
+          onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
         dividerColor: lightDividerColor,
@@ -161,8 +163,9 @@ class _DartPadAppState extends State<DartPadApp> {
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-          surfaceVariant: darkSurfaceColor,
+          surfaceVariant: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
+          onPrimary: darkLinkButtonColor,
         ),
         brightness: Brightness.dark,
         dividerColor: darkDividerColor,
@@ -598,7 +601,7 @@ class StatusLineWidget extends StatelessWidget {
               ),
               child: Icon(
                 Icons.keyboard,
-                color: textColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 size: 20,
               ),
             ),
