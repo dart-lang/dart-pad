@@ -143,14 +143,14 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
 
   /// Destroy and reload the iframe.
   Future<void> _reset() {
-    if (_frame.parentElement != null) {
+    if (_frame.parentElement case final parentElement?) {
       _readyCompleter = Completer();
 
       final clone = _frame.clone(false) as web.HTMLIFrameElement;
       clone.src = _frameSrc;
 
-      _frame.parentElement!.appendChild(clone);
-      _frame.parentElement!.removeChild(_frame);
+      parentElement.appendChild(clone);
+      parentElement.removeChild(_frame);
       _frame = clone;
     }
 
@@ -162,29 +162,30 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
 
   void _initListener() {
     web.window.addEventListener(
-        'message',
-        (web.Event event) {
-          if (event is web.MessageEvent) {
-            final data = event.data.dartify() as Map<Object?, Object?>;
-            if (data['sender'] != 'frame') {
-              return;
-            }
-            final type = data['type'] as String?;
+      'message',
+      (web.Event event) {
+        if (event is web.MessageEvent) {
+          final data = event.data.dartify();
+          if (data is! Map<Object?, Object?> || data['sender'] != 'frame') {
+            return;
+          }
+          final type = data['type'] as String?;
 
-            if (type == 'stderr') {
-              // Ignore any exceptions before the iframe has completed
-              // initialization.
-              if (_readyCompleter.isCompleted) {
-                _stdoutController.add(data['message'] as String);
-              }
-            } else if (type == 'ready' && !_readyCompleter.isCompleted) {
-              _readyCompleter.complete();
-            } else if (data['message'] != null) {
+          if (type == 'stderr') {
+            // Ignore any exceptions before the iframe has completed
+            // initialization.
+            if (_readyCompleter.isCompleted) {
               _stdoutController.add(data['message'] as String);
             }
+          } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+            _readyCompleter.complete();
+          } else if (data['message'] != null) {
+            _stdoutController.add(data['message'] as String);
           }
-        }.toJS,
-        false.toJS);
+        }
+      }.toJS,
+      false.toJS,
+    );
   }
 }
 

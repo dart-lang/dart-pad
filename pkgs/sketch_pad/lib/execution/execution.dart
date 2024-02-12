@@ -15,7 +15,7 @@ import 'frame.dart';
 const String _viewType = 'dartpad-execution';
 
 bool _viewFactoryInitialized = false;
-ExecutionService? executionServiceInstance;
+ExecutionService? _executionServiceInstance;
 
 final Key _elementViewKey = UniqueKey();
 
@@ -37,7 +37,7 @@ web.Element _iFrameFactory(int viewId) {
     ..style.width = '100%'
     ..style.height = '100%';
 
-  executionServiceInstance = ExecutionServiceImpl(frame);
+  _executionServiceInstance = ExecutionServiceImpl(frame);
 
   return frame;
 }
@@ -74,7 +74,8 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         key: _elementViewKey,
         viewType: _viewType,
         onPlatformViewCreated: (int id) {
-          widget.appServices.registerExecutionService(executionServiceInstance);
+          widget.appServices
+              .registerExecutionService(_executionServiceInstance);
         },
       ),
     );

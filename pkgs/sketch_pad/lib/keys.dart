@@ -38,14 +38,13 @@ final ShortcutActivator quickFixKeyActivator = SingleActivator(
   control: _nonMac,
 );
 
-// map of key activator names
-
-final List<(String, ShortcutActivator)> keyBindings = [
-  ('Code completion', codeCompletionKeyActivator),
-  ('Find', findKeyActivator),
-  ('Find next', findNextKeyActivator),
-  ('Quick fixes', quickFixKeyActivator),
-  ('Reload', reloadKeyActivator),
+/// Key binding names and activators.
+final List<({String keyName, ShortcutActivator activator})> keyBindings = [
+  (keyName: 'Code completion', activator: codeCompletionKeyActivator),
+  (keyName: 'Find', activator: findKeyActivator),
+  (keyName: 'Find next', activator: findNextKeyActivator),
+  (keyName: 'Quick fixes', activator: quickFixKeyActivator),
+  (keyName: 'Reload', activator: reloadKeyActivator),
 ];
 
 extension SingleActivatorExtension on SingleActivator {
@@ -60,10 +59,11 @@ extension SingleActivatorExtension on SingleActivator {
 
     return Container(
       decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            Divider.createBorderSide(context, width: 1.0, color: subtleColor),
-          ),
-          borderRadius: const BorderRadius.all(Radius.circular(4))),
+        border: Border.fromBorderSide(
+          Divider.createBorderSide(context, width: 1.0, color: subtleColor),
+        ),
+        borderRadius: const BorderRadius.all(Radius.circular(4)),
+      ),
       padding: const EdgeInsets.symmetric(
         vertical: 2,
         horizontal: 6,

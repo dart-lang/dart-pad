@@ -280,7 +280,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                 height: toolbarItemHeight,
                 child: Row(
                   children: [
-                    dartLogo(width: 32),
+                    const Logo(width: 32),
                     const SizedBox(width: denseSpacing),
                     Text(appName,
                         style: TextStyle(
@@ -308,7 +308,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                 TextButton(
                   onPressed: () {
                     url_launcher.launchUrl(
-                      Uri.parse('https://docs.flutter.dev/get-started/install'),
+                      Uri.https('docs.flutter.dev', '/get-started/install'),
                     );
                   },
                   child: const Row(
@@ -606,8 +606,8 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(width: defaultSpacing),
           TextButton(
             onPressed: () {
-              const url = 'https://dart.dev/tools/dartpad/privacy';
-              url_launcher.launchUrl(Uri.parse(url));
+              url_launcher
+                  .launchUrl(Uri.https('dart.dev', '/tools/dartpad/privacy'));
             },
             child: const Row(
               children: [
@@ -620,8 +620,8 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(width: defaultSpacing),
           TextButton(
             onPressed: () {
-              const url = 'https://github.com/dart-lang/dart-pad/issues';
-              url_launcher.launchUrl(Uri.parse(url));
+              url_launcher.launchUrl(
+                  Uri.https('github.com', '/dart-lang/dart-pad/issues'));
             },
             child: const Row(
               children: [
@@ -662,9 +662,9 @@ class SectionWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (title != null) Text(title!, style: subtleText),
+              if (title case final title?) Text(title, style: subtleText),
               const Expanded(child: SizedBox(width: defaultSpacing)),
-              if (actions != null) actions!,
+              if (actions case final actions?) actions,
             ],
           ),
           const Divider(),
@@ -683,13 +683,17 @@ class SectionWidget extends StatelessWidget {
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
 
-  static final _menuItems = [
+  static const _menuItems = [
     (
       label: 'Dart snippet',
-      icon: dartLogo(),
+      icon: Logo(),
       kind: 'dart',
     ),
-    (label: 'Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
+    (
+      label: 'Flutter snippet',
+      icon: Logo(flutter: true),
+      kind: 'flutter',
+    ),
   ];
 
   const NewSnippetWidget({
@@ -713,7 +717,7 @@ class NewSnippetWidget extends StatelessWidget {
             child: MenuItemButton(
               leadingIcon: item.icon,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                padding: const EdgeInsets.only(right: 32),
                 child: Text(item.label),
               ),
               onPressed: () => appServices.resetTo(type: item.kind),
@@ -742,10 +746,9 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   List<Widget> _buildMenuItems(BuildContext context) {
-    final categories = Samples.categories.keys;
-
     final menuItems = [
-      for (final category in categories) ...[
+      for (final MapEntry(key: category, value: samples)
+          in Samples.categories.entries) ...[
         MenuItemButton(
           onPressed: null,
           child: Text(
@@ -753,9 +756,10 @@ class ListSamplesWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
-        for (final sample in Samples.categories[category]!)
+        for (final sample in samples)
           MenuItemButton(
-            leadingIcon: sample.isDart ? dartLogo() : flutterLogo(),
+            leadingIcon:
+                sample.isDart ? const Logo() : const Logo(flutter: true),
             onPressed: () =>
                 GoRouter.of(context).replaceQueryParam('sample', sample.id),
             child: Padding(
@@ -763,10 +767,12 @@ class ListSamplesWidget extends StatelessWidget {
               child: Text(sample.name),
             ),
           ),
-      ]
+      ],
     ];
 
-    return menuItems.map((e) => PointerInterceptor(child: e)).toList();
+    return menuItems
+        .map((e) => PointerInterceptor(child: e))
+        .toList(growable: false);
   }
 }
 
@@ -795,7 +801,7 @@ class SelectChannelWidget extends StatelessWidget {
           (int index) => MenuItemButton(
             onPressed: () => _onTap(context, channels[index]),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+              padding: const EdgeInsets.only(right: 32),
               child: Text('${channels[index].displayName} channel'),
             ),
           ),
@@ -807,7 +813,7 @@ class SelectChannelWidget extends StatelessWidget {
   void _onTap(BuildContext context, Channel channel) async {
     final appServices = Provider.of<AppServices>(context, listen: false);
 
-    // update the url
+    // Update the `channel` query parameter.
     GoRouter.of(context).replaceQueryParam('channel', channel.name);
 
     final version = await appServices.setChannel(channel);
@@ -857,7 +863,7 @@ class OverflowMenu extends StatelessWidget {
               trailingIcon: const Icon(Icons.launch),
               onPressed: () => _onSelected(context, item.uri),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                padding: const EdgeInsets.only(right: 32),
                 child: Text(item.label),
               ),
             ),
@@ -872,7 +878,7 @@ class OverflowMenu extends StatelessWidget {
 }
 
 class KeyBindingsTable extends StatelessWidget {
-  final List<(String, ShortcutActivator)> bindings;
+  final List<({String keyName, ShortcutActivator activator})> bindings;
 
   const KeyBindingsTable({
     required this.bindings,
@@ -886,7 +892,7 @@ class KeyBindingsTable extends StatelessWidget {
       children: [
         const Divider(),
         Expanded(
-          child: VTable<(String, ShortcutActivator)>(
+          child: VTable<({String keyName, ShortcutActivator activator})>(
             showToolbar: false,
             showHeaders: false,
             startsSorted: true,
@@ -896,7 +902,7 @@ class KeyBindingsTable extends StatelessWidget {
                 label: 'Command',
                 width: 100,
                 grow: 0.5,
-                transformFunction: (binding) => binding.$1,
+                transformFunction: (binding) => binding.keyName,
               ),
               VTableColumn(
                 label: 'Keyboard shortcut',
@@ -904,10 +910,10 @@ class KeyBindingsTable extends StatelessWidget {
                 grow: 0.5,
                 alignment: Alignment.centerRight,
                 transformFunction: (binding) =>
-                    (binding.$2 as SingleActivator).describe,
+                    (binding.activator as SingleActivator).describe,
                 styleFunction: (binding) => subtleText,
                 renderFunction: (context, binding, _) {
-                  return (binding.$2 as SingleActivator)
+                  return (binding.activator as SingleActivator)
                       .renderToWidget(context);
                 },
               ),

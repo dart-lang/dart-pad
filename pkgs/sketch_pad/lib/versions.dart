@@ -18,7 +18,8 @@ class VersionTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final packages = version.packages.where((p) => p.supported).toList();
+    final packages =
+        version.packages.where((p) => p.supported).toList(growable: false);
 
     var versionText = 'Based on Dart SDK ${version.dartVersion} '
         'and Flutter SDK ${version.flutterVersion}';

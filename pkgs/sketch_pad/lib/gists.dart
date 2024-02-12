@@ -8,22 +8,22 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 
 class GistLoader {
-  final http.Client client = http.Client();
+  final http.Client _client = http.Client();
 
   Future<Gist> load(String gistId) async {
     final response =
-        await client.get(Uri.parse('https://api.github.com/gists/$gistId'));
+        await _client.get(Uri.https('api.github.com', '/gists/$gistId'));
 
     if (response.statusCode != 200) {
       throw Exception('Unable to load gist '
           '(${response.statusCode} ${response.reasonPhrase}})');
     }
 
-    return Gist.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return Gist.fromJson(jsonDecode(response.body) as Map<String, Object?>);
   }
 
   void dispose() {
-    client.close();
+    _client.close();
   }
 }
 
@@ -40,7 +40,7 @@ class Gist {
     required this.files,
   });
 
-  factory Gist.fromJson(Map<String, dynamic> json) {
+  factory Gist.fromJson(Map<String, Object?> json) {
 /* {
   "id": "d3bd83918d21b6d5f778bdc69c3d36d6",
   "description": "Fibonacci",
@@ -65,25 +65,22 @@ class Gist {
     }
   },
 } */
-    final owner = json['owner'] as Map<String, dynamic>;
-    final files = json['files'] as Map<String, dynamic>;
+    final owner = json['owner'] as Map<String, Object?>;
+    final files = json['files'] as Map<String, Object?>;
 
     return Gist(
       id: json['id'] as String,
       description: json['description'] as String?,
       owner: owner['login'] as String?,
       files: files.values
-          .cast<Map<String, dynamic>>()
+          .cast<Map<String, Object?>>()
           .map(GistFile.fromJson)
-          .toList(),
+          .toList(growable: false),
     );
   }
 
-  String? get mainDartSource {
-    return files
-        .firstWhereOrNull((file) => file.fileName == 'main.dart')
-        ?.content;
-  }
+  String? get mainDartSource =>
+      files.firstWhereOrNull((file) => file.fileName == 'main.dart')?.content;
 }
 
 class GistFile {
@@ -99,7 +96,7 @@ class GistFile {
     required this.content,
   });
 
-  factory GistFile.fromJson(Map<String, dynamic> json) {
+  factory GistFile.fromJson(Map<String, Object?> json) {
     return GistFile(
       fileName: json['filename'] as String,
       truncated: json['truncated'] as bool,

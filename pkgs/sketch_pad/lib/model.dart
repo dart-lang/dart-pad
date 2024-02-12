@@ -81,16 +81,13 @@ class AppModel {
   }
 
   void _recalcLayout() {
-    final hasConsoleText = consoleOutputController.text.isNotEmpty;
-    final isFlutter = _appIsFlutter;
-
-    if (isFlutter == null) {
-      _layoutMode.value = LayoutMode.both;
-    } else if (!isFlutter) {
-      _layoutMode.value = LayoutMode.justConsole;
-    } else {
-      _layoutMode.value = hasConsoleText ? LayoutMode.both : LayoutMode.justDom;
-    }
+    _layoutMode.value = switch (_appIsFlutter) {
+      null => LayoutMode.both,
+      false => LayoutMode.justConsole,
+      true => consoleOutputController.text.isNotEmpty
+          ? LayoutMode.both
+          : LayoutMode.justDom,
+    };
   }
 }
 
@@ -396,9 +393,9 @@ enum Channel {
 
   static const defaultChannel = Channel.stable;
 
-  static List<Channel> get valuesWithoutLocalhost {
-    return values.whereNot((channel) => channel == localhost).toList();
-  }
+  static List<Channel> get valuesWithoutLocalhost => values
+      .whereNot((channel) => channel == localhost)
+      .toList(growable: false);
 
   static Channel? forName(String name) {
     name = name.trim().toLowerCase();

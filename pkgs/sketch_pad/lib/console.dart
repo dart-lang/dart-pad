@@ -50,8 +50,11 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
         color: theme.scaffoldBackgroundColor,
         border: widget.showDivider
             ? Border(
-                top: Divider.createBorderSide(context,
-                    width: 8.0, color: theme.colorScheme.surface))
+                top: Divider.createBorderSide(
+                context,
+                width: 8.0,
+                color: theme.colorScheme.surface,
+              ))
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
@@ -99,11 +102,13 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
 
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      scrollController?.animateTo(
-        scrollController!.position.maxScrollExtent,
-        duration: animationDelay,
-        curve: animationCurve,
-      );
+      if (scrollController case final scrollController?) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: animationDelay,
+          curve: animationCurve,
+        );
+      }
     });
   }
 }
