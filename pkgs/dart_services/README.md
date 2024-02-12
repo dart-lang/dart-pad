@@ -49,6 +49,28 @@ And to update the shared code from dartpad_shared, run:
 dart tool/grind.dart copy-shared-source
 ```
 
+### Modifying supported packages
+
+Package dependencies are pinned using the `pub_dependencies_<CHANNEL>.yaml`
+files. To make changes to the list of supported packages, you need to verify
+that the dependencies resolve and update the pinned versions specified in the
+`tool/dependencies` directory.
+
+1. Edit the `lib/src/project_templates.dart` file to include changes to the
+   whitelisted list of packages.
+2. Create the Dart and Flutter projects in the `project_templates/` directory:
+
+    ```bash
+    grind build-project-templates
+    ```
+
+3. Run `pub upgrade` in the Dart or Flutter project in `project_templates/`
+4. Run `grind update-pub-dependencies` to overwrite the
+   `tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file for your current
+   channel.
+5. Repeat the above steps for the latest version of each Flutter channel
+   (`main`, `beta` and `stable`)
+
 ## Redis
 
 You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS. 

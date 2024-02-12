@@ -266,7 +266,6 @@ Future<void> _run(
 }
 
 @Task('Update pubspec dependency versions')
-@Depends(buildProjectTemplates)
 void updatePubDependencies() async {
   final sdk = Sdk.fromLocalFlutter();
   await _updateDependenciesFile(channel: sdk.channel, sdk: sdk);
