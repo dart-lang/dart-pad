@@ -23,6 +23,11 @@
             "category": "Flutter",
             "name": "Sunflower",
             "path": "lib/sunflower.dart"
+        },
+        {
+            "category": "Flutter",
+            "name": "Gemini",
+            "path": "lib/gemini.dart"
         }
     ]
 }
