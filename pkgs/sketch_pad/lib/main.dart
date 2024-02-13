@@ -790,16 +790,18 @@ class SelectChannelWidget extends StatelessWidget {
             label: Text('${value.displayName} channel'),
           );
         },
-        menuChildren: List<MenuItemButton>.generate(
-          channels.length,
-          (int index) => MenuItemButton(
-            onPressed: () => _onTap(context, channels[index]),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('${channels[index].displayName} channel'),
+        menuChildren: [
+          for (final channel in channels)
+            PointerInterceptor(
+              child: MenuItemButton(
+                onPressed: () => _onTap(context, channel),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                  child: Text('${channel.displayName} channel'),
+                ),
+              ),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }
