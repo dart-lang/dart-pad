@@ -58,15 +58,18 @@ const Set<String> supportedFlutterPackages = {
   'flutter_hooks',
   'flutter_lints',
   'flutter_map',
+  'flutter_markdown',
   'flutter_processing',
   'flutter_riverpod',
   'flutter_svg',
   'go_router',
   'google_fonts',
+  'google_generative_ai',
   'hooks_riverpod',
   'provider',
   'riverpod_navigator',
   'shared_preferences',
+  'url_launcher',
   'video_player',
 };
 
