@@ -58,6 +58,7 @@ const Set<String> supportedFlutterPackages = {
   'flutter_hooks',
   'flutter_lints',
   'flutter_map',
+  'flutter_markdown',
   'flutter_processing',
   'flutter_riverpod',
   'flutter_svg',

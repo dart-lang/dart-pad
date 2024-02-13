@@ -13,6 +13,8 @@ dev_dependencies:
   args: ^2.4.0
   flutter_lints: ^3.0.0
   path: ^1.8.0
+  flutter_markdown: any
+  google_generative_ai: any
 
 flutter:
   uses-material-design: true
