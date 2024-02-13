@@ -56,7 +56,6 @@ const Set<String> supportedFlutterPackages = {
   'flutter_adaptive_scaffold',
   'flutter_bloc',
   'flutter_hooks',
-  'flutter_lints',
   'flutter_map',
   'flutter_markdown',
   'flutter_processing',
