@@ -15,6 +15,7 @@ dev_dependencies:
   path: ^1.8.0
   flutter_markdown: any
   google_generative_ai: any
+  url_launcher: any
 
 flutter:
   uses-material-design: true

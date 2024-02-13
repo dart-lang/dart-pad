@@ -216,6 +216,7 @@ final _gemini = Sample(
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:url_launcher/link.dart';
 
 void main() {
   runApp(const GenerativeAISample());
@@ -259,15 +260,15 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: apiKey == null
           ? ApiKeyWidget(
-        onSubmitted: (key) {
-          setState(() {
-            apiKey = key;
-          });
-        },
-      )
+              onSubmitted: (key) {
+                setState(() {
+                  apiKey = key;
+                });
+              },
+            )
           : ChatWidget(
-        apiKey: apiKey!,
-      ),
+              apiKey: apiKey!,
+            ),
     );
   }
 }
@@ -280,31 +281,44 @@ class ApiKeyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Enter your API key'),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration:
-                  textFieldDecoration(context, 'Enter your API key'),
-                  controller: _textController,
-                  onSubmitted: (value) {
-                    onSubmitted(value);
-                  },
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+                "To use the Gemini API, you'll need an API key. If you don't already have one, create a key in Google AI Studio."),
+            Link(
+              uri: Uri.parse('https://makersuite.google.com/app/apikey'),
+              builder: (context, followLink) {
+                return TextButton(
+                  onPressed: followLink,
+                  child: const Text('Get an API Key'),
+                );
+              },
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration:
+                        textFieldDecoration(context, 'Enter your API key'),
+                    controller: _textController,
+                    onSubmitted: (value) {
+                      onSubmitted(value);
+                    },
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: () {
-                  onSubmitted(_textController.value.text);
-                },
-                child: const Text('Submit'),
-              ),
-            ],
-          ),
-        ],
+                TextButton(
+                  onPressed: () {
+                    onSubmitted(_textController.value.text);
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -338,7 +352,7 @@ class _ChatWidgetState extends State<ChatWidget> {
 
   void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _scrollController.animateTo(
+      (_) => _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(
           milliseconds: 750,
@@ -385,7 +399,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                     autofocus: true,
                     focusNode: _textFieldFocus,
                     decoration:
-                    textFieldDecoration(context, 'Enter a prompt...'),
+                        textFieldDecoration(context, 'Enter a prompt...'),
                     controller: _textController,
                     onSubmitted: (String value) {
                       _sendChatMessage(value);
@@ -486,7 +500,7 @@ class MessageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment:
-      isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+          isFromUser ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         Flexible(
           child: Container(

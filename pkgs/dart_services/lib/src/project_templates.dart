@@ -69,6 +69,7 @@ const Set<String> supportedFlutterPackages = {
   'provider',
   'riverpod_navigator',
   'shared_preferences',
+  'url_launcher',
   'video_player',
 };
 
