@@ -63,12 +63,12 @@ void defineTests() {
         ]).validate();
       });
 
-      test('recommended lints are enabled', () async {
+      test('core lints are enabled', () async {
         await d.dir('project_templates', [
           d.dir('dart_project', [
             d.file(
               'analysis_options.yaml',
-              matches('include: package:lints/recommended.yaml'),
+              matches('include: package:lints/core.yaml'),
             ),
           ]),
         ]).validate();
@@ -115,12 +115,12 @@ void defineTests() {
         ]).validate();
       });
 
-      test('flutter lints are enabled', () async {
+      test('core lints are enabled', () async {
         await d.dir('project_templates', [
           d.dir('flutter_project', [
             d.file(
               'analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml'),
+              matches('include: package:lints/core.yaml'),
             ),
           ]),
         ]).validate();

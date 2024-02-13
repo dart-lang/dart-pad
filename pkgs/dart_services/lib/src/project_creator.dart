@@ -53,21 +53,8 @@ class ProjectCreator {
       throw StateError('pub get failed ($exitCode)');
     }
 
-    var contents = '''
-include: package:lints/recommended.yaml
-linter:
-  rules:
-    avoid_print: false
-''';
-    if (_sdk.experiments.isNotEmpty) {
-      contents += '''
-analyzer:
-  enable-experiment:
-${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
-''';
-    }
     File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(contents);
+        .writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
@@ -106,14 +93,13 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
           path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'));
     }
 
-    var contents = '''
-include: package:flutter_lints/flutter.yaml
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(_createAnalysisOptionsContents());
+  }
 
-linter:
-  rules:
-    avoid_print: false
-    avoid_web_libraries_in_flutter: false
-    use_key_in_widget_constructors: false
+  String _createAnalysisOptionsContents() {
+    var contents = '''
+include: package:lints/core.yaml
 ''';
     if (_sdk.experiments.isNotEmpty) {
       contents += '''
@@ -123,8 +109,7 @@ analyzer:
 ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 ''';
     }
-    File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(contents);
+    return contents;
   }
 
   Future<int> _runDartPubGet(Directory dir) async {

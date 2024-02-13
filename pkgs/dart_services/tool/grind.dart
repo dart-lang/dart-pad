@@ -266,7 +266,6 @@ Future<void> _run(
 }
 
 @Task('Update pubspec dependency versions')
-@Depends(buildProjectTemplates)
 void updatePubDependencies() async {
   final sdk = Sdk.fromLocalFlutter();
   await _updateDependenciesFile(channel: sdk.channel, sdk: sdk);
@@ -290,7 +289,6 @@ Future<void> _updateDependenciesFile({
     dartLanguageVersion: sdk.dartVersion,
     dependencies: {
       'lints': 'any',
-      'flutter_lints': 'any',
       for (final package in supportedFlutterPackages) package: 'any',
       for (final package in supportedBasicDartPackages) package: 'any',
     },

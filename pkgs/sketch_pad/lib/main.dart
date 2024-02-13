@@ -141,11 +141,14 @@ class _DartPadAppState extends State<DartPadApp> {
         colorScheme:
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
+          onSurface: Colors.black,
+          surfaceVariant: lightSurfaceVariantColor,
+          onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
-        dividerColor: lightSurfaceColor,
+        dividerColor: lightDividerColor,
         dividerTheme: DividerThemeData(
-          color: lightSurfaceColor,
+          color: lightDividerColor,
         ),
         scaffoldBackgroundColor: Colors.white,
         menuButtonTheme: MenuButtonThemeData(
@@ -156,15 +159,22 @@ class _DartPadAppState extends State<DartPadApp> {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: darkPrimaryColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: darkPrimaryColor).copyWith(
+          brightness: Brightness.dark,
+          surface: darkSurfaceColor,
+          onSurface: Colors.white,
+          surfaceVariant: darkSurfaceVariantColor,
+          onSurfaceVariant: Colors.white,
+          onPrimary: darkLinkButtonColor,
+        ),
         brightness: Brightness.dark,
-        dividerColor: darkSurfaceColor,
+        dividerColor: darkDividerColor,
         dividerTheme: DividerThemeData(
-          color: darkSurfaceColor,
+          color: darkDividerColor,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(Colors.white),
+            foregroundColor: MaterialStatePropertyAll(darkLinkButtonColor),
           ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
@@ -265,14 +275,16 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       appBar: widget.embedMode
           ? null
           : AppBar(
-              backgroundColor: theme.dividerColor,
+              backgroundColor: theme.colorScheme.surface,
               title: SizedBox(
                 height: toolbarItemHeight,
                 child: Row(
                   children: [
                     dartLogo(width: 32),
                     const SizedBox(width: denseSpacing),
-                    const Text(appName),
+                    Text(appName,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(width: defaultSpacing * 4),
                     NewSnippetWidget(appServices: appServices),
                     const SizedBox(width: denseSpacing),
@@ -320,8 +332,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             child: Center(
               child: SplitView(
                 viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.dividerTheme.color!,
-                gripColorActive: theme.dividerTheme.color!,
+                gripColor: theme.colorScheme.surface,
+                gripColorActive: theme.colorScheme.surface,
                 gripSize: defaultGripSize,
                 controller: mainSplitter,
                 children: [
@@ -559,15 +571,12 @@ class StatusLineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final textColor = colorScheme.onPrimaryContainer;
 
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.dividerColor,
+        color: theme.colorScheme.surface,
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,
@@ -589,7 +598,7 @@ class StatusLineWidget extends StatelessWidget {
               ),
               child: Icon(
                 Icons.keyboard,
-                color: textColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 size: 20,
               ),
             ),
@@ -676,11 +685,11 @@ class NewSnippetWidget extends StatelessWidget {
 
   static final _menuItems = [
     (
-      label: 'New Dart snippet',
+      label: 'Dart snippet',
       icon: dartLogo(),
       kind: 'dart',
     ),
-    (label: 'New Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
+    (label: 'Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
   ];
 
   const NewSnippetWidget({
@@ -739,7 +748,10 @@ class ListSamplesWidget extends StatelessWidget {
       for (final category in categories) ...[
         MenuItemButton(
           onPressed: null,
-          child: Text(category),
+          child: Text(
+            category,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
         for (final sample in Samples.categories[category]!)
           MenuItemButton(
@@ -751,7 +763,6 @@ class ListSamplesWidget extends StatelessWidget {
               child: Text(sample.name),
             ),
           ),
-        const Divider(),
       ]
     ];
 
@@ -779,16 +790,18 @@ class SelectChannelWidget extends StatelessWidget {
             label: Text('${value.displayName} channel'),
           );
         },
-        menuChildren: List<MenuItemButton>.generate(
-          channels.length,
-          (int index) => MenuItemButton(
-            onPressed: () => _onTap(context, channels[index]),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('${channels[index].displayName} channel'),
+        menuChildren: [
+          for (final channel in channels)
+            PointerInterceptor(
+              child: MenuItemButton(
+                onPressed: () => _onTap(context, channel),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                  child: Text('${channel.displayName} channel'),
+                ),
+              ),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -817,7 +830,7 @@ class OverflowMenu extends StatelessWidget {
       uri: 'https://dart.dev',
     ),
     (
-      label: 'flutter.dec',
+      label: 'flutter.dev',
       uri: 'https://flutter.dev',
     ),
     (
