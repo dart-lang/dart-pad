@@ -53,18 +53,8 @@ class ProjectCreator {
       throw StateError('pub get failed ($exitCode)');
     }
 
-    var contents = '''
-include: package:lints/core.yaml
-''';
-    if (_sdk.experiments.isNotEmpty) {
-      contents += '''
-analyzer:
-  enable-experiment:
-${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
-''';
-    }
     File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(contents);
+        .writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
@@ -103,6 +93,11 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
           path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'));
     }
 
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(_createAnalysisOptionsContents());
+  }
+
+  String _createAnalysisOptionsContents() {
     var contents = '''
 include: package:lints/core.yaml
 ''';
@@ -114,8 +109,7 @@ analyzer:
 ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 ''';
     }
-    File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(contents);
+    return contents;
   }
 
   Future<int> _runDartPubGet(Directory dir) async {
