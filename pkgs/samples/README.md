@@ -10,7 +10,6 @@ Sample code snippets for DartPad.
 | Dart | Fibonacci | [fibonacci.dart](lib/fibonacci.dart) | `fibonacci` |
 | Dart | Hello world | [hello_world.dart](lib/hello_world.dart) | `hello-world` |
 | Flutter | Counter | [main.dart](lib/main.dart) | `counter` |
-| Flutter | Gemini | [gemini.dart](lib/gemini.dart) | `gemini` |
 | Flutter | Sunflower | [sunflower.dart](lib/sunflower.dart) | `sunflower` |
 <!-- samples -->
 

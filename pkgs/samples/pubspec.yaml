@@ -8,9 +8,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_markdown: any
-  google_generative_ai: any
-  url_launcher: any
 
 dev_dependencies:
   args: ^2.4.0
