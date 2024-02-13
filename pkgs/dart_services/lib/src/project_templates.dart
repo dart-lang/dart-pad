@@ -93,7 +93,6 @@ const Set<String> supportedBasicDartPackages = {
   'fast_immutable_collections',
   'http',
   'intl',
-  'js',
   'lints',
   'matcher',
   'meta',
@@ -107,6 +106,7 @@ const Set<String> supportedBasicDartPackages = {
   'timezone',
   'tuple',
   'vector_math',
+  'web',
   'yaml',
   'yaml_edit',
 };
@@ -116,12 +116,15 @@ const Set<String> _deprecatedPackages = {
   'tuple',
   'flutter_processing',
   'riverpod_navigator',
+  'js',
 };
 
 /// The set of core web libraries whose support in
 /// DartPad or Dart is deprecated.
 const Set<String> _deprecatedCoreWebLibraries = {
   'js',
+  'html',
+  'js_util',
 };
 
 /// A set of all allowed `dart:` libraries, includes
@@ -134,13 +137,9 @@ const Set<String> _allowedCoreLibraries = {
   'developer',
   'math',
   'typed_data',
-
-  'html', // TODO(parlough): Deprecate soon.
-  'js_util', // TODO(parlough): Deprecate soon.
   'js_interop',
   'js_interop_unsafe',
   ..._deprecatedCoreWebLibraries,
-
   'ui',
 };
 
