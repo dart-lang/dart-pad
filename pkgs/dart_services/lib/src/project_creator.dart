@@ -54,10 +54,7 @@ class ProjectCreator {
     }
 
     var contents = '''
-include: package:lints/recommended.yaml
-linter:
-  rules:
-    avoid_print: false
+include: package:lints/core.yaml
 ''';
     if (_sdk.experiments.isNotEmpty) {
       contents += '''
@@ -107,13 +104,7 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
     }
 
     var contents = '''
-include: package:flutter_lints/flutter.yaml
-
-linter:
-  rules:
-    avoid_print: false
-    avoid_web_libraries_in_flutter: false
-    use_key_in_widget_constructors: false
+include: package:lints/core.yaml
 ''';
     if (_sdk.experiments.isNotEmpty) {
       contents += '''

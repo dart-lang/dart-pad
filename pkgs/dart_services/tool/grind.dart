@@ -289,7 +289,6 @@ Future<void> _updateDependenciesFile({
     dartLanguageVersion: sdk.dartVersion,
     dependencies: {
       'lints': 'any',
-      'flutter_lints': 'any',
       for (final package in supportedFlutterPackages) package: 'any',
       for (final package in supportedBasicDartPackages) package: 'any',
     },
