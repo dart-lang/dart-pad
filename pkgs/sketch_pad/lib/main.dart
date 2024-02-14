@@ -563,14 +563,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               ],
               const SizedBox(width: defaultSpacing),
               // title widget
-              Expanded(
-                child: Center(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: appModel.title,
-                    builder: (_, String value, __) => Text(value),
+              if (constraints.maxWidth > smallScreenWidth)
+                Expanded(
+                  child: Center(
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: appModel.title,
+                      builder: (_, String value, __) => Text(value),
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(width: defaultSpacing),
             ],
           ),
