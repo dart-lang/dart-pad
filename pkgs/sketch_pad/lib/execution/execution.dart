@@ -5,7 +5,6 @@
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
-import 'package:web/helpers.dart' as web_helpers;
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
@@ -29,7 +28,7 @@ void _initViewFactory() {
 
 web.Element _iFrameFactory(int viewId) {
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  final frame = web_helpers.createIFrameElement()
+  final frame = web.document.createElement('iframe') as web.HTMLIFrameElement
     ..sandbox.add('allow-scripts')
     ..sandbox.add('allow-popups')
     ..sandbox.add('allow-popups-to-escape-sandbox')

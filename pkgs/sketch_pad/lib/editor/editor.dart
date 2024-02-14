@@ -9,7 +9,6 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
-import 'package:web/helpers.dart' as web_helpers;
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
@@ -31,7 +30,7 @@ void _initViewFactory() {
 }
 
 web.Element _codeMirrorFactory(int viewId) {
-  final div = web_helpers.createElementTag('div') as web.HTMLDivElement
+  final div = web.createElementTag('div') as web.HTMLDivElement
     ..style.width = '100%'
     ..style.height = '100%';
 
@@ -259,7 +258,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         list: [
           ...response.fixes.map((change) => change.toHintResult(editor)),
           ...response.assists.map((change) => change.toHintResult(editor)),
-        ].jsify() as JSArray,
+        ].toJS,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
       );
@@ -283,9 +282,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       });
 
       return HintResults(
-          list: hints.jsify() as JSArray,
-          from: doc.posFromIndex(offset),
-          to: doc.posFromIndex(offset + length));
+        list: hints.toJS,
+        from: doc.posFromIndex(offset),
+        to: doc.posFromIndex(offset + length),
+      );
     }
   }
 }
