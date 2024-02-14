@@ -62,13 +62,15 @@ class AppModel {
       ValueNotifier(SplitDragState.inactive);
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
-  StreamSubscription<SplitDragState>? _splitSubscription;
+  late final StreamSubscription<SplitDragState> _splitSubscription;
 
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
 
     _splitSubscription =
-        splitDragStateManager.onSplitDragUpdated.listen(_updateSplitView);
+        splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
+      splitViewDragState.value = value;
+    });
   }
 
   void appendLineToConsole(String str) {
@@ -79,11 +81,7 @@ class AppModel {
 
   void dispose() {
     consoleOutputController.removeListener(_recalcLayout);
-    _splitSubscription?.cancel();
-  }
-
-  void _updateSplitView(SplitDragState value) {
-    splitViewDragState.value = value;
+    _splitSubscription.cancel();
   }
 
   void _recalcLayout() {

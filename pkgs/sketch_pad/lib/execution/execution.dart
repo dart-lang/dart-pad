@@ -45,13 +45,11 @@ web.Element _iFrameFactory(int viewId) {
 class ExecutionWidget extends StatefulWidget {
   final AppServices appServices;
 
-  /// Whether the iframe ignores pointer events, for when gestures need to be
-  /// handled by the Flutter app.
-  final bool ignorePointer;
+  final AppModel appModel;
 
   ExecutionWidget({
     required this.appServices,
-    this.ignorePointer = false,
+    required this.appModel,
     super.key,
   }) {
     _initViewFactory();
@@ -65,18 +63,27 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    widget.appServices.executionService?.ignorePointer = widget.ignorePointer;
 
-    return Container(
-      color: theme.scaffoldBackgroundColor,
-      padding: const EdgeInsets.all(denseSpacing),
-      child: HtmlElementView(
-        key: _elementViewKey,
-        viewType: _viewType,
-        onPlatformViewCreated: (int id) {
-          widget.appServices.registerExecutionService(executionServiceInstance);
-        },
-      ),
+    // Ignore pointer events while the Splitter is being dragged.
+    widget.appServices.executionService?.ignorePointer =
+        widget.appModel.splitViewDragState.value == SplitDragState.active;
+
+    return ListenableBuilder(
+      listenable: widget.appModel.splitViewDragState,
+      builder: (context, _) {
+        return Container(
+          color: theme.scaffoldBackgroundColor,
+          padding: const EdgeInsets.all(denseSpacing),
+          child: HtmlElementView(
+            key: _elementViewKey,
+            viewType: _viewType,
+            onPlatformViewCreated: (int id) {
+              widget.appServices
+                  .registerExecutionService(executionServiceInstance);
+            },
+          ),
+        );
+      },
     );
   }
 
