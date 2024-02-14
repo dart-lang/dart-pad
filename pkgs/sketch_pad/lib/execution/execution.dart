@@ -32,6 +32,7 @@ web.Element _iFrameFactory(int viewId) {
   final frame = web_helpers.createIFrameElement()
     ..sandbox.add('allow-scripts')
     ..sandbox.add('allow-popups')
+    ..sandbox.add('allow-popups-to-escape-sandbox')
     ..src = 'frame.html'
     ..style.border = 'none'
     ..style.width = '100%'
