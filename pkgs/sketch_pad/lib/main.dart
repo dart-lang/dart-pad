@@ -311,7 +311,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       if (constraints.maxWidth <= smallScreenWidth) {
         return Scaffold(
           appBar: widget.embedMode
-              ? null
+              ? TabBar(
+                  controller: tabController,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.code)),
+                    Tab(icon: Icon(Icons.phone_android)),
+                    Tab(icon: Icon(Icons.terminal)),
+                  ],
+                )
               : DartPadAppBar(
                   theme: theme,
                   appServices: appServices,
