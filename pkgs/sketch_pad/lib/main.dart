@@ -218,22 +218,28 @@ class DartPadMainPage extends StatefulWidget {
   State<DartPadMainPage> createState() => _DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage> {
+class _DartPadMainPageState extends State<DartPadMainPage>
+    with SingleTickerProviderStateMixin {
   late final SplitViewController mainSplitter;
 
   late AppModel appModel;
   late AppServices appServices;
-  static final GlobalKey _executionWidgetKey =
-      GlobalKey(debugLabel: 'execution-widget');
-  static final GlobalKey _loadingOverlayKey =
-      GlobalKey(debugLabel: 'loading-overlay-widget');
-  static final GlobalKey _editorKey = GlobalKey(debugLabel: 'editor');
-  static final GlobalKey _consoleKey = GlobalKey(debugLabel: 'console');
+  late final TabController tabController;
+  final ValueKey<String> _executionWidgetKey =
+      const ValueKey('execution-widget');
+  final ValueKey<String> _loadingOverlayKey =
+      const ValueKey('loading-overlay-widget');
+  final ValueKey<String> _editorKey = const ValueKey('editor');
+  final ValueKey<String> _consoleKey = const ValueKey('console');
 
   @override
   void initState() {
     super.initState();
 
+    tabController = TabController(length: 3, vsync: this)
+      ..addListener(() {
+        setState(() {});
+      });
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
         SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
@@ -303,31 +309,30 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     final scaffold =
         LayoutBuilder(builder: (context, BoxConstraints constraints) {
       if (constraints.maxWidth <= smallScreenWidth) {
-        return DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            appBar: widget.embedMode
-                ? null
-                : DartPadAppBar(
-                    theme: theme,
-                    appServices: appServices,
-                    appModel: appModel,
-                    widget: widget,
-                    bottom: const TabBar(
-                      tabs: [
-                        Tab(icon: Icon(Icons.code)),
-                        Tab(icon: Icon(Icons.phone_android)),
-                        Tab(icon: Icon(Icons.terminal)),
-                      ],
-                    ),
+        return Scaffold(
+          appBar: widget.embedMode
+              ? null
+              : DartPadAppBar(
+                  theme: theme,
+                  appServices: appServices,
+                  appModel: appModel,
+                  widget: widget,
+                  bottom: TabBar(
+                    controller: tabController,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.code)),
+                      Tab(icon: Icon(Icons.phone_android)),
+                      Tab(icon: Icon(Icons.terminal)),
+                    ],
                   ),
-            body: TabBarView(
-              children: [
-                editor,
-                executionWidget,
-                consoleWidget(),
-              ],
-            ),
+                ),
+          body: IndexedStack(
+            index: tabController.index,
+            children: [
+              editor,
+              executionWidget,
+              consoleWidget(),
+            ],
           ),
         );
       }
