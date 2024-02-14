@@ -547,6 +547,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
         response.result,
         modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
+        dartSource: source,
       );
     } catch (error) {
       appModel.clearConsole();

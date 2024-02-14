@@ -69,6 +69,12 @@ bool hasFlutterWebMarker(String javaScript) {
   return false;
 }
 
+bool hasPackageWebImport(String dartSource) {
+  // TODO(devoncarew): There are better ways to do this.
+  return dartSource.contains("import 'package:web/") ||
+      dartSource.contains('import "package:web/');
+}
+
 extension ColorExtension on Color {
   Color get lighter {
     final hsl = HSLColor.fromColor(this);

@@ -37,6 +37,7 @@ abstract class EditorService {
 
 class AppModel {
   bool? _appIsFlutter;
+  bool? _usesPackageWeb;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
@@ -83,8 +84,11 @@ class AppModel {
   void _recalcLayout() {
     final hasConsoleText = consoleOutputController.text.isNotEmpty;
     final isFlutter = _appIsFlutter;
+    final usesPackageWeb = _usesPackageWeb;
 
-    if (isFlutter == null) {
+    if (isFlutter == null || usesPackageWeb == null) {
+      _layoutMode.value = LayoutMode.both;
+    } else if (usesPackageWeb) {
       _layoutMode.value = LayoutMode.both;
     } else if (!isFlutter) {
       _layoutMode.value = LayoutMode.justConsole;
@@ -326,12 +330,12 @@ class AppServices {
 
   void executeJavaScript(
     String javaScript, {
+    required String dartSource,
     String? modulesBaseUrl,
     String? engineVersion,
   }) {
-    final usesFlutter = hasFlutterWebMarker(javaScript);
-
-    appModel._appIsFlutter = usesFlutter;
+    appModel._appIsFlutter = hasFlutterWebMarker(javaScript);
+    appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
     _executionService?.execute(
