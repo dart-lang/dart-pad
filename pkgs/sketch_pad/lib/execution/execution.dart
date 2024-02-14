@@ -64,13 +64,12 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Ignore pointer events while the Splitter is being dragged.
-    widget.appServices.executionService?.ignorePointer =
-        widget.appModel.splitViewDragState.value == SplitDragState.active;
-
     return ListenableBuilder(
       listenable: widget.appModel.splitViewDragState,
       builder: (context, _) {
+        // Ignore pointer events while the Splitter is being dragged.
+        widget.appServices.executionService?.ignorePointer =
+            widget.appModel.splitViewDragState.value == SplitDragState.active;
         return Container(
           color: theme.scaffoldBackgroundColor,
           padding: const EdgeInsets.all(denseSpacing),
