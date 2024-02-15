@@ -57,9 +57,12 @@ web.Element _codeMirrorFactory(int viewId) {
   // wheel events over CodeMirror's HtmlElementView.
   //
   // This is needed so users can scroll code with their mouse wheel.
-  div.addEventListener('wheel', ((web.WheelEvent e) {
-    e.stopPropagation();
-  }).toJS);
+  div.addEventListener(
+    'wheel',
+    (web.WheelEvent e) {
+      e.stopPropagation();
+    }.toJS,
+  );
 
   return div;
 }
