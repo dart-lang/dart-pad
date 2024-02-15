@@ -33,6 +33,7 @@ import 'widgets.dart';
 // TODO: implement find / find next
 
 const appName = 'DartPad';
+const smallScreenWidth = 720;
 
 void main() async {
   usePathUrlStrategy();
@@ -217,16 +218,30 @@ class DartPadMainPage extends StatefulWidget {
   State<DartPadMainPage> createState() => _DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage> {
+class _DartPadMainPageState extends State<DartPadMainPage>
+    with SingleTickerProviderStateMixin {
   late final SplitViewController mainSplitter;
 
   late AppModel appModel;
   late AppServices appServices;
+  late final TabController tabController;
+  final ValueKey<String> _executionWidgetKey =
+      const ValueKey('execution-widget');
+  final ValueKey<String> _loadingOverlayKey =
+      const ValueKey('loading-overlay-widget');
+  final ValueKey<String> _editorKey = const ValueKey('editor');
+  final ValueKey<String> _consoleKey = const ValueKey('console');
 
   @override
   void initState() {
     super.initState();
 
+    tabController = TabController(length: 3, vsync: this)
+      ..addListener(() {
+        // Rebuild when the user changes tabs so that the IndexedStack updates
+        // its active child view.
+        setState(() {});
+      });
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
         SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
@@ -271,215 +286,148 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scaffold = Scaffold(
-      appBar: widget.embedMode
-          ? null
-          : AppBar(
-              backgroundColor: theme.colorScheme.surface,
-              title: SizedBox(
-                height: toolbarItemHeight,
-                child: Row(
-                  children: [
-                    const Logo(width: 32, type: 'dart'),
-                    const SizedBox(width: denseSpacing),
-                    Text(appName,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface)),
-                    const SizedBox(width: defaultSpacing * 4),
-                    NewSnippetWidget(appServices: appServices),
-                    const SizedBox(width: denseSpacing),
-                    const ListSamplesWidget(),
-                    const SizedBox(width: defaultSpacing),
-                    // title widget
-                    Expanded(
-                      child: Center(
-                        child: ValueListenableBuilder<String>(
-                          valueListenable: appModel.title,
-                          builder: (_, String value, __) => Text(value),
-                        ),
+    final executionWidget = ExecutionWidget(
+      appServices: appServices,
+      appModel: appModel,
+      key: _executionWidgetKey,
+    );
+    final loadingOverlay = LoadingOverlay(
+      appModel: appModel,
+      key: _loadingOverlayKey,
+    );
+    final editor = EditorWithButtons(
+      appModel: appModel,
+      appServices: appServices,
+      onFormat: _handleFormatting,
+      onCompileAndRun: _performCompileAndRun,
+      key: _editorKey,
+    );
+
+    consoleWidget({bool showDivider = false}) => ConsoleWidget(
+          textController: appModel.consoleOutputController,
+          showDivider: showDivider,
+          key: _consoleKey,
+        );
+    final scaffold =
+        LayoutBuilder(builder: (context, BoxConstraints constraints) {
+      // Use the mobile UI layout for small screen widths.
+      if (constraints.maxWidth <= smallScreenWidth) {
+        return Scaffold(
+          appBar: widget.embedMode
+              ? TabBar(
+                  controller: tabController,
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.code),
+                      child: Semantics(
+                        label: 'Dart Code',
+                        child: const Text('Code'),
                       ),
                     ),
-                    const SizedBox(width: defaultSpacing),
+                    Tab(
+                      icon: const Icon(Icons.phone_android),
+                      child: Semantics(
+                        label: 'UI Output',
+                        child: const Text('UI Output'),
+                      ),
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.terminal),
+                      child: Semantics(
+                        label: 'Console Output',
+                        child: const Text('Console Output'),
+                      ),
+                    ),
+                  ],
+                )
+              : DartPadAppBar(
+                  theme: theme,
+                  appServices: appServices,
+                  appModel: appModel,
+                  widget: widget,
+                  bottom: TabBar(
+                    controller: tabController,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.code)),
+                      Tab(icon: Icon(Icons.phone_android)),
+                      Tab(icon: Icon(Icons.terminal)),
+                    ],
+                  ),
+                ),
+          body: IndexedStack(
+            index: tabController.index,
+            children: [
+              editor,
+              executionWidget,
+              consoleWidget(),
+            ],
+          ),
+        );
+      }
+
+      return Scaffold(
+        appBar: widget.embedMode
+            ? null
+            : DartPadAppBar(
+                theme: theme,
+                appServices: appServices,
+                appModel: appModel,
+                widget: widget,
+              ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: SplitView(
+                  viewMode: SplitViewMode.Horizontal,
+                  gripColor: theme.colorScheme.surface,
+                  gripColorActive: theme.colorScheme.surface,
+                  gripSize: defaultGripSize,
+                  controller: mainSplitter,
+                  children: [
+                    editor,
+                    Stack(
+                      children: [
+                        ValueListenableBuilder(
+                          valueListenable: appModel.layoutMode,
+                          builder: (context, LayoutMode mode, _) {
+                            return LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                final domHeight =
+                                    mode.calcDomHeight(constraints.maxHeight);
+                                final consoleHeight = mode
+                                    .calcConsoleHeight(constraints.maxHeight);
+
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      height: domHeight,
+                                      child: executionWidget,
+                                    ),
+                                    SizedBox(
+                                      height: consoleHeight,
+                                      child: consoleWidget(
+                                          showDivider: mode == LayoutMode.both),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        loadingOverlay,
+                      ],
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                // install sdk
-                TextButton(
-                  onPressed: () {
-                    url_launcher.launchUrl(
-                      Uri.parse('https://docs.flutter.dev/get-started/install'),
-                    );
-                  },
-                  child: const Row(
-                    children: [
-                      Text('Install SDK'),
-                      SizedBox(width: denseSpacing),
-                      Icon(Icons.launch, size: 18),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: denseSpacing),
-                _BrightnessButton(
-                  handleBrightnessChange: widget.handleBrightnessChanged,
-                ),
-                const OverflowMenu(),
-              ],
             ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: SplitView(
-                viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.colorScheme.surface,
-                gripColorActive: theme.colorScheme.surface,
-                gripSize: defaultGripSize,
-                controller: mainSplitter,
-                children: [
-                  Column(
-                    children: [
-                      Expanded(
-                        child: SectionWidget(
-                          child: Stack(
-                            children: [
-                              EditorWidget(
-                                appModel: appModel,
-                                appServices: appServices,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(denseSpacing),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  // We use explicit directionality here in
-                                  // order to have the format and run buttons on
-                                  // the right hand side of the editing area.
-                                  textDirection: TextDirection.ltr,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Format action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.formattingBusy,
-                                      builder: (_, bool value, __) {
-                                        return PointerInterceptor(
-                                          child: MiniIconButton(
-                                            icon: Icons.format_align_left,
-                                            tooltip: 'Format',
-                                            small: true,
-                                            onPressed: value
-                                                ? null
-                                                : _handleFormatting,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: defaultSpacing),
-                                    // Run action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.compilingBusy,
-                                      builder: (_, bool value, __) {
-                                        return PointerInterceptor(
-                                          child: RunButton(
-                                            onPressed: value
-                                                ? null
-                                                : _performCompileAndRun,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.bottomRight,
-                                padding: const EdgeInsets.all(denseSpacing),
-                                child: StatusWidget(
-                                  status: appModel.editorStatus,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      ValueListenableBuilder<List<AnalysisIssue>>(
-                        valueListenable: appModel.analysisIssues,
-                        builder: (context, issues, _) {
-                          return ProblemsTableWidget(problems: issues);
-                        },
-                      ),
-                    ],
-                  ),
-                  Stack(
-                    children: [
-                      ValueListenableBuilder(
-                        valueListenable: appModel.layoutMode,
-                        builder: (context, LayoutMode mode, _) {
-                          return LayoutBuilder(builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            final domHeight =
-                                mode.calcDomHeight(constraints.maxHeight);
-                            final consoleHeight =
-                                mode.calcConsoleHeight(constraints.maxHeight);
-
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  height: domHeight,
-                                  child: ListenableBuilder(
-                                      listenable: appModel.splitViewDragState,
-                                      builder: (context, _) {
-                                        return ExecutionWidget(
-                                          appServices: appServices,
-                                          // Ignore pointer events while the Splitter
-                                          // is being dragged.
-                                          ignorePointer: appModel
-                                                  .splitViewDragState.value ==
-                                              SplitDragState.active,
-                                        );
-                                      }),
-                                ),
-                                SizedBox(
-                                  height: consoleHeight,
-                                  child: ConsoleWidget(
-                                    showDivider: mode == LayoutMode.both,
-                                    textController:
-                                        appModel.consoleOutputController,
-                                  ),
-                                ),
-                              ],
-                            );
-                          });
-                        },
-                      ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.compilingBusy,
-                        builder: (_, bool compiling, __) {
-                          final color = theme.colorScheme.surface;
-
-                          return AnimatedContainer(
-                            color: compiling
-                                ? color.withOpacity(0.8)
-                                : color.withOpacity(0.0),
-                            duration: animationDelay,
-                            curve: animationCurve,
-                            child: compiling
-                                ? const GoldenRatioCenter(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                : const SizedBox(width: 1),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (!widget.embedMode) const StatusLineWidget(),
-        ],
-      ),
-    );
+            if (!widget.embedMode) const StatusLineWidget(),
+          ],
+        ),
+      );
+    });
 
     return Provider<AppServices>.value(
       value: appServices,
@@ -563,6 +511,217 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } finally {
       progress.close();
     }
+  }
+}
+
+class LoadingOverlay extends StatelessWidget {
+  const LoadingOverlay({
+    super.key,
+    required this.appModel,
+  });
+
+  final AppModel appModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: appModel.compilingBusy,
+      builder: (_, bool compiling, __) {
+        final color = theme.colorScheme.surface;
+
+        return AnimatedContainer(
+          color: compiling ? color.withOpacity(0.8) : color.withOpacity(0.0),
+          duration: animationDelay,
+          curve: animationCurve,
+          child: compiling
+              ? const GoldenRatioCenter(
+                  child: CircularProgressIndicator(),
+                )
+              : const SizedBox(width: 1),
+        );
+      },
+    );
+  }
+}
+
+class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const DartPadAppBar({
+    super.key,
+    required this.theme,
+    required this.appServices,
+    required this.appModel,
+    required this.widget,
+    this.bottom,
+  });
+
+  final ThemeData theme;
+  final AppServices appServices;
+  final AppModel appModel;
+  final DartPadMainPage widget;
+  final PreferredSizeWidget? bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      return AppBar(
+        backgroundColor: theme.colorScheme.surface,
+        bottom: bottom,
+        title: SizedBox(
+          height: toolbarItemHeight,
+          child: Row(
+            children: [
+              const Logo(width: 32, type: 'dart'),
+              const SizedBox(width: denseSpacing),
+              Text(appName,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
+              // Hide new snippet buttons when the screen width is too small.
+              if (constraints.maxWidth > smallScreenWidth) ...[
+                const SizedBox(width: defaultSpacing * 4),
+                NewSnippetWidget(appServices: appServices),
+                const SizedBox(width: denseSpacing),
+                const ListSamplesWidget(),
+              ] else ...[
+                const SizedBox(width: defaultSpacing),
+                NewSnippetWidget(appServices: appServices, smallIcon: true),
+                const SizedBox(width: defaultSpacing),
+                const ListSamplesWidget(smallIcon: true),
+              ],
+
+              const SizedBox(width: defaultSpacing),
+              // Hide the snippet title when the screen width is too small.
+              if (constraints.maxWidth > smallScreenWidth)
+                Expanded(
+                  child: Center(
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: appModel.title,
+                      builder: (_, String value, __) => Text(value),
+                    ),
+                  ),
+                ),
+              const SizedBox(width: defaultSpacing),
+            ],
+          ),
+        ),
+        actions: [
+          // Hide the Install SDK button when the screen width is too small.
+          if (constraints.maxWidth > smallScreenWidth)
+            TextButton(
+              onPressed: () {
+                url_launcher.launchUrl(
+                  Uri.parse('https://docs.flutter.dev/get-started/install'),
+                );
+              },
+              child: const Row(
+                children: [
+                  Text('Install SDK'),
+                  SizedBox(width: denseSpacing),
+                  Icon(Icons.launch, size: 18),
+                ],
+              ),
+            ),
+          const SizedBox(width: denseSpacing),
+          _BrightnessButton(
+            handleBrightnessChange: widget.handleBrightnessChanged,
+          ),
+          const OverflowMenu(),
+        ],
+      );
+    });
+  }
+
+  @override
+  // kToolbarHeight is set to 56.0 in the framework.
+  Size get preferredSize => bottom == null
+      ? const Size(double.infinity, 56.0)
+      : const Size(double.infinity, 112.0);
+}
+
+class EditorWithButtons extends StatelessWidget {
+  const EditorWithButtons({
+    super.key,
+    required this.appModel,
+    required this.appServices,
+    required this.onFormat,
+    required this.onCompileAndRun,
+  });
+
+  final AppModel appModel;
+  final AppServices appServices;
+  final VoidCallback onFormat;
+  final VoidCallback onCompileAndRun;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: SectionWidget(
+            child: Stack(
+              children: [
+                EditorWidget(
+                  appModel: appModel,
+                  appServices: appServices,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    // We use explicit directionality here in order to have the
+                    // format and run buttons on the right hand side of the
+                    // editing area.
+                    textDirection: TextDirection.ltr,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Format action
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.formattingBusy,
+                        builder: (_, bool value, __) {
+                          return PointerInterceptor(
+                            child: MiniIconButton(
+                              icon: Icons.format_align_left,
+                              tooltip: 'Format',
+                              small: true,
+                              onPressed: value ? null : onFormat,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: defaultSpacing),
+                      // Run action
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.compilingBusy,
+                        builder: (_, bool value, __) {
+                          return PointerInterceptor(
+                            child: RunButton(
+                              onPressed: value ? null : onCompileAndRun,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.bottomRight,
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: StatusWidget(
+                    status: appModel.editorStatus,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        ValueListenableBuilder<List<AnalysisIssue>>(
+          valueListenable: appModel.analysisIssues,
+          builder: (context, issues, _) {
+            return ProblemsTableWidget(problems: issues);
+          },
+        ),
+      ],
+    );
   }
 }
 
@@ -683,6 +842,7 @@ class SectionWidget extends StatelessWidget {
 
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
+  final bool smallIcon;
 
   static const _menuItems = [
     (
@@ -699,6 +859,7 @@ class NewSnippetWidget extends StatelessWidget {
 
   const NewSnippetWidget({
     required this.appServices,
+    this.smallIcon = false,
     super.key,
   });
 
@@ -706,6 +867,12 @@ class NewSnippetWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.add_circle),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
           icon: const Icon(Icons.add_circle),
@@ -730,12 +897,19 @@ class NewSnippetWidget extends StatelessWidget {
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  const ListSamplesWidget({super.key});
+  final bool smallIcon;
+  const ListSamplesWidget({this.smallIcon = false, super.key});
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.playlist_add_outlined),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
           icon: const Icon(Icons.playlist_add_outlined),

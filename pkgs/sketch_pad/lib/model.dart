@@ -62,11 +62,13 @@ class AppModel {
       ValueNotifier(SplitDragState.inactive);
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
+  late final StreamSubscription<SplitDragState> _splitSubscription;
 
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
 
-    splitDragStateManager.onSplitDragUpdated.listen((value) {
+    _splitSubscription =
+        splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
       splitViewDragState.value = value;
     });
   }
@@ -79,6 +81,7 @@ class AppModel {
 
   void dispose() {
     consoleOutputController.removeListener(_recalcLayout);
+    _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
@@ -419,7 +422,6 @@ class SplitDragStateManager {
   final _splitDragStateController =
       StreamController<SplitDragState>.broadcast();
   late final Stream<SplitDragState> onSplitDragUpdated;
-  late final StreamSubscription<SplitDragState> _subscription;
 
   SplitDragStateManager(
       {Duration timeout = const Duration(milliseconds: 100)}) {
@@ -431,10 +433,6 @@ class SplitDragStateManager {
 
   void handleSplitChanged() {
     _splitDragStateController.add(SplitDragState.active);
-  }
-
-  void dispose() {
-    _subscription.cancel();
   }
 }
 
