@@ -53,6 +53,17 @@ web.Element _codeMirrorFactory(int viewId) {
   CodeMirror.commands.weHandleElsewhere =
       ((JSObject? _) => _weHandleElsewhere(codeMirrorInstance!)).toJS;
 
+  // Prevent the flutter web engine from handling (and preventing default on)
+  // wheel events over CodeMirror's HtmlElementView.
+  //
+  // This is needed so users can scroll code with their mouse wheel.
+  div.addEventListener(
+    'wheel',
+    (web.WheelEvent e) {
+      e.stopPropagation();
+    }.toJS,
+  );
+
   return div;
 }
 
