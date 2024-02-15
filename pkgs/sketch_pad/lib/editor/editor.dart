@@ -392,6 +392,7 @@ const codeMirrorOptions = {
   },
   'tabSize': 2,
   'viewportMargin': 100,
+  'scrollbarStyle': 'simple',
 };
 
 enum CompletionType {
