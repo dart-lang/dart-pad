@@ -6,23 +6,39 @@
     "samples": [
         {
             "category": "Dart",
+            "icon": "dart",
             "name": "Hello world",
             "path": "lib/hello_world.dart"
         },
         {
             "category": "Dart",
+            "icon": "dart",
             "name": "Fibonacci",
             "path": "lib/fibonacci.dart"
         },
         {
             "category": "Flutter",
+            "icon": "flutter",
             "name": "Counter",
             "path": "lib/main.dart"
         },
         {
             "category": "Flutter",
+            "icon": "flutter",
             "name": "Sunflower",
             "path": "lib/sunflower.dart"
+        },
+        {
+            "category": "Ecosystem",
+            "icon": "gemini",
+            "name": "Google AI SDK",
+            "path": "lib/google_ai.dart"
+        },
+        {
+            "category": "Ecosystem",
+            "icon": "flame",
+            "name": "Flame game",
+            "path": "lib/brick_breaker.dart"
         }
     ]
 }

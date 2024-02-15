@@ -553,7 +553,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: toolbarItemHeight,
           child: Row(
             children: [
-              dartLogo(width: 32),
+              const Logo(width: 32, type: 'dart'),
               const SizedBox(width: denseSpacing),
               Text(appName,
                   style: TextStyle(
@@ -819,13 +819,17 @@ class SectionWidget extends StatelessWidget {
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
 
-  static final _menuItems = [
+  static const _menuItems = [
     (
       label: 'Dart snippet',
-      icon: dartLogo(),
+      icon: Logo(type: 'dart'),
       kind: 'dart',
     ),
-    (label: 'Flutter snippet', icon: flutterLogo(), kind: 'flutter'),
+    (
+      label: 'Flutter snippet',
+      icon: Logo(type: 'flutter'),
+      kind: 'flutter',
+    ),
   ];
 
   const NewSnippetWidget({
@@ -849,7 +853,7 @@ class NewSnippetWidget extends StatelessWidget {
             child: MenuItemButton(
               leadingIcon: item.icon,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                padding: const EdgeInsets.only(right: 32),
                 child: Text(item.label),
               ),
               onPressed: () => appServices.resetTo(type: item.kind),
@@ -878,10 +882,9 @@ class ListSamplesWidget extends StatelessWidget {
   }
 
   List<Widget> _buildMenuItems(BuildContext context) {
-    final categories = Samples.categories.keys;
-
     final menuItems = [
-      for (final category in categories) ...[
+      for (final MapEntry(key: category, value: samples)
+          in Samples.categories.entries) ...[
         MenuItemButton(
           onPressed: null,
           child: Text(
@@ -889,13 +892,13 @@ class ListSamplesWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
-        for (final sample in Samples.categories[category]!)
+        for (final sample in samples)
           MenuItemButton(
-            leadingIcon: sample.isDart ? dartLogo() : flutterLogo(),
+            leadingIcon: Logo(type: sample.icon),
             onPressed: () =>
                 GoRouter.of(context).replaceQueryParam('sample', sample.id),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+              padding: const EdgeInsets.only(right: 32),
               child: Text(sample.name),
             ),
           ),
