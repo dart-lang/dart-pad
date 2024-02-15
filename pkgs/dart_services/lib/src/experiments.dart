@@ -3,6 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The experiments to use on the main and beta channels.
-const List<String> enabledExperiments = [
-  'inline-class',
-];
+const List<String> enabledExperiments = [];
