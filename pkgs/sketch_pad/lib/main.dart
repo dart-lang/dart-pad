@@ -321,21 +321,21 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                       icon: const Icon(Icons.code),
                       child: Semantics(
                         label: 'Dart Code',
-                        child: Text('Code'),
+                        child: const Text('Code'),
                       ),
                     ),
                     Tab(
                       icon: const Icon(Icons.phone_android),
                       child: Semantics(
                         label: 'UI Output',
-                        child: Text('UI Output'),
+                        child: const Text('UI Output'),
                       ),
                     ),
                     Tab(
                       icon: const Icon(Icons.terminal),
                       child: Semantics(
                         label: 'Console Output',
-                        child: Text('Console Output'),
+                        child: const Text('Console Output'),
                       ),
                     ),
                   ],
