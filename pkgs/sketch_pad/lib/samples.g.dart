@@ -936,20 +936,6 @@ class _SunflowerState extends State<Sunflower> {
         appBar: AppBar(
           title: const Text('Sunflower'),
         ),
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                child: Center(
-                  child: Text(
-                    'Sunflower',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         body: Column(
           children: [
             Expanded(
