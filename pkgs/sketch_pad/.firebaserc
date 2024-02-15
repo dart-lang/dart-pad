@@ -5,7 +5,10 @@
   "targets": {
     "dart-pad": {
       "hosting": {
-        "sketchpad": [
+        "dartpad": [
+          "dartpad-a3c64"
+        ],
+        "preview": [
           "sketch-pad-1cebb"
         ]
       }
