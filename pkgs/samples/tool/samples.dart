@@ -34,6 +34,7 @@ void main(List<String> args) {
 const Set<String> categories = {
   'Dart',
   'Flutter',
+  'Ecosystem',
 };
 
 class Samples {
@@ -114,7 +115,7 @@ class Samples {
       stderr.writeln('Generated sample files not up-to-date.');
       stderr.writeln('Re-generate by running:');
       stderr.writeln('');
-      stderr.writeln('  dart tool/samples.dart');
+      stderr.writeln('  dart run tool/samples.dart');
       stderr.writeln('');
       exit(1);
     }
@@ -154,12 +155,14 @@ import 'package:collection/collection.dart';
 
 class Sample {
   final String category;
+  final String icon;
   final String name;
   final String id;
   final String source;
 
-  Sample({
+  const Sample({
     required this.category,
+    required this.icon,
     required this.name,
     required this.id,
     required this.source,
@@ -171,12 +174,12 @@ class Sample {
   String toString() => '[\$category] \$name (\$id)';
 }
 
-class Samples {
-  static final List<Sample> all = [
+abstract final class Samples {
+  static const List<Sample> all = [
     ${samples.map((s) => s.sourceId).join(',\n    ')},
   ];
 
-  static final Map<String, List<Sample>> categories = {
+  static const Map<String, List<Sample>> categories = {
     ${categories.map((category) => _mapForCategory(category)).join(',\n    ')},
   };
 
@@ -187,7 +190,7 @@ class Samples {
 
 ''');
 
-    buf.writeln('Map<String, String> _defaults = {');
+    buf.writeln('const Map<String, String> _defaults = {');
 
     for (final entry in defaults.entries) {
       final source = File(entry.value).readAsStringSync().trimRight();
@@ -211,12 +214,14 @@ class Samples {
 
 class Sample implements Comparable<Sample> {
   final String category;
+  final String icon;
   final String name;
   final String id;
   final String path;
 
   Sample({
     required this.category,
+    required this.icon,
     required this.name,
     required this.id,
     required this.path,
@@ -225,6 +230,7 @@ class Sample implements Comparable<Sample> {
   factory Sample.fromJson(Map json) {
     return Sample(
       category: json['category'],
+      icon: json['icon'],
       name: json['name'],
       id: (json['id'] as String?) ?? _idFromName(json['name']),
       path: json['path'],
@@ -246,8 +252,9 @@ class Sample implements Comparable<Sample> {
 
   String get sourceDef {
     return '''
-final $sourceId = Sample(
+const $sourceId = Sample(
   category: '$category',
+  icon: '$icon',
   name: '$name',
   id: '$id',
   source: r\'\'\'
