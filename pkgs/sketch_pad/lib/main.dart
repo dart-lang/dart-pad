@@ -582,7 +582,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 NewSnippetWidget(appServices: appServices),
                 const SizedBox(width: denseSpacing),
                 const ListSamplesWidget(),
+              ] else ...[
+                const SizedBox(width: defaultSpacing),
+                NewSnippetWidget(appServices: appServices, smallIcon: true),
+                const SizedBox(width: defaultSpacing),
+                const ListSamplesWidget(smallIcon: true),
               ],
+
               const SizedBox(width: defaultSpacing),
               // Hide the snippet title when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth)
@@ -836,6 +842,7 @@ class SectionWidget extends StatelessWidget {
 
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
+  final bool smallIcon;
 
   static const _menuItems = [
     (
@@ -852,6 +859,7 @@ class NewSnippetWidget extends StatelessWidget {
 
   const NewSnippetWidget({
     required this.appServices,
+    this.smallIcon = false,
     super.key,
   });
 
@@ -859,6 +867,12 @@ class NewSnippetWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.add_circle),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
           icon: const Icon(Icons.add_circle),
@@ -883,12 +897,19 @@ class NewSnippetWidget extends StatelessWidget {
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  const ListSamplesWidget({super.key});
+  final bool smallIcon;
+  const ListSamplesWidget({this.smallIcon = false, super.key});
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.playlist_add_outlined),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
           icon: const Icon(Icons.playlist_add_outlined),
