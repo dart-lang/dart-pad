@@ -14,7 +14,7 @@ final Logger _logger = Logger('dartpad-embed');
 
 // Use this prefix for local development:
 //var iframePrefix = '../';
-String iframePrefix = 'https://dartpad.dev/';
+String iframePrefix = 'https://old-dartpad-3ce3f.web.app/';
 
 final HtmlUnescape _htmlUnescape = HtmlUnescape();
 
