@@ -3,7 +3,7 @@ description: Sample code snippets for DartPad.
 publish_to: 'none'
 
 environment:
-  sdk: ^3.2.0
+  sdk: ^3.3.0
 
 dependencies:
   flame: ^1.15.0

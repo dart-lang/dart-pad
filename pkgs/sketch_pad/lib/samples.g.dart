@@ -277,7 +277,9 @@ class BrickBreaker extends FlameGame
 
   @override
   KeyEventResult onKeyEvent(
-      RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    RawKeyEvent event, // ignore: deprecated_member_use - Flame needs update.
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
     super.onKeyEvent(event, keysPressed);
     switch (event.logicalKey) {
       case LogicalKeyboardKey.space:

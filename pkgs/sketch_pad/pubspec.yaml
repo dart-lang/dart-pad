@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   fluttering_phrases: ^1.0.0
   go_router: ^13.0.0
-  http: ^1.1.2
+  http: ^1.2.0
   json_annotation: ^4.8.1
   pointer_interceptor: ^0.10.0
   provider: ^6.1.0
