@@ -216,16 +216,94 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 const Color primaryColor = Colors.orange;
-const TargetPlatform platform = TargetPlatform.android;
 
 void main() {
   runApp(const Sunflower());
 }
 
+class Sunflower extends StatefulWidget {
+  const Sunflower({super.key});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _SunflowerState();
+  }
+}
+
+class _SunflowerState extends State<Sunflower> {
+  double seeds = 100.0;
+
+  int get seedCount => seeds.floor();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData().copyWith(
+        platform: TargetPlatform.android,
+        brightness: Brightness.dark,
+        sliderTheme: SliderThemeData.fromPrimaryColors(
+          primaryColor: primaryColor,
+          primaryColorLight: primaryColor,
+          primaryColorDark: primaryColor,
+          valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
+        ),
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Sunflower'),
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: const [
+              DrawerHeader(
+                child: Center(
+                  child: Text(
+                    'Sunflower 🌻',
+                    style: TextStyle(fontSize: 32),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(builder: (context, constraints) {
+                return SizedBox(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  child: CustomPaint(
+                    painter: SunflowerPainter(seedCount),
+                  ),
+                );
+              }),
+            ),
+            Text('Showing $seedCount seeds'),
+            ConstrainedBox(
+              constraints: const BoxConstraints.tightFor(width: 300),
+              child: Slider.adaptive(
+                min: 20,
+                max: 2000,
+                value: seeds,
+                onChanged: (newValue) {
+                  setState(() {
+                    seeds = newValue;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SunflowerPainter extends CustomPainter {
   static const seedRadius = 2.0;
   static const tau = math.pi * 2;
-
   static final phi = (math.sqrt(5) + 1) / 2;
 
   final int seeds;
@@ -264,98 +342,6 @@ class SunflowerPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..color = primaryColor;
     canvas.drawCircle(Offset(x, y), seedRadius, paint);
-  }
-}
-
-class Sunflower extends StatefulWidget {
-  const Sunflower({super.key});
-
-  @override
-  State<StatefulWidget> createState() {
-    return _SunflowerState();
-  }
-}
-
-class _SunflowerState extends State<Sunflower> {
-  double seeds = 100.0;
-
-  int get seedCount => seeds.floor();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData().copyWith(
-        platform: platform,
-        brightness: Brightness.dark,
-        sliderTheme: SliderThemeData.fromPrimaryColors(
-          primaryColor: primaryColor,
-          primaryColorLight: primaryColor,
-          primaryColorDark: primaryColor,
-          valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
-        ),
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Sunflower'),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            children: const [
-              DrawerHeader(
-                child: Center(
-                  child: Text(
-                    'Sunflower 🌻',
-                    style: TextStyle(fontSize: 32),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: Container(
-          constraints: const BoxConstraints.expand(),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.transparent),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.transparent),
-                ),
-                child: LayoutBuilder(builder: (context, constraints) {
-                  final width = constraints.maxWidth * 2 / 3;
-                  return SizedBox(
-                    width: width,
-                    height: width * 3 / 4,
-                    child: CustomPaint(
-                      painter: SunflowerPainter(seedCount),
-                    ),
-                  );
-                }),
-              ),
-              Text('Showing $seedCount seeds'),
-              ConstrainedBox(
-                constraints: const BoxConstraints.tightFor(width: 300),
-                child: Slider.adaptive(
-                  min: 20,
-                  max: 2000,
-                  value: seeds,
-                  onChanged: (newValue) {
-                    setState(() {
-                      seeds = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 ''',
