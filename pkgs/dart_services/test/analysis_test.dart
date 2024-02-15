@@ -13,7 +13,7 @@ void main() => defineTests();
 
 void defineTests() {
   group('analysis', () {
-    final sdk = Sdk();
+    final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
@@ -73,6 +73,22 @@ void defineTests() {
               completion.completion.startsWith('package:');
         }), true);
       }
+    });
+
+    test('Error on VM library imports', () async {
+      final results = await analysisServer.analyze(unsupportedCoreLibrary);
+
+      expect(results.issues, hasLength(1));
+      final issue = results.issues.first;
+      expect(issue.message, contains('Unsupported library on the web'));
+    });
+
+    test('Warn on deprecated web library imports', () async {
+      final results = await analysisServer.analyze(deprecatedWebLibrary);
+
+      expect(results.issues, hasLength(1));
+      final issue = results.issues.first;
+      expect(issue.message, contains('Deprecated core web library'));
     });
 
     test('import_dart_core_test', () async {
@@ -167,7 +183,7 @@ void defineTests() {
   });
 
   group('analysis flutter', () {
-    final sdk = Sdk();
+    final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
 
     setUpAll(() async {
@@ -323,5 +339,21 @@ const lintWarningTrigger = '''
 void main() async {
   var unknown;
   print(unknown);
+}
+''';
+
+const unsupportedCoreLibrary = '''
+import 'dart:io' as io;
+
+void main() {
+  print(io.exitCode);
+}
+''';
+
+const deprecatedWebLibrary = '''
+import 'dart:js' as js;
+
+void main() {
+  print(js.context);
 }
 ''';

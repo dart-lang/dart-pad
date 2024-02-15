@@ -3,6 +3,10 @@
 DartPad is a free, open-source online editor to help developers learn about Dart
 and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 
+**Try out the next version of DartPad!**
+A new version of DartPad is available to try at [preview.dartpad.dev](https://preview.dartpad.dev)! This is a new client built using Flutter, and it will replace the current one very soon.
+To learn more and share your feedback, see issue [#2808](https://github.com/dart-lang/dart-pad/issues/2808).
+
 ## What's here?
 
 ### Repo packages:

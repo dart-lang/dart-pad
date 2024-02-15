@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@JS()
+library;
+
 import 'dart:js_interop';
 import 'package:web/web.dart';
 
-@JS()
-@staticInterop
-@anonymous
-class CodeMirrorOptions {
-  external factory CodeMirrorOptions();
-}
-
-extension CodeMirrorOptionsExtension on CodeMirrorOptions {
+extension type CodeMirrorOptions._(JSObject _) implements JSObject {
   external String theme;
   external String mode;
   external bool autoCloseTags;
@@ -21,33 +17,36 @@ extension CodeMirrorOptionsExtension on CodeMirrorOptions {
   external JSObject extraKeys;
 }
 
-@JS()
-@staticInterop
-class CodeMirror {
+extension type CodeMirror._(JSObject _) implements JSObject {
+  external static Commands commands;
+  external static String get version;
+  external static Hint hint;
+
+  external static void registerHelper(
+    String type,
+    String mode,
+    JSFunction helper,
+  );
+
   external factory CodeMirror(Element element, JSAny? codeMirrorOptions);
   external factory CodeMirror.fromTextArea(HTMLTextAreaElement textArea);
-  external static String get version;
-  external static Commands commands;
-  external static Hint hint;
-  external static void registerHelper(
-      String type, String mode, JSFunction helper);
-}
 
-extension CodeMirrorExtension on CodeMirror {
-  external void refresh();
-  external void focus();
-  external void setOption(String option, JSAny value);
-  external JSAny getOption(String option);
-  String getTheme() => (getOption('theme') as JSString).toDart;
-  void setTheme(String theme) => setOption('theme', theme.toJS);
-  external Doc getDoc();
-  external JSAny execCommand(String command, [JSAny? object]);
   external Events events;
-  external void on(String event, JSFunction callback);
-  external Commands commands;
+
+  external JSAny getOption(String option);
+  external void setOption(String option, JSAny value);
+  external Doc getDoc();
   external Position getCursor();
   external JSAny? getHelper(Position pos, String name);
+
+  external void refresh();
+  external void focus();
   external void showHint(HintOptions? options);
+  external JSAny execCommand(String command, [JSAny? object]);
+  external void on(String event, JSFunction callback);
+
+  String getTheme() => (getOption('theme') as JSString).toDart;
+  void setTheme(String theme) => setOption('theme', theme.toJS);
 
   void setReadOnly(bool value, [bool noCursor = false]) {
     if (value) {
@@ -62,37 +61,25 @@ extension CodeMirrorExtension on CodeMirror {
   }
 }
 
-@JS()
-@staticInterop
-class Commands {}
-
-extension CommandsExtension on Commands {
+extension type Commands._(JSObject _) implements JSObject {
   external set goLineLeft(JSFunction callback);
   external set indentIfMultiLineSelectionElseInsertSoftTab(JSFunction callback);
   external set weHandleElsewhere(JSFunction callback);
   external set autocomplete(JSFunction callback);
 }
 
-@JS()
-@staticInterop
-class Events {}
-
-extension EventsExtension on Events {
+extension type Events._(JSObject _) implements JSObject {
   external set change(JSFunction callback);
 }
 
-@JS()
-@staticInterop
-class Doc {}
-
-extension DocExtension on Doc {
+extension type Doc._(JSObject _) implements JSObject {
   external void setValue(String value);
   external String getValue();
   external String? getLine(int n);
   external bool somethingSelected();
   external String? getSelection(String s);
   external void setSelection(Position position, [Position head]);
-  external JSArray getAllMarks();
+  external JSArray<TextMarker> getAllMarks();
   external TextMarker markText(
       Position from, Position to, MarkTextOptions options);
   external int? indexFromPos(Position pos);
@@ -101,59 +88,52 @@ extension DocExtension on Doc {
   external Position posFromIndex(int index);
 }
 
-@JS()
-@staticInterop
 @anonymous
-class Position {
+extension type Position._(JSObject _) implements JSObject {
+  external int line;
+  external int ch;
+
   external factory Position({int line, int ch});
 }
 
-extension PositionExtension on Position {
-  external int line;
-  external int ch;
-}
-
-@JS()
-@staticInterop
-@anonymous
-class TextMarker {}
-
-extension TextMarkerExtension on TextMarker {
+extension type TextMarker._(JSObject _) implements JSObject {
   external void clear();
 }
 
-@JS()
-@staticInterop
 @anonymous
-class MarkTextOptions {
+extension type MarkTextOptions._(JSObject _) implements JSObject {
+  external String className;
+  external String title;
+
   external factory MarkTextOptions({
     String className,
     String title,
   });
 }
 
-extension MarkTextOptionsExtension on MarkTextOptions {
-  external String className;
-  external String title;
-}
-
-@JS()
-@staticInterop
 @anonymous
-class HintResults {
-  external factory HintResults({JSArray list, Position from, Position to});
-}
-
-extension HintResultsExtension on HintResults {
-  external JSArray/*<HintResult>*/ list;
+extension type HintResults._(JSObject _) implements JSObject {
+  external JSArray<HintResult> list;
   external Position from;
   external Position to;
+
+  external factory HintResults({
+    JSArray<HintResult> list,
+    Position from,
+    Position to,
+  });
 }
 
-@JS()
-@staticInterop
 @anonymous
-class HintResult {
+extension type HintResult._(JSObject _) implements JSObject {
+  external String? text;
+  external String? displayText;
+  external String? className;
+  external Position? from;
+  external Position? to;
+  external JSFunction? hintRenderer;
+  external JSFunction? hint;
+
   external factory HintResult({
     String? text,
     String? displayText,
@@ -165,36 +145,14 @@ class HintResult {
   });
 }
 
-extension HintResultExtension on HintResult {
-  external String? text;
-
-  external String? displayText;
-
-  external String? className;
-
-  external Position? from;
-
-  external Position? to;
-  external JSFunction? hintRenderer;
-  external JSFunction? hint;
-}
-
-@JS()
-@staticInterop
 @anonymous
-class HintOptions {
+extension type HintOptions._(JSObject _) implements JSObject {
+  external JSAny hint;
+  external HintResults results;
+
   external factory HintOptions({JSAny hint, HintResults results});
 }
 
-extension HintOptionsExtension on HintOptions {
-  external JSAny hint;
-  external HintResults results;
-}
-
-@JS()
-@staticInterop
-class Hint {}
-
-extension HintExtension on Hint {
+extension type Hint._(JSObject _) implements JSObject {
   external JSAny dart;
 }

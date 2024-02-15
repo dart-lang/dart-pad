@@ -13,8 +13,6 @@ class ProjectTemplates {
   ProjectTemplates._({
     required this.dartPath,
     required this.flutterPath,
-    required this.firebasePath,
-    required this.firebaseDeprecatedPath,
     required this.summaryFilePath,
   });
 
@@ -27,9 +25,6 @@ class ProjectTemplates {
     return ProjectTemplates._(
       dartPath: path.join(basePath, 'dart_project'),
       flutterPath: path.join(basePath, 'flutter_project'),
-      firebasePath: path.join(basePath, 'firebase_project'),
-      firebaseDeprecatedPath:
-          path.join(basePath, 'firebase_deprecated_project'),
       summaryFilePath: summaryFilePath,
     );
   }
@@ -37,14 +32,8 @@ class ProjectTemplates {
   /// The path to the plain Dart project template path.
   final String dartPath;
 
-  /// The path to the Flutter (without Firebase) project template path.
+  /// The path to the Flutter project template path.
   final String flutterPath;
-
-  /// The path to the Firebase (with Flutter) project template path.
-  final String firebasePath;
-
-  /// The path to the deprecated Firebase (with Flutter) project template path.
-  final String firebaseDeprecatedPath;
 
   /// The path to summary files.
   final String summaryFilePath;
@@ -55,35 +44,10 @@ class ProjectTemplates {
       path.join(Directory.current.path, 'project_templates');
 }
 
-/// The set of Firebase packages which are used in both deprecated Firebase
-/// projects and "pure Dart" Flutterfire projects.
-const Set<String> coreFirebasePackages = {
-  'firebase_core',
-};
-
-/// The set of Firebase packages which can be registered in the generated
-/// registrant file. Theoretically this should be _all_ plugins, but there
-/// are bugs. See https://github.com/dart-lang/dart-pad/issues/2033 and
-/// https://github.com/FirebaseExtended/flutterfire/issues/3962.
-const Set<String> registerableFirebasePackages = {
-  'cloud_firestore',
-  'firebase_auth',
-};
-
-/// The set of Firebase packages which indicate that Firebase is being used.
-const Set<String> firebasePackages = {
-  ...coreFirebasePackages,
-  ...registerableFirebasePackages,
-};
-
 /// The set of supported Flutter-oriented packages.
 const Set<String> supportedFlutterPackages = {
   'animations',
   'creator',
-  'firebase_analytics',
-  'firebase_database',
-  'firebase_messaging',
-  'firebase_storage',
   'flame',
   'flame_fire_atlas',
   'flame_forge2d',
@@ -92,17 +56,19 @@ const Set<String> supportedFlutterPackages = {
   'flutter_adaptive_scaffold',
   'flutter_bloc',
   'flutter_hooks',
-  'flutter_lints',
   'flutter_map',
+  'flutter_markdown',
   'flutter_processing',
   'flutter_riverpod',
   'flutter_svg',
   'go_router',
   'google_fonts',
+  'google_generative_ai',
   'hooks_riverpod',
   'provider',
   'riverpod_navigator',
   'shared_preferences',
+  'url_launcher',
   'video_player',
 };
 
@@ -111,7 +77,6 @@ const Set<String> _packagesIndicatingFlutter = {
   'flutter',
   'flutter_test',
   ...supportedFlutterPackages,
-  ...firebasePackages,
 };
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
@@ -128,7 +93,6 @@ const Set<String> supportedBasicDartPackages = {
   'fast_immutable_collections',
   'http',
   'intl',
-  'js',
   'lints',
   'matcher',
   'meta',
@@ -142,6 +106,7 @@ const Set<String> supportedBasicDartPackages = {
   'timezone',
   'tuple',
   'vector_math',
+  'web',
   'yaml',
   'yaml_edit',
 };
@@ -149,34 +114,50 @@ const Set<String> supportedBasicDartPackages = {
 /// The set of all packages whose support in DartPad is deprecated.
 const Set<String> _deprecatedPackages = {
   'tuple',
+  'flutter_processing',
+  'riverpod_navigator',
+  'js',
 };
 
-/// A set of all allowed `dart:` imports. Currently includes non-VM libraries
-/// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
-const Set<String> _allowedDartImports = {
-  'dart:async',
-  'dart:collection',
-  'dart:convert',
-  'dart:core',
-  'dart:developer',
-  'dart:math',
-  'dart:typed_data',
-  'dart:html',
-  'dart:indexed_db',
-  'dart:js',
-  'dart:js_util',
-  'dart:svg',
-  'dart:web_audio',
-  'dart:web_gl',
-  'dart:ui',
+/// The set of core web libraries whose support in
+/// DartPad or Dart is deprecated.
+const Set<String> _deprecatedCoreWebLibraries = {
+  'js',
+  'html',
+  'js_util',
 };
 
-/// Returns whether [imports] denote use of Flutter Web.
+/// A set of all allowed `dart:` libraries, includes
+/// all libraries from "Core", some from "Web", and none from "VM".
+const Set<String> _allowedCoreLibraries = {
+  'async',
+  'collection',
+  'convert',
+  'core',
+  'developer',
+  'math',
+  'typed_data',
+  'js_interop',
+  'js_interop_unsafe',
+  ..._deprecatedCoreWebLibraries,
+  'ui',
+};
+
+/// Whether [libraryName] is the name of a supported `dart:` core library.
+bool isSupportedCoreLibrary(String libraryName) =>
+    _allowedCoreLibraries.contains(libraryName);
+
+/// Whether [libraryName] is the name of a supported, but deprecated,
+/// `dart:` core web library.
+bool isDeprecatedCoreWebLibrary(String libraryName) =>
+    _deprecatedCoreWebLibraries.contains(libraryName);
+
+/// Whether [imports] denote use of Flutter Web.
 bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
     imports.any((import) => isFlutterWebImport(import.uri.stringValue));
 
-/// Whether the [importString] represents an import
-/// that denotes use of Flutter Web.
+/// Whether the [importString] represents an import that denotes use of Flutter
+/// Web.
 @visibleForTesting
 bool isFlutterWebImport(String? importString) {
   if (importString == null) return false;
@@ -187,18 +168,19 @@ bool isFlutterWebImport(String? importString) {
       _packagesIndicatingFlutter.contains(packageName);
 }
 
-/// Returns whether [imports] denote use of Firebase.
-bool usesFirebase(Iterable<ImportDirective> imports) =>
-    imports.any((import) => isFirebaseImport(import.uri.stringValue));
+/// The core set of Firebase packages.
+const Set<String> firebasePackages = {
+  'cloud_firestore',
+  'firebase_auth',
+  'firebase_core',
+};
 
-/// Whether the [importString] represents an import
-/// that denotes use of a Firebase package.
-@visibleForTesting
-bool isFirebaseImport(String? importString) {
-  if (importString == null) return false;
+bool isFirebasePackage(String packageName) {
+  if (firebasePackages.contains(packageName)) return true;
 
-  final packageName = _packageNameFromPackageUri(importString);
-  return packageName != null && firebasePackages.contains(packageName);
+  if (packageName.startsWith('firebase_')) return true;
+
+  return false;
 }
 
 /// If [uriString] represents a 'package:' URI, then returns the package name;
@@ -209,61 +191,6 @@ String? _packageNameFromPackageUri(String uriString) {
   if (uri.scheme != 'package') return null;
   if (uri.pathSegments.isEmpty) return null;
   return uri.pathSegments.first;
-}
-
-/// Goes through imports list and returns list of unsupported imports.
-/// Optional [sourceFiles] contains a list of the source filenames
-/// which are all part of this overall sources file set (these are to
-/// be allowed).
-///
-/// Note: The filenames in [sourceFiles] were sanitized of any
-/// 'package:'/etc syntax as the file set arrives from the endpoint, and
-/// before being passed to [getUnsupportedImports]. This is done so
-/// the list can't be used to bypass unsupported imports.
-List<ImportDirective> getUnsupportedImports(
-  List<ImportDirective> imports, {
-  Set<String>? sourceFiles,
-}) {
-  return imports
-      .where((import) => isUnsupportedImport(import.uri.stringValue,
-          sourceFiles: sourceFiles ?? const {}))
-      .toList(growable: false);
-}
-
-/// Whether the [importString] represents an import
-/// that is unsupported.
-@visibleForTesting
-bool isUnsupportedImport(
-  String? importString, {
-  Set<String> sourceFiles = const {},
-}) {
-  if (importString == null || importString.isEmpty) {
-    return false;
-  }
-  // All non-VM 'dart:' imports are ok.
-  if (importString.startsWith('dart:')) {
-    return !_allowedDartImports.contains(importString);
-  }
-  // Filenames from within this compilation files={} sources file set
-  // are OK. (These filenames have been sanitized to prevent 'package:'
-  // (and other) prefixes, so the a filename cannot be used to bypass
-  // import restrictions (see comment above)).
-  if (sourceFiles.contains(importString)) {
-    return false;
-  }
-
-  final uri = Uri.tryParse(importString);
-  if (uri == null) return false;
-
-  // We allow a specific set of package imports.
-  if (uri.scheme == 'package') {
-    if (uri.pathSegments.isEmpty) return true;
-    final package = uri.pathSegments.first;
-    return !isSupportedPackage(package);
-  }
-
-  // Don't allow file imports.
-  return true;
 }
 
 bool isSupportedPackage(String package) =>

@@ -1,55 +1,118 @@
 {
-  "hosting": {
-    "target": "sketchpad",
-    "public": "build/web",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "/assets/AssetManifest.json",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      },
-      {
-        "source": "/assets/FontManifest.json",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      },
-      {
-        "source": "/assets/fonts/MaterialIcons-Regular.otf",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      },
-      {
-        "source": "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "dartpad",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/embed-dart.html",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-flutter.html",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-flutter_showcase.html",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-html.html",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-inline.html",
+          "destination": "/?embed=true",
+          "type": 301
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/assets/AssetManifest.json",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "/assets/FontManifest.json",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "/assets/fonts/MaterialIcons-Regular.otf",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Embedder-Policy",
+              "value": "credentialless"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "cross-origin"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "preview",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
+  ]
 }

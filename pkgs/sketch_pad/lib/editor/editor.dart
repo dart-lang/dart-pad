@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:math' as math;
@@ -11,20 +9,32 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
-import 'package:web/helpers.dart' as web_helpers;
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
 import 'codemirror.dart';
 
+const String _viewType = 'dartpad-editor';
+
+bool _viewFactoryInitialized = false;
+CodeMirror? codeMirrorInstance;
+
 final Key _elementViewKey = UniqueKey();
 
+void _initViewFactory() {
+  if (_viewFactoryInitialized) return;
+  _viewFactoryInitialized = true;
+
+  ui_web.platformViewRegistry
+      .registerViewFactory(_viewType, _codeMirrorFactory);
+}
+
 web.Element _codeMirrorFactory(int viewId) {
-  final div = web_helpers.createElementTag('div') as web.HTMLDivElement
+  final div = web.createElementTag('div') as web.HTMLDivElement
     ..style.width = '100%'
     ..style.height = '100%';
 
-  final codeMirror = CodeMirror(
+  codeMirrorInstance = CodeMirror(
       div,
       <String, dynamic>{
         'lineNumbers': true,
@@ -35,29 +45,15 @@ web.Element _codeMirrorFactory(int viewId) {
       }.jsify());
 
   CodeMirror.commands.goLineLeft =
-      ((JSObject? _) => _handleGoLineLeft(codeMirror)).toJS;
+      ((JSObject? _) => _handleGoLineLeft(codeMirrorInstance!)).toJS;
   CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
       ((JSObject? _) =>
-          _indentIfMultiLineSelectionElseInsertSoftTab(codeMirror)).toJS;
+              _indentIfMultiLineSelectionElseInsertSoftTab(codeMirrorInstance!))
+          .toJS;
   CodeMirror.commands.weHandleElsewhere =
-      ((JSObject? _) => _weHandleElsewhere(codeMirror)).toJS;
-
-  _expando[div] = codeMirror;
+      ((JSObject? _) => _weHandleElsewhere(codeMirrorInstance!)).toJS;
 
   return div;
-}
-
-const String _viewType = 'dartpad-editor';
-final Expando _expando = Expando(_viewType);
-
-bool _viewFactoryInitialized = false;
-
-void _initViewFactory() {
-  if (_viewFactoryInitialized) return;
-  _viewFactoryInitialized = true;
-
-  ui_web.platformViewRegistry
-      .registerViewFactory(_viewType, _codeMirrorFactory);
 }
 
 class EditorWidget extends StatefulWidget {
@@ -120,8 +116,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
-    final div = ui_web.platformViewRegistry.getViewById(id) as web.Element;
-    codeMirror = _expando[div] as CodeMirror;
+    codeMirror = codeMirrorInstance;
 
     // read only
     final readOnly = !widget.appModel.appReady.value;
@@ -263,7 +258,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         list: [
           ...response.fixes.map((change) => change.toHintResult(editor)),
           ...response.assists.map((change) => change.toHintResult(editor)),
-        ].jsify() as JSArray,
+        ].toJS,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
       );
@@ -287,9 +282,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       });
 
       return HintResults(
-          list: hints.jsify() as JSArray,
-          from: doc.posFromIndex(offset),
-          to: doc.posFromIndex(offset + length));
+        list: hints.toJS,
+        from: doc.posFromIndex(offset),
+        to: doc.posFromIndex(offset + length),
+      );
     }
   }
 }
@@ -396,6 +392,7 @@ const codeMirrorOptions = {
   },
   'tabSize': 2,
   'viewportMargin': 100,
+  'scrollbarStyle': 'simple',
 };
 
 enum CompletionType {

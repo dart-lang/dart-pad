@@ -75,11 +75,9 @@ class AnalysisServerWrapper {
     required this.sdkPath,
     String? projectPath,
   }) :
-        // During analysis, we use the Firebase project template. The Firebase
-        // template is separate from the Flutter template only to keep Firebase
-        // references out of app initialization code at runtime.
+        // During analysis, we use the Flutter project template.
         projectPath =
-            projectPath ?? ProjectTemplates.projectTemplates.firebasePath;
+            projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
 
   String get mainPath => _getPathFromName(kMainDart);
 
@@ -307,14 +305,36 @@ class AnalysisServerWrapper {
     final importIssues = <api.AnalysisIssue>[];
 
     for (final import in imports) {
-      // Ignore `dart:` core library imports.
       if (import.dartImport) {
-        continue;
-      }
-
-      if (import.packageImport) {
+        final libraryName = import.packageName;
+        if (!isSupportedCoreLibrary(libraryName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'error',
+            message: "Unsupported library on the web: 'dart:$libraryName'.",
+            correction: 'Try removing the import and usages of the library.',
+            location: import.getLocation(source),
+          ));
+        } else if (isDeprecatedCoreWebLibrary(libraryName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'info', // TODO(parlough): Expand to 'warning' in future.
+            message: "Deprecated core web library: 'dart:$libraryName'.",
+            correction: 'Try using static JS interop instead.',
+            url: 'https://dart.dev/go/next-gen-js-interop',
+            location: import.getLocation(source),
+          ));
+        }
+      } else if (import.packageImport) {
         final packageName = import.packageName;
-        if (!isSupportedPackage(packageName)) {
+
+        if (isFirebasePackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: 'Firebase is no longer supported by DartPad.',
+            url:
+                'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
+            location: import.getLocation(source),
+          ));
+        } else if (!isSupportedPackage(packageName)) {
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
             message: "Unsupported package: 'package:$packageName'.",

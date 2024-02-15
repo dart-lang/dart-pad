@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
@@ -36,6 +37,7 @@ abstract class EditorService {
 
 class AppModel {
   bool? _appIsFlutter;
+  bool? _usesPackageWeb;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
@@ -60,11 +62,13 @@ class AppModel {
       ValueNotifier(SplitDragState.inactive);
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
+  late final StreamSubscription<SplitDragState> _splitSubscription;
 
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
 
-    splitDragStateManager.onSplitDragUpdated.listen((value) {
+    _splitSubscription =
+        splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
       splitViewDragState.value = value;
     });
   }
@@ -77,13 +81,17 @@ class AppModel {
 
   void dispose() {
     consoleOutputController.removeListener(_recalcLayout);
+    _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
     final hasConsoleText = consoleOutputController.text.isNotEmpty;
     final isFlutter = _appIsFlutter;
+    final usesPackageWeb = _usesPackageWeb;
 
-    if (isFlutter == null) {
+    if (isFlutter == null || usesPackageWeb == null) {
+      _layoutMode.value = LayoutMode.both;
+    } else if (usesPackageWeb) {
       _layoutMode.value = LayoutMode.both;
     } else if (!isFlutter) {
       _layoutMode.value = LayoutMode.justConsole;
@@ -189,8 +197,10 @@ class AppServices {
   }
 
   Future<void> performInitialLoad({
-    String? sampleId,
     String? gistId,
+    String? sampleId,
+    String? flutterSampleId,
+    String? channel,
     required String fallbackSnippet,
   }) async {
     // Delay a bit for codemirror to initialize.
@@ -204,42 +214,75 @@ class AppServices {
       return;
     }
 
-    if (gistId == null) {
-      appModel.sourceCodeController.text = fallbackSnippet;
-      appModel.appReady.value = true;
+    if (flutterSampleId != null) {
+      final loader = FlutterSampleLoader();
+      final progress =
+          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      try {
+        final sample = await loader.loadFlutterSample(
+          sampleId: flutterSampleId,
+          channel: channel,
+        );
+        progress.close();
+
+        appModel.title.value = flutterSampleId;
+        appModel.sourceCodeController.text = sample;
+
+        appModel.appReady.value = true;
+      } catch (e) {
+        appModel.editorStatus.showToast('Error loading sample');
+        progress.close();
+
+        appModel.appendLineToConsole('Error loading sample: $e');
+
+        appModel.sourceCodeController.text = fallbackSnippet;
+        appModel.appReady.value = true;
+      } finally {
+        loader.dispose();
+      }
+
       return;
     }
 
-    final gistLoader = GistLoader();
-    final progress = appModel.editorStatus.showMessage(initialText: 'Loading…');
-    try {
-      final gist = await gistLoader.load(gistId);
-      progress.close();
+    if (gistId != null) {
+      final gistLoader = GistLoader();
+      final progress =
+          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      try {
+        final gist = await gistLoader.load(gistId);
+        progress.close();
 
-      final title = gist.description ?? '';
-      appModel.title.value =
-          title.length > 40 ? '${title.substring(0, 40)}…' : title;
+        final title = gist.description ?? '';
+        appModel.title.value =
+            title.length > 40 ? '${title.substring(0, 40)}…' : title;
 
-      final source = gist.mainDartSource;
-      if (source == null) {
-        appModel.editorStatus.showToast('main.dart not found');
+        final source = gist.mainDartSource;
+        if (source == null) {
+          appModel.editorStatus.showToast('main.dart not found');
+          appModel.sourceCodeController.text = fallbackSnippet;
+        } else {
+          appModel.sourceCodeController.text = source;
+        }
+
+        appModel.appReady.value = true;
+      } catch (e) {
+        appModel.editorStatus.showToast('Error loading gist');
+        progress.close();
+
+        appModel.appendLineToConsole('Error loading gist: $e');
+
         appModel.sourceCodeController.text = fallbackSnippet;
-      } else {
-        appModel.sourceCodeController.text = source;
+        appModel.appReady.value = true;
+      } finally {
+        gistLoader.dispose();
       }
 
-      appModel.appReady.value = true;
-    } catch (e) {
-      appModel.editorStatus.showToast('Error loading gist');
-      progress.close();
-
-      appModel.appendLineToConsole('Error loading gist: $e');
-
-      appModel.sourceCodeController.text = fallbackSnippet;
-      appModel.appReady.value = true;
-    } finally {
-      gistLoader.dispose();
+      return;
     }
+
+    // Neither gistId nor flutterSampleId were passed in.
+    appModel.sourceCodeController.text = fallbackSnippet;
+    appModel.appReady.value = true;
   }
 
   Future<FormatResponse> format(SourceRequest request) async {
@@ -290,12 +333,12 @@ class AppServices {
 
   void executeJavaScript(
     String javaScript, {
+    required String dartSource,
     String? modulesBaseUrl,
     String? engineVersion,
   }) {
-    final usesFlutter = hasFlutterWebMarker(javaScript);
-
-    appModel._appIsFlutter = usesFlutter;
+    appModel._appIsFlutter = hasFlutterWebMarker(javaScript);
+    appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
     _executionService?.execute(
@@ -379,7 +422,6 @@ class SplitDragStateManager {
   final _splitDragStateController =
       StreamController<SplitDragState>.broadcast();
   late final Stream<SplitDragState> onSplitDragUpdated;
-  late final StreamSubscription<SplitDragState> _subscription;
 
   SplitDragStateManager(
       {Duration timeout = const Duration(milliseconds: 100)}) {
@@ -391,10 +433,6 @@ class SplitDragStateManager {
 
   void handleSplitChanged() {
     _splitDragStateController.add(SplitDragState.active);
-  }
-
-  void dispose() {
-    _subscription.cancel();
   }
 }
 

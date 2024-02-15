@@ -28,13 +28,12 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: explore using the monaco editor
-
 // TODO: show documentation on hover
 
 // TODO: implement find / find next
 
 const appName = 'DartPad';
+const smallScreenWidth = 720;
 
 void main() async {
   usePathUrlStrategy();
@@ -112,8 +111,9 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final idParam = state.uri.queryParameters['id'];
-    final sampleParam = state.uri.queryParameters['sample'];
+    final gistId = state.uri.queryParameters['id'];
+    final builtinSampleId = state.uri.queryParameters['sample'];
+    final flutterSampleId = state.uri.queryParameters['sample_id'];
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
@@ -123,8 +123,9 @@ class _DartPadAppState extends State<DartPadApp> {
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
-      sampleId: sampleParam,
-      gistId: idParam,
+      gistId: gistId,
+      builtinSampleId: builtinSampleId,
+      flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
     );
   }
@@ -141,28 +142,48 @@ class _DartPadAppState extends State<DartPadApp> {
         colorScheme:
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
+          onSurface: Colors.black,
+          surfaceVariant: lightSurfaceVariantColor,
+          onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
-        dividerColor: lightSurfaceColor,
+        dividerColor: lightDividerColor,
         dividerTheme: DividerThemeData(
-          color: lightSurfaceColor,
+          color: lightDividerColor,
         ),
         scaffoldBackgroundColor: Colors.white,
+        menuButtonTheme: MenuButtonThemeData(
+          style: MenuItemButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: darkPrimaryColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: darkPrimaryColor).copyWith(
+          brightness: Brightness.dark,
+          surface: darkSurfaceColor,
+          onSurface: Colors.white,
+          surfaceVariant: darkSurfaceVariantColor,
+          onSurfaceVariant: Colors.white,
+          onPrimary: darkLinkButtonColor,
+        ),
         brightness: Brightness.dark,
-        dividerColor: darkSurfaceColor,
+        dividerColor: darkDividerColor,
         dividerTheme: DividerThemeData(
-          color: darkSurfaceColor,
+          color: darkDividerColor,
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(Colors.white),
+            foregroundColor: MaterialStatePropertyAll(darkLinkButtonColor),
           ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
+        menuButtonTheme: MenuButtonThemeData(
+          style: MenuItemButton.styleFrom(
+            minimumSize: const Size.fromHeight(56),
+          ),
+        ),
       ),
     );
   }
@@ -171,11 +192,12 @@ class _DartPadAppState extends State<DartPadApp> {
 class DartPadMainPage extends StatefulWidget {
   final String title;
   final String? initialChannel;
-  final String? sampleId;
-  final String? gistId;
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
+  final String? gistId;
+  final String? builtinSampleId;
+  final String? flutterSampleId;
 
   DartPadMainPage({
     required this.title,
@@ -183,24 +205,43 @@ class DartPadMainPage extends StatefulWidget {
     required this.embedMode,
     required this.runOnLoad,
     required this.handleBrightnessChanged,
-    this.sampleId,
     this.gistId,
-  }) : super(key: ValueKey('sample:$sampleId gist:$gistId'));
+    this.builtinSampleId,
+    this.flutterSampleId,
+  }) : super(
+          key: ValueKey(
+            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
+          ),
+        );
 
   @override
   State<DartPadMainPage> createState() => _DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage> {
+class _DartPadMainPageState extends State<DartPadMainPage>
+    with SingleTickerProviderStateMixin {
   late final SplitViewController mainSplitter;
 
   late AppModel appModel;
   late AppServices appServices;
+  late final TabController tabController;
+  final ValueKey<String> _executionWidgetKey =
+      const ValueKey('execution-widget');
+  final ValueKey<String> _loadingOverlayKey =
+      const ValueKey('loading-overlay-widget');
+  final ValueKey<String> _editorKey = const ValueKey('editor');
+  final ValueKey<String> _consoleKey = const ValueKey('console');
 
   @override
   void initState() {
     super.initState();
 
+    tabController = TabController(length: 3, vsync: this)
+      ..addListener(() {
+        // Rebuild when the user changes tabs so that the IndexedStack updates
+        // its active child view.
+        setState(() {});
+      });
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
         SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
@@ -222,8 +263,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     appServices
         .performInitialLoad(
-            sampleId: widget.sampleId,
             gistId: widget.gistId,
+            sampleId: widget.builtinSampleId,
+            flutterSampleId: widget.flutterSampleId,
+            channel: widget.initialChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
       if (widget.runOnLoad) {
@@ -243,213 +286,148 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scaffold = Scaffold(
-      appBar: widget.embedMode
-          ? null
-          : AppBar(
-              backgroundColor: theme.dividerColor,
-              title: SizedBox(
-                height: toolbarItemHeight,
-                child: Row(
-                  children: [
-                    dartLogo(width: 32),
-                    const SizedBox(width: denseSpacing),
-                    const Text(appName),
-                    const SizedBox(width: defaultSpacing * 4),
-                    NewSnippetWidget(appServices: appServices),
-                    const SizedBox(width: denseSpacing),
-                    const ListSamplesWidget(),
-                    const SizedBox(width: defaultSpacing),
-                    // title widget
-                    Expanded(
-                      child: Center(
-                        child: ValueListenableBuilder<String>(
-                          valueListenable: appModel.title,
-                          builder: (_, String value, __) => Text(value),
-                        ),
+    final executionWidget = ExecutionWidget(
+      appServices: appServices,
+      appModel: appModel,
+      key: _executionWidgetKey,
+    );
+    final loadingOverlay = LoadingOverlay(
+      appModel: appModel,
+      key: _loadingOverlayKey,
+    );
+    final editor = EditorWithButtons(
+      appModel: appModel,
+      appServices: appServices,
+      onFormat: _handleFormatting,
+      onCompileAndRun: _performCompileAndRun,
+      key: _editorKey,
+    );
+
+    consoleWidget({bool showDivider = false}) => ConsoleWidget(
+          textController: appModel.consoleOutputController,
+          showDivider: showDivider,
+          key: _consoleKey,
+        );
+    final scaffold =
+        LayoutBuilder(builder: (context, BoxConstraints constraints) {
+      // Use the mobile UI layout for small screen widths.
+      if (constraints.maxWidth <= smallScreenWidth) {
+        return Scaffold(
+          appBar: widget.embedMode
+              ? TabBar(
+                  controller: tabController,
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.code),
+                      child: Semantics(
+                        label: 'Dart Code',
+                        child: const Text('Code'),
                       ),
                     ),
-                    const SizedBox(width: defaultSpacing),
+                    Tab(
+                      icon: const Icon(Icons.phone_android),
+                      child: Semantics(
+                        label: 'UI Output',
+                        child: const Text('UI Output'),
+                      ),
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.terminal),
+                      child: Semantics(
+                        label: 'Console Output',
+                        child: const Text('Console Output'),
+                      ),
+                    ),
+                  ],
+                )
+              : DartPadAppBar(
+                  theme: theme,
+                  appServices: appServices,
+                  appModel: appModel,
+                  widget: widget,
+                  bottom: TabBar(
+                    controller: tabController,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.code)),
+                      Tab(icon: Icon(Icons.phone_android)),
+                      Tab(icon: Icon(Icons.terminal)),
+                    ],
+                  ),
+                ),
+          body: IndexedStack(
+            index: tabController.index,
+            children: [
+              editor,
+              executionWidget,
+              consoleWidget(),
+            ],
+          ),
+        );
+      }
+
+      return Scaffold(
+        appBar: widget.embedMode
+            ? null
+            : DartPadAppBar(
+                theme: theme,
+                appServices: appServices,
+                appModel: appModel,
+                widget: widget,
+              ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: SplitView(
+                  viewMode: SplitViewMode.Horizontal,
+                  gripColor: theme.colorScheme.surface,
+                  gripColorActive: theme.colorScheme.surface,
+                  gripSize: defaultGripSize,
+                  controller: mainSplitter,
+                  children: [
+                    editor,
+                    Stack(
+                      children: [
+                        ValueListenableBuilder(
+                          valueListenable: appModel.layoutMode,
+                          builder: (context, LayoutMode mode, _) {
+                            return LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                final domHeight =
+                                    mode.calcDomHeight(constraints.maxHeight);
+                                final consoleHeight = mode
+                                    .calcConsoleHeight(constraints.maxHeight);
+
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      height: domHeight,
+                                      child: executionWidget,
+                                    ),
+                                    SizedBox(
+                                      height: consoleHeight,
+                                      child: consoleWidget(
+                                          showDivider: mode == LayoutMode.both),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        loadingOverlay,
+                      ],
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                // install sdk
-                TextButton(
-                  onPressed: () {
-                    url_launcher.launchUrl(
-                      Uri.parse('https://docs.flutter.dev/get-started/install'),
-                    );
-                  },
-                  child: const Row(
-                    children: [
-                      Text('Install SDK'),
-                      SizedBox(width: denseSpacing),
-                      Icon(Icons.launch, size: 18),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: denseSpacing),
-                _BrightnessButton(
-                  handleBrightnessChange: widget.handleBrightnessChanged,
-                ),
-                const OverflowMenu(),
-              ],
             ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: SplitView(
-                viewMode: SplitViewMode.Horizontal,
-                gripColor: theme.dividerTheme.color!,
-                gripColorActive: theme.dividerTheme.color!,
-                gripSize: defaultGripSize,
-                controller: mainSplitter,
-                children: [
-                  Column(
-                    children: [
-                      Expanded(
-                        child: SectionWidget(
-                          child: Stack(
-                            children: [
-                              EditorWidget(
-                                appModel: appModel,
-                                appServices: appServices,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(denseSpacing),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  // We use explicit directionality here in
-                                  // order to have the format and run buttons on
-                                  // the right hand side of the editing area.
-                                  textDirection: TextDirection.ltr,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Format action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.formattingBusy,
-                                      builder: (_, bool value, __) {
-                                        return PointerInterceptor(
-                                          child: MiniIconButton(
-                                            icon: Icons.format_align_left,
-                                            tooltip: 'Format',
-                                            small: true,
-                                            onPressed: value
-                                                ? null
-                                                : _handleFormatting,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: defaultSpacing),
-                                    // Run action
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: appModel.compilingBusy,
-                                      builder: (_, bool value, __) {
-                                        return PointerInterceptor(
-                                          child: RunButton(
-                                            onPressed: value
-                                                ? null
-                                                : _performCompileAndRun,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.bottomRight,
-                                padding: const EdgeInsets.all(denseSpacing),
-                                child: StatusWidget(
-                                  status: appModel.editorStatus,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      ValueListenableBuilder<List<AnalysisIssue>>(
-                        valueListenable: appModel.analysisIssues,
-                        builder: (context, issues, _) {
-                          return ProblemsTableWidget(problems: issues);
-                        },
-                      ),
-                    ],
-                  ),
-                  Stack(
-                    children: [
-                      ValueListenableBuilder(
-                        valueListenable: appModel.layoutMode,
-                        builder: (context, LayoutMode mode, _) {
-                          return LayoutBuilder(builder: (BuildContext context,
-                              BoxConstraints constraints) {
-                            final domHeight =
-                                mode.calcDomHeight(constraints.maxHeight);
-                            final consoleHeight =
-                                mode.calcConsoleHeight(constraints.maxHeight);
-
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  height: domHeight,
-                                  child: ListenableBuilder(
-                                      listenable: appModel.splitViewDragState,
-                                      builder: (context, _) {
-                                        return ExecutionWidget(
-                                          appServices: appServices,
-                                          // Ignore pointer events while the Splitter
-                                          // is being dragged.
-                                          ignorePointer: appModel
-                                                  .splitViewDragState.value ==
-                                              SplitDragState.active,
-                                        );
-                                      }),
-                                ),
-                                SizedBox(
-                                  height: consoleHeight,
-                                  child: ConsoleWidget(
-                                    showDivider: mode == LayoutMode.both,
-                                    textController:
-                                        appModel.consoleOutputController,
-                                  ),
-                                ),
-                              ],
-                            );
-                          });
-                        },
-                      ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.compilingBusy,
-                        builder: (_, bool compiling, __) {
-                          final color = theme.colorScheme.surface;
-
-                          return AnimatedContainer(
-                            color: compiling
-                                ? color.withOpacity(0.8)
-                                : color.withOpacity(0.0),
-                            duration: animationDelay,
-                            curve: animationCurve,
-                            child: compiling
-                                ? const GoldenRatioCenter(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                : const SizedBox(width: 1),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (!widget.embedMode) const StatusLineWidget(),
-        ],
-      ),
-    );
+            if (!widget.embedMode) const StatusLineWidget(),
+          ],
+        ),
+      );
+    });
 
     return Provider<AppServices>.value(
       value: appServices,
@@ -517,6 +495,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
         response.result,
         modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
+        dartSource: source,
       );
     } catch (error) {
       appModel.clearConsole();
@@ -535,21 +514,229 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   }
 }
 
+class LoadingOverlay extends StatelessWidget {
+  const LoadingOverlay({
+    super.key,
+    required this.appModel,
+  });
+
+  final AppModel appModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: appModel.compilingBusy,
+      builder: (_, bool compiling, __) {
+        final color = theme.colorScheme.surface;
+
+        return AnimatedContainer(
+          color: compiling ? color.withOpacity(0.8) : color.withOpacity(0.0),
+          duration: animationDelay,
+          curve: animationCurve,
+          child: compiling
+              ? const GoldenRatioCenter(
+                  child: CircularProgressIndicator(),
+                )
+              : const SizedBox(width: 1),
+        );
+      },
+    );
+  }
+}
+
+class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const DartPadAppBar({
+    super.key,
+    required this.theme,
+    required this.appServices,
+    required this.appModel,
+    required this.widget,
+    this.bottom,
+  });
+
+  final ThemeData theme;
+  final AppServices appServices;
+  final AppModel appModel;
+  final DartPadMainPage widget;
+  final PreferredSizeWidget? bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      return AppBar(
+        backgroundColor: theme.colorScheme.surface,
+        bottom: bottom,
+        title: SizedBox(
+          height: toolbarItemHeight,
+          child: Row(
+            children: [
+              const Logo(width: 32, type: 'dart'),
+              const SizedBox(width: denseSpacing),
+              Text(appName,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
+              // Hide new snippet buttons when the screen width is too small.
+              if (constraints.maxWidth > smallScreenWidth) ...[
+                const SizedBox(width: defaultSpacing * 4),
+                NewSnippetWidget(appServices: appServices),
+                const SizedBox(width: denseSpacing),
+                const ListSamplesWidget(),
+              ] else ...[
+                const SizedBox(width: defaultSpacing),
+                NewSnippetWidget(appServices: appServices, smallIcon: true),
+                const SizedBox(width: defaultSpacing),
+                const ListSamplesWidget(smallIcon: true),
+              ],
+
+              const SizedBox(width: defaultSpacing),
+              // Hide the snippet title when the screen width is too small.
+              if (constraints.maxWidth > smallScreenWidth)
+                Expanded(
+                  child: Center(
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: appModel.title,
+                      builder: (_, String value, __) => Text(value),
+                    ),
+                  ),
+                ),
+              const SizedBox(width: defaultSpacing),
+            ],
+          ),
+        ),
+        actions: [
+          // Hide the Install SDK button when the screen width is too small.
+          if (constraints.maxWidth > smallScreenWidth)
+            TextButton(
+              onPressed: () {
+                url_launcher.launchUrl(
+                  Uri.parse('https://docs.flutter.dev/get-started/install'),
+                );
+              },
+              child: const Row(
+                children: [
+                  Text('Install SDK'),
+                  SizedBox(width: denseSpacing),
+                  Icon(Icons.launch, size: 18),
+                ],
+              ),
+            ),
+          const SizedBox(width: denseSpacing),
+          _BrightnessButton(
+            handleBrightnessChange: widget.handleBrightnessChanged,
+          ),
+          const OverflowMenu(),
+        ],
+      );
+    });
+  }
+
+  @override
+  // kToolbarHeight is set to 56.0 in the framework.
+  Size get preferredSize => bottom == null
+      ? const Size(double.infinity, 56.0)
+      : const Size(double.infinity, 112.0);
+}
+
+class EditorWithButtons extends StatelessWidget {
+  const EditorWithButtons({
+    super.key,
+    required this.appModel,
+    required this.appServices,
+    required this.onFormat,
+    required this.onCompileAndRun,
+  });
+
+  final AppModel appModel;
+  final AppServices appServices;
+  final VoidCallback onFormat;
+  final VoidCallback onCompileAndRun;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: SectionWidget(
+            child: Stack(
+              children: [
+                EditorWidget(
+                  appModel: appModel,
+                  appServices: appServices,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    // We use explicit directionality here in order to have the
+                    // format and run buttons on the right hand side of the
+                    // editing area.
+                    textDirection: TextDirection.ltr,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Format action
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.formattingBusy,
+                        builder: (_, bool value, __) {
+                          return PointerInterceptor(
+                            child: MiniIconButton(
+                              icon: Icons.format_align_left,
+                              tooltip: 'Format',
+                              small: true,
+                              onPressed: value ? null : onFormat,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: defaultSpacing),
+                      // Run action
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.compilingBusy,
+                        builder: (_, bool value, __) {
+                          return PointerInterceptor(
+                            child: RunButton(
+                              onPressed: value ? null : onCompileAndRun,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.bottomRight,
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: StatusWidget(
+                    status: appModel.editorStatus,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        ValueListenableBuilder<List<AnalysisIssue>>(
+          valueListenable: appModel.analysisIssues,
+          builder: (context, issues, _) {
+            return ProblemsTableWidget(problems: issues);
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class StatusLineWidget extends StatelessWidget {
   const StatusLineWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final textColor = colorScheme.onPrimaryContainer;
 
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.dividerColor,
+        color: theme.colorScheme.surface,
       ),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,
@@ -560,26 +747,20 @@ class StatusLineWidget extends StatelessWidget {
           Tooltip(
             message: 'Keyboard shortcuts',
             waitDuration: tooltipDelay,
-            child: IconButton(
-              icon: const Icon(Icons.keyboard),
-              iconSize: smallIconSize,
-              splashRadius: defaultIconSize,
-              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-              padding: const EdgeInsets.all(2),
-              visualDensity: VisualDensity.compact,
-              onPressed: () {
-                showDialog<void>(
-                  context: context,
-                  builder: (context) {
-                    return MediumDialog(
-                      title: 'Keyboard shortcuts',
-                      smaller: true,
-                      child: KeyBindingsTable(bindings: keys.keyBindings),
-                    );
-                  },
-                );
-              },
-              color: textColor,
+            child: TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (context) => MediumDialog(
+                  title: 'Keyboard shortcuts',
+                  smaller: true,
+                  child: KeyBindingsTable(bindings: keys.keyBindings),
+                ),
+              ),
+              child: Icon(
+                Icons.keyboard,
+                color: Theme.of(context).colorScheme.onPrimary,
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(width: defaultSpacing),
@@ -613,10 +794,7 @@ class StatusLineWidget extends StatelessWidget {
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: defaultSpacing),
-          const SizedBox(
-            height: 26,
-            child: SelectChannelWidget(),
-          ),
+          const SizedBox(height: 26, child: SelectChannelWidget()),
         ],
       ),
     );
@@ -664,121 +842,109 @@ class SectionWidget extends StatelessWidget {
 
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
+  final bool smallIcon;
+
+  static const _menuItems = [
+    (
+      label: 'Dart snippet',
+      icon: Logo(type: 'dart'),
+      kind: 'dart',
+    ),
+    (
+      label: 'Flutter snippet',
+      icon: Logo(type: 'flutter'),
+      kind: 'flutter',
+    ),
+  ];
 
   const NewSnippetWidget({
     required this.appServices,
+    this.smallIcon = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.add_circle),
-        label: const Text('New'),
-        onPressed: () async {
-          final selection =
-              await _showMenu(context, calculatePopupMenuPosition(context));
-          if (selection != null) {
-            _handleSelection(appServices, selection);
-          }
-        },
-      ),
-    );
-  }
-
-  Future<bool?> _showMenu(BuildContext context, RelativeRect position) {
-    return showMenu<bool>(
-      context: context,
-      position: position,
-      items: <PopupMenuEntry<bool>>[
-        PopupMenuItem(
-          value: true,
-          child: PointerInterceptor(
-            child: ListTile(
-              leading: dartLogo(),
-              title: const Text('New Dart snippet'),
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.add_circle),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.add_circle),
+          label: const Text('New'),
+        );
+      },
+      menuChildren: [
+        for (final item in _menuItems)
+          PointerInterceptor(
+            child: MenuItemButton(
+              leadingIcon: item.icon,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 32),
+                child: Text(item.label),
+              ),
+              onPressed: () => appServices.resetTo(type: item.kind),
             ),
-          ),
-        ),
-        PopupMenuItem(
-          value: false,
-          child: PointerInterceptor(
-            child: ListTile(
-              leading: flutterLogo(),
-              title: const Text('New Flutter snippet'),
-            ),
-          ),
-        ),
+          )
       ],
     );
-  }
-
-  void _handleSelection(AppServices appServices, bool dartSample) {
-    appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
   }
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  const ListSamplesWidget({
-    super.key,
-  });
+  final bool smallIcon;
+  const ListSamplesWidget({this.smallIcon = false, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: toolbarItemHeight,
-      child: TextButton.icon(
-        icon: const Icon(Icons.playlist_add_outlined),
-        label: const Text('Samples'),
-        onPressed: () async {
-          final selection =
-              await _showMenu(context, calculatePopupMenuPosition(context));
-          if (selection != null && context.mounted) {
-            _handleSelection(context, selection);
-          }
-        },
-      ),
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        if (smallIcon) {
+          return IconButton(
+            icon: const Icon(Icons.playlist_add_outlined),
+            onPressed: () => controller.toggleMenuState(),
+          );
+        }
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.playlist_add_outlined),
+          label: const Text('Samples'),
+        );
+      },
+      menuChildren: _buildMenuItems(context),
     );
   }
 
-  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    final categories = Samples.categories.keys;
-
-    final menuItems = <PopupMenuEntry<String?>>[
-      for (final category in categories) ...[
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: null,
-          enabled: false,
-          child: PointerInterceptor(
-            child: ListTile(title: Text(category)),
+  List<Widget> _buildMenuItems(BuildContext context) {
+    final menuItems = [
+      for (final MapEntry(key: category, value: samples)
+          in Samples.categories.entries) ...[
+        MenuItemButton(
+          onPressed: null,
+          child: Text(
+            category,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
-        ...Samples.categories[category]!.map((sample) {
-          return PopupMenuItem(
-            value: sample.id,
-            child: PointerInterceptor(
-              child: ListTile(
-                leading: sample.isDart ? dartLogo() : flutterLogo(),
-                title: Text(sample.name),
-              ),
+        for (final sample in samples)
+          MenuItemButton(
+            leadingIcon: Logo(type: sample.icon),
+            onPressed: () =>
+                GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 32),
+              child: Text(sample.name),
             ),
-          );
-        }),
-      ],
+          ),
+      ]
     ];
 
-    return showMenu<String?>(
-      context: context,
-      position: position,
-      items: menuItems.skip(1).toList(),
-    );
-  }
-
-  void _handleSelection(BuildContext context, String sampleId) {
-    GoRouter.of(context).replaceQueryParam('sample', sampleId);
+    return menuItems.map((e) => PointerInterceptor(child: e)).toList();
   }
 }
 
@@ -790,58 +956,35 @@ class SelectChannelWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appServices = Provider.of<AppServices>(context);
+    final channels = Channel.valuesWithoutLocalhost;
 
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
-      builder: (context, Channel value, _) {
-        return SizedBox(
-          height: toolbarItemHeight,
-          child: TextButton.icon(
+      builder: (context, Channel value, _) => MenuAnchor(
+        builder: (context, MenuController controller, Widget? child) {
+          return TextButton.icon(
+            onPressed: () => controller.toggleMenuState(),
             icon: const Icon(Icons.tune, size: smallIconSize),
-            label: Container(
-              constraints: const BoxConstraints(minWidth: 95),
-              child: Text('${value.displayName} channel'),
+            label: Text('${value.displayName} channel'),
+          );
+        },
+        menuChildren: [
+          for (final channel in channels)
+            PointerInterceptor(
+              child: MenuItemButton(
+                onPressed: () => _onTap(context, channel),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                  child: Text('${channel.displayName} channel'),
+                ),
+              ),
             ),
-            onPressed: () async {
-              final selection = await _showMenu(
-                context,
-                calculatePopupMenuPosition(context, growUpwards: true),
-                value,
-              );
-              if (selection != null && context.mounted) {
-                _handleSelection(context, selection);
-              }
-            },
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Future<Channel?> _showMenu(
-      BuildContext context, RelativeRect position, Channel current) {
-    const itemHeight = 46.0;
-
-    final menuItems = <PopupMenuEntry<Channel>>[
-      for (final channel in Channel.valuesWithoutLocalhost)
-        PopupMenuItem<Channel>(
-          value: channel,
-          child: PointerInterceptor(
-            child: ListTile(
-              title: Text(channel.displayName),
-            ),
-          ),
-        )
-    ];
-
-    return showMenu<Channel>(
-      context: context,
-      position: position.shift(Offset(0, -1 * menuItems.length * itemHeight)),
-      items: menuItems,
-    );
-  }
-
-  void _handleSelection(BuildContext context, Channel channel) async {
+  void _onTap(BuildContext context, Channel channel) async {
     final appServices = Provider.of<AppServices>(context, listen: false);
 
     // update the url
@@ -859,65 +1002,52 @@ class SelectChannelWidget extends StatelessWidget {
 class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
+  static const _menuItems = [
+    (
+      label: 'dart.dev',
+      uri: 'https://dart.dev',
+    ),
+    (
+      label: 'flutter.dev',
+      uri: 'https://flutter.dev',
+    ),
+    (
+      label: 'Sharing guide',
+      uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
+    ),
+    (
+      label: 'DartPad on GitHub',
+      uri: 'https://github.com/dart-lang/dart-pad',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.more_vert),
-      splashRadius: defaultSplashRadius,
-      onPressed: () async {
-        final selection =
-            await _showMenu(context, calculatePopupMenuPosition(context));
-        if (selection != null) {
-          url_launcher.launchUrl(Uri.parse(selection));
-        }
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return IconButton(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.more_vert),
+        );
       },
+      menuChildren: [
+        for (final item in _menuItems)
+          PointerInterceptor(
+            child: MenuItemButton(
+              trailingIcon: const Icon(Icons.launch),
+              onPressed: () => _onSelected(context, item.uri),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                child: Text(item.label),
+              ),
+            ),
+          )
+      ],
     );
   }
 
-  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    return showMenu<String?>(
-      context: context,
-      position: position,
-      items: <PopupMenuEntry<String?>>[
-        PopupMenuItem(
-          value: 'https://dart.dev',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('dart.dev'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'https://flutter.dev',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('flutter.dev'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('Sharing guide'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-        PopupMenuItem(
-          value: 'https://github.com/dart-lang/dart-pad',
-          child: PointerInterceptor(
-            child: const ListTile(
-              title: Text('DartPad on GitHub'),
-              trailing: Icon(Icons.launch),
-            ),
-          ),
-        ),
-      ],
-    );
+  void _onSelected(BuildContext context, String uri) {
+    url_launcher.launchUrl(Uri.parse(uri));
   }
 }
 
@@ -1034,5 +1164,15 @@ class _BrightnessButton extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+extension MenuControllerToggleMenu on MenuController {
+  void toggleMenuState() {
+    if (isOpen) {
+      close();
+    } else {
+      open();
+    }
   }
 }

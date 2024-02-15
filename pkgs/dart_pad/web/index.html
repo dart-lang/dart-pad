@@ -78,9 +78,7 @@
             Install SDK
         </button>
     </div>
-    <div id="header-name-holder"><div class="header-gist-name"></div>
-        <span id="unsaved-local-edit" title="Login to GitHub to save as gist" hidden>local edits</span>
-        <span id="gist_star_button" title="Star this gist" hidden><i id="gist_star_inner_icon" class="material-icons mdc-button__icon" aria-hidden="true">star_outline</i></span></div>
+    <div id="header-name-holder"><div class="header-gist-name"></div></div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
@@ -105,65 +103,9 @@
         <div id="my-gists-menu" class="mdc-menu mdc-menu-surface"></div>
     </div>
     <div>
-        <button id="github-menu-button" class="github-menu-icon mdc-icon-button">
+        <a id="github-menu-button" class="github-menu-icon mdc-icon-button" title="Sharing in the DartPad UI is no longer supported." href="https://github.com/dart-lang/dart-pad/wiki/Sharing-guide#share-within-dartpad">
             <img id="github-avatar"/>
-        </button>
-        <div id="github-menu" class="mdc-menu mdc-menu-surface">
-            <ul class="mdc-list" role="menu" aria-hidden="true"
-                aria-orientation="vertical" tabindex="-1">
-                <li id="logged_in_as" hidden>
-                    <span id="logged_in_as_text">Logged in as XXXX</span>
-                </li>
-                <li id="github-login-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">login</i>
-                    </span>
-                    <span class="mdc-list-item__text">Login to Github</span>
-                </li>
-                <li id="github-createpublic-item" class="mdc-list-item" role="menuitem" title="Existing Gists must be forked or made private.">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
-                    </span>
-                    <span class="mdc-list-item__text">Create Public Gist</span>
-                </li>
-                <li id="github-createprivate-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
-                    </span>
-                    <span class="mdc-list-item__text">Create Private Gist</span>
-                </li>
-                <li id="github-fork-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">fork_right</i>
-                    </span>
-                    <span class="mdc-list-item__text">Fork Gist</span>
-                </li>
-                <li id="github-update-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">sync</i>
-                    </span>
-                    <span class="mdc-list-item__text">Update Gist</span>
-                </li>
-                <li id="github-star-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">star_outline</i>
-                    </span>
-                    <span class="mdc-list-item__text">Star Gist</span>
-                </li>
-                <li id="github-open-on-github-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">open_in_new</i>
-                    </span>
-                    <span class="mdc-list-item__text">Open Gist on GitHub</span>
-                </li>
-                <li id="github-logout-item" class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">logout</i>
-                    </span>
-                    <span class="mdc-list-item__text">Logout</span>
-                </li>
-            </ul>
-        </div>
+        </a>
     </div>
     <div>
         <button id="more-menu-button" class="mdc-icon-button material-icons">
@@ -443,18 +385,6 @@
                         <img src="pictures/logo_dart.png" alt="Dart logo"/>
                         <span>Dart</span>
                     </div>
-                    <div id="new-pad-html-switch" class="mdc-switch">
-                        <div class="mdc-switch__track"></div>
-                        <div class="mdc-switch__thumb-underlay">
-                            <div class="mdc-switch__thumb">
-                                <input type="checkbox"
-                                        id="new-pad-html-switch-control"
-                                        class="mdc-switch__native-control"
-                                        role="switch">
-                            </div>
-                        </div>
-                    </div>
-                    <label for="new-pad-html-switch">HTML</label>
                 </div>
                 <div class="divider"></div>
                 <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary" role="button" tabindex="0">

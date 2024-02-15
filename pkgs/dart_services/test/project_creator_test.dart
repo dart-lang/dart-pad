@@ -10,7 +10,7 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 void main() => defineTests();
 
 void defineTests() {
-  final sdk = Sdk();
+  final sdk = Sdk.fromLocalFlutter();
 
   final languageVersion = sdk.dartVersion;
 
@@ -63,12 +63,12 @@ void defineTests() {
         ]).validate();
       });
 
-      test('recommended lints are enabled', () async {
+      test('core lints are enabled', () async {
         await d.dir('project_templates', [
           d.dir('dart_project', [
             d.file(
               'analysis_options.yaml',
-              matches('include: package:lints/recommended.yaml'),
+              matches('include: package:lints/core.yaml'),
             ),
           ]),
         ]).validate();
@@ -77,8 +77,7 @@ void defineTests() {
 
     group('flutter', () {
       setUpAll(() async {
-        await (await projectCreator())
-            .buildFlutterProjectTemplate(firebaseStyle: FirebaseStyle.none);
+        await (await projectCreator()).buildFlutterProjectTemplate();
       });
 
       test('project directory is created', () async {
@@ -116,12 +115,12 @@ void defineTests() {
         ]).validate();
       });
 
-      test('flutter lints are enabled', () async {
+      test('core lints are enabled', () async {
         await d.dir('project_templates', [
           d.dir('flutter_project', [
             d.file(
               'analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml'),
+              matches('include: package:lints/core.yaml'),
             ),
           ]),
         ]).validate();
@@ -132,94 +131,8 @@ void defineTests() {
           d.dir('flutter_project/lib', [
             d.file(
               'generated_plugin_registrant.dart',
-              matches('FirebaseCoreWeb.registerWith'),
+              matches('package:flutter_web_plugins/'),
             ),
-          ]),
-        ]).validate();
-      });
-    });
-
-    group('firebase', () {
-      setUpAll(() async {
-        await (await projectCreator()).buildFlutterProjectTemplate(
-            firebaseStyle: FirebaseStyle.flutterFire);
-      });
-
-      test('project directory is created', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project'),
-        ]).validate();
-      });
-
-      test('Flutter Web directories are created', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [
-            d.dir('lib'),
-            d.dir('web', [d.file('index.html', isEmpty)]),
-          ])
-        ]).validate();
-      });
-
-      test('pubspec is created', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [
-            d.file(
-              'pubspec.yaml',
-              allOf([
-                contains('sdk: ^$languageVersion'),
-                matches('sdk: flutter'),
-              ]),
-            ),
-          ]),
-        ]).validate();
-      });
-
-      test('pub get creates pubspec.lock', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [d.file('pubspec.lock', isNotEmpty)]),
-        ]).validate();
-      });
-
-      test('flutter lints are enabled', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [
-            d.file(
-              'analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml'),
-            ),
-          ]),
-        ]).validate();
-      });
-
-      test('generated_plugin_registrant.dart is created', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [
-            d.dir('lib', [
-              d.file(
-                'generated_plugin_registrant.dart',
-                isNotEmpty,
-              ),
-            ]),
-          ]),
-        ]).validate();
-      });
-
-      test('plugins are registered', () async {
-        await d.dir('project_templates', [
-          d.dir('firebase_project', [
-            d.dir('lib', [
-              d.file(
-                'generated_plugin_registrant.dart',
-                allOf([
-                  matches('FirebaseFirestoreWeb.registerWith'),
-                  matches('FirebaseAnalyticsWeb.registerWith'),
-                  matches('FirebaseCoreWeb.registerWith'),
-                  matches('FirebaseDatabaseWeb.registerWith'),
-                  matches('FirebaseMessagingWeb.registerWith'),
-                  matches('FirebaseStorageWeb.registerWith'),
-                ]),
-              ),
-            ]),
           ]),
         ]).validate();
       });

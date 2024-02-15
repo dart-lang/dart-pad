@@ -107,7 +107,11 @@ class RunButton extends StatelessWidget {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
           backgroundColor: MaterialStateProperty.resolveWith(
             (states) {
-              return const Color(0xFF168afd);
+              if (states.contains(MaterialState.disabled)) {
+                return runButtonColor.withOpacity(0.4);
+              }
+
+              return runButtonColor;
             },
           ),
         ),
@@ -242,5 +246,24 @@ class GoldenRatioCenter extends StatelessWidget {
       alignment: const Alignment(0.0, -(1.618 / 4)),
       child: child,
     );
+  }
+}
+
+final class Logo extends StatelessWidget {
+  final String? _type;
+  final double width;
+
+  const Logo({super.key, this.width = defaultIconSize, String? type})
+      : _type = type;
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = switch (_type) {
+      'flutter' => 'assets/flutter_logo_192.png',
+      'flame' => 'assets/flame_logo_192.png',
+      'gemini' => 'assets/gemini_sparkle_192.png',
+      _ => 'assets/dart_logo_192.png',
+    };
+    return Image.asset(assetPath, width: width);
   }
 }

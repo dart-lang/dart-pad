@@ -29,7 +29,6 @@ import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'elements/tab_expand_controller.dart';
-import 'github.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -84,8 +83,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   bool _rightSplitterConfigured = false;
   TabExpandController? _tabExpandController;
 
-  late GitHubUIController _githubUIController;
-
   @override
   late PlaygroundContext context;
   Layout? _layout;
@@ -110,8 +107,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _checkLocalStorage();
     _initPlayground();
     _initBusyLights();
-
-    _githubUIController = GitHubUIController(this);
 
     _initGistNameHeader();
     _initGistStorage();
@@ -737,8 +732,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       return;
     }
 
-    _githubUIController.hideGistStarredButton();
-
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     var loadedFromSaved = false;
@@ -769,8 +762,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
           _editableGist.getGistFile(file.name).content = file.content;
         }
       }
-
-      _githubUIController.getStarReportOnLoadingGist(gistId);
 
       clearOutput();
 
@@ -831,9 +822,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   @override
   bool get shouldCompileDDC => hasFlutterContent(context.dartSource);
-
-  @override
-  bool get shouldAddFirebaseJs => hasFirebaseContent(context.dartSource);
 
   void _handleSave() => ga.sendEvent('main', 'save');
 
@@ -1079,26 +1067,23 @@ class NewPadDialog {
   final MDCRipple _dartButton;
   final MDCRipple _flutterButton;
   final MDCButton _cancelButton;
-  final MDCSwitch _htmlSwitch;
 
   NewPadDialog()
       : assert(querySelector('#new-pad-dialog') != null),
         assert(querySelector('#new-pad-select-dart') != null),
         assert(querySelector('#new-pad-select-flutter') != null),
         assert(querySelector('#new-pad-cancel-button') != null),
-        assert(querySelector('#new-pad-html-switch') != null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')!),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')!),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')!),
         _cancelButton =
-            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
-        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch'));
+            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement);
 
   Future<Layout?> show() {
     final completer = Completer<Layout?>();
 
     void completeDart() {
-      completer.complete(_htmlSwitch.checked! ? Layout.html : Layout.dart);
+      completer.complete(Layout.dart);
     }
 
     final dartSub = _dartButton.root.onClick.listen((_) {

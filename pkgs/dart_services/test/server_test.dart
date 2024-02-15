@@ -19,7 +19,7 @@ void defineTests() {
     late final ServicesClient client;
 
     setUpAll(() async {
-      sdk = Sdk();
+      sdk = Sdk.fromLocalFlutter();
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
       httpClient = Client();
@@ -111,6 +111,22 @@ void main() => print('hello world');
       expect(issue.kind, 'warning');
       expect(
           issue.message, contains("Unsupported package: 'package:foo_bar'."));
+      expect(issue.location.line, 1);
+    });
+
+    test('analyze firebase import', () async {
+      final result = await client.analyze(SourceRequest(source: r'''
+import 'package:firebase_core/firebase_core.dart';
+
+void main() => print('hello world');
+'''));
+
+      expect(result.issues, isNotEmpty);
+
+      final issue = result.issues.first;
+      expect(issue.kind, 'warning');
+      expect(issue.message,
+          contains('Firebase is no longer supported by DartPad.'));
       expect(issue.location.line, 1);
     });
 
