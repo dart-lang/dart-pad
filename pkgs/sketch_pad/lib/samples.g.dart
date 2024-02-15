@@ -224,7 +224,6 @@ void main() {
 
 class SunflowerPainter extends CustomPainter {
   static const seedRadius = 2.0;
-  static const scaleFactor = 4;
   static const tau = math.pi * 2;
 
   static final phi = (math.sqrt(5) + 1) / 2;
@@ -235,13 +234,16 @@ class SunflowerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = size.width / 2;
+    final scaleFactor = 4 * size.shortestSide / 400;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
 
     for (var i = 0; i < seeds; i++) {
       final theta = i * tau / phi;
       final r = math.sqrt(i) * scaleFactor;
-      final x = center + r * math.cos(theta);
-      final y = center - r * math.sin(theta);
+      final x = centerX + r * math.cos(theta);
+      final y = centerY - r * math.sin(theta);
       final offset = Offset(x, y);
       if (!size.contains(offset)) {
         continue;
@@ -314,9 +316,7 @@ class _SunflowerState extends State<Sunflower> {
         body: Container(
           constraints: const BoxConstraints.expand(),
           decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.transparent,
-            ),
+            border: Border.all(color: Colors.transparent),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -324,17 +324,18 @@ class _SunflowerState extends State<Sunflower> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.transparent,
-                  ),
+                  border: Border.all(color: Colors.transparent),
                 ),
-                child: SizedBox(
-                  width: 400,
-                  height: 400,
-                  child: CustomPaint(
-                    painter: SunflowerPainter(seedCount),
-                  ),
-                ),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final width = constraints.maxWidth * 2 / 3;
+                  return SizedBox(
+                    width: width,
+                    height: width * 3 / 4,
+                    child: CustomPaint(
+                      painter: SunflowerPainter(seedCount),
+                    ),
+                  );
+                }),
               ),
               Text('Showing $seedCount seeds'),
               ConstrainedBox(
