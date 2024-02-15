@@ -316,10 +316,28 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           appBar: widget.embedMode
               ? TabBar(
                   controller: tabController,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.code)),
-                    Tab(icon: Icon(Icons.phone_android)),
-                    Tab(icon: Icon(Icons.terminal)),
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.code),
+                      child: Semantics(
+                        label: 'Dart Code',
+                        child: Text('Code'),
+                      ),
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.phone_android),
+                      child: Semantics(
+                        label: 'UI Output',
+                        child: Text('UI Output'),
+                      ),
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.terminal),
+                      child: Semantics(
+                        label: 'Console Output',
+                        child: Text('Console Output'),
+                      ),
+                    ),
                   ],
                 )
               : DartPadAppBar(
