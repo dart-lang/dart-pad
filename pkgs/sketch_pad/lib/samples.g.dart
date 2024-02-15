@@ -967,7 +967,7 @@ class _SunflowerState extends State<Sunflower> {
             Container(
               constraints: const BoxConstraints.tightFor(width: 300),
               padding: const EdgeInsets.only(bottom: 12),
-              child: Slider.adaptive(
+              child: Slider(
                 min: 20,
                 max: 2000,
                 value: seeds,
