@@ -248,3 +248,22 @@ class GoldenRatioCenter extends StatelessWidget {
     );
   }
 }
+
+final class Logo extends StatelessWidget {
+  final String? _type;
+  final double width;
+
+  const Logo({super.key, this.width = defaultIconSize, String? type})
+      : _type = type;
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = switch (_type) {
+      'flutter' => 'assets/flutter_logo_192.png',
+      'flame' => 'assets/flame_logo_192.png',
+      'gemini' => 'assets/gemini_sparkle_192.png',
+      _ => 'assets/dart_logo_192.png',
+    };
+    return Image.asset(assetPath, width: width);
+  }
+}

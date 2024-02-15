@@ -46,7 +46,7 @@
   "glob": "2.1.2",
   "go_router": "13.2.0",
   "google_fonts": "6.1.0",
-  "google_generative_ai": "0.1.0",
+  "google_generative_ai": "0.2.0",
   "hooks_riverpod": "2.4.10",
   "html": "0.15.4",
   "http": "1.2.0",
