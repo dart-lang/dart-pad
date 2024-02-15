@@ -6,8 +6,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-const Color primaryColor = Colors.orange;
-
 void main() {
   runApp(const Sunflower());
 }
@@ -30,28 +28,18 @@ class _SunflowerState extends State<Sunflower> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData().copyWith(
-        platform: TargetPlatform.android,
-        brightness: Brightness.dark,
-        sliderTheme: SliderThemeData.fromPrimaryColors(
-          primaryColor: primaryColor,
-          primaryColorLight: primaryColor,
-          primaryColorDark: primaryColor,
-          valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
-        ),
-      ),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Sunflower'),
         ),
         drawer: Drawer(
           child: ListView(
-            children: const [
+            children: [
               DrawerHeader(
                 child: Center(
                   child: Text(
-                    'Sunflower 🌻',
-                    style: TextStyle(fontSize: 32),
+                    'Sunflower',
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ),
               ),
@@ -72,8 +60,9 @@ class _SunflowerState extends State<Sunflower> {
               }),
             ),
             Text('Showing $seedCount seeds'),
-            ConstrainedBox(
+            Container(
               constraints: const BoxConstraints.tightFor(width: 300),
+              padding: const EdgeInsets.only(bottom: 12),
               child: Slider.adaptive(
                 min: 20,
                 max: 2000,
@@ -93,9 +82,10 @@ class _SunflowerState extends State<Sunflower> {
 }
 
 class SunflowerPainter extends CustomPainter {
-  static const seedRadius = 2.0;
-  static const tau = math.pi * 2;
-  static final phi = (math.sqrt(5) + 1) / 2;
+  static const Color primaryColor = Colors.orange;
+  static const double seedRadius = 2.0;
+  static const double tau = math.pi * 2;
+  static final double phi = (math.sqrt(5) + 1) / 2;
 
   final int seeds;
 
@@ -126,8 +116,8 @@ class SunflowerPainter extends CustomPainter {
     return oldDelegate.seeds != seeds;
   }
 
-  // Draw a small circle representing a seed centered at (x,y).
   void drawSeed(Canvas canvas, double x, double y) {
+    // Draw a small circle representing a seed centered at (x,y).
     final paint = Paint()
       ..strokeWidth = 2
       ..style = PaintingStyle.fill
