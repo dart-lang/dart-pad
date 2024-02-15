@@ -1,5 +1,5 @@
 steps:
-  - name: gcr.io/$PROJECT_ID/flutter:stable
+  - name: gcr.io/$PROJECT_ID/flutter:main
     args: ['build', 'web']
     dir: pkgs/sketch_pad
   - name: gcr.io/$PROJECT_ID/firebase
