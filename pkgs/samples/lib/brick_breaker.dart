@@ -99,7 +99,7 @@ class BrickBreaker extends FlameGame
 
   void startGame() {
     world.removeAll(world.children.query<Ball>());
-    world.removeAll(world.children.query<Bat>());
+    world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
 
     world.add(Ball(
@@ -107,12 +107,12 @@ class BrickBreaker extends FlameGame
       radius: ballRadius,
       position: size / 2,
       velocity:
-          Vector2((rand.nextDouble() - 0.5) * width, height * 0.2).normalized()
+          Vector2((rand.nextDouble() - 0.5) * width, height * 0.3).normalized()
             ..scale(height / 4),
     ));
 
-    world.add(Bat(
-      size: Vector2(batWidth, batHeight),
+    world.add(Paddle(
+      size: Vector2(paddleWidth, paddleHeight),
       cornerRadius: const Radius.circular(ballRadius / 2),
       position: Vector2(width / 2, height * 0.95),
     ));
@@ -141,12 +141,6 @@ class BrickBreaker extends FlameGame
       RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     super.onKeyEvent(event, keysPressed);
     switch (event.logicalKey) {
-      case LogicalKeyboardKey.arrowLeft:
-      case LogicalKeyboardKey.keyA:
-        world.children.query<Bat>().first.moveBy(-batStep);
-      case LogicalKeyboardKey.keyD:
-      case LogicalKeyboardKey.arrowRight:
-        world.children.query<Bat>().first.moveBy(batStep);
       case LogicalKeyboardKey.space:
       case LogicalKeyboardKey.enter:
         startGame();
@@ -201,7 +195,7 @@ class Ball extends CircleComponent
           },
         ));
       }
-    } else if (other is Bat) {
+    } else if (other is Paddle) {
       velocity.y = -velocity.y;
       velocity.x = velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
@@ -220,9 +214,9 @@ class Ball extends CircleComponent
   }
 }
 
-class Bat extends PositionComponent
-    with DragCallbacks, HasGameReference<BrickBreaker> {
-  Bat({
+class Paddle extends PositionComponent
+    with DragCallbacks, HasGameReference<BrickBreaker>, KeyboardHandler {
+  Paddle({
     required this.cornerRadius,
     required super.position,
     required super.size,
@@ -233,6 +227,22 @@ class Bat extends PositionComponent
   final _paint = Paint()
     ..color = const Color(0xff1e6091)
     ..style = PaintingStyle.fill;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA)) {
+      position.x =
+          (position.x - (dt * 500)).clamp(width / 2, game.width - width / 2);
+    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+        keysPressed.contains(LogicalKeyboardKey.keyD)) {
+      position.x =
+          (position.x + (dt * 500)).clamp(width / 2, game.width - width / 2);
+    }
+  }
 
   @override
   void render(Canvas canvas) {
@@ -252,16 +262,6 @@ class Bat extends PositionComponent
     super.onDragUpdate(event);
     position.x = (position.x + event.localDelta.x)
         .clamp(width / 2, game.width - width / 2);
-  }
-
-  void moveBy(double dx) {
-    add(MoveToEffect(
-      Vector2(
-        (position.x + dx).clamp(width / 2, game.width - width / 2),
-        position.y,
-      ),
-      EffectController(duration: 0.1),
-    ));
   }
 }
 
@@ -316,9 +316,9 @@ const brickColors = [
 const gameWidth = 820.0;
 const gameHeight = 1600.0;
 const ballRadius = gameWidth * 0.02;
-const batWidth = gameWidth * 0.2;
-const batHeight = ballRadius * 2;
-const batStep = gameWidth * 0.05;
+const paddleWidth = gameWidth * 0.2;
+const paddleHeight = ballRadius * 2;
+const paddleStep = gameWidth * 0.05;
 const brickGutter = gameWidth * 0.015;
 final brickWidth =
     (gameWidth - (brickGutter * (brickColors.length + 1))) / brickColors.length;
