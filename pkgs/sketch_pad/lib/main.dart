@@ -238,6 +238,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
     tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
+        // Rebuild when the user changes tabs so that the IndexedStack updates
+        // its active child view.
         setState(() {});
       });
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
@@ -308,6 +310,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         );
     final scaffold =
         LayoutBuilder(builder: (context, BoxConstraints constraints) {
+      // Use the mobile UI layout for small screen widths.
       if (constraints.maxWidth <= smallScreenWidth) {
         return Scaffold(
           appBar: widget.embedMode
@@ -555,6 +558,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               Text(appName,
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface)),
+              // Hide new snippet buttons when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth) ...[
                 const SizedBox(width: defaultSpacing * 4),
                 NewSnippetWidget(appServices: appServices),
@@ -562,7 +566,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ListSamplesWidget(),
               ],
               const SizedBox(width: defaultSpacing),
-              // title widget
+              // Hide the snippet title when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth)
                 Expanded(
                   child: Center(
@@ -577,7 +581,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         actions: [
-          // install sdk
+          // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
             TextButton(
               onPressed: () {
@@ -640,9 +644,9 @@ class EditorWithButtons extends StatelessWidget {
                   padding: const EdgeInsets.all(denseSpacing),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    // We use explicit directionality here in
-                    // order to have the format and run buttons on
-                    // the right hand side of the editing area.
+                    // We use explicit directionality here in order to have the
+                    // format and run buttons on the right hand side of the
+                    // editing area.
                     textDirection: TextDirection.ltr,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
