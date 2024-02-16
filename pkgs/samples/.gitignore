@@ -21,6 +21,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# ios simulator / flutter dir
+ios/
+
 # Symbolication related
 app.*.symbols
 

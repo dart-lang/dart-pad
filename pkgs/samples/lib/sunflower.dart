@@ -6,6 +6,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+const double maxSeeds = 1000;
+
 void main() {
   runApp(const Sunflower());
 }
@@ -20,17 +22,20 @@ class Sunflower extends StatefulWidget {
 }
 
 class _SunflowerState extends State<Sunflower> {
-  double seeds = 100.0;
-
-  int get seedCount => seeds.floor();
+  double seeds = maxSeeds / 2;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        appBarTheme: const AppBarTheme(elevation: 2),
+      ),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Sunflower'),
+          elevation: 2,
         ),
         body: Column(
           children: [
@@ -40,23 +45,21 @@ class _SunflowerState extends State<Sunflower> {
                   width: constraints.maxWidth,
                   height: constraints.maxHeight,
                   child: CustomPaint(
-                    painter: SunflowerPainter(seedCount),
+                    painter: SunflowerPainter(seeds.round()),
                   ),
                 );
               }),
             ),
-            Text('Showing $seedCount seeds'),
+            Text('Showing ${seeds.round()} seeds'),
             Container(
               constraints: const BoxConstraints.tightFor(width: 300),
               padding: const EdgeInsets.only(bottom: 12),
               child: Slider(
-                min: 20,
-                max: 2000,
+                min: 1,
+                max: maxSeeds,
                 value: seeds,
                 onChanged: (newValue) {
-                  setState(() {
-                    seeds = newValue;
-                  });
+                  setState(() => seeds = newValue);
                 },
               ),
             ),
@@ -69,7 +72,7 @@ class _SunflowerState extends State<Sunflower> {
 
 class SunflowerPainter extends CustomPainter {
   static const Color primaryColor = Colors.orange;
-  static const double seedRadius = 2.0;
+  static const double seedRadius = 2;
   static const double tau = math.pi * 2;
   static final double phi = (math.sqrt(5) + 1) / 2;
 
@@ -79,21 +82,18 @@ class SunflowerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scaleFactor = 4 * size.shortestSide / 400;
-
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
+    final scaleFactor = 5 * size.shortestSide / 375;
+    final center = size.center(Offset.zero);
 
     for (var i = 0; i < seeds; i++) {
       final theta = i * tau / phi;
       final r = math.sqrt(i) * scaleFactor;
-      final x = centerX + r * math.cos(theta);
-      final y = centerY - r * math.sin(theta);
-      final offset = Offset(x, y);
-      if (!size.contains(offset)) {
-        continue;
-      }
-      drawSeed(canvas, x, y);
+
+      drawSeed(
+        canvas,
+        center.dx + r * math.cos(theta),
+        center.dy - r * math.sin(theta),
+      );
     }
   }
 
