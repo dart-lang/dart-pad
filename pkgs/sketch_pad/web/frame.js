@@ -31,10 +31,9 @@ function runFlutterApp(compiledScript) {
   var url = URL.createObjectURL(blob);
   _flutter.loader.loadEntrypoint({
     entrypointUrl: url,
-    onEntrypointLoaded: function(engineInitializer) {
-      engineInitializer.initializeEngine().then(function(appRunner) {
-        appRunner.runApp();
-      });
+    onEntrypointLoaded: async function(engineInitializer) {
+      let appRunner = await engineInitializer.initializeEngine();
+      appRunner.runApp();
     }
   });
 }
