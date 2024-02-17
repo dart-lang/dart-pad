@@ -173,6 +173,21 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         (CodeMirror editor, [HintOptions? options]) {
           return options!.results;
         }.toJS);
+
+    // Listen for document body to be visible, then force a code mirror refresh.
+    final observer = web.IntersectionObserver(
+      (JSArray entries, web.IntersectionObserver observer) {
+        for (final entry in entries.toDart) {
+          if ((entry as web.IntersectionObserverEntry).isIntersecting) {
+            observer.unobserve(web.document.body!);
+            Timer.run(() => codeMirror!.refresh());
+            return;
+          }
+        }
+      }.toJS,
+    );
+
+    observer.observe(web.document.body!);
   }
 
   @override
