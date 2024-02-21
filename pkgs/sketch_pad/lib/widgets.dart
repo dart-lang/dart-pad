@@ -124,7 +124,7 @@ class RunButton extends StatelessWidget {
               size: 20.0,
             ),
             SizedBox(
-              width: 8.0,
+              width: 16.0,
             ),
             Text(
               'Run',
