@@ -15,3 +15,6 @@ build/
 *.pyc
 
 .idea/
+
+# IDE settings
+.vscode/
