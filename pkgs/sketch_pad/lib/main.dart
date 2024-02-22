@@ -143,6 +143,8 @@ class _DartPadAppState extends State<DartPadApp> {
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
           onSurface: Colors.black,
+          // TODO: Migrate to expanded Material 3 color palette.
+          // ignore: deprecated_member_use
           surfaceVariant: lightSurfaceVariantColor,
           onPrimary: lightLinkButtonColor,
         ),
@@ -164,6 +166,8 @@ class _DartPadAppState extends State<DartPadApp> {
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
+          // TODO: Migrate to expanded Material 3 color palette.
+          // ignore: deprecated_member_use
           surfaceVariant: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
