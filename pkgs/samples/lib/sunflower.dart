@@ -6,7 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-const int maxSeeds = 500;
+const int maxSeeds = 250;
 
 void main() {
   runApp(const Sunflower());
@@ -28,7 +28,12 @@ class _SunflowerState extends State<Sunflower> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(brightness: Brightness.dark),
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Sunflower'),
+          elevation: 2,
+        ),
         body: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,8 +65,8 @@ class _SunflowerState extends State<Sunflower> {
 
 class SunflowerWidget extends StatelessWidget {
   static const tau = math.pi * 2;
-  static const scaleFactor = 1 / 64;
-  static const size = 800.0;
+  static const scaleFactor = 1 / 40;
+  static const size = 600.0;
   static final phi = (math.sqrt(5) + 1) / 2;
   static final rng = math.Random();
 
@@ -87,9 +92,9 @@ class SunflowerWidget extends StatelessWidget {
     }
 
     for (var j = seeds; j < maxSeeds; j++) {
-      final index = maxSeeds - j - 1;
-      final x = (index % 80) * 0.025 - 1;
-      final y = 1 - ((index / 80).floor() * 0.025);
+      final x = math.cos(tau * j / (maxSeeds - 1)) * 0.9;
+      final y = math.sin(tau * j / (maxSeeds - 1)) * 0.9;
+
       seedWidgets.add(AnimatedAlign(
         key: ValueKey(j),
         duration: Duration(milliseconds: rng.nextInt(500) + 250),
