@@ -410,6 +410,11 @@ enum Channel {
   static Channel? forName(String name) {
     name = name.trim().toLowerCase();
 
+    // Alias 'master' to 'main'.
+    if (name == 'master') {
+      name = 'main';
+    }
+
     return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
 }
