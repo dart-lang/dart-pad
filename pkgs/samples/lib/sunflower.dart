@@ -27,12 +27,14 @@ class _SunflowerState extends State<Sunflower> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(brightness: Brightness.dark),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        appBarTheme: const AppBarTheme(elevation: 2),
+      ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Sunflower'),
-          elevation: 2,
         ),
         body: Center(
           child: Column(
