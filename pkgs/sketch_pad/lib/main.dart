@@ -164,7 +164,7 @@ class _DartPadAppState extends State<DartPadApp> {
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-         surfaceContainerHighest: Colors.black,
+          surfaceContainerHighest: Colors.black,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
         ),
