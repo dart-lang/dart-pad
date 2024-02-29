@@ -28,17 +28,22 @@ class GistLoader {
 }
 
 class Gist {
+  static const String defaultFileName = 'main.dart';
+
   final String id;
   final String? description;
   final String? owner;
   final List<GistFile> files;
+  final List<String> validationIssues = [];
 
   Gist({
     required this.id,
     required this.description,
     required this.owner,
     required this.files,
-  });
+  }) {
+    _validateGist();
+  }
 
   factory Gist.fromJson(Map<String, dynamic> json) {
 /* {
@@ -80,9 +85,28 @@ class Gist {
   }
 
   String? get mainDartSource {
-    return files
-        .firstWhereOrNull((file) => file.fileName == 'main.dart')
-        ?.content;
+    GistFile? file;
+
+    // First, try and load 'main.dart'.
+    file = files.firstWhereOrNull((file) => file.fileName == defaultFileName);
+
+    // Fall back on the older (unintentional) contention - loading from the
+    // single dart file in a gist.
+    file ??= files.singleWhereOrNull((file) => file.fileName.endsWith('.dart'));
+
+    return file?.content;
+  }
+
+  void _validateGist() {
+    final file =
+        files.singleWhereOrNull((file) => file.fileName.endsWith('.dart'));
+
+    if (file == null) {
+      validationIssues.add('Warning: no Dart file found in the gist');
+    } else if (file.fileName != defaultFileName) {
+      validationIssues.add('Warning: no gist content in $defaultFileName '
+          '(loading from ${file.fileName})');
+    }
   }
 }
 

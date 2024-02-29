@@ -262,6 +262,14 @@ class AppServices {
           appModel.sourceCodeController.text = fallbackSnippet;
         } else {
           appModel.sourceCodeController.text = source;
+
+          if (gist.validationIssues.isNotEmpty) {
+            final message = gist.validationIssues.join('\n');
+            appModel.editorStatus.showToast(
+              message,
+              duration: const Duration(seconds: 10),
+            );
+          }
         }
 
         appModel.appReady.value = true;
