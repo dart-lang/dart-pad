@@ -143,7 +143,7 @@ class _DartPadAppState extends State<DartPadApp> {
             ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
           surface: lightSurfaceColor,
           onSurface: Colors.black,
-          surfaceContainerHighest: Colors.blue,
+          surfaceVariant: lightSurfaceVariantColor,
           onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
@@ -164,7 +164,7 @@ class _DartPadAppState extends State<DartPadApp> {
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-          surfaceContainerHighest: Colors.black,
+          surfaceVariant: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
         ),

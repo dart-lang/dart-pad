@@ -277,7 +277,7 @@ class BrickBreaker extends FlameGame
 
   @override
   KeyEventResult onKeyEvent(
-    RawKeyEvent event, // ignore: deprecated_member_use
+    KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
     super.onKeyEvent(event, keysPressed);
@@ -912,7 +912,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-const double maxSeeds = 1000;
+const int maxSeeds = 250;
 
 void main() {
   runApp(const Sunflower());
@@ -928,93 +928,121 @@ class Sunflower extends StatefulWidget {
 }
 
 class _SunflowerState extends State<Sunflower> {
-  double seeds = maxSeeds / 2;
+  int seeds = maxSeeds ~/ 2;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         appBarTheme: const AppBarTheme(elevation: 2),
       ),
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Sunflower'),
-          elevation: 2,
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: LayoutBuilder(builder: (context, constraints) {
-                return SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  child: CustomPaint(
-                    painter: SunflowerPainter(seeds.round()),
-                  ),
-                );
-              }),
-            ),
-            Text('Showing ${seeds.round()} seeds'),
-            Container(
-              constraints: const BoxConstraints.tightFor(width: 300),
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Slider(
-                min: 1,
-                max: maxSeeds,
-                value: seeds,
-                onChanged: (newValue) {
-                  setState(() => seeds = newValue);
-                },
+        body: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SunflowerWidget(seeds),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text('Showing ${seeds.round()} seeds'),
+              SizedBox(
+                width: 300,
+                child: Slider(
+                  min: 1,
+                  max: maxSeeds.toDouble(),
+                  value: seeds.toDouble(),
+                  onChanged: (val) {
+                    setState(() => seeds = val.round());
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class SunflowerPainter extends CustomPainter {
-  static const Color primaryColor = Colors.orange;
-  static const double seedRadius = 2;
-  static const double tau = math.pi * 2;
-  static final double phi = (math.sqrt(5) + 1) / 2;
+class SunflowerWidget extends StatelessWidget {
+  static const tau = math.pi * 2;
+  static const scaleFactor = 1 / 40;
+  static const size = 600.0;
+  static final phi = (math.sqrt(5) + 1) / 2;
+  static final rng = math.Random();
 
   final int seeds;
 
-  SunflowerPainter(this.seeds);
+  const SunflowerWidget(this.seeds, {super.key});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final scaleFactor = 5 * size.shortestSide / 375;
-    final center = size.center(Offset.zero);
+  Widget build(BuildContext context) {
+    final seedWidgets = <Widget>[];
 
     for (var i = 0; i < seeds; i++) {
       final theta = i * tau / phi;
       final r = math.sqrt(i) * scaleFactor;
 
-      drawSeed(
-        canvas,
-        center.dx + r * math.cos(theta),
-        center.dy - r * math.sin(theta),
-      );
+      seedWidgets.add(AnimatedAlign(
+        key: ValueKey(i),
+        duration: Duration(milliseconds: rng.nextInt(500) + 250),
+        curve: Curves.easeInOut,
+        alignment: Alignment(r * math.cos(theta), -1 * r * math.sin(theta)),
+        child: const Dot(true),
+      ));
     }
+
+    for (var j = seeds; j < maxSeeds; j++) {
+      final x = math.cos(tau * j / (maxSeeds - 1)) * 0.9;
+      final y = math.sin(tau * j / (maxSeeds - 1)) * 0.9;
+
+      seedWidgets.add(AnimatedAlign(
+        key: ValueKey(j),
+        duration: Duration(milliseconds: rng.nextInt(500) + 250),
+        curve: Curves.easeInOut,
+        alignment: Alignment(x, y),
+        child: const Dot(false),
+      ));
+    }
+
+    return FittedBox(
+      fit: BoxFit.contain,
+      child: SizedBox(
+        height: size,
+        width: size,
+        child: Stack(children: seedWidgets),
+      ),
+    );
   }
+}
+
+class Dot extends StatelessWidget {
+  static const size = 5.0;
+  static const radius = 3.0;
+
+  final bool lit;
+
+  const Dot(this.lit, {super.key});
 
   @override
-  bool shouldRepaint(SunflowerPainter oldDelegate) {
-    return oldDelegate.seeds != seeds;
-  }
-
-  void drawSeed(Canvas canvas, double x, double y) {
-    // Draw a small circle representing a seed centered at (x,y).
-    final paint = Paint()
-      ..strokeWidth = 2
-      ..style = PaintingStyle.fill
-      ..color = primaryColor;
-    canvas.drawCircle(Offset(x, y), seedRadius, paint);
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: lit ? Colors.orange : Colors.grey.shade700,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: const SizedBox(
+        height: size,
+        width: size,
+      ),
+    );
   }
 }
 ''',

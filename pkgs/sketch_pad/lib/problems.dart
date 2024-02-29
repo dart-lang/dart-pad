@@ -43,6 +43,8 @@ class ProblemsTableWidget extends StatelessWidget {
       curve: animationCurve,
       child: Container(
         decoration: BoxDecoration(
+          // TODO: Migrate to expanded Material 3 color palette.
+          // ignore: deprecated_member_use
           color: colorScheme.surfaceVariant,
         ),
         padding: const EdgeInsets.all(denseSpacing),
