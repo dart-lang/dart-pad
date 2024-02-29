@@ -7,15 +7,16 @@ import 'dart:js_interop_unsafe';
 
 import 'package:web/web.dart';
 
-/// Extensions to work around Dart compiler issues that result
-/// in calls that sandboxed iframes error on.
+/// Extensions to work around Dart compiler issues that result in calls that
+/// sandboxed iframes error on.
 ///
-/// If the compilers are adjusted to handle this case or
-/// `package:web` provides a helper for this, switch to that.
+/// If the compilers are adjusted to handle this case or `package:web` provides
+/// a helper for this, switch to that.
+///
 /// Tracked in https://github.com/dart-lang/sdk/issues/54443.
 extension HTMLIFrameElementExtension on HTMLIFrameElement {
-  /// Send the specified [message] to this iframe,
-  /// configured with the specified [optionsOrTargetOrigin].
+  /// Send the specified [message] to this iframe, configured with the specified
+  /// [optionsOrTargetOrigin].
   void safelyPostMessage(
     JSAny? message,
     String optionsOrTargetOrigin,

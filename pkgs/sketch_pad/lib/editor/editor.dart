@@ -14,6 +14,16 @@ import 'package:web/web.dart' as web;
 import '../model.dart';
 import 'codemirror.dart';
 
+// TODO: show documentation on hover
+
+// TODO: implement find / find next
+
+// TODO: improve the code completion UI
+
+// TODO: hover - show links to hosted dartdoc? (flutter, dart api, packages)
+
+// TODO: preserve scroll pos and cursor postion on format
+
 const String _viewType = 'dartpad-editor';
 
 bool _viewFactoryInitialized = false;
@@ -116,6 +126,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
 
+    codeMirror?.focus();
+  }
+
+  @override
+  int get cursorOffset {
+    final pos = codeMirror?.getCursor();
+    if (pos == null) return 0;
+
+    return codeMirror?.getDoc().indexFromPos(pos) ?? 0;
+  }
+
+  @override
+  void focus() {
     codeMirror?.focus();
   }
 
@@ -227,8 +250,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorFromModel() {
-    final value = widget.appModel.sourceCodeController.text;
-    codeMirror?.getDoc().setValue(value);
+    final value = widget.appModel.sourceCodeController.value;
+    final cursorOffset = value.selection.baseOffset;
+    final cm = codeMirror!;
+    final doc = cm.getDoc();
+
+    if (cursorOffset == -1) {
+      doc.setValue(value.text);
+    } else {
+      final scrollInfo = cm.getScrollInfo();
+      doc.setValue(value.text);
+      doc.setSelection(doc.posFromIndex(cursorOffset));
+      cm.scrollTo(scrollInfo.left, scrollInfo.top);
+    }
   }
 
   void _updateEditableStatus() {
@@ -320,10 +354,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 // codemirror commands
 
 JSAny? _handleGoLineLeft(CodeMirror editor) {
-  // Change the cmd-left behavior to move the cursor to the leftmost non-ws
-  // char.
-  editor.execCommand('goLineLeftSmart');
-  return JSObject();
+  // Change the cmd-left behavior to move the cursor to leftmost non-ws char.
+  return editor.execCommand('goLineLeftSmart');
 }
 
 void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {

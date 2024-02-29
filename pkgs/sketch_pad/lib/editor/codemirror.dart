@@ -43,11 +43,14 @@ extension type CodeMirror._(JSObject _) implements JSObject {
   external void refresh();
   external void focus();
   external void showHint(HintOptions? options);
-  external JSAny execCommand(String command, [JSAny? object]);
+  external JSAny? execCommand(String command);
   external void on(String event, JSFunction callback);
 
   String getTheme() => (getOption('theme') as JSString).toDart;
   void setTheme(String theme) => setOption('theme', theme.toJS);
+
+  external void scrollTo(num? x, num? y);
+  external ScrollInfo getScrollInfo();
 
   void setReadOnly(bool value, [bool noCursor = false]) {
     if (value) {
@@ -78,7 +81,7 @@ extension type Doc._(JSObject _) implements JSObject {
   external String getValue();
   external String? getLine(int n);
   external bool somethingSelected();
-  external String? getSelection(String s);
+  external String? getSelection(String? s);
   external void setSelection(Position position, [Position head]);
   external JSArray<TextMarker> getAllMarks();
   external TextMarker markText(
@@ -87,6 +90,16 @@ extension type Doc._(JSObject _) implements JSObject {
   external void replaceRange(String replacement, Position from,
       [Position? to, String? origin]);
   external Position posFromIndex(int index);
+}
+
+@anonymous
+extension type ScrollInfo._(JSObject _) implements JSObject {
+  external int top;
+  external int left;
+  external int width;
+  external int height;
+  external int clientWidth;
+  external int clientHeight;
 }
 
 @anonymous
