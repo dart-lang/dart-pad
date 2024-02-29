@@ -6,6 +6,7 @@
 library;
 
 import 'dart:js_interop';
+
 import 'package:web/web.dart';
 
 extension type CodeMirrorOptions._(JSObject _) implements JSObject {
