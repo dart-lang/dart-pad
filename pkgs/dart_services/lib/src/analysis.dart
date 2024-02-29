@@ -334,12 +334,6 @@ class AnalysisServerWrapper {
                 'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
             location: import.getLocation(source),
           ));
-        } else if (!isSupportedPackage(packageName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'warning',
-            message: "Unsupported package: 'package:$packageName'.",
-            location: import.getLocation(source),
-          ));
         } else if (isDeprecatedPackage(packageName)) {
           importIssues.add(api.AnalysisIssue(
             kind: 'warning',
@@ -347,6 +341,12 @@ class AnalysisServerWrapper {
             correction: 'Try removing the import and usages of the package.',
             url: 'https://github.com/dart-lang/dart-pad/wiki/'
                 'Package-and-plugin-support#deprecated-packages',
+            location: import.getLocation(source),
+          ));
+        } else if (!isSupportedPackage(packageName)) {
+          importIssues.add(api.AnalysisIssue(
+            kind: 'warning',
+            message: "Unsupported package: 'package:$packageName'.",
             location: import.getLocation(source),
           ));
         }

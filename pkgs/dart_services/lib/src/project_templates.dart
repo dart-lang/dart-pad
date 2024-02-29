@@ -82,10 +82,12 @@ const Set<String> _packagesIndicatingFlutter = {
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
 const Set<String> supportedBasicDartPackages = {
+  'async',
   'basics',
   'bloc',
   'characters',
   'collection',
+  'convert',
   'cross_file',
   'dartz',
   'english_words',
@@ -105,6 +107,7 @@ const Set<String> supportedBasicDartPackages = {
   'rxdart',
   'timezone',
   'tuple',
+  'typed_data',
   'vector_math',
   'web',
   'yaml',
@@ -113,9 +116,6 @@ const Set<String> supportedBasicDartPackages = {
 
 /// The set of all packages whose support in DartPad is deprecated.
 const Set<String> _deprecatedPackages = {
-  'tuple',
-  'flutter_processing',
-  'riverpod_navigator',
   'js',
 };
 
