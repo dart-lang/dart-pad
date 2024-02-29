@@ -22,8 +22,6 @@ import 'codemirror.dart';
 
 // TODO: hover - show links to hosted dartdoc? (flutter, dart api, packages)
 
-// TODO: preserve scroll pos and cursor postion on format
-
 const String _viewType = 'dartpad-editor';
 
 bool _viewFactoryInitialized = false;
