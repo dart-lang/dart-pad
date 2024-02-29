@@ -58,7 +58,6 @@ const Set<String> supportedFlutterPackages = {
   'flutter_hooks',
   'flutter_map',
   'flutter_markdown',
-  'flutter_processing',
   'flutter_riverpod',
   'flutter_svg',
   'go_router',
@@ -66,7 +65,6 @@ const Set<String> supportedFlutterPackages = {
   'google_generative_ai',
   'hooks_riverpod',
   'provider',
-  'riverpod_navigator',
   'shared_preferences',
   'url_launcher',
   'video_player',
@@ -82,10 +80,12 @@ const Set<String> _packagesIndicatingFlutter = {
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
 const Set<String> supportedBasicDartPackages = {
+  'async',
   'basics',
   'bloc',
   'characters',
   'collection',
+  'convert',
   'cross_file',
   'dartz',
   'english_words',
@@ -104,7 +104,7 @@ const Set<String> supportedBasicDartPackages = {
   'rohd_vf',
   'rxdart',
   'timezone',
-  'tuple',
+  'typed_data',
   'vector_math',
   'web',
   'yaml',
@@ -113,9 +113,6 @@ const Set<String> supportedBasicDartPackages = {
 
 /// The set of all packages whose support in DartPad is deprecated.
 const Set<String> _deprecatedPackages = {
-  'tuple',
-  'flutter_processing',
-  'riverpod_navigator',
   'js',
 };
 
