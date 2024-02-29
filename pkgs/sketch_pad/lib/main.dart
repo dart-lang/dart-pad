@@ -28,10 +28,6 @@ import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
-// TODO: show documentation on hover
-
-// TODO: implement find / find next
-
 const appName = 'DartPad';
 const smallScreenWidth = 720;
 
@@ -439,10 +435,11 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         value: appModel,
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
-            keys.reloadKeyActivator: () {
-              if (!appModel.compilingBusy.value) {
-                _performCompileAndRun();
-              }
+            keys.reloadKeyActivator1: () {
+              if (!appModel.compilingBusy.value) _performCompileAndRun();
+            },
+            keys.reloadKeyActivator2: () {
+              if (!appModel.compilingBusy.value) _performCompileAndRun();
             },
             keys.findKeyActivator: () {
               // TODO:
@@ -452,10 +449,19 @@ class _DartPadMainPageState extends State<DartPadMainPage>
               // TODO:
               unimplemented(context, 'find next');
             },
+            keys.formatKeyActivator1: () {
+              if (!appModel.formattingBusy.value) _handleFormatting();
+            },
+            keys.formatKeyActivator2: () {
+              if (!appModel.formattingBusy.value) _handleFormatting();
+            },
             keys.codeCompletionKeyActivator: () {
               appServices.editorService?.showCompletions();
             },
-            keys.quickFixKeyActivator: () {
+            keys.quickFixKeyActivator1: () {
+              appServices.editorService?.showQuickFixes();
+            },
+            keys.quickFixKeyActivator2: () {
               appServices.editorService?.showQuickFixes();
             },
           },
@@ -1056,7 +1062,7 @@ class OverflowMenu extends StatelessWidget {
 }
 
 class KeyBindingsTable extends StatelessWidget {
-  final List<(String, ShortcutActivator)> bindings;
+  final List<(String, List<ShortcutActivator>)> bindings;
 
   const KeyBindingsTable({
     required this.bindings,
@@ -1070,7 +1076,7 @@ class KeyBindingsTable extends StatelessWidget {
       children: [
         const Divider(),
         Expanded(
-          child: VTable<(String, ShortcutActivator)>(
+          child: VTable<(String, List<ShortcutActivator>)>(
             showToolbar: false,
             showHeaders: false,
             startsSorted: true,
@@ -1087,12 +1093,24 @@ class KeyBindingsTable extends StatelessWidget {
                 width: 100,
                 grow: 0.5,
                 alignment: Alignment.centerRight,
-                transformFunction: (binding) =>
-                    (binding.$2 as SingleActivator).describe,
                 styleFunction: (binding) => subtleText,
                 renderFunction: (context, binding, _) {
-                  return (binding.$2 as SingleActivator)
-                      .renderToWidget(context);
+                  final children = <Widget>[];
+                  var first = true;
+                  for (final shortcut in binding.$2) {
+                    if (!first) {
+                      children.add(
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4, right: 8),
+                          child: Text(','),
+                        ),
+                      );
+                    }
+                    first = false;
+                    children.add(
+                        (shortcut as SingleActivator).renderToWidget(context));
+                  }
+                  return Row(children: children);
                 },
               ),
             ],
