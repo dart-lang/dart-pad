@@ -11,14 +11,14 @@ import 'theme.dart';
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
 bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
 
-// key activators
+// ## Key activators
 
-final ShortcutActivator reloadKeyActivator1 = SingleActivator(
+final ShortcutActivator runKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.keyR,
   meta: _mac,
   control: _nonMac,
 );
-final ShortcutActivator reloadKeyActivator2 = SingleActivator(
+final ShortcutActivator runKeyActivator2 = SingleActivator(
   LogicalKeyboardKey.enter,
   meta: _mac,
   control: _nonMac,
@@ -61,7 +61,7 @@ const ShortcutActivator quickFixKeyActivator2 = SingleActivator(
   alt: true,
 );
 
-// map of key activator names
+// ## Map of key activator names
 
 final List<(String, List<ShortcutActivator>)> keyBindings = [
   ('Code completion', [codeCompletionKeyActivator]),
@@ -69,7 +69,7 @@ final List<(String, List<ShortcutActivator>)> keyBindings = [
   ('Find next', [findNextKeyActivator]),
   ('Format', [formatKeyActivator1, formatKeyActivator2]),
   ('Quick fixes', [quickFixKeyActivator1, quickFixKeyActivator2]),
-  ('Run', [reloadKeyActivator1, reloadKeyActivator2]),
+  ('Run', [runKeyActivator1, runKeyActivator2]),
 ];
 
 extension SingleActivatorExtension on SingleActivator {
