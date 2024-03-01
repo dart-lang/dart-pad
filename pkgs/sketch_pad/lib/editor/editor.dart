@@ -382,27 +382,27 @@ const codeMirrorOptions = {
     'Shift-Ctrl-F': 'weHandleElsewhere',
     'Shift-Cmd-F': 'weHandleElsewhere',
     'Cmd-Alt-F': false,
-    // vscode folding key combos (pc/mac)
-    'Shift-Ctrl-[': 'ourFoldWithCursorToStart',
-    'Cmd-Alt-[': 'ourFoldWithCursorToStart',
-    'Shift-Ctrl-]': 'unfold',
-    'Cmd-Alt-]': 'unfold',
-    // made our own keycombo since VSCode and AndroidStudio's
-    'Shift-Ctrl-Alt-[': 'foldAll',
-    // are taken by browser
-    'Shift-Cmd-Alt-[': 'foldAll',
-    'Shift-Ctrl-Alt-]': 'unfoldAll',
-    'Shift-Cmd-Alt-]': 'unfoldAll',
+    // // vscode folding key combos (pc/mac)
+    // 'Shift-Ctrl-[': 'ourFoldWithCursorToStart',
+    // 'Cmd-Alt-[': 'ourFoldWithCursorToStart',
+    // 'Shift-Ctrl-]': 'unfold',
+    // 'Cmd-Alt-]': 'unfold',
+    // // made our own keycombo since VSCode and AndroidStudio's
+    // 'Shift-Ctrl-Alt-[': 'foldAll',
+    // // are taken by browser
+    // 'Shift-Cmd-Alt-[': 'foldAll',
+    // 'Shift-Ctrl-Alt-]': 'unfoldAll',
+    // 'Shift-Cmd-Alt-]': 'unfoldAll',
   },
-  'foldGutter': true,
-  'foldOptions': {
-    'minFoldSize': 1,
-    // like '...', but middle dots
-    'widget': '\u00b7\u00b7\u00b7',
-  },
+  // 'foldGutter': true,
+  // 'foldOptions': {
+  //   'minFoldSize': 1,
+  //   // like '...', but middle dots
+  //   'widget': '\u00b7\u00b7\u00b7',
+  // },
   'gutters': [
     'CodeMirror-linenumbers',
-    'CodeMirror-foldgutter',
+    // 'CodeMirror-foldgutter',
   ],
   'highlightSelectionMatches': {
     'style': 'highlight-selection-matches',
