@@ -94,6 +94,7 @@ class MiniIconButton extends StatelessWidget {
 
 class RunButton extends StatelessWidget {
   final VoidCallback? onPressed;
+
   const RunButton({this.onPressed, super.key});
 
   @override
@@ -121,11 +122,9 @@ class RunButton extends StatelessWidget {
             Icon(
               Icons.play_arrow,
               color: Colors.black,
-              size: 20.0,
+              size: 20,
             ),
-            SizedBox(
-              width: 16.0,
-            ),
+            SizedBox(width: 8),
             Text(
               'Run',
               style: TextStyle(color: Colors.black),
