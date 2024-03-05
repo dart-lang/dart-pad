@@ -30,7 +30,7 @@ void _initViewFactory() {
 }
 
 web.Element _codeMirrorFactory(int viewId) {
-  final div = web.createElementTag('div') as web.HTMLDivElement
+  final div = web.document.createElement('div') as web.HTMLDivElement
     ..style.width = '100%'
     ..style.height = '100%';
 
@@ -176,9 +176,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     // Listen for document body to be visible, then force a code mirror refresh.
     final observer = web.IntersectionObserver(
-      (JSArray entries, web.IntersectionObserver observer) {
+      (JSArray<web.IntersectionObserverEntry> entries,
+          web.IntersectionObserver observer) {
         for (final entry in entries.toDart) {
-          if ((entry as web.IntersectionObserverEntry).isIntersecting) {
+          if (entry.isIntersecting) {
             observer.unobserve(web.document.body!);
             Timer.run(() => codeMirror!.refresh());
             return;

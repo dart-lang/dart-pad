@@ -263,6 +263,14 @@ class AppServices {
           appModel.sourceCodeController.text = fallbackSnippet;
         } else {
           appModel.sourceCodeController.text = source;
+
+          if (gist.validationIssues.isNotEmpty) {
+            final message = gist.validationIssues.join('\n');
+            appModel.editorStatus.showToast(
+              message,
+              duration: const Duration(seconds: 10),
+            );
+          }
         }
 
         appModel.appReady.value = true;
@@ -413,6 +421,11 @@ enum Channel {
 
   static Channel? forName(String name) {
     name = name.trim().toLowerCase();
+
+    // Alias 'master' to 'main'.
+    if (name == 'master') {
+      name = 'main';
+    }
 
     return Channel.values.firstWhereOrNull((c) => c.name == name);
   }

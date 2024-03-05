@@ -142,14 +142,14 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
 
   /// Destroy and reload the iframe.
   Future<void> _reset() {
-    if (_frame.parentElement != null) {
+    if (_frame.parentElement case final parentElement?) {
       _readyCompleter = Completer();
 
-      final clone = _frame.clone(false) as web.HTMLIFrameElement;
+      final clone = _frame.cloneNode(false) as web.HTMLIFrameElement;
       clone.src = _frameSrc;
 
-      _frame.parentElement!.appendChild(clone);
-      _frame.parentElement!.removeChild(_frame);
+      parentElement.appendChild(clone);
+      parentElement.removeChild(_frame);
       _frame = clone;
     }
 

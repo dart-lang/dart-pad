@@ -24,10 +24,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [stable, beta, master] # main
+        sdk: [stable, beta, main]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: subosito/flutter-action@aa6d9b984461fff0e0e0673f96483607df98db84
+      - uses: subosito/flutter-action@62f096cacda5168a3bd7b95793373be14fa4fbaf
         with:
             channel: ${{ matrix.sdk }}
       - run: flutter --version
