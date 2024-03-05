@@ -7,6 +7,9 @@ import 'model.dart';
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.
 void handleEmbedMessage(AppModel model) {
+  final parent = web.window.parent;
+  if (parent == null) return;
+
   web.window.addEventListener(
     'message',
     (web.Event event) {
@@ -16,8 +19,7 @@ void handleEmbedMessage(AppModel model) {
           return;
         }
 
-        final type = data['type'] as String?;
-        if (type != 'sourceCode') {
+        if ((data['type'] as String?) != 'sourceCode') {
           return;
         }
 
@@ -29,11 +31,8 @@ void handleEmbedMessage(AppModel model) {
     }.toJS,
   );
 
-  final parent = web.window.parent;
-  if (parent != null) {
-    parent.postMessage(
-      (const {'sender': 'frame', 'type': 'ready'}).jsify(),
-      '*'.toJS,
-    );
-  }
+  parent.postMessage(
+    (const {'sender': 'frame', 'type': 'ready'}).jsify(),
+    '*'.toJS,
+  );
 }
