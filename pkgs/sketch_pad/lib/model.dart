@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'embed.dart';
 import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
@@ -292,9 +291,6 @@ class AppServices {
     // Neither gistId nor flutterSampleId were passed in.
     appModel.sourceCodeController.text = fallbackSnippet;
     appModel.appReady.value = true;
-
-    // Start listening for inject code messages.
-    handleEmbedMessage(appModel);
   }
 
   Future<FormatResponse> format(SourceRequest request) async {
