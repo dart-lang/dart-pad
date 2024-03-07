@@ -470,15 +470,23 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
   Future<void> _handleFormatting() async {
     try {
-      final value = appModel.sourceCodeController.text;
-      final result = await appServices.format(SourceRequest(source: value));
+      final source = appModel.sourceCodeController.text;
+      final offset = appServices.editorService?.cursorOffset;
+      final result = await appServices.format(
+        SourceRequest(source: source, offset: offset),
+      );
 
-      if (result.source == value) {
+      if (result.source == source) {
         appModel.editorStatus.showToast('No formatting changes');
       } else {
         appModel.editorStatus.showToast('Format successful');
-        appModel.sourceCodeController.text = result.source;
+        appModel.sourceCodeController.value = TextEditingValue(
+          text: result.source,
+          selection: TextSelection.collapsed(offset: result.offset ?? 0),
+        );
       }
+
+      appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');

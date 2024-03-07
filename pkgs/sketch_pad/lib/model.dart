@@ -33,6 +33,8 @@ abstract class EditorService {
   void showCompletions();
   void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
+  int get cursorOffset;
+  void focus();
 }
 
 class AppModel {
