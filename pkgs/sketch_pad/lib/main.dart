@@ -139,13 +139,11 @@ class _DartPadAppState extends State<DartPadApp> {
       themeMode: themeMode,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: lightPrimaryColor,
           surface: lightSurfaceColor,
           onSurface: Colors.black,
-          // TODO: Migrate to expanded Material 3 color palette.
-          // ignore: deprecated_member_use
-          surfaceVariant: lightSurfaceVariantColor,
+          surfaceContainerHighest: lightSurfaceVariantColor,
           onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
@@ -162,13 +160,12 @@ class _DartPadAppState extends State<DartPadApp> {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: darkPrimaryColor).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: darkPrimaryColor,
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-          // TODO: Migrate to expanded Material 3 color palette.
-          // ignore: deprecated_member_use
-          surfaceVariant: darkSurfaceVariantColor,
+          surfaceContainerHighest: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
         ),
