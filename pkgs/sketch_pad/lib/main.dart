@@ -176,7 +176,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStatePropertyAll(darkLinkButtonColor),
+            foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
           ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
