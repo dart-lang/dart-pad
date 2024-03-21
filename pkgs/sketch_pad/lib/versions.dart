@@ -31,7 +31,7 @@ class VersionTable extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Divider(),
-        Text(versionText),
+        SelectableText(versionText),
         const Divider(),
         const SizedBox(height: denseSpacing),
         Expanded(
