@@ -336,6 +336,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         Tab(text: 'Code'),
         Tab(text: 'Output'),
       ],
+      // Remove the divider line at the bottom of the tab bar.
+      dividerHeight: 0,
       key: _tabBarKey,
     );
 
@@ -573,7 +575,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return AppBar(
         backgroundColor: theme.colorScheme.surface,
-        bottom: bottom,
         title: SizedBox(
           height: toolbarItemHeight,
           child: Row(
@@ -611,6 +612,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
         ),
+        bottom: bottom,
         actions: [
           // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
