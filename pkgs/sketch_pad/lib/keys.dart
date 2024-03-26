@@ -11,13 +11,19 @@ import 'theme.dart';
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
 bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
 
-// key activators
+// ## Key activators
 
-final ShortcutActivator reloadKeyActivator = SingleActivator(
-  LogicalKeyboardKey.keyS,
+final ShortcutActivator runKeyActivator1 = SingleActivator(
+  LogicalKeyboardKey.keyR,
   meta: _mac,
   control: _nonMac,
 );
+final ShortcutActivator runKeyActivator2 = SingleActivator(
+  LogicalKeyboardKey.enter,
+  meta: _mac,
+  control: _nonMac,
+);
+
 final ShortcutActivator findKeyActivator = SingleActivator(
   LogicalKeyboardKey.keyF,
   meta: _mac,
@@ -28,30 +34,45 @@ final ShortcutActivator findNextKeyActivator = SingleActivator(
   meta: _mac,
   control: _nonMac,
 );
+
+final ShortcutActivator formatKeyActivator1 = SingleActivator(
+  LogicalKeyboardKey.keyS,
+  meta: _mac,
+  control: _nonMac,
+);
+const ShortcutActivator formatKeyActivator2 = SingleActivator(
+  LogicalKeyboardKey.keyF,
+  shift: true,
+  alt: true,
+);
+
 const ShortcutActivator codeCompletionKeyActivator = SingleActivator(
   LogicalKeyboardKey.space,
   control: true,
 );
-final ShortcutActivator quickFixKeyActivator = SingleActivator(
+
+final ShortcutActivator quickFixKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.period,
   meta: _mac,
   control: _nonMac,
 );
+const ShortcutActivator quickFixKeyActivator2 = SingleActivator(
+  LogicalKeyboardKey.enter,
+  alt: true,
+);
 
-// map of key activator names
+// ## Map of key activator names
 
-final List<(String, ShortcutActivator)> keyBindings = [
-  ('Code completion', codeCompletionKeyActivator),
-  ('Find', findKeyActivator),
-  ('Find next', findNextKeyActivator),
-  ('Quick fixes', quickFixKeyActivator),
-  ('Reload', reloadKeyActivator),
+final List<(String, List<ShortcutActivator>)> keyBindings = [
+  ('Code completion', [codeCompletionKeyActivator]),
+  ('Find', [findKeyActivator]),
+  ('Find next', [findNextKeyActivator]),
+  ('Format', [formatKeyActivator1, formatKeyActivator2]),
+  ('Quick fixes', [quickFixKeyActivator1, quickFixKeyActivator2]),
+  ('Run', [runKeyActivator1, runKeyActivator2]),
 ];
 
 extension SingleActivatorExtension on SingleActivator {
-  // Note that this only works in debug mode.
-  String get describe => debugDescribeKeys();
-
   Widget renderToWidget(BuildContext context) {
     var text = trigger.keyLabel;
     if (trigger == LogicalKeyboardKey.space) {
@@ -60,10 +81,11 @@ extension SingleActivatorExtension on SingleActivator {
 
     return Container(
       decoration: BoxDecoration(
-          border: Border.fromBorderSide(
-            Divider.createBorderSide(context, width: 1.0, color: subtleColor),
-          ),
-          borderRadius: const BorderRadius.all(Radius.circular(4))),
+        border: Border.fromBorderSide(
+          Divider.createBorderSide(context, width: 1.0, color: subtleColor),
+        ),
+        borderRadius: const BorderRadius.all(Radius.circular(4)),
+      ),
       padding: const EdgeInsets.symmetric(
         vertical: 2,
         horizontal: 6,
@@ -71,6 +93,18 @@ extension SingleActivatorExtension on SingleActivator {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (shift)
+            const Icon(
+              Icons.arrow_upward,
+              size: 16,
+              color: subtleColor,
+            ),
+          if (alt)
+            Icon(
+              _mac ? Icons.keyboard_option_key : Icons.keyboard_alt,
+              size: 16,
+              color: subtleColor,
+            ),
           if (control)
             const Icon(
               Icons.keyboard_control_key,
