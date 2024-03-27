@@ -151,15 +151,20 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void _platformViewCreated(int id, {required bool darkMode}) {
     codeMirror = codeMirrorInstance;
 
+    final appModel = widget.appModel;
+
     // read only
-    final readOnly = !widget.appModel.appReady.value;
+    final readOnly = !appModel.appReady.value;
     if (readOnly) {
       codeMirror!.setReadOnly(true);
     }
 
     // contents
-    final contents = widget.appModel.sourceCodeController.text;
+    final contents = appModel.sourceCodeController.text;
     codeMirror!.getDoc().setValue(contents);
+
+    // Start listening for inject code messages.
+    handleEmbedMessage(appModel);
 
     // darkmode
     _updateCodemirrorMode(darkMode);
@@ -172,8 +177,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
       }.toJS,
     );
-
-    final appModel = widget.appModel;
 
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
@@ -195,9 +198,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         (CodeMirror editor, [HintOptions? options]) {
           return options!.results;
         }.toJS);
-
-    // Start listening for inject code messages.
-    handleEmbedMessage(appModel);
 
     // Listen for document body to be visible, then force a code mirror refresh.
     final observer = web.IntersectionObserver(

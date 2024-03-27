@@ -32,7 +32,7 @@ void handleEmbedMessage(AppModel model) {
   );
 
   parent.postMessage(
-    (const {'sender': 'frame', 'type': 'ready'}).jsify(),
+    ({'sender': web.window.name, 'type': 'ready'}).jsify(),
     '*'.toJS,
   );
 }
