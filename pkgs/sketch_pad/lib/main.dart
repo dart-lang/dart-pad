@@ -17,6 +17,7 @@ import 'package:vtable/vtable.dart';
 
 import 'console.dart';
 import 'editor/editor.dart';
+import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
@@ -282,6 +283,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             channel: widget.initialChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
+      // Start listening for inject code messages.
+      handleEmbedMessage(appModel);
       if (widget.runOnLoad) {
         _performCompileAndRun();
       }
