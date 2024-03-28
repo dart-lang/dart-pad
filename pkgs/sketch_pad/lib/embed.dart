@@ -12,19 +12,10 @@ void handleEmbedMessage(AppModel model) {
 
   web.window.addEventListener(
     'message',
-    (web.Event event) {
-      if (event is web.MessageEvent) {
-        final data = event.data.dartify() as Map<Object?, Object?>?;
-        if (data == null || data['sender'] == 'frame') {
-          return;
-        }
-
-        if ((data['type'] as String?) != 'sourceCode') {
-          return;
-        }
-
-        final sourceCode = data['sourceCode'];
-        if (sourceCode is String && sourceCode.isNotEmpty) {
+    (web.MessageEvent event) {
+      if (event.data case _SourceCodeMessage(:final type?, :final sourceCode?)
+          when type == 'sourceCode') {
+        if (sourceCode.isNotEmpty) {
           model.sourceCodeController.text = sourceCode;
         }
       }
@@ -35,4 +26,9 @@ void handleEmbedMessage(AppModel model) {
     ({'sender': web.window.name, 'type': 'ready'}).jsify(),
     '*'.toJS,
   );
+}
+
+extension type _SourceCodeMessage._(JSObject _) {
+  external String? get sourceCode;
+  external String? get type;
 }
