@@ -11,7 +11,6 @@ import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 
-import '../embed.dart';
 import '../model.dart';
 import 'codemirror.dart';
 
@@ -195,9 +194,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         (CodeMirror editor, [HintOptions? options]) {
           return options!.results;
         }.toJS);
-
-    // Start listening for inject code messages.
-    handleEmbedMessage(appModel);
 
     // Listen for document body to be visible, then force a code mirror refresh.
     final observer = web.IntersectionObserver(
