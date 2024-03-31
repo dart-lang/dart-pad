@@ -218,6 +218,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     _updateCodemirrorMode(darkMode);
 
+    // Ensure that the editor gets focus (from the POV of the Flutter focus
+    // system) at app startup.
+    FocusScope.of(context).requestFocus();
+
     return HtmlElementView(
       key: _elementViewKey,
       viewType: _viewType,

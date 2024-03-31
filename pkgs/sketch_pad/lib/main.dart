@@ -683,9 +683,21 @@ class EditorWithButtons extends StatelessWidget {
           child: SectionWidget(
             child: Stack(
               children: [
-                EditorWidget(
-                  appModel: appModel,
-                  appServices: appServices,
+                // Define a FocusScope in order to capture tab key events from
+                // the codemirror editor (these should manipulate the editor's
+                // contents; they should not cause a focus traversal).
+                FocusScope(
+                  onFocusChange: (focused) {
+                    // If the editor receives a Flutter focus event, tell the
+                    // codemirror editor.
+                    if (focused) {
+                      appServices.editorService?.focus();
+                    }
+                  },
+                  child: EditorWidget(
+                    appModel: appModel,
+                    appServices: appServices,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
