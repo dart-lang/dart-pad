@@ -252,13 +252,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           codeMirror?.getInputField().blur();
         }
       },
-      shortcuts: {
-        // Add Esc and Shift+Esc as shortcuts for focus to leave editor.
-        LogicalKeySet(LogicalKeyboardKey.escape):
-            VoidCallbackIntent(_focusNode.nextFocus),
-        LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
-            VoidCallbackIntent(_focusNode.previousFocus),
-      },
+      // TODO(parlough): Add shortcut for focus traversal to escape editor.
+      // shortcuts: {
+      //   // Add Esc and Shift+Esc as shortcuts for focus to leave editor.
+      //   LogicalKeySet(LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.nextFocus),
+      //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.previousFocus),
+      // },
       child: HtmlElementView(
         key: _elementViewKey,
         viewType: _viewType,
