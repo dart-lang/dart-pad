@@ -34,6 +34,7 @@ extension type CodeMirror._(JSObject _) implements JSObject {
 
   external Events events;
 
+  external HTMLElement getInputField();
   external JSAny getOption(String option);
   external void setOption(String option, JSAny value);
   external Doc getDoc();

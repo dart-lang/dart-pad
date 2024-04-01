@@ -9,6 +9,7 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
@@ -96,6 +97,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   CodeMirror? codeMirror;
   CompletionType completionType = CompletionType.auto;
 
+  final FocusNode _focusNode = FocusNode(onKeyEvent: (node, event) {
+    // If focused, allow CodeMirror to handle tab.
+    if (node.hasFocus && event.logicalKey == LogicalKeyboardKey.tab) {
+      return KeyEventResult.skipRemainingHandlers;
+    }
+
+    return KeyEventResult.ignored;
+  });
+
   @override
   void showCompletions() {
     completionType = CompletionType.manual;
@@ -124,7 +134,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
 
-    codeMirror?.focus();
+    focus();
   }
 
   @override
@@ -137,7 +147,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   void focus() {
-    codeMirror?.focus();
+    _focusNode.requestFocus();
   }
 
   @override
@@ -171,6 +181,20 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       'change',
       ([JSAny? _, JSAny? __, JSAny? ___]) {
         _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
+      }.toJS,
+    );
+
+    codeMirror!.on(
+      'focus',
+      ([JSAny? _, JSAny? __]) {
+        _focusNode.requestFocus();
+      }.toJS,
+    );
+
+    codeMirror!.on(
+      'blur',
+      ([JSAny? _, JSAny? __]) {
+        _focusNode.unfocus();
       }.toJS,
     );
 
@@ -218,11 +242,31 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     _updateCodemirrorMode(darkMode);
 
-    return HtmlElementView(
-      key: _elementViewKey,
-      viewType: _viewType,
-      onPlatformViewCreated: (id) =>
-          _platformViewCreated(id, darkMode: darkMode),
+    return FocusableActionDetector(
+      autofocus: true,
+      focusNode: _focusNode,
+      onFocusChange: (isFocused) {
+        // If focus is entering or leaving, convey this to CodeMirror.
+        if (isFocused) {
+          codeMirror?.focus();
+        } else {
+          codeMirror?.getInputField().blur();
+        }
+      },
+      // TODO(parlough): Add shortcut for focus traversal to escape editor.
+      // shortcuts: {
+      //   // Add Esc and Shift+Esc as shortcuts for focus to leave editor.
+      //   LogicalKeySet(LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.nextFocus),
+      //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.previousFocus),
+      // },
+      child: HtmlElementView(
+        key: _elementViewKey,
+        viewType: _viewType,
+        onPlatformViewCreated: (id) =>
+            _platformViewCreated(id, darkMode: darkMode),
+      ),
     );
   }
 
