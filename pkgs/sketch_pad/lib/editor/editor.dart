@@ -97,23 +97,44 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   CodeMirror? codeMirror;
   CompletionType completionType = CompletionType.auto;
 
-  final FocusNode _focusNode = FocusNode(onKeyEvent: (node, event) {
-    // // todo:
-    // if (event is KeyDownEvent) {
-    //   if (event.logicalKey == LogicalKeyboardKey.period) {
-    //     // Introduce a delay here to allow codemirror to process the key
-    //     // event.
-    //     Timer.run(() => showCompletions(autoInvoked: true));
-    //   }
-    // }
+  late final FocusNode _focusNode;
 
-    // If focused, allow CodeMirror to handle tab.
-    if (node.hasFocus && event.logicalKey == LogicalKeyboardKey.tab) {
-      return KeyEventResult.skipRemainingHandlers;
-    }
+  _EditorWidgetState() {
+    _focusNode = FocusNode(
+      onKeyEvent: (node, event) {
+        if (!node.hasFocus) {
+          return KeyEventResult.ignored;
+        }
 
-    return KeyEventResult.ignored;
-  });
+        // If focused, allow CodeMirror to handle tab.
+        if (event.logicalKey == LogicalKeyboardKey.tab) {
+          return KeyEventResult.skipRemainingHandlers;
+        } else if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.period) {
+          // On a period, auto-invoke code completions.
+
+          // If any modifiers keys are depressed, ignore this event. Note that
+          // directly querying `HardwareKeyboard.instance` could have a race
+          // condition (we'd like to read this information directly from the
+          // event).
+          if (HardwareKeyboard.instance.isAltPressed ||
+              HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed ||
+              HardwareKeyboard.instance.isShiftPressed) {
+            return KeyEventResult.ignored;
+          }
+
+          // We introduce a delay here to allow codemirror to process the key
+          // event.
+          Timer.run(() => showCompletions(autoInvoked: true));
+
+          return KeyEventResult.skipRemainingHandlers;
+        }
+
+        return KeyEventResult.ignored;
+      },
+    );
+  }
 
   @override
   void showCompletions({required bool autoInvoked}) {
