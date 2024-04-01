@@ -98,6 +98,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   CompletionType completionType = CompletionType.auto;
 
   final FocusNode _focusNode = FocusNode(onKeyEvent: (node, event) {
+    // // todo:
+    // if (event is KeyDownEvent) {
+    //   if (event.logicalKey == LogicalKeyboardKey.period) {
+    //     // Introduce a delay here to allow codemirror to process the key
+    //     // event.
+    //     Timer.run(() => showCompletions(autoInvoked: true));
+    //   }
+    // }
+
     // If focused, allow CodeMirror to handle tab.
     if (node.hasFocus && event.logicalKey == LogicalKeyboardKey.tab) {
       return KeyEventResult.skipRemainingHandlers;
@@ -107,8 +116,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   });
 
   @override
-  void showCompletions() {
-    completionType = CompletionType.manual;
+  void showCompletions({required bool autoInvoked}) {
+    completionType = autoInvoked ? CompletionType.auto : CompletionType.manual;
 
     codeMirror?.execCommand('autocomplete');
   }
@@ -377,8 +386,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           .map((suggestion) => suggestion.toHintResult())
           .toList();
 
-      // Remove hints where both the replacement text and the display text are the
-      // same.
+      // Remove hints where both the replacement text and the display text are
+      // the same.
       final memos = <String>{};
       hints.retainWhere((hint) {
         return memos.add('${hint.text}:${hint.displayText}');
