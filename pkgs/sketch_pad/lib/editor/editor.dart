@@ -243,6 +243,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     _updateCodemirrorMode(darkMode);
 
     return FocusableActionDetector(
+      autofocus: true,
       focusNode: _focusNode,
       onFocusChange: (isFocused) {
         // If focus is entering or leaving, convey this to CodeMirror.
