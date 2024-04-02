@@ -30,7 +30,7 @@ abstract class ExecutionService {
 }
 
 abstract class EditorService {
-  void showCompletions();
+  void showCompletions({required bool autoInvoked});
   void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
   int get cursorOffset;

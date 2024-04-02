@@ -97,18 +97,48 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   CodeMirror? codeMirror;
   CompletionType completionType = CompletionType.auto;
 
-  final FocusNode _focusNode = FocusNode(onKeyEvent: (node, event) {
-    // If focused, allow CodeMirror to handle tab.
-    if (node.hasFocus && event.logicalKey == LogicalKeyboardKey.tab) {
-      return KeyEventResult.skipRemainingHandlers;
-    }
+  late final FocusNode _focusNode;
 
-    return KeyEventResult.ignored;
-  });
+  _EditorWidgetState() {
+    _focusNode = FocusNode(
+      onKeyEvent: (node, event) {
+        if (!node.hasFocus) {
+          return KeyEventResult.ignored;
+        }
+
+        // If focused, allow CodeMirror to handle tab.
+        if (event.logicalKey == LogicalKeyboardKey.tab) {
+          return KeyEventResult.skipRemainingHandlers;
+        } else if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.period) {
+          // On a period, auto-invoke code completions.
+
+          // If any modifiers keys are depressed, ignore this event. Note that
+          // directly querying `HardwareKeyboard.instance` could have a race
+          // condition (we'd like to read this information directly from the
+          // event).
+          if (HardwareKeyboard.instance.isAltPressed ||
+              HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed ||
+              HardwareKeyboard.instance.isShiftPressed) {
+            return KeyEventResult.ignored;
+          }
+
+          // We introduce a delay here to allow codemirror to process the key
+          // event.
+          Timer.run(() => showCompletions(autoInvoked: true));
+
+          return KeyEventResult.skipRemainingHandlers;
+        }
+
+        return KeyEventResult.ignored;
+      },
+    );
+  }
 
   @override
-  void showCompletions() {
-    completionType = CompletionType.manual;
+  void showCompletions({required bool autoInvoked}) {
+    completionType = autoInvoked ? CompletionType.auto : CompletionType.manual;
 
     codeMirror?.execCommand('autocomplete');
   }
@@ -377,8 +407,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           .map((suggestion) => suggestion.toHintResult())
           .toList();
 
-      // Remove hints where both the replacement text and the display text are the
-      // same.
+      // Remove hints where both the replacement text and the display text are
+      // the same.
       final memos = <String>{};
       hints.retainWhere((hint) {
         return memos.add('${hint.text}:${hint.displayText}');

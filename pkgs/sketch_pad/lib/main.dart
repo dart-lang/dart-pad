@@ -461,7 +461,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
               if (!appModel.formattingBusy.value) _handleFormatting();
             },
             keys.codeCompletionKeyActivator: () {
-              appServices.editorService?.showCompletions();
+              appServices.editorService?.showCompletions(autoInvoked: false);
             },
             keys.quickFixKeyActivator1: () {
               appServices.editorService?.showQuickFixes();
