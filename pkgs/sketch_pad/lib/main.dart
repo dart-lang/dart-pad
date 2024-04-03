@@ -25,7 +25,6 @@ import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
 import 'theme.dart';
-import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
@@ -446,14 +445,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             keys.runKeyActivator2: () {
               if (!appModel.compilingBusy.value) _performCompileAndRun();
             },
-            keys.findKeyActivator: () {
-              // TODO:
-              unimplemented(context, 'find');
-            },
-            keys.findNextKeyActivator: () {
-              // TODO:
-              unimplemented(context, 'find next');
-            },
+            // keys.findKeyActivator: () {
+            //   // TODO:
+            //   unimplemented(context, 'find');
+            // },
+            // keys.findNextKeyActivator: () {
+            //   // TODO:
+            //   unimplemented(context, 'find next');
+            // },
             keys.formatKeyActivator1: () {
               if (!appModel.formattingBusy.value) _handleFormatting();
             },
