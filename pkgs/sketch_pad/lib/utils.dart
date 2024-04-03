@@ -20,12 +20,6 @@ String titleCase(String phrase) {
   return phrase.substring(0, 1).toUpperCase() + phrase.substring(1);
 }
 
-void unimplemented(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Unimplemented: $message')),
-  );
-}
-
 String generateSnippetName() => fluttering_phrases.generate();
 
 RelativeRect calculatePopupMenuPosition(

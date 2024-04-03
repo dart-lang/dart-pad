@@ -24,16 +24,16 @@ final ShortcutActivator runKeyActivator2 = SingleActivator(
   control: _nonMac,
 );
 
-final ShortcutActivator findKeyActivator = SingleActivator(
-  LogicalKeyboardKey.keyF,
-  meta: _mac,
-  control: _nonMac,
-);
-final ShortcutActivator findNextKeyActivator = SingleActivator(
-  LogicalKeyboardKey.keyG,
-  meta: _mac,
-  control: _nonMac,
-);
+// final ShortcutActivator findKeyActivator = SingleActivator(
+//   LogicalKeyboardKey.keyF,
+//   meta: _mac,
+//   control: _nonMac,
+// );
+// final ShortcutActivator findNextKeyActivator = SingleActivator(
+//   LogicalKeyboardKey.keyG,
+//   meta: _mac,
+//   control: _nonMac,
+// );
 
 final ShortcutActivator formatKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.keyS,
@@ -65,8 +65,8 @@ const ShortcutActivator quickFixKeyActivator2 = SingleActivator(
 
 final List<(String, List<ShortcutActivator>)> keyBindings = [
   ('Code completion', [codeCompletionKeyActivator]),
-  ('Find', [findKeyActivator]),
-  ('Find next', [findNextKeyActivator]),
+  // ('Find', [findKeyActivator]),
+  // ('Find next', [findNextKeyActivator]),
   ('Format', [formatKeyActivator1, formatKeyActivator2]),
   ('Quick fixes', [quickFixKeyActivator1, quickFixKeyActivator2]),
   ('Run', [runKeyActivator1, runKeyActivator2]),
