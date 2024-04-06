@@ -17,6 +17,7 @@ import 'package:vtable/vtable.dart';
 
 import 'console.dart';
 import 'editor/editor.dart';
+import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
@@ -24,13 +25,8 @@ import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
 import 'theme.dart';
-import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
-
-// TODO: show documentation on hover
-
-// TODO: implement find / find next
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;
@@ -139,11 +135,11 @@ class _DartPadAppState extends State<DartPadApp> {
       themeMode: themeMode,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: lightPrimaryColor).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: lightPrimaryColor,
           surface: lightSurfaceColor,
           onSurface: Colors.black,
-          surfaceVariant: lightSurfaceVariantColor,
+          surfaceContainerHighest: lightSurfaceVariantColor,
           onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
@@ -160,11 +156,12 @@ class _DartPadAppState extends State<DartPadApp> {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: darkPrimaryColor).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: darkPrimaryColor,
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-          surfaceVariant: darkSurfaceVariantColor,
+          surfaceContainerHighest: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
         ),
@@ -175,7 +172,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStatePropertyAll(darkLinkButtonColor),
+            foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
           ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
@@ -220,28 +217,44 @@ class DartPadMainPage extends StatefulWidget {
 
 class _DartPadMainPageState extends State<DartPadMainPage>
     with SingleTickerProviderStateMixin {
+  late final AppModel appModel;
+  late final AppServices appServices;
   late final SplitViewController mainSplitter;
-
-  late AppModel appModel;
-  late AppServices appServices;
   late final TabController tabController;
+
   final ValueKey<String> _executionWidgetKey =
       const ValueKey('execution-widget');
   final ValueKey<String> _loadingOverlayKey =
       const ValueKey('loading-overlay-widget');
   final ValueKey<String> _editorKey = const ValueKey('editor');
   final ValueKey<String> _consoleKey = const ValueKey('console');
+  final ValueKey<String> _tabBarKey = const ValueKey('tab-bar');
+  final ValueKey<String> _executionStackKey = const ValueKey('execution-stack');
+  final ValueKey<String> _scaffoldKey = const ValueKey('scaffold');
+
+  late final VoidCallback runStartedListener;
 
   @override
   void initState() {
     super.initState();
 
-    tabController = TabController(length: 3, vsync: this)
-      ..addListener(() {
-        // Rebuild when the user changes tabs so that the IndexedStack updates
-        // its active child view.
-        setState(() {});
+    tabController = TabController(length: 2, vsync: this)
+      ..addListener(
+        () {
+          // Rebuild when the user changes tabs so that the IndexedStack updates
+          // its active child view.
+          setState(() {});
+        },
+      );
+    runStartedListener = () {
+      setState(() {
+        // Switch to the application output tab.]
+        if (appModel.compilingBusy.value) {
+          tabController.animateTo(1);
+        }
       });
+    };
+
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
         SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
@@ -269,14 +282,20 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             channel: widget.initialChannel,
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
+      // Start listening for inject code messages.
+      handleEmbedMessage(appModel);
       if (widget.runOnLoad) {
         _performCompileAndRun();
       }
     });
+
+    appModel.compilingBusy.addListener(runStartedListener);
   }
 
   @override
   void dispose() {
+    appModel.compilingBusy.removeListener(runStartedListener);
+
     appServices.dispose();
     appModel.dispose();
 
@@ -286,15 +305,18 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final executionWidget = ExecutionWidget(
       appServices: appServices,
       appModel: appModel,
       key: _executionWidgetKey,
     );
+
     final loadingOverlay = LoadingOverlay(
       appModel: appModel,
       key: _loadingOverlayKey,
     );
+
     final editor = EditorWithButtons(
       appModel: appModel,
       appServices: appServices,
@@ -303,81 +325,95 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       key: _editorKey,
     );
 
-    consoleWidget({bool showDivider = false}) => ConsoleWidget(
-          textController: appModel.consoleOutputController,
-          showDivider: showDivider,
-          key: _consoleKey,
-        );
-    final scaffold =
-        LayoutBuilder(builder: (context, BoxConstraints constraints) {
-      // Use the mobile UI layout for small screen widths.
-      if (constraints.maxWidth <= smallScreenWidth) {
-        return Scaffold(
-          appBar: widget.embedMode
-              ? TabBar(
-                  controller: tabController,
-                  tabs: [
-                    Tab(
-                      icon: const Icon(Icons.code),
-                      child: Semantics(
-                        label: 'Dart Code',
-                        child: const Text('Code'),
-                      ),
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.phone_android),
-                      child: Semantics(
-                        label: 'UI Output',
-                        child: const Text('UI Output'),
-                      ),
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.terminal),
-                      child: Semantics(
-                        label: 'Console Output',
-                        child: const Text('Console Output'),
+    final tabBar = TabBar(
+      controller: tabController,
+      tabs: const [
+        Tab(text: 'Code'),
+        Tab(text: 'Output'),
+      ],
+      // Remove the divider line at the bottom of the tab bar.
+      dividerHeight: 0,
+      key: _tabBarKey,
+    );
+
+    final executionStack = Stack(
+      key: _executionStackKey,
+      children: [
+        ValueListenableBuilder(
+          valueListenable: appModel.layoutMode,
+          builder: (context, LayoutMode mode, _) {
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final domHeight = mode.calcDomHeight(constraints.maxHeight);
+                final consoleHeight =
+                    mode.calcConsoleHeight(constraints.maxHeight);
+
+                return Column(
+                  children: [
+                    SizedBox(height: domHeight, child: executionWidget),
+                    SizedBox(
+                      height: consoleHeight,
+                      child: ConsoleWidget(
+                        textController: appModel.consoleOutputController,
+                        showDivider: mode == LayoutMode.both,
+                        key: _consoleKey,
                       ),
                     ),
                   ],
-                )
+                );
+              },
+            );
+          },
+        ),
+        loadingOverlay,
+      ],
+    );
+
+    final scaffold = LayoutBuilder(builder: (context, constraints) {
+      // Use the mobile UI layout for small screen widths.
+      if (constraints.maxWidth <= smallScreenWidth) {
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: widget.embedMode
+              ? tabBar
               : DartPadAppBar(
                   theme: theme,
                   appServices: appServices,
                   appModel: appModel,
                   widget: widget,
-                  bottom: TabBar(
-                    controller: tabController,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.code)),
-                      Tab(icon: Icon(Icons.phone_android)),
-                      Tab(icon: Icon(Icons.terminal)),
-                    ],
-                  ),
+                  bottom: tabBar,
                 ),
-          body: IndexedStack(
-            index: tabController.index,
+          body: Column(
             children: [
-              editor,
-              executionWidget,
-              consoleWidget(),
+              Expanded(
+                child: IndexedStack(
+                  index: tabController.index,
+                  children: [
+                    editor,
+                    executionStack,
+                  ],
+                ),
+              ),
+              if (!widget.embedMode)
+                const StatusLineWidget(mobileVersion: true),
             ],
           ),
         );
-      }
-
-      return Scaffold(
-        appBar: widget.embedMode
-            ? null
-            : DartPadAppBar(
-                theme: theme,
-                appServices: appServices,
-                appModel: appModel,
-                widget: widget,
-              ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Center(
+      } else {
+        // Return the desktop UI.
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: widget.embedMode
+              ? null
+              : DartPadAppBar(
+                  theme: theme,
+                  appServices: appServices,
+                  appModel: appModel,
+                  widget: widget,
+                ),
+          body: Column(
+            children: [
+              Expanded(
                 child: SplitView(
                   viewMode: SplitViewMode.Horizontal,
                   gripColor: theme.colorScheme.surface,
@@ -386,47 +422,15 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                   controller: mainSplitter,
                   children: [
                     editor,
-                    Stack(
-                      children: [
-                        ValueListenableBuilder(
-                          valueListenable: appModel.layoutMode,
-                          builder: (context, LayoutMode mode, _) {
-                            return LayoutBuilder(
-                              builder: (BuildContext context,
-                                  BoxConstraints constraints) {
-                                final domHeight =
-                                    mode.calcDomHeight(constraints.maxHeight);
-                                final consoleHeight = mode
-                                    .calcConsoleHeight(constraints.maxHeight);
-
-                                return Column(
-                                  children: [
-                                    SizedBox(
-                                      height: domHeight,
-                                      child: executionWidget,
-                                    ),
-                                    SizedBox(
-                                      height: consoleHeight,
-                                      child: consoleWidget(
-                                          showDivider: mode == LayoutMode.both),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                        loadingOverlay,
-                      ],
-                    ),
+                    executionStack,
                   ],
                 ),
               ),
-            ),
-            if (!widget.embedMode) const StatusLineWidget(),
-          ],
-        ),
-      );
+              if (!widget.embedMode) const StatusLineWidget(),
+            ],
+          ),
+        );
+      }
     });
 
     return Provider<AppServices>.value(
@@ -435,23 +439,33 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         value: appModel,
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
-            keys.reloadKeyActivator: () {
-              if (!appModel.compilingBusy.value) {
-                _performCompileAndRun();
-              }
+            keys.runKeyActivator1: () {
+              if (!appModel.compilingBusy.value) _performCompileAndRun();
             },
-            keys.findKeyActivator: () {
-              // TODO:
-              unimplemented(context, 'find');
+            keys.runKeyActivator2: () {
+              if (!appModel.compilingBusy.value) _performCompileAndRun();
             },
-            keys.findNextKeyActivator: () {
-              // TODO:
-              unimplemented(context, 'find next');
+            // keys.findKeyActivator: () {
+            //   // TODO:
+            //   unimplemented(context, 'find');
+            // },
+            // keys.findNextKeyActivator: () {
+            //   // TODO:
+            //   unimplemented(context, 'find next');
+            // },
+            keys.formatKeyActivator1: () {
+              if (!appModel.formattingBusy.value) _handleFormatting();
+            },
+            keys.formatKeyActivator2: () {
+              if (!appModel.formattingBusy.value) _handleFormatting();
             },
             keys.codeCompletionKeyActivator: () {
-              appServices.editorService?.showCompletions();
+              appServices.editorService?.showCompletions(autoInvoked: false);
             },
-            keys.quickFixKeyActivator: () {
+            keys.quickFixKeyActivator1: () {
+              appServices.editorService?.showQuickFixes();
+            },
+            keys.quickFixKeyActivator2: () {
               appServices.editorService?.showQuickFixes();
             },
           },
@@ -466,15 +480,23 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
   Future<void> _handleFormatting() async {
     try {
-      final value = appModel.sourceCodeController.text;
-      final result = await appServices.format(SourceRequest(source: value));
+      final source = appModel.sourceCodeController.text;
+      final offset = appServices.editorService?.cursorOffset;
+      final result = await appServices.format(
+        SourceRequest(source: source, offset: offset),
+      );
 
-      if (result.source == value) {
+      if (result.source == source) {
         appModel.editorStatus.showToast('No formatting changes');
       } else {
         appModel.editorStatus.showToast('Format successful');
-        appModel.sourceCodeController.text = result.source;
+        appModel.sourceCodeController.value = TextEditingValue(
+          text: result.source,
+          selection: TextSelection.collapsed(offset: result.offset ?? 0),
+        );
       }
+
+      appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
@@ -566,7 +588,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return AppBar(
         backgroundColor: theme.colorScheme.surface,
-        bottom: bottom,
         title: SizedBox(
           height: toolbarItemHeight,
           child: Row(
@@ -604,6 +625,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
         ),
+        bottom: bottom,
         actions: [
           // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
@@ -665,7 +687,10 @@ class EditorWithButtons extends StatelessWidget {
                   appServices: appServices,
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(denseSpacing),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: denseSpacing,
+                    horizontal: defaultSpacing,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     // We use explicit directionality here in order to have the
@@ -726,7 +751,12 @@ class EditorWithButtons extends StatelessWidget {
 }
 
 class StatusLineWidget extends StatelessWidget {
-  const StatusLineWidget({super.key});
+  final bool mobileVersion;
+
+  const StatusLineWidget({
+    this.mobileVersion = false,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -764,33 +794,35 @@ class StatusLineWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: defaultSpacing),
-          TextButton(
-            onPressed: () {
-              const url = 'https://dart.dev/tools/dartpad/privacy';
-              url_launcher.launchUrl(Uri.parse(url));
-            },
-            child: const Row(
-              children: [
-                Text('Privacy notice'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
-              ],
+          if (!mobileVersion)
+            TextButton(
+              onPressed: () {
+                const url = 'https://dart.dev/tools/dartpad/privacy';
+                url_launcher.launchUrl(Uri.parse(url));
+              },
+              child: const Row(
+                children: [
+                  Text('Privacy notice'),
+                  SizedBox(width: denseSpacing),
+                  Icon(Icons.launch, size: 16),
+                ],
+              ),
             ),
-          ),
           const SizedBox(width: defaultSpacing),
-          TextButton(
-            onPressed: () {
-              const url = 'https://github.com/dart-lang/dart-pad/issues';
-              url_launcher.launchUrl(Uri.parse(url));
-            },
-            child: const Row(
-              children: [
-                Text('Feedback'),
-                SizedBox(width: denseSpacing),
-                Icon(Icons.launch, size: 16),
-              ],
+          if (!mobileVersion)
+            TextButton(
+              onPressed: () {
+                const url = 'https://github.com/dart-lang/dart-pad/issues';
+                url_launcher.launchUrl(Uri.parse(url));
+              },
+              child: const Row(
+                children: [
+                  Text('Feedback'),
+                  SizedBox(width: denseSpacing),
+                  Icon(Icons.launch, size: 16),
+                ],
+              ),
             ),
-          ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: defaultSpacing),
@@ -1052,7 +1084,7 @@ class OverflowMenu extends StatelessWidget {
 }
 
 class KeyBindingsTable extends StatelessWidget {
-  final List<(String, ShortcutActivator)> bindings;
+  final List<(String, List<ShortcutActivator>)> bindings;
 
   const KeyBindingsTable({
     required this.bindings,
@@ -1066,7 +1098,7 @@ class KeyBindingsTable extends StatelessWidget {
       children: [
         const Divider(),
         Expanded(
-          child: VTable<(String, ShortcutActivator)>(
+          child: VTable<(String, List<ShortcutActivator>)>(
             showToolbar: false,
             showHeaders: false,
             startsSorted: true,
@@ -1083,12 +1115,24 @@ class KeyBindingsTable extends StatelessWidget {
                 width: 100,
                 grow: 0.5,
                 alignment: Alignment.centerRight,
-                transformFunction: (binding) =>
-                    (binding.$2 as SingleActivator).describe,
                 styleFunction: (binding) => subtleText,
                 renderFunction: (context, binding, _) {
-                  return (binding.$2 as SingleActivator)
-                      .renderToWidget(context);
+                  final children = <Widget>[];
+                  var first = true;
+                  for (final shortcut in binding.$2) {
+                    if (!first) {
+                      children.add(
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4, right: 8),
+                          child: Text(','),
+                        ),
+                      );
+                    }
+                    first = false;
+                    children.add(
+                        (shortcut as SingleActivator).renderToWidget(context));
+                  }
+                  return Row(children: children);
                 },
               ),
             ],

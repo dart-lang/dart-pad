@@ -13,4 +13,6 @@ build/
 # Python generated files
 *.pyc
 
+# IDE configuration
 .idea/
+.vscode/

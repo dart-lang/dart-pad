@@ -9,10 +9,19 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
 import 'codemirror.dart';
+
+// TODO: show documentation on hover
+
+// TODO: implement find / find next
+
+// TODO: improve the code completion UI
+
+// TODO: hover - show links to hosted dartdoc? (flutter, dart api, packages)
 
 const String _viewType = 'dartpad-editor';
 
@@ -30,7 +39,7 @@ void _initViewFactory() {
 }
 
 web.Element _codeMirrorFactory(int viewId) {
-  final div = web.createElementTag('div') as web.HTMLDivElement
+  final div = web.document.createElement('div') as web.HTMLDivElement
     ..style.width = '100%'
     ..style.height = '100%';
 
@@ -52,6 +61,17 @@ web.Element _codeMirrorFactory(int viewId) {
           .toJS;
   CodeMirror.commands.weHandleElsewhere =
       ((JSObject? _) => _weHandleElsewhere(codeMirrorInstance!)).toJS;
+
+  // Prevent the flutter web engine from handling (and preventing default on)
+  // wheel events over CodeMirror's HtmlElementView.
+  //
+  // This is needed so users can scroll code with their mouse wheel.
+  div.addEventListener(
+    'wheel',
+    (web.WheelEvent e) {
+      e.stopPropagation();
+    }.toJS,
+  );
 
   return div;
 }
@@ -77,9 +97,48 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   CodeMirror? codeMirror;
   CompletionType completionType = CompletionType.auto;
 
+  late final FocusNode _focusNode;
+
+  _EditorWidgetState() {
+    _focusNode = FocusNode(
+      onKeyEvent: (node, event) {
+        if (!node.hasFocus) {
+          return KeyEventResult.ignored;
+        }
+
+        // If focused, allow CodeMirror to handle tab.
+        if (event.logicalKey == LogicalKeyboardKey.tab) {
+          return KeyEventResult.skipRemainingHandlers;
+        } else if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.period) {
+          // On a period, auto-invoke code completions.
+
+          // If any modifiers keys are depressed, ignore this event. Note that
+          // directly querying `HardwareKeyboard.instance` could have a race
+          // condition (we'd like to read this information directly from the
+          // event).
+          if (HardwareKeyboard.instance.isAltPressed ||
+              HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed ||
+              HardwareKeyboard.instance.isShiftPressed) {
+            return KeyEventResult.ignored;
+          }
+
+          // We introduce a delay here to allow codemirror to process the key
+          // event.
+          Timer.run(() => showCompletions(autoInvoked: true));
+
+          return KeyEventResult.skipRemainingHandlers;
+        }
+
+        return KeyEventResult.ignored;
+      },
+    );
+  }
+
   @override
-  void showCompletions() {
-    completionType = CompletionType.manual;
+  void showCompletions({required bool autoInvoked}) {
+    completionType = autoInvoked ? CompletionType.auto : CompletionType.manual;
 
     codeMirror?.execCommand('autocomplete');
   }
@@ -105,7 +164,20 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
 
-    codeMirror?.focus();
+    focus();
+  }
+
+  @override
+  int get cursorOffset {
+    final pos = codeMirror?.getCursor();
+    if (pos == null) return 0;
+
+    return codeMirror?.getDoc().indexFromPos(pos) ?? 0;
+  }
+
+  @override
+  void focus() {
+    _focusNode.requestFocus();
   }
 
   @override
@@ -118,14 +190,16 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void _platformViewCreated(int id, {required bool darkMode}) {
     codeMirror = codeMirrorInstance;
 
+    final appModel = widget.appModel;
+
     // read only
-    final readOnly = !widget.appModel.appReady.value;
+    final readOnly = !appModel.appReady.value;
     if (readOnly) {
       codeMirror!.setReadOnly(true);
     }
 
     // contents
-    final contents = widget.appModel.sourceCodeController.text;
+    final contents = appModel.sourceCodeController.text;
     codeMirror!.getDoc().setValue(contents);
 
     // darkmode
@@ -140,7 +214,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       }.toJS,
     );
 
-    final appModel = widget.appModel;
+    codeMirror!.on(
+      'focus',
+      ([JSAny? _, JSAny? __]) {
+        _focusNode.requestFocus();
+      }.toJS,
+    );
+
+    codeMirror!.on(
+      'blur',
+      ([JSAny? _, JSAny? __]) {
+        _focusNode.unfocus();
+      }.toJS,
+    );
 
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
@@ -162,6 +248,22 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         (CodeMirror editor, [HintOptions? options]) {
           return options!.results;
         }.toJS);
+
+    // Listen for document body to be visible, then force a code mirror refresh.
+    final observer = web.IntersectionObserver(
+      (JSArray<web.IntersectionObserverEntry> entries,
+          web.IntersectionObserver observer) {
+        for (final entry in entries.toDart) {
+          if (entry.isIntersecting) {
+            observer.unobserve(web.document.body!);
+            Timer.run(() => codeMirror!.refresh());
+            return;
+          }
+        }
+      }.toJS,
+    );
+
+    observer.observe(web.document.body!);
   }
 
   @override
@@ -170,11 +272,31 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     _updateCodemirrorMode(darkMode);
 
-    return HtmlElementView(
-      key: _elementViewKey,
-      viewType: _viewType,
-      onPlatformViewCreated: (id) =>
-          _platformViewCreated(id, darkMode: darkMode),
+    return FocusableActionDetector(
+      autofocus: true,
+      focusNode: _focusNode,
+      onFocusChange: (isFocused) {
+        // If focus is entering or leaving, convey this to CodeMirror.
+        if (isFocused) {
+          codeMirror?.focus();
+        } else {
+          codeMirror?.getInputField().blur();
+        }
+      },
+      // TODO(parlough): Add shortcut for focus traversal to escape editor.
+      // shortcuts: {
+      //   // Add Esc and Shift+Esc as shortcuts for focus to leave editor.
+      //   LogicalKeySet(LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.nextFocus),
+      //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
+      //       VoidCallbackIntent(_focusNode.previousFocus),
+      // },
+      child: HtmlElementView(
+        key: _elementViewKey,
+        viewType: _viewType,
+        onPlatformViewCreated: (id) =>
+            _platformViewCreated(id, darkMode: darkMode),
+      ),
     );
   }
 
@@ -200,8 +322,19 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorFromModel() {
-    final value = widget.appModel.sourceCodeController.text;
-    codeMirror?.getDoc().setValue(value);
+    final value = widget.appModel.sourceCodeController.value;
+    final cursorOffset = value.selection.baseOffset;
+    final cm = codeMirror!;
+    final doc = cm.getDoc();
+
+    if (cursorOffset == -1) {
+      doc.setValue(value.text);
+    } else {
+      final scrollInfo = cm.getScrollInfo();
+      doc.setValue(value.text);
+      doc.setSelection(doc.posFromIndex(cursorOffset));
+      cm.scrollTo(scrollInfo.left, scrollInfo.top);
+    }
   }
 
   void _updateEditableStatus() {
@@ -274,8 +407,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           .map((suggestion) => suggestion.toHintResult())
           .toList();
 
-      // Remove hints where both the replacement text and the display text are the
-      // same.
+      // Remove hints where both the replacement text and the display text are
+      // the same.
       final memos = <String>{};
       hints.retainWhere((hint) {
         return memos.add('${hint.text}:${hint.displayText}');
@@ -293,10 +426,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 // codemirror commands
 
 JSAny? _handleGoLineLeft(CodeMirror editor) {
-  // Change the cmd-left behavior to move the cursor to the leftmost non-ws
-  // char.
-  editor.execCommand('goLineLeftSmart');
-  return JSObject();
+  // Change the cmd-left behavior to move the cursor to leftmost non-ws char.
+  return editor.execCommand('goLineLeftSmart');
 }
 
 void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
@@ -355,27 +486,9 @@ const codeMirrorOptions = {
     'Shift-Ctrl-F': 'weHandleElsewhere',
     'Shift-Cmd-F': 'weHandleElsewhere',
     'Cmd-Alt-F': false,
-    // vscode folding key combos (pc/mac)
-    'Shift-Ctrl-[': 'ourFoldWithCursorToStart',
-    'Cmd-Alt-[': 'ourFoldWithCursorToStart',
-    'Shift-Ctrl-]': 'unfold',
-    'Cmd-Alt-]': 'unfold',
-    // made our own keycombo since VSCode and AndroidStudio's
-    'Shift-Ctrl-Alt-[': 'foldAll',
-    // are taken by browser
-    'Shift-Cmd-Alt-[': 'foldAll',
-    'Shift-Ctrl-Alt-]': 'unfoldAll',
-    'Shift-Cmd-Alt-]': 'unfoldAll',
-  },
-  'foldGutter': true,
-  'foldOptions': {
-    'minFoldSize': 1,
-    // like '...', but middle dots
-    'widget': '\u00b7\u00b7\u00b7',
   },
   'gutters': [
     'CodeMirror-linenumbers',
-    'CodeMirror-foldgutter',
   ],
   'highlightSelectionMatches': {
     'style': 'highlight-selection-matches',

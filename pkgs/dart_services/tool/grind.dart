@@ -297,9 +297,8 @@ Future<void> _updateDependenciesFile({
   await runFlutterPubGet(sdk, tempDir.path, log: log);
   final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
-  _pubDependenciesFile(channel: channel).writeAsStringSync(
-    const JsonEncoder.withIndent('  ').convert(packageVersions),
-  );
+  final deps = const JsonEncoder.withIndent('  ').convert(packageVersions);
+  _pubDependenciesFile(channel: channel).writeAsStringSync('$deps\n');
 }
 
 /// Returns the File containing the pub dependencies and their version numbers.

@@ -10,28 +10,33 @@
       ],
       "redirects": [
         {
-          "source": "/embed-dart.html",
+          "source": "/embed-dart?(.html)",
           "destination": "/?embed=true",
           "type": 301
         },
         {
-          "source": "/embed-flutter.html",
+          "source": "/embed-flutter?(.html)",
           "destination": "/?embed=true",
           "type": 301
         },
         {
-          "source": "/embed-flutter_showcase.html",
+          "source": "/embed-flutter_showcase?(.html)",
           "destination": "/?embed=true",
           "type": 301
         },
         {
-          "source": "/embed-html.html",
+          "source": "/embed-html?(.html)",
           "destination": "/?embed=true",
           "type": 301
         },
         {
-          "source": "/embed-inline.html",
+          "source": "/embed-inline?(.html)",
           "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/workshops?(.html)",
+          "destination": "https://github.com/dart-lang/dart-pad/wiki/Workshop-authoring-guide",
           "type": 301
         }
       ],

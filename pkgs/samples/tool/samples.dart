@@ -111,8 +111,16 @@ class Samples {
     print('Verifying sample file generation...');
 
     final readme = File('README.md');
-    if (readme.readAsStringSync() != _generateReadmeContent()) {
+    final readmeUpToDate =
+        readme.readAsStringSync() == _generateReadmeContent();
+
+    final codeFile = File('../sketch_pad/lib/samples.g.dart');
+    final codeFileUpToDate =
+        codeFile.readAsStringSync() == _generateSourceContent();
+
+    if (!readmeUpToDate || !codeFileUpToDate) {
       stderr.writeln('Generated sample files not up-to-date.');
+      stderr.writeln('');
       stderr.writeln('Re-generate by running:');
       stderr.writeln('');
       stderr.writeln('  dart run tool/samples.dart');
@@ -121,7 +129,7 @@ class Samples {
     }
 
     // print success message
-    print('Generated files up-to-date');
+    print('Generated files up-to-date.');
   }
 
   String _generateReadmeContent() {

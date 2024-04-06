@@ -79,8 +79,8 @@ class MiniIconButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: IconButton(
         style: ButtonStyle(
-          shape: MaterialStateProperty.all(const CircleBorder()),
-          backgroundColor: MaterialStateProperty.all(backgroundColor),
+          shape: WidgetStateProperty.all(const CircleBorder()),
+          backgroundColor: WidgetStateProperty.all(backgroundColor),
         ),
         icon: Icon(icon),
         iconSize: small ? 16 : smallIconSize,
@@ -94,6 +94,7 @@ class MiniIconButton extends StatelessWidget {
 
 class RunButton extends StatelessWidget {
   final VoidCallback? onPressed;
+
   const RunButton({this.onPressed, super.key});
 
   @override
@@ -103,11 +104,11 @@ class RunButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
-          shape: MaterialStateProperty.all(
+          shape: WidgetStateProperty.all(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
-          backgroundColor: MaterialStateProperty.resolveWith(
+          backgroundColor: WidgetStateProperty.resolveWith(
             (states) {
-              if (states.contains(MaterialState.disabled)) {
+              if (states.contains(WidgetState.disabled)) {
                 return runButtonColor.withOpacity(0.4);
               }
 
@@ -121,11 +122,9 @@ class RunButton extends StatelessWidget {
             Icon(
               Icons.play_arrow,
               color: Colors.black,
-              size: 20.0,
+              size: 20,
             ),
-            SizedBox(
-              width: 8.0,
-            ),
+            SizedBox(width: 8),
             Text(
               'Run',
               style: TextStyle(color: Colors.black),

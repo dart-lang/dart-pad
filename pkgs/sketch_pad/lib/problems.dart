@@ -5,8 +5,11 @@
 import 'dart:math' as math;
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
 import 'theme.dart';
@@ -43,7 +46,7 @@ class ProblemsTableWidget extends StatelessWidget {
       curve: animationCurve,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceVariant,
+          color: colorScheme.surfaceContainerHighest,
         ),
         padding: const EdgeInsets.all(denseSpacing),
         child: ListView.builder(
@@ -59,9 +62,10 @@ class ProblemsTableWidget extends StatelessWidget {
 }
 
 class ProblemWidget extends StatelessWidget {
+  final MenuController _menuController = MenuController();
   final AnalysisIssue issue;
 
-  const ProblemWidget({
+  ProblemWidget({
     required this.issue,
     super.key,
   });
@@ -120,14 +124,45 @@ class ProblemWidget extends StatelessWidget {
     );
 
     final appServices = Provider.of<AppServices>(context);
+    final diagnosticDocUrl = issue.url;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        child: widget,
+        child: MenuAnchor(
+          controller: _menuController,
+          menuChildren: [
+            MenuItemButton(
+              child: const Text('Copy diagnostic message'),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: issue.message));
+              },
+            ),
+            if (diagnosticDocUrl != null)
+              MenuItemButton(
+                child: const Text('View diagnostic documentation'),
+                onPressed: () {
+                  url_launcher.launchUrl(Uri.parse(diagnosticDocUrl));
+                },
+              ),
+          ],
+          child: widget,
+        ),
         onTap: () {
+          _menuController.close();
           appServices.editorService?.jumpTo(issue);
+        },
+        onSecondaryTapDown: (details) async {
+          // On right click, disable browser context menu, and
+          // show menu to copy diagnostic or view its docs.
+          if (kIsWeb) {
+            await BrowserContextMenu.disableContextMenu();
+          }
+          _menuController.open(position: details.localPosition);
+          if (kIsWeb) {
+            BrowserContextMenu.enableContextMenu();
+          }
         },
       ),
     );
@@ -135,29 +170,17 @@ class ProblemWidget extends StatelessWidget {
 }
 
 extension AnalysisIssueExtension on AnalysisIssue {
-  Color colorFor({bool darkMode = true}) {
-    switch (kind) {
-      case 'error':
-        return darkMode ? darkErrorColor : lightErrorColor;
-      case 'warning':
-        return darkMode ? darkWarningColor : lightWarningColor;
-      case 'info':
-        return darkMode ? darkInfoColor : lightInfoColor;
-      default:
-        return darkMode ? darkIssueColor : lightIssueColor;
-    }
-  }
+  Color colorFor({bool darkMode = true}) => switch (kind) {
+        'error' => darkMode ? darkErrorColor : lightErrorColor,
+        'warning' => darkMode ? darkWarningColor : lightWarningColor,
+        'info' => darkMode ? darkInfoColor : lightInfoColor,
+        _ => darkMode ? darkIssueColor : lightIssueColor
+      };
 
-  IconData get errorIcon {
-    switch (kind) {
-      case 'error':
-        return Icons.error_outline;
-      case 'warning':
-        return Icons.warning_outlined;
-      case 'info':
-        return Icons.info_outline;
-      default:
-        return Icons.error_outline;
-    }
-  }
+  IconData get errorIcon => switch (kind) {
+        'error' => Icons.error_outline,
+        'warning' => Icons.warning_outlined,
+        'info' => Icons.info_outline,
+        _ => Icons.error_outline
+      };
 }
