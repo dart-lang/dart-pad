@@ -60,6 +60,15 @@ class AppModel {
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
+  /// Whether the docs panel is showing or should show.
+  final ValueNotifier<bool> docsShowing = ValueNotifier(false);
+
+  /// The last document request received.
+  final ValueNotifier<DocumentResponse?> currentDocs = ValueNotifier(null);
+
+  /// Used to pass information about mouse clicks in the editor.
+  final ValueNotifier<int> lastEditorClickOffset = ValueNotifier(0);
+
   final ValueNotifier<SplitDragState> splitViewDragState =
       ValueNotifier(SplitDragState.inactive);
 
@@ -103,12 +112,12 @@ class AppModel {
   }
 }
 
+const double dividerSplit = 0.78;
+
 enum LayoutMode {
   both(true, true),
   justDom(true, false),
   justConsole(false, true);
-
-  static const double _dividerSplit = 0.78;
 
   final bool domIsVisible;
   final bool consoleIsVisible;
@@ -119,14 +128,14 @@ enum LayoutMode {
     if (!domIsVisible) return 1;
     if (!consoleIsVisible) return height;
 
-    return height * _dividerSplit;
+    return height * dividerSplit;
   }
 
   double calcConsoleHeight(double height) {
     if (!consoleIsVisible) return 0;
     if (!domIsVisible) return height - 1;
 
-    return height * (1 - _dividerSplit);
+    return height * (1 - dividerSplit);
   }
 }
 
@@ -302,6 +311,10 @@ class AppServices {
     } finally {
       appModel.formattingBusy.value = false;
     }
+  }
+
+  Future<DocumentResponse> document(SourceRequest request) async {
+    return await services.document(request);
   }
 
   Future<CompileResponse> compile(CompileRequest request) async {

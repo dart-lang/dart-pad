@@ -15,13 +15,7 @@ import 'package:web/web.dart' as web;
 import '../model.dart';
 import 'codemirror.dart';
 
-// TODO: show documentation on hover
-
 // TODO: implement find / find next
-
-// TODO: improve the code completion UI
-
-// TODO: hover - show links to hosted dartdoc? (flutter, dart api, packages)
 
 const String _viewType = 'dartpad-editor';
 
@@ -225,6 +219,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       'blur',
       ([JSAny? _, JSAny? __]) {
         _focusNode.unfocus();
+      }.toJS,
+    );
+
+    codeMirror!.on(
+      'mousedown',
+      ([JSAny? _, JSAny? __]) {
+        // Delay slightly to allow codemirror to update the cursor position.
+        Timer.run(() => appModel.lastEditorClickOffset.value = cursorOffset);
       }.toJS,
     );
 
