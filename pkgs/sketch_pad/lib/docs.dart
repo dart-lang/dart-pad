@@ -52,17 +52,17 @@ class _DocsWidgetState extends State<DocsWidget> {
                 title = '$title (deprecated)';
               }
 
-              // TODO: should the markdown text be selectable?
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: denseSpacing),
+                  if (title.isNotEmpty)
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (title.isNotEmpty) const SizedBox(height: denseSpacing),
                   Expanded(
                     child: Markdown(
                       data: docs?.dartdoc ?? '',
@@ -117,7 +117,12 @@ class _DocsWidgetState extends State<DocsWidget> {
 
   void _handleMarkdownTap(String text, String? href, String title) {
     if (href != null) {
-      url_launcher.launchUrl(Uri.parse(href));
+      final uri = Uri.tryParse(href);
+      if (uri == null) {
+        widget.appModel.editorStatus.showToast('Unable to open: $href');
+      } else {
+        url_launcher.launchUrl(uri);
+      }
     }
   }
 }
