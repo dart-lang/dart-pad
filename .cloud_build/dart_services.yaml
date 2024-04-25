@@ -13,14 +13,23 @@ steps:
       - --no-fuchsia
     dir: pkgs/dart_services
 
-  # Build storage artifacts
+  # Run pub get
   - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
     id: Build storage artifacts
     entrypoint: dart
     args:
       - pub
-      - run
-      - grinder
+      - get
+    env:
+      - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
+    dir: pkgs/dart_services
+
+  # Build storage artifacts
+  - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
+    id: Build storage artifacts
+    entrypoint: dart
+    args:
+      - tool/grind.dart
       - build-storage-artifacts
     env:
       - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
@@ -55,8 +64,7 @@ steps:
     id: Validate storage artifacts
     entrypoint: dart
     args:
-      - run
-      - grinder
+      - tool/grind.dart
       - validate-storage-artifacts
       - --bucket=${_STORAGE_BUCKET}
     env:
