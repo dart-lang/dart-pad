@@ -15,7 +15,7 @@ steps:
 
   # Run pub get
   - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
-    id: Build storage artifacts
+    id: Run pub get
     entrypoint: dart
     args:
       - pub
