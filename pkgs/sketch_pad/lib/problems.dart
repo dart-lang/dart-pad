@@ -46,7 +46,7 @@ class ProblemsTableWidget extends StatelessWidget {
       curve: animationCurve,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
+          color: colorScheme.surfaceVariant,
         ),
         padding: const EdgeInsets.all(denseSpacing),
         child: ListView.builder(

@@ -78,10 +78,7 @@ class MiniIconButton extends StatelessWidget {
       message: tooltip,
       waitDuration: tooltipDelay,
       child: IconButton(
-        style: ButtonStyle(
-          shape: WidgetStateProperty.all(const CircleBorder()),
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
-        ),
+        style: IconButton.styleFrom(backgroundColor: backgroundColor),
         icon: Icon(icon),
         iconSize: small ? 16 : smallIconSize,
         splashRadius: small ? 16 : smallIconSize,
@@ -102,34 +99,15 @@ class RunButton extends StatelessWidget {
     return Tooltip(
       message: 'Run',
       waitDuration: tooltipDelay,
-      child: TextButton(
-        style: ButtonStyle(
-          shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) {
-              if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withOpacity(0.4);
-              }
-
-              return runButtonColor;
-            },
-          ),
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: runButtonColor,
         ),
+        icon: const Icon(Icons.play_arrow),
         onPressed: onPressed,
-        child: const Row(
-          children: [
-            Icon(
-              Icons.play_arrow,
-              color: Colors.black,
-              size: 20,
-            ),
-            SizedBox(width: 8),
-            Text(
-              'Run',
-              style: TextStyle(color: Colors.black),
-            ),
-          ],
+        label: const Text(
+          'Run',
         ),
       ),
     );
