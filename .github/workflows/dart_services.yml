@@ -26,7 +26,7 @@ jobs:
       matrix:
         sdk: [stable, beta, main]
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
         with:
             channel: ${{ matrix.sdk }}
