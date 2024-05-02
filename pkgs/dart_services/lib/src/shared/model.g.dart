@@ -9,7 +9,7 @@ part of 'model.dart';
 SourceRequest _$SourceRequestFromJson(Map<String, dynamic> json) =>
     SourceRequest(
       source: json['source'] as String,
-      offset: json['offset'] as int?,
+      offset: (json['offset'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$SourceRequestToJson(SourceRequest instance) =>
@@ -23,15 +23,11 @@ AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
       issues: (json['issues'] as List<dynamic>)
           .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
           .toList(),
-      packageImports: (json['packageImports'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
     );
 
 Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>
     <String, dynamic>{
       'issues': instance.issues,
-      'packageImports': instance.packageImports,
     };
 
 AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
@@ -45,7 +41,6 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       contextMessages: (json['contextMessages'] as List<dynamic>?)
           ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
           .toList(),
-      sourceName: json['sourceName'] as String? ?? 'main.dart',
     );
 
 Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
@@ -57,14 +52,13 @@ Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
       'correction': instance.correction,
       'url': instance.url,
       'contextMessages': instance.contextMessages,
-      'sourceName': instance.sourceName,
     };
 
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
-      charStart: json['charStart'] as int? ?? -1,
-      charLength: json['charLength'] as int? ?? 0,
-      line: json['line'] as int? ?? -1,
-      column: json['column'] as int? ?? -1,
+      charStart: (json['charStart'] as num?)?.toInt() ?? -1,
+      charLength: (json['charLength'] as num?)?.toInt() ?? 0,
+      line: (json['line'] as num?)?.toInt() ?? -1,
+      column: (json['column'] as num?)?.toInt() ?? -1,
     );
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
@@ -121,7 +115,7 @@ Map<String, dynamic> _$CompileDDCResponseToJson(CompileDDCResponse instance) =>
 FormatResponse _$FormatResponseFromJson(Map<String, dynamic> json) =>
     FormatResponse(
       source: json['source'] as String,
-      offset: json['offset'] as int?,
+      offset: (json['offset'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$FormatResponseToJson(FormatResponse instance) =>
@@ -154,7 +148,7 @@ SourceChange _$SourceChangeFromJson(Map<String, dynamic> json) => SourceChange(
       linkedEditGroups: (json['linkedEditGroups'] as List<dynamic>)
           .map((e) => LinkedEditGroup.fromJson(e as Map<String, dynamic>))
           .toList(),
-      selectionOffset: json['selectionOffset'] as int?,
+      selectionOffset: (json['selectionOffset'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$SourceChangeToJson(SourceChange instance) =>
@@ -166,8 +160,8 @@ Map<String, dynamic> _$SourceChangeToJson(SourceChange instance) =>
     };
 
 SourceEdit _$SourceEditFromJson(Map<String, dynamic> json) => SourceEdit(
-      offset: json['offset'] as int,
-      length: json['length'] as int,
+      offset: (json['offset'] as num).toInt(),
+      length: (json['length'] as num).toInt(),
       replacement: json['replacement'] as String,
     );
 
@@ -180,8 +174,10 @@ Map<String, dynamic> _$SourceEditToJson(SourceEdit instance) =>
 
 LinkedEditGroup _$LinkedEditGroupFromJson(Map<String, dynamic> json) =>
     LinkedEditGroup(
-      offsets: (json['offsets'] as List<dynamic>).map((e) => e as int).toList(),
-      length: json['length'] as int,
+      offsets: (json['offsets'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+      length: (json['length'] as num).toInt(),
       suggestions: (json['suggestions'] as List<dynamic>)
           .map((e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -230,8 +226,8 @@ Map<String, dynamic> _$DocumentResponseToJson(DocumentResponse instance) =>
 
 CompleteResponse _$CompleteResponseFromJson(Map<String, dynamic> json) =>
     CompleteResponse(
-      replacementOffset: json['replacementOffset'] as int,
-      replacementLength: json['replacementLength'] as int,
+      replacementOffset: (json['replacementOffset'] as num).toInt(),
+      replacementLength: (json['replacementLength'] as num).toInt(),
       suggestions: (json['suggestions'] as List<dynamic>)
           .map((e) => CompletionSuggestion.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -248,10 +244,10 @@ CompletionSuggestion _$CompletionSuggestionFromJson(
         Map<String, dynamic> json) =>
     CompletionSuggestion(
       kind: json['kind'] as String,
-      relevance: json['relevance'] as int,
+      relevance: (json['relevance'] as num).toInt(),
       completion: json['completion'] as String,
       deprecated: json['deprecated'] as bool,
-      selectionOffset: json['selectionOffset'] as int,
+      selectionOffset: (json['selectionOffset'] as num).toInt(),
       displayText: json['displayText'] as String?,
       parameterNames: (json['parameterNames'] as List<dynamic>?)
           ?.map((e) => e as String)

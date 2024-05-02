@@ -285,7 +285,6 @@ class AnalysisServerWrapper {
             ),
           );
         }).toList(),
-        sourceName: path.basename(error.location.file),
       );
 
       return issue;
@@ -359,13 +358,7 @@ class AnalysisServerWrapper {
       }
     }
 
-    return api.AnalysisResponse(
-      issues: [
-        ...importIssues,
-        ...issues,
-      ],
-      packageImports: [],
-    );
+    return api.AnalysisResponse(issues: [...importIssues, ...issues]);
   }
 
   /// Cleanly shutdown the Analysis Server.

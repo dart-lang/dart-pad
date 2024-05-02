@@ -12,8 +12,6 @@ analyzer:
   errors:
     lines_longer_than_80_chars: ignore
     unreachable_from_main: ignore
-    # Remove this once we remove the AnalysisIssue.sourceName field.
-    deprecated_member_use_from_same_package: ignore
 
 linter:
   rules:
