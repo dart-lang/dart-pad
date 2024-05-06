@@ -1,5 +1,5 @@
-name: sketch_pad
-description: An experimental redux of the DartPad UI.
+name: dartpad_ui
+description: The front-end UI of DartPad.
 publish_to: none
 
 environment:

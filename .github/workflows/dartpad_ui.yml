@@ -1,4 +1,4 @@
-name: package:sketch_pad
+name: package:dartpad_ui
 
 permissions: read-all
 
@@ -6,13 +6,13 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/sketch_pad.yml'
-      - 'pkgs/sketch_pad/**'
+      - '.github/workflows/dartpad_ui.yml'
+      - 'pkgs/dartpad_ui/**'
   pull_request:
     branches: [ main ]
     paths:
-      - '.github/workflows/sketch_pad.yml'
-      - 'pkgs/sketch_pad/**'
+      - '.github/workflows/dartpad_ui.yml'
+      - 'pkgs/dartpad_ui/**'
   schedule:
     - cron: '0 0 * * 0' # weekly
 
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: pkgs/sketch_pad/
+        working-directory: pkgs/dartpad_ui/
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1

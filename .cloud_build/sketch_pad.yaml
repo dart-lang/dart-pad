@@ -1,7 +1,0 @@
-steps:
-  - name: gcr.io/$PROJECT_ID/flutter:main
-    args: ['build', 'web']
-    dir: pkgs/sketch_pad
-  - name: gcr.io/$PROJECT_ID/firebase
-    args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:preview']
-    dir: pkgs/sketch_pad
