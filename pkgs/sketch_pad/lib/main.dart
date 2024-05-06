@@ -140,7 +140,7 @@ class _DartPadAppState extends State<DartPadApp> {
           seedColor: lightPrimaryColor,
           surface: lightSurfaceColor,
           onSurface: Colors.black,
-          surfaceContainerHighest: lightSurfaceVariantColor,
+          inverseSurface: lightSurfaceVariantColor,
           onPrimary: lightLinkButtonColor,
         ),
         brightness: Brightness.light,
@@ -162,7 +162,6 @@ class _DartPadAppState extends State<DartPadApp> {
           brightness: Brightness.dark,
           surface: darkSurfaceColor,
           onSurface: Colors.white,
-          surfaceContainerHighest: darkSurfaceVariantColor,
           onSurfaceVariant: Colors.white,
           onPrimary: darkLinkButtonColor,
         ),
@@ -170,11 +169,6 @@ class _DartPadAppState extends State<DartPadApp> {
         dividerColor: darkDividerColor,
         dividerTheme: DividerThemeData(
           color: darkDividerColor,
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
-          ),
         ),
         scaffoldBackgroundColor: darkScaffoldColor,
         menuButtonTheme: MenuButtonThemeData(
