@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:sketch_pad/gists.dart';
+import 'package:dartpad_ui/gists.dart';
 import 'package:test/test.dart';
 
 void main() {
