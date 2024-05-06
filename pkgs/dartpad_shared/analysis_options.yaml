@@ -5,9 +5,6 @@ analyzer:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
-  errors:
-    # Remove this once we remove the AnalysisIssue.sourceName field.
-    deprecated_member_use_from_same_package: ignore
 
 linter:
   rules:
