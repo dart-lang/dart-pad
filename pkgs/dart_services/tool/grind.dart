@@ -241,13 +241,6 @@ void deploy() {
   log('Deploy via Google Cloud Console');
 }
 
-@Task('Copy shared source from dartpad_shared')
-void copySharedSource() async {
-  // TODO: We'd like to remove this copy operation; that will require work in
-  // the cloud build configuration.
-  copy(getDir('../dartpad_shared/lib'), getDir('lib/src/shared'));
-}
-
 Future<void> _run(
   String executable, {
   List<String> arguments = const [],
