@@ -1,0 +1,49 @@
+name: dartpad_ui
+description: The front-end UI of DartPad.
+publish_to: none
+
+environment:
+  sdk: ^3.3.0
+
+dependencies:
+  collection: any
+  dartpad_shared: any
+  flutter:
+    sdk: flutter
+  flutter_markdown: ^0.6.22
+  flutter_web_plugins:
+    sdk: flutter
+  fluttering_phrases: ^1.0.0
+  go_router: ^13.0.0
+  http: ^1.2.0
+  json_annotation: ^4.8.1
+  pointer_interceptor: ^0.10.0
+  provider: ^6.1.0
+  split_view: ^3.2.0
+  url_launcher: ^6.2.2
+  vtable: ^0.4.0
+  web: ^0.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  test: any
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/dart_logo_192.png
+    - assets/flame_logo_192.png
+    - assets/flutter_logo_192.png
+    - assets/gemini_sparkle_192.png
+  fonts:
+    - family: RobotoMono
+      fonts:
+        - asset: assets/fonts/RobotoMono-Regular.ttf
+        - asset: assets/fonts/RobotoMono-Bold.ttf
+          weight: 700
+
+dependency_overrides:
+  dartpad_shared:
+    path: ../dartpad_shared
