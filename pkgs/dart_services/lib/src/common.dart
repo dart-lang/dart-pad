@@ -26,11 +26,8 @@ import 'main.dart' as entrypoint;
 
 Future<void> main() async {
   registerPlugins(webPluginRegistrar);
-  await ui_web.bootstrapEngine(
-    runApp: () {
-      return entrypoint.main();
-    },
-  );
+  await ui_web.bootstrapEngine();
+  entrypoint.main();
 }
 ''';
 
