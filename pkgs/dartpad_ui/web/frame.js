@@ -20,7 +20,7 @@ function replaceJavaScript(value) {
 // Handles incoming messages.
 function messageHandler(e) {
   var obj = e.data;
-
+  if (window.origin !== 'null' || e.source !== window.parent) return;
   if (obj.command === 'execute') {
     // TODO: Switch to using engineInitializer.initializeEngine(config). See
     // https://docs.flutter.dev/development/platform-integration/web/initialization.
