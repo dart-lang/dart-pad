@@ -84,15 +84,6 @@
           ]
         },
         {
-          "source": "/canvaskit/chromium/canvaskit.wasm",
-          "headers": [
-            {
-              "key": "Access-Control-Allow-Origin",
-              "value": "*"
-            }
-          ]
-        },
-        {
           "source": "**",
           "headers": [
             {

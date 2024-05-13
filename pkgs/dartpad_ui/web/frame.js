@@ -22,17 +22,19 @@ function messageHandler(e) {
   var obj = e.data;
 
   if (obj.command === 'execute') {
-    runFlutterApp(obj.js);
+    runFlutterApp(obj.js, obj.canvasKitBaseUrl);
   }
 };
 
-function runFlutterApp(compiledScript) {
+function runFlutterApp(compiledScript, canvasKitBaseUrl) {
   var blob = new Blob([compiledScript], {type: 'text/javascript'});
   var url = URL.createObjectURL(blob);
   _flutter.loader.loadEntrypoint({
     entrypointUrl: url,
     onEntrypointLoaded: async function(engineInitializer) {
-      let appRunner = await engineInitializer.initializeEngine();
+      let appRunner = await engineInitializer.initializeEngine(
+          {canvasKitBaseUrl: canvasKitBaseUrl}
+      );
       appRunner.runApp();
     }
   });
