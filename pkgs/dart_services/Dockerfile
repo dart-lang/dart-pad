@@ -4,8 +4,11 @@ ARG BUILD_SHA
 
 FROM gcr.io/$PROJECT_ID/flutter:$FLUTTER_CHANNEL
 
-WORKDIR /app
-COPY . /app
+WORKDIR /pkgs/dartpad_shared
+COPY pkgs/dartpad_shared .
+
+WORKDIR /pkgs/dart_services
+COPY pkgs/dart_services .
 
 RUN dart pub get
 RUN dart compile exe bin/server.dart -o bin/server
