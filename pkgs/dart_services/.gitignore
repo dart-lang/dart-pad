@@ -13,6 +13,7 @@ build/
 coverage.json
 lcov.info
 .idea/
+pubspec.lock
 
 # Redis snapshot persistance file
 dump.rdb

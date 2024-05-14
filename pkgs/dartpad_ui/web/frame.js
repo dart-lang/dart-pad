@@ -22,15 +22,23 @@ function messageHandler(e) {
   var obj = e.data;
 
   if (obj.command === 'execute') {
-    // TODO: Switch to using engineInitializer.initializeEngine(config). See
-    // https://docs.flutter.dev/development/platform-integration/web/initialization.
-    window.flutterConfiguration = {
-      canvasKitBaseUrl: obj.canvasKitBaseUrl
-    };
-
-    replaceJavaScript(obj.js);
+    runFlutterApp(obj.js, obj.canvasKitBaseUrl);
   }
 };
+
+function runFlutterApp(compiledScript, canvasKitBaseUrl) {
+  var blob = new Blob([compiledScript], {type: 'text/javascript'});
+  var url = URL.createObjectURL(blob);
+  _flutter.loader.loadEntrypoint({
+    entrypointUrl: url,
+    onEntrypointLoaded: async function(engineInitializer) {
+      let appRunner = await engineInitializer.initializeEngine(
+          {canvasKitBaseUrl: canvasKitBaseUrl}
+      );
+      appRunner.runApp();
+    }
+  });
+}
 
 window.addEventListener('load', function () {
   window.addEventListener('message', messageHandler, false);

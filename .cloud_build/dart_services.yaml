@@ -83,8 +83,10 @@ steps:
       - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
       - --build-arg
       - BUILD_SHA=${SHORT_SHA}
+      - --file
+      - pkgs/dart_services/Dockerfile
       - .
-    dir: pkgs/dart_services
+    dir: .
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'

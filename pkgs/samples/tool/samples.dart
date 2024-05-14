@@ -99,7 +99,7 @@ class Samples {
     print('Wrote ${readme.path}');
 
     // samples.g.dart
-    final codeFile = File('../sketch_pad/lib/samples.g.dart');
+    final codeFile = File('../dartpad_ui/lib/samples.g.dart');
     final contents = _generateSourceContent();
     codeFile.writeAsStringSync(contents);
     print('Wrote ${codeFile.path}');
@@ -114,7 +114,7 @@ class Samples {
     final readmeUpToDate =
         readme.readAsStringSync() == _generateReadmeContent();
 
-    final codeFile = File('../sketch_pad/lib/samples.g.dart');
+    final codeFile = File('../dartpad_ui/lib/samples.g.dart');
     final codeFileUpToDate =
         codeFile.readAsStringSync() == _generateSourceContent();
 
