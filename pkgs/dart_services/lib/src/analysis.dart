@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -14,7 +15,6 @@ import 'common.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
-import 'shared/model.dart' as api;
 import 'utils.dart' as utils;
 import 'utils.dart';
 
@@ -285,7 +285,6 @@ class AnalysisServerWrapper {
             ),
           );
         }).toList(),
-        sourceName: path.basename(error.location.file),
       );
 
       return issue;
@@ -359,13 +358,7 @@ class AnalysisServerWrapper {
       }
     }
 
-    return api.AnalysisResponse(
-      issues: [
-        ...importIssues,
-        ...issues,
-      ],
-      packageImports: [],
-    );
+    return api.AnalysisResponse(issues: [...importIssues, ...issues]);
   }
 
   /// Cleanly shutdown the Analysis Server.

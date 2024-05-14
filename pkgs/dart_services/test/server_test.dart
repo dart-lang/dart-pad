@@ -5,7 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
 import 'package:dart_services/src/sdk.dart';
-import 'package:dart_services/src/shared/services.dart';
+import 'package:dartpad_shared/services.dart';
 import 'package:http/http.dart';
 import 'package:test/test.dart';
 
@@ -49,7 +49,6 @@ void main() {
 }
 '''));
       expect(result.issues, isEmpty);
-      expect(result.packageImports, isEmpty);
     });
 
     test('analyze flutter', () async {
@@ -76,7 +75,6 @@ class MyApp extends StatelessWidget {
 
       expect(result, isNotNull);
       expect(result.issues, isEmpty);
-      expect(result.packageImports, isEmpty);
     });
 
     test('analyze errors', () async {

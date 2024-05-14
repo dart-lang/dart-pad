@@ -26,12 +26,8 @@ class SourceRequest {
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
-  @Deprecated('This field was unused and will be removed in a future update.')
-  final List<String>? packageImports;
-
   AnalysisResponse({
     required this.issues,
-    this.packageImports,
   });
 
   factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
@@ -49,8 +45,6 @@ class AnalysisIssue {
   final String? correction;
   final String? url;
   final List<DiagnosticMessage>? contextMessages;
-  @Deprecated('Remove this once no longer referenced')
-  final String sourceName;
 
   AnalysisIssue({
     required this.kind,
@@ -60,7 +54,6 @@ class AnalysisIssue {
     this.correction,
     this.url,
     this.contextMessages,
-    this.sourceName = 'main.dart',
   });
 
   factory AnalysisIssue.fromJson(Map<String, dynamic> json) =>

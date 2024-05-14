@@ -4,13 +4,11 @@ Cloud Build configuration files for dart-pad and dart-services.
 
 # Contents
 
-- `dart-services.yaml` - Deploys the dart_services server to Cloud Run
-- `dart_pad.yaml` - Deploys `dart_pad` to Firebase Hosting
-- `sketch_pad.yaml` - Deploys `sketch_pad` to Firebase Hosting
+- `dart_pad.yaml` - Deploys `dartpad_ui` to Firebase Hosting
+- `dart_services.yaml` - Deploys the dart_services server to Cloud Run
 
 This folder also has configuration files from [cloud-builders-community][],
-which are needed to build and deploy `dart_pad` and `sketch_pad` to Firebase
-Hosting:
+which are needed to build and deploy `dartpad_ui` to Firebase Hosting:
 
 - `flutter/` - Uploads an image that contains the Flutter SDK to Container Registry
 - `firebase/` - Uploads an image that contains the Firebase SDK to Container Registry
@@ -35,7 +33,7 @@ gcloud builds submit \
   --project=$GCP_PROJECT
 ```
 
-The substitions are a comma separated list of `SUBSITUTION=value`:
+The substitutions are a comma separated list of `SUBSITUTION=value`:
 - `_FLUTTER_CHANNEL` - The Flutter channel to use. (`stable`, `beta`, or `main`)
 - `_STORAGE_BUCKET` - The name of the Cloud Storage bucket to use (nnbd_artifacts)
 - `_SERVICE_NAME` - The name of the Cloud Run service (dart-services-cloud-run, flutter-beta-channel, or flutter-master-channel)
@@ -43,10 +41,10 @@ The substitions are a comma separated list of `SUBSITUTION=value`:
 - `_REDIS_ADDR` - the IP address of the Redis bucket (10.0.0.4:6379)
 - `COMMIT_SHA` - the Git commit SHA for this build. Not required when using Triggers.
 
-## Deploy sketch_pad:
+## Deploy dartpad_ui:
 
 ```bash
-gcloud builds submit --config .cloud_build/sketch_pad.yaml
+gcloud builds submit --config .cloud_build/dart_pad.yaml
 ```
 
 ## Update Flutter SDK images

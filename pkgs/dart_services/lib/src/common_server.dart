@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -16,7 +17,6 @@ import 'compiling.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
-import 'shared/model.dart' as api;
 import 'shelf_cors.dart' as shelf_cors;
 import 'utils.dart';
 
