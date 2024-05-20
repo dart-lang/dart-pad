@@ -113,19 +113,6 @@ final class Sdk {
   String get flutterWebSdkPath =>
       path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
 
-  bool get usesNewBootstrapEngine {
-    final uiWebPackage =
-        path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'lib', 'ui_web');
-    final initializationLibrary =
-        path.join(uiWebPackage, 'ui_web', 'initialization.dart');
-
-    final file = File(initializationLibrary);
-    if (!file.existsSync()) return false;
-
-    // Look for 'Future<void> bootstrapEngine({ ... }) { ... }'.
-    return file.readAsStringSync().contains('bootstrapEngine(');
-  }
-
   static Map<String, Object?> _retrieveFlutterVersion(
     String flutterSdkPath,
     String flutterToolPath,

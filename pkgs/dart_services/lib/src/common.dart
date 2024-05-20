@@ -21,30 +21,17 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
-import 'generated_plugin_registrant.dart';
+import 'generated_plugin_registrant.dart' as pluginRegistrant;
 import 'main.dart' as entrypoint;
 
 Future<void> main() async {
-  registerPlugins(webPluginRegistrar);
   await ui_web.bootstrapEngine(
     runApp: () {
-      return entrypoint.main();
+      entrypoint.main();
+    },
+    registerPlugins: () {
+      pluginRegistrant.registerPlugins();
     },
   );
-}
-''';
-
-const kBootstrapFlutterCode_3_16 = r'''
-import 'dart:ui' as ui;
-
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-
-import 'generated_plugin_registrant.dart';
-import 'main.dart' as entrypoint;
-
-Future<void> main() async {
-  registerPlugins(webPluginRegistrar);
-  await ui.webOnlyInitializePlatform();
-  entrypoint.main();
 }
 ''';
