@@ -121,14 +121,8 @@ class Compiler {
       Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
 
       final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
-      String bootstrapContents;
-      if (usingFlutter) {
-        bootstrapContents = _sdk.usesNewBootstrapEngine
-            ? kBootstrapFlutterCode
-            : kBootstrapFlutterCode_3_16;
-      } else {
-        bootstrapContents = kBootstrapDartCode;
-      }
+      final bootstrapContents =
+          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
 
       File(bootstrapPath).writeAsStringSync(bootstrapContents);
       File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
