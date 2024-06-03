@@ -376,6 +376,23 @@ class VersionResponse {
 }
 
 @JsonSerializable()
+class GeminiResponse {
+  final String response;
+
+  GeminiResponse({
+    required this.response,
+  });
+
+  factory GeminiResponse.fromJson(Map<String, dynamic> json) =>
+      _$GeminiResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GeminiResponseToJson(this);
+
+  @override
+  String toString() => 'GeminiResponse[response=$response]';
+}
+
+@JsonSerializable()
 class PackageInfo {
   final String name;
   final String version;

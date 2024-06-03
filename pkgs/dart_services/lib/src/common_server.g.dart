@@ -48,5 +48,10 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
     r'/api/<apiVersion>/version',
     service.versionGet,
   );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/_gemini',
+    service.gemini,
+  );
   return router;
 }

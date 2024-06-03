@@ -10,6 +10,8 @@ import 'package:dartpad_shared/model.dart' as api;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:google_generative_ai/google_generative_ai.dart' as google_ai;
+import 'package:http/http.dart' as http;
 
 import 'analysis.dart';
 import 'caching.dart';
@@ -200,6 +202,54 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
+  static String? googleApiKey = Platform.environment['GOOGLE_API_KEY'];
+  http.Client? geminiHttpClient;
+
+  @Route.post('$apiPrefix/_gemini')
+  Future<Response> gemini(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    // Read the api key from env variables (populated on the server).
+    final apiKey = googleApiKey;
+    if (apiKey == null) {
+      return Response.internalServerError(
+          body: 'gemini key not configured on server');
+    }
+
+    // Only allow the call from known clients / endpoints.
+    const firebaseHostAddress = '199.36.158.100';
+    const localHostAddress = '127.0.0.1';
+
+    final clientAddress = request.shelfClientAddress ?? '';
+    if (clientAddress != firebaseHostAddress &&
+        clientAddress != localHostAddress) {
+      return Response.badRequest(
+          body: 'gemini calls only allowed from the DartPad frontend');
+    }
+
+    final sourceRequest =
+        api.SourceRequest.fromJson(await request.readAsJson());
+
+    geminiHttpClient ??= http.Client();
+
+    final model = google_ai.GenerativeModel(
+      model: 'models/gemini-1.5-flash-latest',
+      apiKey: apiKey,
+      httpClient: geminiHttpClient,
+    );
+
+    final result = await serialize(() async {
+      // call gemini
+      final result = await model.generateContent([
+        google_ai.Content.text(sourceRequest.source),
+      ]);
+
+      return api.GeminiResponse(response: result.text!);
+    });
+
+    return ok(result.toJson());
+  }
+
   Response ok(Map<String, dynamic> json) {
     return Response.ok(
       _jsonEncoder.convert(json),
@@ -326,4 +376,12 @@ String _formatMessage(
   }
 
   return message;
+}
+
+extension on Request {
+  /// Return the IP address of the request client.
+  String? get shelfClientAddress =>
+      (context['shelf.io.connection_info'] as HttpConnectionInfo?)
+          ?.remoteAddress
+          .address;
 }
