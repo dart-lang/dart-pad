@@ -209,22 +209,18 @@ class CommonServerApi {
   Future<Response> gemini(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    // Only allow the call from known clients / endpoints.
-    const firebaseHostAddress = '199.36.158.100';
-    const localHostAddress = '127.0.0.1';
-
-    final clientAddress = request.shelfClientAddress ?? '';
-    if (clientAddress != firebaseHostAddress &&
-        clientAddress != localHostAddress) {
-      return Response.badRequest(
-          body: 'gemini calls only allowed from the DartPad frontend');
-    }
-
     // Read the api key from env variables (populated on the server).
     final apiKey = googleApiKey;
     if (apiKey == null) {
       return Response.internalServerError(
           body: 'gemini key not configured on server');
+    }
+
+    // Only allow the call from dartpad.dev.
+    final origin = request.origin;
+    if (origin != 'https://dartpad.dev') {
+      return Response.badRequest(
+          body: 'Gemini calls only allowed from the DartPad front-end');
     }
 
     final sourceRequest =
@@ -379,9 +375,5 @@ String _formatMessage(
 }
 
 extension on Request {
-  /// Return the IP address of the request client.
-  String? get shelfClientAddress =>
-      (context['shelf.io.connection_info'] as HttpConnectionInfo?)
-          ?.remoteAddress
-          .address;
+  String? get origin => headers['origin'];
 }
