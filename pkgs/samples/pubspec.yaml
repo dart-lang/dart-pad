@@ -1,22 +1,22 @@
 name: samples
 description: Sample code snippets for DartPad.
-publish_to: 'none'
+publish_to: none
 
 environment:
   sdk: ^3.3.0
 
 dependencies:
-  flame: ^1.16.0
+  flame: ^1.17.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.6.19
-  google_generative_ai: ^0.2.0
-  url_launcher: ^6.2.4
+  flutter_markdown: ^0.7.1
+  google_generative_ai: ^0.4.2
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   args: ^2.4.0
   flutter_lints: ^3.0.0
-  path: ^1.8.0
+  path: ^1.9.0
 
 flutter:
   uses-material-design: true
