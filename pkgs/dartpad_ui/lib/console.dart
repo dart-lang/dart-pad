@@ -51,8 +51,11 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
         color: theme.scaffoldBackgroundColor,
         border: widget.showDivider
             ? Border(
-                top: Divider.createBorderSide(context,
-                    width: 8.0, color: theme.colorScheme.surface))
+                top: Divider.createBorderSide(
+                context,
+                width: 8.0,
+                color: theme.colorScheme.surface,
+              ))
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
@@ -67,7 +70,8 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
             expands: true,
             decoration: null,
             style: GoogleFonts.robotoMono(
-                fontSize: theme.textTheme.bodyMedium?.fontSize),
+              fontSize: theme.textTheme.bodyMedium?.fontSize,
+            ),
             readOnly: true,
           ),
           Padding(
