@@ -538,7 +538,7 @@ class _ChatScreenState extends State<ChatScreen> {
 class ApiKeyWidget extends StatelessWidget {
   ApiKeyWidget({required this.onSubmitted, super.key});
 
-  final ValueChanged onSubmitted;
+  final ValueChanged<String> onSubmitted;
   final TextEditingController _textController = TextEditingController();
 
   @override
@@ -732,7 +732,7 @@ class _ChatWidgetState extends State<ChatWidget> {
   }
 
   void _showError(String message) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         return AlertDialog(
