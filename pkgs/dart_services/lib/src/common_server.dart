@@ -202,7 +202,7 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
-  static String? googleApiKey = Platform.environment['GOOGLE_API_KEY'];
+  static final String? googleApiKey = Platform.environment['GOOGLE_API_KEY'];
   http.Client? geminiHttpClient;
 
   @Route.post('$apiPrefix/_gemini')
