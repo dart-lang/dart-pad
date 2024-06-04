@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'theme.dart';
 import 'widgets.dart';
@@ -65,8 +66,8 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
             textInputAction: TextInputAction.newline,
             expands: true,
             decoration: null,
-            style:
-                theme.textTheme.bodyMedium!.copyWith(fontFamily: 'RobotoMono'),
+            style: GoogleFonts.robotoMono(
+                fontSize: theme.textTheme.bodyMedium?.fontSize),
             readOnly: true,
           ),
           Padding(

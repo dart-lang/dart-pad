@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -34,6 +35,10 @@ const smallScreenWidth = 720;
 
 void main() async {
   usePathUrlStrategy();
+
+  // Make sure that the google fonts don't load from http.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   runApp(const DartPadApp());
 }
 
