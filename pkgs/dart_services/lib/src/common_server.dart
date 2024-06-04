@@ -209,13 +209,6 @@ class CommonServerApi {
   Future<Response> gemini(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    // Read the api key from env variables (populated on the server).
-    final apiKey = googleApiKey;
-    if (apiKey == null) {
-      return Response.internalServerError(
-          body: 'gemini key not configured on server');
-    }
-
     // Only allow the call from known clients / endpoints.
     const firebaseHostAddress = '199.36.158.100';
     const localHostAddress = '127.0.0.1';
@@ -225,6 +218,13 @@ class CommonServerApi {
         clientAddress != localHostAddress) {
       return Response.badRequest(
           body: 'gemini calls only allowed from the DartPad frontend');
+    }
+
+    // Read the api key from env variables (populated on the server).
+    final apiKey = googleApiKey;
+    if (apiKey == null) {
+      return Response.internalServerError(
+          body: 'gemini key not configured on server');
     }
 
     final sourceRequest =

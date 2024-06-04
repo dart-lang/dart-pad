@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
 import 'model.dart';
 
@@ -97,9 +98,3 @@ class ApiRequestError implements Exception {
   @override
   String toString() => '$message: $body';
 }
-
-class _Experimental {
-  const _Experimental();
-}
-
-const Object experimental = _Experimental();
