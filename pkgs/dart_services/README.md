@@ -43,12 +43,6 @@ To rebuild the shelf router, run:
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-And to update the shared code from dartpad_shared, run:
-
-```
-dart tool/grind.dart copy-shared-source
-```
-
 ### Modifying supported packages
 
 Package dependencies are pinned using the `pub_dependencies_<CHANNEL>.yaml`

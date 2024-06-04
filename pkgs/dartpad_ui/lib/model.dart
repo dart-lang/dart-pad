@@ -317,6 +317,10 @@ class AppServices {
     return await services.document(request);
   }
 
+  Future<GeminiResponse> gemini(SourceRequest request) async {
+    return await services.gemini(request);
+  }
+
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;

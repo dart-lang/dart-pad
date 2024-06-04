@@ -296,6 +296,16 @@ Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
       'packages': instance.packages,
     };
 
+GeminiResponse _$GeminiResponseFromJson(Map<String, dynamic> json) =>
+    GeminiResponse(
+      response: json['response'] as String,
+    );
+
+Map<String, dynamic> _$GeminiResponseToJson(GeminiResponse instance) =>
+    <String, dynamic>{
+      'response': instance.response,
+    };
+
 PackageInfo _$PackageInfoFromJson(Map<String, dynamic> json) => PackageInfo(
       name: json['name'] as String,
       version: json['version'] as String,
