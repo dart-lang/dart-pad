@@ -32,9 +32,10 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl) {
   _flutter.loader.loadEntrypoint({
     entrypointUrl: url,
     onEntrypointLoaded: async function(engineInitializer) {
-      let appRunner = await engineInitializer.initializeEngine(
-          {canvasKitBaseUrl: canvasKitBaseUrl}
-      );
+      let appRunner = await engineInitializer.initializeEngine({
+        canvasKitBaseUrl: canvasKitBaseUrl,
+        assetBase: 'frame/',
+      });
       appRunner.runApp();
     }
   });
