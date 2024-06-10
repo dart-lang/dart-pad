@@ -4,14 +4,16 @@
 FROM debian:bookworm-slim
 
 # Install Dependencies.
-RUN apt update -y
-RUN apt install -y \
-  git \
-  wget \
-  curl \
-  unzip \
-  lib32stdc++6 \
-  libglu1-mesa
+RUN apt-get update -y && \
+    apt-get install -y \
+        git \
+        wget \
+        curl \
+        unzip \
+        lib32stdc++6 \
+        libglu1-mesa && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV FLUTTER_ROOT="/opt/flutter"
 ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
