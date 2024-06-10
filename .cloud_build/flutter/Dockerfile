@@ -13,15 +13,14 @@ RUN apt install -y \
   lib32stdc++6 \
   libglu1-mesa
 
-# Install Flutter.
 ENV FLUTTER_ROOT="/opt/flutter"
-
+ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
 
 # Set a default channel (branch)
 ARG channel=stable
 
+# Install Flutter.
 RUN git clone -b $channel https://github.com/flutter/flutter "${FLUTTER_ROOT}"
-ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
 
 # Disable analytics and crash reporting on the builder.
 RUN flutter config --disable-analytics
