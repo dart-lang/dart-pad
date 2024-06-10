@@ -1,7 +1,6 @@
 ARG PROJECT_ID
 ARG FLUTTER_CHANNEL
 ARG BUILD_SHA
-ARG GOOGLE_API_KEY
 
 FROM gcr.io/$PROJECT_ID/flutter:$FLUTTER_CHANNEL
 
@@ -17,7 +16,6 @@ RUN dart compile exe bin/server.dart -o bin/server
 RUN dart run grinder build-project-templates
 
 ENV BUILD_SHA=$BUILD_SHA
-ENV GOOGLE_API_KEY=$GOOGLE_API_KEY
 
 EXPOSE 8080
 CMD ["/app/bin/server"]

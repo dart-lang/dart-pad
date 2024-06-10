@@ -202,7 +202,7 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
-  static final String? googleApiKey = Platform.environment['GOOGLE_API_KEY'];
+  static final String? geminiApiKey = Platform.environment['GEMINI_API_KEY'];
   http.Client? geminiHttpClient;
 
   @Route.post('$apiPrefix/_gemini')
@@ -210,7 +210,7 @@ class CommonServerApi {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     // Read the api key from env variables (populated on the server).
-    final apiKey = googleApiKey;
+    final apiKey = geminiApiKey;
     if (apiKey == null) {
       return Response.internalServerError(
           body: 'gemini key not configured on server');
