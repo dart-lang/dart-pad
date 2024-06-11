@@ -20,7 +20,7 @@ function replaceJavaScript(value) {
 // Handles incoming messages.
 function messageHandler(e) {
   var obj = e.data;
-
+  if (window.origin !== 'null' || e.source !== window.parent) return;
   if (obj.command === 'execute') {
     runFlutterApp(obj.js, obj.canvasKitBaseUrl);
   }
