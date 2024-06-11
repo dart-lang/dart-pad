@@ -13,7 +13,7 @@ void handleEmbedMessage(AppModel model) {
   web.window.addEventListener(
     'message',
     (web.MessageEvent event) {
-      if (event.source !== web.window.parent) return;
+      if (event.source != web.window.parent) return;
       if (event.data case _SourceCodeMessage(:final type?, :final sourceCode?)
           when type == 'sourceCode') {
         if (sourceCode.isNotEmpty) {
