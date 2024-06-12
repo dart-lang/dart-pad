@@ -1,6 +1,5 @@
 FROM node:lts-slim AS app-env
 
-RUN apk add --no-cache bash
 RUN npm install -g firebase-tools
 
 ADD firebase.bash /usr/bin
