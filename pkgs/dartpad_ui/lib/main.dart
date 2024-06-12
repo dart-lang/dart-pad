@@ -22,6 +22,7 @@ import 'editor/editor.dart';
 import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
+import 'gemini.dart';
 import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
@@ -674,10 +675,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               // Hide new snippet buttons when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth) ...[
                 const SizedBox(width: defaultSpacing * 4),
+                const GeminiButton(),
+                const SizedBox(width: denseSpacing),
                 NewSnippetWidget(appServices: appServices),
                 const SizedBox(width: denseSpacing),
                 const ListSamplesWidget(),
               ] else ...[
+                const SizedBox(width: defaultSpacing),
+                const GeminiButton(smallIcon: true),
                 const SizedBox(width: defaultSpacing),
                 NewSnippetWidget(appServices: appServices, smallIcon: true),
                 const SizedBox(width: defaultSpacing),
@@ -974,12 +979,13 @@ class NewSnippetWidget extends StatelessWidget {
             icon: const Icon(Icons.add_circle),
             onPressed: () => controller.toggleMenuState(),
           );
+        } else {
+          return TextButton.icon(
+            onPressed: () => controller.toggleMenuState(),
+            icon: const Icon(Icons.add_circle),
+            label: const Text('New'),
+          );
         }
-        return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
-          icon: const Icon(Icons.add_circle),
-          label: const Text('New'),
-        );
       },
       menuChildren: [
         for (final item in _menuItems)
@@ -1000,6 +1006,7 @@ class NewSnippetWidget extends StatelessWidget {
 
 class ListSamplesWidget extends StatelessWidget {
   final bool smallIcon;
+
   const ListSamplesWidget({this.smallIcon = false, super.key});
 
   @override
@@ -1011,12 +1018,13 @@ class ListSamplesWidget extends StatelessWidget {
             icon: const Icon(Icons.playlist_add_outlined),
             onPressed: () => controller.toggleMenuState(),
           );
+        } else {
+          return TextButton.icon(
+            onPressed: () => controller.toggleMenuState(),
+            icon: const Icon(Icons.playlist_add_outlined),
+            label: const Text('Samples'),
+          );
         }
-        return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
-          icon: const Icon(Icons.playlist_add_outlined),
-          label: const Text('Samples'),
-        );
       },
       menuChildren: _buildMenuItems(context),
     );

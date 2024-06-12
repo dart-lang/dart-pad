@@ -67,12 +67,14 @@ class CommonServerImpl {
 
 class CommonServerApi {
   final CommonServerImpl impl;
+  final bool devtime;
+
   final TaskScheduler scheduler = TaskScheduler();
 
   /// The (lazily-constructed) router.
   late final Router router = _$CommonServerApiRouter(this);
 
-  CommonServerApi(this.impl);
+  CommonServerApi(this.impl, {required this.devtime});
 
   Future<void> init() => impl.init();
 
@@ -232,7 +234,8 @@ class CommonServerApi {
     }
   }
 
-  static final String? geminiApiKey = Platform.environment['GEMINI_API_KEY'];
+  static final String? geminiApiKey = _envFileOrEnvironment('GEMINI_API_KEY');
+
   http.Client? geminiHttpClient;
 
   @Route.post('$apiPrefix/_gemini')
@@ -246,15 +249,17 @@ class CommonServerApi {
           body: 'gemini key not configured on server');
     }
 
-    // Only allow the call from dartpad.dev.
-    final origin = request.origin;
-    if (origin != 'https://dartpad.dev') {
-      return Response.badRequest(
-          body: 'Gemini calls only allowed from the DartPad front-end');
+    if (!devtime) {
+      // Only allow the call from dartpad.dev.
+      final origin = request.origin;
+      if (origin != 'https://dartpad.dev') {
+        return Response.badRequest(
+            body: 'Gemini calls only allowed from the DartPad front-end');
+      }
     }
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final geminiRequest =
+        api.GeminiRequest.fromJson(await request.readAsJson());
 
     geminiHttpClient ??= http.Client();
 
@@ -267,10 +272,16 @@ class CommonServerApi {
     final result = await serialize(() async {
       // call gemini
       final result = await model.generateContent([
-        google_ai.Content.text(sourceRequest.source),
+        google_ai.Content.text(geminiRequest.source),
       ]);
 
-      return api.GeminiResponse(response: result.text!);
+      var text = result.text!;
+
+      if (geminiRequest.tidySourceResponse ?? false) {
+        text = tidyGeminiSourceResponse(text);
+      }
+
+      return api.GeminiResponse(response: text);
     });
 
     return ok(result.toJson());
@@ -322,6 +333,15 @@ class CommonServerApi {
       experiments: sdk.experiments,
       packages: packages,
     );
+  }
+
+  String tidyGeminiSourceResponse(String text) {
+    // remove any code fences
+    text = removeCodeFences(text);
+
+    // todo: attempt to format
+
+    return text;
   }
 }
 
@@ -406,4 +426,21 @@ String _formatMessage(
 
 extension on Request {
   String? get origin => headers['origin'];
+}
+
+String? _envFileOrEnvironment(String key) {
+  final envFile = File('.env');
+  if (envFile.existsSync()) {
+    final env = <String, String>{};
+    for (final line in envFile.readAsLinesSync().map((line) => line.trim())) {
+      if (line.isEmpty || line.startsWith('#')) continue;
+      final split = line.indexOf('=');
+      env[line.substring(0, split).trim()] = line.substring(split + 1).trim();
+    }
+    if (env.containsKey(key)) {
+      return env[key];
+    }
+  }
+
+  return Platform.environment[key];
 }

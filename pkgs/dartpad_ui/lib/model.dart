@@ -317,7 +317,7 @@ class AppServices {
     return await services.document(request);
   }
 
-  Future<GeminiResponse> gemini(SourceRequest request) async {
+  Future<GeminiResponse> gemini(GeminiRequest request) async {
     return await services.gemini(request);
   }
 
@@ -428,7 +428,7 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  static const defaultChannel = Channel.stable;
+  static const defaultChannel = Channel.localhost;
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();

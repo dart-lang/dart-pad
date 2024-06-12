@@ -168,3 +168,24 @@ class Lines {
     return 1;
   }
 }
+
+/// todo:
+String removeCodeFences(String source) {
+  source = source.trim();
+
+  // remove any code fencing
+  final lines = source.split('\n');
+  if (lines.length > 2) {
+    if (lines.first.startsWith('```')) {
+      lines.removeAt(0);
+    }
+
+    if (lines.last.startsWith('```')) {
+      lines.removeLast();
+    }
+  }
+
+  source = lines.join('\n');
+
+  return '$source\n';
+}

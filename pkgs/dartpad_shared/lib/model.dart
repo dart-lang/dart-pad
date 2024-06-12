@@ -376,6 +376,19 @@ class VersionResponse {
 }
 
 @JsonSerializable()
+class GeminiRequest {
+  final String source;
+  final bool? tidySourceResponse;
+
+  GeminiRequest({required this.source, this.tidySourceResponse});
+
+  factory GeminiRequest.fromJson(Map<String, dynamic> json) =>
+      _$GeminiRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GeminiRequestToJson(this);
+}
+
+@JsonSerializable()
 class GeminiResponse {
   final String response;
 
