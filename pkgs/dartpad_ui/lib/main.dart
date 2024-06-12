@@ -1106,20 +1106,12 @@ class OverflowMenu extends StatelessWidget {
 
   static const _menuItems = [
     (
-      label: 'dart.dev',
-      uri: 'https://dart.dev',
-    ),
-    (
-      label: 'flutter.dev',
-      uri: 'https://flutter.dev',
+      label: 'Install SDK',
+      uri: 'https://docs.flutter.dev/get-started/install',
     ),
     (
       label: 'Sharing guide',
       uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
-    ),
-    (
-      label: 'DartPad on GitHub',
-      uri: 'https://github.com/dart-lang/dart-pad',
     ),
   ];
 
@@ -1161,9 +1153,10 @@ class ContinueInMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
-        return TextButton(
-          child: const Text('Continue in...'),
+        return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.file_download_outlined),
+          label: const Text('Open in'),
         );
       },
       menuChildren: [
@@ -1178,17 +1171,6 @@ class ContinueInMenu extends StatelessWidget {
               child: Text('IDX'),
             ),
           ),
-          MenuItemButton(
-            trailingIcon: const Icon(Icons.launch),
-            onPressed: () {
-              url_launcher.launchUrl(
-                  Uri.parse('https://docs.flutter.dev/get-started/install'));
-            },
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('Install SDK'),
-            ),
-          )
         ].map((widget) => PointerInterceptor(child: widget))
       ],
     );
