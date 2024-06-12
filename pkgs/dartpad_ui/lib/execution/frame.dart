@@ -165,7 +165,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         (web.Event event) {
           if (event is web.MessageEvent) {
             final data = event.data.dartify() as Map<Object?, Object?>;
-            if (data['sender'] != 'frame' || event.source == null || event.source != _frame.contentWindow) {
+            if (data['sender'] != 'frame' || _frame.contentWindow == null || event.source != _frame.contentWindow) {
               return;
             }
             final type = data['type'] as String?;
