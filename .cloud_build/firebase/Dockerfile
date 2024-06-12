@@ -1,6 +1,5 @@
-FROM node:lts-alpine3.14 AS app-env
+FROM node:lts-slim AS app-env
 
-RUN apk add --no-cache bash
 RUN npm install -g firebase-tools
 
 ADD firebase.bash /usr/bin
