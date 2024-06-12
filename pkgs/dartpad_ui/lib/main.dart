@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -1153,8 +1152,8 @@ class OverflowMenu extends StatelessWidget {
 }
 
 class ContinueInMenu extends StatelessWidget {
-  VoidCallback openInIdx;
-  ContinueInMenu({super.key, required this.openInIdx});
+  final VoidCallback openInIdx;
+  const ContinueInMenu({super.key, required this.openInIdx});
 
   @override
   Widget build(BuildContext context) {
