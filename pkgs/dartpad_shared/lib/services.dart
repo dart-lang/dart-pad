@@ -41,6 +41,9 @@ class ServicesClient {
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
+  Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
+      _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
+
   /// Note: this API is experimental and could change or be removed at any time.
   @experimental
   Future<GeminiResponse> gemini(SourceRequest request) =>

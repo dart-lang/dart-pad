@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -703,20 +704,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         actions: [
           // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
-            TextButton(
-              onPressed: () {
-                url_launcher.launchUrl(
-                  Uri.parse('https://docs.flutter.dev/get-started/install'),
-                );
-              },
-              child: const Row(
-                children: [
-                  Text('Install SDK'),
-                  SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 18),
-                ],
-              ),
-            ),
+            ContinueInMenu(openInIdx: _openInIDX,),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChanged,
@@ -732,6 +720,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => bottom == null
       ? const Size(double.infinity, 56.0)
       : const Size(double.infinity, 112.0);
+
+  Future<void> _openInIDX() async {
+    final code = appModel.sourceCodeController.text;
+    final request = OpenInIdxRequest(code: code);
+    final response = await appServices.services.openInIdx(request);
+    url_launcher.launchUrl(Uri.parse(response.idxUrl));
+  }
 }
 
 class EditorWithButtons extends StatelessWidget {
@@ -1156,6 +1151,47 @@ class OverflowMenu extends StatelessWidget {
     url_launcher.launchUrl(Uri.parse(uri));
   }
 }
+
+class ContinueInMenu extends StatelessWidget {
+  VoidCallback openInIdx;
+  ContinueInMenu({super.key, required this.openInIdx});
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton(
+          child: const Text('Continue in...'),
+          onPressed: () => controller.toggleMenuState(),
+        );
+      },
+      menuChildren: [
+        ...[
+        MenuItemButton(
+          trailingIcon: const Logo(type: 'idx'),
+          onPressed: () {
+            openInIdx();
+          },
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+            child: Text('IDX'),
+          ),
+        ),
+        MenuItemButton(
+          trailingIcon: const Icon(Icons.launch),
+          onPressed: () {
+            url_launcher.launchUrl(Uri.parse('https://docs.flutter.dev/get-started/install'));
+          },
+          child: const Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+            child: Text('Install SDK'),
+          ),
+        )].map((widget) => PointerInterceptor(child: widget))
+      ],
+    );
+  }
+}
+
 
 class KeyBindingsTable extends StatelessWidget {
   final List<(String, List<ShortcutActivator>)> bindings;
