@@ -202,6 +202,36 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
+  @Route.post('$apiPrefix/openInIDX')
+  Future<Response> openInIdx(Request request, String apiVersion) async {
+    final code = api.OpenInIdxRequest.fromJson(await request.readAsJson()).code;
+    final idxUrl = Uri.parse('https://idx.google.com/run.api');
+
+    final data = {
+      'project[files][lib/main.dart]': code,
+      'project[settings]': '{"baselineEnvironment": "flutter"}',
+    };
+    try {
+      final response = await http.post(
+        idxUrl,
+        body: data,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      );
+
+      if (response.statusCode == 302) {
+        return ok(api.OpenInIdxResponse(idxUrl: response.headers['location']!)
+            .toJson());
+      } else {
+        return Response.internalServerError(
+            body:
+                'Failed to read response from IDX server. Response: $response');
+      }
+    } catch (error) {
+      return Response.internalServerError(
+          body: 'Failed to read response from IDX server. Error: $error');
+    }
+  }
+
   static final String? geminiApiKey = Platform.environment['GEMINI_API_KEY'];
   http.Client? geminiHttpClient;
 

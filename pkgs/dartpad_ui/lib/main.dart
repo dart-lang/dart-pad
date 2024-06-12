@@ -703,19 +703,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         actions: [
           // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
-            TextButton(
-              onPressed: () {
-                url_launcher.launchUrl(
-                  Uri.parse('https://docs.flutter.dev/get-started/install'),
-                );
-              },
-              child: const Row(
-                children: [
-                  Text('Install SDK'),
-                  SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 18),
-                ],
-              ),
+            ContinueInMenu(
+              openInIdx: _openInIDX,
             ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
@@ -732,6 +721,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => bottom == null
       ? const Size(double.infinity, 56.0)
       : const Size(double.infinity, 112.0);
+
+  Future<void> _openInIDX() async {
+    final code = appModel.sourceCodeController.text;
+    final request = OpenInIdxRequest(code: code);
+    final response = await appServices.services.openInIdx(request);
+    url_launcher.launchUrl(Uri.parse(response.idxUrl));
+  }
 }
 
 class EditorWithButtons extends StatelessWidget {
@@ -1110,20 +1106,12 @@ class OverflowMenu extends StatelessWidget {
 
   static const _menuItems = [
     (
-      label: 'dart.dev',
-      uri: 'https://dart.dev',
-    ),
-    (
-      label: 'flutter.dev',
-      uri: 'https://flutter.dev',
+      label: 'Install SDK',
+      uri: 'https://docs.flutter.dev/get-started/install',
     ),
     (
       label: 'Sharing guide',
       uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
-    ),
-    (
-      label: 'DartPad on GitHub',
-      uri: 'https://github.com/dart-lang/dart-pad',
     ),
   ];
 
@@ -1154,6 +1142,38 @@ class OverflowMenu extends StatelessWidget {
 
   void _onSelected(BuildContext context, String uri) {
     url_launcher.launchUrl(Uri.parse(uri));
+  }
+}
+
+class ContinueInMenu extends StatelessWidget {
+  final VoidCallback openInIdx;
+  const ContinueInMenu({super.key, required this.openInIdx});
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: const Icon(Icons.file_download_outlined),
+          label: const Text('Open in'),
+        );
+      },
+      menuChildren: [
+        ...[
+          MenuItemButton(
+            trailingIcon: const Logo(type: 'idx'),
+            onPressed: () {
+              openInIdx();
+            },
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('IDX'),
+            ),
+          ),
+        ].map((widget) => PointerInterceptor(child: widget))
+      ],
+    );
   }
 }
 

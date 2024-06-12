@@ -393,6 +393,40 @@ class GeminiResponse {
 }
 
 @JsonSerializable()
+class OpenInIdxRequest {
+  final String code;
+
+  OpenInIdxRequest({
+    required this.code,
+  });
+
+  factory OpenInIdxRequest.fromJson(Map<String, dynamic> json) =>
+      _$OpenInIdxRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OpenInIdxRequestToJson(this);
+
+  @override
+  String toString() => 'OpenInIdxRequest [${code.substring(0, 10)} (...)';
+}
+
+@JsonSerializable()
+class OpenInIdxResponse {
+  final String idxUrl;
+
+  OpenInIdxResponse({
+    required this.idxUrl,
+  });
+
+  factory OpenInIdxResponse.fromJson(Map<String, dynamic> json) =>
+      _$OpenInIdxResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OpenInIdxResponseToJson(this);
+
+  @override
+  String toString() => 'OpenInIdxResponse [$idxUrl]';
+}
+
+@JsonSerializable()
 class PackageInfo {
   final String name;
   final String version;

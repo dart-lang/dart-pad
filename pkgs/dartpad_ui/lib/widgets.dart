@@ -261,6 +261,7 @@ final class Logo extends StatelessWidget {
       'flutter' => 'assets/flutter_logo_192.png',
       'flame' => 'assets/flame_logo_192.png',
       'gemini' => 'assets/gemini_sparkle_192.png',
+      'idx' => 'assets/idx_192.png',
       _ => 'assets/dart_logo_192.png',
     };
     return Image.asset(assetPath, width: width);
