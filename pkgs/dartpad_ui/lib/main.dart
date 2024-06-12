@@ -703,7 +703,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         actions: [
           // Hide the Install SDK button when the screen width is too small.
           if (constraints.maxWidth > smallScreenWidth)
-            ContinueInMenu(openInIdx: _openInIDX,),
+            ContinueInMenu(
+              openInIdx: _openInIDX,
+            ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChanged,
@@ -1166,31 +1168,32 @@ class ContinueInMenu extends StatelessWidget {
       },
       menuChildren: [
         ...[
-        MenuItemButton(
-          trailingIcon: const Logo(type: 'idx'),
-          onPressed: () {
-            openInIdx();
-          },
-          child: const Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-            child: Text('IDX'),
+          MenuItemButton(
+            trailingIcon: const Logo(type: 'idx'),
+            onPressed: () {
+              openInIdx();
+            },
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('IDX'),
+            ),
           ),
-        ),
-        MenuItemButton(
-          trailingIcon: const Icon(Icons.launch),
-          onPressed: () {
-            url_launcher.launchUrl(Uri.parse('https://docs.flutter.dev/get-started/install'));
-          },
-          child: const Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-            child: Text('Install SDK'),
-          ),
-        )].map((widget) => PointerInterceptor(child: widget))
+          MenuItemButton(
+            trailingIcon: const Icon(Icons.launch),
+            onPressed: () {
+              url_launcher.launchUrl(
+                  Uri.parse('https://docs.flutter.dev/get-started/install'));
+            },
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('Install SDK'),
+            ),
+          )
+        ].map((widget) => PointerInterceptor(child: widget))
       ],
     );
   }
 }
-
 
 class KeyBindingsTable extends StatelessWidget {
   final List<(String, List<ShortcutActivator>)> bindings;
