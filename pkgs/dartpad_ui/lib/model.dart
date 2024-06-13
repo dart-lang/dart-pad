@@ -304,6 +304,36 @@ class AppServices {
     appModel.appReady.value = true;
   }
 
+  Future<void> performCompileAndRun() async {
+    final source = appModel.sourceCodeController.text;
+    final progress =
+        appModel.editorStatus.showMessage(initialText: 'Compiling…');
+
+    try {
+      final response = await _compileDDC(CompileRequest(source: source));
+      appModel.clearConsole();
+      _executeJavaScript(
+        response.result,
+        modulesBaseUrl: response.modulesBaseUrl,
+        engineVersion: appModel.runtimeVersions.value?.engineVersion,
+        dartSource: source,
+      );
+    } catch (error) {
+      appModel.clearConsole();
+
+      appModel.editorStatus.showToast('Compilation failed');
+
+      if (error is ApiRequestError) {
+        appModel.appendLineToConsole(error.message);
+        appModel.appendLineToConsole(error.body);
+      } else {
+        appModel.appendLineToConsole('$error');
+      }
+    } finally {
+      progress.close();
+    }
+  }
+
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
@@ -330,7 +360,7 @@ class AppServices {
     }
   }
 
-  Future<CompileDDCResponse> compileDDC(CompileRequest request) async {
+  Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
       return await services.compileDDC(request);
@@ -358,7 +388,7 @@ class AppServices {
     _editorService = editorService;
   }
 
-  void executeJavaScript(
+  void _executeJavaScript(
     String javaScript, {
     required String dartSource,
     String? modulesBaseUrl,
