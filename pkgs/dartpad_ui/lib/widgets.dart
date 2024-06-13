@@ -188,11 +188,13 @@ class MediumDialog extends StatelessWidget {
   final String title;
   final bool smaller;
   final Widget child;
+  final VoidCallback? onTitleInteract;
 
   const MediumDialog({
     required this.title,
     this.smaller = false,
     required this.child,
+    this.onTitleInteract,
     super.key,
   });
 
@@ -205,7 +207,12 @@ class MediumDialog extends StatelessWidget {
       return PointerInterceptor(
         child: AlertDialog(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: Text(title),
+          title: GestureDetector(
+            onLongPress: () {
+              if (onTitleInteract != null) onTitleInteract!();
+            },
+            child: Text(title),
+          ),
           contentTextStyle: Theme.of(context).textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: Column(

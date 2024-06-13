@@ -407,6 +407,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                   appServices: appServices,
                   appModel: appModel,
                   widget: widget,
+                  geminiAvailable: false,
                   bottom: tabBar,
                 ),
           body: Column(
@@ -427,34 +428,40 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         );
       } else {
         // Return the desktop UI.
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: widget.embedMode
-              ? null
-              : DartPadAppBar(
-                  theme: theme,
-                  appServices: appServices,
-                  appModel: appModel,
-                  widget: widget,
-                ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SplitView(
-                  viewMode: SplitViewMode.Horizontal,
-                  gripColor: theme.colorScheme.surface,
-                  gripColorActive: theme.colorScheme.surface,
-                  gripSize: defaultGripSize,
-                  controller: mainSplitter,
-                  children: [
-                    editingGroup,
-                    executionStack,
-                  ],
-                ),
+        return ValueListenableBuilder(
+          valueListenable: appModel.geminiAvailable,
+          builder: (context, geminiAvailable, _) {
+            return Scaffold(
+              key: _scaffoldKey,
+              appBar: widget.embedMode
+                  ? null
+                  : DartPadAppBar(
+                      theme: theme,
+                      appServices: appServices,
+                      appModel: appModel,
+                      widget: widget,
+                      geminiAvailable: geminiAvailable,
+                    ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: SplitView(
+                      viewMode: SplitViewMode.Horizontal,
+                      gripColor: theme.colorScheme.surface,
+                      gripColorActive: theme.colorScheme.surface,
+                      gripSize: defaultGripSize,
+                      controller: mainSplitter,
+                      children: [
+                        editingGroup,
+                        executionStack,
+                      ],
+                    ),
+                  ),
+                  if (!widget.embedMode) const StatusLineWidget(),
+                ],
               ),
-              if (!widget.embedMode) const StatusLineWidget(),
-            ],
-          ),
+            );
+          },
         );
       }
     });
@@ -649,6 +656,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.appServices,
     required this.appModel,
     required this.widget,
+    required this.geminiAvailable,
     this.bottom,
   });
 
@@ -656,6 +664,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   final AppServices appServices;
   final AppModel appModel;
   final DartPadMainPage widget;
+  final bool geminiAvailable;
   final PreferredSizeWidget? bottom;
 
   @override
@@ -675,15 +684,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               // Hide new snippet buttons when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth) ...[
                 const SizedBox(width: defaultSpacing * 4),
-                const GeminiButton(),
-                const SizedBox(width: denseSpacing),
+                if (geminiAvailable) const GeminiButton(),
+                if (geminiAvailable) const SizedBox(width: denseSpacing),
                 NewSnippetWidget(appServices: appServices),
                 const SizedBox(width: denseSpacing),
                 const ListSamplesWidget(),
               ] else ...[
                 const SizedBox(width: defaultSpacing),
-                const GeminiButton(smallIcon: true),
-                const SizedBox(width: defaultSpacing),
+                if (geminiAvailable) const GeminiButton(smallIcon: true),
+                if (geminiAvailable) const SizedBox(width: defaultSpacing),
                 NewSnippetWidget(appServices: appServices, smallIcon: true),
                 const SizedBox(width: defaultSpacing),
                 const ListSamplesWidget(smallIcon: true),
@@ -1262,6 +1271,8 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final appModel = Provider.of<AppModel>(context);
+
     return ValueListenableBuilder<VersionResponse?>(
       valueListenable: widget.versions,
       builder: (content, versions, _) {
@@ -1276,6 +1287,10 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
               builder: (context) {
                 return MediumDialog(
                   title: 'Runtime versions',
+                  onTitleInteract: () {
+                    final enabled = appModel.geminiAvailable.value;
+                    appModel.geminiAvailable.value = !enabled;
+                  },
                   child: VersionTable(version: versions),
                 );
               },

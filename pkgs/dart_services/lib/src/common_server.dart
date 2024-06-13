@@ -278,7 +278,7 @@ class CommonServerApi {
       var text = result.text!;
 
       if (geminiRequest.tidySourceResponse ?? false) {
-        text = tidyGeminiSourceResponse(text);
+        text = await tidyGeminiSourceResponse(text);
       }
 
       return api.GeminiResponse(response: text);
@@ -335,13 +335,14 @@ class CommonServerApi {
     );
   }
 
-  String tidyGeminiSourceResponse(String text) {
+  Future<String> tidyGeminiSourceResponse(String text) async {
     // remove any code fences
     text = removeCodeFences(text);
 
-    // todo: attempt to format
+    // format the code
+    final formatResponse = await impl.analyzer.format(text, null);
 
-    return text;
+    return formatResponse.source;
   }
 }
 

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'flutter_samples.dart';
+import 'gemini.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
@@ -33,8 +34,8 @@ abstract class EditorService {
   void showCompletions({required bool autoInvoked});
   void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
-  int get cursorOffset;
   void focus();
+  int get cursorOffset;
 }
 
 class AppModel {
@@ -74,6 +75,10 @@ class AppModel {
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
   late final StreamSubscription<SplitDragState> _splitSubscription;
+
+  final ValueNotifier<bool> geminiAvailable = ValueNotifier(false);
+  final TextEditingController geminiPrompt =
+      TextEditingController(text: initialGeminiPrompt);
 
   AppModel() {
     consoleOutputController.addListener(_recalcLayout);
