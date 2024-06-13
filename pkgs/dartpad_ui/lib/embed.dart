@@ -6,7 +6,7 @@ import 'model.dart';
 
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.
-void handleEmbedMessage(AppModel model) {
+void handleEmbedMessage(AppServices services, {bool runOnInject = false}) {
   final parent = web.window.parent;
   if (parent == null) return;
 
@@ -16,7 +16,10 @@ void handleEmbedMessage(AppModel model) {
       if (event.data case _SourceCodeMessage(:final type?, :final sourceCode?)
           when type == 'sourceCode') {
         if (sourceCode.isNotEmpty) {
-          model.sourceCodeController.text = sourceCode;
+          services.appModel.sourceCodeController.text = sourceCode;
+          if (runOnInject) {
+            services.performCompileAndRun();
+          }
         }
       }
     }.toJS,
