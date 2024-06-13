@@ -1,4 +1,4 @@
-FROM node:lts-alpine3.14 AS app-env
+FROM node:lts-slim AS app-env
 
 RUN npm install -g firebase-tools
 

@@ -281,9 +281,9 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             fallbackSnippet: Samples.getDefault(type: 'dart'))
         .then((value) {
       // Start listening for inject code messages.
-      handleEmbedMessage(appModel);
+      handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
       if (widget.runOnLoad) {
-        _performCompileAndRun();
+        appServices.performCompileAndRun();
       }
     });
 
@@ -321,7 +321,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       appModel: appModel,
       appServices: appServices,
       onFormat: _handleFormatting,
-      onCompileAndRun: _performCompileAndRun,
+      onCompileAndRun: appServices.performCompileAndRun,
       key: _editorKey,
     );
 
@@ -473,10 +473,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             keys.runKeyActivator1: () {
-              if (!appModel.compilingBusy.value) _performCompileAndRun();
+              if (!appModel.compilingBusy.value) {
+                appServices.performCompileAndRun();
+              }
             },
             keys.runKeyActivator2: () {
-              if (!appModel.compilingBusy.value) _performCompileAndRun();
+              if (!appModel.compilingBusy.value) {
+                appServices.performCompileAndRun();
+              }
             },
             // keys.findKeyActivator: () {
             //   // TODO:
@@ -534,37 +538,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: $error');
       return;
-    }
-  }
-
-  Future<void> _performCompileAndRun() async {
-    final source = appModel.sourceCodeController.text;
-    final progress =
-        appModel.editorStatus.showMessage(initialText: 'Compiling…');
-
-    try {
-      final response =
-          await appServices.compileDDC(CompileRequest(source: source));
-      appModel.clearConsole();
-      appServices.executeJavaScript(
-        response.result,
-        modulesBaseUrl: response.modulesBaseUrl,
-        engineVersion: appModel.runtimeVersions.value?.engineVersion,
-        dartSource: source,
-      );
-    } catch (error) {
-      appModel.clearConsole();
-
-      appModel.editorStatus.showToast('Compilation failed');
-
-      if (error is ApiRequestError) {
-        appModel.appendLineToConsole(error.message);
-        appModel.appendLineToConsole(error.body);
-      } else {
-        appModel.appendLineToConsole('$error');
-      }
-    } finally {
-      progress.close();
     }
   }
 
