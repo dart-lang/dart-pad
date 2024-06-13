@@ -465,12 +465,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             keys.runKeyActivator1: () {
-              if (!appModel.compilingBusy.value)
+              if (!appModel.compilingBusy.value) {
                 appServices.performCompileAndRun();
+              }
             },
             keys.runKeyActivator2: () {
-              if (!appModel.compilingBusy.value)
+              if (!appModel.compilingBusy.value) {
                 appServices.performCompileAndRun();
+              }
             },
             // keys.findKeyActivator: () {
             //   // TODO:
