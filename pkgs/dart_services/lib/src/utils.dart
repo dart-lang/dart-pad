@@ -169,7 +169,7 @@ class Lines {
   }
 }
 
-/// todo:
+/// If the first and last line start with '```', remove those lines.
 String removeCodeFences(String source) {
   source = source.trim();
 
