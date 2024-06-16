@@ -182,7 +182,7 @@ class AppServices {
     appModel.sourceCodeController.text = source;
 
     // Reset the title.
-    appModel.title.value = generateSnippetName();
+    appModel.title.value = '';
 
     // Reset the console.
     appModel.clearConsole();

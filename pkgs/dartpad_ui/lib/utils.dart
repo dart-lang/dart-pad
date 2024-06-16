@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttering_phrases/fluttering_phrases.dart'
-    as fluttering_phrases;
 
 import 'theme.dart';
 
@@ -19,8 +17,6 @@ String pluralize(String word, int count) {
 String titleCase(String phrase) {
   return phrase.substring(0, 1).toUpperCase() + phrase.substring(1);
 }
-
-String generateSnippetName() => fluttering_phrases.generate();
 
 RelativeRect calculatePopupMenuPosition(
   BuildContext context, {
