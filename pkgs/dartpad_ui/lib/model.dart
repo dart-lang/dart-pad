@@ -48,7 +48,7 @@ class AppModel {
   final ValueNotifier<String> title = ValueNotifier('');
 
   final TextEditingController sourceCodeController = TextEditingController();
-  final TextEditingController consoleOutputController = TextEditingController();
+  final ValueNotifier<String> consoleOutput = ValueNotifier('');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
@@ -76,7 +76,7 @@ class AppModel {
   late final StreamSubscription<SplitDragState> _splitSubscription;
 
   AppModel() {
-    consoleOutputController.addListener(_recalcLayout);
+    consoleOutput.addListener(_recalcLayout);
 
     _splitSubscription =
         splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
@@ -85,18 +85,18 @@ class AppModel {
   }
 
   void appendLineToConsole(String str) {
-    consoleOutputController.text += '$str\n';
+    consoleOutput.value += '$str\n';
   }
 
-  void clearConsole() => consoleOutputController.clear();
+  void clearConsole() => consoleOutput.value = '';
 
   void dispose() {
-    consoleOutputController.removeListener(_recalcLayout);
+    consoleOutput.removeListener(_recalcLayout);
     _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
-    final hasConsoleText = consoleOutputController.text.isNotEmpty;
+    final hasConsoleText = consoleOutput.value.isNotEmpty;
     final isFlutter = _appIsFlutter;
     final usesPackageWeb = _usesPackageWeb;
 
