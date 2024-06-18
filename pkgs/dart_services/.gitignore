@@ -31,3 +31,5 @@ config.properties
 .vscode/
 
 bin/server
+
+.env

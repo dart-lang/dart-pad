@@ -46,7 +46,7 @@ class ServicesClient {
 
   /// Note: this API is experimental and could change or be removed at any time.
   @experimental
-  Future<GeminiResponse> gemini(SourceRequest request) =>
+  Future<GeminiResponse> gemini(GeminiRequest request) =>
       _requestPost('_gemini', request.toJson(), GeminiResponse.fromJson);
 
   void dispose() => client.close();
