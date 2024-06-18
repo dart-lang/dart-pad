@@ -379,7 +379,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                     SizedBox(
                       height: consoleHeight,
                       child: ConsoleWidget(
-                        textController: appModel.consoleOutputController,
+                        output: appModel.consoleOutput,
                         showDivider: mode == LayoutMode.both,
                         key: _consoleKey,
                       ),
