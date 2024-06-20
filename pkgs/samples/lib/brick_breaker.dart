@@ -6,7 +6,7 @@
 /// built using the Flame game engine for Flutter.
 ///
 /// To learn how to build a more complete version of this game yourself,
-/// check out the codelab at https://docs.flutter.dev/brick-breaker.
+/// check out the codelab at https://flutter.dev/to/brick-breaker.
 library;
 
 import 'dart:async';
