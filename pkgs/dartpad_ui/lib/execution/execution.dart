@@ -32,6 +32,7 @@ web.Element _iFrameFactory(int viewId) {
     ..sandbox.add('allow-scripts')
     ..sandbox.add('allow-popups')
     ..sandbox.add('allow-popups-to-escape-sandbox')
+    ..allow += 'clipboard-write; '
     ..src = 'frame.html'
     ..style.border = 'none'
     ..style.width = '100%'
