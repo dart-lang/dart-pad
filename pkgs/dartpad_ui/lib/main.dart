@@ -1080,7 +1080,7 @@ class OverflowMenu extends StatelessWidget {
   static const _menuItems = [
     (
       label: 'Install SDK',
-      uri: 'https://docs.flutter.dev/get-started/install',
+      uri: 'https://flutter.dev/get-started',
     ),
     (
       label: 'Sharing guide',
