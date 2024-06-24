@@ -35,7 +35,7 @@
   "flutter_bloc": "8.1.6",
   "flutter_hooks": "0.20.5",
   "flutter_map": "7.0.1",
-  "flutter_markdown": "0.7.2",
+  "flutter_markdown": "0.7.2+1",
   "flutter_riverpod": "2.5.1",
   "flutter_svg": "2.0.10+1",
   "forge2d": "0.13.0",
