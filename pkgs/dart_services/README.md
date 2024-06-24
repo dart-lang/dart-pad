@@ -15,8 +15,8 @@ information, code formatting, and quick fixes for issues.
 
 ### Initialize Flutter
 
-The Flutter SDK needs to be downloaded and setup; see
-https://docs.flutter.dev/get-started/install.
+The Flutter SDK needs to be downloaded and setup; check out
+https://flutter.dev/get-started.
 
 ### Running
 
