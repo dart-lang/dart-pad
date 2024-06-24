@@ -10,11 +10,11 @@ import 'widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
-  final TextEditingController textController;
+  final ValueNotifier<String> output;
 
   const ConsoleWidget({
     this.showDivider = true,
-    required this.textController,
+    required this.output,
     super.key,
   });
 
@@ -30,12 +30,12 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     super.initState();
 
     scrollController = ScrollController();
-    widget.textController.addListener(_scrollToEnd);
+    widget.output.addListener(_scrollToEnd);
   }
 
   @override
   void dispose() {
-    widget.textController.removeListener(_scrollToEnd);
+    widget.output.removeListener(_scrollToEnd);
     scrollController?.dispose();
     scrollController = null;
 
@@ -59,47 +59,44 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
             : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
-      child: Stack(
-        children: [
-          TextField(
-            controller: widget.textController,
-            scrollController: scrollController,
-            maxLines: null,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            expands: true,
-            decoration: null,
-            style: GoogleFonts.robotoMono(
-              fontSize: theme.textTheme.bodyMedium?.fontSize,
-            ),
-            readOnly: true,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(denseSpacing),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: widget.textController,
-                  builder: (context, value, _) {
-                    return MiniIconButton(
-                      icon: Icons.playlist_remove,
-                      tooltip: 'Clear console',
-                      onPressed: value.text.isEmpty ? null : _clearConsole,
-                    );
-                  },
+      child: ValueListenableBuilder(
+        valueListenable: widget.output,
+        builder: (context, value, _) => Stack(
+          children: [
+            SizedBox.expand(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: SelectableText(
+                  value,
+                  maxLines: null,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: theme.textTheme.bodyMedium?.fontSize,
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(denseSpacing),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MiniIconButton(
+                    icon: Icons.playlist_remove,
+                    tooltip: 'Clear console',
+                    onPressed: value.isEmpty ? null : _clearConsole,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _clearConsole() {
-    widget.textController.clear();
+    widget.output.value = '';
   }
 
   void _scrollToEnd() {
