@@ -48,7 +48,7 @@ class ProjectCreator {
       dependencies: dependencies,
     ));
 
-    final exitCode = await _runDartPubGet(projectDirectory);
+    final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
     if (exitCode != 0) {
       throw StateError('pub get failed ($exitCode)');
     }
@@ -110,17 +110,6 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 ''';
     }
     return contents;
-  }
-
-  Future<int> _runDartPubGet(Directory dir) async {
-    final process = await runWithLogging(
-      path.join(_sdk.dartSdkPath, 'bin', 'dart'),
-      arguments: ['pub', 'get'],
-      workingDirectory: dir.path,
-      environment: {'PUB_CACHE': _pubCachePath},
-      log: _log,
-    );
-    return process.exitCode;
   }
 
   Map<String, String> _dependencyVersions(Iterable<String> packages) {
