@@ -353,12 +353,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     for (final issue in issues) {
       final line = math.max(issue.location.line - 1, 0);
       final column = math.max(issue.location.column - 1, 0);
+      final isDeprecation =
+          issue.code?.contains('deprecated_member_use') ?? false;
+      final kind = isDeprecation ? 'deprecation' : issue.kind;
 
       doc.markText(
         Position(line: line, ch: column),
         Position(line: line, ch: column + issue.location.charLength),
         MarkTextOptions(
-          className: 'squiggle-${issue.kind}',
+          className: 'squiggle-$kind',
           title: issue.message,
         ),
       );
