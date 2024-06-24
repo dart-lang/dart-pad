@@ -379,7 +379,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                     SizedBox(
                       height: consoleHeight,
                       child: ConsoleWidget(
-                        textController: appModel.consoleOutputController,
+                        output: appModel.consoleOutput,
                         showDivider: mode == LayoutMode.both,
                         key: _consoleKey,
                       ),
@@ -1080,7 +1080,7 @@ class OverflowMenu extends StatelessWidget {
   static const _menuItems = [
     (
       label: 'Install SDK',
-      uri: 'https://docs.flutter.dev/get-started/install',
+      uri: 'https://flutter.dev/get-started',
     ),
     (
       label: 'Sharing guide',
