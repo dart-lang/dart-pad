@@ -9,8 +9,17 @@ const kBootstrapDart = 'bootstrap.dart';
 const kBootstrapDartCode = r'''
 import 'main.dart' as user_code;
 
+import 'package:stack_trace/stack_trace.dart';
+
 void main() {
-  user_code.main();
+  Chain.capture(user_code.main, onError: (error, chain) {
+    print('Caught unhandled ${error is Exception ? 'exception' : 'error'}:');
+    print('$error\n');
+    print(chain.foldFrames(
+      (frame) => frame.library.contains('require.js'),
+      terse: true,
+    ));
+  });
 }
 ''';
 
