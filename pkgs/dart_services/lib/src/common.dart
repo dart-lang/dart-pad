@@ -20,7 +20,7 @@ void main() {
         .split('\n')
         .takeWhile((line) => !line.endsWith(r'main$'))
         .join('\n');
-    print('$simplifiedChain\nStack trace truncated by DartPad...');
+    print('$simplifiedChain\nStack trace truncated and adjusted by DartPad...');
   });
 }
 ''';
