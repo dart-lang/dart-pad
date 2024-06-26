@@ -13,12 +13,14 @@ import 'package:stack_trace/stack_trace.dart';
 
 void main() {
   Chain.capture(user_code.main, onError: (error, chain) {
-    print('Caught unhandled ${error is Exception ? 'exception' : 'error'}:');
-    print('$error\n');
-    print(chain.foldFrames(
-      (frame) => frame.library.contains('require.js'),
-      terse: true,
-    ));
+    print('DartPad caught unhandled ${error.runtimeType}:');
+    print('$error');
+    final simplifiedChain = chain
+        .toString()
+        .split('\n')
+        .takeWhile((line) => !line.endsWith(r'main$'))
+        .join('\n');
+    print('$simplifiedChain\nStack trace truncated by DartPad...');
   });
 }
 ''';
