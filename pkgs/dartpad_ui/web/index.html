@@ -20,11 +20,6 @@
   <title>DartPad</title>
   <link rel="manifest" href="manifest.json">
 
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = null;
-  </script>
-
   <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
   <link href="codemirror/codemirror.css" rel="stylesheet">
   <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
@@ -84,27 +79,10 @@
       width: 100%;
     }
   </style>
-
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
 </head>
 
 <body>
-  <script>
-    window.addEventListener('load', function (ev) {
-      // Download main.dart.js
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function (engineInitializer) {
-          engineInitializer.initializeEngine().then(function (appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 
 </html>
