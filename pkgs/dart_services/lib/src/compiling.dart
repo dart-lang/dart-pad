@@ -153,6 +153,9 @@ class Compiler {
           await _ddcDriver.doWork(WorkRequest(arguments: arguments));
 
       if (response.exitCode != 0) {
+        if (response.output.contains("Undefined name 'main'")) {
+          return DDCCompilationResults._missingMain;
+        }
         return DDCCompilationResults.failed([
           CompilationProblem._(_rewritePaths(response.output)),
         ]);
@@ -213,6 +216,14 @@ class CompilationResults {
 
 /// The result of a DDC compile.
 class DDCCompilationResults {
+  static const DDCCompilationResults _missingMain =
+      DDCCompilationResults.failed([
+    CompilationProblem._(
+      "Invoked Dart programs must have a 'main' function defined.\n"
+      'To learn more, visit https://dart.dev/to/main-function.',
+    ),
+  ]);
+
   final String? compiledJS;
   final String? modulesBaseUrl;
   final List<CompilationProblem> problems;
@@ -220,7 +231,7 @@ class DDCCompilationResults {
   DDCCompilationResults({this.compiledJS, this.modulesBaseUrl})
       : problems = const <CompilationProblem>[];
 
-  DDCCompilationResults.failed(this.problems)
+  const DDCCompilationResults.failed(this.problems)
       : compiledJS = null,
         modulesBaseUrl = null;
 
@@ -239,7 +250,7 @@ class DDCCompilationResults {
 class CompilationProblem implements Comparable<CompilationProblem> {
   final String message;
 
-  CompilationProblem._(this.message);
+  const CompilationProblem._(this.message);
 
   @override
   int compareTo(CompilationProblem other) => message.compareTo(other.message);
