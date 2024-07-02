@@ -103,6 +103,7 @@ const Set<String> supportedBasicDartPackages = {
   'rohd',
   'rohd_vf',
   'rxdart',
+  'signals',
   'stack_trace',
   'timezone',
   'typed_data',
