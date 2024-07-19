@@ -92,7 +92,8 @@ window.onerror = function(message, url, line, column, error) {
       script.writeln('''
 require.config({
   "baseUrl": "$modulesBaseUrl",
-  "waitSeconds": 60
+  "waitSeconds": 60,
+  "onNodeCreated": function(node, config, id, url) { node.setAttribute('crossorigin', 'anonymous'); }
 });
 ''');
     }
