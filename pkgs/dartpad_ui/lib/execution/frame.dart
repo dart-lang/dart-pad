@@ -88,6 +88,8 @@ window.onerror = function(message, url, line, column, error) {
 };
 ''');
 
+    // Set the crossorigin: anonymous attribute on require.js scripts.
+    // For example, dart_sdk.js or flutter_web.js.
     if (modulesBaseUrl != null) {
       script.writeln('''
 require.config({
