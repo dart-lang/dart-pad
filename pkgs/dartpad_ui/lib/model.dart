@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'flutter_samples.dart';
+import 'gemini.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
@@ -33,8 +34,8 @@ abstract class EditorService {
   void showCompletions({required bool autoInvoked});
   void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
-  int get cursorOffset;
   void focus();
+  int get cursorOffset;
 }
 
 class AppModel {
@@ -74,6 +75,10 @@ class AppModel {
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
   late final StreamSubscription<SplitDragState> _splitSubscription;
+
+  final ValueNotifier<bool> geminiAvailable = ValueNotifier(false);
+  final TextEditingController geminiPrompt =
+      TextEditingController(text: initialGeminiPrompt);
 
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
@@ -347,7 +352,7 @@ class AppServices {
     return await services.document(request);
   }
 
-  Future<GeminiResponse> gemini(SourceRequest request) async {
+  Future<GeminiResponse> gemini(GeminiRequest request) async {
     return await services.gemini(request);
   }
 
@@ -458,7 +463,7 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  static const defaultChannel = Channel.stable;
+  static const defaultChannel = Channel.localhost;
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();

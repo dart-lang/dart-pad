@@ -162,16 +162,16 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   @override
+  void focus() {
+    _focusNode.requestFocus();
+  }
+
+  @override
   int get cursorOffset {
     final pos = codeMirror?.getCursor();
     if (pos == null) return 0;
 
     return codeMirror?.getDoc().indexFromPos(pos) ?? 0;
-  }
-
-  @override
-  void focus() {
-    _focusNode.requestFocus();
   }
 
   @override
