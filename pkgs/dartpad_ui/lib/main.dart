@@ -545,8 +545,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   static final RegExp identifierChar = RegExp(r'[\w\d_<=>]');
 
   void _handleDocClicked() async {
-    // TODO: Support having the escape key close the doc panel.
+    // TODO(devoncarew): Disable opening the documentation panel; this is too
+    // disruptive when people are editing code. We should switch to using a
+    // tooltip (https://github.com/dart-lang/dart-pad/issues/3032).
+    return;
 
+    // ignore: dead_code
     try {
       final source = appModel.sourceCodeController.text;
       final offset = appModel.lastEditorClickOffset.value;
