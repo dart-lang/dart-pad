@@ -9,8 +9,8 @@ dependencies:
   flame: ^1.18.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.2
-  google_generative_ai: ^0.4.3
+  flutter_markdown: ^0.7.3
+  google_generative_ai: ^0.4.4
   url_launcher: ^6.3.0
 
 dev_dependencies:
