@@ -38,6 +38,8 @@ steps:
     args: ['--help']
     dir: .cloud_build/flutter
 
+options:
+  machineType: 'E2_HIGHCPU_8'
 images: [
   'gcr.io/$PROJECT_ID/flutter:main',
   'gcr.io/$PROJECT_ID/flutter:beta',
