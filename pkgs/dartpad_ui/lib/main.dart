@@ -278,8 +278,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             sampleId: widget.builtinSampleId,
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
-            fallbackSnippet: web.window.localStorage.getItem('user_input')
-              ?? Samples.getDefault(type: 'dart'))
+            fallbackSnippet: web.window.localStorage.getItem('user_input') ??
+                Samples.getDefault(type: 'dart'))
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
