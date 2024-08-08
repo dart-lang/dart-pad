@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
+import "package:web/web.dart" as web;
 
 import 'console.dart';
 import 'docs.dart';
@@ -277,7 +278,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             sampleId: widget.builtinSampleId,
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
-            fallbackSnippet: Samples.getDefault(type: 'dart'))
+            fallbackSnippet: web.window.localStorage.getItem('user_input')
+              ?? Samples.getDefault(type: 'dart'))
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);

@@ -177,8 +177,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   @override
   void initState() {
     super.initState();
-
+    _autosaveTimer = Timer.periodic(const Duration(seconds: 5), _autosave);
     widget.appModel.appReady.addListener(_updateEditableStatus);
+  }
+
+  Timer? _autosaveTimer;
+  void _autosave([Timer? timer]) {
+    final content = codeMirror?.getDoc().getValue();
+    if (content == null) return;
+    web.window.localStorage.setItem('user_input', content);
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
@@ -305,6 +312,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   @override
   void dispose() {
     listener?.cancel();
+    _autosaveTimer?.cancel();
+    _autosave();
 
     widget.appServices.registerEditorService(null);
 
