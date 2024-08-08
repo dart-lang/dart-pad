@@ -199,7 +199,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // darkmode
     _updateCodemirrorMode(darkMode);
 
-    Timer.run(() => codeMirror!.refresh());
+    Future.delayed(
+        const Duration(milliseconds: 80), () => codeMirror!.refresh());
 
     codeMirror!.on(
       'change',
