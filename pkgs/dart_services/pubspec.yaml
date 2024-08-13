@@ -3,7 +3,7 @@ description: The backend service for DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.5.0
 
 dependencies:
   analysis_server_lib: ^0.2.5
@@ -36,6 +36,5 @@ dev_dependencies:
   test: ^1.25.7
   test_descriptor: ^2.0.1
 
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared
+# This package is managed as part of the dart-pad workspace.
+resolution: workspace

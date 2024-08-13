@@ -3,7 +3,7 @@ description: The front-end UI of DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.5.0
 
 dependencies:
   collection: any
@@ -41,6 +41,5 @@ flutter:
     - assets/RobotoMono-Bold.ttf
     - assets/RobotoMono-Regular.ttf
 
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared
+# This package is managed as part of the dart-pad workspace.
+resolution: workspace

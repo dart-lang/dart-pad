@@ -1,0 +1,8 @@
+name: _dartpad_workspace
+environment:
+  sdk: ^3.5.0
+workspace:
+  - pkgs/dart_services
+  - pkgs/dartpad_shared
+  - pkgs/dartpad_ui
+  - pkgs/samples

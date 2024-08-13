@@ -3,7 +3,7 @@ description: Shared code between the DartPad frontend and backend.
 publish_to: none
 
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.5.0
 
 dependencies:
   http: ^1.2.1
@@ -14,3 +14,6 @@ dev_dependencies:
   build_runner: ^2.4.11
   dart_flutter_team_lints: ^3.1.0
   json_serializable: ^6.8.0
+
+# This package is managed as part of the dart-pad workspace.
+resolution: workspace
