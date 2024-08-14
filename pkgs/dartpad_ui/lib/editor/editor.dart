@@ -199,7 +199,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // darkmode
     _updateCodemirrorMode(darkMode);
 
-    Timer.run(() => codeMirror!.refresh());
+    // Use a longer delay so that the platform view is displayed
+    // correctly when compiled to Wasm
+    Future.delayed(
+        const Duration(milliseconds: 80), () => codeMirror!.refresh());
 
     codeMirror!.on(
       'change',
@@ -258,7 +261,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         for (final entry in entries.toDart) {
           if (entry.isIntersecting) {
             observer.unobserve(web.document.body!);
-            Timer.run(() => codeMirror!.refresh());
+            // Use a longer delay so that the platform view is displayed
+            // correctly when compiled to Wasm
+            Future.delayed(
+                const Duration(milliseconds: 80), () => codeMirror!.refresh());
             return;
           }
         }
