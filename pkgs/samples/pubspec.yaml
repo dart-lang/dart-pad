@@ -2,6 +2,9 @@ name: samples
 description: Sample code snippets for DartPad.
 publish_to: none
 
+# This package is managed as part of the engine workspace.
+resolution: workspace
+
 environment:
   sdk: ^3.5.0
 
@@ -20,6 +23,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-# This package is managed as part of the engine workspace.
-resolution: workspace

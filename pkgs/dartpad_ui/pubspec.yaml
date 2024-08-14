@@ -5,6 +5,9 @@ publish_to: none
 environment:
   sdk: ^3.5.0
 
+# This package is managed as part of the dart-pad workspace.
+resolution: workspace
+
 dependencies:
   collection: any
   dartpad_shared: any
@@ -41,5 +44,3 @@ flutter:
     - assets/RobotoMono-Bold.ttf
     - assets/RobotoMono-Regular.ttf
 
-# This package is managed as part of the dart-pad workspace.
-resolution: workspace
