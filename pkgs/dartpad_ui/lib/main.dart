@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
-import "package:web/web.dart" as web;
+import 'package:web/web.dart' as web;
 
 import 'console.dart';
 import 'docs.dart';
