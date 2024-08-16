@@ -183,8 +183,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   Timer? _autosaveTimer;
   void _autosave([Timer? timer]) {
-    final content = codeMirror?.getDoc().getValue();
-    if (content == null) return;
+    final content = widget.appModel.sourceCodeController.text;
+    if (content.isEmpty) return;
     web.window.localStorage.setItem('user_input', content);
   }
 
