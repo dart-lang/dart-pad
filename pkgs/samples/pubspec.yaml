@@ -2,8 +2,11 @@ name: samples
 description: Sample code snippets for DartPad.
 publish_to: none
 
+# This package is managed as part of the engine workspace.
+resolution: workspace
+
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.5.0
 
 dependencies:
   flame: ^1.18.0
