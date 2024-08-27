@@ -225,14 +225,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       }.toJS,
     );
 
-    codeMirror!.on(
-      'mousedown',
-      ([JSAny? _, JSAny? __]) {
-        // Delay slightly to allow codemirror to update the cursor position.
-        Timer.run(() => appModel.lastEditorClickOffset.value = cursorOffset);
-      }.toJS,
-    );
-
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
         .addListener(() => _updateIssues(appModel.analysisIssues.value));
