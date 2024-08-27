@@ -205,7 +205,7 @@ class MediumDialog extends StatelessWidget {
       return PointerInterceptor(
         child: AlertDialog(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: Text(title),
+          title: Text(title, maxLines: 1),
           contentTextStyle: Theme.of(context).textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: Column(

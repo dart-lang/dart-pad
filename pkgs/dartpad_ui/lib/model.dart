@@ -52,6 +52,7 @@ class AppModel {
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
+  final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
 
   final StatusController editorStatus = StatusController();
 
@@ -59,15 +60,6 @@ class AppModel {
 
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
-
-  /// Whether the docs panel is showing or should show.
-  final ValueNotifier<bool> docsShowing = ValueNotifier(false);
-
-  /// The last document request received.
-  final ValueNotifier<DocumentResponse?> currentDocs = ValueNotifier(null);
-
-  /// Used to pass information about mouse clicks in the editor.
-  final ValueNotifier<int> lastEditorClickOffset = ValueNotifier(0);
 
   final ValueNotifier<SplitDragState> splitViewDragState =
       ValueNotifier(SplitDragState.inactive);
