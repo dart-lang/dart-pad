@@ -17,6 +17,7 @@ dependencies:
   json_annotation: ^4.9.0
   logging: ^1.2.0
   meta: ^1.15.0
+  mix: ^1.4.6
   path: ^1.9.0
   resp_client: ^1.2.0
   shelf: ^1.4.1
