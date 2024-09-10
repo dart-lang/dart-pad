@@ -59,6 +59,10 @@ class _DartPadAppState extends State<DartPadApp> {
         path: '/',
         builder: _homePageBuilder,
       ),
+      GoRoute(
+        path: '/flutter',
+        builder: _homePageBuilder,
+      ),
     ],
   );
 
@@ -113,6 +117,7 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
+    final path = state.path;
     final gistId = state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
@@ -122,6 +127,7 @@ class _DartPadAppState extends State<DartPadApp> {
 
     return DartPadMainPage(
       title: appName,
+      path: path,
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
@@ -201,7 +207,7 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-
+  final String? path;
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
@@ -211,6 +217,7 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
+    this.path,
   }) : super(
           key: ValueKey(
             'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -221,17 +228,14 @@ class DartPadMainPage extends StatefulWidget {
   State<DartPadMainPage> createState() => _DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage>
-    with SingleTickerProviderStateMixin {
+class _DartPadMainPageState extends State<DartPadMainPage> with SingleTickerProviderStateMixin {
   late final AppModel appModel;
   late final AppServices appServices;
   late final SplitViewController mainSplitter;
   late final TabController tabController;
 
-  final ValueKey<String> _executionWidgetKey =
-      const ValueKey('execution-widget');
-  final ValueKey<String> _loadingOverlayKey =
-      const ValueKey('loading-overlay-widget');
+  final ValueKey<String> _executionWidgetKey = const ValueKey('execution-widget');
+  final ValueKey<String> _loadingOverlayKey = const ValueKey('loading-overlay-widget');
   final ValueKey<String> _editorKey = const ValueKey('editor');
   final ValueKey<String> _consoleKey = const ValueKey('console');
   final ValueKey<String> _tabBarKey = const ValueKey('tab-bar');
@@ -252,15 +256,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       );
 
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
-    mainSplitter =
-        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
-          ..addListener(() {
-            appModel.splitDragStateManager.handleSplitChanged();
-          });
+    mainSplitter = SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
+      ..addListener(() {
+        appModel.splitDragStateManager.handleSplitChanged();
+      });
 
-    final channel = widget.initialChannel != null
-        ? Channel.forName(widget.initialChannel!)
-        : null;
+    final channel = widget.initialChannel != null ? Channel.forName(widget.initialChannel!) : null;
 
     appModel = AppModel();
     appServices = AppServices(
@@ -269,14 +270,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     );
 
     appServices.populateVersions();
-
+    final fallBackSnippetType = widget.path == '/flutter' ? 'flutter' : 'dart';
     appServices
         .performInitialLoad(
             gistId: widget.gistId,
             sampleId: widget.builtinSampleId,
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
-            fallbackSnippet: Samples.getDefault(type: 'dart'))
+            fallbackSnippet: Samples.getDefault(type: fallBackSnippetType))
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
@@ -341,8 +342,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             return LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final domHeight = mode.calcDomHeight(constraints.maxHeight);
-                final consoleHeight =
-                    mode.calcConsoleHeight(constraints.maxHeight);
+                final consoleHeight = mode.calcConsoleHeight(constraints.maxHeight);
 
                 return Column(
                   children: [
@@ -390,8 +390,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                   ],
                 ),
               ),
-              if (!widget.embedMode)
-                const StatusLineWidget(mobileVersion: true),
+              if (!widget.embedMode) const StatusLineWidget(mobileVersion: true),
             ],
           ),
         );
@@ -572,9 +571,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               const Logo(width: 32, type: 'dart'),
               const SizedBox(width: denseSpacing),
-              Text(appName,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface)),
+              Text(appName, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               // Hide new snippet buttons when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth) ...[
                 const SizedBox(width: defaultSpacing * 4),
@@ -622,9 +619,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   // kToolbarHeight is set to 56.0 in the framework.
-  Size get preferredSize => bottom == null
-      ? const Size(double.infinity, 56.0)
-      : const Size(double.infinity, 112.0);
+  Size get preferredSize => bottom == null ? const Size(double.infinity, 56.0) : const Size(double.infinity, 112.0);
 
   Future<void> _openInIDX() async {
     final code = appModel.sourceCodeController.text;
@@ -682,8 +677,7 @@ class EditorWithButtons extends StatelessWidget {
                               icon: Icons.help_outline,
                               tooltip: 'Show docs',
                               // small: true,
-                              onPressed:
-                                  value ? null : () => _showDocs(context),
+                              onPressed: value ? null : () => _showDocs(context),
                             ),
                           );
                         },
@@ -1001,8 +995,7 @@ class ListSamplesWidget extends StatelessWidget {
 
   List<Widget> _buildMenuItems(BuildContext context) {
     final menuItems = [
-      for (final MapEntry(key: category, value: samples)
-          in Samples.categories.entries) ...[
+      for (final MapEntry(key: category, value: samples) in Samples.categories.entries) ...[
         MenuItemButton(
           onPressed: null,
           child: Text(
@@ -1013,8 +1006,7 @@ class ListSamplesWidget extends StatelessWidget {
         for (final sample in samples)
           MenuItemButton(
             leadingIcon: Logo(type: sample.icon),
-            onPressed: () =>
-                GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            onPressed: () => GoRouter.of(context).replaceQueryParam('sample', sample.id),
             child: Padding(
               padding: const EdgeInsets.only(right: 32),
               child: Text(sample.name),
@@ -1086,10 +1078,7 @@ class OverflowMenu extends StatelessWidget {
       label: 'Install SDK',
       uri: 'https://flutter.dev/get-started',
     ),
-    (
-      label: 'Sharing guide',
-      uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
-    ),
+    (label: 'Sharing guide', uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'),
   ];
 
   @override
@@ -1201,8 +1190,7 @@ class KeyBindingsTable extends StatelessWidget {
                       );
                     }
                     first = false;
-                    children.add(
-                        (shortcut as SingleActivator).renderToWidget(context));
+                    children.add((shortcut as SingleActivator).renderToWidget(context));
                   }
                   return Row(children: children);
                 },
