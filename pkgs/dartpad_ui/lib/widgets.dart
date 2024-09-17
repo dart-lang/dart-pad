@@ -109,7 +109,7 @@ class RunButton extends StatelessWidget {
           backgroundColor: WidgetStateProperty.resolveWith(
             (states) {
               if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withOpacity(0.4);
+                return runButtonColor.withValues(alpha: 0.4);
               }
 
               return runButtonColor;
