@@ -1013,8 +1013,18 @@ class ListSamplesWidget extends StatelessWidget {
         for (final sample in samples)
           MenuItemButton(
             leadingIcon: Logo(type: sample.icon),
-            onPressed: () =>
-                GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            onPressed: () {
+              // If the current route is already the current sample,
+              // reset to it manually.
+              if (GoRouterState.of(context).uri.queryParameters['sample'] ==
+                  sample.id) {
+                final appServices =
+                    Provider.of<AppServices>(context, listen: false);
+                appServices.resetToSample(sample);
+              } else {
+                GoRouter.of(context).replaceQueryParam('sample', sample.id);
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.only(right: 32),
               child: Text(sample.name),
