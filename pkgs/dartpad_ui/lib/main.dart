@@ -538,7 +538,7 @@ class LoadingOverlay extends StatelessWidget {
         final color = theme.colorScheme.surface;
 
         return AnimatedContainer(
-          color: compiling ? color.withOpacity(0.8) : color.withOpacity(0.0),
+          color: color.withValues(alpha: compiling ? 0.8 : 0),
           duration: animationDelay,
           curve: animationCurve,
           child: compiling
