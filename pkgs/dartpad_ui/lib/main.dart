@@ -59,6 +59,10 @@ class _DartPadAppState extends State<DartPadApp> {
         path: '/',
         builder: _homePageBuilder,
       ),
+      GoRoute(
+        path: '/flutter',
+        builder: _homePageBuilder,
+      ),
     ],
   );
 
@@ -113,6 +117,7 @@ class _DartPadAppState extends State<DartPadApp> {
   }
 
   Widget _homePageBuilder(BuildContext context, GoRouterState state) {
+    final path = state.path;
     final gistId = state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
@@ -122,6 +127,7 @@ class _DartPadAppState extends State<DartPadApp> {
 
     return DartPadMainPage(
       title: appName,
+      path: path,
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
@@ -201,7 +207,7 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-
+  final String? path;
   DartPadMainPage({
     required this.title,
     required this.initialChannel,
@@ -211,6 +217,7 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
+    this.path,
   }) : super(
           key: ValueKey(
             'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -269,14 +276,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     );
 
     appServices.populateVersions();
-
+    final fallBackSnippetType = widget.path == '/flutter' ? 'flutter' : 'dart';
     appServices
         .performInitialLoad(
             gistId: widget.gistId,
             sampleId: widget.builtinSampleId,
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
-            fallbackSnippet: Samples.getDefault(type: 'dart'))
+            fallbackSnippet: Samples.getDefault(type: fallBackSnippetType))
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
