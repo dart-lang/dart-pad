@@ -39,7 +39,7 @@ web.Element _codeMirrorFactory(int viewId) {
 
   codeMirrorInstance = CodeMirror(
       div,
-      <String, dynamic>{
+      <String, Object?>{
         'lineNumbers': true,
         'lineWrapping': true,
         'mode': 'dart',

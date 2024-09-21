@@ -126,7 +126,6 @@ class _DartPadAppState extends State<DartPadApp> {
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
 
     return DartPadMainPage(
-      title: appName,
       path: path,
       initialChannel: channelParam,
       embedMode: embedMode,
@@ -156,7 +155,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.light,
         dividerColor: lightDividerColor,
-        dividerTheme: DividerThemeData(
+        dividerTheme: const DividerThemeData(
           color: lightDividerColor,
         ),
         scaffoldBackgroundColor: Colors.white,
@@ -179,10 +178,10 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.dark,
         dividerColor: darkDividerColor,
-        dividerTheme: DividerThemeData(
+        dividerTheme: const DividerThemeData(
           color: darkDividerColor,
         ),
-        textButtonTheme: TextButtonThemeData(
+        textButtonTheme: const TextButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
           ),
@@ -199,7 +198,6 @@ class _DartPadAppState extends State<DartPadApp> {
 }
 
 class DartPadMainPage extends StatefulWidget {
-  final String title;
   final String? initialChannel;
   final bool embedMode;
   final bool runOnLoad;
@@ -208,8 +206,8 @@ class DartPadMainPage extends StatefulWidget {
   final String? builtinSampleId;
   final String? flutterSampleId;
   final String? path;
+
   DartPadMainPage({
-    required this.title,
     required this.initialChannel,
     required this.embedMode,
     required this.runOnLoad,
@@ -901,10 +899,10 @@ class SectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var c = child;
+    var finalChild = child;
 
     if (title != null || actions != null) {
-      c = Column(
+      finalChild = Column(
         children: [
           Row(
             children: [
@@ -921,7 +919,7 @@ class SectionWidget extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(denseSpacing),
-      child: c,
+      child: finalChild,
     );
   }
 }
@@ -1148,9 +1146,7 @@ class ContinueInMenu extends StatelessWidget {
         ...[
           MenuItemButton(
             trailingIcon: const Logo(type: 'idx'),
-            onPressed: () {
-              openInIdx();
-            },
+            onPressed: openInIdx,
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('IDX'),

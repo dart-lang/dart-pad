@@ -21,28 +21,28 @@ const double toolbarHeight = 32.0;
 
 const double toolbarItemHeight = 40.0;
 
-Color lightPrimaryColor = const Color(0xff1967D2);
-Color lightSurfaceColor = const Color(0xFFF5F5F7);
-Color lightSurfaceVariantColor = const Color(0xFFECECF1);
-Color lightDividerColor = const Color(0xFFDCE2E8);
-Color lightLinkButtonColor = lightPrimaryColor;
-Color lightErrorColor = Colors.red.shade400;
-Color lightWarningColor = Colors.yellow.shade700;
-Color lightInfoColor = Colors.blue.shade400;
-Color lightIssueColor = Colors.grey.shade400;
+const Color lightPrimaryColor = Color(0xff1967D2);
+const Color lightSurfaceColor = Color(0xFFF5F5F7);
+const Color lightSurfaceVariantColor = Color(0xFFECECF1);
+const Color lightDividerColor = Color(0xFFDCE2E8);
+const Color lightLinkButtonColor = lightPrimaryColor;
+final Color lightErrorColor = Colors.red.shade400;
+final Color lightWarningColor = Colors.yellow.shade700;
+final Color lightInfoColor = Colors.blue.shade400;
+final Color lightIssueColor = Colors.grey.shade400;
 
-Color darkPrimaryColor = const Color(0xFF1c2834);
-Color darkSurfaceColor = const Color(0xFF1C2834);
-Color darkSurfaceVariantColor = const Color(0xFF2B3B4F);
-Color darkDividerColor = const Color(0xFF1C2834);
-Color darkScaffoldColor = const Color(0xFF0C141D);
-Color darkLinkButtonColor = Colors.white;
-Color darkErrorColor = Colors.red.shade500;
-Color darkWarningColor = Colors.yellow.shade500;
-Color darkInfoColor = Colors.blue.shade500;
-Color darkIssueColor = Colors.grey.shade700;
+const Color darkPrimaryColor = Color(0xFF1c2834);
+const Color darkSurfaceColor = Color(0xFF1C2834);
+const Color darkSurfaceVariantColor = Color(0xFF2B3B4F);
+const Color darkDividerColor = Color(0xFF1C2834);
+const Color darkScaffoldColor = Color(0xFF0C141D);
+const Color darkLinkButtonColor = Colors.white;
+final Color darkErrorColor = Colors.red.shade500;
+final Color darkWarningColor = Colors.yellow.shade500;
+final Color darkInfoColor = Colors.blue.shade500;
+final Color darkIssueColor = Colors.grey.shade700;
 
-Color runButtonColor = const Color(0xFF168afd);
+const Color runButtonColor = Color(0xFF168afd);
 
 const Color subtleColor = Colors.grey;
 

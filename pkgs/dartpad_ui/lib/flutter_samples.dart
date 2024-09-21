@@ -13,8 +13,9 @@ class FlutterSampleLoader {
   }) async {
     // There are only two hosted versions of the docs: master/main and stable.
     final sampleUrl = switch (channel) {
-      'master' => 'https://main-api.flutter.dev/snippets/$sampleId.dart',
-      'main' => 'https://main-api.flutter.dev/snippets/$sampleId.dart',
+      'master' ||
+      'main' =>
+        'https://main-api.flutter.dev/snippets/$sampleId.dart',
       _ => 'https://api.flutter.dev/snippets/$sampleId.dart',
     };
 
