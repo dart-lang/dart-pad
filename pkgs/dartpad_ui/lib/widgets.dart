@@ -109,7 +109,7 @@ class RunButton extends StatelessWidget {
           backgroundColor: WidgetStateProperty.resolveWith(
             (states) {
               if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withOpacity(0.4);
+                return runButtonColor.withValues(alpha: 0.4);
               }
 
               return runButtonColor;
@@ -232,7 +232,7 @@ class MediumDialog extends StatelessWidget {
 }
 
 class GoldenRatioCenter extends StatelessWidget {
-  final Widget? child;
+  final Widget child;
 
   const GoldenRatioCenter({
     required this.child,
