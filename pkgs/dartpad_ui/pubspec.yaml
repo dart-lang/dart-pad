@@ -6,7 +6,7 @@ environment:
   sdk: ^3.4.0
 
 dependencies:
-  collection: any
+  collection: ^1.19.0
   dartpad_shared: any
   flutter:
     sdk: flutter
@@ -20,6 +20,7 @@ dependencies:
   pointer_interceptor: ^0.10.1
   provider: ^6.1.2
   split_view: ^3.2.1
+  styled_widget: ^0.4.0
   url_launcher: ^6.3.0
   vtable: ^0.4.0
   web: ^0.5.1

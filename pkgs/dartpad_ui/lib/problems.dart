@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
@@ -75,53 +76,50 @@ class ProblemWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final widget = Padding(
-      padding: const EdgeInsets.only(bottom: _rowPadding),
-      child: Column(
-        children: [
+    final widget = Column(
+      children: [
+        Row(
+          children: [
+            Icon(
+              issue.errorIcon,
+              size: smallIconSize,
+              color: issue.colorFor(
+                  darkMode: colorScheme.brightness == Brightness.dark),
+            ),
+            const SizedBox(width: denseSpacing),
+            Expanded(
+              child: Text(
+                issue.message,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              ' line ${issue.location.line}, col ${issue.location.column}',
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              textAlign: TextAlign.end,
+              style: subtleText,
+            )
+          ],
+        ),
+        if (issue.correction != null) const SizedBox(height: _rowPadding),
+        if (issue.correction != null)
           Row(
             children: [
-              Icon(
-                issue.errorIcon,
-                size: smallIconSize,
-                color: issue.colorFor(
-                    darkMode: colorScheme.brightness == Brightness.dark),
-              ),
+              const SizedBox.square(dimension: smallIconSize),
               const SizedBox(width: denseSpacing),
               Expanded(
                 child: Text(
-                  issue.message,
+                  issue.correction!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                ' line ${issue.location.line}, col ${issue.location.column}',
-                maxLines: 1,
-                overflow: TextOverflow.clip,
-                textAlign: TextAlign.end,
-                style: subtleText,
-              )
             ],
           ),
-          if (issue.correction != null) const SizedBox(height: _rowPadding),
-          if (issue.correction != null)
-            Row(
-              children: [
-                const SizedBox.square(dimension: smallIconSize),
-                const SizedBox(width: denseSpacing),
-                Expanded(
-                  child: Text(
-                    issue.correction!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
+      ],
+    ).padding(bottom: _rowPadding);
 
     final appServices = Provider.of<AppServices>(context);
     final diagnosticDocUrl = issue.url;
