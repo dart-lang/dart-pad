@@ -30,7 +30,7 @@ void handleEmbedMessage(AppServices services, {bool runOnInject = false}) {
   );
 
   parent.postMessage(
-    ({'sender': web.window.name, 'type': 'ready'}).jsify(),
+    {'sender': web.window.name, 'type': 'ready'}.jsify(),
     '*'.toJS,
   );
 }

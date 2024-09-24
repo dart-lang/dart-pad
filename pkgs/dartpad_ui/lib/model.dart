@@ -370,9 +370,8 @@ class AppServices {
 
     // register the new
     if (_executionService != null) {
-      stdoutSub = _executionService!.onStdout.listen((event) {
-        appModel.appendLineToConsole(event);
-      });
+      stdoutSub =
+          _executionService!.onStdout.listen(appModel.appendLineToConsole);
     }
   }
 

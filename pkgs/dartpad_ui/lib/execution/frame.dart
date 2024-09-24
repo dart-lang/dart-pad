@@ -163,30 +163,25 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    web.window.addEventListener(
-        'message',
-        (web.Event event) {
-          if (event is web.MessageEvent) {
-            final data = event.data.dartify() as Map<Object?, Object?>;
-            if (data['sender'] != 'frame') {
-              return;
-            }
-            final type = data['type'] as String?;
+    web.window.onMessage.forEach((event) {
+      final data = event.data.dartify() as Map<Object?, Object?>;
+      if (data['sender'] != 'frame') {
+        return;
+      }
+      final type = data['type'] as String?;
 
-            if (type == 'stderr') {
-              // Ignore any exceptions before the iframe has completed
-              // initialization.
-              if (_readyCompleter.isCompleted) {
-                _stdoutController.add(data['message'] as String);
-              }
-            } else if (type == 'ready' && !_readyCompleter.isCompleted) {
-              _readyCompleter.complete();
-            } else if (data['message'] != null) {
-              _stdoutController.add(data['message'] as String);
-            }
-          }
-        }.toJS,
-        false.toJS);
+      if (type == 'stderr') {
+        // Ignore any exceptions before the iframe has completed
+        // initialization.
+        if (_readyCompleter.isCompleted) {
+          _stdoutController.add(data['message'] as String);
+        }
+      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
+      } else if (data['message'] != null) {
+        _stdoutController.add(data['message'] as String);
+      }
+    });
   }
 }
 
