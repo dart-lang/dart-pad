@@ -232,7 +232,7 @@ class MediumDialog extends StatelessWidget {
 }
 
 class GoldenRatioCenter extends StatelessWidget {
-  final Widget? child;
+  final Widget child;
 
   const GoldenRatioCenter({
     required this.child,
