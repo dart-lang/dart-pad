@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
@@ -599,12 +600,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               // Hide the snippet title when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth)
                 Expanded(
-                  child: Center(
-                    child: ValueListenableBuilder<String>(
-                      valueListenable: appModel.title,
-                      builder: (_, String value, __) => Text(value),
-                    ),
-                  ),
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: appModel.title,
+                    builder: (_, String value, __) => Text(value),
+                  ).center(),
                 ),
               const SizedBox(width: defaultSpacing),
             ],
@@ -667,64 +666,57 @@ class EditorWithButtons extends StatelessWidget {
                   appModel: appModel,
                   appServices: appServices,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: denseSpacing,
-                    horizontal: defaultSpacing,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    // We use explicit directionality here in order to have the
-                    // format and run buttons on the right hand side of the
-                    // editing area.
-                    textDirection: TextDirection.ltr,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dartdoc help button
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.docHelpBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: Icons.help_outline,
-                              tooltip: 'Show docs',
-                              // small: true,
-                              onPressed:
-                                  value ? null : () => _showDocs(context),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: denseSpacing),
-                      // Format action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.formattingBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: Icons.format_align_left,
-                              tooltip: 'Format',
-                              small: true,
-                              onPressed: value ? null : onFormat,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.compilingBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: RunButton(
-                              onPressed: value ? null : onCompileAndRun,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  // We use explicit directionality here in order to have the
+                  // format and run buttons on the right hand side of the
+                  // editing area.
+                  textDirection: TextDirection.ltr,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Dartdoc help button
+                    ValueListenableBuilder<bool>(
+                      valueListenable: appModel.docHelpBusy,
+                      builder: (_, bool value, __) {
+                        return PointerInterceptor(
+                          child: MiniIconButton(
+                            icon: Icons.help_outline,
+                            tooltip: 'Show docs',
+                            // small: true,
+                            onPressed: value ? null : () => _showDocs(context),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: denseSpacing),
+                    // Format action
+                    ValueListenableBuilder<bool>(
+                      valueListenable: appModel.formattingBusy,
+                      builder: (_, bool value, __) {
+                        return PointerInterceptor(
+                          child: MiniIconButton(
+                            icon: Icons.format_align_left,
+                            tooltip: 'Format',
+                            small: true,
+                            onPressed: value ? null : onFormat,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: defaultSpacing),
+                    // Run action
+                    ValueListenableBuilder<bool>(
+                      valueListenable: appModel.compilingBusy,
+                      builder: (_, bool value, __) {
+                        return PointerInterceptor(
+                          child: RunButton(
+                            onPressed: value ? null : onCompileAndRun,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ).padding(vertical: denseSpacing, horizontal: defaultSpacing),
                 Container(
                   alignment: Alignment.bottomRight,
                   padding: const EdgeInsets.all(denseSpacing),
@@ -919,10 +911,7 @@ class SectionWidget extends StatelessWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(denseSpacing),
-      child: c,
-    );
+    return c.padding(all: denseSpacing);
   }
 }
 
@@ -970,10 +959,7 @@ class NewSnippetWidget extends StatelessWidget {
           PointerInterceptor(
             child: MenuItemButton(
               leadingIcon: item.icon,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 32),
-                child: Text(item.label),
-              ),
+              child: Text(item.label).padding(right: 32),
               onPressed: () => appServices.resetTo(type: item.kind),
             ),
           )
@@ -1022,10 +1008,7 @@ class ListSamplesWidget extends StatelessWidget {
             leadingIcon: Logo(type: sample.icon),
             onPressed: () =>
                 GoRouter.of(context).replaceQueryParam('sample', sample.id),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 32),
-              child: Text(sample.name),
-            ),
+            child: Text(sample.name).padding(right: 32),
           ),
       ]
     ];
@@ -1059,10 +1042,8 @@ class SelectChannelWidget extends StatelessWidget {
             PointerInterceptor(
               child: MenuItemButton(
                 onPressed: () => _onTap(context, channel),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-                  child: Text('${channel.displayName} channel'),
-                ),
+                child:
+                    Text('${channel.displayName} channel').padding(right: 32),
               ),
             ),
         ],
@@ -1114,10 +1095,7 @@ class OverflowMenu extends StatelessWidget {
             child: MenuItemButton(
               trailingIcon: const Icon(Icons.launch),
               onPressed: () => _onSelected(context, item.uri),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-                child: Text(item.label),
-              ),
+              child: Text(item.label).padding(right: 32),
             ),
           )
       ],
@@ -1151,10 +1129,7 @@ class ContinueInMenu extends StatelessWidget {
             onPressed: () {
               openInIdx();
             },
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('IDX'),
-            ),
+            child: const Text('IDX').padding(right: 32),
           ),
         ].map((widget) => PointerInterceptor(child: widget))
       ],
@@ -1201,10 +1176,7 @@ class KeyBindingsTable extends StatelessWidget {
                   for (final shortcut in binding.$2) {
                     if (!first) {
                       children.add(
-                        const Padding(
-                          padding: EdgeInsets.only(left: 4, right: 8),
-                          child: Text(','),
-                        ),
+                        const Text(',').padding(left: 4, right: 8),
                       );
                     }
                     first = false;

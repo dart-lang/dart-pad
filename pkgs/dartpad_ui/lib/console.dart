@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 import 'theme.dart';
 import 'widgets.dart';
@@ -75,20 +76,17 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(denseSpacing),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MiniIconButton(
-                    icon: Icons.playlist_remove,
-                    tooltip: 'Clear console',
-                    onPressed: value.isEmpty ? null : _clearConsole,
-                  ),
-                ],
-              ),
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MiniIconButton(
+                  icon: Icons.playlist_remove,
+                  tooltip: 'Clear console',
+                  onPressed: value.isEmpty ? null : _clearConsole,
+                ),
+              ],
+            ).padding(all: denseSpacing),
           ],
         ),
       ),
