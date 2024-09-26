@@ -22,7 +22,7 @@ dependencies:
   split_view: ^3.2.1
   url_launcher: ^6.3.0
   vtable: ^0.4.0
-  web: ^1.0.0
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:
