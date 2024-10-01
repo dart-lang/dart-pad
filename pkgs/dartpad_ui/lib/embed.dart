@@ -11,7 +11,7 @@ import 'model.dart';
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.
 void handleEmbedMessage(AppServices services, {bool runOnInject = false}) {
-  final parent = web.window.parent;
+  final parent = web.window.parentCrossOrigin;
   if (parent == null) return;
 
   web.window.addEventListener(

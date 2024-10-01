@@ -9,7 +9,6 @@ import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
-import 'frame_utils.dart';
 
 class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =
@@ -134,12 +133,14 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   Future<void> _send(String command, Map<String, Object?> params) {
-    final message = {
-      'command': command,
-      ...params,
-    }.jsify();
     // TODO: Use dartpad.dev instead of '*'?
-    _frame.safelyPostMessage(message, '*');
+    _frame.contentWindowCrossOrigin?.postMessage(
+      {
+        'command': command,
+        ...params,
+      }.jsify(),
+      '*'.toJS,
+    );
     return Future.value();
   }
 
