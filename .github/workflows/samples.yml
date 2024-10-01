@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: pkgs/samples/
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
       - run: flutter pub get
       - run: flutter analyze
