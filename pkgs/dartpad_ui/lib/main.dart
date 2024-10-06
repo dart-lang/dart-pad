@@ -835,7 +835,10 @@ class StatusLineWidget extends StatelessWidget {
                 builder: (context) => MediumDialog(
                   title: 'Keyboard shortcuts',
                   smaller: true,
-                  child: KeyBindingsTable(bindings: keys.keyBindings),
+                  child: KeyBindingsTable(
+                    bindings: keys.keyBindings,
+                    appModel: appModel,
+                  ),
                 ),
               ),
               child: Icon(
@@ -1160,9 +1163,11 @@ class ContinueInMenu extends StatelessWidget {
 
 class KeyBindingsTable extends StatelessWidget {
   final List<(String, List<ShortcutActivator>)> bindings;
+  final AppModel appModel;
 
   const KeyBindingsTable({
     required this.bindings,
+    required this.appModel,
     super.key,
   });
 
@@ -1212,6 +1217,10 @@ class KeyBindingsTable extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const Divider(),
+        _VimModeSwitch(
+          appModel: appModel,
         ),
       ],
     );
@@ -1283,6 +1292,32 @@ class _BrightnessButton extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class _VimModeSwitch extends StatelessWidget {
+  final AppModel appModel;
+
+  const _VimModeSwitch({
+    required this.appModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: appModel.vimKeymapsEnabled,
+      builder: (BuildContext context, bool value, Widget? child) {
+        return SwitchListTile(
+          value: value,
+          title: const Text('Use Vim Key Bindings'),
+          onChanged: _handleToggle,
+        );
+      },
+    );
+  }
+
+  void _handleToggle(bool value) {
+    appModel.vimKeymapsEnabled.value = value;
   }
 }
 
