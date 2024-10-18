@@ -310,7 +310,8 @@ void main() {
         offset: 21,
       ));
 
-      expect(result.fixes, hasLength(3));
+      // Dart 3.5 returns 3 fixes; Dart 3.6 returns 4.
+      expect(result.fixes, anyOf(hasLength(3), hasLength(4)));
 
       final fix = result.fixes
           .firstWhereOrNull((fix) => fix.message.contains('Ignore'));
