@@ -50,6 +50,9 @@ extension type CodeMirror._(JSObject _) implements JSObject {
   String getTheme() => (getOption('theme') as JSString).toDart;
   void setTheme(String theme) => setOption('theme', theme.toJS);
 
+  String getKeymap() => (getOption('keyMap') as JSString).toDart;
+  void setKeymap(String keyMap) => setOption('keyMap', keyMap.toJS);
+
   external void scrollTo(num? x, num? y);
   external ScrollInfo getScrollInfo();
 
