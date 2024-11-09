@@ -55,3 +55,58 @@
   width: 100%;
 }
 
+#splash {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  transition: opacity 500ms;
+}
+
+#splash.light {
+  background-color: #f5f5f7;
+}
+
+#splash.dark {
+  background-color: #1f2833;
+}
+
+#splash.done {
+  opacity: 0;
+}
+
+#splash img {
+  width: 28vmin;
+  animation: 1s ease-in-out 200ms infinite alternate breathe;
+  transition: opacity 500ms;
+}
+
+#splash.done img {
+  animation: 500ms ease-in-out 0s 1 forwards zoom;
+  opacity: 0;
+}
+
+@keyframes breathe {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes zoom {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(0.01);
+  }
+}
