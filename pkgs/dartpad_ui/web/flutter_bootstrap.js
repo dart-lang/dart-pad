@@ -1,7 +1,13 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-_flutter.loader.load();
+const serviceWorkerSettings = {
+  serviceWorkerVersion: {{flutter_service_worker_version}}
+};
+
+_flutter.loader.load({
+  serviceWorkerSettings,
+});
 
 const splash = document.querySelector('#splash');
 
