@@ -21,11 +21,8 @@ window.addEventListener('flutter-first-frame', () => {
 
 async function _initSplashTheme() {
   const queryParams = new URLSearchParams(window.location.search);
-  let theme = queryParams.get('theme');
-
-  theme ??= window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+  const queryTheme = queryParams.get('theme');
+  const theme = ['light', 'dark'].includes(queryTheme) ? queryTheme : 'dark';
 
   splash.classList.add(theme);
 }
