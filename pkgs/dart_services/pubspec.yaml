@@ -12,7 +12,6 @@ dependencies:
   bazel_worker: ^1.1.1
   dartpad_shared: ^0.0.0
   encrypt: ^5.0.3
-  google_generative_ai: ^0.4.6
   http: ^1.2.1
   json_annotation: ^4.9.0
   logging: ^1.2.0
