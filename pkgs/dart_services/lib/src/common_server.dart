@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
-import 'package:google_generative_ai/google_generative_ai.dart' as google_ai;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -232,50 +231,6 @@ class CommonServerApi {
     }
   }
 
-  static final String? geminiApiKey = Platform.environment['GEMINI_API_KEY'];
-  http.Client? geminiHttpClient;
-
-  @Route.post('$apiPrefix/_gemini')
-  Future<Response> gemini(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    // Read the api key from env variables (populated on the server).
-    final apiKey = geminiApiKey;
-    if (apiKey == null) {
-      return Response.internalServerError(
-          body: 'gemini key not configured on server');
-    }
-
-    // Only allow the call from dartpad.dev.
-    final origin = request.origin;
-    if (origin != 'https://dartpad.dev') {
-      return Response.badRequest(
-          body: 'Gemini calls only allowed from the DartPad front-end');
-    }
-
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
-
-    geminiHttpClient ??= http.Client();
-
-    final model = google_ai.GenerativeModel(
-      model: 'models/gemini-1.5-flash-latest',
-      apiKey: apiKey,
-      httpClient: geminiHttpClient,
-    );
-
-    final result = await serialize(() async {
-      // call gemini
-      final result = await model.generateContent([
-        google_ai.Content.text(sourceRequest.source),
-      ]);
-
-      return api.GeminiResponse(response: result.text!);
-    });
-
-    return ok(result.toJson());
-  }
-
   Response ok(Map<String, dynamic> json) {
     return Response.ok(
       _jsonEncoder.convert(json),
@@ -402,8 +357,4 @@ String _formatMessage(
   }
 
   return message;
-}
-
-extension on Request {
-  String? get origin => headers['origin'];
 }

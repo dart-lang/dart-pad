@@ -376,23 +376,6 @@ class VersionResponse {
 }
 
 @JsonSerializable()
-class GeminiResponse {
-  final String response;
-
-  GeminiResponse({
-    required this.response,
-  });
-
-  factory GeminiResponse.fromJson(Map<String, Object?> json) =>
-      _$GeminiResponseFromJson(json);
-
-  Map<String, Object?> toJson() => _$GeminiResponseToJson(this);
-
-  @override
-  String toString() => 'GeminiResponse[response=$response]';
-}
-
-@JsonSerializable()
 class OpenInIdxRequest {
   final String code;
 
