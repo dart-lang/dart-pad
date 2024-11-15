@@ -220,8 +220,6 @@ class AnalysisServerWrapper {
       );
     }).catchError((dynamic error) {
       _logger.fine('format error: $error');
-      print('error from format');
-      print('  $error');
       return api.FormatResponse(source: src, offset: offset);
     });
   }
