@@ -32,13 +32,13 @@ void main(List<String> args) {
 }
 
 const Set<String> categories = {
+  'Defaults',
   'Dart',
   'Flutter',
   'Ecosystem',
 };
 
 class Samples {
-  late final Map<String, String> defaults;
   late final List<Sample> samples;
 
   void parse() {
@@ -46,20 +46,13 @@ class Samples {
     final json =
         jsonDecode(File(p.join('lib', 'samples.json')).readAsStringSync());
 
-    defaults = (json['defaults'] as Map).cast<String, String>();
-    samples = (json['samples'] as List).map((j) => Sample.fromJson(j)).toList();
+    samples = (json as List).map((j) => Sample.fromJson(j)).toList();
 
     // do basic validation
     var hadFailure = false;
     void fail(String message) {
       stderr.writeln(message);
       hadFailure = true;
-    }
-
-    for (final entry in defaults.entries) {
-      if (!File(entry.value).existsSync()) {
-        fail('File ${entry.value} not found.');
-      }
     }
 
     for (final sample in samples) {
@@ -178,6 +171,8 @@ class Sample {
 
   bool get isDart => category == 'Dart';
 
+  bool get shouldList => category != 'Defaults';
+
   @override
   String toString() => '[\$category] \$name (\$id)';
 }
@@ -188,24 +183,16 @@ abstract final class Samples {
   ];
 
   static const Map<String, List<Sample>> categories = {
-    ${categories.map((category) => _mapForCategory(category)).join(',\n    ')},
+    ${categories.where((category) => category != 'Defaults').map((category) => _mapForCategory(category)).join(',\n    ')},
   };
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
 
-  static String getDefault({required String type}) => _defaults[type]!;
+  static String defaultSnippet({bool forFlutter = false}) =>
+      getById(forFlutter ? 'flutter' : 'dart')!.source;
 }
 
 ''');
-
-    buf.writeln('const Map<String, String> _defaults = {');
-
-    for (final entry in defaults.entries) {
-      final source = File(entry.value).readAsStringSync().trimRight();
-      buf.writeln("  '${entry.key}': r'''\n$source\n''',");
-    }
-
-    buf.writeln('};\n');
 
     buf.write(samples.map((sample) => sample.sourceDef).join('\n'));
 
@@ -235,13 +222,13 @@ class Sample implements Comparable<Sample> {
     required this.path,
   });
 
-  factory Sample.fromJson(Map json) {
+  factory Sample.fromJson(Map<String, Object?> json) {
     return Sample(
-      category: json['category'],
-      icon: json['icon'],
-      name: json['name'],
-      id: (json['id'] as String?) ?? _idFromName(json['name']),
-      path: json['path'],
+      category: json['category'] as String,
+      icon: json['icon'] as String,
+      name: json['name'] as String,
+      id: (json['id'] as String?) ?? _idFromName(json['name'] as String),
+      path: json['path'] as String,
     );
   }
 

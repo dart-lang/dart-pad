@@ -23,6 +23,8 @@ class Sample {
 
   bool get isDart => category == 'Dart';
 
+  bool get shouldList => category != 'Defaults';
+
   @override
   String toString() => '[$category] $name ($id)';
 }
@@ -31,6 +33,8 @@ abstract final class Samples {
   static const List<Sample> all = [
     _fibonacci,
     _helloWorld,
+    _dart,
+    _flutter,
     _flameGame,
     _googleSdk,
     _counter,
@@ -54,41 +58,9 @@ abstract final class Samples {
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
 
-  static String getDefault({required String type}) => _defaults[type]!;
+  static String defaultSnippet({bool forFlutter = false}) =>
+      getById(forFlutter ? 'flutter' : 'dart')!.source;
 }
-
-const Map<String, String> _defaults = {
-  'dart': r'''
-void main() {
-  for (int i = 0; i < 10; i++) {
-    print('hello ${i + 1}');
-  }
-}
-''',
-  'flutter': r'''
-import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello, World!'),
-        ),
-      ),
-    );
-  }
-}
-''',
-};
 
 const _fibonacci = Sample(
   category: 'Dart',
@@ -126,6 +98,50 @@ const _helloWorld = Sample(
 void main() {
   for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
+  }
+}
+''',
+);
+
+const _dart = Sample(
+  category: 'Defaults',
+  icon: 'dart',
+  name: 'Dart snippet',
+  id: 'dart',
+  source: r'''
+void main() {
+  for (var i = 0; i < 10; i++) {
+    print('hello ${i + 1}');
+  }
+}
+''',
+);
+
+const _flutter = Sample(
+  category: 'Defaults',
+  icon: 'flutter',
+  name: 'Flutter snippet',
+  id: 'flutter',
+  source: r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Text('Hello, World!'),
+        ),
+      ),
+    );
   }
 }
 ''',

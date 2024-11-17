@@ -168,7 +168,8 @@ class AppServices {
 
   void resetTo({String? type}) {
     type ??= 'dart';
-    final source = Samples.getDefault(type: type);
+    final source =
+        Samples.defaultSnippet(forFlutter: type.toLowerCase() == 'flutter');
 
     // Reset the source.
     appModel.sourceCodeController.text = source;
