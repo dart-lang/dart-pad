@@ -166,10 +166,19 @@ class AppServices {
     return versionResponse;
   }
 
-  void resetTo({String? type}) {
-    type ??= 'dart';
+  void resetToSample(Sample sample) {
+    _reset(source: sample.source, title: sample.name);
+  }
+
+  void resetTo({String type = 'dart'}) {
     final source = Samples.getDefault(type: type);
 
+    _reset(source: source);
+
+    appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
+  }
+
+  void _reset({String title = '', required String source}) {
     // Reset the source.
     appModel.sourceCodeController.text = source;
 
@@ -181,8 +190,6 @@ class AppServices {
 
     // Reset the execution area.
     executionService?.reset();
-
-    appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
   }
 
   void _handleCodeChanged() {
