@@ -1,6 +1,6 @@
-// Copyright 2023 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
 import 'dart:io';
@@ -146,9 +146,9 @@ ${samples.map((s) => s.toTableRow()).join('\n')}
 
   String _generateSourceContent() {
     final buf = StringBuffer('''
-// Copyright 2023 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 // This file has been automatically generated - please do not edit it manually.
 
@@ -243,7 +243,10 @@ class Sample implements Comparable<Sample> {
     return '_$gen';
   }
 
-  String get source => File(path).readAsStringSync();
+  String get _rawSource => File(path).readAsStringSync();
+
+  String get source =>
+      _rawSource.replaceFirst(_copyrightCommentPattern, '').trim();
 
   String get sourceDef {
     return '''
@@ -253,7 +256,7 @@ const $sourceId = Sample(
   name: '$name',
   id: '$id',
   source: r\'\'\'
-${source.trimRight()}
+$source
 \'\'\',
 );
 ''';
@@ -276,4 +279,7 @@ ${source.trimRight()}
 
   static String _idFromName(String name) =>
       name.trim().toLowerCase().replaceAll(' ', '-');
+
+  static final RegExp _copyrightCommentPattern =
+      RegExp(r'^\/\/ Copyright.*LICENSE file.', multiLine: true, dotAll: true);
 }

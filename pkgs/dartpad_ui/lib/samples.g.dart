@@ -1,6 +1,6 @@
-// Copyright 2023 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 // This file has been automatically generated - please do not edit it manually.
 
@@ -68,10 +68,6 @@ const _fibonacci = Sample(
   name: 'Fibonacci',
   id: 'fibonacci',
   source: r'''
-// Copyright 2015 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 void main() {
   const i = 20;
 
@@ -91,10 +87,6 @@ const _helloWorld = Sample(
   name: 'Hello world',
   id: 'hello-world',
   source: r'''
-// Copyright 2015 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 void main() {
   for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
@@ -153,10 +145,6 @@ const _flameGame = Sample(
   name: 'Flame game',
   id: 'flame-game',
   source: r'''
-// Copyright 2024 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 /// A simplified brick-breaker game,
 /// built using the Flame game engine for Flutter.
 ///
@@ -490,10 +478,6 @@ const _googleSdk = Sample(
   name: 'Google AI SDK',
   id: 'google-ai-sdk',
   source: r'''
-// Copyright 2024 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -838,10 +822,6 @@ const _counter = Sample(
   name: 'Counter',
   id: 'counter',
   source: r'''
-// Copyright 2019 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
@@ -920,10 +900,6 @@ const _sunflower = Sample(
   name: 'Sunflower',
   id: 'sunflower',
   source: r'''
-// Copyright 2019 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
