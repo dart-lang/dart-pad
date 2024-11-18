@@ -84,7 +84,8 @@ final class Sdk {
     }
 
     final flutterBinPath = path.join(flutterSdkPath, 'bin');
-    final flutterToolPath = path.join(flutterBinPath, 'flutter');
+    final flutterToolPath = path.join(
+        flutterBinPath, Platform.isWindows ? 'flutter.bat' : 'flutter');
     final dartSdkPath = path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
     final dartVersion = _readDartSdkVersionFile(dartSdkPath);
 

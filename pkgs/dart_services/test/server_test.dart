@@ -174,7 +174,8 @@ void main() {
   print('hello world');
 }
 ''');
-    });
+      // ignore: deprecated_member_use, invalid_use_of_do_not_submit_member
+    }, solo: true);
 
     test('format preserves offset', () async {
       final result = await client.format(SourceRequest(

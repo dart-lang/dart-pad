@@ -89,6 +89,8 @@ class AnalysisServerWrapper {
     analysisServer = await AnalysisServer.create(
       sdkPath: sdkPath,
       serverArgs: serverArgs,
+      onRead: (str) => print('<== $str'),
+      onWrite: (str) => print('==> $str'),
     );
 
     try {
