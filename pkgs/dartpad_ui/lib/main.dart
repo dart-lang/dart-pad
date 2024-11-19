@@ -59,6 +59,11 @@ class _DartPadAppState extends State<DartPadApp> {
         path: '/',
         builder: _homePageBuilder,
       ),
+      GoRoute(
+        path: '/:gistId',
+        builder: (context, state) => _homePageBuilder(context, state,
+            gist: state.pathParameters['gistId']),
+      ),
     ],
   );
 
@@ -112,8 +117,9 @@ class _DartPadAppState extends State<DartPadApp> {
     });
   }
 
-  Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final gistId = state.uri.queryParameters['id'];
+  Widget _homePageBuilder(BuildContext context, GoRouterState state,
+      {String? gist}) {
+    final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
     final channelParam = state.uri.queryParameters['channel'];
