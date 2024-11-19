@@ -20,11 +20,6 @@
           "type": 301
         },
         {
-          "source": "/dart",
-          "destination": "/?sample=dart",
-          "type": 301
-        },
-        {
           "source": "/embed-dart?(.html)",
           "destination": "/?embed=true",
           "type": 301
