@@ -8,83 +8,37 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="An online Dart editor with support for console and Flutter apps.">
 
-  <!-- iOS meta tags & icons -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="DartPad">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png" />
 
   <link rel="preconnect" href="https://www.gstatic.com">
+
   <title>DartPad</title>
+
   <link rel="manifest" href="manifest.json">
 
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
   <link href="codemirror/codemirror.css" rel="stylesheet">
   <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
   <link href="styles/cm-dartpad-light.css" rel="stylesheet" media="screen">
-  <script src="codemirror/codemirror.js"></script>
+  <link href="styles/index.css" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
+
+  <script src="codemirror/codemirror.js" defer></script>
+  <script src="flutter_bootstrap.js" defer></script>
   <script src="ga.js" defer></script>
-
-  <style>
-    .CodeMirror {
-      height: 100%;
-    }
-
-    .squiggle-info {
-      border-bottom: 2px solid #7EA7D8;
-    }
-    .squiggle-warning {
-      border-bottom: 2px solid #d9d077;
-    }
-    .squiggle-error {
-      border-bottom: 2px solid #EF5350;
-    }
-    .squiggle-deprecation {
-      text-decoration: line-through;
-      text-decoration-thickness: 10%;
-    }
-
-    .CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
-      position: absolute;
-      -moz-box-sizing: border-box;
-      box-sizing: border-box;
-      border-radius: 4px;
-    }
-
-    .CodeMirror-simplescroll-horizontal, .CodeMirror-simplescroll-vertical {
-      position: absolute;
-      z-index: 6;
-    }
-
-    .CodeMirror-simplescroll-horizontal {
-      bottom: 0;
-      left: 0;
-      height: 9px;
-    }
-
-    .CodeMirror-simplescroll-horizontal div {
-      bottom: 0;
-      height: 100%;
-    }
-
-    .CodeMirror-simplescroll-vertical {
-      right: 0;
-      top: 0;
-      width: 9px;
-    }
-
-    .CodeMirror-simplescroll-vertical div {
-      right: 0;
-      width: 100%;
-    }
-  </style>
 </head>
 
 <body>
-  <script>{{flutter_bootstrap_js}}</script>
+  <div id="splash">
+    <img src="icons/Icon.svg" alt="Loading indicator" />
+  </div>
 </body>
 
 </html>
