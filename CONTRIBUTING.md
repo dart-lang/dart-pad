@@ -41,10 +41,6 @@ Contributions made by corporations are covered by a different agreement than the
 
 ## How to run DartPad locally
 
-To run the server, see https://github.com/dart-lang/dart-pad/blob/main/pkgs/dart_services/README.md.
+To run the server, see the [dart_services readme](https://github.com/dart-lang/dart-pad/blob/main/pkgs/dart_services/README.md).
 
-To run the front-end, from the `pkg/dart-pad` directory, run:
-
-```
-dart tool/grind.dart serve
-```
+To run the front-end, see the [dartpad_ui readme](https://github.com/dart-lang/dart-pad/blob/main/pkgs/dartpad_ui/README.md).
