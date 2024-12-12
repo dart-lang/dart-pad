@@ -31,3 +31,6 @@ config.properties
 .vscode/
 
 bin/server
+
+# Any local environment variable configuration
+.env

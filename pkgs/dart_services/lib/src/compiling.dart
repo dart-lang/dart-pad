@@ -302,13 +302,13 @@ String _rewritePaths(String output) {
   final lines = output.split('\n');
 
   return lines.map((line) {
-    final token1 = 'lib/bootstrap.dart:';
+    const token1 = 'lib/bootstrap.dart:';
     var index = line.indexOf(token1);
     if (index != -1) {
       return 'main.dart:${line.substring(index + token1.length)}';
     }
 
-    final token2 = 'lib/main.dart:';
+    const token2 = 'lib/main.dart:';
     index = line.indexOf(token2);
     if (index != -1) {
       return 'main.dart:${line.substring(index + token2.length)}';

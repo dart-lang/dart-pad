@@ -67,8 +67,9 @@ class MiniIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final colorScheme = theme.colorScheme;
     final backgroundColor = switch (brightness) {
       Brightness.light => colorScheme.surface.darker,
       Brightness.dark => colorScheme.surface.lighter,
@@ -79,8 +80,8 @@ class MiniIconButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: IconButton(
         style: ButtonStyle(
-          shape: WidgetStateProperty.all(const CircleBorder()),
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
+          shape: const WidgetStatePropertyAll(CircleBorder()),
+          backgroundColor: WidgetStatePropertyAll(backgroundColor),
         ),
         icon: Icon(icon),
         iconSize: small ? 16 : smallIconSize,
@@ -104,12 +105,12 @@ class RunButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
-          shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0))),
+          shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4)))),
           backgroundColor: WidgetStateProperty.resolveWith(
             (states) {
               if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withOpacity(0.4);
+                return runButtonColor.withValues(alpha: 0.4);
               }
 
               return runButtonColor;
@@ -148,8 +149,9 @@ class StatusWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final colorScheme = theme.colorScheme;
     final backgroundColor = switch (brightness) {
       Brightness.light => colorScheme.surface.darker,
       Brightness.dark => colorScheme.surface.lighter,
@@ -201,12 +203,13 @@ class MediumDialog extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       final width = smaller ? 400.0 : 500.0;
       final height = smaller ? 325.0 : 400.0;
+      final theme = Theme.of(context);
 
       return PointerInterceptor(
         child: AlertDialog(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: Text(title),
-          contentTextStyle: Theme.of(context).textTheme.bodyMedium,
+          backgroundColor: theme.scaffoldBackgroundColor,
+          title: Text(title, maxLines: 1),
+          contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -232,7 +235,7 @@ class MediumDialog extends StatelessWidget {
 }
 
 class GoldenRatioCenter extends StatelessWidget {
-  final Widget? child;
+  final Widget child;
 
   const GoldenRatioCenter({
     required this.child,
@@ -241,7 +244,7 @@ class GoldenRatioCenter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Align(
       alignment: const Alignment(0.0, -(1.618 / 4)),
       child: child,
     );

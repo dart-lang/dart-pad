@@ -60,6 +60,11 @@ class _DartPadAppState extends State<DartPadApp> {
         path: '/',
         builder: _homePageBuilder,
       ),
+      GoRoute(
+        path: '/:gistId',
+        builder: (context, state) => _homePageBuilder(context, state,
+            gist: state.pathParameters['gistId']),
+      ),
     ],
   );
 
@@ -113,8 +118,9 @@ class _DartPadAppState extends State<DartPadApp> {
     });
   }
 
-  Widget _homePageBuilder(BuildContext context, GoRouterState state) {
-    final gistId = state.uri.queryParameters['id'];
+  Widget _homePageBuilder(BuildContext context, GoRouterState state,
+      {String? gist}) {
+    final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
     final channelParam = state.uri.queryParameters['channel'];
@@ -122,7 +128,6 @@ class _DartPadAppState extends State<DartPadApp> {
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
 
     return DartPadMainPage(
-      title: appName,
       initialChannel: channelParam,
       embedMode: embedMode,
       runOnLoad: runOnLoad,
@@ -151,7 +156,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.light,
         dividerColor: lightDividerColor,
-        dividerTheme: DividerThemeData(
+        dividerTheme: const DividerThemeData(
           color: lightDividerColor,
         ),
         scaffoldBackgroundColor: Colors.white,
@@ -174,10 +179,10 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.dark,
         dividerColor: darkDividerColor,
-        dividerTheme: DividerThemeData(
+        dividerTheme: const DividerThemeData(
           color: darkDividerColor,
         ),
-        textButtonTheme: TextButtonThemeData(
+        textButtonTheme: const TextButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
           ),
@@ -194,7 +199,6 @@ class _DartPadAppState extends State<DartPadApp> {
 }
 
 class DartPadMainPage extends StatefulWidget {
-  final String title;
   final String? initialChannel;
   final bool embedMode;
   final bool runOnLoad;
@@ -204,7 +208,6 @@ class DartPadMainPage extends StatefulWidget {
   final String? flutterSampleId;
 
   DartPadMainPage({
-    required this.title,
     required this.initialChannel,
     required this.embedMode,
     required this.runOnLoad,
@@ -235,7 +238,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       const ValueKey('loading-overlay-widget');
   final ValueKey<String> _editorKey = const ValueKey('editor');
   final ValueKey<String> _consoleKey = const ValueKey('console');
-  final ValueKey<String> _docsKey = const ValueKey('docs');
   final ValueKey<String> _tabBarKey = const ValueKey('tab-bar');
   final ValueKey<String> _executionStackKey = const ValueKey('execution-stack');
   final ValueKey<String> _scaffoldKey = const ValueKey('scaffold');
@@ -271,7 +273,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     );
 
     appServices.populateVersions();
-
     appServices
         .performInitialLoad(
             gistId: widget.gistId,
@@ -279,7 +280,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
             fallbackSnippet: web.window.localStorage.getItem('user_input') ??
-                Samples.getDefault(type: 'dart'))
+                Samples.defaultSnippet())
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
@@ -289,12 +290,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     });
 
     appModel.compilingBusy.addListener(_handleRunStarted);
-    appModel.lastEditorClickOffset.addListener(_handleDocClicked);
   }
 
   @override
   void dispose() {
-    appModel.lastEditorClickOffset.removeListener(_handleDocClicked);
     appModel.compilingBusy.removeListener(_handleRunStarted);
 
     appServices.dispose();
@@ -325,32 +324,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       onCompileAndRun: appServices.performCompileAndRun,
       key: _editorKey,
     );
-
-    final editingGroup = ValueListenableBuilder(
-        valueListenable: appModel.docsShowing,
-        builder: (context, bool docsShowing, _) {
-          return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final height = constraints.maxHeight;
-              final editorHeight = docsShowing ? height * dividerSplit : height;
-              final docsHeight =
-                  docsShowing ? height * (1.0 - dividerSplit) : 0.0;
-
-              return Column(
-                children: [
-                  SizedBox(height: editorHeight, child: editor),
-                  SizedBox(
-                    height: docsHeight,
-                    child: DocsWidget(
-                      appModel: appModel,
-                      key: _docsKey,
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        });
 
     final tabBar = TabBar(
       controller: tabController,
@@ -416,7 +389,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                 child: IndexedStack(
                   index: tabController.index,
                   children: [
-                    editingGroup,
+                    editor,
                     executionStack,
                   ],
                 ),
@@ -448,7 +421,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                   gripSize: defaultGripSize,
                   controller: mainSplitter,
                   children: [
-                    editingGroup,
+                    editor,
                     executionStack,
                   ],
                 ),
@@ -543,50 +516,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       }
     });
   }
-
-  static final RegExp identifierChar = RegExp(r'[\w\d_<=>]');
-
-  void _handleDocClicked() async {
-    // TODO(devoncarew): Disable opening the documentation panel; this is too
-    // disruptive when people are editing code. We should switch to using a
-    // tooltip (https://github.com/dart-lang/dart-pad/issues/3032).
-    return;
-
-    // ignore: dead_code
-    try {
-      final source = appModel.sourceCodeController.text;
-      final offset = appModel.lastEditorClickOffset.value;
-
-      var valid = true;
-
-      if (offset < 0 || offset >= source.length) {
-        valid = false;
-      } else {
-        valid = identifierChar.hasMatch(source.substring(offset, offset + 1));
-      }
-
-      if (!valid) {
-        appModel.docsShowing.value = false;
-        appModel.currentDocs.value = null;
-        return;
-      }
-
-      final result = await appServices.document(
-        SourceRequest(source: source, offset: offset),
-      );
-
-      if (result.elementKind == null) {
-        appModel.docsShowing.value = false;
-        appModel.currentDocs.value = null;
-      } else {
-        appModel.currentDocs.value = result;
-        appModel.docsShowing.value = true;
-      }
-    } on ApiRequestError {
-      appModel.editorStatus.showToast('Error retrieving docs');
-      return;
-    }
-  }
 }
 
 class LoadingOverlay extends StatelessWidget {
@@ -606,7 +535,7 @@ class LoadingOverlay extends StatelessWidget {
         final color = theme.colorScheme.surface;
 
         return AnimatedContainer(
-          color: compiling ? color.withOpacity(0.8) : color.withOpacity(0.0),
+          color: color.withValues(alpha: compiling ? 0.8 : 0),
           duration: animationDelay,
           curve: animationCurve,
           child: compiling
@@ -748,6 +677,22 @@ class EditorWithButtons extends StatelessWidget {
                     textDirection: TextDirection.ltr,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Dartdoc help button
+                      ValueListenableBuilder<bool>(
+                        valueListenable: appModel.docHelpBusy,
+                        builder: (_, bool value, __) {
+                          return PointerInterceptor(
+                            child: MiniIconButton(
+                              icon: Icons.help_outline,
+                              tooltip: 'Show docs',
+                              // small: true,
+                              onPressed:
+                                  value ? null : () => _showDocs(context),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: denseSpacing),
                       // Format action
                       ValueListenableBuilder<bool>(
                         valueListenable: appModel.formattingBusy,
@@ -796,6 +741,63 @@ class EditorWithButtons extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  static final RegExp identifierChar = RegExp(r'[\w\d_<=>]');
+
+  void _showDocs(BuildContext context) async {
+    try {
+      final source = appModel.sourceCodeController.text;
+      final offset = appServices.editorService?.cursorOffset ?? -1;
+
+      var valid = true;
+      if (offset < 0 || offset >= source.length) {
+        valid = false;
+      } else {
+        valid = identifierChar.hasMatch(source.substring(offset, offset + 1));
+      }
+
+      if (!valid) {
+        appModel.editorStatus.showToast('No docs at location.');
+        return;
+      }
+
+      final result = await appServices.document(
+        SourceRequest(source: source, offset: offset),
+      );
+
+      if (result.elementKind == null) {
+        appModel.editorStatus.showToast('No docs at location.');
+        return;
+      } else if (context.mounted) {
+        // show result
+
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            const longTitle = 40;
+
+            var title = result.cleanedUpTitle ?? 'Dartdoc';
+            if (title.length > longTitle) {
+              title = '${title.substring(0, longTitle)}…';
+            }
+            return MediumDialog(
+              title: title,
+              child: DocsWidget(
+                appModel: appModel,
+                documentResponse: result,
+              ),
+            );
+          },
+        );
+      }
+
+      appServices.editorService!.focus();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error retrieving docs');
+      appModel.appendLineToConsole('$error');
+      return;
+    }
   }
 }
 
@@ -896,10 +898,10 @@ class SectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var c = child;
+    var finalChild = child;
 
     if (title != null || actions != null) {
-      c = Column(
+      finalChild = Column(
         children: [
           Row(
             children: [
@@ -916,7 +918,7 @@ class SectionWidget extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(denseSpacing),
-      child: c,
+      child: finalChild,
     );
   }
 }
@@ -1126,6 +1128,7 @@ class OverflowMenu extends StatelessWidget {
 
 class ContinueInMenu extends StatelessWidget {
   final VoidCallback openInIdx;
+
   const ContinueInMenu({super.key, required this.openInIdx});
 
   @override
@@ -1142,9 +1145,7 @@ class ContinueInMenu extends StatelessWidget {
         ...[
           MenuItemButton(
             trailingIcon: const Logo(type: 'idx'),
-            onPressed: () {
-              openInIdx();
-            },
+            onPressed: openInIdx,
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('IDX'),

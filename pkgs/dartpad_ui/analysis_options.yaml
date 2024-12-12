@@ -9,6 +9,7 @@ analyzer:
 linter:
   rules:
     - directives_ordering
+    - invalid_runtime_check_with_js_interop_types
     - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_relative_imports

@@ -3,16 +3,15 @@ description: The backend service for DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.5.0
 
 dependencies:
   analysis_server_lib: ^0.2.5
-  analyzer: ^6.4.0
+  analyzer: ^6.8.0
   args: ^2.5.0
   bazel_worker: ^1.1.1
   dartpad_shared: ^0.0.0
   encrypt: ^5.0.3
-  google_generative_ai: ^0.4.3  
   http: ^1.2.1
   json_annotation: ^4.9.0
   logging: ^1.2.0

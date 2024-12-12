@@ -1,6 +1,6 @@
-// Copyright 2023 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 // This file has been automatically generated - please do not edit it manually.
 
@@ -23,6 +23,8 @@ class Sample {
 
   bool get isDart => category == 'Dart';
 
+  bool get shouldList => category != 'Defaults';
+
   @override
   String toString() => '[$category] $name ($id)';
 }
@@ -31,6 +33,8 @@ abstract final class Samples {
   static const List<Sample> all = [
     _fibonacci,
     _helloWorld,
+    _dart,
+    _flutter,
     _flameGame,
     _googleSdk,
     _counter,
@@ -54,18 +58,63 @@ abstract final class Samples {
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
 
-  static String getDefault({required String type}) => _defaults[type]!;
+  static String defaultSnippet({bool forFlutter = false}) =>
+      getById(forFlutter ? 'flutter' : 'dart')!.source;
 }
 
-const Map<String, String> _defaults = {
-  'dart': r'''
+const _fibonacci = Sample(
+  category: 'Dart',
+  icon: 'dart',
+  name: 'Fibonacci',
+  id: 'fibonacci',
+  source: r'''
 void main() {
-  for (int i = 0; i < 10; i++) {
+  const i = 20;
+
+  print('fibonacci($i) = ${fibonacci(i)}');
+}
+
+/// Computes the nth Fibonacci number.
+int fibonacci(int n) {
+  return n < 2 ? n : (fibonacci(n - 1) + fibonacci(n - 2));
+}
+''',
+);
+
+const _helloWorld = Sample(
+  category: 'Dart',
+  icon: 'dart',
+  name: 'Hello world',
+  id: 'hello-world',
+  source: r'''
+void main() {
+  for (var i = 0; i < 10; i++) {
     print('hello ${i + 1}');
   }
 }
 ''',
-  'flutter': r'''
+);
+
+const _dart = Sample(
+  category: 'Defaults',
+  icon: 'dart',
+  name: 'Dart snippet',
+  id: 'dart',
+  source: r'''
+void main() {
+  for (var i = 0; i < 10; i++) {
+    print('hello ${i + 1}');
+  }
+}
+''',
+);
+
+const _flutter = Sample(
+  category: 'Defaults',
+  icon: 'flutter',
+  name: 'Flutter snippet',
+  id: 'flutter',
+  source: r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -88,47 +137,6 @@ class MyApp extends StatelessWidget {
   }
 }
 ''',
-};
-
-const _fibonacci = Sample(
-  category: 'Dart',
-  icon: 'dart',
-  name: 'Fibonacci',
-  id: 'fibonacci',
-  source: r'''
-// Copyright 2015 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
-void main() {
-  const i = 20;
-
-  print('fibonacci($i) = ${fibonacci(i)}');
-}
-
-/// Computes the nth Fibonacci number.
-int fibonacci(int n) {
-  return n < 2 ? n : (fibonacci(n - 1) + fibonacci(n - 2));
-}
-''',
-);
-
-const _helloWorld = Sample(
-  category: 'Dart',
-  icon: 'dart',
-  name: 'Hello world',
-  id: 'hello-world',
-  source: r'''
-// Copyright 2015 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
-void main() {
-  for (var i = 0; i < 10; i++) {
-    print('hello ${i + 1}');
-  }
-}
-''',
 );
 
 const _flameGame = Sample(
@@ -137,10 +145,6 @@ const _flameGame = Sample(
   name: 'Flame game',
   id: 'flame-game',
   source: r'''
-// Copyright 2024 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 /// A simplified brick-breaker game,
 /// built using the Flame game engine for Flutter.
 ///
@@ -474,10 +478,6 @@ const _googleSdk = Sample(
   name: 'Google AI SDK',
   id: 'google-ai-sdk',
   source: r'''
-// Copyright 2024 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -822,10 +822,6 @@ const _counter = Sample(
   name: 'Counter',
   id: 'counter',
   source: r'''
-// Copyright 2019 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
@@ -904,10 +900,6 @@ const _sunflower = Sample(
   name: 'Sunflower',
   id: 'sunflower',
   source: r'''
-// Copyright 2019 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
