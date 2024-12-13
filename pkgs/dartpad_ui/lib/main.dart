@@ -15,7 +15,6 @@ import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
-import 'package:web/web.dart' as web;
 
 import 'console.dart';
 import 'docs.dart';
@@ -24,6 +23,7 @@ import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
+import 'local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -273,23 +273,25 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     );
 
     appServices.populateVersions();
-    appServices
-        .performInitialLoad(
-            gistId: widget.gistId,
-            sampleId: widget.builtinSampleId,
-            flutterSampleId: widget.flutterSampleId,
-            channel: widget.initialChannel,
-            fallbackSnippet: web.window.localStorage.getItem('user_input') ??
-                Samples.defaultSnippet())
-        .then((value) {
-      // Start listening for inject code messages.
-      handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
-      if (widget.runOnLoad) {
-        appServices.performCompileAndRun();
-      }
-    });
+    _initAppServices();
 
     appModel.compilingBusy.addListener(_handleRunStarted);
+  }
+
+  Future<void> _initAppServices() async {
+    await appServices.performInitialLoad(
+      gistId: widget.gistId,
+      sampleId: widget.builtinSampleId,
+      flutterSampleId: widget.flutterSampleId,
+      channel: widget.initialChannel,
+      fallbackSnippet:
+          LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
+    );
+    // Start listening for inject code messages.
+    handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
+    if (widget.runOnLoad) {
+      appServices.performCompileAndRun();
+    }
   }
 
   @override

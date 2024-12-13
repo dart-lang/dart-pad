@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 
+import '../local_storage.dart';
 import '../model.dart';
 import 'codemirror.dart';
 
@@ -185,7 +186,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void _autosave([Timer? timer]) {
     final content = widget.appModel.sourceCodeController.text;
     if (content.isEmpty) return;
-    web.window.localStorage.setItem('user_input', content);
+    LocalStorage.instance.saveUserCode(content);
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
