@@ -10,7 +10,9 @@ import 'package:dartpad_ui/utils.dart';
 import 'package:test/test.dart';
 
 String getFallback() =>
-    LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
+  LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
+
+Never throwingFallback() => throw StateError('DartPad tried to load the fallback');
 
 void main() {
   const channel = Channel.stable;
@@ -32,7 +34,7 @@ void main() {
       expect(LocalStorage.instance.getUserCode(), isNull);
 
       await services.performInitialLoad(
-        fallbackSnippet: getFallback(),
+        getFallback: getFallback,
       );
       expect(model.sourceCodeController.text, equals(Samples.defaultSnippet()));
     });
@@ -45,7 +47,7 @@ void main() {
       expect(LocalStorage.instance.getUserCode(), equals(sample));
 
       await services.performInitialLoad(
-        fallbackSnippet: getFallback(),
+        getFallback: getFallback,
       );
       expect(model.sourceCodeController.text, equals(sample));
     });
@@ -63,7 +65,7 @@ void main() {
         // From gists_tests.dart
         const gistId = 'd3bd83918d21b6d5f778bdc69c3d36d6';
         await services.performInitialLoad(
-          fallbackSnippet: getFallback(),
+          getFallback: throwingFallback,
           gistId: gistId,
         );
         expect(model.sourceCodeController.text, isNot(equals(sample)));
@@ -77,7 +79,7 @@ void main() {
         // From samples_test.dart
         const sampleId = 'dart';
         await services.performInitialLoad(
-          fallbackSnippet: getFallback(),
+          getFallback: throwingFallback,
           sampleId: sampleId,
         );
         expect(model.sourceCodeController.text, isNot(equals(sample)));
