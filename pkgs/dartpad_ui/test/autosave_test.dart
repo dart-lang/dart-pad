@@ -40,22 +40,62 @@ void main() {
       expect(model.sourceCodeController.text, equals(Samples.defaultSnippet()));
     });
 
-    test('non-null content is shown', () async {
+    group('non-null content is shown with', () {
       const sample = 'Hello, World!';
-      final model = AppModel();
-      final services = AppServices(model, channel);
-      LocalStorage.instance.saveUserCode(sample);
-      expect(LocalStorage.instance.getUserCode(), equals(sample));
+      setUp(() => LocalStorage.instance.saveUserCode(sample));
 
-      await services.performInitialLoad(
-        getFallback: getFallback,
-      );
-      expect(model.sourceCodeController.text, equals(sample));
+      test('only fallback', () async {
+        final model = AppModel();
+        final services = AppServices(model, channel);
+        expect(LocalStorage.instance.getUserCode(), equals(sample));
+
+        await services.performInitialLoad(
+          getFallback: getFallback,
+        );
+        expect(model.sourceCodeController.text, equals(sample));
+      });
+
+      test('invalid sample ID', () async {
+        final model = AppModel();
+        final services = AppServices(model, channel);
+        expect(LocalStorage.instance.getUserCode(), equals(sample));
+
+        await services.performInitialLoad(
+          getFallback: getFallback,
+          sampleId: 'This is hopefully not a valid sample ID',
+        );
+        expect(model.sourceCodeController.text, equals(sample));
+      });
+
+      test('invalid Flutter sample ID', () async {
+        final model = AppModel();
+        final services = AppServices(model, channel);
+        expect(LocalStorage.instance.getUserCode(), equals(sample));
+
+        await services.performInitialLoad(
+          getFallback: getFallback,
+          flutterSampleId: 'This is hopefully not a valid sample ID',
+        );
+        expect(model.sourceCodeController.text, equals(sample));
+      });
+
+      test('invalid Gist ID', () async {
+        final model = AppModel();
+        final services = AppServices(model, channel);
+        expect(LocalStorage.instance.getUserCode(), equals(sample));
+
+        const gistId = 'This is hopefully not a valid Gist ID';
+        await services.performInitialLoad(
+          getFallback: getFallback,
+          gistId: gistId,
+        );
+        expect(model.sourceCodeController.text, equals(sample));
+      });
     });
 
     group('content is not shown with', () {
       const sample = 'Hello, World!';
-      LocalStorage.instance.saveUserCode(sample);
+      setUp(() => LocalStorage.instance.saveUserCode(sample));
       // Not testing flutterSampleId to avoid breaking when the Flutter docs change
 
       test('Gist', () async {
@@ -77,11 +117,9 @@ void main() {
         final services = AppServices(model, channel);
         expect(LocalStorage.instance.getUserCode(), equals(sample));
 
-        // From samples_test.dart
-        const sampleId = 'dart';
         await services.performInitialLoad(
           getFallback: throwingFallback,
-          sampleId: sampleId,
+          sampleId: 'dart',
         );
         expect(model.sourceCodeController.text, isNot(equals(sample)));
       });
