@@ -12,9 +12,9 @@ const _userInputKey = 'user_';
 class LocalStorageImpl extends LocalStorage {
   @override
   void saveUserCode(String code) =>
-    web.window.localStorage.setItem(_userInputKey, code);
+      web.window.localStorage.setItem(_userInputKey, code);
 
   @override
   String? getUserCode() =>
-    web.window.localStorage.getItem(_userInputKey)?.nullIfEmpty;
+      web.window.localStorage.getItem(_userInputKey)?.nullIfEmpty;
 }
