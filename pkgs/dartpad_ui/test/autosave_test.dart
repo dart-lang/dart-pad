@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:dartpad_ui/gists.dart';
 import 'package:dartpad_ui/local_storage.dart';
 import 'package:dartpad_ui/model.dart';
 import 'package:dartpad_ui/samples.g.dart';
 import 'package:dartpad_ui/utils.dart';
-import 'package:test/test.dart';
 
-import 'gists_test.dart';
+import 'package:test/test.dart';
 
 String getFallback() =>
   LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
