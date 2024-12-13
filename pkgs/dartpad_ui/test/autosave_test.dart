@@ -10,9 +10,10 @@ import 'package:dartpad_ui/utils.dart';
 import 'package:test/test.dart';
 
 String getFallback() =>
-  LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
+    LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
 
-Never throwingFallback() => throw StateError('DartPad tried to load the fallback');
+Never throwingFallback() =>
+    throw StateError('DartPad tried to load the fallback');
 
 void main() {
   const channel = Channel.stable;
