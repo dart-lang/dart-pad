@@ -205,7 +205,7 @@ class AppServices {
     String? sampleId,
     String? flutterSampleId,
     String? channel,
-    required String fallbackSnippet,
+    required String Function() getFallback,
   }) async {
     // Delay a bit for codemirror to initialize.
     await Future<void>.delayed(const Duration(milliseconds: 1));
@@ -239,7 +239,7 @@ class AppServices {
 
         appModel.appendLineToConsole('Error loading sample: $e');
 
-        appModel.sourceCodeController.text = fallbackSnippet;
+        appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
       } finally {
         loader.dispose();
@@ -263,7 +263,7 @@ class AppServices {
         final source = gist.mainDartSource;
         if (source == null) {
           appModel.editorStatus.showToast('main.dart not found');
-          appModel.sourceCodeController.text = fallbackSnippet;
+          appModel.sourceCodeController.text = getFallback();
         } else {
           appModel.sourceCodeController.text = source;
 
@@ -283,7 +283,7 @@ class AppServices {
 
         appModel.appendLineToConsole('Error loading gist: $e');
 
-        appModel.sourceCodeController.text = fallbackSnippet;
+        appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
       } finally {
         gistLoader.dispose();
@@ -293,7 +293,7 @@ class AppServices {
     }
 
     // Neither gistId nor flutterSampleId were passed in.
-    appModel.sourceCodeController.text = fallbackSnippet;
+    appModel.sourceCodeController.text = getFallback();
     appModel.appReady.value = true;
   }
 
