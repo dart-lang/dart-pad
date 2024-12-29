@@ -613,6 +613,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               openInIdx: _openInIDX,
             ),
           const SizedBox(width: denseSpacing),
+          GeminiMenu(
+            generateNewSnippet: _generateNewSnippet,
+          ),
+          const SizedBox(width: denseSpacing),
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChanged,
           ),
@@ -633,6 +637,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final request = OpenInIdxRequest(code: code);
     final response = await appServices.services.openInIdx(request);
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
+  }
+
+  Future<void> _generateNewSnippet() async {
+    debugPrint('generateNewSnippet');
   }
 }
 
@@ -1147,6 +1155,36 @@ class ContinueInMenu extends StatelessWidget {
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('IDX'),
+            ),
+          ),
+        ].map((widget) => PointerInterceptor(child: widget))
+      ],
+    );
+  }
+}
+
+class GeminiMenu extends StatelessWidget {
+  const GeminiMenu({required this.generateNewSnippet, super.key});
+
+  final VoidCallback generateNewSnippet;
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: Image.asset('gemini_sparkle_192.png', width: 24, height: 24),
+          label: const Text('Gemini'),
+        );
+      },
+      menuChildren: [
+        ...[
+          MenuItemButton(
+            onPressed: generateNewSnippet,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('New'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))
