@@ -349,6 +349,11 @@ class AppServices {
     }
   }
 
+  Future<void> fixError(AnalysisIssue issue) async {
+    return await services.fixes(
+        FixesRequest(source: appModel.sourceCodeController.text, issue: issue));
+  }
+
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;

@@ -614,7 +614,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           const SizedBox(width: denseSpacing),
           GeminiMenu(
-            generateNewSnippet: _generateNewSnippet,
+            generateNewCode: () => _generateNewCode(context),
+            updateExistingCode: () => _updateExistingCode(context),
+            fixExistingCode: () => _fixExistingCode(context),
+            imageToCode: () => _imageToCode(context),
           ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
@@ -639,8 +642,39 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
   }
 
-  Future<void> _generateNewSnippet() async {
-    debugPrint('generateNewSnippet');
+  Future<void> _generateNewCode(BuildContext context) async {
+    final prompt = await showDialog<String>(
+      context: context,
+      builder: (context) => const PromptDialog(
+        title: 'Generate New Code',
+        promptDescription: 'Describe the code snippet you want to generate.',
+      ),
+    );
+
+    if (prompt == null || prompt.isEmpty) return;
+    debugPrint('generateNewCode: $prompt');
+  }
+
+  Future<void> _updateExistingCode(BuildContext context) async {
+    final prompt = await showDialog<String>(
+      context: context,
+      builder: (context) => const PromptDialog(
+        title: 'Update Existing Code',
+        promptDescription: 'Describe the changes you want to make to the code.',
+      ),
+    );
+
+    if (prompt == null || prompt.isEmpty) return;
+    debugPrint('updateExistingCode: $prompt');
+  }
+
+  Future<void> _fixExistingCode(BuildContext context) async {
+    // TODO: don't show this in the menu; show it in the error dialog
+    debugPrint('fixExistingCode');
+  }
+
+  Future<void> _imageToCode(BuildContext context) async {
+    debugPrint('imageToCode');
   }
 }
 
@@ -1164,9 +1198,18 @@ class ContinueInMenu extends StatelessWidget {
 }
 
 class GeminiMenu extends StatelessWidget {
-  const GeminiMenu({required this.generateNewSnippet, super.key});
+  const GeminiMenu({
+    required this.generateNewCode,
+    required this.updateExistingCode,
+    required this.fixExistingCode,
+    required this.imageToCode,
+    super.key,
+  });
 
-  final VoidCallback generateNewSnippet;
+  final VoidCallback generateNewCode;
+  final VoidCallback updateExistingCode;
+  final VoidCallback fixExistingCode;
+  final VoidCallback imageToCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1181,10 +1224,24 @@ class GeminiMenu extends StatelessWidget {
       menuChildren: [
         ...[
           MenuItemButton(
-            onPressed: generateNewSnippet,
+            onPressed: generateNewCode,
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('New'),
+              child: Text('Generate Code'),
+            ),
+          ),
+          MenuItemButton(
+            onPressed: updateExistingCode,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('Update Code'),
+            ),
+          ),
+          MenuItemButton(
+            onPressed: imageToCode,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('Image to Code'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))

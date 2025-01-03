@@ -100,6 +100,14 @@ class ProblemWidget extends StatelessWidget {
                 overflow: TextOverflow.clip,
                 textAlign: TextAlign.end,
                 style: subtleText,
+              ),
+              IconButton(
+                onPressed: () => _fixError(context),
+                icon: Image.asset(
+                  'gemini_sparkle_192.png',
+                  width: 16,
+                  height: 16,
+                ),
               )
             ],
           ),
@@ -166,6 +174,12 @@ class ProblemWidget extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _fixError(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context);
+    appServices.editorService?.jumpTo(issue);
+    appServices.fixError(issue);
   }
 }
 

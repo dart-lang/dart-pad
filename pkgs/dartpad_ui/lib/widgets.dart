@@ -270,3 +270,75 @@ final class Logo extends StatelessWidget {
     return Image.asset(assetPath, width: width);
   }
 }
+
+class PromptDialog extends StatefulWidget {
+  const PromptDialog({
+    required this.title,
+    required this.promptDescription,
+    this.smaller = false,
+    super.key,
+  });
+
+  final String title;
+  final String promptDescription;
+  final bool smaller;
+
+  @override
+  State<PromptDialog> createState() => _PromptDialogState();
+}
+
+class _PromptDialogState extends State<PromptDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = widget.smaller ? 400.0 : 500.0;
+    final height = widget.smaller ? 25.0 : 100.0;
+    final theme = Theme.of(context);
+
+    return PointerInterceptor(
+      child: AlertDialog(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        title: Text(widget.title),
+        contentTextStyle: theme.textTheme.bodyMedium,
+        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: width,
+              height: height,
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  labelText: widget.promptDescription,
+                  alignLabelWithHint: true,
+                  border: InputBorder.none,
+                ),
+                maxLines: null,
+                expands: true,
+              ),
+            ),
+            const Divider(),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, _controller.text),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}

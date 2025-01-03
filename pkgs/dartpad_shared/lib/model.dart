@@ -426,3 +426,41 @@ class PackageInfo {
 
   Map<String, Object?> toJson() => _$PackageInfoToJson(this);
 }
+
+@JsonSerializable()
+class FixErrorRequest {
+  final AnalysisIssue issue;
+  final String code;
+
+  FixErrorRequest({
+    required this.issue,
+    required this.code,
+  });
+
+  factory FixErrorRequest.fromJson(Map<String, Object?> json) =>
+      _$FixErrorRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$FixErrorRequestToJson(this);
+
+  @override
+  String toString() => 'FixErrorRequest '
+      '[${issue.message}] '
+      '[${code.substring(0, 10)} (...)';
+}
+
+@JsonSerializable()
+class FixErrorResponse {
+  final String code;
+
+  FixErrorResponse({
+    required this.code,
+  });
+
+  factory FixErrorResponse.fromJson(Map<String, Object?> json) =>
+      _$FixErrorResponseFromJson(json);
+
+  Map<String, Object?> toJson() => _$FixErrorResponseToJson(this);
+
+  @override
+  String toString() => 'FixErrorResponse [${code.substring(0, 10)} (...)';
+}
