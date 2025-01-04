@@ -55,7 +55,7 @@ class CommonServerImpl {
 
     compiler = Compiler(sdk, storageBucket: storageBucket);
 
-    ai = GenerativeAI();
+    ai = GenerativeAI(Platform.environment['PK_GEMINI_API_KEY']);
   }
 
   Future<void> shutdown() async {
