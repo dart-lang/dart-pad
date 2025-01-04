@@ -328,3 +328,25 @@ Map<String, dynamic> _$PackageInfoToJson(PackageInfo instance) =>
       'version': instance.version,
       'supported': instance.supported,
     };
+
+SuggestFixRequest _$SuggestFixRequestFromJson(Map<String, dynamic> json) =>
+    SuggestFixRequest(
+      issue: AnalysisIssue.fromJson(json['issue'] as Map<String, dynamic>),
+      source: json['source'] as String,
+    );
+
+Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
+    <String, dynamic>{
+      'issue': instance.issue,
+      'source': instance.source,
+    };
+
+SuggestFixResponse _$SuggestFixResponseFromJson(Map<String, dynamic> json) =>
+    SuggestFixResponse(
+      source: json['source'] as String,
+    );
+
+Map<String, dynamic> _$SuggestFixResponseToJson(SuggestFixResponse instance) =>
+    <String, dynamic>{
+      'source': instance.source,
+    };

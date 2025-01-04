@@ -349,9 +349,8 @@ class AppServices {
     }
   }
 
-  Future<void> fixError(AnalysisIssue issue) async {
-    return await services.fixes(
-        FixesRequest(source: appModel.sourceCodeController.text, issue: issue));
+  Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) async {
+    return await services.suggestFix(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {

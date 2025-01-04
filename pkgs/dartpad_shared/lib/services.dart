@@ -43,6 +43,9 @@ class ServicesClient {
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
 
+  Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) =>
+      _requestPost('suggestFix', request.toJson(), SuggestFixResponse.fromJson);
+
   void dispose() => client.close();
 
   Future<T> _requestGet<T>(

@@ -616,7 +616,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           GeminiMenu(
             generateNewCode: () => _generateNewCode(context),
             updateExistingCode: () => _updateExistingCode(context),
-            fixExistingCode: () => _fixExistingCode(context),
             imageToCode: () => _imageToCode(context),
           ),
           const SizedBox(width: denseSpacing),
@@ -666,11 +665,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (prompt == null || prompt.isEmpty) return;
     debugPrint('updateExistingCode: $prompt');
-  }
-
-  Future<void> _fixExistingCode(BuildContext context) async {
-    // TODO: don't show this in the menu; show it in the error dialog
-    debugPrint('fixExistingCode');
   }
 
   Future<void> _imageToCode(BuildContext context) async {
@@ -1201,14 +1195,12 @@ class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
     required this.generateNewCode,
     required this.updateExistingCode,
-    required this.fixExistingCode,
     required this.imageToCode,
     super.key,
   });
 
   final VoidCallback generateNewCode;
   final VoidCallback updateExistingCode;
-  final VoidCallback fixExistingCode;
   final VoidCallback imageToCode;
 
   @override

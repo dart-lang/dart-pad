@@ -16,3 +16,4 @@ build/
 # IDE configuration
 .idea/
 .vscode/
+pkgs/dart_services/lib/src/gemini_api_key.dart

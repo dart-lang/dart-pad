@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
@@ -38,6 +39,7 @@ class CommonServerImpl {
 
   late Analyzer analyzer;
   late Compiler compiler;
+  late GenerativeAI ai;
 
   CommonServerImpl(
     this.sdk,
@@ -52,6 +54,8 @@ class CommonServerImpl {
     await analyzer.init();
 
     compiler = Compiler(sdk, storageBucket: storageBucket);
+
+    ai = GenerativeAI();
   }
 
   Future<void> shutdown() async {
@@ -229,6 +233,25 @@ class CommonServerApi {
       return Response.internalServerError(
           body: 'Failed to read response from IDX server. Error: $error');
     }
+  }
+
+  @Route.post('$apiPrefix/suggestFix')
+  Future<Response> suggestFix(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final suggestFixRequest =
+        api.SuggestFixRequest.fromJson(await request.readAsJson());
+
+    final result = await serialize(() {
+      return impl.ai.suggestFix(
+        message: suggestFixRequest.issue.message,
+        line: suggestFixRequest.issue.location.line,
+        column: suggestFixRequest.issue.location.column,
+        source: suggestFixRequest.source,
+      );
+    });
+
+    return ok(result.toJson());
   }
 
   Response ok(Map<String, dynamic> json) {

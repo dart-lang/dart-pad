@@ -53,5 +53,10 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
     r'/api/<apiVersion>/openInIDX',
     service.openInIdx,
   );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/suggestFix',
+    service.suggestFix,
+  );
   return router;
 }

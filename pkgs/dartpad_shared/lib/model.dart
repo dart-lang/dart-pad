@@ -428,39 +428,39 @@ class PackageInfo {
 }
 
 @JsonSerializable()
-class FixErrorRequest {
+class SuggestFixRequest {
   final AnalysisIssue issue;
-  final String code;
+  final String source;
 
-  FixErrorRequest({
+  SuggestFixRequest({
     required this.issue,
-    required this.code,
+    required this.source,
   });
 
-  factory FixErrorRequest.fromJson(Map<String, Object?> json) =>
-      _$FixErrorRequestFromJson(json);
+  factory SuggestFixRequest.fromJson(Map<String, Object?> json) =>
+      _$SuggestFixRequestFromJson(json);
 
-  Map<String, Object?> toJson() => _$FixErrorRequestToJson(this);
+  Map<String, Object?> toJson() => _$SuggestFixRequestToJson(this);
 
   @override
-  String toString() => 'FixErrorRequest '
+  String toString() => 'SuggestFixRequest '
       '[${issue.message}] '
-      '[${code.substring(0, 10)} (...)';
+      '[${source.substring(0, 10)} (...)';
 }
 
 @JsonSerializable()
-class FixErrorResponse {
-  final String code;
+class SuggestFixResponse {
+  final String source;
 
-  FixErrorResponse({
-    required this.code,
+  SuggestFixResponse({
+    required this.source,
   });
 
-  factory FixErrorResponse.fromJson(Map<String, Object?> json) =>
-      _$FixErrorResponseFromJson(json);
+  factory SuggestFixResponse.fromJson(Map<String, Object?> json) =>
+      _$SuggestFixResponseFromJson(json);
 
-  Map<String, Object?> toJson() => _$FixErrorResponseToJson(this);
+  Map<String, Object?> toJson() => _$SuggestFixResponseToJson(this);
 
   @override
-  String toString() => 'FixErrorResponse [${code.substring(0, 10)} (...)';
+  String toString() => 'SuggestFixResponse [${source.substring(0, 10)} (...)';
 }
