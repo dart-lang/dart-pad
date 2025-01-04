@@ -45,6 +45,8 @@ $source
   Future<api.GenerateCodeResponse> generateCode(String userPrompt) async {
     // TODO: factor this into system instructions + prompt
     // TODO: restrict packages to only those available in Dartpad
+    // TODO: get Gemini to stop returning code in Markdown syntax
+    // TODO: return generated code as a stream
     final prompt = '''
 The following is a description of a Flutter program. Please generate a Flutter
 program that satisfies the description. The response should be a complete
