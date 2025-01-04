@@ -350,3 +350,26 @@ Map<String, dynamic> _$SuggestFixResponseToJson(SuggestFixResponse instance) =>
     <String, dynamic>{
       'source': instance.source,
     };
+
+GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
+    GenerateCodeRequest(
+      prompt: json['prompt'] as String,
+    );
+
+Map<String, dynamic> _$GenerateCodeRequestToJson(
+        GenerateCodeRequest instance) =>
+    <String, dynamic>{
+      'prompt': instance.prompt,
+    };
+
+GenerateCodeResponse _$GenerateCodeResponseFromJson(
+        Map<String, dynamic> json) =>
+    GenerateCodeResponse(
+      source: json['source'] as String,
+    );
+
+Map<String, dynamic> _$GenerateCodeResponseToJson(
+        GenerateCodeResponse instance) =>
+    <String, dynamic>{
+      'source': instance.source,
+    };

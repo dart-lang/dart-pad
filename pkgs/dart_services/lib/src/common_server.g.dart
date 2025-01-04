@@ -58,5 +58,10 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
     r'/api/<apiVersion>/suggestFix',
     service.suggestFix,
   );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/generateCode',
+    service.generateCode,
+  );
   return router;
 }

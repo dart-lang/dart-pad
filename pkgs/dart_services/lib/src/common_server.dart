@@ -254,6 +254,32 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
+  @Route.post('$apiPrefix/generateCode')
+  Future<Response> generateCode(Request request, String apiVersion) async {
+    final logger = Logger('generateCode');
+    logger.info('Received generateCode request');
+
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final generateCodeRequest =
+        api.GenerateCodeRequest.fromJson(await request.readAsJson());
+
+    logger.info('Prompt: ${generateCodeRequest.prompt}');
+
+    try {
+      final result = await serialize(() {
+        return impl.ai.generateCode(generateCodeRequest.prompt);
+      });
+
+      logger.info('Generated code successfully');
+      return ok(result.toJson());
+    } catch (e) {
+      logger.severe('Error generating code: $e');
+      return Response.internalServerError(
+          body: 'Failed to generate code. Error: $e');
+    }
+  }
+
   Response ok(Map<String, dynamic> json) {
     return Response.ok(
       _jsonEncoder.convert(json),

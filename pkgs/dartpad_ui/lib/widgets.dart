@@ -299,7 +299,7 @@ class _PromptDialogState extends State<PromptDialog> {
   @override
   Widget build(BuildContext context) {
     final width = widget.smaller ? 400.0 : 500.0;
-    final height = widget.smaller ? 25.0 : 100.0;
+    const height = 100.0;
     final theme = Theme.of(context);
 
     return PointerInterceptor(

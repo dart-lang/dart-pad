@@ -46,6 +46,13 @@ class ServicesClient {
   Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) =>
       _requestPost('suggestFix', request.toJson(), SuggestFixResponse.fromJson);
 
+  Future<GenerateCodeResponse> generateCode(GenerateCodeRequest request) =>
+      _requestPost(
+        'generateCode',
+        request.toJson(),
+        GenerateCodeResponse.fromJson,
+      );
+
   void dispose() => client.close();
 
   Future<T> _requestGet<T>(

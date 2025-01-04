@@ -615,8 +615,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: denseSpacing),
           GeminiMenu(
             generateNewCode: () => _generateNewCode(context),
-            updateExistingCode: () => _updateExistingCode(context),
-            imageToCode: () => _imageToCode(context),
           ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
@@ -651,24 +649,32 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     if (prompt == null || prompt.isEmpty) return;
-    debugPrint('generateNewCode: $prompt');
-  }
+    if (!context.mounted) return;
 
-  Future<void> _updateExistingCode(BuildContext context) async {
-    final prompt = await showDialog<String>(
-      context: context,
-      builder: (context) => const PromptDialog(
-        title: 'Update Existing Code',
-        promptDescription: 'Describe the changes you want to make to the code.',
-      ),
-    );
+    final appModel = Provider.of<AppModel>(context, listen: false);
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final source = appModel.sourceCodeController.value.text;
 
-    if (prompt == null || prompt.isEmpty) return;
-    debugPrint('updateExistingCode: $prompt');
-  }
+    try {
+      final result = await appServices.generateCode(GenerateCodeRequest(
+        prompt: prompt,
+      ));
 
-  Future<void> _imageToCode(BuildContext context) async {
-    debugPrint('imageToCode');
+      if (result.source == source) {
+        appModel.editorStatus.showToast('No code generated');
+      } else {
+        appModel.editorStatus.showToast('Code generated');
+        appModel.sourceCodeController.value = TextEditingValue(
+          text: result.source,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      }
+
+      appServices.editorService!.focus();
+    } catch (error) {
+      debugPrint('Error generating code: $error');
+      appModel.editorStatus.showToast('Error generating code');
+    }
   }
 }
 
@@ -1194,14 +1200,10 @@ class ContinueInMenu extends StatelessWidget {
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
     required this.generateNewCode,
-    required this.updateExistingCode,
-    required this.imageToCode,
     super.key,
   });
 
   final VoidCallback generateNewCode;
-  final VoidCallback updateExistingCode;
-  final VoidCallback imageToCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1220,20 +1222,6 @@ class GeminiMenu extends StatelessWidget {
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('Generate Code'),
-            ),
-          ),
-          MenuItemButton(
-            onPressed: updateExistingCode,
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('Update Code'),
-            ),
-          ),
-          MenuItemButton(
-            onPressed: imageToCode,
-            child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('Image to Code'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))

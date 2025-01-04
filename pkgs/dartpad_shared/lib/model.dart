@@ -464,3 +464,37 @@ class SuggestFixResponse {
   @override
   String toString() => 'SuggestFixResponse [${source.substring(0, 10)} (...)';
 }
+
+@JsonSerializable()
+class GenerateCodeRequest {
+  final String prompt;
+
+  GenerateCodeRequest({
+    required this.prompt,
+  });
+
+  factory GenerateCodeRequest.fromJson(Map<String, Object?> json) =>
+      _$GenerateCodeRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$GenerateCodeRequestToJson(this);
+
+  @override
+  String toString() => 'GenerateCodeRequest [$prompt]';
+}
+
+@JsonSerializable()
+class GenerateCodeResponse {
+  final String source;
+
+  GenerateCodeResponse({
+    required this.source,
+  });
+
+  factory GenerateCodeResponse.fromJson(Map<String, Object?> json) =>
+      _$GenerateCodeResponseFromJson(json);
+
+  Map<String, Object?> toJson() => _$GenerateCodeResponseToJson(this);
+
+  @override
+  String toString() => 'GenerateCodeResponse [${source.substring(0, 10)} (...)';
+}

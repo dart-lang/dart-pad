@@ -353,6 +353,10 @@ class AppServices {
     return await services.suggestFix(request);
   }
 
+  Future<GenerateCodeResponse> generateCode(GenerateCodeRequest request) async {
+    return await services.generateCode(request);
+  }
+
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
@@ -436,6 +440,7 @@ class AppServices {
       }
     }
   }
+
 }
 
 enum Channel {
