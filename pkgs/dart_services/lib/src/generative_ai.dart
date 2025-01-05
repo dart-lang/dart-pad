@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -7,18 +8,22 @@ import 'package:logging/logging.dart';
 final _logger = Logger('gen-ai');
 
 class GenerativeAI {
-  GenerativeAI(String? geminiApiKey) {
+  static const _apiKeyVarName = 'PK_GEMINI_API_KEY';
+  static const _geminiModel = 'gemini-2.0-flash-exp';
+  late final String? _geminiApiKey;
+
+  GenerativeAI() {
+    final geminiApiKey = Platform.environment[_apiKeyVarName];
     if (geminiApiKey == null || geminiApiKey.isEmpty) {
-      _logger.warning('Gemini API key not set; gen-ai features DISABLED');
+      _logger.warning('$_apiKeyVarName not set; gen-ai features DISABLED');
     } else {
-      _logger.info('Gemini API key set; gen-ai features ENABLED');
+      _logger.info('$_apiKeyVarName set; gen-ai features ENABLED');
       _geminiApiKey = geminiApiKey;
     }
   }
 
-  static const _geminiModel = 'gemini-2.0-flash-exp';
-  late final String? _geminiApiKey;
-
+  // TODO: add these checks to avoid adding the UI in the case that there's no
+  // API key
   bool get canGenAI => _geminiApiKey != null;
 
   late final _fixModel = canGenAI
