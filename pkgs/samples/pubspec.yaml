@@ -6,10 +6,10 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
-  flame: ^1.21.0
+  flame: ^1.23.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.4
+  flutter_markdown: ^0.7.5
   google_generative_ai: ^0.4.6
   url_launcher: ^6.3.1
 
