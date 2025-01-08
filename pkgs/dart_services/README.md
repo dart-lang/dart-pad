@@ -45,7 +45,8 @@ dart run build_runner build --delete-conflicting-outputs
 
 ### Building storage artifacts
 Dart services pre-compiles `.dill` files for the Dart SDK and Flutter Web SDK, which
-are uploaded to Cloud Storage automatically. 
+are uploaded to Cloud Storage automatically. These files are located in the 
+`artifacts/` directory.
 
 If you need to re-generate these files, run the following command.
 
