@@ -43,6 +43,16 @@ To rebuild the shelf router, run:
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+### Building storage artifacts
+Dart services pre-compiles `.dill` files for the Dart SDK and Flutter Web SDK, which
+are uploaded to Cloud Storage automatically. 
+
+If you need to re-generate these files, run the following command.
+
+```
+grind build-storage-artifacts
+```
+
 ### Modifying supported packages
 
 Package dependencies are pinned using the `pub_dependencies_<CHANNEL>.yaml`
