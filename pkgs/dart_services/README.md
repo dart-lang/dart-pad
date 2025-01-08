@@ -54,6 +54,12 @@ If you need to re-generate these files, run the following command.
 grind build-storage-artifacts
 ```
 
+Or, if you don't have `grind` on your PATH:
+
+```
+dart tool/grind.dart build-storage-artifacts
+```
+
 ### Modifying supported packages
 
 Package dependencies are pinned using the `pub_dependencies_<CHANNEL>.yaml`
@@ -69,11 +75,17 @@ that the dependencies resolve and update the pinned versions specified in the
     grind build-project-templates
     ```
 
-3. Run `pub upgrade` in the Dart or Flutter project in `project_templates/`
-4. Run `grind update-pub-dependencies` to overwrite the
+    Or, if you don't have `grind` on your PATH:
+
+   ```
+   dart tool/grind.dart build-project-templates
+   ```
+
+4. Run `pub upgrade` in the Dart or Flutter project in `project_templates/`
+5. Run `grind update-pub-dependencies` to overwrite the
    `tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file for your current
-   channel.
-5. Repeat the above steps for the latest version of each Flutter channel
+   channel. Or, if you don't have `grind` on your PATH, `dart tool/grind.dart update-pub-dependencies`
+6. Repeat the above steps for the latest version of each Flutter channel
    (`main`, `beta` and `stable`)
 
 ## Redis
