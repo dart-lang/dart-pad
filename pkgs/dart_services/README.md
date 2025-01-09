@@ -35,15 +35,8 @@ To run tests:
 
 `dart test`
 
-### Re-generating source
-
-To rebuild the shelf router, run:
-
-```
-dart run build_runner build --delete-conflicting-outputs
-```
-
 ### Building storage artifacts
+
 Dart services pre-compiles `.dill` files for the Dart SDK and Flutter Web SDK, which
 are uploaded to Cloud Storage automatically. These files are located in the 
 `artifacts/` directory.
