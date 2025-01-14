@@ -9,16 +9,16 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
-  flame: ^1.18.0
+  flame: ^1.23.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.3
-  google_generative_ai: ^0.4.4
-  url_launcher: ^6.3.0
+  flutter_markdown: ^0.7.5
+  google_generative_ai: ^0.4.6
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   args: ^2.5.0
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   path: ^1.9.0
 
 flutter:

@@ -52,6 +52,7 @@ class AppModel {
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
+  final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
 
   final StatusController editorStatus = StatusController();
 
@@ -59,15 +60,6 @@ class AppModel {
 
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
-
-  /// Whether the docs panel is showing or should show.
-  final ValueNotifier<bool> docsShowing = ValueNotifier(false);
-
-  /// The last document request received.
-  final ValueNotifier<DocumentResponse?> currentDocs = ValueNotifier(null);
-
-  /// Used to pass information about mouse clicks in the editor.
-  final ValueNotifier<int> lastEditorClickOffset = ValueNotifier(0);
 
   final ValueNotifier<SplitDragState> splitViewDragState =
       ValueNotifier(SplitDragState.inactive);
@@ -176,7 +168,8 @@ class AppServices {
 
   void resetTo({String? type}) {
     type ??= 'dart';
-    final source = Samples.getDefault(type: type);
+    final source =
+        Samples.defaultSnippet(forFlutter: type.toLowerCase() == 'flutter');
 
     // Reset the source.
     appModel.sourceCodeController.text = source;
@@ -347,10 +340,6 @@ class AppServices {
     return await services.document(request);
   }
 
-  Future<GeminiResponse> gemini(SourceRequest request) async {
-    return await services.gemini(request);
-  }
-
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
@@ -378,9 +367,8 @@ class AppServices {
 
     // register the new
     if (_executionService != null) {
-      stdoutSub = _executionService!.onStdout.listen((event) {
-        appModel.appendLineToConsole(event);
-      });
+      stdoutSub =
+          _executionService!.onStdout.listen(appModel.appendLineToConsole);
     }
   }
 

@@ -13,10 +13,10 @@ class SourceRequest {
 
   SourceRequest({required this.source, this.offset});
 
-  factory SourceRequest.fromJson(Map<String, dynamic> json) =>
+  factory SourceRequest.fromJson(Map<String, Object?> json) =>
       _$SourceRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SourceRequestToJson(this);
+  Map<String, Object?> toJson() => _$SourceRequestToJson(this);
 
   @override
   String toString() => 'SourceRequest[source=$source,offset=$offset]';
@@ -30,10 +30,10 @@ class AnalysisResponse {
     required this.issues,
   });
 
-  factory AnalysisResponse.fromJson(Map<String, dynamic> json) =>
+  factory AnalysisResponse.fromJson(Map<String, Object?> json) =>
       _$AnalysisResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AnalysisResponseToJson(this);
+  Map<String, Object?> toJson() => _$AnalysisResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -56,10 +56,10 @@ class AnalysisIssue {
     this.contextMessages,
   });
 
-  factory AnalysisIssue.fromJson(Map<String, dynamic> json) =>
+  factory AnalysisIssue.fromJson(Map<String, Object?> json) =>
       _$AnalysisIssueFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AnalysisIssueToJson(this);
+  Map<String, Object?> toJson() => _$AnalysisIssueToJson(this);
 
   int get severity {
     return switch (kind) {
@@ -88,10 +88,10 @@ class Location {
     this.column = -1,
   });
 
-  factory Location.fromJson(Map<String, dynamic> json) =>
+  factory Location.fromJson(Map<String, Object?> json) =>
       _$LocationFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LocationToJson(this);
+  Map<String, Object?> toJson() => _$LocationToJson(this);
 }
 
 @JsonSerializable()
@@ -104,10 +104,10 @@ class DiagnosticMessage {
     required this.location,
   });
 
-  factory DiagnosticMessage.fromJson(Map<String, dynamic> json) =>
+  factory DiagnosticMessage.fromJson(Map<String, Object?> json) =>
       _$DiagnosticMessageFromJson(json);
 
-  Map<String, dynamic> toJson() => _$DiagnosticMessageToJson(this);
+  Map<String, Object?> toJson() => _$DiagnosticMessageToJson(this);
 }
 
 @JsonSerializable()
@@ -116,10 +116,10 @@ class CompileRequest {
 
   CompileRequest({required this.source});
 
-  factory CompileRequest.fromJson(Map<String, dynamic> json) =>
+  factory CompileRequest.fromJson(Map<String, Object?> json) =>
       _$CompileRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CompileRequestToJson(this);
+  Map<String, Object?> toJson() => _$CompileRequestToJson(this);
 }
 
 @JsonSerializable()
@@ -128,10 +128,10 @@ class CompileResponse {
 
   CompileResponse({required this.result});
 
-  factory CompileResponse.fromJson(Map<String, dynamic> json) =>
+  factory CompileResponse.fromJson(Map<String, Object?> json) =>
       _$CompileResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CompileResponseToJson(this);
+  Map<String, Object?> toJson() => _$CompileResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -144,10 +144,10 @@ class CompileDDCResponse {
     required this.modulesBaseUrl,
   });
 
-  factory CompileDDCResponse.fromJson(Map<String, dynamic> json) =>
+  factory CompileDDCResponse.fromJson(Map<String, Object?> json) =>
       _$CompileDDCResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CompileDDCResponseToJson(this);
+  Map<String, Object?> toJson() => _$CompileDDCResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -160,10 +160,10 @@ class FormatResponse {
     required this.offset,
   });
 
-  factory FormatResponse.fromJson(Map<String, dynamic> json) =>
+  factory FormatResponse.fromJson(Map<String, Object?> json) =>
       _$FormatResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FormatResponseToJson(this);
+  Map<String, Object?> toJson() => _$FormatResponseToJson(this);
 
   @override
   String toString() => 'FormatResponse[source=$source,offset=$offset]';
@@ -184,10 +184,10 @@ class FixesResponse {
     required this.assists,
   });
 
-  factory FixesResponse.fromJson(Map<String, dynamic> json) =>
+  factory FixesResponse.fromJson(Map<String, Object?> json) =>
       _$FixesResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FixesResponseToJson(this);
+  Map<String, Object?> toJson() => _$FixesResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -204,10 +204,10 @@ class SourceChange {
     this.selectionOffset,
   });
 
-  factory SourceChange.fromJson(Map<String, dynamic> json) =>
+  factory SourceChange.fromJson(Map<String, Object?> json) =>
       _$SourceChangeFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SourceChangeToJson(this);
+  Map<String, Object?> toJson() => _$SourceChangeToJson(this);
 
   @override
   String toString() => 'SourceChange [$message]';
@@ -225,10 +225,10 @@ class SourceEdit {
     required this.replacement,
   });
 
-  factory SourceEdit.fromJson(Map<String, dynamic> json) =>
+  factory SourceEdit.fromJson(Map<String, Object?> json) =>
       _$SourceEditFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SourceEditToJson(this);
+  Map<String, Object?> toJson() => _$SourceEditToJson(this);
 
   @override
   String toString() => 'SourceEdit [$offset,$length,$replacement]';
@@ -246,10 +246,10 @@ class LinkedEditGroup {
     required this.suggestions,
   });
 
-  factory LinkedEditGroup.fromJson(Map<String, dynamic> json) =>
+  factory LinkedEditGroup.fromJson(Map<String, Object?> json) =>
       _$LinkedEditGroupFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LinkedEditGroupToJson(this);
+  Map<String, Object?> toJson() => _$LinkedEditGroupToJson(this);
 }
 
 @JsonSerializable()
@@ -262,10 +262,10 @@ class LinkedEditSuggestion {
     required this.kind,
   });
 
-  factory LinkedEditSuggestion.fromJson(Map<String, dynamic> json) =>
+  factory LinkedEditSuggestion.fromJson(Map<String, Object?> json) =>
       _$LinkedEditSuggestionFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LinkedEditSuggestionToJson(this);
+  Map<String, Object?> toJson() => _$LinkedEditSuggestionToJson(this);
 }
 
 @JsonSerializable()
@@ -286,10 +286,10 @@ class DocumentResponse {
     this.propagatedType,
   });
 
-  factory DocumentResponse.fromJson(Map<String, dynamic> json) =>
+  factory DocumentResponse.fromJson(Map<String, Object?> json) =>
       _$DocumentResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$DocumentResponseToJson(this);
+  Map<String, Object?> toJson() => _$DocumentResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -310,10 +310,10 @@ class CompleteResponse {
     required this.suggestions,
   });
 
-  factory CompleteResponse.fromJson(Map<String, dynamic> json) =>
+  factory CompleteResponse.fromJson(Map<String, Object?> json) =>
       _$CompleteResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CompleteResponseToJson(this);
+  Map<String, Object?> toJson() => _$CompleteResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -342,10 +342,10 @@ class CompletionSuggestion {
     required this.elementParameters,
   });
 
-  factory CompletionSuggestion.fromJson(Map<String, dynamic> json) =>
+  factory CompletionSuggestion.fromJson(Map<String, Object?> json) =>
       _$CompletionSuggestionFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CompletionSuggestionToJson(this);
+  Map<String, Object?> toJson() => _$CompletionSuggestionToJson(this);
 
   @override
   String toString() => '[$relevance] [$kind] $completion';
@@ -369,27 +369,10 @@ class VersionResponse {
     required this.packages,
   });
 
-  factory VersionResponse.fromJson(Map<String, dynamic> json) =>
+  factory VersionResponse.fromJson(Map<String, Object?> json) =>
       _$VersionResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$VersionResponseToJson(this);
-}
-
-@JsonSerializable()
-class GeminiResponse {
-  final String response;
-
-  GeminiResponse({
-    required this.response,
-  });
-
-  factory GeminiResponse.fromJson(Map<String, dynamic> json) =>
-      _$GeminiResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$GeminiResponseToJson(this);
-
-  @override
-  String toString() => 'GeminiResponse[response=$response]';
+  Map<String, Object?> toJson() => _$VersionResponseToJson(this);
 }
 
 @JsonSerializable()
@@ -400,10 +383,10 @@ class OpenInIdxRequest {
     required this.code,
   });
 
-  factory OpenInIdxRequest.fromJson(Map<String, dynamic> json) =>
+  factory OpenInIdxRequest.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$OpenInIdxRequestToJson(this);
+  Map<String, Object?> toJson() => _$OpenInIdxRequestToJson(this);
 
   @override
   String toString() => 'OpenInIdxRequest [${code.substring(0, 10)} (...)';
@@ -417,10 +400,10 @@ class OpenInIdxResponse {
     required this.idxUrl,
   });
 
-  factory OpenInIdxResponse.fromJson(Map<String, dynamic> json) =>
+  factory OpenInIdxResponse.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$OpenInIdxResponseToJson(this);
+  Map<String, Object?> toJson() => _$OpenInIdxResponseToJson(this);
 
   @override
   String toString() => 'OpenInIdxResponse [$idxUrl]';
@@ -438,8 +421,8 @@ class PackageInfo {
     required this.supported,
   });
 
-  factory PackageInfo.fromJson(Map<String, dynamic> json) =>
+  factory PackageInfo.fromJson(Map<String, Object?> json) =>
       _$PackageInfoFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PackageInfoToJson(this);
+  Map<String, Object?> toJson() => _$PackageInfoToJson(this);
 }

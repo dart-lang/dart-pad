@@ -7,13 +7,13 @@ import 'package:test/test.dart';
 
 void main() {
   group('samples', () {
-    test('has dart default', () {
-      final sample = Samples.getDefault(type: 'dart');
+    test('has default dart sample', () {
+      final sample = Samples.getById('dart');
       expect(sample, isNotNull);
     });
 
-    test('has flutter default', () {
-      final sample = Samples.getDefault(type: 'flutter');
+    test('has default flutter sample', () {
+      final sample = Samples.getById('flutter');
       expect(sample, isNotNull);
     });
   });

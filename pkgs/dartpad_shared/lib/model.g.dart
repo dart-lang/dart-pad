@@ -296,16 +296,6 @@ Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
       'packages': instance.packages,
     };
 
-GeminiResponse _$GeminiResponseFromJson(Map<String, dynamic> json) =>
-    GeminiResponse(
-      response: json['response'] as String,
-    );
-
-Map<String, dynamic> _$GeminiResponseToJson(GeminiResponse instance) =>
-    <String, dynamic>{
-      'response': instance.response,
-    };
-
 OpenInIdxRequest _$OpenInIdxRequestFromJson(Map<String, dynamic> json) =>
     OpenInIdxRequest(
       code: json['code'] as String,

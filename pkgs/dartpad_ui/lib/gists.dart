@@ -19,7 +19,7 @@ class GistLoader {
           '(${response.statusCode} ${response.reasonPhrase}})');
     }
 
-    return Gist.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return Gist.fromJson(jsonDecode(response.body) as Map<String, Object?>);
   }
 
   void dispose() {
@@ -45,7 +45,7 @@ class Gist {
     _validateGist();
   }
 
-  factory Gist.fromJson(Map<String, dynamic> json) {
+  factory Gist.fromJson(Map<String, Object?> json) {
 /* {
   "id": "d3bd83918d21b6d5f778bdc69c3d36d6",
   "description": "Fibonacci",
@@ -70,15 +70,15 @@ class Gist {
     }
   },
 } */
-    final owner = json['owner'] as Map<String, dynamic>;
-    final files = json['files'] as Map<String, dynamic>;
+    final owner = json['owner'] as Map<String, Object?>;
+    final files = json['files'] as Map<String, Object?>;
 
     return Gist(
       id: json['id'] as String,
       description: json['description'] as String?,
       owner: owner['login'] as String?,
       files: files.values
-          .cast<Map<String, dynamic>>()
+          .cast<Map<String, Object?>>()
           .map(GistFile.fromJson)
           .toList(),
     );
@@ -123,7 +123,7 @@ class GistFile {
     required this.content,
   });
 
-  factory GistFile.fromJson(Map<String, dynamic> json) {
+  factory GistFile.fromJson(Map<String, Object?> json) {
     return GistFile(
       fileName: json['filename'] as String,
       truncated: json['truncated'] as bool,

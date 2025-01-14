@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
-import 'package:google_generative_ai/google_generative_ai.dart' as google_ai;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -21,8 +20,6 @@ import 'pub.dart';
 import 'sdk.dart';
 import 'shelf_cors.dart' as shelf_cors;
 import 'utils.dart';
-
-part 'common_server.g.dart';
 
 const jsonContentType = 'application/json; charset=utf-8';
 
@@ -69,8 +66,24 @@ class CommonServerApi {
   final CommonServerImpl impl;
   final TaskScheduler scheduler = TaskScheduler();
 
-  /// The (lazily-constructed) router.
-  late final Router router = _$CommonServerApiRouter(this);
+  /// The shelf router.
+  late final Router router = () {
+    final router = Router();
+
+    // general requests (GET)
+    router.get(r'/api/<apiVersion>/version', handleVersion);
+
+    // general requests (POST)
+    router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
+    router.post(r'/api/<apiVersion>/compile', handleCompile);
+    router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
+    router.post(r'/api/<apiVersion>/complete', handleComplete);
+    router.post(r'/api/<apiVersion>/fixes', handleFixes);
+    router.post(r'/api/<apiVersion>/format', handleFormat);
+    router.post(r'/api/<apiVersion>/document', handleDocument);
+    router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
+    return router;
+  }();
 
   CommonServerApi(this.impl);
 
@@ -78,8 +91,13 @@ class CommonServerApi {
 
   Future<void> shutdown() => impl.shutdown();
 
-  @Route.post('$apiPrefix/analyze')
-  Future<Response> analyze(Request request, String apiVersion) async {
+  Future<Response> handleVersion(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    return ok(version().toJson());
+  }
+
+  Future<Response> handleAnalyze(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -92,8 +110,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/compile')
-  Future<Response> compile(Request request, String apiVersion) async {
+  Future<Response> handleCompile(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -110,8 +127,7 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/compileDDC')
-  Future<Response> compileDDC(Request request, String apiVersion) async {
+  Future<Response> handleCompileDDC(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -135,8 +151,7 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/complete')
-  Future<Response> complete(Request request, String apiVersion) async {
+  Future<Response> handleComplete(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -148,8 +163,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/fixes')
-  Future<Response> fixes(Request request, String apiVersion) async {
+  Future<Response> handleFixes(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -161,8 +175,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/format')
-  Future<Response> format(Request request, String apiVersion) async {
+  Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -178,8 +191,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/document')
-  Future<Response> document(Request request, String apiVersion) async {
+  Future<Response> handleDocument(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -195,15 +207,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.get('$apiPrefix/version')
-  Future<Response> versionGet(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    return ok(version().toJson());
-  }
-
-  @Route.post('$apiPrefix/openInIDX')
-  Future<Response> openInIdx(Request request, String apiVersion) async {
+  Future<Response> handleOpenInIdx(Request request, String apiVersion) async {
     final code = api.OpenInIdxRequest.fromJson(await request.readAsJson()).code;
     final idxUrl = Uri.parse('https://idx.google.com/run.api');
 
@@ -230,50 +234,6 @@ class CommonServerApi {
       return Response.internalServerError(
           body: 'Failed to read response from IDX server. Error: $error');
     }
-  }
-
-  static final String? geminiApiKey = Platform.environment['GEMINI_API_KEY'];
-  http.Client? geminiHttpClient;
-
-  @Route.post('$apiPrefix/_gemini')
-  Future<Response> gemini(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    // Read the api key from env variables (populated on the server).
-    final apiKey = geminiApiKey;
-    if (apiKey == null) {
-      return Response.internalServerError(
-          body: 'gemini key not configured on server');
-    }
-
-    // Only allow the call from dartpad.dev.
-    final origin = request.origin;
-    if (origin != 'https://dartpad.dev') {
-      return Response.badRequest(
-          body: 'Gemini calls only allowed from the DartPad front-end');
-    }
-
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
-
-    geminiHttpClient ??= http.Client();
-
-    final model = google_ai.GenerativeModel(
-      model: 'models/gemini-1.5-flash-latest',
-      apiKey: apiKey,
-      httpClient: geminiHttpClient,
-    );
-
-    final result = await serialize(() async {
-      // call gemini
-      final result = await model.generateContent([
-        google_ai.Content.text(sourceRequest.source),
-      ]);
-
-      return api.GeminiResponse(response: result.text!);
-    });
-
-    return ok(result.toJson());
   }
 
   Response ok(Map<String, dynamic> json) {
@@ -402,8 +362,4 @@ String _formatMessage(
   }
 
   return message;
-}
-
-extension on Request {
-  String? get origin => headers['origin'];
 }

@@ -64,6 +64,7 @@ const Set<String> supportedFlutterPackages = {
   'google_fonts',
   'google_generative_ai',
   'hooks_riverpod',
+  'mix',
   'provider',
   'shared_preferences',
   'url_launcher',

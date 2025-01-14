@@ -9,8 +9,8 @@ extension GoRouteHelpers on GoRouter {
   /// [param] with [value]. If [value] is null, the parameter
   /// is removed.
   void replaceQueryParam(String param, String? value) {
-    final queryParameters = routeInformationProvider.value.uri.queryParameters;
-    final newQueryParameters = Map<String, String>.from(queryParameters);
+    final currentUri = routeInformationProvider.value.uri;
+    final newQueryParameters = {...currentUri.queryParameters};
 
     if (value == null) {
       newQueryParameters.remove(param);
@@ -18,7 +18,6 @@ extension GoRouteHelpers on GoRouter {
       newQueryParameters[param] = value;
     }
 
-    final newUri = routeInformationProvider.value.uri;
-    go(newUri.replace(queryParameters: newQueryParameters).toString());
+    go(currentUri.replace(queryParameters: newQueryParameters).toString());
   }
 }

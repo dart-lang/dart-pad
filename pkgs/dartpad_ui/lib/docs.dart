@@ -9,13 +9,14 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
 import 'theme.dart';
-import 'widgets.dart';
 
 class DocsWidget extends StatefulWidget {
   final AppModel appModel;
+  final DocumentResponse documentResponse;
 
   const DocsWidget({
     required this.appModel,
+    required this.documentResponse,
     super.key,
   });
 
@@ -27,92 +28,31 @@ class _DocsWidgetState extends State<DocsWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final docs = widget.documentResponse;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(
-          top: Divider.createBorderSide(
-            context,
-            width: 8.0,
-            color: theme.colorScheme.surface,
+    final title = docs.cleanedUpTitle ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(),
+        if (title.isNotEmpty)
+          Text(
+            title,
+            style: theme.textTheme.titleMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        if (title.isNotEmpty) const SizedBox(height: denseSpacing),
+        Expanded(
+          child: Markdown(
+            data: docs.dartdoc ?? '',
+            padding: const EdgeInsets.only(left: denseSpacing),
+            onTapLink: _handleMarkdownTap,
           ),
         ),
-      ),
-      padding: const EdgeInsets.all(denseSpacing),
-      child: Stack(
-        children: [
-          ValueListenableBuilder(
-            valueListenable: widget.appModel.currentDocs,
-            builder: (context, DocumentResponse? docs, _) {
-              // TODO: Consider showing propagatedType if not null.
-
-              var title = _cleanUpTitle(docs?.elementDescription);
-              if (docs?.deprecated == true) {
-                title = '$title (deprecated)';
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (title.isNotEmpty)
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (title.isNotEmpty) const SizedBox(height: denseSpacing),
-                  Expanded(
-                    child: Markdown(
-                      data: docs?.dartdoc ?? '',
-                      padding: const EdgeInsets.only(left: denseSpacing),
-                      onTapLink: _handleMarkdownTap,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(denseSpacing),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MiniIconButton(
-                  icon: Icons.close,
-                  tooltip: 'Close',
-                  onPressed: _closePanel,
-                  small: true,
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
-  }
-
-  void _closePanel() {
-    widget.appModel.docsShowing.value = false;
-  }
-
-  String _cleanUpTitle(String? title) {
-    if (title == null) return '';
-
-    // "(new) Text(\n  String data, {\n  Key? key,\n  ... selectionColor,\n})"
-
-    // Remove ws right after method args.
-    title = title.replaceAll('(\n  ', '(');
-
-    // Remove ws before named args.
-    title = title.replaceAll('{\n  ', '{');
-
-    // Remove ws after named args.
-    title = title.replaceAll(',\n}', '}');
-
-    return title.replaceAll('\n', '').replaceAll('  ', ' ');
   }
 
   void _handleMarkdownTap(String text, String? href, String title) {
@@ -123,6 +63,34 @@ class _DocsWidgetState extends State<DocsWidget> {
       } else {
         url_launcher.launchUrl(uri);
       }
+    }
+  }
+}
+
+extension DocumentResponseExtension on DocumentResponse {
+  String? get cleanedUpTitle {
+    if (elementDescription == null) {
+      return null;
+    } else {
+      // "(new) Text(\n  String data, {\n  Key? key,\n  ... selectionColor,\n})"
+      var title = elementDescription!;
+
+      // Remove ws right after method args.
+      title = title.replaceAll('(\n  ', '(');
+
+      // Remove ws before named args.
+      title = title.replaceAll('{\n  ', '{');
+
+      // Remove ws after named args.
+      title = title.replaceAll(',\n}', '}');
+
+      title = title.replaceAll('\n', '').replaceAll('  ', ' ');
+
+      if (this.deprecated == true) {
+        title = '$title (deprecated)';
+      }
+
+      return title;
     }
   }
 }

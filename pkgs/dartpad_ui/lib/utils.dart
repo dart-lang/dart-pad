@@ -89,7 +89,7 @@ class StatusController {
     });
 
     // Finally, start the 'closing' animation.
-    Timer(duration, () => message.close());
+    Timer(duration, message.close);
   }
 
   Message showMessage({required String initialText, String? name}) {

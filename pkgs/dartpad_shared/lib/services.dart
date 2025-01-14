@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 
 import 'model.dart';
 
@@ -44,16 +43,11 @@ class ServicesClient {
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
 
-  /// Note: this API is experimental and could change or be removed at any time.
-  @experimental
-  Future<GeminiResponse> gemini(SourceRequest request) =>
-      _requestPost('_gemini', request.toJson(), GeminiResponse.fromJson);
-
   void dispose() => client.close();
 
   Future<T> _requestGet<T>(
     String action,
-    T Function(Map<String, dynamic> json) responseFactory,
+    T Function(Map<String, Object?> json) responseFactory,
   ) async {
     final response = await client.get(Uri.parse('${rootUrl}api/v3/$action'));
 
@@ -62,7 +56,7 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, dynamic>);
+            json.decode(response.body) as Map<String, Object?>);
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
@@ -71,8 +65,8 @@ class ServicesClient {
 
   Future<T> _requestPost<T>(
     String action,
-    Map<String, dynamic> request,
-    T Function(Map<String, dynamic> json) responseFactory,
+    Map<String, Object?> request,
+    T Function(Map<String, Object?> json) responseFactory,
   ) async {
     final response = await client.post(
       Uri.parse('${rootUrl}api/v3/$action'),
@@ -84,7 +78,7 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, dynamic>);
+            json.decode(response.body) as Map<String, Object?>);
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
