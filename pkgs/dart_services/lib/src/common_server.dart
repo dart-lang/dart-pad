@@ -21,8 +21,6 @@ import 'sdk.dart';
 import 'shelf_cors.dart' as shelf_cors;
 import 'utils.dart';
 
-part 'common_server.g.dart';
-
 const jsonContentType = 'application/json; charset=utf-8';
 
 const apiPrefix = '/api/<apiVersion>';
@@ -68,8 +66,24 @@ class CommonServerApi {
   final CommonServerImpl impl;
   final TaskScheduler scheduler = TaskScheduler();
 
-  /// The (lazily-constructed) router.
-  late final Router router = _$CommonServerApiRouter(this);
+  /// The shelf router.
+  late final Router router = () {
+    final router = Router();
+
+    // general requests (GET)
+    router.get(r'/api/<apiVersion>/version', handleVersion);
+
+    // general requests (POST)
+    router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
+    router.post(r'/api/<apiVersion>/compile', handleCompile);
+    router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
+    router.post(r'/api/<apiVersion>/complete', handleComplete);
+    router.post(r'/api/<apiVersion>/fixes', handleFixes);
+    router.post(r'/api/<apiVersion>/format', handleFormat);
+    router.post(r'/api/<apiVersion>/document', handleDocument);
+    router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
+    return router;
+  }();
 
   CommonServerApi(this.impl);
 
@@ -77,8 +91,13 @@ class CommonServerApi {
 
   Future<void> shutdown() => impl.shutdown();
 
-  @Route.post('$apiPrefix/analyze')
-  Future<Response> analyze(Request request, String apiVersion) async {
+  Future<Response> handleVersion(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    return ok(version().toJson());
+  }
+
+  Future<Response> handleAnalyze(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -91,8 +110,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/compile')
-  Future<Response> compile(Request request, String apiVersion) async {
+  Future<Response> handleCompile(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -109,8 +127,7 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/compileDDC')
-  Future<Response> compileDDC(Request request, String apiVersion) async {
+  Future<Response> handleCompileDDC(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -134,8 +151,7 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/complete')
-  Future<Response> complete(Request request, String apiVersion) async {
+  Future<Response> handleComplete(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -147,8 +163,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/fixes')
-  Future<Response> fixes(Request request, String apiVersion) async {
+  Future<Response> handleFixes(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -160,8 +175,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/format')
-  Future<Response> format(Request request, String apiVersion) async {
+  Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -177,8 +191,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.post('$apiPrefix/document')
-  Future<Response> document(Request request, String apiVersion) async {
+  Future<Response> handleDocument(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest =
@@ -194,15 +207,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  @Route.get('$apiPrefix/version')
-  Future<Response> versionGet(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    return ok(version().toJson());
-  }
-
-  @Route.post('$apiPrefix/openInIDX')
-  Future<Response> openInIdx(Request request, String apiVersion) async {
+  Future<Response> handleOpenInIdx(Request request, String apiVersion) async {
     final code = api.OpenInIdxRequest.fromJson(await request.readAsJson()).code;
     final idxUrl = Uri.parse('https://idx.google.com/run.api');
 
