@@ -313,7 +313,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void dispose() {
     listener?.cancel();
     _autosaveTimer?.cancel();
-    _autosave();
 
     widget.appServices.registerEditorService(null);
 
