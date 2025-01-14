@@ -183,7 +183,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   Timer? _autosaveTimer;
-  void _autosave([Timer? timer]) {
+  void _autosave([Timer? _]) {
+    // (Callbacks to [Timer.periodic] must accept a Timer argument)
     final content = widget.appModel.sourceCodeController.text;
     if (content.isEmpty) return;
     LocalStorage.instance.saveUserCode(content);
