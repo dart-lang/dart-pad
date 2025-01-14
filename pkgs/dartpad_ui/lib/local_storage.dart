@@ -12,8 +12,8 @@ class LocalStorage {
   static final instance = LocalStorage();
 
   void saveUserCode(String code) =>
-    web.window.localStorage.setItem(_userInputKey, code);
+      web.window.localStorage.setItem(_userInputKey, code);
 
   String? getUserCode() =>
-    web.window.localStorage.getItem(_userInputKey)?.nullIfEmpty;
+      web.window.localStorage.getItem(_userInputKey)?.nullIfEmpty;
 }
