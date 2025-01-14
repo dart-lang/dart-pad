@@ -9,12 +9,6 @@ void main() {
 }
 ''';
 
-    final wrappedCode = '''
-```dart
-$unwrappedCode
-```
-''';
-
     test('handles code without markdown wrapper', () async {
       final input = Stream.fromIterable(
         unwrappedCode.split('\n').map((line) => '$line\n'),
