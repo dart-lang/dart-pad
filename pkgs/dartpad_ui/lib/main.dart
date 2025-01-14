@@ -273,25 +273,23 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     );
 
     appServices.populateVersions();
-    _initAppServices();
-
-    appModel.compilingBusy.addListener(_handleRunStarted);
-  }
-
-  Future<void> _initAppServices() async {
-    await appServices.performInitialLoad(
+    appServices
+        .performInitialLoad(
       gistId: widget.gistId,
       sampleId: widget.builtinSampleId,
       flutterSampleId: widget.flutterSampleId,
       channel: widget.initialChannel,
       getFallback: () =>
           LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
-    );
-    // Start listening for inject code messages.
-    handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
-    if (widget.runOnLoad) {
-      appServices.performCompileAndRun();
-    }
+    )
+        .then((value) {
+      // Start listening for inject code messages.
+      handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
+      if (widget.runOnLoad) {
+        appServices.performCompileAndRun();
+      }
+    });
+    appModel.compilingBusy.addListener(_handleRunStarted);
   }
 
   @override
