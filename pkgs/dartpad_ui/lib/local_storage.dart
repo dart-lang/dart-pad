@@ -2,18 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:web/web.dart' as web;
+import 'local_storage/stub.dart'
+    if (dart.library.js_util) 'local_storage/web.dart';
 
-import '../utils.dart';
+abstract class LocalStorage {
+  static LocalStorage instance = LocalStorageImpl();
 
-const _userInputKey = 'user_';
-
-class LocalStorage {
-  static final instance = LocalStorage();
-
-  void saveUserCode(String code) =>
-      web.window.localStorage.setItem(_userInputKey, code);
-
-  String? getUserCode() =>
-      web.window.localStorage.getItem(_userInputKey)?.nullIfEmpty;
+  void saveUserCode(String code);
+  String? getUserCode();
 }

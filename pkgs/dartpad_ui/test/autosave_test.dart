@@ -17,7 +17,7 @@ Never throwingFallback() =>
 
 void main() {
   const channel = Channel.stable;
-  group('Autosave', () {
+  group('Autosave:', () {
     test('empty content is treated as null', () {
       expect(''.nullIfEmpty, isNull);
 
