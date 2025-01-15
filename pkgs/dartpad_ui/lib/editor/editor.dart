@@ -228,6 +228,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
         .addListener(() => _updateIssues(appModel.analysisIssues.value));
+    appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
 
     widget.appServices.registerEditorService(this);
 
@@ -309,6 +310,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     widget.appModel.sourceCodeController
         .removeListener(_updateCodemirrorFromModel);
     widget.appModel.appReady.removeListener(_updateEditableStatus);
+    widget.appModel.vimKeymapsEnabled.removeListener(_updateCodemirrorKeymap);
 
     super.dispose();
   }
@@ -422,6 +424,17 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         from: doc.posFromIndex(offset),
         to: doc.posFromIndex(offset + length),
       );
+    }
+  }
+
+  void _updateCodemirrorKeymap() {
+    final enabled = widget.appModel.vimKeymapsEnabled.value;
+    final cm = codeMirror!;
+
+    if (enabled) {
+      cm.setKeymap('vim');
+    } else {
+      cm.setKeymap('default');
     }
   }
 }

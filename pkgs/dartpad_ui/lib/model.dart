@@ -67,6 +67,8 @@ class AppModel {
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
   late final StreamSubscription<SplitDragState> _splitSubscription;
 
+  final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
+
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
 
