@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 
+import '../local_storage.dart';
 import '../model.dart';
 import 'codemirror.dart';
 
@@ -177,8 +178,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   @override
   void initState() {
     super.initState();
-
+    _autosaveTimer = Timer.periodic(const Duration(seconds: 5), _autosave);
     widget.appModel.appReady.addListener(_updateEditableStatus);
+  }
+
+  Timer? _autosaveTimer;
+  void _autosave([Timer? timer]) {
+    final content = widget.appModel.sourceCodeController.text;
+    if (content.isEmpty) return;
+    LocalStorage.instance.saveUserCode(content);
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
@@ -228,6 +236,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
         .addListener(() => _updateIssues(appModel.analysisIssues.value));
+    appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
 
     widget.appServices.registerEditorService(this);
 
@@ -303,12 +312,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   @override
   void dispose() {
     listener?.cancel();
+    _autosaveTimer?.cancel();
 
     widget.appServices.registerEditorService(null);
 
     widget.appModel.sourceCodeController
         .removeListener(_updateCodemirrorFromModel);
     widget.appModel.appReady.removeListener(_updateEditableStatus);
+    widget.appModel.vimKeymapsEnabled.removeListener(_updateCodemirrorKeymap);
 
     super.dispose();
   }
@@ -422,6 +433,17 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         from: doc.posFromIndex(offset),
         to: doc.posFromIndex(offset + length),
       );
+    }
+  }
+
+  void _updateCodemirrorKeymap() {
+    final enabled = widget.appModel.vimKeymapsEnabled.value;
+    final cm = codeMirror!;
+
+    if (enabled) {
+      cm.setKeymap('vim');
+    } else {
+      cm.setKeymap('default');
     }
   }
 }

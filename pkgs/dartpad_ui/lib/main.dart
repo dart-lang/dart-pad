@@ -23,6 +23,7 @@ import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
+import 'local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -274,11 +275,13 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     appServices.populateVersions();
     appServices
         .performInitialLoad(
-            gistId: widget.gistId,
-            sampleId: widget.builtinSampleId,
-            flutterSampleId: widget.flutterSampleId,
-            channel: widget.initialChannel,
-            fallbackSnippet: Samples.defaultSnippet())
+      gistId: widget.gistId,
+      sampleId: widget.builtinSampleId,
+      flutterSampleId: widget.flutterSampleId,
+      channel: widget.initialChannel,
+      getFallback: () =>
+          LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
+    )
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
@@ -286,7 +289,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         appServices.performCompileAndRun();
       }
     });
-
     appModel.compilingBusy.addListener(_handleRunStarted);
   }
 
@@ -874,7 +876,10 @@ class StatusLineWidget extends StatelessWidget {
                 builder: (context) => MediumDialog(
                   title: 'Keyboard shortcuts',
                   smaller: true,
-                  child: KeyBindingsTable(bindings: keys.keyBindings),
+                  child: KeyBindingsTable(
+                    bindings: keys.keyBindings,
+                    appModel: appModel,
+                  ),
                 ),
               ),
               child: Icon(
@@ -1232,9 +1237,11 @@ class GeminiMenu extends StatelessWidget {
 
 class KeyBindingsTable extends StatelessWidget {
   final List<(String, List<ShortcutActivator>)> bindings;
+  final AppModel appModel;
 
   const KeyBindingsTable({
     required this.bindings,
+    required this.appModel,
     super.key,
   });
 
@@ -1284,6 +1291,10 @@ class KeyBindingsTable extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const Divider(),
+        _VimModeSwitch(
+          appModel: appModel,
         ),
       ],
     );
@@ -1355,6 +1366,32 @@ class _BrightnessButton extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class _VimModeSwitch extends StatelessWidget {
+  final AppModel appModel;
+
+  const _VimModeSwitch({
+    required this.appModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: appModel.vimKeymapsEnabled,
+      builder: (BuildContext context, bool value, Widget? child) {
+        return SwitchListTile(
+          value: value,
+          title: const Text('Use Vim Key Bindings'),
+          onChanged: _handleToggle,
+        );
+      },
+    );
+  }
+
+  void _handleToggle(bool value) {
+    appModel.vimKeymapsEnabled.value = value;
   }
 }
 
