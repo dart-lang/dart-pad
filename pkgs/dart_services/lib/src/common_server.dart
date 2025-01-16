@@ -86,6 +86,7 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/format', handleFormat);
     router.post(r'/api/<apiVersion>/document', handleDocument);
     router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
+    router.post(r'/api/<apiVersion>/generateCode', generateCode);
     return router;
   }();
 
