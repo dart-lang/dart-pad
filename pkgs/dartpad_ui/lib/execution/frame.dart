@@ -62,7 +62,7 @@ function dartPrint(message) {
     'sender': 'frame',
     'type': 'stdout',
     'message': message.toString()
-  }, '*');  
+  }, '*');
 }
 ''');
 

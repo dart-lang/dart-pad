@@ -184,3 +184,7 @@ enum MessageState {
   showing,
   closing;
 }
+
+extension StringUtils on String {
+  String? get nullIfEmpty => isEmpty ? null : this;
+}

@@ -23,6 +23,7 @@ import 'embed.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
+import 'local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -274,11 +275,13 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     appServices.populateVersions();
     appServices
         .performInitialLoad(
-            gistId: widget.gistId,
-            sampleId: widget.builtinSampleId,
-            flutterSampleId: widget.flutterSampleId,
-            channel: widget.initialChannel,
-            fallbackSnippet: Samples.defaultSnippet())
+      gistId: widget.gistId,
+      sampleId: widget.builtinSampleId,
+      flutterSampleId: widget.flutterSampleId,
+      channel: widget.initialChannel,
+      getFallback: () =>
+          LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
+    )
         .then((value) {
       // Start listening for inject code messages.
       handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
@@ -286,7 +289,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         appServices.performCompileAndRun();
       }
     });
-
     appModel.compilingBusy.addListener(_handleRunStarted);
   }
 
