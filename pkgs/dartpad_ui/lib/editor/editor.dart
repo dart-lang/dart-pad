@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
@@ -124,6 +125,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           Timer.run(() => showCompletions(autoInvoked: true));
 
           return KeyEventResult.skipRemainingHandlers;
+        }
+
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          if (codeMirror == null) {
+            return KeyEventResult.ignored;
+          }
+
+          CodeMirror.vim.handleEsc(codeMirror!);
         }
 
         return KeyEventResult.ignored;
