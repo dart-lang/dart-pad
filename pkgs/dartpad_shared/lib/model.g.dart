@@ -361,15 +361,3 @@ Map<String, dynamic> _$GenerateCodeRequestToJson(
     <String, dynamic>{
       'prompt': instance.prompt,
     };
-
-GenerateCodeResponse _$GenerateCodeResponseFromJson(
-        Map<String, dynamic> json) =>
-    GenerateCodeResponse(
-      source: json['source'] as String,
-    );
-
-Map<String, dynamic> _$GenerateCodeResponseToJson(
-        GenerateCodeResponse instance) =>
-    <String, dynamic>{
-      'source': instance.source,
-    };

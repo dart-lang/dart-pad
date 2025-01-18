@@ -256,27 +256,32 @@ class CommonServerApi {
 
   @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
-    final logger = Logger('generateCode');
-    logger.info('Received generateCode request');
-
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateCodeRequest =
         api.GenerateCodeRequest.fromJson(await request.readAsJson());
 
-    logger.info('Prompt: ${generateCodeRequest.prompt}');
-
     try {
-      final result = await serialize(() {
-        return impl.ai.generateCode(generateCodeRequest.prompt);
-      });
-
-      logger.info('Generated code successfully');
-      return ok(result.toJson());
+      final stream = impl.ai
+          .generateCode(generateCodeRequest.prompt)
+          .transform(utf8.encoder);
+      // NOTE: disabling gzip on this streaming response until support for
+      // streaming is added to shelf_gzip:
+      // https://github.com/johnpryan/shelf_gzip/issues/12
+      return Response.ok(
+        stream,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
+          'Content-Encoding': 'identity', // disable gzip
+        },
+        context: {'shelf.io.buffer_output': false}, // disable buffering
+      );
     } catch (e) {
+      final logger = Logger('generateCode');
       logger.severe('Error generating code: $e');
       return Response.internalServerError(
-          body: 'Failed to generate code. Error: $e');
+        body: 'Failed to generate code. Error: $e',
+      );
     }
   }
 

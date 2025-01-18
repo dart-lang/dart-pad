@@ -653,19 +653,30 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final source = appModel.sourceCodeController.value.text;
 
     try {
-      final result = await appServices.generateCode(GenerateCodeRequest(
-        prompt: prompt,
-      ));
+      final stream = appServices.generateCode(
+        GenerateCodeRequest(prompt: prompt),
+      );
 
-      if (result.source == source) {
+      final buffer = StringBuffer();
+      await for (final text in stream) {
+        buffer.writeln(text);
+        debugPrint('generated: $text');
+      }
+
+      final source = buffer.toString();
+      appModel.sourceCodeController.value = TextEditingValue(
+        text: source,
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+
+      if (source.isEmpty) {
         appModel.editorStatus.showToast('No code generated');
       } else {
         appModel.editorStatus.showToast('Code generated');
         appModel.sourceCodeController.value = TextEditingValue(
-          text: result.source,
+          text: source,
           selection: const TextSelection.collapsed(offset: 0),
         );
       }

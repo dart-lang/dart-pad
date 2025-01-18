@@ -46,12 +46,26 @@ class ServicesClient {
   Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) =>
       _requestPost('suggestFix', request.toJson(), SuggestFixResponse.fromJson);
 
-  Future<GenerateCodeResponse> generateCode(GenerateCodeRequest request) =>
-      _requestPost(
-        'generateCode',
-        request.toJson(),
-        GenerateCodeResponse.fromJson,
-      );
+  Stream<String> generateCode(GenerateCodeRequest apiRequest) async* {
+    final httpRequest = Request(
+      'POST',
+      Uri.parse('${rootUrl}api/v3/generateCode'),
+    );
+    httpRequest.encoding = utf8;
+    httpRequest.headers['Content-Type'] = 'application/json';
+    httpRequest.body = json.encode(apiRequest.toJson());
+    final response = await client.send(httpRequest);
+
+    if (response.statusCode != 200) {
+      throw ApiRequestError('generateCode', '');
+    } else {
+      try {
+        yield* response.stream.transform(utf8.decoder);
+      } on FormatException catch (e) {
+        throw ApiRequestError('generateCode: $e', '');
+      }
+    }
+  }
 
   void dispose() => client.close();
 

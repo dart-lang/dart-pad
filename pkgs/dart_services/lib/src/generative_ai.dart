@@ -79,18 +79,11 @@ back as raw code and not in a Markdown code block.
         )
       : null;
 
-  Future<api.GenerateCodeResponse> generateCode(String prompt) async {
+  Stream<String> generateCode(String prompt) async* {
     _checkCanAI();
     assert(_codeModel != null);
-
-    // TODO: return generated code as a stream
     final stream = _codeModel!.generateContentStream([Content.text(prompt)]);
-    final response = await cleanCode(_textOnly(stream)).join();
-    if (response.isEmpty) {
-      throw Exception('No response from generative AI');
-    }
-
-    return api.GenerateCodeResponse(source: response);
+    yield* cleanCode(_textOnly(stream));
   }
 
   void _checkCanAI() {

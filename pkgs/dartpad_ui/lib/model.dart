@@ -353,8 +353,8 @@ class AppServices {
     return await services.suggestFix(request);
   }
 
-  Future<GenerateCodeResponse> generateCode(GenerateCodeRequest request) async {
-    return await services.generateCode(request);
+  Stream<String> generateCode(GenerateCodeRequest request) {
+    return services.generateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
@@ -440,7 +440,6 @@ class AppServices {
       }
     }
   }
-
 }
 
 enum Channel {
@@ -455,7 +454,8 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  static const defaultChannel = Channel.stable;
+  // static const defaultChannel = Channel.stable;
+  static const defaultChannel = Channel.localhost; // TODO: remove
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
