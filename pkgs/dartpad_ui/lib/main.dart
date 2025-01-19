@@ -640,50 +640,22 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Future<void> _generateNewCode(BuildContext context) async {
-    final prompt = await showDialog<String>(
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final source = await showDialog<String>(
       context: context,
-      builder: (context) => const PromptDialog(
-        title: 'Generate New Code',
-        promptDescription: 'Describe the code snippet you want to generate.',
+      builder: (context) => GenerateCodeDialog(
+        appServices: appServices,
       ),
     );
 
-    if (prompt == null || prompt.isEmpty) return;
-    if (!context.mounted) return;
+    if (!context.mounted || source == null || source.isEmpty) return;
 
     final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-
-    try {
-      final stream = appServices.generateCode(
-        GenerateCodeRequest(prompt: prompt),
-      );
-
-      final buffer = StringBuffer();
-      await for (final text in stream) {
-        buffer.writeln(text);
-      }
-
-      final source = buffer.toString();
-      appModel.sourceCodeController.value = TextEditingValue(
-        text: source,
-        selection: const TextSelection.collapsed(offset: 0),
-      );
-
-      if (source.isEmpty) {
-        appModel.editorStatus.showToast('No code generated');
-      } else {
-        appModel.editorStatus.showToast('Code generated');
-        appModel.sourceCodeController.value = TextEditingValue(
-          text: source,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-      }
-
-      appServices.editorService!.focus();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error generating code: $error');
-    }
+    appModel.editorStatus.showToast('Code generated');
+    appModel.sourceCodeController.value = TextEditingValue(
+      text: source,
+      selection: const TextSelection.collapsed(offset: 0),
+    );
   }
 }
 
