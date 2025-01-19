@@ -659,10 +659,11 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         GenerateCodeRequest(prompt: prompt),
       );
 
+      debugPrint('Generating code for prompt: $prompt');
       final buffer = StringBuffer();
       await for (final text in stream) {
         buffer.writeln(text);
-        debugPrint('generated: $text');
+        debugPrint('GENERATED: $text');
       }
 
       final source = buffer.toString();

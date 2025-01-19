@@ -6,9 +6,10 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
+import 'package:fetch_client/fetch_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -135,7 +136,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final http.Client _httpClient = http.Client();
+  final Client _httpClient = kIsWeb ? FetchClient() : Client();
   late ServicesClient services;
 
   ExecutionService? _executionService;

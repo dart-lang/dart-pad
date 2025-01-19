@@ -22,11 +22,9 @@ class GenerativeAI {
     }
   }
 
-  // TODO: add these checks to avoid adding the UI in the case that there's no
-  // API key
-  bool get canGenAI => _geminiApiKey != null;
+  bool get _canGenAI => _geminiApiKey != null;
 
-  late final _fixModel = canGenAI
+  late final _fixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -66,7 +64,7 @@ $source
   }
 
   // TODO: restrict packages to only those available in Dartpad
-  late final _codeModel = canGenAI
+  late final _codeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -82,12 +80,17 @@ back as raw code and not in a Markdown code block.
   Stream<String> generateCode(String prompt) async* {
     _checkCanAI();
     assert(_codeModel != null);
+    final logger = Logger('generateCode');
+    logger.info('Generating code for prompt: $prompt');
     final stream = _codeModel!.generateContentStream([Content.text(prompt)]);
-    yield* cleanCode(_textOnly(stream));
+    await for (final item in cleanCode(_textOnly(stream))) {
+      logger.info('Generated code chunk: $item');
+      yield item;
+    }
   }
 
   void _checkCanAI() {
-    if (!canGenAI) throw Exception('Gemini API key not set');
+    if (!_canGenAI) throw Exception('Gemini API key not set');
   }
 
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) =>

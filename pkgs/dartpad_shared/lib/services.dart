@@ -56,14 +56,12 @@ class ServicesClient {
     httpRequest.body = json.encode(apiRequest.toJson());
     final response = await client.send(httpRequest);
 
-    if (response.statusCode != 200) {
-      throw ApiRequestError('generateCode', '');
-    } else {
-      try {
-        yield* response.stream.transform(utf8.decoder);
-      } on FormatException catch (e) {
-        throw ApiRequestError('generateCode: $e', '');
-      }
+    if (response.statusCode != 200) throw ApiRequestError('generateCode', '');
+
+    try {
+      yield* response.stream.transform(utf8.decoder);
+    } on FormatException catch (e) {
+      throw ApiRequestError('generateCode: $e', '');
     }
   }
 
