@@ -83,10 +83,7 @@ back as raw code and not in a Markdown code block.
     final logger = Logger('generateCode');
     logger.info('Generating code for prompt: $prompt');
     final stream = _codeModel!.generateContentStream([Content.text(prompt)]);
-    await for (final item in cleanCode(_textOnly(stream))) {
-      logger.info('Generated code chunk: $item');
-      yield item;
-    }
+    yield* cleanCode(_textOnly(stream));
   }
 
   void _checkCanAI() {

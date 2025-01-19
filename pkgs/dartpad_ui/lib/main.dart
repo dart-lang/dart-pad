@@ -659,11 +659,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         GenerateCodeRequest(prompt: prompt),
       );
 
-      debugPrint('Generating code for prompt: $prompt');
       final buffer = StringBuffer();
       await for (final text in stream) {
         buffer.writeln(text);
-        debugPrint('GENERATED: $text');
       }
 
       final source = buffer.toString();
@@ -684,8 +682,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       appServices.editorService!.focus();
     } catch (error) {
-      debugPrint('Error generating code: $error');
-      appModel.editorStatus.showToast('Error generating code');
+      appModel.editorStatus.showToast('Error generating code: $error');
     }
   }
 }
