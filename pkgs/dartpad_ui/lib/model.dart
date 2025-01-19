@@ -136,10 +136,9 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  // NOTE: using FetchClient for streaming support on web; BrowserClient
-  // supports streaming but doesn't return anything until the connection is
-  // closed and everything is returned at once. FetchClient returns results as
-  // they are available.
+  // TODO: replace FetchClient when http v1.2 is released, which supports
+  // streaming responses: https://github.com/dart-lang/http/pull/1401
+  // https://github.com/dart-lang/http/blob/master/pkgs/http/CHANGELOG.md#130-wip
   final Client _httpClient = kIsWeb ? FetchClient() : Client();
   late ServicesClient services;
 

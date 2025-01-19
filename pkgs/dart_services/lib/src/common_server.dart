@@ -265,7 +265,7 @@ class CommonServerApi {
       final stream = impl.ai
           .generateCode(generateCodeRequest.prompt)
           .transform(utf8.encoder);
-      // NOTE: disabling gzip on this streaming response until support for
+      // TODO: disabling gzip on this streaming response until support for
       // streaming is added to shelf_gzip:
       // https://github.com/johnpryan/shelf_gzip/issues/12
       return Response.ok(
