@@ -136,6 +136,10 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
+  // NOTE: using FetchClient for streaming support on web; BrowserClient
+  // supports streaming but doesn't return anything until the connection is
+  // closed and everything is returned at once. FetchClient returns results as
+  // they are available.
   final Client _httpClient = kIsWeb ? FetchClient() : Client();
   late ServicesClient services;
 
