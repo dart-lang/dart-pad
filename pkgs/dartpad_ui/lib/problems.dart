@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
 import 'theme.dart';
+import 'widgets.dart';
 
 const _rowPadding = 2.0;
 
@@ -180,26 +181,36 @@ class ProblemWidget extends StatelessWidget {
   Future<void> _suggestFix(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final source = appModel.sourceCodeController.value.text;
+    final existingSource = appModel.sourceCodeController.text;
 
     try {
-      final result = await appServices
-          .suggestFix(SuggestFixRequest(issue: issue, source: source))
-          .join();
+      final stream = appServices.suggestFix(
+        SuggestFixRequest(issue: issue, source: existingSource),
+      );
 
-      if (result == source) {
+      final newSource = await showDialog<String>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(stream: stream),
+      );
+
+      if (!context.mounted || newSource == null || newSource.isEmpty) return;
+
+      if (newSource == existingSource) {
         appModel.editorStatus.showToast('No suggested fix');
       } else {
         appModel.editorStatus.showToast('Fix suggested');
+
+        // set the source w/o scrolling to the top
         appModel.sourceCodeController.value = TextEditingValue(
-          text: result,
+          text: newSource,
           selection: const TextSelection.collapsed(offset: 0),
         );
-      }
 
-      appServices.editorService!.focus();
+        appServices.editorService!.focus();
+      }
     } catch (error) {
       appModel.editorStatus.showToast('Error suggesting fix');
+      appModel.appendLineToConsole('Suggesting fix issue: $error');
     }
   }
 }

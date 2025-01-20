@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
-import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -274,26 +272,23 @@ final class Logo extends StatelessWidget {
   }
 }
 
-class GenerateCodeDialog extends StatefulWidget {
-  const GenerateCodeDialog({
-    required this.appServices,
+class PromptDialog extends StatefulWidget {
+  const PromptDialog({
+    required this.title,
     this.smaller = false,
     super.key,
   });
 
-  final AppServices appServices;
   final bool smaller;
-
+  final String title;
   @override
-  State<GenerateCodeDialog> createState() => _GenerateCodeDialogState();
+  State<PromptDialog> createState() => _PromptDialogState();
 }
 
-class _GenerateCodeDialogState extends State<GenerateCodeDialog> {
-  static const _title = 'Generate New Code';
-  static const _description = 'Describe the code snippet you want to generate.';
+class _PromptDialogState extends State<PromptDialog> {
+  // TODO: let them choose Dart or Flutter
+  static const _description = 'Describe the code you want to generate.';
   final _controller = TextEditingController();
-  final _generatedCode = StringBuffer();
-  Object? _generationError;
 
   @override
   void dispose() {
@@ -309,76 +304,102 @@ class _GenerateCodeDialogState extends State<GenerateCodeDialog> {
     return PointerInterceptor(
       child: AlertDialog(
         backgroundColor: theme.scaffoldBackgroundColor,
-        title: const Text(_title),
+        title: Text(widget.title),
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
-          width: width,
-          child: _generationError != null
-              ? Text('Error generating code: ${_generationError.toString()}')
-              : _generatedCode.isEmpty
-                  ? TextField(
-                      controller: _controller,
-                      decoration: const InputDecoration(
-                        labelText: _description,
-                        alignLabelWithHint: true,
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    )
-                  : ReadOnlyEditorWidget(_generatedCode.toString()),
-        ),
+            width: width,
+            child: TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                labelText: _description,
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            )),
         actions: [
-          if (_generatedCode.isNotEmpty)
-            TextButton(
-              onPressed: () => setState(() => _generatedCode.clear()),
-              child: const Text('Edit Prompt'),
-            ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ValueListenableBuilder(
             valueListenable: _controller,
-            builder: (context, text, _) => _generatedCode.isEmpty
-                ? TextButton(
-                    onPressed: _controller.text.isEmpty ? null : _generateCode,
-                    child: const Text('Generate'),
-                  )
-                : TextButton(
-                    onPressed: () =>
-                        Navigator.pop(context, _generatedCode.toString()),
-                    child: const Text('OK'),
-                  ),
+            builder: (context, text, _) => TextButton(
+              onPressed: _controller.text.isEmpty
+                  ? null
+                  : () => Navigator.pop(context, _controller.text),
+              child: const Text('Generate'),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  void _generateCode() async {
-    assert(_controller.text.isNotEmpty);
+class GeneratingCodeDialog extends StatefulWidget {
+  const GeneratingCodeDialog({
+    required this.stream,
+    this.smaller = false,
+    super.key,
+  });
 
-    try {
-      setState(() {
+  final Stream<String> stream;
+  final bool smaller;
+
+  @override
+  State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
+}
+
+class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
+  final _generatedCode = StringBuffer();
+  bool _done = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.stream.listen(
+      (text) => setState(() => _generatedCode.write(text)),
+      onDone: () => setState(() {
+        final source = _generatedCode.toString().trim();
         _generatedCode.clear();
-        _generationError = null;
-      });
+        _generatedCode.write(source);
+        _done = true;
+      }),
+    );
+  }
 
-      final stream = widget.appServices.generateCode(
-        GenerateCodeRequest(prompt: _controller.text),
-      );
+  @override
+  Widget build(BuildContext context) {
+    final width = widget.smaller ? 500.0 : 700.0;
+    final theme = Theme.of(context);
 
-      await for (final text in stream) {
-        if (mounted) {
-          setState(() => _generatedCode.write(text));
-        }
-      }
-    } catch (error) {
-      setState(() {
-        _generatedCode.clear();
-        _generationError = error;
-      });
-    }
+    return PointerInterceptor(
+      child: AlertDialog(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        title: const Text('Generating Code'),
+        contentTextStyle: theme.textTheme.bodyMedium,
+        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+        content: SizedBox(
+          width: width,
+          // TODO: enable diff mode to show the changes
+          child: ReadOnlyEditorWidget(_generatedCode.toString()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: _done
+                ? () => Navigator.pop(context, _generatedCode.toString())
+                : null,
+            child: const Text('Accept'),
+          ),
+        ],
+      ),
+    );
   }
 }

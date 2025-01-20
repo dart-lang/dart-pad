@@ -640,20 +640,38 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Future<void> _generateNewCode(BuildContext context) async {
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final source = await showDialog<String>(
-      context: context,
-      builder: (context) => GenerateCodeDialog(appServices: appServices),
-    );
-
-    if (!context.mounted || source == null || source.isEmpty) return;
-
     final appModel = Provider.of<AppModel>(context, listen: false);
-    appModel.editorStatus.showToast('Code generated');
-    appModel.sourceCodeController.value = TextEditingValue(
-      text: source,
-      selection: const TextSelection.collapsed(offset: 0),
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final prompt = await showDialog<String>(
+      context: context,
+      builder: (context) => const PromptDialog(title: 'Generate New Code'),
     );
+
+    if (!context.mounted || prompt == null || prompt.isEmpty) return;
+
+    try {
+      final stream = appServices.generateCode(
+        GenerateCodeRequest(prompt: prompt),
+      );
+
+      final source = await showDialog<String>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(stream: stream),
+      );
+
+      if (!context.mounted || source == null || source.isEmpty) return;
+
+      // set the source w/o scrolling to the top
+      appModel.sourceCodeController.value = TextEditingValue(
+        text: source,
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+
+      appServices.editorService!.focus();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error generating code');
+      appModel.appendLineToConsole('Generating code issue: $error');
+    }
   }
 }
 
