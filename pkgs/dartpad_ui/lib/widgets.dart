@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'editor/editor.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
@@ -292,6 +293,7 @@ class _GenerateCodeDialogState extends State<GenerateCodeDialog> {
   static const _description = 'Describe the code snippet you want to generate.';
   final _controller = TextEditingController();
   final _generatedCode = StringBuffer();
+  Object? _generationError;
 
   @override
   void dispose() {
@@ -312,19 +314,26 @@ class _GenerateCodeDialogState extends State<GenerateCodeDialog> {
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
           width: width,
-          child: _generatedCode.isEmpty
-              ? TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    labelText: _description,
-                    alignLabelWithHint: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                )
-              : Text(_generatedCode.toString()),
+          child: _generationError != null
+              ? Text('Error generating code: ${_generationError.toString()}')
+              : _generatedCode.isEmpty
+                  ? TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        labelText: _description,
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    )
+                  : ReadOnlyEditorWidget(_generatedCode.toString()),
         ),
         actions: [
+          if (_generatedCode.isNotEmpty)
+            TextButton(
+              onPressed: () => setState(() => _generatedCode.clear()),
+              child: const Text('Edit Prompt'),
+            ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
@@ -351,17 +360,25 @@ class _GenerateCodeDialogState extends State<GenerateCodeDialog> {
     assert(_controller.text.isNotEmpty);
 
     try {
+      setState(() {
+        _generatedCode.clear();
+        _generationError = null;
+      });
+
       final stream = widget.appServices.generateCode(
         GenerateCodeRequest(prompt: _controller.text),
       );
 
-      _generatedCode.clear();
       await for (final text in stream) {
-        setState(() => _generatedCode.write(text));
+        if (mounted) {
+          setState(() => _generatedCode.write(text));
+        }
       }
     } catch (error) {
-      _generatedCode.clear();
-      setState(() => _generatedCode.write('Error generating code: $error'));
+      setState(() {
+        _generatedCode.clear();
+        _generationError = error;
+      });
     }
   }
 }

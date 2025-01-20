@@ -327,14 +327,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final cm = codeMirror!;
     final doc = cm.getDoc();
 
-    if (cursorOffset == -1) {
-      doc.setValue(value.text);
-    } else {
-      final scrollInfo = cm.getScrollInfo();
-      doc.setValue(value.text);
-      doc.setSelection(doc.posFromIndex(cursorOffset));
-      cm.scrollTo(scrollInfo.left, scrollInfo.top);
-    }
+    final scrollInfo = cm.getScrollInfo();
+    doc.setValue(value.text);
+    doc.setSelection(doc.posFromIndex(cursorOffset));
+    cm.scrollTo(scrollInfo.left, scrollInfo.top);
   }
 
   void _updateEditableStatus() {
@@ -552,4 +548,44 @@ extension SourceChangeExtension on services.SourceChange {
       }
     }.toJS;
   }
+}
+
+class ReadOnlyEditorWidget extends StatefulWidget {
+  const ReadOnlyEditorWidget(this.source, {super.key});
+  final String source;
+
+  @override
+  State<ReadOnlyEditorWidget> createState() => _ReadOnlyEditorWidgetState();
+}
+
+class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
+  final _appModel = AppModel()..appReady.value = false;
+  late final _appServices = AppServices(_appModel, Channel.defaultChannel);
+
+  @override
+  void initState() {
+    super.initState();
+    _appModel.sourceCodeController.text = widget.source;
+  }
+
+  @override
+  void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
+    if (widget.source != oldWidget.source) {
+      _appModel.sourceCodeController.text = widget.source;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _appModel.dispose();
+    _appServices.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => EditorWidget(
+        appModel: _appModel,
+        appServices: _appServices,
+      );
 }

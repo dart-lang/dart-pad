@@ -643,9 +643,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final appServices = Provider.of<AppServices>(context, listen: false);
     final source = await showDialog<String>(
       context: context,
-      builder: (context) => GenerateCodeDialog(
-        appServices: appServices,
-      ),
+      builder: (context) => GenerateCodeDialog(appServices: appServices),
     );
 
     if (!context.mounted || source == null || source.isEmpty) return;
