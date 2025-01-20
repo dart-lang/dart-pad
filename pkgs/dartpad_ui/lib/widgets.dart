@@ -325,11 +325,18 @@ class _PromptDialogState extends State<PromptDialog> {
           ),
           ValueListenableBuilder(
             valueListenable: _controller,
-            builder: (context, text, _) => TextButton(
-              onPressed: _controller.text.isEmpty
+            builder: (context, controller, _) => TextButton(
+              onPressed: controller.text.isEmpty
                   ? null
-                  : () => Navigator.pop(context, _controller.text),
-              child: const Text('Generate'),
+                  : () => Navigator.pop(context, controller.text),
+              child: Text(
+                'Generate',
+                style: TextStyle(
+                  color: controller.text.isEmpty
+                      ? Theme.of(context).disabledColor
+                      : null,
+                ),
+              ),
             ),
           ),
         ],
@@ -396,7 +403,12 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
             onPressed: _done
                 ? () => Navigator.pop(context, _generatedCode.toString())
                 : null,
-            child: const Text('Accept'),
+            child: Text(
+              'Accept',
+              style: TextStyle(
+                color: _done ? null : theme.disabledColor,
+              ),
+            ),
           ),
         ],
       ),
