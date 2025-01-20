@@ -575,6 +575,7 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   @override
   void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
     if (widget.source != oldWidget.source) {
+      // change the contents of the read-onlyeditor w/o scrolling to the top
       _appModel.sourceCodeController.value = TextEditingValue(
         text: widget.source,
         selection: const TextSelection.collapsed(offset: 0),
