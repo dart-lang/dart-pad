@@ -449,23 +449,6 @@ class SuggestFixRequest {
 }
 
 @JsonSerializable()
-class SuggestFixResponse {
-  final String source;
-
-  SuggestFixResponse({
-    required this.source,
-  });
-
-  factory SuggestFixResponse.fromJson(Map<String, Object?> json) =>
-      _$SuggestFixResponseFromJson(json);
-
-  Map<String, Object?> toJson() => _$SuggestFixResponseToJson(this);
-
-  @override
-  String toString() => 'SuggestFixResponse [${source.substring(0, 10)} (...)';
-}
-
-@JsonSerializable()
 class GenerateCodeRequest {
   final String prompt;
 

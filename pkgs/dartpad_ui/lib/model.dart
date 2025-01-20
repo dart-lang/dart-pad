@@ -353,8 +353,8 @@ class AppServices {
     }
   }
 
-  Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) async {
-    return await services.suggestFix(request);
+  Stream<String> suggestFix(SuggestFixRequest request) {
+    return services.suggestFix(request);
   }
 
   Stream<String> generateCode(GenerateCodeRequest request) {

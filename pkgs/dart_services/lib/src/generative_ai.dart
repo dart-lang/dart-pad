@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dartpad_shared/model.dart' as api;
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:logging/logging.dart';
 
@@ -38,12 +37,12 @@ Markdown code block.
         )
       : null;
 
-  Future<api.SuggestFixResponse> suggestFix({
+  Stream<String> suggestFix({
     required String message,
     required int line,
     required int column,
     required String source,
-  }) async {
+  }) async* {
     _checkCanAI();
     assert(_fixModel != null);
 
@@ -55,12 +54,7 @@ source code:
 $source
 ''';
     final stream = _fixModel!.generateContentStream([Content.text(prompt)]);
-    final response = await cleanCode(_textOnly(stream)).join();
-    if (response.isEmpty) {
-      throw Exception('No response from generative AI');
-    }
-
-    return api.SuggestFixResponse(source: response);
+    yield* cleanCode(_textOnly(stream));
   }
 
   // TODO: restrict packages to only those available in Dartpad

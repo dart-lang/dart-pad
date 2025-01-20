@@ -183,17 +183,16 @@ class ProblemWidget extends StatelessWidget {
     final source = appModel.sourceCodeController.value.text;
 
     try {
-      final result = await appServices.suggestFix(SuggestFixRequest(
-        issue: issue,
-        source: source,
-      ));
+      final result = await appServices
+          .suggestFix(SuggestFixRequest(issue: issue, source: source))
+          .join();
 
-      if (result.source == source) {
+      if (result == source) {
         appModel.editorStatus.showToast('No suggested fix');
       } else {
         appModel.editorStatus.showToast('Fix suggested');
         appModel.sourceCodeController.value = TextEditingValue(
-          text: result.source,
+          text: result,
           selection: const TextSelection.collapsed(offset: 0),
         );
       }

@@ -327,10 +327,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final cm = codeMirror!;
     final doc = cm.getDoc();
 
-    final scrollInfo = cm.getScrollInfo();
-    doc.setValue(value.text);
-    doc.setSelection(doc.posFromIndex(cursorOffset));
-    cm.scrollTo(scrollInfo.left, scrollInfo.top);
+    if (cursorOffset == -1) {
+      doc.setValue(value.text);
+    } else {
+      final scrollInfo = cm.getScrollInfo();
+      doc.setValue(value.text);
+      doc.setSelection(doc.posFromIndex(cursorOffset));
+      cm.scrollTo(scrollInfo.left, scrollInfo.top);
+    }
   }
 
   void _updateEditableStatus() {
@@ -571,7 +575,10 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   @override
   void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
     if (widget.source != oldWidget.source) {
-      _appModel.sourceCodeController.text = widget.source;
+      _appModel.sourceCodeController.value = TextEditingValue(
+        text: widget.source,
+        selection: const TextSelection.collapsed(offset: 0),
+      );
     }
     super.didUpdateWidget(oldWidget);
   }

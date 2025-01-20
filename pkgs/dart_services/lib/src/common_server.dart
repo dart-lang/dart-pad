@@ -242,16 +242,33 @@ class CommonServerApi {
     final suggestFixRequest =
         api.SuggestFixRequest.fromJson(await request.readAsJson());
 
-    final result = await serialize(() {
-      return impl.ai.suggestFix(
-        message: suggestFixRequest.issue.message,
-        line: suggestFixRequest.issue.location.line,
-        column: suggestFixRequest.issue.location.column,
-        source: suggestFixRequest.source,
+    try {
+      final stream = impl.ai
+          .suggestFix(
+            message: suggestFixRequest.issue.message,
+            line: suggestFixRequest.issue.location.line,
+            column: suggestFixRequest.issue.location.column,
+            source: suggestFixRequest.source,
+          )
+          .transform(utf8.encoder);
+      // TODO: disabling gzip on this streaming response until support for
+      // streaming is added to shelf_gzip:
+      // https://github.com/johnpryan/shelf_gzip/issues/12
+      return Response.ok(
+        stream,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
+          'Content-Encoding': 'identity', // disable gzip
+        },
+        context: {'shelf.io.buffer_output': false}, // disable buffering
       );
-    });
-
-    return ok(result.toJson());
+    } catch (e) {
+      final logger = Logger('suggestFix');
+      logger.severe('Error suggesting fix: $e');
+      return Response.internalServerError(
+        body: 'Failed to suggest fix. Error: $e',
+      );
+    }
   }
 
   @Route.post('$apiPrefix/generateCode')

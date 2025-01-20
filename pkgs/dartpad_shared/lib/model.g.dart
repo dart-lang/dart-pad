@@ -341,16 +341,6 @@ Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
       'source': instance.source,
     };
 
-SuggestFixResponse _$SuggestFixResponseFromJson(Map<String, dynamic> json) =>
-    SuggestFixResponse(
-      source: json['source'] as String,
-    );
-
-Map<String, dynamic> _$SuggestFixResponseToJson(SuggestFixResponse instance) =>
-    <String, dynamic>{
-      'source': instance.source,
-    };
-
 GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
     GenerateCodeRequest(
       prompt: json['prompt'] as String,
