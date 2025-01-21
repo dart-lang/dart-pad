@@ -288,7 +288,7 @@ class PromptDialog extends StatefulWidget {
 }
 
 class _PromptDialogState extends State<PromptDialog> {
-  // TODO: let them choose Dart or Flutter
+  // TODO (csells): let them choose Dart or Flutter
   static const _description = 'Describe the code you want to generate.';
   final _controller = TextEditingController();
 
@@ -398,7 +398,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
           width: width,
-          // TODO: enable diff mode to show the changes
+          // TODO (csells): enable diff mode to show the changes
           child: ReadOnlyEditorWidget(_generatedCode.toString()),
         ),
         actions: [

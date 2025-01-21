@@ -251,8 +251,8 @@ class CommonServerApi {
             source: suggestFixRequest.source,
           )
           .transform(utf8.encoder);
-      // TODO: disabling gzip on this streaming response until support for
-      // streaming is added to shelf_gzip:
+      // TODO (csells): disabling gzip on this streaming response until support
+      // for streaming is added to shelf_gzip:
       // https://github.com/johnpryan/shelf_gzip/issues/12
       return Response.ok(
         stream,
@@ -282,8 +282,8 @@ class CommonServerApi {
       final stream = impl.ai
           .generateCode(generateCodeRequest.prompt)
           .transform(utf8.encoder);
-      // TODO: disabling gzip on this streaming response until support for
-      // streaming is added to shelf_gzip:
+      // TODO (csells): disabling gzip on this streaming response until support
+      // for streaming is added to shelf_gzip:
       // https://github.com/johnpryan/shelf_gzip/issues/12
       return Response.ok(
         stream,

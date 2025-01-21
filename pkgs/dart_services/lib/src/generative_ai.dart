@@ -57,7 +57,7 @@ $source
     yield* cleanCode(_textOnly(stream));
   }
 
-  // TODO: restrict packages to only those available in Dartpad
+  // TODO (csells): restrict packages to only those available in Dartpad
   late final _codeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,

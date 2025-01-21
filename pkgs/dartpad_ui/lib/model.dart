@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
-import 'package:fetch_client/fetch_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -136,10 +135,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  // TODO: replace FetchClient when http v1.2 is released, which supports
-  // streaming responses: https://github.com/dart-lang/http/pull/1401
-  // https://github.com/dart-lang/http/blob/master/pkgs/http/CHANGELOG.md#130-wip
-  final Client _httpClient = kIsWeb ? FetchClient() : Client();
+  final Client _httpClient = Client();
   late ServicesClient services;
 
   ExecutionService? _executionService;
@@ -459,7 +455,7 @@ enum Channel {
   const Channel(this.displayName, this.url);
 
   // static const defaultChannel = Channel.stable;
-  static const defaultChannel = Channel.localhost; // TODO: remove
+  static const defaultChannel = Channel.localhost; // TODO(csells): remove
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
