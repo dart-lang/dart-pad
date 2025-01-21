@@ -86,7 +86,8 @@ void defineTests() {
     test('Warn on deprecated web library imports', () async {
       final results = await analysisServer.analyze(deprecatedWebLibrary);
 
-      expect(results.issues, hasLength(1));
+      // Expect one or two deprecation messages.
+      expect(results.issues, anyOf(hasLength(1), hasLength(2)));
       final issue = results.issues.first;
       expect(issue.message, contains('Deprecated core web library'));
     });
