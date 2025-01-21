@@ -242,33 +242,15 @@ class CommonServerApi {
     final suggestFixRequest =
         api.SuggestFixRequest.fromJson(await request.readAsJson());
 
-    try {
-      final stream = impl.ai
-          .suggestFix(
-            message: suggestFixRequest.issue.message,
-            line: suggestFixRequest.issue.location.line,
-            column: suggestFixRequest.issue.location.column,
-            source: suggestFixRequest.source,
-          )
-          .transform(utf8.encoder);
-      // TODO (csells): disabling gzip on this streaming response until support
-      // for streaming is added to shelf_gzip:
-      // https://github.com/johnpryan/shelf_gzip/issues/12
-      return Response.ok(
-        stream,
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
-          'Content-Encoding': 'identity', // disable gzip
-        },
-        context: {'shelf.io.buffer_output': false}, // disable buffering
-      );
-    } catch (e) {
-      final logger = Logger('suggestFix');
-      logger.severe('Error suggesting fix: $e');
-      return Response.internalServerError(
-        body: 'Failed to suggest fix. Error: $e',
-      );
-    }
+    return _streamResponse(
+      'suggestFix',
+      impl.ai.suggestFix(
+        message: suggestFixRequest.issue.message,
+        line: suggestFixRequest.issue.location.line,
+        column: suggestFixRequest.issue.location.column,
+        source: suggestFixRequest.source,
+      ),
+    );
   }
 
   @Route.post('$apiPrefix/generateCode')
@@ -278,15 +260,36 @@ class CommonServerApi {
     final generateCodeRequest =
         api.GenerateCodeRequest.fromJson(await request.readAsJson());
 
+    return _streamResponse(
+      'generateCode',
+      impl.ai.generateCode(generateCodeRequest.prompt),
+    );
+  }
+
+  @Route.post('$apiPrefix/updateCode')
+  Future<Response> updateCode(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final updateCodeRequest =
+        api.UpdateCodeRequest.fromJson(await request.readAsJson());
+
+    return _streamResponse(
+      'updateCode',
+      impl.ai.updateCode(updateCodeRequest.prompt, updateCodeRequest.source),
+    );
+  }
+
+  Future<Response> _streamResponse(
+    String action,
+    Stream<String> inputStream,
+  ) async {
     try {
-      final stream = impl.ai
-          .generateCode(generateCodeRequest.prompt)
-          .transform(utf8.encoder);
+      final outputStream = inputStream.transform(utf8.encoder);
       // TODO (csells): disabling gzip on this streaming response until support
       // for streaming is added to shelf_gzip:
       // https://github.com/johnpryan/shelf_gzip/issues/12
       return Response.ok(
-        stream,
+        outputStream,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
           'Content-Encoding': 'identity', // disable gzip
@@ -294,10 +297,10 @@ class CommonServerApi {
         context: {'shelf.io.buffer_output': false}, // disable buffering
       );
     } catch (e) {
-      final logger = Logger('generateCode');
-      logger.severe('Error generating code: $e');
+      final logger = Logger(action);
+      logger.severe('$action error: $e');
       return Response.internalServerError(
-        body: 'Failed to generate code. Error: $e',
+        body: 'Failed to $action. Error: $e',
       );
     }
   }

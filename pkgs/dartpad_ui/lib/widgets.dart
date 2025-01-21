@@ -277,19 +277,21 @@ final class Logo extends StatelessWidget {
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
+    required this.hint,
     this.smaller = false,
     super.key,
   });
 
   final bool smaller;
   final String title;
+  final String hint;
+
   @override
   State<PromptDialog> createState() => _PromptDialogState();
 }
 
 class _PromptDialogState extends State<PromptDialog> {
   // TODO (csells): let them choose Dart or Flutter
-  static const _description = 'Describe the code you want to generate.';
   final _controller = TextEditingController();
 
   @override
@@ -313,10 +315,10 @@ class _PromptDialogState extends State<PromptDialog> {
             width: width,
             child: TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                labelText: _description,
+              decoration: InputDecoration(
+                labelText: widget.hint,
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             )),

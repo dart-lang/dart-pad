@@ -6,6 +6,8 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('gen-ai');
 
+// TODO (csells): restrict packages to only those available in Dartpad
+// TODO: parameterize by Dart vs. Flutter
 class GenerativeAI {
   static const _apiKeyVarName = 'PK_GEMINI_API_KEY';
   static const _geminiModel = 'gemini-2.0-flash-exp';
@@ -57,8 +59,7 @@ $source
     yield* cleanCode(_textOnly(stream));
   }
 
-  // TODO (csells): restrict packages to only those available in Dartpad
-  late final _codeModel = _canGenAI
+  late final _newCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -73,10 +74,40 @@ back as raw code and not in a Markdown code block.
 
   Stream<String> generateCode(String prompt) async* {
     _checkCanAI();
-    assert(_codeModel != null);
+    assert(_newCodeModel != null);
     final logger = Logger('generateCode');
     logger.info('Generating code for prompt: $prompt');
-    final stream = _codeModel!.generateContentStream([Content.text(prompt)]);
+    final stream = _newCodeModel!.generateContentStream([Content.text(prompt)]);
+    yield* cleanCode(_textOnly(stream));
+  }
+
+  late final _updateCodeModel = _canGenAI
+      ? GenerativeModel(
+          apiKey: _geminiApiKey!,
+          model: _geminiModel,
+          systemInstruction: Content.text('''
+You are a Dart and Flutter expert. You will be given an existing Flutter program
+and a description of a change to be made to it. Please generate an updated
+Flutter program that satisfies the description.
+The response should be a complete Flutter program. The response should come
+back as raw code and not in a Markdown code block.
+'''),
+        )
+      : null;
+
+  Stream<String> updateCode(String prompt, String source) async* {
+    _checkCanAI();
+    assert(_updateCodeModel != null);
+    final completedPrompt = '''
+existing code:
+$source
+
+change description:
+$prompt
+''';
+    final stream = _updateCodeModel!.generateContentStream([
+      Content.text(completedPrompt),
+    ]);
     yield* cleanCode(_textOnly(stream));
   }
 

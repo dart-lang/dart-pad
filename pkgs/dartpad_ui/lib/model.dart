@@ -357,6 +357,10 @@ class AppServices {
     return services.generateCode(request);
   }
 
+  Stream<String> updateCode(UpdateCodeRequest request) {
+    return services.updateCode(request);
+  }
+
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;

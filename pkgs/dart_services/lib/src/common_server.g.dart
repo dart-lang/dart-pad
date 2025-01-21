@@ -63,5 +63,10 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
     r'/api/<apiVersion>/generateCode',
     service.generateCode,
   );
+  router.add(
+    'POST',
+    r'/api/<apiVersion>/updateCode',
+    service.updateCode,
+  );
   return router;
 }

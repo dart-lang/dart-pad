@@ -351,3 +351,15 @@ Map<String, dynamic> _$GenerateCodeRequestToJson(
     <String, dynamic>{
       'prompt': instance.prompt,
     };
+
+UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
+    UpdateCodeRequest(
+      prompt: json['prompt'] as String,
+      source: json['source'] as String,
+    );
+
+Map<String, dynamic> _$UpdateCodeRequestToJson(UpdateCodeRequest instance) =>
+    <String, dynamic>{
+      'prompt': instance.prompt,
+      'source': instance.source,
+    };

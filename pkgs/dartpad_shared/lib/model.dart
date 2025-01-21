@@ -464,3 +464,22 @@ class GenerateCodeRequest {
   @override
   String toString() => 'GenerateCodeRequest [$prompt]';
 }
+
+@JsonSerializable()
+class UpdateCodeRequest {
+  final String prompt;
+  final String source;
+
+  UpdateCodeRequest({
+    required this.prompt,
+    required this.source,
+  });
+
+  factory UpdateCodeRequest.fromJson(Map<String, Object?> json) =>
+      _$UpdateCodeRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$UpdateCodeRequestToJson(this);
+
+  @override
+  String toString() => 'UpdateCodeRequest [$prompt]';
+}
