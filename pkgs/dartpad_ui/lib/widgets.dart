@@ -337,6 +337,7 @@ class _PromptDialogState extends State<PromptDialog> {
                     attachments: _attachments,
                     onRemove: _removeAttachment,
                     onAdd: _addAttachment,
+                    maxAttachments: 3,
                   ),
                 ),
               ],
@@ -477,26 +478,35 @@ class EditableImageList extends StatelessWidget {
   final List<Attachment> attachments;
   final void Function(int index) onRemove;
   final void Function() onAdd;
+  final int maxAttachments;
 
   const EditableImageList({
     super.key,
     required this.attachments,
     required this.onRemove,
     required this.onAdd,
+    required this.maxAttachments,
   });
 
   @override
   Widget build(BuildContext context) => ListView.builder(
         reverse: true,
         scrollDirection: Axis.horizontal,
-        // Last item is the "Add Attachment" button
+        // First item is the "Add Attachment" button
         itemCount: attachments.length + 1,
-        itemBuilder: (context, index) => (index == 0)
-            ? _AddAttachmentWidget(onAdd: onAdd)
-            : _AttachmentWidget(
-                attachment: attachments[attachments.length - index],
-                onRemove: () => onRemove(attachments.length - index),
-              ),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _AddAttachmentWidget(
+              onAdd: attachments.length < maxAttachments ? onAdd : null,
+            );
+          } else {
+            final attachmentIndex = attachments.length - index;
+            return _AttachmentWidget(
+              attachment: attachments[attachmentIndex],
+              onRemove: () => onRemove(attachmentIndex),
+            );
+          }
+        },
       );
 }
 
@@ -545,7 +555,7 @@ class _AttachmentWidget extends StatelessWidget {
 }
 
 class _AddAttachmentWidget extends StatelessWidget {
-  final void Function() onAdd;
+  final void Function()? onAdd;
   const _AddAttachmentWidget({required this.onAdd});
 
   @override
