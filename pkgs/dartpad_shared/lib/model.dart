@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
@@ -451,9 +454,11 @@ class SuggestFixRequest {
 @JsonSerializable()
 class GenerateCodeRequest {
   final String prompt;
+  final List<Attachment> attachments;
 
   GenerateCodeRequest({
     required this.prompt,
+    required this.attachments,
   });
 
   factory GenerateCodeRequest.fromJson(Map<String, Object?> json) =>
@@ -469,10 +474,12 @@ class GenerateCodeRequest {
 class UpdateCodeRequest {
   final String prompt;
   final String source;
+  final List<Attachment> attachments;
 
   UpdateCodeRequest({
     required this.prompt,
     required this.source,
+    required this.attachments,
   });
 
   factory UpdateCodeRequest.fromJson(Map<String, Object?> json) =>
@@ -482,4 +489,32 @@ class UpdateCodeRequest {
 
   @override
   String toString() => 'UpdateCodeRequest [$prompt]';
+}
+
+@JsonSerializable()
+class Attachment {
+  Attachment({
+    required this.name,
+    required this.base64EncodedBytes,
+    required this.mimeType,
+  });
+
+  factory Attachment.fromJson(Map<String, Object?> json) =>
+      _$AttachmentFromJson(json);
+
+  Map<String, Object?> toJson() => _$AttachmentToJson(this);
+
+  Attachment.fromBytes({
+    required this.name,
+    required Uint8List bytes,
+    required this.mimeType,
+  })  : base64EncodedBytes = base64Encode(bytes),
+        _cachedBytes = bytes;
+
+  final String name;
+  final String base64EncodedBytes;
+  final String mimeType;
+
+  Uint8List? _cachedBytes;
+  Uint8List get bytes => _cachedBytes ??= base64Decode(base64EncodedBytes);
 }

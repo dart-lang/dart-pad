@@ -262,7 +262,10 @@ class CommonServerApi {
 
     return _streamResponse(
       'generateCode',
-      impl.ai.generateCode(generateCodeRequest.prompt),
+      impl.ai.generateCode(
+        prompt: generateCodeRequest.prompt,
+        attachments: generateCodeRequest.attachments,
+      ),
     );
   }
 
@@ -275,7 +278,11 @@ class CommonServerApi {
 
     return _streamResponse(
       'updateCode',
-      impl.ai.updateCode(updateCodeRequest.prompt, updateCodeRequest.source),
+      impl.ai.updateCode(
+        prompt: updateCodeRequest.prompt,
+        source: updateCodeRequest.source,
+        attachments: updateCodeRequest.attachments,
+      ),
     );
   }
 

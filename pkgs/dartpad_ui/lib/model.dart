@@ -500,3 +500,13 @@ class SplitDragStateManager {
 }
 
 enum SplitDragState { inactive, active }
+
+class PromptResponse {
+  const PromptResponse({
+    required this.prompt,
+    this.attachments = const [],
+  });
+
+  final String prompt;
+  final List<Attachment> attachments;
+}

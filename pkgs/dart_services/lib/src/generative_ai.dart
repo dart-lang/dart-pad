@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dartpad_shared/model.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:logging/logging.dart';
 
@@ -72,12 +73,18 @@ back as raw code and not in a Markdown code block.
         )
       : null;
 
-  Stream<String> generateCode(String prompt) async* {
+  Stream<String> generateCode({
+    required String prompt,
+    required List<Attachment> attachments,
+  }) async* {
     _checkCanAI();
     assert(_newCodeModel != null);
     final logger = Logger('generateCode');
     logger.info('Generating code for prompt: $prompt');
-    final stream = _newCodeModel!.generateContentStream([Content.text(prompt)]);
+    final stream = _newCodeModel!.generateContentStream([
+      Content.text(prompt),
+      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
+    ]);
     yield* cleanCode(_textOnly(stream));
   }
 
@@ -95,7 +102,11 @@ back as raw code and not in a Markdown code block.
         )
       : null;
 
-  Stream<String> updateCode(String prompt, String source) async* {
+  Stream<String> updateCode({
+    required String prompt,
+    required String source,
+    required List<Attachment> attachments,
+  }) async* {
     _checkCanAI();
     assert(_updateCodeModel != null);
     final completedPrompt = '''
@@ -107,6 +118,7 @@ $prompt
 ''';
     final stream = _updateCodeModel!.generateContentStream([
       Content.text(completedPrompt),
+      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
     ]);
     yield* cleanCode(_textOnly(stream));
   }

@@ -4,11 +4,15 @@
 
 import 'dart:async';
 
+import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
+import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -293,6 +297,7 @@ class PromptDialog extends StatefulWidget {
 class _PromptDialogState extends State<PromptDialog> {
   // TODO (csells): let them choose Dart or Flutter
   final _controller = TextEditingController();
+  final _attachments = List<Attachment>.empty(growable: true);
 
   @override
   void dispose() {
@@ -313,14 +318,28 @@ class _PromptDialogState extends State<PromptDialog> {
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
             width: width,
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                labelText: widget.hint,
-                alignLabelWithHint: true,
-                border: const OutlineInputBorder(),
-              ),
-              maxLines: 3,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    labelText: widget.hint,
+                    alignLabelWithHint: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 128,
+                  child: EditableImageList(
+                    attachments: _attachments,
+                    onRemove: _removeAttachment,
+                    onAdd: _addAttachment,
+                  ),
+                ),
+              ],
             )),
         actions: [
           TextButton(
@@ -332,7 +351,13 @@ class _PromptDialogState extends State<PromptDialog> {
             builder: (context, controller, _) => TextButton(
               onPressed: controller.text.isEmpty
                   ? null
-                  : () => Navigator.pop(context, controller.text),
+                  : () => Navigator.pop(
+                        context,
+                        PromptResponse(
+                          prompt: controller.text,
+                          attachments: _attachments,
+                        ),
+                      ),
               child: Text(
                 'Generate',
                 style: TextStyle(
@@ -342,6 +367,28 @@ class _PromptDialogState extends State<PromptDialog> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _removeAttachment(int index) =>
+      setState(() => _attachments.removeAt(index));
+
+  Future<void> _addAttachment() async {
+    final pic = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pic == null) return;
+
+    final bytes = await pic.readAsBytes();
+    setState(
+      () => _attachments.add(
+        Attachment.fromBytes(
+          name: pic.name,
+          bytes: bytes,
+          mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+        ),
       ),
     );
   }
@@ -424,4 +471,110 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
       ),
     );
   }
+}
+
+class EditableImageList extends StatelessWidget {
+  final List<Attachment> attachments;
+  final void Function(int index) onRemove;
+  final void Function() onAdd;
+
+  const EditableImageList({
+    super.key,
+    required this.attachments,
+    required this.onRemove,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+        reverse: true,
+        scrollDirection: Axis.horizontal,
+        // Last item is the "Add Attachment" button
+        itemCount: attachments.length + 1,
+        itemBuilder: (context, index) => (index == 0)
+            ? _AddAttachmentWidget(onAdd: onAdd)
+            : _AttachmentWidget(
+                attachment: attachments[attachments.length - index],
+                onRemove: () => onRemove(attachments.length - index),
+              ),
+      );
+}
+
+class _AttachmentWidget extends StatelessWidget {
+  final Attachment attachment;
+  final void Function() onRemove;
+
+  const _AttachmentWidget({
+    required this.attachment,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(8),
+            width: 128,
+            height: 128,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: MemoryImage(attachment.bytes), fit: BoxFit.contain),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 12,
+            child: InkWell(
+              onTap: onRemove,
+              child: Tooltip(
+                message: 'Remove Attachment',
+                child: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  radius: 12,
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _AddAttachmentWidget extends StatelessWidget {
+  final void Function() onAdd;
+  const _AddAttachmentWidget({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(8),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 128,
+            height: 128,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: SizedBox.square(
+                dimension: 128,
+                child: ElevatedButton(
+                  onPressed: onAdd,
+                  style: ElevatedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Add\nAttachment',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 }

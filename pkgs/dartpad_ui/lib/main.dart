@@ -644,7 +644,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _generateNewCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final prompt = await showDialog<String>(
+    final prompt = await showDialog<PromptResponse>(
       context: context,
       builder: (context) => const PromptDialog(
         title: 'Generate New Code',
@@ -652,11 +652,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    if (!context.mounted || prompt == null || prompt.isEmpty) return;
+    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
 
     try {
       final stream = appServices.generateCode(
-        GenerateCodeRequest(prompt: prompt),
+        GenerateCodeRequest(
+          prompt: prompt.prompt,
+          attachments: prompt.attachments,
+        ),
       );
 
       final source = await showDialog<String>(
@@ -680,7 +683,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _updateExistingCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final prompt = await showDialog<String>(
+    final prompt = await showDialog<PromptResponse>(
       context: context,
       builder: (context) => const PromptDialog(
         title: 'Update Existing Code',
@@ -688,12 +691,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    if (!context.mounted || prompt == null || prompt.isEmpty) return;
+    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
 
     try {
       final source = appModel.sourceCodeController.text;
       final stream = appServices.updateCode(
-        UpdateCodeRequest(source: source, prompt: prompt),
+        UpdateCodeRequest(
+          source: source,
+          prompt: prompt.prompt,
+          attachments: prompt.attachments,
+        ),
       );
 
       final newSource = await showDialog<String>(
