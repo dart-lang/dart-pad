@@ -500,7 +500,7 @@ class EditableImageList extends StatelessWidget {
               onAdd: attachments.length < maxAttachments ? onAdd : null,
             );
           } else {
-            final attachmentIndex = attachments.length - index;
+            final attachmentIndex = index - 1;
             return _AttachmentWidget(
               attachment: attachments[attachmentIndex],
               onRemove: () => onRemove(attachmentIndex),
