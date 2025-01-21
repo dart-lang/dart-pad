@@ -26,6 +26,14 @@ class GenerativeAI {
 
   bool get _canGenAI => _geminiApiKey != null;
 
+  static const _commonInstructions = '''
+The response should come back as raw code and not in a Markdown code block.
+Make sure not to provide links to any images that might not exist; use the
+Flutter Placeholder widget instead.
+Make sure to check for layout overflows in the generated code and fix them
+before returning the code.
+''';
+
   late final _fixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
@@ -34,8 +42,8 @@ class GenerativeAI {
 You are a Dart and Flutter expert. You will be given an error message at a
 specific line and column in provided Dart source code. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
-with the error fixed. The response should come back as raw code and not in a
-Markdown code block.
+with the error fixed.
+$_commonInstructions
 '''),
         )
       : null;
@@ -67,8 +75,8 @@ $source
           systemInstruction: Content.text('''
 You are a Dart and Flutter expert. You will be given a description of a Flutter
 program. Please generate a Flutter program that satisfies the description.
-The response should be a complete Flutter program. The response should come
-back as raw code and not in a Markdown code block.
+The response should be a complete Flutter program.
+$_commonInstructions
 '''),
         )
       : null;
@@ -96,8 +104,7 @@ back as raw code and not in a Markdown code block.
 You are a Dart and Flutter expert. You will be given an existing Flutter program
 and a description of a change to be made to it. Please generate an updated
 Flutter program that satisfies the description.
-The response should be a complete Flutter program. The response should come
-back as raw code and not in a Markdown code block.
+$_commonInstructions
 '''),
         )
       : null;

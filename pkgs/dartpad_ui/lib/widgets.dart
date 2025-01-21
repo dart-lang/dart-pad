@@ -522,13 +522,38 @@ class _AttachmentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Stack(
         children: [
-          Container(
-            margin: const EdgeInsets.all(8),
-            width: 128,
-            height: 128,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: MemoryImage(attachment.bytes), fit: BoxFit.contain),
+          GestureDetector(
+            onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: MemoryImage(attachment.bytes),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              width: 128,
+              height: 128,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: MemoryImage(attachment.bytes),
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
           Positioned(
