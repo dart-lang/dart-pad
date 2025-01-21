@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -332,9 +334,7 @@ class _PromptDialogState extends State<PromptDialog> {
               child: Text(
                 'Generate',
                 style: TextStyle(
-                  color: controller.text.isEmpty
-                      ? Theme.of(context).disabledColor
-                      : null,
+                  color: controller.text.isEmpty ? theme.disabledColor : null,
                 ),
               ),
             ),
@@ -362,12 +362,13 @@ class GeneratingCodeDialog extends StatefulWidget {
 class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
   final _generatedCode = StringBuffer();
   bool _done = false;
+  StreamSubscription<String>? _subscription;
 
   @override
   void initState() {
     super.initState();
 
-    widget.stream.listen(
+    _subscription = widget.stream.listen(
       (text) => setState(() => _generatedCode.write(text)),
       onDone: () => setState(() {
         final source = _generatedCode.toString().trim();
@@ -376,6 +377,12 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
         _done = true;
       }),
     );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -406,7 +413,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
             child: Text(
               'Accept',
               style: TextStyle(
-                color: _done ? null : theme.disabledColor,
+                color: !_done ? theme.disabledColor : null,
               ),
             ),
           ),

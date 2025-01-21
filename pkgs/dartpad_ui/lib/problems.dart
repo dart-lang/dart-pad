@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
 import 'theme.dart';
+import 'utils.dart';
 import 'widgets.dart';
 
 const _rowPadding = 2.0;
@@ -199,13 +200,7 @@ class ProblemWidget extends StatelessWidget {
         appModel.editorStatus.showToast('No suggested fix');
       } else {
         appModel.editorStatus.showToast('Fix suggested');
-
-        // set the source w/o scrolling to the top
-        appModel.sourceCodeController.value = TextEditingValue(
-          text: newSource,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-
+        appModel.sourceCodeController.textNoScroll = newSource;
         appServices.editorService!.focus();
       }
     } catch (error) {

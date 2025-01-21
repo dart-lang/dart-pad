@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
+import '../utils.dart';
 import 'codemirror.dart';
 
 // TODO: implement find / find next
@@ -575,11 +576,7 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   @override
   void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
     if (widget.source != oldWidget.source) {
-      // change the contents of the read-onlyeditor w/o scrolling to the top
-      _appModel.sourceCodeController.value = TextEditingValue(
-        text: widget.source,
-        selection: const TextSelection.collapsed(offset: 0),
-      );
+      _appModel.sourceCodeController.textNoScroll = widget.source;
     }
     super.didUpdateWidget(oldWidget);
   }
@@ -592,8 +589,11 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => EditorWidget(
-        appModel: _appModel,
-        appServices: _appServices,
+  Widget build(BuildContext context) => SizedBox(
+        height: 500,
+        child: EditorWidget(
+          appModel: _appModel,
+          appServices: _appServices,
+        ),
       );
 }

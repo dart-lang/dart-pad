@@ -27,6 +27,7 @@ import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
 import 'theme.dart';
+import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
@@ -661,12 +662,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (!context.mounted || source == null || source.isEmpty) return;
 
-      // set the source w/o scrolling to the top
-      appModel.sourceCodeController.value = TextEditingValue(
-        text: source,
-        selection: const TextSelection.collapsed(offset: 0),
-      );
-
+      appModel.sourceCodeController.textNoScroll = source;
       appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
