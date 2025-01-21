@@ -92,7 +92,7 @@
   "pub_semver": "2.1.5",
   "quiver": "3.2.2",
   "riverpod": "2.6.1",
-  "rohd": "0.6.0",
+  "rohd": "0.6.1",
   "rohd_vf": "0.6.0",
   "rxdart": "0.28.0",
   "shared_preferences": "2.3.5",
