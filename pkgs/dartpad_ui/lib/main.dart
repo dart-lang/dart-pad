@@ -28,6 +28,7 @@ import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
 import 'theme.dart';
+import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
@@ -617,6 +618,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: denseSpacing),
           GeminiMenu(
             generateNewCode: () => _generateNewCode(context),
+            updateExistingCode: () => _updateExistingCode(context),
           ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
@@ -642,40 +644,82 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Future<void> _generateNewCode(BuildContext context) async {
-    final prompt = await showDialog<String>(
+    final appModel = Provider.of<AppModel>(context, listen: false);
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final prompt = await showDialog<PromptResponse>(
       context: context,
       builder: (context) => const PromptDialog(
         title: 'Generate New Code',
-        promptDescription: 'Describe the code snippet you want to generate.',
+        hint: 'Describe the code you want to generate',
       ),
     );
 
-    if (prompt == null || prompt.isEmpty) return;
-    if (!context.mounted) return;
-
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final source = appModel.sourceCodeController.value.text;
+    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
 
     try {
-      final result = await appServices.generateCode(GenerateCodeRequest(
-        prompt: prompt,
-      ));
+      final stream = appServices.generateCode(
+        GenerateCodeRequest(
+          prompt: prompt.prompt,
+          attachments: prompt.attachments,
+        ),
+      );
 
-      if (result.source == source) {
-        appModel.editorStatus.showToast('No code generated');
-      } else {
-        appModel.editorStatus.showToast('Code generated');
-        appModel.sourceCodeController.value = TextEditingValue(
-          text: result.source,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-      }
+      final source = await showDialog<String>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(
+          stream: stream,
+          title: 'Generating New Code',
+        ),
+      );
 
+      if (!context.mounted || source == null || source.isEmpty) return;
+
+      appModel.sourceCodeController.textNoScroll = source;
       appServices.editorService!.focus();
     } catch (error) {
-      debugPrint('Error generating code: $error');
       appModel.editorStatus.showToast('Error generating code');
+      appModel.appendLineToConsole('Generating code issue: $error');
+    }
+  }
+
+  Future<void> _updateExistingCode(BuildContext context) async {
+    final appModel = Provider.of<AppModel>(context, listen: false);
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final prompt = await showDialog<PromptResponse>(
+      context: context,
+      builder: (context) => const PromptDialog(
+        title: 'Update Existing Code',
+        hint: 'Describe the updates you\'d like to make to the code',
+      ),
+    );
+
+    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
+
+    try {
+      final source = appModel.sourceCodeController.text;
+      final stream = appServices.updateCode(
+        UpdateCodeRequest(
+          source: source,
+          prompt: prompt.prompt,
+          attachments: prompt.attachments,
+        ),
+      );
+
+      final newSource = await showDialog<String>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(
+          stream: stream,
+          title: 'Updating Existing Code',
+        ),
+      );
+
+      if (!context.mounted || newSource == null || newSource.isEmpty) return;
+
+      appModel.sourceCodeController.textNoScroll = newSource;
+      appServices.editorService!.focus();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error updating code');
+      appModel.appendLineToConsole('Updating code issue: $error');
     }
   }
 }
@@ -1205,10 +1249,12 @@ class ContinueInMenu extends StatelessWidget {
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
     required this.generateNewCode,
+    required this.updateExistingCode,
     super.key,
   });
 
   final VoidCallback generateNewCode;
+  final VoidCallback updateExistingCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1227,6 +1273,13 @@ class GeminiMenu extends StatelessWidget {
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('Generate Code'),
+            ),
+          ),
+          MenuItemButton(
+            onPressed: updateExistingCode,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('Update Code'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))

@@ -249,41 +249,73 @@ class CommonServerApi {
     final suggestFixRequest =
         api.SuggestFixRequest.fromJson(await request.readAsJson());
 
-    final result = await serialize(() {
-      return impl.ai.suggestFix(
+    return _streamResponse(
+      'suggestFix',
+      impl.ai.suggestFix(
         message: suggestFixRequest.issue.message,
         line: suggestFixRequest.issue.location.line,
         column: suggestFixRequest.issue.location.column,
         source: suggestFixRequest.source,
-      );
-    });
-
-    return ok(result.toJson());
+      ),
+    );
   }
 
   @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
-    final logger = Logger('generateCode');
-    logger.info('Received generateCode request');
-
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateCodeRequest =
         api.GenerateCodeRequest.fromJson(await request.readAsJson());
 
-    logger.info('Prompt: ${generateCodeRequest.prompt}');
+    return _streamResponse(
+      'generateCode',
+      impl.ai.generateCode(
+        prompt: generateCodeRequest.prompt,
+        attachments: generateCodeRequest.attachments,
+      ),
+    );
+  }
 
+  @Route.post('$apiPrefix/updateCode')
+  Future<Response> updateCode(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final updateCodeRequest =
+        api.UpdateCodeRequest.fromJson(await request.readAsJson());
+
+    return _streamResponse(
+      'updateCode',
+      impl.ai.updateCode(
+        prompt: updateCodeRequest.prompt,
+        source: updateCodeRequest.source,
+        attachments: updateCodeRequest.attachments,
+      ),
+    );
+  }
+
+  Future<Response> _streamResponse(
+    String action,
+    Stream<String> inputStream,
+  ) async {
     try {
-      final result = await serialize(() {
-        return impl.ai.generateCode(generateCodeRequest.prompt);
-      });
-
-      logger.info('Generated code successfully');
-      return ok(result.toJson());
+      final outputStream = inputStream.transform(utf8.encoder);
+      // TODO (csells): disabling gzip on this streaming response until support
+      // for streaming is added to shelf_gzip:
+      // https://github.com/johnpryan/shelf_gzip/issues/12
+      return Response.ok(
+        outputStream,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
+          'Content-Encoding': 'identity', // disable gzip
+        },
+        context: {'shelf.io.buffer_output': false}, // disable buffering
+      );
     } catch (e) {
-      logger.severe('Error generating code: $e');
+      final logger = Logger(action);
+      logger.severe('$action error: $e');
       return Response.internalServerError(
-          body: 'Failed to generate code. Error: $e');
+        body: 'Failed to $action. Error: $e',
+      );
     }
   }
 

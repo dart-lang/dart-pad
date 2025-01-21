@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'editor/editor.dart';
+import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -274,21 +282,23 @@ final class Logo extends StatelessWidget {
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
-    required this.promptDescription,
+    required this.hint,
     this.smaller = false,
     super.key,
   });
 
-  final String title;
-  final String promptDescription;
   final bool smaller;
+  final String title;
+  final String hint;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
 }
 
 class _PromptDialogState extends State<PromptDialog> {
+  // TODO (csells): let them choose Dart or Flutter
   final _controller = TextEditingController();
+  final _attachments = List<Attachment>.empty(growable: true);
 
   @override
   void dispose() {
@@ -298,8 +308,7 @@ class _PromptDialogState extends State<PromptDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final width = widget.smaller ? 400.0 : 500.0;
-    const height = 100.0;
+    final width = widget.smaller ? 500.0 : 700.0;
     final theme = Theme.of(context);
 
     return PointerInterceptor(
@@ -308,25 +317,161 @@ class _PromptDialogState extends State<PromptDialog> {
         title: Text(widget.title),
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: width,
-              height: height,
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  labelText: widget.promptDescription,
-                  alignLabelWithHint: true,
-                  border: InputBorder.none,
+        content: SizedBox(
+          width: width,
+          child: Shortcuts(
+            shortcuts: {
+              LogicalKeySet(
+                      LogicalKeyboardKey.control, LogicalKeyboardKey.enter):
+                  const ActivateIntent(),
+              LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter):
+                  const ActivateIntent(),
+            },
+            child: Actions(
+              actions: {
+                ActivateIntent: CallbackAction<Intent>(
+                  onInvoke: (_) {
+                    if (_controller.text.isNotEmpty) _onGenerate();
+                    return null;
+                  },
                 ),
-                maxLines: null,
-                expands: true,
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      labelText: widget.hint,
+                      alignLabelWithHint: true,
+                      border: const OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 128,
+                    child: EditableImageList(
+                      attachments: _attachments,
+                      onRemove: _removeAttachment,
+                      onAdd: _addAttachment,
+                      maxAttachments: 3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Divider(),
-          ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ValueListenableBuilder(
+            valueListenable: _controller,
+            builder: (context, controller, _) => TextButton(
+              onPressed: controller.text.isEmpty ? null : _onGenerate,
+              child: Text(
+                'Generate',
+                style: TextStyle(
+                  color: controller.text.isEmpty ? theme.disabledColor : null,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onGenerate() {
+    assert(_controller.text.isNotEmpty);
+    Navigator.pop(
+      context,
+      PromptResponse(prompt: _controller.text, attachments: _attachments),
+    );
+  }
+
+  void _removeAttachment(int index) =>
+      setState(() => _attachments.removeAt(index));
+
+  Future<void> _addAttachment() async {
+    final pic = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pic == null) return;
+
+    final bytes = await pic.readAsBytes();
+    setState(
+      () => _attachments.add(
+        Attachment.fromBytes(
+          name: pic.name,
+          bytes: bytes,
+          mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+        ),
+      ),
+    );
+  }
+}
+
+class GeneratingCodeDialog extends StatefulWidget {
+  const GeneratingCodeDialog({
+    required this.stream,
+    required this.title,
+    this.smaller = false,
+    super.key,
+  });
+
+  final Stream<String> stream;
+  final bool smaller;
+  final String title;
+  @override
+  State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
+}
+
+class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
+  final _generatedCode = StringBuffer();
+  bool _done = false;
+  StreamSubscription<String>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _subscription = widget.stream.listen(
+      (text) => setState(() => _generatedCode.write(text)),
+      onDone: () => setState(() {
+        final source = _generatedCode.toString().trim();
+        _generatedCode.clear();
+        _generatedCode.write(source);
+        _done = true;
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = widget.smaller ? 500.0 : 700.0;
+    final theme = Theme.of(context);
+
+    return PointerInterceptor(
+      child: AlertDialog(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        title: Text(widget.title),
+        contentTextStyle: theme.textTheme.bodyMedium,
+        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+        content: SizedBox(
+          width: width,
+          // TODO (csells): enable diff mode to show the changes
+          child: ReadOnlyEditorWidget(_generatedCode.toString()),
         ),
         actions: [
           TextButton(
@@ -334,11 +479,158 @@ class _PromptDialogState extends State<PromptDialog> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, _controller.text),
-            child: const Text('OK'),
+            onPressed: _done
+                ? () => Navigator.pop(context, _generatedCode.toString())
+                : null,
+            child: Text(
+              'Accept',
+              style: TextStyle(
+                color: !_done ? theme.disabledColor : null,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class EditableImageList extends StatelessWidget {
+  final List<Attachment> attachments;
+  final void Function(int index) onRemove;
+  final void Function() onAdd;
+  final int maxAttachments;
+
+  const EditableImageList({
+    super.key,
+    required this.attachments,
+    required this.onRemove,
+    required this.onAdd,
+    required this.maxAttachments,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+        reverse: true,
+        scrollDirection: Axis.horizontal,
+        // First item is the "Add Attachment" button
+        itemCount: attachments.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _AddAttachmentWidget(
+              onAdd: attachments.length < maxAttachments ? onAdd : null,
+            );
+          } else {
+            final attachmentIndex = index - 1;
+            return _AttachmentWidget(
+              attachment: attachments[attachmentIndex],
+              onRemove: () => onRemove(attachmentIndex),
+            );
+          }
+        },
+      );
+}
+
+class _AttachmentWidget extends StatelessWidget {
+  final Attachment attachment;
+  final void Function() onRemove;
+
+  const _AttachmentWidget({
+    required this.attachment,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          GestureDetector(
+            onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: MemoryImage(attachment.bytes),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              width: 128,
+              height: 128,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: MemoryImage(attachment.bytes),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 12,
+            child: InkWell(
+              onTap: onRemove,
+              child: Tooltip(
+                message: 'Remove Attachment',
+                child: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  radius: 12,
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _AddAttachmentWidget extends StatelessWidget {
+  final void Function()? onAdd;
+  const _AddAttachmentWidget({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(8),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 128,
+            height: 128,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: SizedBox.square(
+                dimension: 128,
+                child: ElevatedButton(
+                  onPressed: onAdd,
+                  style: ElevatedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Add\nAttachment',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 }

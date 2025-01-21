@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dartpad_shared/model.dart' as api;
+import 'package:dartpad_shared/model.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('gen-ai');
 
+// TODO (csells): restrict packages to only those available in Dartpad
 class GenerativeAI {
   static const _apiKeyVarName = 'PK_GEMINI_API_KEY';
   static const _geminiModel = 'gemini-2.0-flash-exp';
@@ -22,11 +23,17 @@ class GenerativeAI {
     }
   }
 
-  // TODO: add these checks to avoid adding the UI in the case that there's no
-  // API key
-  bool get canGenAI => _geminiApiKey != null;
+  bool get _canGenAI => _geminiApiKey != null;
 
-  late final _fixModel = canGenAI
+  static const _commonInstructions = '''
+The response should come back as raw code and not in a Markdown code block.
+Make sure not to provide links to any images that might not exist; use the
+Flutter Placeholder widget instead.
+Make sure to check for layout overflows in the generated code and fix them
+before returning the code.
+''';
+
+  late final _fixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -34,18 +41,18 @@ class GenerativeAI {
 You are a Dart and Flutter expert. You will be given an error message at a
 specific line and column in provided Dart source code. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
-with the error fixed. The response should come back as raw code and not in a
-Markdown code block.
+with the error fixed.
+$_commonInstructions
 '''),
         )
       : null;
 
-  Future<api.SuggestFixResponse> suggestFix({
+  Stream<String> suggestFix({
     required String message,
     required int line,
     required int column,
     required String source,
-  }) async {
+  }) async* {
     _checkCanAI();
     assert(_fixModel != null);
 
@@ -57,44 +64,73 @@ source code:
 $source
 ''';
     final stream = _fixModel!.generateContentStream([Content.text(prompt)]);
-    final response = await cleanCode(_textOnly(stream)).join();
-    if (response.isEmpty) {
-      throw Exception('No response from generative AI');
-    }
-
-    return api.SuggestFixResponse(source: response);
+    yield* cleanCode(_textOnly(stream));
   }
 
-  // TODO: restrict packages to only those available in Dartpad
-  late final _codeModel = canGenAI
+  late final _newCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
           systemInstruction: Content.text('''
 You are a Dart and Flutter expert. You will be given a description of a Flutter
 program. Please generate a Flutter program that satisfies the description.
-The response should be a complete Flutter program. The response should come
-back as raw code and not in a Markdown code block.
+The response should be a complete Flutter program.
+$_commonInstructions
 '''),
         )
       : null;
 
-  Future<api.GenerateCodeResponse> generateCode(String prompt) async {
+  Stream<String> generateCode({
+    required String prompt,
+    required List<Attachment> attachments,
+  }) async* {
     _checkCanAI();
-    assert(_codeModel != null);
+    assert(_newCodeModel != null);
+    final logger = Logger('generateCode');
+    logger.info('Generating code for prompt: $prompt');
+    final stream = _newCodeModel!.generateContentStream([
+      Content.text(prompt),
+      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
+    ]);
+    yield* cleanCode(_textOnly(stream));
+  }
 
-    // TODO: return generated code as a stream
-    final stream = _codeModel!.generateContentStream([Content.text(prompt)]);
-    final response = await cleanCode(_textOnly(stream)).join();
-    if (response.isEmpty) {
-      throw Exception('No response from generative AI');
-    }
+  late final _updateCodeModel = _canGenAI
+      ? GenerativeModel(
+          apiKey: _geminiApiKey!,
+          model: _geminiModel,
+          systemInstruction: Content.text('''
+You are a Dart and Flutter expert. You will be given an existing Flutter program
+and a description of a change to be made to it. Please generate an updated
+Flutter program that satisfies the description.
+$_commonInstructions
+'''),
+        )
+      : null;
 
-    return api.GenerateCodeResponse(source: response);
+  Stream<String> updateCode({
+    required String prompt,
+    required String source,
+    required List<Attachment> attachments,
+  }) async* {
+    _checkCanAI();
+    assert(_updateCodeModel != null);
+    final completedPrompt = '''
+existing code:
+$source
+
+change description:
+$prompt
+''';
+    final stream = _updateCodeModel!.generateContentStream([
+      Content.text(completedPrompt),
+      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
+    ]);
+    yield* cleanCode(_textOnly(stream));
   }
 
   void _checkCanAI() {
-    if (!canGenAI) throw Exception('Gemini API key not set');
+    if (!_canGenAI) throw Exception('Gemini API key not set');
   }
 
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) =>

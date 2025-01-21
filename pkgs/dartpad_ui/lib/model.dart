@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -137,7 +137,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final http.Client _httpClient = http.Client();
+  final Client _httpClient = Client();
   late ServicesClient services;
 
   ExecutionService? _executionService;
@@ -351,12 +351,16 @@ class AppServices {
     }
   }
 
-  Future<SuggestFixResponse> suggestFix(SuggestFixRequest request) async {
-    return await services.suggestFix(request);
+  Stream<String> suggestFix(SuggestFixRequest request) {
+    return services.suggestFix(request);
   }
 
-  Future<GenerateCodeResponse> generateCode(GenerateCodeRequest request) async {
-    return await services.generateCode(request);
+  Stream<String> generateCode(GenerateCodeRequest request) {
+    return services.generateCode(request);
+  }
+
+  Stream<String> updateCode(UpdateCodeRequest request) {
+    return services.updateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
@@ -442,7 +446,6 @@ class AppServices {
       }
     }
   }
-
 }
 
 enum Channel {
@@ -457,7 +460,8 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  static const defaultChannel = Channel.stable;
+  // static const defaultChannel = Channel.stable;
+  static const defaultChannel = Channel.localhost; // TODO(csells): REMOVE!!!
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
@@ -498,3 +502,13 @@ class SplitDragStateManager {
 }
 
 enum SplitDragState { inactive, active }
+
+class PromptResponse {
+  const PromptResponse({
+    required this.prompt,
+    this.attachments = const [],
+  });
+
+  final String prompt;
+  final List<Attachment> attachments;
+}

@@ -14,6 +14,7 @@ import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
 import '../model.dart';
+import '../utils.dart';
 import 'codemirror.dart';
 
 // TODO: implement find / find next
@@ -574,4 +575,47 @@ extension SourceChangeExtension on services.SourceChange {
       }
     }.toJS;
   }
+}
+
+class ReadOnlyEditorWidget extends StatefulWidget {
+  const ReadOnlyEditorWidget(this.source, {super.key});
+  final String source;
+
+  @override
+  State<ReadOnlyEditorWidget> createState() => _ReadOnlyEditorWidgetState();
+}
+
+class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
+  final _appModel = AppModel()..appReady.value = false;
+  late final _appServices = AppServices(_appModel, Channel.defaultChannel);
+
+  @override
+  void initState() {
+    super.initState();
+    _appModel.sourceCodeController.text = widget.source;
+  }
+
+  @override
+  void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
+    if (widget.source != oldWidget.source) {
+      _appModel.sourceCodeController.textNoScroll = widget.source;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _appModel.dispose();
+    _appServices.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 500,
+        child: EditorWidget(
+          appModel: _appModel,
+          appServices: _appServices,
+        ),
+      );
 }

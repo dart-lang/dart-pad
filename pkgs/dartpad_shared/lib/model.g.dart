@@ -341,35 +341,46 @@ Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
       'source': instance.source,
     };
 
-SuggestFixResponse _$SuggestFixResponseFromJson(Map<String, dynamic> json) =>
-    SuggestFixResponse(
-      source: json['source'] as String,
-    );
-
-Map<String, dynamic> _$SuggestFixResponseToJson(SuggestFixResponse instance) =>
-    <String, dynamic>{
-      'source': instance.source,
-    };
-
 GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
     GenerateCodeRequest(
       prompt: json['prompt'] as String,
+      attachments: (json['attachments'] as List<dynamic>)
+          .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$GenerateCodeRequestToJson(
         GenerateCodeRequest instance) =>
     <String, dynamic>{
       'prompt': instance.prompt,
+      'attachments': instance.attachments,
     };
 
-GenerateCodeResponse _$GenerateCodeResponseFromJson(
-        Map<String, dynamic> json) =>
-    GenerateCodeResponse(
+UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
+    UpdateCodeRequest(
+      prompt: json['prompt'] as String,
       source: json['source'] as String,
+      attachments: (json['attachments'] as List<dynamic>)
+          .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
-Map<String, dynamic> _$GenerateCodeResponseToJson(
-        GenerateCodeResponse instance) =>
+Map<String, dynamic> _$UpdateCodeRequestToJson(UpdateCodeRequest instance) =>
     <String, dynamic>{
+      'prompt': instance.prompt,
       'source': instance.source,
+      'attachments': instance.attachments,
+    };
+
+Attachment _$AttachmentFromJson(Map<String, dynamic> json) => Attachment(
+      name: json['name'] as String,
+      base64EncodedBytes: json['base64EncodedBytes'] as String,
+      mimeType: json['mimeType'] as String,
+    );
+
+Map<String, dynamic> _$AttachmentToJson(Attachment instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'base64EncodedBytes': instance.base64EncodedBytes,
+      'mimeType': instance.mimeType,
     };
