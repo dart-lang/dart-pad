@@ -455,7 +455,7 @@ enum Channel {
   const Channel(this.displayName, this.url);
 
   // static const defaultChannel = Channel.stable;
-  static const defaultChannel = Channel.localhost; // TODO(csells): remove
+  static const defaultChannel = Channel.localhost; // TODO(csells): REMOVE!!!
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
