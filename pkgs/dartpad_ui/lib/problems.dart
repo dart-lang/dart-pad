@@ -191,7 +191,10 @@ class ProblemWidget extends StatelessWidget {
 
       final newSource = await showDialog<String>(
         context: context,
-        builder: (context) => GeneratingCodeDialog(stream: stream),
+        builder: (context) => GeneratingCodeDialog(
+          stream: stream,
+          title: 'Generating Fix Suggestion',
+        ),
       );
 
       if (!context.mounted || newSource == null || newSource.isEmpty) return;

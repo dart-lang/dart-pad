@@ -348,13 +348,14 @@ class _PromptDialogState extends State<PromptDialog> {
 class GeneratingCodeDialog extends StatefulWidget {
   const GeneratingCodeDialog({
     required this.stream,
+    required this.title,
     this.smaller = false,
     super.key,
   });
 
   final Stream<String> stream;
   final bool smaller;
-
+  final String title;
   @override
   State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
 }
@@ -393,7 +394,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     return PointerInterceptor(
       child: AlertDialog(
         backgroundColor: theme.scaffoldBackgroundColor,
-        title: const Text('Generating Code'),
+        title: Text(widget.title),
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
