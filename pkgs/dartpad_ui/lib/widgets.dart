@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -317,31 +318,51 @@ class _PromptDialogState extends State<PromptDialog> {
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
-            width: width,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    labelText: widget.hint,
-                    alignLabelWithHint: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
+          width: width,
+          child: Shortcuts(
+            shortcuts: {
+              LogicalKeySet(
+                      LogicalKeyboardKey.control, LogicalKeyboardKey.enter):
+                  const ActivateIntent(),
+              LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter):
+                  const ActivateIntent(),
+            },
+            child: Actions(
+              actions: {
+                ActivateIntent: CallbackAction<Intent>(
+                  onInvoke: (_) {
+                    if (_controller.text.isNotEmpty) _onGenerate();
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 128,
-                  child: EditableImageList(
-                    attachments: _attachments,
-                    onRemove: _removeAttachment,
-                    onAdd: _addAttachment,
-                    maxAttachments: 3,
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      labelText: widget.hint,
+                      alignLabelWithHint: true,
+                      border: const OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
                   ),
-                ),
-              ],
-            )),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 128,
+                    child: EditableImageList(
+                      attachments: _attachments,
+                      onRemove: _removeAttachment,
+                      onAdd: _addAttachment,
+                      maxAttachments: 3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -350,15 +371,7 @@ class _PromptDialogState extends State<PromptDialog> {
           ValueListenableBuilder(
             valueListenable: _controller,
             builder: (context, controller, _) => TextButton(
-              onPressed: controller.text.isEmpty
-                  ? null
-                  : () => Navigator.pop(
-                        context,
-                        PromptResponse(
-                          prompt: controller.text,
-                          attachments: _attachments,
-                        ),
-                      ),
+              onPressed: controller.text.isEmpty ? null : _onGenerate,
               child: Text(
                 'Generate',
                 style: TextStyle(
@@ -369,6 +382,14 @@ class _PromptDialogState extends State<PromptDialog> {
           ),
         ],
       ),
+    );
+  }
+
+  void _onGenerate() {
+    assert(_controller.text.isNotEmpty);
+    Navigator.pop(
+      context,
+      PromptResponse(prompt: _controller.text, attachments: _attachments),
     );
   }
 
