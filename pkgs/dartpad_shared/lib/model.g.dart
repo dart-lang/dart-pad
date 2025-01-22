@@ -38,6 +38,7 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       code: json['code'] as String?,
       correction: json['correction'] as String?,
       url: json['url'] as String?,
+      hasFix: json['hasFix'] as bool?,
       contextMessages: (json['contextMessages'] as List<dynamic>?)
           ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -51,6 +52,7 @@ Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
       'code': instance.code,
       'correction': instance.correction,
       'url': instance.url,
+      'hasFix': instance.hasFix,
       'contextMessages': instance.contextMessages,
     };
 
