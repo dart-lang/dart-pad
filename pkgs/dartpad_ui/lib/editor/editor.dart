@@ -126,6 +126,14 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
           return KeyEventResult.skipRemainingHandlers;
         }
 
+        if (event.logicalKey == LogicalKeyboardKey.escape) {
+          if (codeMirror == null) {
+            return KeyEventResult.ignored;
+          }
+
+          CodeMirror.vim.handleEsc(codeMirror!);
+        }
+
         return KeyEventResult.ignored;
       },
     );
