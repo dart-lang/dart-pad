@@ -10,4 +10,7 @@ abstract class LocalStorage {
 
   void saveUserCode(String code);
   String? getUserCode();
+
+  void saveUserKeybinding(String keybinding);
+  String? getUserKeybinding();
 }

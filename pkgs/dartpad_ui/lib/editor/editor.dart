@@ -442,8 +442,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     if (enabled) {
       cm.setKeymap('vim');
+      LocalStorage.instance.saveUserKeybinding('vim');
     } else {
       cm.setKeymap('default');
+      LocalStorage.instance.saveUserKeybinding('default');
     }
   }
 }

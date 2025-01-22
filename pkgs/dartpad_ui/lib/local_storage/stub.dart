@@ -7,10 +7,17 @@ import '../utils.dart';
 
 class LocalStorageImpl extends LocalStorage {
   String? _code;
+  String? _keyBinding;
 
   @override
   void saveUserCode(String code) => _code = code;
 
   @override
+  void saveUserKeybinding(String keybinding) => _keyBinding = keybinding;
+
+  @override
   String? getUserCode() => _code?.nullIfEmpty;
+
+  @override
+  String? getUserKeybinding() => _keyBinding?.nullIfEmpty;
 }
