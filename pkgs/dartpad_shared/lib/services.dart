@@ -40,6 +40,14 @@ class ServicesClient {
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
+      _requestPost(
+          'compileNewDDC', request.toJson(), CompileDDCResponse.fromJson);
+
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
+      _requestPost(
+          'compileNewDDCReload', request.toJson(), CompileDDCResponse.fromJson);
+
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
 

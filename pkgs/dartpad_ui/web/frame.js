@@ -22,16 +22,26 @@ function messageHandler(e) {
   var obj = e.data;
   if (window.origin !== 'null' || e.source !== window.parent) return;
   if (obj.command === 'execute') {
-    runFlutterApp(obj.js, obj.canvasKitBaseUrl);
+    runFlutterApp(obj.js, obj.canvasKitBaseUrl, false);
+  } else if (obj.command === 'executeReload') {
+    runFlutterApp(obj.js, obj.canvasKitBaseUrl, true);
   }
 };
 
-function runFlutterApp(compiledScript, canvasKitBaseUrl) {
-  var blob = new Blob([compiledScript], {type: 'text/javascript'});
+function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
+  var blob = new Blob([compiledScript], { type: 'text/javascript' });
   var url = URL.createObjectURL(blob);
+  if (reload) {
+    dartDevEmbedder.hotReload([url], ['package:dartpad_sample/main.dart']).then(function () {
+      if (dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
+        dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
+      }
+    });
+    return;
+  }
   _flutter.loader.loadEntrypoint({
     entrypointUrl: url,
-    onEntrypointLoaded: async function(engineInitializer) {
+    onEntrypointLoaded: async function (engineInitializer) {
       let appRunner = await engineInitializer.initializeEngine({
         canvasKitBaseUrl: canvasKitBaseUrl,
         assetBase: 'frame/',

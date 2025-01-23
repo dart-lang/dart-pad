@@ -216,7 +216,7 @@ void main() {
     });
 
     test('compileDDC', () async {
-      final result = await client.compileDDC(CompileRequest(source: '''
+      final result = await client.compileNewDDC(CompileRequest(source: '''
 void main() {
   print('hello world');
 }
@@ -227,7 +227,7 @@ void main() {
     });
 
     test('compileDDC flutter', () async {
-      final result = await client.compileDDC(CompileRequest(source: '''
+      final result = await client.compileNewDDC(CompileRequest(source: '''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -252,7 +252,7 @@ class MyApp extends StatelessWidget {
 
     test('compileDDC with error', () async {
       try {
-        await client.compileDDC(CompileRequest(source: '''
+        await client.compileNewDDC(CompileRequest(source: '''
 void main() {
   print('hello world')
 }
