@@ -28,11 +28,20 @@ class ExecutionServiceImpl implements ExecutionService {
     String javaScript, {
     String? modulesBaseUrl,
     String? engineVersion,
+    required bool reload,
+    required bool isNewDDC,
+    required bool isFlutter,
   }) async {
-    await _reset();
+    if (!reload) {
+      await _reset();
+    }
 
-    return _send('execute', {
-      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
+    return _send(reload ? 'executeReload' : 'execute', {
+      'js': _decorateJavaScript(javaScript,
+          modulesBaseUrl: modulesBaseUrl,
+          isNewDDC: isNewDDC,
+          reload: reload,
+          isFlutter: isFlutter),
       if (engineVersion != null)
         'canvasKitBaseUrl': _canvasKitUrl(engineVersion),
     });
@@ -52,7 +61,13 @@ class ExecutionServiceImpl implements ExecutionService {
   @override
   Future<void> tearDown() => _reset();
 
-  String _decorateJavaScript(String javaScript, {String? modulesBaseUrl}) {
+  String _decorateJavaScript(String javaScript,
+      {String? modulesBaseUrl,
+      required bool isNewDDC,
+      required bool reload,
+      required bool isFlutter}) {
+    if (reload) return javaScript;
+
     final script = StringBuffer();
 
     // Redirect print messages to the host.
@@ -66,10 +81,12 @@ function dartPrint(message) {
 }
 ''');
 
-    script.writeln('''
+    if (!isNewDDC) {
+      script.writeln('''
 // Unload any previous version.
 require.undef('dartpad_main');
 ''');
+    }
 
     // The JavaScript exception handling for DartPad catches both errors
     // directly raised by `main()` (in which case we might have useful Dart
@@ -99,9 +116,27 @@ require.config({
 ''');
     }
 
-    script.writeln(javaScript);
+    if (isNewDDC) {
+      // The code depends on ddc_module_loader already being loaded in the page.
+      // Wrap in a function that we'll call after the module loader is loaded.
+      script.writeln('let __ddcInitCode = function() {$javaScript}');
 
-    script.writeln('''
+      script.writeln('''
+function contextLoaded() {
+  __ddcInitCode();
+  dartDevEmbedder.runMain('package:dartpad_sample/bootstrap.dart', {});
+}''');
+      if (isFlutter) {
+        script.writeln(
+            'require(["dart_sdk_new", "flutter_web_new", "ddc_module_loader"], contextLoaded);');
+      } else {
+        script.writeln(
+            'require(["dart_sdk_new", "ddc_module_loader"], contextLoaded);');
+      }
+    } else {
+      script.writeln(javaScript);
+
+      script.writeln('''
 require(['dart_sdk'],
   function(sdk) {
     'use strict';
@@ -128,6 +163,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 });
 ''');
+    }
 
     return script.toString();
   }

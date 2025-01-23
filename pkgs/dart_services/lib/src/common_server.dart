@@ -77,6 +77,9 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
     router.post(r'/api/<apiVersion>/compile', handleCompile);
     router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
+    router.post(r'/api/<apiVersion>/compileNewDDC', handleCompileNewDDC);
+    router.post(
+        r'/api/<apiVersion>/compileNewDDCReload', handleCompileNewDDCReload);
     router.post(r'/api/<apiVersion>/complete', handleComplete);
     router.post(r'/api/<apiVersion>/fixes', handleFixes);
     router.post(r'/api/<apiVersion>/format', handleFormat);
@@ -127,14 +130,18 @@ class CommonServerApi {
     }
   }
 
-  Future<Response> handleCompileDDC(Request request, String apiVersion) async {
+  Future<Response> _handleCompileDDC(
+      Request request,
+      String apiVersion,
+      Future<DDCCompilationResults> Function(api.CompileRequest)
+          compile) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final compileRequest =
+        api.CompileRequest.fromJson(await request.readAsJson());
 
     final results = await serialize(() {
-      return impl.compiler.compileDDC(sourceRequest.source);
+      return compile(compileRequest);
     });
 
     if (results.hasOutput) {
@@ -144,11 +151,32 @@ class CommonServerApi {
       }
       return ok(api.CompileDDCResponse(
         result: results.compiledJS!,
+        deltaDill: results.deltaDill,
         modulesBaseUrl: modulesBaseUrl,
       ).toJson());
     } else {
       return failure(results.problems.map((p) => p.message).join('\n'));
     }
+  }
+
+  Future<Response> handleCompileDDC(Request request, String apiVersion) async {
+    return await _handleCompileDDC(request, apiVersion,
+        (request) => impl.compiler.compileDDC(request.source));
+  }
+
+  Future<Response> handleCompileNewDDC(
+      Request request, String apiVersion) async {
+    return await _handleCompileDDC(request, apiVersion,
+        (request) => impl.compiler.compileNewDDC(request.source));
+  }
+
+  Future<Response> handleCompileNewDDCReload(
+      Request request, String apiVersion) async {
+    return await _handleCompileDDC(
+        request,
+        apiVersion,
+        (request) => impl.compiler
+            .compileNewDDCReload(request.source, request.deltaDill!));
   }
 
   Future<Response> handleComplete(Request request, String apiVersion) async {
