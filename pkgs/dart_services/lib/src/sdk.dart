@@ -157,4 +157,12 @@ final class Sdk {
 
     return true;
   }
+
+  static final _dartMinorVersionMatch = RegExp(r'([0-9]+.[0-9]+)');
+
+  double get dartMinorVersion {
+    final dartVersionString =
+        _dartMinorVersionMatch.firstMatch(dartVersion)!.group(1)!;
+    return double.parse(dartVersionString);
+  }
 }

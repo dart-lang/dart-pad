@@ -125,8 +125,6 @@ const _flutterPackages = {
   'web',
 };
 
-final dartMinorVersionMatch = RegExp(r'([0-9]+.[0-9]+)');
-
 Future<String> _buildStorageArtifacts(
   Directory dir,
   Sdk sdk, {
@@ -244,10 +242,7 @@ Future<String> _buildStorageArtifacts(
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
-  final dartVersionString =
-      dartMinorVersionMatch.firstMatch(sdk.dartVersion)!.group(1)!;
-  final dartVersion = double.parse(dartVersionString);
-  if (dartVersion >= 3.8) {
+  if (sdk.dartMinorVersion >= 3.8) {
     final argumentsNew = <String>[
       path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
       '-s',
