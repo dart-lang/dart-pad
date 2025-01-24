@@ -13,10 +13,10 @@ void main() => defineTests();
 void defineTests() {
   group('compiling', () {
     late Compiler compiler;
+    final sdk = Sdk.fromLocalFlutter();
 
     setUpAll(() async {
-      compiler =
-          Compiler(Sdk.fromLocalFlutter(), storageBucket: 'nnbd_artifacts');
+      compiler = Compiler(sdk, storageBucket: 'nnbd_artifacts');
     });
 
     tearDownAll(() async {
@@ -149,15 +149,20 @@ void defineTests() {
         endpoint: (source) => compiler.compileDDC(source),
         expectDeltaDill: false,
         compiledIndicator: "define('dartpad_main', [");
-    testDDCEndpoint('compileNewDDC',
-        endpoint: (source) => compiler.compileNewDDC(source),
-        expectDeltaDill: true,
-        compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"');
-    testDDCEndpoint('compileNewDDC',
-        reloadEndpoint: (source, deltaDill) =>
-            compiler.compileNewDDCReload(source, deltaDill),
-        expectDeltaDill: true,
-        compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"');
+    if (sdk.dartMinorVersion >= 3.8) {
+      // DDC only supports these at version 3.8 and higher.
+      testDDCEndpoint('compileNewDDC',
+          endpoint: (source) => compiler.compileNewDDC(source),
+          expectDeltaDill: true,
+          compiledIndicator:
+              'defineLibrary("package:dartpad_sample/main.dart"');
+      testDDCEndpoint('compileNewDDC',
+          reloadEndpoint: (source, deltaDill) =>
+              compiler.compileNewDDCReload(source, deltaDill),
+          expectDeltaDill: true,
+          compiledIndicator:
+              'defineLibrary("package:dartpad_sample/main.dart"');
+    }
 
     test('sourcemap', () async {
       final result = await compiler.compile(sampleCode, returnSourceMap: true);
