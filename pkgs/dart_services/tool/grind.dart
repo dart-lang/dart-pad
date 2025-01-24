@@ -125,6 +125,8 @@ const _flutterPackages = {
   'web',
 };
 
+final dartMinorVersionMatch = RegExp(r'([0-9]+.[0-9]+)');
+
 Future<String> _buildStorageArtifacts(
   Directory dir,
   Sdk sdk, {
@@ -224,26 +226,6 @@ Future<String> _buildStorageArtifacts(
     workingDirectory: dir.path,
   );
 
-  final argumentsNew = <String>[
-    path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
-    '-s',
-    dillPath,
-    '--modules=ddc',
-    '--canary',
-    '--source-map',
-    // The dill file will be the same between legacy and new compilation.
-    '--no-summarize',
-    '-o',
-    'flutter_web_new.js',
-    ...flutterLibraries
-  ];
-
-  await _run(
-    compilerPath,
-    arguments: argumentsNew,
-    workingDirectory: dir.path,
-  );
-
   // Copy all to the project directory.
   final artifactsDir = getDir(path.join('artifacts'));
   artifactsDir.createSync(recursive: true);
@@ -255,20 +237,51 @@ Future<String> _buildStorageArtifacts(
   final ddcModuleLoaderPath =
       path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
 
-  copy(getFile(ddcModuleLoaderPath), artifactsDir);
-  copy(getFile(newSdkJsPath), artifactsDir);
-  copy(getFile('$newSdkJsPath.map'), artifactsDir);
-  joinFile(artifactsDir, ['dart_sdk.js'])
-      .copySync(path.join('artifacts', 'dart_sdk_new.js'));
-  joinFile(artifactsDir, ['dart_sdk.js.map'])
-      .copySync(path.join('artifacts', 'dart_sdk_new.js.map'));
   copy(getFile(sdkJsPath), artifactsDir);
   copy(getFile('$sdkJsPath.map'), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
-  copy(joinFile(dir, ['flutter_web_new.js']), artifactsDir);
-  copy(joinFile(dir, ['flutter_web_new.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
+
+  // We only expect these hot reload artifacts to work at version 3.8 and later.
+  final dartVersionString =
+      dartMinorVersionMatch.firstMatch(sdk.dartVersion)!.group(1)!;
+  final dartVersion = double.parse(dartVersionString);
+  if (dartVersion >= 3.8) {
+    final argumentsNew = <String>[
+      path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+      '-s',
+      dillPath,
+      '--modules=ddc',
+      '--canary',
+      '--source-map',
+      // The dill file will be the same between legacy and new compilation.
+      '--no-summarize',
+      '-o',
+      'flutter_web_new.js',
+      ...flutterLibraries
+    ];
+
+    await _run(
+      compilerPath,
+      arguments: argumentsNew,
+      workingDirectory: dir.path,
+    );
+
+    final ddcModuleLoaderPath =
+        path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
+
+    copy(getFile(ddcModuleLoaderPath), artifactsDir);
+    copy(getFile(newSdkJsPath), artifactsDir);
+    copy(getFile('$newSdkJsPath.map'), artifactsDir);
+    joinFile(artifactsDir, ['dart_sdk.js'])
+        .copySync(path.join('artifacts', 'dart_sdk_new.js'));
+    joinFile(artifactsDir, ['dart_sdk.js.map'])
+        .copySync(path.join('artifacts', 'dart_sdk_new.js.map'));
+
+    copy(joinFile(dir, ['flutter_web_new.js']), artifactsDir);
+    copy(joinFile(dir, ['flutter_web_new.js.map']), artifactsDir);
+  }
 
   final args = context.invocation.arguments;
   final bucket = switch (args.hasOption('bucket')) {
