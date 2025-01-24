@@ -114,7 +114,7 @@ void buildStorageArtifacts() async {
 // Packages to include in flutter_web.js. These are implicitly imported by all
 // flutter apps. Since DDC doesn't do tree-shaking these would be included in
 // every compilation.
-const _flutterPackages = [
+const _flutterPackages = {
   'flutter',
   'flutter_test',
   'url_launcher_web',
@@ -123,7 +123,7 @@ const _flutterPackages = [
   'shared_preferences_platform_interface',
   'video_player_platform_interface',
   'web',
-];
+};
 
 Future<String> _buildStorageArtifacts(
   Directory dir,
