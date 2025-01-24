@@ -242,7 +242,7 @@ Future<String> _buildStorageArtifacts(
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
-  if (sdk.dartMinorVersion >= 3.8) {
+  if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
     final argumentsNew = <String>[
       path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
       '-s',

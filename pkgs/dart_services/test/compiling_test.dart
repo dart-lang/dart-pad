@@ -149,7 +149,7 @@ void defineTests() {
         endpoint: (source) => compiler.compileDDC(source),
         expectDeltaDill: false,
         compiledIndicator: "define('dartpad_main', [");
-    if (sdk.dartMinorVersion >= 3.8) {
+    if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint('compileNewDDC',
           endpoint: (source) => compiler.compileNewDDC(source),
