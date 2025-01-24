@@ -219,20 +219,21 @@ void main() {
     void testDDCEndpoint(String endpointName,
         Future<CompileDDCResponse> Function(CompileRequest) endpoint,
         {required bool expectDeltaDill, required bool includeOldDeltaDill}) {
-      test('compileDDC', () async {
-        final result = await endpoint(CompileRequest(source: '''
+      group(endpointName, () {
+        test('compile', () async {
+          final result = await endpoint(CompileRequest(source: '''
 void main() {
   print('hello world');
 }
 ''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
-        expect(result.result, isNotEmpty);
-        expect(result.result.length, greaterThanOrEqualTo(1024));
-        expect(result.modulesBaseUrl, isNotEmpty);
-        expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
-      });
+          expect(result.result, isNotEmpty);
+          expect(result.result.length, greaterThanOrEqualTo(1024));
+          expect(result.modulesBaseUrl, isNotEmpty);
+          expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
+        });
 
-      test('compileDDC flutter', () async {
-        final result = await endpoint(CompileRequest(source: '''
+        test('compile flutter', () async {
+          final result = await endpoint(CompileRequest(source: '''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -250,22 +251,23 @@ class MyApp extends StatelessWidget {
   }
 }
 ''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
-        expect(result.result, isNotEmpty);
-        expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
-        expect(result.modulesBaseUrl, isNotEmpty);
-      });
+          expect(result.result, isNotEmpty);
+          expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
+          expect(result.modulesBaseUrl, isNotEmpty);
+        });
 
-      test('compileDDC with error', () async {
-        try {
-          await endpoint(CompileRequest(source: '''
+        test('compile with error', () async {
+          try {
+            await endpoint(CompileRequest(source: '''
 void main() {
   print('hello world')
 }
 ''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
-          fail('compile error expected');
-        } on ApiRequestError catch (e) {
-          expect(e.body, contains("Expected ';' after this."));
-        }
+            fail('compile error expected');
+          } on ApiRequestError catch (e) {
+            expect(e.body, contains("Expected ';' after this."));
+          }
+        });
       });
     }
 
