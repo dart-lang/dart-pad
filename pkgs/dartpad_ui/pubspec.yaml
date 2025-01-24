@@ -5,6 +5,9 @@ publish_to: none
 environment:
   sdk: ^3.6.0-0
 
+# This package is managed as part of the dart-pad workspace.
+resolution: workspace
+
 dependencies:
   collection: ^1.19.0
   dartpad_shared: any
@@ -27,7 +30,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   test: ^1.25.7
 
 flutter:
@@ -40,7 +43,3 @@ flutter:
     - assets/idx_192.png
     - assets/RobotoMono-Bold.ttf
     - assets/RobotoMono-Regular.ttf
-
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared
