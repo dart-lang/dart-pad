@@ -33,15 +33,13 @@ class Compiler {
   }) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
 
   Compiler._(this._sdk, this._dartPath, this._storageBucket)
-      : _ddcDriver = BazelWorkerDriver(() async {
-          final p = await Process.start(_dartPath, [
-            path.join(
-                _sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
-            '--persistent_worker'
-          ]);
-          p.stderr.listen((e) => print(utf8.decode(e)));
-          return p;
-        }, maxWorkers: 1),
+      : _ddcDriver = BazelWorkerDriver(
+            () => Process.start(_dartPath, [
+                  path.join(_sdk.dartSdkPath, 'bin', 'snapshots',
+                      'dartdevc.dart.snapshot'),
+                  '--persistent_worker'
+                ]),
+            maxWorkers: 1),
         _projectTemplates = ProjectTemplates.projectTemplates;
 
   /// Compile the given string and return the resulting [CompilationResults].
