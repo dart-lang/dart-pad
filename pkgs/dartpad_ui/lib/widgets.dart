@@ -475,52 +475,51 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           ),
           contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: Column(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  width: width,
-                  // TODO (csells): enable diff mode to show the changes
-                  child: ReadOnlyEditorWidget(_generatedCode.toString()),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: TextSpan(
-                    text: 'Powered by ',
-                    children: [
-                      TextSpan(
-                        text: 'Google AI',
-                        style: const TextStyle(color: Colors.blue),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            url_launcher.launchUrl(
-                              Uri.parse('https://ai.google.dev/'),
-                            );
-                          },
-                      ),
-                      const TextSpan(text: ' and the Gemini API'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          content: SizedBox(
+            width: width,
+            // TODO (csells): enable diff mode to show the changes
+            child: ReadOnlyEditorWidget(_generatedCode.toString()),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: _done ? _onAccept : null,
-              child: Text(
-                'Accept',
-                style: TextStyle(
-                  color: !_done ? theme.disabledColor : null,
+            Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Powered by ',
+                        children: [
+                          TextSpan(
+                            text: 'Google AI',
+                            style: const TextStyle(color: Colors.blue),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                url_launcher.launchUrl(
+                                  Uri.parse('https://ai.google.dev/'),
+                                );
+                              },
+                          ),
+                          const TextSpan(text: ' and the Gemini API'),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: _done ? _onAccept : null,
+                  child: Text(
+                    'Accept',
+                    style: TextStyle(
+                      color: !_done ? theme.disabledColor : null,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
