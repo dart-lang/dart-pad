@@ -296,7 +296,6 @@ class PromptDialog extends StatefulWidget {
 }
 
 class _PromptDialogState extends State<PromptDialog> {
-  // TODO (csells): let them choose Dart or Flutter
   final _controller = TextEditingController();
   final _attachments = List<Attachment>.empty(growable: true);
 

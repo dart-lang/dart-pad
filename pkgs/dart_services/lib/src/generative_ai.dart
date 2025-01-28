@@ -7,7 +7,6 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('gen-ai');
 
-// TODO (csells): restrict packages to only those available in Dartpad
 class GenerativeAI {
   static const _apiKeyVarName = 'PK_GEMINI_API_KEY';
   static const _geminiModel = 'gemini-2.0-flash-exp';
