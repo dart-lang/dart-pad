@@ -593,6 +593,12 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ListSamplesWidget(smallIcon: true),
               ],
 
+              const SizedBox(width: denseSpacing),
+              GeminiMenu(
+                generateNewCode: () => _generateNewCode(context),
+                updateExistingCode: () => _updateExistingCode(context),
+              ),
+
               const SizedBox(width: defaultSpacing),
               // Hide the snippet title when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth)
@@ -615,11 +621,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             ContinueInMenu(
               openInIdx: _openInIDX,
             ),
-          const SizedBox(width: denseSpacing),
-          GeminiMenu(
-            generateNewCode: () => _generateNewCode(context),
-            updateExistingCode: () => _updateExistingCode(context),
-          ),
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChanged,
@@ -1258,27 +1259,35 @@ class GeminiMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final geminiIcon = Image.asset(
+      'gemini_sparkle_192.png',
+      width: 24,
+      height: 24,
+    );
+
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
-          icon: Image.asset('gemini_sparkle_192.png', width: 24, height: 24),
+          icon: geminiIcon,
           label: const Text('Gemini'),
         );
       },
       menuChildren: [
         ...[
           MenuItemButton(
+            leadingIcon: geminiIcon,
             onPressed: generateNewCode,
             child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              padding: EdgeInsets.only(right: 32),
               child: Text('Generate Code'),
             ),
           ),
           MenuItemButton(
+            leadingIcon: geminiIcon,
             onPressed: updateExistingCode,
             child: const Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              padding: EdgeInsets.only(right: 32),
               child: Text('Update Code'),
             ),
           ),
