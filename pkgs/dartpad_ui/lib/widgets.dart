@@ -217,6 +217,13 @@ class MediumDialog extends StatelessWidget {
       return PointerInterceptor(
         child: AlertDialog(
           backgroundColor: theme.scaffoldBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: theme.colorScheme.outline,
+              width: 1,
+            ),
+          ),
           title: Text(title, maxLines: 1),
           contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
@@ -314,6 +321,10 @@ class _PromptDialogState extends State<PromptDialog> {
     return PointerInterceptor(
       child: AlertDialog(
         backgroundColor: theme.scaffoldBackgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: theme.colorScheme.outline),
+        ),
         title: Text(widget.title),
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
@@ -466,6 +477,10 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
         },
         child: AlertDialog(
           backgroundColor: theme.scaffoldBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: theme.colorScheme.outline),
+          ),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -489,10 +504,11 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                     child: RichText(
                       text: TextSpan(
                         text: 'Powered by ',
+                        style: DefaultTextStyle.of(context).style,
                         children: [
                           TextSpan(
                             text: 'Google AI',
-                            style: const TextStyle(color: Colors.blue),
+                            style: TextStyle(color: theme.colorScheme.primary),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
                                 url_launcher.launchUrl(
@@ -500,7 +516,10 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                                 );
                               },
                           ),
-                          const TextSpan(text: ' and the Gemini API'),
+                          TextSpan(
+                            text: ' and the Gemini API',
+                            style: DefaultTextStyle.of(context).style,
+                          ),
                         ],
                       ),
                     ),
