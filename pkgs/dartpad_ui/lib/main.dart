@@ -1259,7 +1259,7 @@ class GeminiMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final geminiIcon = Image.asset(
+    final image = Image.asset(
       'gemini_sparkle_192.png',
       width: 24,
       height: 24,
@@ -1269,14 +1269,14 @@ class GeminiMenu extends StatelessWidget {
       builder: (context, MenuController controller, Widget? child) {
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
-          icon: geminiIcon,
+          icon: image,
           label: const Text('Gemini'),
         );
       },
       menuChildren: [
         ...[
           MenuItemButton(
-            leadingIcon: geminiIcon,
+            leadingIcon: image,
             onPressed: generateNewCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
@@ -1284,7 +1284,7 @@ class GeminiMenu extends StatelessWidget {
             ),
           ),
           MenuItemButton(
-            leadingIcon: geminiIcon,
+            leadingIcon: image,
             onPressed: updateExistingCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),

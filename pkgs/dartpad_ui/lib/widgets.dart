@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -318,47 +319,39 @@ class _PromptDialogState extends State<PromptDialog> {
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
           width: width,
-          child: Shortcuts(
-            shortcuts: {
-              LogicalKeySet(
-                      LogicalKeyboardKey.control, LogicalKeyboardKey.enter):
-                  const ActivateIntent(),
-              LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter):
-                  const ActivateIntent(),
-            },
-            child: Actions(
-              actions: {
-                ActivateIntent: CallbackAction<Intent>(
-                  onInvoke: (_) {
-                    if (_controller.text.isNotEmpty) _onGenerate();
-                    return null;
-                  },
-                ),
+          child: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.enter, control: true):
+                  () {
+                if (_controller.text.isNotEmpty) _onGenerate();
               },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      labelText: widget.hint,
-                      alignLabelWithHint: true,
-                      border: const OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
+              const SingleActivator(LogicalKeyboardKey.enter, meta: true): () {
+                if (_controller.text.isNotEmpty) _onGenerate();
+              },
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    labelText: widget.hint,
+                    alignLabelWithHint: true,
+                    border: const OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 128,
-                    child: EditableImageList(
-                      attachments: _attachments,
-                      onRemove: _removeAttachment,
-                      onAdd: _addAttachment,
-                      maxAttachments: 3,
-                    ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 128,
+                  child: EditableImageList(
+                    attachments: _attachments,
+                    onRemove: _removeAttachment,
+                    onAdd: _addAttachment,
+                    maxAttachments: 3,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -462,35 +455,82 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     final theme = Theme.of(context);
 
     return PointerInterceptor(
-      child: AlertDialog(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        title: Text(widget.title),
-        contentTextStyle: theme.textTheme.bodyMedium,
-        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-        content: SizedBox(
-          width: width,
-          // TODO (csells): enable diff mode to show the changes
-          child: ReadOnlyEditorWidget(_generatedCode.toString()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.enter, control: true): () {
+            if (_done) _onAccept();
+          },
+          const SingleActivator(LogicalKeyboardKey.enter, meta: true): () {
+            if (_done) _onAccept();
+          },
+        },
+        child: AlertDialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.title),
+              if (!_done) const CircularProgressIndicator(),
+            ],
           ),
-          TextButton(
-            onPressed: _done
-                ? () => Navigator.pop(context, _generatedCode.toString())
-                : null,
-            child: Text(
-              'Accept',
-              style: TextStyle(
-                color: !_done ? theme.disabledColor : null,
+          contentTextStyle: theme.textTheme.bodyMedium,
+          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+          content: Column(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: width,
+                  // TODO (csells): enable diff mode to show the changes
+                  child: ReadOnlyEditorWidget(_generatedCode.toString()),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Powered by ',
+                    children: [
+                      TextSpan(
+                        text: 'Google AI',
+                        style: const TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            url_launcher.launchUrl(
+                              Uri.parse('https://ai.google.dev/'),
+                            );
+                          },
+                      ),
+                      const TextSpan(text: ' and the Gemini API'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: _done ? _onAccept : null,
+              child: Text(
+                'Accept',
+                style: TextStyle(
+                  color: !_done ? theme.disabledColor : null,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  void _onAccept() {
+    assert(_done);
+    Navigator.pop(context, _generatedCode.toString());
   }
 }
 
@@ -516,12 +556,12 @@ class EditableImageList extends StatelessWidget {
         itemCount: attachments.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return _AddAttachmentWidget(
+            return _AddImageWidget(
               onAdd: attachments.length < maxAttachments ? onAdd : null,
             );
           } else {
             final attachmentIndex = index - 1;
-            return _AttachmentWidget(
+            return _ImageAttachmentWidget(
               attachment: attachments[attachmentIndex],
               onRemove: () => onRemove(attachmentIndex),
             );
@@ -530,11 +570,11 @@ class EditableImageList extends StatelessWidget {
       );
 }
 
-class _AttachmentWidget extends StatelessWidget {
+class _ImageAttachmentWidget extends StatelessWidget {
   final Attachment attachment;
   final void Function() onRemove;
 
-  const _AttachmentWidget({
+  const _ImageAttachmentWidget({
     required this.attachment,
     required this.onRemove,
   });
@@ -582,7 +622,7 @@ class _AttachmentWidget extends StatelessWidget {
             child: InkWell(
               onTap: onRemove,
               child: Tooltip(
-                message: 'Remove Attachment',
+                message: 'Remove Image',
                 child: CircleAvatar(
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   radius: 12,
@@ -599,9 +639,9 @@ class _AttachmentWidget extends StatelessWidget {
       );
 }
 
-class _AddAttachmentWidget extends StatelessWidget {
+class _AddImageWidget extends StatelessWidget {
   final void Function()? onAdd;
-  const _AddAttachmentWidget({required this.onAdd});
+  const _AddImageWidget({required this.onAdd});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -622,7 +662,7 @@ class _AddAttachmentWidget extends StatelessWidget {
                   ),
                   child: const Center(
                     child: Text(
-                      'Add\nAttachment',
+                      'Add\nImage',
                       textAlign: TextAlign.center,
                     ),
                   ),
