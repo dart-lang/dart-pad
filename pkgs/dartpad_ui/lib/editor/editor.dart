@@ -149,6 +149,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   void showQuickFixes() {
+    // debugPrint('showQuickFixes');
     completionType = CompletionType.quickfix;
 
     codeMirror?.execCommand('autocomplete');

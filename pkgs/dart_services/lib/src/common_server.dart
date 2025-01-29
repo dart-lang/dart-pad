@@ -300,9 +300,6 @@ class CommonServerApi {
   ) async {
     try {
       final outputStream = inputStream.transform(utf8.encoder);
-      // TODO (csells): disabling gzip on this streaming response until support
-      // for streaming is added to shelf_gzip:
-      // https://github.com/johnpryan/shelf_gzip/issues/12
       return Response.ok(
         outputStream,
         headers: {

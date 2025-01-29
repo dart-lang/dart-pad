@@ -345,6 +345,7 @@ class _PromptDialogState extends State<PromptDialog> {
               children: [
                 TextField(
                   controller: _controller,
+                  autofocus: true,
                   decoration: InputDecoration(
                     labelText: widget.hint,
                     alignLabelWithHint: true,
