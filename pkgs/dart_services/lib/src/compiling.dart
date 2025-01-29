@@ -144,8 +144,8 @@ class Compiler {
         if (useNew) ...[
           '--modules=ddc',
           '--canary',
-          '--new-reload-delta-kernel=$newDeltaKernelPath',
-          if (oldDillPath != null) '--old-reload-delta-kernel=$oldDillPath',
+          '--reload-delta-kernel=$newDeltaKernelPath',
+          if (oldDillPath != null) '--reload-last-accepted-kernel=$oldDillPath',
         ],
         if (!useNew) ...[
           '--modules=amd',
