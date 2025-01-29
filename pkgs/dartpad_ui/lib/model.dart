@@ -207,6 +207,7 @@ class AppServices {
     String? sampleId,
     String? flutterSampleId,
     String? channel,
+    String? keybinding,
     required String Function() getFallback,
   }) async {
     // Delay a bit for codemirror to initialize.
@@ -292,6 +293,10 @@ class AppServices {
       }
 
       return;
+    }
+
+    if (keybinding != null && keybinding == 'vim') {
+      appModel.vimKeymapsEnabled.value = true;
     }
 
     // Neither gistId nor flutterSampleId were passed in.

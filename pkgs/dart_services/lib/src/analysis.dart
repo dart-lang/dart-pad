@@ -285,6 +285,7 @@ class AnalysisServerWrapper {
             ),
           );
         }).toList(),
+        hasFix: error.hasFix,
       );
 
       return issue;

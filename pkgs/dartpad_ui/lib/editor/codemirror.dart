@@ -22,6 +22,8 @@ extension type CodeMirror._(JSObject _) implements JSObject {
   external static Commands commands;
   external static String get version;
   external static Hint hint;
+  @JS('Vim')
+  external static Vim vim;
 
   external static void registerHelper(
     String type,
@@ -173,4 +175,13 @@ extension type HintOptions._(JSObject _) implements JSObject {
 
 extension type Hint._(JSObject _) implements JSObject {
   external JSAny dart;
+}
+
+extension type Vim._(JSObject _) implements JSObject {
+  external void exitInsertMode(CodeMirror cm);
+
+  void handleEsc(CodeMirror cm) => switch (cm.getKeymap()) {
+        'vim-insert' => exitInsertMode(cm),
+        _ => _,
+      };
 }

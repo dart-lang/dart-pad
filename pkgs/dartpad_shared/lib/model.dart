@@ -49,6 +49,11 @@ class AnalysisIssue {
   final String? url;
   final List<DiagnosticMessage>? contextMessages;
 
+  /// A hint to indicate to interested clients that this error has an associated
+  /// fix (or fixes). The absence of this field implies there are not known to
+  /// be fixes.
+  final bool? hasFix;
+
   AnalysisIssue({
     required this.kind,
     required this.message,
@@ -57,6 +62,7 @@ class AnalysisIssue {
     this.correction,
     this.url,
     this.contextMessages,
+    this.hasFix,
   });
 
   factory AnalysisIssue.fromJson(Map<String, Object?> json) =>

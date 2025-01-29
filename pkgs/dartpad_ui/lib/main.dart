@@ -280,6 +280,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       sampleId: widget.builtinSampleId,
       flutterSampleId: widget.flutterSampleId,
       channel: widget.initialChannel,
+      keybinding: LocalStorage.instance.getUserKeybinding(),
       getFallback: () =>
           LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
     )
