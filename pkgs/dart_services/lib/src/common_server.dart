@@ -299,6 +299,9 @@ class CommonServerApi {
     Stream<String> inputStream,
   ) async {
     try {
+      // NOTE: disabling gzip so that the client gets the data in the same
+      // chunks that the LLM is providing it to us. With gzip, the client
+      // receives the data all at once at the end of the stream.
       final outputStream = inputStream.transform(utf8.encoder);
       return Response.ok(
         outputStream,
