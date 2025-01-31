@@ -335,6 +335,8 @@ The OUTPUT step shall emit only complete, compilable Flutter Dart code in a
 single file which contains a complete app meant to be able to run immediately.
 The output you will create is the contents of the main.dart file.
 
+Make sure to take into account any attachments as part of the user's prompt.
+
 ALLOWED PACKAGES:
 Allowed packages which are used must be imported using the IMPORT given in order
 for the app to build.
