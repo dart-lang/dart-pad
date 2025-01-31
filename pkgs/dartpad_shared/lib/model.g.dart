@@ -333,13 +333,17 @@ Map<String, dynamic> _$PackageInfoToJson(PackageInfo instance) =>
 
 SuggestFixRequest _$SuggestFixRequestFromJson(Map<String, dynamic> json) =>
     SuggestFixRequest(
-      issue: AnalysisIssue.fromJson(json['issue'] as Map<String, dynamic>),
+      errorMessage: json['errorMessage'] as String,
+      line: (json['line'] as num?)?.toInt(),
+      column: (json['column'] as num?)?.toInt(),
       source: json['source'] as String,
     );
 
 Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
     <String, dynamic>{
-      'issue': instance.issue,
+      'errorMessage': instance.errorMessage,
+      'line': instance.line,
+      'column': instance.column,
       'source': instance.source,
     };
 

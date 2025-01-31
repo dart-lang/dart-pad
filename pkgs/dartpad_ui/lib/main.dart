@@ -771,7 +771,7 @@ class EditorWithButtons extends StatelessWidget {
                         builder: (_, bool value, __) {
                           return PointerInterceptor(
                             child: MiniIconButton(
-                              icon: Icons.help_outline,
+                              icon: const Icon(Icons.help_outline),
                               tooltip: 'Show docs',
                               // small: true,
                               onPressed:
@@ -787,7 +787,7 @@ class EditorWithButtons extends StatelessWidget {
                         builder: (_, bool value, __) {
                           return PointerInterceptor(
                             child: MiniIconButton(
-                              icon: Icons.format_align_left,
+                              icon: const Icon(Icons.format_align_left),
                               tooltip: 'Format',
                               small: true,
                               onPressed: value ? null : onFormat,

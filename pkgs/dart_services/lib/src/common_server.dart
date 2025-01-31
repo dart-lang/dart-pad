@@ -253,9 +253,9 @@ class CommonServerApi {
     return _streamResponse(
       'suggestFix',
       impl.ai.suggestFix(
-        message: suggestFixRequest.issue.message,
-        line: suggestFixRequest.issue.location.line,
-        column: suggestFixRequest.issue.location.column,
+        message: suggestFixRequest.errorMessage,
+        line: suggestFixRequest.line,
+        column: suggestFixRequest.column,
         source: suggestFixRequest.source,
       ),
     );

@@ -438,11 +438,15 @@ class PackageInfo {
 
 @JsonSerializable()
 class SuggestFixRequest {
-  final AnalysisIssue issue;
+  final String errorMessage;
+  final int? line;
+  final int? column;
   final String source;
 
   SuggestFixRequest({
-    required this.issue,
+    required this.errorMessage,
+    required this.line,
+    required this.column,
     required this.source,
   });
 
@@ -453,7 +457,7 @@ class SuggestFixRequest {
 
   @override
   String toString() => 'SuggestFixRequest '
-      '[${issue.message}] '
+      '[$errorMessage] '
       '[${source.substring(0, 10)} (...)';
 }
 

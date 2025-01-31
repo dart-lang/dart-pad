@@ -61,7 +61,7 @@ class _HyperlinkState extends State<Hyperlink> {
 }
 
 class MiniIconButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String tooltip;
   final bool small;
   final VoidCallback? onPressed;
@@ -92,7 +92,7 @@ class MiniIconButton extends StatelessWidget {
           shape: const WidgetStatePropertyAll(CircleBorder()),
           backgroundColor: WidgetStatePropertyAll(backgroundColor),
         ),
-        icon: Icon(icon),
+        icon: icon,
         iconSize: small ? 16 : smallIconSize,
         splashRadius: small ? 16 : smallIconSize,
         visualDensity: VisualDensity.compact,
