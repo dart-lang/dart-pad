@@ -20,6 +20,7 @@ dependencies:
   json_annotation: ^4.9.0
   mime: ^2.0.0
   pointer_interceptor: ^0.10.1
+  pretty_diff_text: ^2.0.0
   provider: ^6.1.2
   split_view: ^3.2.1
   url_launcher: ^6.3.0

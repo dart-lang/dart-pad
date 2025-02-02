@@ -295,11 +295,9 @@ class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
     required this.hint,
-    this.smaller = false,
     super.key,
   });
 
-  final bool smaller;
   final String title;
   final String hint;
 
@@ -319,7 +317,6 @@ class _PromptDialogState extends State<PromptDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final width = widget.smaller ? 500.0 : 700.0;
     final theme = Theme.of(context);
 
     return PointerInterceptor(
@@ -333,7 +330,7 @@ class _PromptDialogState extends State<PromptDialog> {
         contentTextStyle: theme.textTheme.bodyMedium,
         contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
         content: SizedBox(
-          width: width,
+          width: 700,
           child: CallbackShortcuts(
             bindings: {
               SingleActivator(
@@ -428,13 +425,13 @@ class GeneratingCodeDialog extends StatefulWidget {
   const GeneratingCodeDialog({
     required this.stream,
     required this.title,
-    this.smaller = false,
+    this.existingSource,
     super.key,
   });
 
   final Stream<String> stream;
-  final bool smaller;
   final String title;
+  final String? existingSource;
   @override
   State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
 }
@@ -467,7 +464,6 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final width = widget.smaller ? 500.0 : 700.0;
     final theme = Theme.of(context);
 
     return PointerInterceptor(
@@ -497,9 +493,13 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: SizedBox(
-            width: width,
-            // TODO(csells): enable diff mode to show the changes
-            child: ReadOnlyEditorWidget(_generatedCode.toString()),
+            width: 700,
+            child: widget.existingSource == null
+                ? ReadOnlyEditorWidget(_generatedCode.toString())
+                : ReadOnlyDiffWidget(
+                    existingSource: widget.existingSource!,
+                    newSource: _generatedCode.toString(),
+                  ),
           ),
           actions: [
             Row(

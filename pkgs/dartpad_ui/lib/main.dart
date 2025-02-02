@@ -714,6 +714,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
           title: 'Updating Existing Code',
+          existingSource: source,
         ),
       );
 

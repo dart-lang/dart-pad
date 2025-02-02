@@ -31,6 +31,7 @@ Future<void> suggestFix({
       builder: (context) => GeneratingCodeDialog(
         stream: stream,
         title: 'Generating Fix Suggestion',
+        existingSource: existingSource,
       ),
     );
 

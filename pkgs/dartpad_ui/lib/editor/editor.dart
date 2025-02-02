@@ -10,6 +10,8 @@ import 'dart:ui_web' as ui_web;
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
@@ -627,6 +629,34 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
         child: EditorWidget(
           appModel: _appModel,
           appServices: _appServices,
+        ),
+      );
+}
+
+class ReadOnlyDiffWidget extends StatelessWidget {
+  const ReadOnlyDiffWidget({
+    required this.existingSource,
+    required this.newSource,
+    super.key,
+  });
+
+  final String existingSource;
+  final String newSource;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 500,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: PrettyDiffText(
+            oldText: existingSource,
+            newText: newSource,
+            defaultTextStyle: GoogleFonts.robotoMono(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            diffCleanupType: DiffCleanupType.SEMANTIC,
+          ),
         ),
       );
 }
