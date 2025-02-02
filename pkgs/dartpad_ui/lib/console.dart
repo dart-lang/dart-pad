@@ -113,16 +113,19 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _scrollToEnd() {
-    if (!mounted || scrollController == null) return;
+    if (!mounted) return;
+    final controller = scrollController;
+    if (controller == null) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (mounted && scrollController!.hasClients) {
-        scrollController?.animateTo(
-          scrollController!.position.maxScrollExtent,
-          duration: animationDelay,
-          curve: animationCurve,
-        );
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!controller.hasClients) return;
+
+      controller.animateTo(
+        controller.position.maxScrollExtent,
+        duration: animationDelay,
+        curve: animationCurve,
+      );
     });
   }
 }

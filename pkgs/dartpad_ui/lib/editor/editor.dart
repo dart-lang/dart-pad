@@ -644,19 +644,22 @@ class ReadOnlyDiffWidget extends StatelessWidget {
   final String newSource;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 500,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: PrettyDiffText(
-            oldText: existingSource,
-            newText: newSource,
-            defaultTextStyle: GoogleFonts.robotoMono(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+  Widget build(BuildContext context) => Focus(
+        autofocus: true,
+        child: SizedBox(
+          height: 500,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: PrettyDiffText(
+              oldText: existingSource,
+              newText: newSource,
+              defaultTextStyle: GoogleFonts.robotoMono(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              diffCleanupType: DiffCleanupType.SEMANTIC,
             ),
-            diffCleanupType: DiffCleanupType.SEMANTIC,
           ),
         ),
       );
