@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -287,6 +288,9 @@ final class Logo extends StatelessWidget {
   }
 }
 
+bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
+bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
+
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
@@ -332,11 +336,11 @@ class _PromptDialogState extends State<PromptDialog> {
           width: width,
           child: CallbackShortcuts(
             bindings: {
-              const SingleActivator(LogicalKeyboardKey.enter, control: true):
-                  () {
-                if (_controller.text.isNotEmpty) _onGenerate();
-              },
-              const SingleActivator(LogicalKeyboardKey.enter, meta: true): () {
+              SingleActivator(
+                LogicalKeyboardKey.enter,
+                meta: _mac,
+                control: _nonMac,
+              ): () {
                 if (_controller.text.isNotEmpty) _onGenerate();
               },
             },
@@ -469,10 +473,11 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     return PointerInterceptor(
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(LogicalKeyboardKey.enter, control: true): () {
-            if (_done) _onAcceptAndRun();
-          },
-          const SingleActivator(LogicalKeyboardKey.enter, meta: true): () {
+          SingleActivator(
+            LogicalKeyboardKey.enter,
+            meta: _mac,
+            control: _nonMac,
+          ): () {
             if (_done) _onAcceptAndRun();
           },
         },

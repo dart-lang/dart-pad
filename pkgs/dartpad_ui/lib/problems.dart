@@ -102,15 +102,26 @@ class ProblemWidget extends StatelessWidget {
                 textAlign: TextAlign.end,
                 style: subtleText,
               ),
+              if (issue.hasFix ?? false)
+                IconButton(
+                  onPressed: () => _quickFixes(context),
+                  tooltip: 'Quick fixes',
+                  icon: const Icon(Icons.lightbulb_outline),
+                ),
               IconButton(
-                onPressed: () => _suggestFix(context),
+                onPressed: () => suggestFix(
+                  context: context,
+                  errorMessage: issue.message,
+                  line: issue.location.line,
+                  column: issue.location.column,
+                ),
                 tooltip: 'Suggest fix',
                 icon: Image.asset(
                   'gemini_sparkle_192.png',
                   width: 16,
                   height: 16,
                 ),
-              )
+              ),
             ],
           ),
           if (issue.correction case final correction?) ...[
@@ -178,23 +189,9 @@ class ProblemWidget extends StatelessWidget {
     );
   }
 
-  void _suggestFix(BuildContext context) async {
-    // the analyzer doesn't have a fix for this issue, so we need to
-    // ask the LLM to suggest a fix.
-    if (!(issue.hasFix ?? false)) {
-      await suggestFix(
-        context: context,
-        errorMessage: issue.message,
-        line: issue.location.line,
-        column: issue.location.column,
-      );
-      return;
-    }
+  void _quickFixes(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context, listen: false);
 
-    // the analyzer has one or more fixes for this issue, so we need to route
-    // the user to the issue and show the list of fixes.
-    assert(issue.hasFix == true);
-    final appServices = Provider.of<AppServices>(context);
     appServices.editorService?.jumpTo(AnalysisIssue(
       kind: issue.kind,
       message: issue.message,
@@ -203,6 +200,7 @@ class ProblemWidget extends StatelessWidget {
         column: issue.location.column,
       ),
     ));
+
     appServices.editorService?.showQuickFixes();
   }
 }
