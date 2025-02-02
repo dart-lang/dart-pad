@@ -29,7 +29,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   @override
   void initState() {
     super.initState();
-
     scrollController = ScrollController();
     widget.output.addListener(_scrollToEnd);
   }
@@ -39,7 +38,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     widget.output.removeListener(_scrollToEnd);
     scrollController?.dispose();
     scrollController = null;
-
     super.dispose();
   }
 
@@ -115,12 +113,16 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _scrollToEnd() {
+    if (!mounted || scrollController == null) return;
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      scrollController?.animateTo(
-        scrollController!.position.maxScrollExtent,
-        duration: animationDelay,
-        curve: animationCurve,
-      );
+      if (mounted && scrollController!.hasClients) {
+        scrollController!.animateTo(
+          scrollController!.position.maxScrollExtent,
+          duration: animationDelay,
+          curve: animationCurve,
+        );
+      }
     });
   }
 }
