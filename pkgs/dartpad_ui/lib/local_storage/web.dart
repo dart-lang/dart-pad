@@ -7,8 +7,10 @@ import 'package:web/web.dart' as web;
 import '../local_storage.dart';
 import '../utils.dart';
 
-const _userInputKey = 'user_';
+const _userInputKey = 'user_input_';
 const _userKeybindingKey = 'user_keybinding_';
+const _lastCreateCodePromptKey = 'last_create_code_prompt_';
+const _lastUpdateCodePromptKey = 'last_update_code_prompt_';
 
 class LocalStorageImpl extends LocalStorage {
   @override
@@ -26,4 +28,20 @@ class LocalStorageImpl extends LocalStorage {
   @override
   String? getUserKeybinding() =>
       web.window.localStorage.getItem(_userKeybindingKey)?.nullIfEmpty;
+
+  @override
+  void saveLastCreateCodePrompt(String prompt) =>
+      web.window.localStorage.setItem(_lastCreateCodePromptKey, prompt);
+
+  @override
+  String? getLastCreateCodePrompt() =>
+      web.window.localStorage.getItem(_lastCreateCodePromptKey)?.nullIfEmpty;
+
+  @override
+  void saveLastUpdateCodePrompt(String prompt) =>
+      web.window.localStorage.setItem(_lastUpdateCodePromptKey, prompt);
+
+  @override
+  String? getLastUpdateCodePrompt() =>
+      web.window.localStorage.getItem(_lastUpdateCodePromptKey)?.nullIfEmpty;
 }

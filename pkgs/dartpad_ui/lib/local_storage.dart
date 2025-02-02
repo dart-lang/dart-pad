@@ -13,4 +13,10 @@ abstract class LocalStorage {
 
   void saveUserKeybinding(String keybinding);
   String? getUserKeybinding();
+
+  void saveLastCreateCodePrompt(String prompt);
+  String? getLastCreateCodePrompt();
+
+  void saveLastUpdateCodePrompt(String prompt);
+  String? getLastUpdateCodePrompt();
 }

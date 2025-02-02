@@ -648,25 +648,41 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _generateNewCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final prompt = await showDialog<PromptResponse>(
+    final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+    final promptResponse = await showDialog<PromptResponse>(
       context: context,
-      builder: (context) => const PromptDialog(
+      builder: (context) => PromptDialog(
         title: 'Generate New Code',
         hint: 'Describe the code you want to generate',
+        promptButtons: {
+          'to-do app':
+              'Generate a Flutter to-do app with add, remove, and complete task functionality',
+          'login screen':
+              'Generate a Flutter login screen with email and password fields, validation, and a submit button',
+          'tic-tac-toe':
+              'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
       ),
     );
 
-    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
+    if (!context.mounted ||
+        promptResponse == null ||
+        promptResponse.prompt.isEmpty) {
+      return;
+    }
+
+    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     try {
       final stream = appServices.generateCode(
         GenerateCodeRequest(
-          prompt: prompt.prompt,
-          attachments: prompt.attachments,
+          prompt: promptResponse.prompt,
+          attachments: promptResponse.attachments,
         ),
       );
 
-      final result = await showDialog<({String source, bool runNow})>(
+      final generateResponse = await showDialog<GenerateCodeResponse>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -674,12 +690,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      if (!context.mounted || result == null || result.source.isEmpty) return;
+      if (!context.mounted ||
+          generateResponse == null ||
+          generateResponse.source.isEmpty) {
+        return;
+      }
 
-      appModel.sourceCodeController.textNoScroll = result.source;
+      appModel.sourceCodeController.textNoScroll = generateResponse.source;
       appServices.editorService!.focus();
 
-      if (result.runNow) appServices.performCompileAndRun();
+      if (generateResponse.runNow) appServices.performCompileAndRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendLineToConsole('Generating code issue: $error');
@@ -689,27 +709,43 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _updateExistingCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final prompt = await showDialog<PromptResponse>(
+    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
+    final promptResponse = await showDialog<PromptResponse>(
       context: context,
-      builder: (context) => const PromptDialog(
+      builder: (context) => PromptDialog(
         title: 'Update Existing Code',
         hint: 'Describe the updates you\'d like to make to the code',
+        promptButtons: {
+          'pretty':
+              'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+          'fancy':
+              'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+          'pink':
+              'Make the app pink by changing the color scheme to use a rich, pink color palette',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
       ),
     );
 
-    if (!context.mounted || prompt == null || prompt.prompt.isEmpty) return;
+    if (!context.mounted ||
+        promptResponse == null ||
+        promptResponse.prompt.isEmpty) {
+      return;
+    }
+
+    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
 
     try {
       final source = appModel.sourceCodeController.text;
       final stream = appServices.updateCode(
         UpdateCodeRequest(
           source: source,
-          prompt: prompt.prompt,
-          attachments: prompt.attachments,
+          prompt: promptResponse.prompt,
+          attachments: promptResponse.attachments,
         ),
       );
 
-      final result = await showDialog<({String source, bool runNow})>(
+      final generateResponse = await showDialog<GenerateCodeResponse>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -718,12 +754,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      if (!context.mounted || result == null || result.source.isEmpty) return;
+      if (!context.mounted ||
+          generateResponse == null ||
+          generateResponse.source.isEmpty) {
+        return;
+      }
 
-      appModel.sourceCodeController.textNoScroll = result.source;
+      appModel.sourceCodeController.textNoScroll = generateResponse.source;
       appServices.editorService!.focus();
 
-      if (result.runNow) appServices.performCompileAndRun();
+      if (generateResponse.runNow) appServices.performCompileAndRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendLineToConsole('Updating code issue: $error');

@@ -8,6 +8,8 @@ import '../utils.dart';
 class LocalStorageImpl extends LocalStorage {
   String? _code;
   String? _keyBinding;
+  String? _lastCreateCodePrompt;
+  String? _lastUpdateCodePrompt;
 
   @override
   void saveUserCode(String code) => _code = code;
@@ -16,8 +18,22 @@ class LocalStorageImpl extends LocalStorage {
   void saveUserKeybinding(String keybinding) => _keyBinding = keybinding;
 
   @override
+  void saveLastCreateCodePrompt(String prompt) =>
+      _lastCreateCodePrompt = prompt;
+
+  @override
+  void saveLastUpdateCodePrompt(String prompt) =>
+      _lastUpdateCodePrompt = prompt;
+
+  @override
   String? getUserCode() => _code?.nullIfEmpty;
 
   @override
   String? getUserKeybinding() => _keyBinding?.nullIfEmpty;
+
+  @override
+  String? getLastCreateCodePrompt() => _lastCreateCodePrompt?.nullIfEmpty;
+
+  @override
+  String? getLastUpdateCodePrompt() => _lastUpdateCodePrompt?.nullIfEmpty;
 }

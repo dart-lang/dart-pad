@@ -26,7 +26,7 @@ Future<void> suggestFix({
       ),
     );
 
-    final result = await showDialog<({String source, bool runNow})>(
+    final result = await showDialog<GenerateCodeResponse>(
       context: context,
       builder: (context) => GeneratingCodeDialog(
         stream: stream,

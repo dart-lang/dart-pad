@@ -295,11 +295,13 @@ class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
     required this.hint,
+    required this.promptButtons,
     super.key,
   });
 
   final String title;
   final String hint;
+  final Map<String, String> promptButtons;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
@@ -308,6 +310,7 @@ class PromptDialog extends StatefulWidget {
 class _PromptDialogState extends State<PromptDialog> {
   final _controller = TextEditingController();
   final _attachments = List<Attachment>.empty(growable: true);
+  final _focusNode = FocusNode();
 
   @override
   void dispose() {
@@ -344,8 +347,24 @@ class _PromptDialogState extends State<PromptDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                OverflowBar(
+                  spacing: 8,
+                  alignment: MainAxisAlignment.start,
+                  children: [
+                    for (final entry in widget.promptButtons.entries)
+                      TextButton(
+                        onPressed: () {
+                          _controller.text = entry.value;
+                          _focusNode.requestFocus();
+                        },
+                        child: Text(entry.key),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _controller,
+                  focusNode: _focusNode,
                   autofocus: true,
                   decoration: InputDecoration(
                     labelText: widget.hint,
@@ -563,12 +582,18 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   void _onAccept() {
     assert(_done);
-    Navigator.pop(context, (source: _generatedCode.toString(), runNow: false));
+    Navigator.pop(
+      context,
+      GenerateCodeResponse(source: _generatedCode.toString(), runNow: false),
+    );
   }
 
   void _onAcceptAndRun() {
     assert(_done);
-    Navigator.pop(context, (source: _generatedCode.toString(), runNow: true));
+    Navigator.pop(
+      context,
+      GenerateCodeResponse(source: _generatedCode.toString(), runNow: true),
+    );
   }
 }
 

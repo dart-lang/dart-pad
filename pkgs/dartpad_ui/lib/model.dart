@@ -517,3 +517,13 @@ class PromptResponse {
   final String prompt;
   final List<Attachment> attachments;
 }
+
+class GenerateCodeResponse {
+  const GenerateCodeResponse({
+    required this.source,
+    required this.runNow,
+  });
+
+  final String source;
+  final bool runNow;
+}
