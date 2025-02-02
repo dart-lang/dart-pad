@@ -103,12 +103,7 @@ class ProblemWidget extends StatelessWidget {
                 style: subtleText,
               ),
               IconButton(
-                onPressed: () => suggestFix(
-                  context: context,
-                  errorMessage: issue.message,
-                  line: issue.location.line,
-                  column: issue.location.column,
-                ),
+                onPressed: () => _suggestFix(context),
                 tooltip: 'Suggest fix',
                 icon: Image.asset(
                   'gemini_sparkle_192.png',
@@ -181,6 +176,34 @@ class ProblemWidget extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _suggestFix(BuildContext context) async {
+    // the analyzer doesn't have a fix for this issue, so we need to
+    // ask the LLM to suggest a fix.
+    if (!(issue.hasFix ?? false)) {
+      await suggestFix(
+        context: context,
+        errorMessage: issue.message,
+        line: issue.location.line,
+        column: issue.location.column,
+      );
+      return;
+    }
+
+    // the analyzer has one or more fixes for this issue, so we need to route
+    // the user to the issue and show the list of fixes.
+    assert(issue.hasFix == true);
+    final appServices = Provider.of<AppServices>(context);
+    appServices.editorService?.jumpTo(AnalysisIssue(
+      kind: issue.kind,
+      message: issue.message,
+      location: Location(
+        line: issue.location.line,
+        column: issue.location.column,
+      ),
+    ));
+    appServices.editorService?.showQuickFixes();
   }
 }
 

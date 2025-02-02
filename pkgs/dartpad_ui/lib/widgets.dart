@@ -470,10 +470,10 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
       child: CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.enter, control: true): () {
-            if (_done) _onAccept();
+            if (_done) _onAcceptAndRun();
           },
           const SingleActivator(LogicalKeyboardKey.enter, meta: true): () {
-            if (_done) _onAccept();
+            if (_done) _onAcceptAndRun();
           },
         },
         child: AlertDialog(
@@ -493,7 +493,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: SizedBox(
             width: width,
-            // TODO (csells): enable diff mode to show the changes
+            // TODO(csells): enable diff mode to show the changes
             child: ReadOnlyEditorWidget(_generatedCode.toString()),
           ),
           actions: [
@@ -539,6 +539,15 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                     ),
                   ),
                 ),
+                TextButton(
+                  onPressed: _done ? _onAcceptAndRun : null,
+                  child: Text(
+                    'Accept & Run',
+                    style: TextStyle(
+                      color: !_done ? theme.disabledColor : null,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -549,7 +558,12 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   void _onAccept() {
     assert(_done);
-    Navigator.pop(context, _generatedCode.toString());
+    Navigator.pop(context, (source: _generatedCode.toString(), runNow: false));
+  }
+
+  void _onAcceptAndRun() {
+    assert(_done);
+    Navigator.pop(context, (source: _generatedCode.toString(), runNow: true));
   }
 }
 

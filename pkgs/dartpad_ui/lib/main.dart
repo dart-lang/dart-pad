@@ -666,7 +666,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      final source = await showDialog<String>(
+      final result = await showDialog<({String source, bool runNow})>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -674,10 +674,12 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      if (!context.mounted || source == null || source.isEmpty) return;
+      if (!context.mounted || result == null || result.source.isEmpty) return;
 
-      appModel.sourceCodeController.textNoScroll = source;
+      appModel.sourceCodeController.textNoScroll = result.source;
       appServices.editorService!.focus();
+
+      if (result.runNow) appServices.performCompileAndRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendLineToConsole('Generating code issue: $error');
@@ -707,7 +709,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      final newSource = await showDialog<String>(
+      final result = await showDialog<({String source, bool runNow})>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -715,10 +717,12 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      if (!context.mounted || newSource == null || newSource.isEmpty) return;
+      if (!context.mounted || result == null || result.source.isEmpty) return;
 
-      appModel.sourceCodeController.textNoScroll = newSource;
+      appModel.sourceCodeController.textNoScroll = result.source;
       appServices.editorService!.focus();
+
+      if (result.runNow) appServices.performCompileAndRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendLineToConsole('Updating code issue: $error');

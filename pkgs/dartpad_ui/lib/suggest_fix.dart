@@ -26,7 +26,7 @@ Future<void> suggestFix({
       ),
     );
 
-    final newSource = await showDialog<String>(
+    final result = await showDialog<({String source, bool runNow})>(
       context: context,
       builder: (context) => GeneratingCodeDialog(
         stream: stream,
@@ -34,14 +34,15 @@ Future<void> suggestFix({
       ),
     );
 
-    if (!context.mounted || newSource == null || newSource.isEmpty) return;
+    if (!context.mounted || result == null || result.source.isEmpty) return;
 
-    if (newSource == existingSource) {
+    if (result.source == existingSource) {
       appModel.editorStatus.showToast('No suggested fix');
     } else {
       appModel.editorStatus.showToast('Fix suggested');
-      appModel.sourceCodeController.textNoScroll = newSource;
+      appModel.sourceCodeController.textNoScroll = result.source;
       appServices.editorService!.focus();
+      if (result.runNow) appServices.performCompileAndRun();
     }
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
