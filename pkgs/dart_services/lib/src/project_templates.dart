@@ -193,9 +193,14 @@ String? _packageNameFromPackageUri(String uriString) {
   return uri.pathSegments.first;
 }
 
-bool isSupportedPackage(String package) =>
-    _packagesIndicatingFlutter.contains(package) ||
+bool isSupportedFlutterPackage(String package) =>
+    _packagesIndicatingFlutter.contains(package);
+
+bool isSupportedDartPackage(String package) =>
     supportedBasicDartPackages.contains(package);
+
+bool isSupportedPackage(String package) =>
+    isSupportedFlutterPackage(package) || isSupportedDartPackage(package);
 
 /// If the specified [package] is deprecated in DartPad and
 /// slated to be removed in a future update.

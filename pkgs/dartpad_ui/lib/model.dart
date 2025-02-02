@@ -508,18 +508,20 @@ class SplitDragStateManager {
 
 enum SplitDragState { inactive, active }
 
-class PromptResponse {
-  const PromptResponse({
+class PromptDialogResponse {
+  const PromptDialogResponse({
+    required this.appType,
     required this.prompt,
     this.attachments = const [],
   });
 
+  final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
 }
 
-class GenerateCodeResponse {
-  const GenerateCodeResponse({
+class GeneratingCodeDialogResponse {
+  const GeneratingCodeDialogResponse({
     required this.source,
     required this.runNow,
   });

@@ -461,12 +461,16 @@ class SuggestFixRequest {
       '[${source.substring(0, 10)} (...)';
 }
 
+enum AppType { dart, flutter }
+
 @JsonSerializable()
 class GenerateCodeRequest {
+  final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
 
   GenerateCodeRequest({
+    required this.appType,
     required this.prompt,
     required this.attachments,
   });
@@ -482,11 +486,13 @@ class GenerateCodeRequest {
 
 @JsonSerializable()
 class UpdateCodeRequest {
+  final AppType appType;
   final String prompt;
   final String source;
   final List<Attachment> attachments;
 
   UpdateCodeRequest({
+    required this.appType,
     required this.prompt,
     required this.source,
     required this.attachments,

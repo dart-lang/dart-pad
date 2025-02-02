@@ -32,6 +32,7 @@ class GenerativeAI {
           apiKey: _geminiApiKey!,
           model: _geminiModel,
           systemInstruction: _completeSystemInstructions(
+            AppType.flutter,
             '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
@@ -62,11 +63,12 @@ $source
     yield* cleanCode(_textOnly(stream));
   }
 
-  late final _newCodeModel = _canGenAI
+  late final _newFlutterCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
           systemInstruction: _completeSystemInstructions(
+            AppType.flutter,
             '''
 Please generate a Flutter program that satisfies the provided description.
 ''',
@@ -74,25 +76,47 @@ Please generate a Flutter program that satisfies the provided description.
         )
       : null;
 
-  Stream<String> generateCode({
-    required String prompt,
-    required List<Attachment> attachments,
-  }) async* {
-    _checkCanAI();
-    assert(_newCodeModel != null);
-    _logger.info('generateCode: Generating code for prompt: $prompt');
-    final stream = _newCodeModel!.generateContentStream([
-      Content.text(prompt),
-      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
-    ]);
-    yield* cleanCode(_textOnly(stream));
-  }
-
-  late final _updateCodeModel = _canGenAI
+  late final _newDartCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
           systemInstruction: _completeSystemInstructions(
+            AppType.dart,
+            '''
+Please generate a Dart program that satisfies the provided description.
+''',
+          ),
+        )
+      : null;
+
+  Stream<String> generateCode({
+    required AppType appType,
+    required String prompt,
+    required List<Attachment> attachments,
+  }) async* {
+    _checkCanAI();
+    assert(_newFlutterCodeModel != null);
+    _logger.info('generateCode: Generating code for prompt: $prompt');
+
+    final model = switch (appType) {
+      AppType.flutter => _newFlutterCodeModel!,
+      AppType.dart => _newDartCodeModel!,
+    };
+
+    final stream = model.generateContentStream([
+      Content.text(prompt),
+      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
+    ]);
+
+    yield* cleanCode(_textOnly(stream));
+  }
+
+  late final _updateFlutterCodeModel = _canGenAI
+      ? GenerativeModel(
+          apiKey: _geminiApiKey!,
+          model: _geminiModel,
+          systemInstruction: _completeSystemInstructions(
+            AppType.flutter,
             '''
 You will be given an existing Flutter program and a description of a change to
 be made to it. Please generate an updated Flutter program that satisfies the
@@ -102,24 +126,48 @@ description.
         )
       : null;
 
+  late final _updateDartCodeModel = _canGenAI
+      ? GenerativeModel(
+          apiKey: _geminiApiKey!,
+          model: _geminiModel,
+          systemInstruction: _completeSystemInstructions(
+            AppType.dart,
+            '''
+You will be given an existing Dart program and a description of a change to
+be made to it. Please generate an updated Dart program that satisfies the
+description.
+''',
+          ),
+        )
+      : null;
+
   Stream<String> updateCode({
+    required AppType appType,
     required String prompt,
     required String source,
     required List<Attachment> attachments,
   }) async* {
     _checkCanAI();
-    assert(_updateCodeModel != null);
-    final completedPrompt = '''
+    assert(_updateFlutterCodeModel != null);
+
+    final model = switch (appType) {
+      AppType.flutter => _updateFlutterCodeModel!,
+      AppType.dart => _updateDartCodeModel!,
+    };
+
+    final completePrompt = '''
 EXISTING SOURCE CODE:
 $source
 
 CHANGE DESCRIPTION:
 $prompt
 ''';
-    final stream = _updateCodeModel!.generateContentStream([
-      Content.text(completedPrompt),
+
+    final stream = model.generateContentStream([
+      Content.text(completePrompt),
       ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
     ]);
+
     yield* cleanCode(_textOnly(stream));
   }
 
@@ -174,8 +222,15 @@ $prompt
   }
 }
 
-Content _completeSystemInstructions(String modelSpecificInstructions) {
-  final allowedPackages = _allowedPackages();
+Content _completeSystemInstructions(
+  AppType appType,
+  String modelSpecificInstructions,
+) {
+  final allowedPackages = switch (appType) {
+    AppType.flutter => _allowedPackages(),
+    AppType.dart => _allowedDartPackages(),
+  };
+
   return Content.text('''
 You're an expert Flutter developer and UI designer creating Custom User
 Interfaces: generated, bespoke, interactive interfaces created on-the-fly using
@@ -360,4 +415,18 @@ List<String> _allowedPackages() {
   }
 
   return _cachedAllowedPackages;
+}
+
+final _cachedAllowedDartPackages = List<String>.empty(growable: true);
+List<String> _allowedDartPackages() {
+  if (_cachedAllowedDartPackages.isEmpty) {
+    final versions = getPackageVersions();
+    for (final MapEntry(key: name, value: version) in versions.entries) {
+      if (isSupportedDartPackage(name)) {
+        _cachedAllowedDartPackages.add('$name: $version');
+      }
+    }
+  }
+
+  return _cachedAllowedDartPackages;
 }

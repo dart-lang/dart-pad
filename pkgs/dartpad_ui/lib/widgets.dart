@@ -413,7 +413,11 @@ class _PromptDialogState extends State<PromptDialog> {
     assert(_controller.text.isNotEmpty);
     Navigator.pop(
       context,
-      PromptResponse(prompt: _controller.text, attachments: _attachments),
+      PromptDialogResponse(
+        appType: AppType.flutter, // TODO: get app type from user input
+        prompt: _controller.text,
+        attachments: _attachments,
+      ),
     );
   }
 
@@ -584,7 +588,8 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     assert(_done);
     Navigator.pop(
       context,
-      GenerateCodeResponse(source: _generatedCode.toString(), runNow: false),
+      GeneratingCodeDialogResponse(
+          source: _generatedCode.toString(), runNow: false),
     );
   }
 
@@ -592,7 +597,8 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     assert(_done);
     Navigator.pop(
       context,
-      GenerateCodeResponse(source: _generatedCode.toString(), runNow: true),
+      GeneratingCodeDialogResponse(
+          source: _generatedCode.toString(), runNow: true),
     );
   }
 }

@@ -38,10 +38,10 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       code: json['code'] as String?,
       correction: json['correction'] as String?,
       url: json['url'] as String?,
-      hasFix: json['hasFix'] as bool?,
       contextMessages: (json['contextMessages'] as List<dynamic>?)
           ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
           .toList(),
+      hasFix: json['hasFix'] as bool?,
     );
 
 Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
@@ -52,8 +52,8 @@ Map<String, dynamic> _$AnalysisIssueToJson(AnalysisIssue instance) =>
       'code': instance.code,
       'correction': instance.correction,
       'url': instance.url,
-      'hasFix': instance.hasFix,
       'contextMessages': instance.contextMessages,
+      'hasFix': instance.hasFix,
     };
 
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
@@ -349,6 +349,7 @@ Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
 
 GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
     GenerateCodeRequest(
+      appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       prompt: json['prompt'] as String,
       attachments: (json['attachments'] as List<dynamic>)
           .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
@@ -358,12 +359,19 @@ GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$GenerateCodeRequestToJson(
         GenerateCodeRequest instance) =>
     <String, dynamic>{
+      'appType': _$AppTypeEnumMap[instance.appType]!,
       'prompt': instance.prompt,
       'attachments': instance.attachments,
     };
 
+const _$AppTypeEnumMap = {
+  AppType.dart: 'dart',
+  AppType.flutter: 'flutter',
+};
+
 UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
     UpdateCodeRequest(
+      appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       prompt: json['prompt'] as String,
       source: json['source'] as String,
       attachments: (json['attachments'] as List<dynamic>)
@@ -373,6 +381,7 @@ UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$UpdateCodeRequestToJson(UpdateCodeRequest instance) =>
     <String, dynamic>{
+      'appType': _$AppTypeEnumMap[instance.appType]!,
       'prompt': instance.prompt,
       'source': instance.source,
       'attachments': instance.attachments,

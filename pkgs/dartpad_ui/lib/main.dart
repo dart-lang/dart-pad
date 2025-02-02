@@ -649,7 +649,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
-    final promptResponse = await showDialog<PromptResponse>(
+    final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder: (context) => PromptDialog(
         title: 'Generate New Code',
@@ -677,12 +677,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     try {
       final stream = appServices.generateCode(
         GenerateCodeRequest(
+          appType: promptResponse.appType,
           prompt: promptResponse.prompt,
           attachments: promptResponse.attachments,
         ),
       );
 
-      final generateResponse = await showDialog<GenerateCodeResponse>(
+      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -710,7 +711,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
-    final promptResponse = await showDialog<PromptResponse>(
+    final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder: (context) => PromptDialog(
         title: 'Update Existing Code',
@@ -739,13 +740,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       final source = appModel.sourceCodeController.text;
       final stream = appServices.updateCode(
         UpdateCodeRequest(
+          appType: promptResponse.appType,
           source: source,
           prompt: promptResponse.prompt,
           attachments: promptResponse.attachments,
         ),
       );
 
-      final generateResponse = await showDialog<GenerateCodeResponse>(
+      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
