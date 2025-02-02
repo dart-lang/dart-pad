@@ -102,12 +102,11 @@ class ProblemWidget extends StatelessWidget {
                 textAlign: TextAlign.end,
                 style: subtleText,
               ),
-              if (issue.hasFix ?? false)
-                IconButton(
-                  onPressed: () => _quickFixes(context),
-                  tooltip: 'Quick fixes',
-                  icon: const Icon(Icons.lightbulb_outline),
-                ),
+              IconButton(
+                onPressed: () => _quickFixes(context),
+                tooltip: 'Quick fixes',
+                icon: const Icon(Icons.lightbulb_outline),
+              ),
               IconButton(
                 onPressed: () => suggestFix(
                   context: context,
