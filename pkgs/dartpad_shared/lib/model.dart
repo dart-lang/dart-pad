@@ -119,8 +119,9 @@ class DiagnosticMessage {
 @JsonSerializable()
 class CompileRequest {
   final String source;
+  final String? deltaDill;
 
-  CompileRequest({required this.source});
+  CompileRequest({required this.source, this.deltaDill});
 
   factory CompileRequest.fromJson(Map<String, Object?> json) =>
       _$CompileRequestFromJson(json);
@@ -143,10 +144,12 @@ class CompileResponse {
 @JsonSerializable()
 class CompileDDCResponse {
   final String result;
+  final String? deltaDill;
   final String? modulesBaseUrl;
 
   CompileDDCResponse({
     required this.result,
+    required this.deltaDill,
     required this.modulesBaseUrl,
   });
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
@@ -104,7 +105,8 @@ class Compiler {
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
-  Future<DDCCompilationResults> compileDDC(String source) async {
+  Future<DDCCompilationResults> _compileDDC(String source,
+      {String? deltaDill, required bool useNew}) async {
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
@@ -126,9 +128,29 @@ class Compiler {
 
       File(bootstrapPath).writeAsStringSync(bootstrapContents);
       File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
+      final newDeltaKernelPath = path.join(temp.path, 'new_kernel.dill');
+      String? oldDillPath;
+      if (deltaDill != null) {
+        final oldDillBytes = base64Decode(deltaDill);
+        oldDillPath = path.join(temp.path, 'old_kernel.dill');
+        File(oldDillPath)
+          ..createSync()
+          ..writeAsBytesSync(oldDillBytes);
+      }
+
+      final mainJsPath = path.join(temp.path, '$kMainDart.js');
 
       final arguments = <String>[
-        '--modules=amd',
+        if (useNew) ...[
+          '--modules=ddc',
+          '--canary',
+          '--reload-delta-kernel=$newDeltaKernelPath',
+          if (oldDillPath != null) '--reload-last-accepted-kernel=$oldDillPath',
+        ],
+        if (!useNew) ...[
+          '--modules=amd',
+          '--module-name=dartpad_main',
+        ],
         '--no-summarize',
         if (usingFlutter) ...[
           '-s',
@@ -136,8 +158,7 @@ class Compiler {
           '-s',
           '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill',
         ],
-        ...['-o', path.join(temp.path, '$kMainDart.js')],
-        ...['--module-name', 'dartpad_main'],
+        ...['-o', mainJsPath],
         '--enable-asserts',
         if (_sdk.experiments.isNotEmpty)
           '--enable-experiment=${_sdk.experiments.join(",")}',
@@ -145,13 +166,10 @@ class Compiler {
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
-      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
-
       _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}"');
 
       final response =
           await _ddcDriver.doWork(WorkRequest(arguments: arguments));
-
       if (response.exitCode != 0) {
         if (response.output.contains("Undefined name 'main'")) {
           return DDCCompilationResults._missingMain;
@@ -160,18 +178,26 @@ class Compiler {
           CompilationProblem._(_rewritePaths(response.output)),
         ]);
       } else {
-        // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
-        // a result, the JS code produced above does *not* provide a name for
-        // the module it contains. That's a problem for DartPad, since it's
-        // adding the code to a script tag in an iframe rather than loading it
-        // as an individual file from baseURL. As a workaround, this replace
-        // statement injects a name into the module definition.
-        final processedJs = mainJs
-            .readAsStringSync()
-            .replaceFirst('define([', "define('dartpad_main', [");
+        final mainJs = File(mainJsPath);
+        final newDeltaDill = File(newDeltaKernelPath);
+
+        var compiledJs = mainJs.readAsStringSync();
+
+        if (!useNew) {
+          // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
+          // a result, the JS code produced above does *not* provide a name for
+          // the module it contains. That's a problem for DartPad, since it's
+          // adding the code to a script tag in an iframe rather than loading it
+          // as an individual file from baseURL. As a workaround, this replace
+          // statement injects a name into the module definition.
+          compiledJs =
+              compiledJs.replaceFirst('define([', "define('dartpad_main', [");
+        }
 
         final results = DDCCompilationResults(
-          compiledJS: processedJs,
+          compiledJS: compiledJs,
+          deltaDill:
+              useNew ? base64Encode(newDeltaDill.readAsBytesSync()) : null,
           modulesBaseUrl: 'https://storage.googleapis.com/$_storageBucket'
               '/${_sdk.dartVersion}/',
         );
@@ -184,6 +210,19 @@ class Compiler {
       temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}');
     }
+  }
+
+  Future<DDCCompilationResults> compileDDC(String source) async {
+    return await _compileDDC(source, useNew: false);
+  }
+
+  Future<DDCCompilationResults> compileNewDDC(String source) async {
+    return await _compileDDC(source, useNew: true);
+  }
+
+  Future<DDCCompilationResults> compileNewDDCReload(
+      String source, String deltaDill) async {
+    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {
@@ -225,14 +264,16 @@ class DDCCompilationResults {
   ]);
 
   final String? compiledJS;
+  final String? deltaDill;
   final String? modulesBaseUrl;
   final List<CompilationProblem> problems;
 
-  DDCCompilationResults({this.compiledJS, this.modulesBaseUrl})
+  DDCCompilationResults({this.compiledJS, this.deltaDill, this.modulesBaseUrl})
       : problems = const <CompilationProblem>[];
 
   const DDCCompilationResults.failed(this.problems)
       : compiledJS = null,
+        deltaDill = null,
         modulesBaseUrl = null;
 
   bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;

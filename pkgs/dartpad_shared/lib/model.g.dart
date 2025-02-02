@@ -85,11 +85,13 @@ Map<String, dynamic> _$DiagnosticMessageToJson(DiagnosticMessage instance) =>
 CompileRequest _$CompileRequestFromJson(Map<String, dynamic> json) =>
     CompileRequest(
       source: json['source'] as String,
+      deltaDill: json['deltaDill'] as String?,
     );
 
 Map<String, dynamic> _$CompileRequestToJson(CompileRequest instance) =>
     <String, dynamic>{
       'source': instance.source,
+      'deltaDill': instance.deltaDill,
     };
 
 CompileResponse _$CompileResponseFromJson(Map<String, dynamic> json) =>
@@ -105,12 +107,14 @@ Map<String, dynamic> _$CompileResponseToJson(CompileResponse instance) =>
 CompileDDCResponse _$CompileDDCResponseFromJson(Map<String, dynamic> json) =>
     CompileDDCResponse(
       result: json['result'] as String,
+      deltaDill: json['deltaDill'] as String?,
       modulesBaseUrl: json['modulesBaseUrl'] as String?,
     );
 
 Map<String, dynamic> _$CompileDDCResponseToJson(CompileDDCResponse instance) =>
     <String, dynamic>{
       'result': instance.result,
+      'deltaDill': instance.deltaDill,
       'modulesBaseUrl': instance.modulesBaseUrl,
     };
 
