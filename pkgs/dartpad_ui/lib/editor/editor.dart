@@ -643,6 +643,8 @@ class ReadOnlyDiffWidget extends StatelessWidget {
   final String existingSource;
   final String newSource;
 
+  // NOTE: the focus is needed to enable GeneratingCodeDialog to process
+  // keyboard shortcuts, e.g. cmd+enter
   @override
   Widget build(BuildContext context) => Focus(
         autofocus: true,
