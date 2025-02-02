@@ -35,9 +35,6 @@ abstract class EditorService {
   void jumpTo(AnalysisIssue issue);
   int get cursorOffset;
   void focus();
-
-  // Convert line/column to offset without moving cursor
-  int positionToOffset(int line, int column);
 }
 
 class AppModel {

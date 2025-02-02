@@ -458,17 +458,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       LocalStorage.instance.saveUserKeybinding('default');
     }
   }
-
-  @override
-  int positionToOffset(int line, int column) {
-    final doc = codeMirror?.getDoc();
-    // CodeMirror uses 0-based line numbers and columns
-    return doc?.indexFromPos(Position(
-          line: line - 1,
-          ch: column - 1,
-        )) ??
-        0;
-  }
 }
 
 // codemirror commands
