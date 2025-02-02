@@ -654,6 +654,7 @@ class ReadOnlyDiffWidget extends StatelessWidget {
             defaultTextStyle: GoogleFonts.robotoMono(
               fontSize: 14,
               fontWeight: FontWeight.w400,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
             diffCleanupType: DiffCleanupType.SEMANTIC,
           ),

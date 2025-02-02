@@ -117,7 +117,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (mounted && scrollController!.hasClients) {
-        scrollController!.animateTo(
+        scrollController?.animateTo(
           scrollController!.position.maxScrollExtent,
           duration: animationDelay,
           curve: animationCurve,
