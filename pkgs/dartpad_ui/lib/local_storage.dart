@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/model.dart';
+
 import 'local_storage/stub.dart'
     if (dart.library.js_util) 'local_storage/web.dart';
 
@@ -17,6 +19,12 @@ abstract class LocalStorage {
   void saveLastCreateCodePrompt(String prompt);
   String? getLastCreateCodePrompt();
 
+  void saveLastCreateCodeAppType(AppType appType);
+  AppType getLastCreateCodeAppType();
+
   void saveLastUpdateCodePrompt(String prompt);
   String? getLastUpdateCodePrompt();
+
+  void saveLastUpdateCodeAppType(AppType appType);
+  AppType getLastUpdateCodeAppType();
 }

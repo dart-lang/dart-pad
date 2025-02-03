@@ -654,6 +654,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context) => PromptDialog(
         title: 'Generate New Code',
         hint: 'Describe the code you want to generate',
+        initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
         promptButtons: {
           'to-do app':
               'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -672,6 +673,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
 
+    LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     try {
@@ -716,6 +718,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context) => PromptDialog(
         title: 'Update Existing Code',
         hint: 'Describe the updates you\'d like to make to the code',
+        initialAppType: LocalStorage.instance.getLastUpdateCodeAppType(),
         promptButtons: {
           'pretty':
               'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
@@ -734,6 +737,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
 
+    LocalStorage.instance.saveLastUpdateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
 
     try {

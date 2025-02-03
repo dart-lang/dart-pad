@@ -296,12 +296,14 @@ class PromptDialog extends StatefulWidget {
     required this.title,
     required this.hint,
     required this.promptButtons,
+    required this.initialAppType,
     super.key,
   });
 
   final String title;
   final String hint;
   final Map<String, String> promptButtons;
+  final AppType initialAppType;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
@@ -311,6 +313,13 @@ class _PromptDialogState extends State<PromptDialog> {
   final _controller = TextEditingController();
   final _attachments = List<Attachment>.empty(growable: true);
   final _focusNode = FocusNode();
+  late AppType _appType;
+
+  @override
+  void initState() {
+    super.initState();
+    _appType = widget.initialAppType;
+  }
 
   @override
   void dispose() {
@@ -347,18 +356,44 @@ class _PromptDialogState extends State<PromptDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                OverflowBar(
-                  spacing: 8,
-                  alignment: MainAxisAlignment.start,
+                Row(
                   children: [
-                    for (final entry in widget.promptButtons.entries)
-                      TextButton(
-                        onPressed: () {
-                          _controller.text = entry.value;
-                          _focusNode.requestFocus();
-                        },
-                        child: Text(entry.key),
+                    Expanded(
+                      child: OverflowBar(
+                        spacing: 8,
+                        alignment: MainAxisAlignment.start,
+                        children: [
+                          for (final entry in widget.promptButtons.entries)
+                            TextButton(
+                              onPressed: () {
+                                _controller.text = entry.value;
+                                _focusNode.requestFocus();
+                              },
+                              child: Text(entry.key),
+                            ),
+                        ],
                       ),
+                    ),
+                    SegmentedButton<AppType>(
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment<AppType>(
+                          value: AppType.dart,
+                          label: Text('Dart'),
+                          tooltip: 'Generate Dart code',
+                        ),
+                        ButtonSegment<AppType>(
+                          value: AppType.flutter,
+                          label: Text('Flutter'),
+                          tooltip: 'Generate Flutter code',
+                        ),
+                      ],
+                      selected: {_appType},
+                      onSelectionChanged: (selected) {
+                        setState(() => _appType = selected.first);
+                        _focusNode.requestFocus();
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -414,7 +449,7 @@ class _PromptDialogState extends State<PromptDialog> {
     Navigator.pop(
       context,
       PromptDialogResponse(
-        appType: AppType.flutter, // TODO: get app type from user input
+        appType: _appType,
         prompt: _controller.text,
         attachments: _attachments,
       ),

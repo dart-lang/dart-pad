@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/model.dart';
+
 import '../local_storage.dart';
 import '../utils.dart';
 
@@ -10,6 +12,8 @@ class LocalStorageImpl extends LocalStorage {
   String? _keyBinding;
   String? _lastCreateCodePrompt;
   String? _lastUpdateCodePrompt;
+  AppType _lastCreateCodeAppType = AppType.flutter;
+  AppType _lastUpdateCodeAppType = AppType.flutter;
 
   @override
   void saveUserCode(String code) => _code = code;
@@ -36,4 +40,18 @@ class LocalStorageImpl extends LocalStorage {
 
   @override
   String? getLastUpdateCodePrompt() => _lastUpdateCodePrompt?.nullIfEmpty;
+
+  @override
+  AppType getLastCreateCodeAppType() => _lastCreateCodeAppType;
+
+  @override
+  AppType getLastUpdateCodeAppType() => _lastUpdateCodeAppType;
+
+  @override
+  void saveLastCreateCodeAppType(AppType appType) =>
+      _lastCreateCodeAppType = appType;
+
+  @override
+  void saveLastUpdateCodeAppType(AppType appType) =>
+      _lastUpdateCodeAppType = appType;
 }

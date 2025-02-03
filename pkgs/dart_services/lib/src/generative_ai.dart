@@ -31,8 +31,7 @@ class GenerativeAI {
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _completeSystemInstructions(
-            AppType.flutter,
+          systemInstruction: _flutterSystemInstructions(
             '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
@@ -67,10 +66,9 @@ $source
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _completeSystemInstructions(
-            AppType.flutter,
+          systemInstruction: _flutterSystemInstructions(
             '''
-Please generate a Flutter program that satisfies the provided description.
+Generate a Flutter program that satisfies the provided description.
 ''',
           ),
         )
@@ -80,10 +78,9 @@ Please generate a Flutter program that satisfies the provided description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _completeSystemInstructions(
-            AppType.dart,
+          systemInstruction: _dartSystemInstructions(
             '''
-Please generate a Dart program that satisfies the provided description.
+Generate a Dart program that satisfies the provided description.
 ''',
           ),
         )
@@ -96,7 +93,7 @@ Please generate a Dart program that satisfies the provided description.
   }) async* {
     _checkCanAI();
     assert(_newFlutterCodeModel != null);
-    _logger.info('generateCode: Generating code for prompt: $prompt');
+    assert(_newDartCodeModel != null);
 
     final model = switch (appType) {
       AppType.flutter => _newFlutterCodeModel!,
@@ -115,11 +112,10 @@ Please generate a Dart program that satisfies the provided description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _completeSystemInstructions(
-            AppType.flutter,
+          systemInstruction: _flutterSystemInstructions(
             '''
 You will be given an existing Flutter program and a description of a change to
-be made to it. Please generate an updated Flutter program that satisfies the
+be made to it. Generate an updated Flutter program that satisfies the
 description.
 ''',
           ),
@@ -130,11 +126,10 @@ description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _completeSystemInstructions(
-            AppType.dart,
+          systemInstruction: _dartSystemInstructions(
             '''
 You will be given an existing Dart program and a description of a change to
-be made to it. Please generate an updated Dart program that satisfies the
+be made to it. Generate an updated Dart program that satisfies the
 description.
 ''',
           ),
@@ -149,6 +144,7 @@ description.
   }) async* {
     _checkCanAI();
     assert(_updateFlutterCodeModel != null);
+    assert(_updateDartCodeModel != null);
 
     final model = switch (appType) {
       AppType.flutter => _updateFlutterCodeModel!,
@@ -222,16 +218,36 @@ $prompt
   }
 }
 
-Content _completeSystemInstructions(
-  AppType appType,
-  String modelSpecificInstructions,
-) {
-  final allowedPackages = switch (appType) {
-    AppType.flutter => _allowedPackages(),
-    AppType.dart => _allowedDartPackages(),
-  };
+final _cachedAllowedFlutterPackages = List<String>.empty(growable: true);
+List<String> _allowedFlutterPackages() {
+  if (_cachedAllowedFlutterPackages.isEmpty) {
+    final versions = getPackageVersions();
+    for (final MapEntry(key: name, value: version) in versions.entries) {
+      if (isSupportedPackage(name)) {
+        _cachedAllowedFlutterPackages.add('$name: $version');
+      }
+    }
+  }
 
-  return Content.text('''
+  return _cachedAllowedFlutterPackages;
+}
+
+final _cachedAllowedDartPackages = List<String>.empty(growable: true);
+List<String> _allowedDartPackages() {
+  if (_cachedAllowedDartPackages.isEmpty) {
+    final versions = getPackageVersions();
+    for (final MapEntry(key: name, value: version) in versions.entries) {
+      if (isSupportedDartPackage(name)) {
+        _cachedAllowedDartPackages.add('$name: $version');
+      }
+    }
+  }
+
+  return _cachedAllowedDartPackages;
+}
+
+Content _flutterSystemInstructions(String modelSpecificInstructions) =>
+    Content.text('''
 You're an expert Flutter developer and UI designer creating Custom User
 Interfaces: generated, bespoke, interactive interfaces created on-the-fly using
 the Flutter SDK API. You will produce a professional, release-ready Flutter
@@ -397,36 +413,104 @@ Allowed packages which are used must be imported using the IMPORT given in order
 for the app to build.
 
 The following packages, at the specified versions, are allowed:
-${allowedPackages.join('\n')}
+${_allowedFlutterPackages().map((p) => '- $p').join('\n')}
 
 $modelSpecificInstructions
 ''');
-}
 
-final _cachedAllowedPackages = List<String>.empty(growable: true);
-List<String> _allowedPackages() {
-  if (_cachedAllowedPackages.isEmpty) {
-    final versions = getPackageVersions();
-    for (final MapEntry(key: name, value: version) in versions.entries) {
-      if (isSupportedPackage(name)) {
-        _cachedAllowedPackages.add('$name: $version');
-      }
-    }
-  }
+Content _dartSystemInstructions(String modelSpecificInstructions) =>
+    Content.text('''
+You're an expert Dart developer specializing in writing efficient, idiomatic,
+and production-ready Dart programs.  
+You will produce professional, release-ready Dart applications. All of the
+instructions below are required to be rigorously followed.
 
-  return _cachedAllowedPackages;
-}
+Dart applications include standalone scripts, backend services, CLI tools, and
+other non-Flutter programs.  
+They shall prioritize clarity, maintainability, and correctness. Your output
+must be complete, fully functional, and immediately executable.
 
-final _cachedAllowedDartPackages = List<String>.empty(growable: true);
-List<String> _allowedDartPackages() {
-  if (_cachedAllowedDartPackages.isEmpty) {
-    final versions = getPackageVersions();
-    for (final MapEntry(key: name, value: version) in versions.entries) {
-      if (isSupportedDartPackage(name)) {
-        _cachedAllowedDartPackages.add('$name: $version');
-      }
-    }
-  }
+You're using the following process to systematically construct the Dart program
+(each numbered step is a distinct part of the process):  
 
-  return _cachedAllowedDartPackages;
-}
+1. **PLANNING**: Determine how to fully implement the requested functionality in an idiomatic Dart program.
+2. **IMPLEMENTATION**: Generate the entire Dart program, ensuring correctness, efficiency, and adherence to best practices.
+3. **OUTPUT**: Output the finished program **only**, with no explanations or commentary.
+
+After each step in the process, integrate the information from the previous step
+and move forward without requiring user verification.  
+The **only output** shall be the final, complete Dart program.
+
+---
+
+### **Requirements for Generating Dart Code**
+- All logic and functionality **must be fully implemented**—no TODOs,
+placeholders, or incomplete functions.
+
+- Programs must **follow Dart best practices**, including effective use of
+`async/await`, null safety, and type inference.
+
+- **Main execution should be structured properly**: The `main` function should
+handle input/output in a clean and structured manner.
+
+- **No Flutter or UI code is allowed**: The generated program **must not**
+include any `flutter` imports, widget-based logic, or references to
+`MaterialApp`, `Widgets`, or UI-related libraries.
+
+- Programs must be **pure Dart**, using `dart:` libraries or explicitly allowed
+third-party packages.
+
+- **Use appropriate null safety practices**: Avoid unnecessary nullable types
+and provide meaningful default values when needed.
+
+- **Ensure correctness in type usage**: Use appropriate generic constraints and
+avoid unnecessary dynamic typing.
+
+- If the program requires **parsing, async tasks, or JSON handling**, use Dart’s
+built-in libraries like `dart:convert` and `dart:async` instead of external
+dependencies unless specified.
+
+- **Use efficient and idiomatic Dart patterns**: Prefer `map`/`reduce` for list
+operations, and use extension methods where relevant.
+
+- **Error handling must be robust**: If user input or file I/O is involved, wrap
+potentially failing operations in `try/catch` blocks.
+
+- **Programs must be designed for reusability**: Functions and classes should be
+structured to allow modularity and extension without unnecessary global state.
+
+---
+
+### **Final Output Requirement**
+- The **only** output shall be a **complete, compilable Dart program** in a
+**single file** that runs immediately.
+
+- Ensure that the generated program meets the functional requirements described
+in the prompt.
+
+- If any attachments are provided, they must be considered as part of the
+prompt.
+
+---
+
+### **Instructions for Generating Code**
+**DO NOT** include Flutter-related imports, widgets, UI components, or anything
+related to mobile app development.
+
+You are generating a **pure Dart** program with a `main` function entry point.
+
+---
+
+### **Allowed Packages**
+The following Dart packages are explicitly allowed. If a package is not listed,
+it should not be used unless explicitly requested in the prompt.
+
+Allowed packages must be imported exactly as specified:
+${_allowedDartPackages().map((p) => '- $p').join('\n')}
+
+Imports must appear at the top of the file before any other code.
+
+---
+
+$modelSpecificInstructions
+''');

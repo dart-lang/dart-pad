@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/model.dart';
 import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
@@ -11,6 +12,8 @@ const _userInputKey = 'user_input_';
 const _userKeybindingKey = 'user_keybinding_';
 const _lastCreateCodePromptKey = 'last_create_code_prompt_';
 const _lastUpdateCodePromptKey = 'last_update_code_prompt_';
+const _lastCreateCodeAppTypeKey = 'last_create_code_app_type_';
+const _lastUpdateCodeAppTypeKey = 'last_update_code_app_type_';
 
 class LocalStorageImpl extends LocalStorage {
   @override
@@ -44,4 +47,30 @@ class LocalStorageImpl extends LocalStorage {
   @override
   String? getLastUpdateCodePrompt() =>
       web.window.localStorage.getItem(_lastUpdateCodePromptKey)?.nullIfEmpty;
+
+  @override
+  AppType getLastCreateCodeAppType() {
+    final appType = web.window.localStorage.getItem(_lastCreateCodeAppTypeKey);
+    return AppType.values.firstWhere(
+      (e) => e.name == appType,
+      orElse: () => AppType.flutter,
+    );
+  }
+
+  @override
+  void saveLastCreateCodeAppType(AppType appType) =>
+      web.window.localStorage.setItem(_lastCreateCodeAppTypeKey, appType.name);
+
+  @override
+  AppType getLastUpdateCodeAppType() {
+    final appType = web.window.localStorage.getItem(_lastUpdateCodeAppTypeKey);
+    return AppType.values.firstWhere(
+      (e) => e.name == appType,
+      orElse: () => AppType.flutter,
+    );
+  }
+
+  @override
+  void saveLastUpdateCodeAppType(AppType appType) =>
+      web.window.localStorage.setItem(_lastUpdateCodeAppTypeKey, appType.name);
 }
