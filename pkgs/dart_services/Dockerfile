@@ -1,8 +1,6 @@
-ARG PROJECT_ID
-ARG FLUTTER_CHANNEL
 ARG BUILD_SHA
 
-FROM gcr.io/$PROJECT_ID/flutter:$FLUTTER_CHANNEL
+FROM ghcr.io/cirruslabs/flutter:stable
 
 WORKDIR /pkgs/dartpad_shared
 COPY pkgs/dartpad_shared .
