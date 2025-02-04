@@ -1,12 +1,19 @@
 ARG BUILD_SHA
 
-FROM ghcr.io/cirruslabs/flutter:stable
+FROM instrumentisto/flutter:latest
+
 
 WORKDIR /pkgs/dartpad_shared
 COPY pkgs/dartpad_shared .
 
 WORKDIR /pkgs/dart_services
 COPY pkgs/dart_services .
+
+RUN flutter doctor -v
+
+# pubs_dependencies_main.json を仮に複製
+RUN cp tool/dependencies/pub_dependencies_main.json \
+       tool/dependencies/pub_dependencies_[user-branch].json || true
 
 RUN dart pub get
 RUN dart compile exe bin/server.dart -o bin/server

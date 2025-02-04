@@ -16,3 +16,6 @@ build/
 # IDE configuration
 .idea/
 .vscode/
+
+# FVM Version Cache
+.fvm/
