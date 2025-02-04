@@ -24,4 +24,4 @@ RUN dart run grinder build-storage-artifacts
 ENV BUILD_SHA=$BUILD_SHA
 
 EXPOSE 8080
-CMD ["/app/bin/server"]
+CMD ["/pkgs/dart_services/bin/server"]
