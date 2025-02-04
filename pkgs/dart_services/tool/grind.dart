@@ -214,7 +214,7 @@ Future<String> _buildStorageArtifacts(
   artifactsDir.createSync(recursive: true);
 
   final sdkJsPath =
-      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-html-sound/dart_sdk.js');
+      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
   copy(getFile('$sdkJsPath.map'), artifactsDir);
