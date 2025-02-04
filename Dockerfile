@@ -1,12 +1,13 @@
 FROM ubuntu:24.04
 
-# Install required dependencies
+# Install required dependencies, including CA certificates
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       git \
       curl \
       unzip \
       xz-utils \
+      ca-certificates \
       libglu1-mesa && \
     rm -rf /var/lib/apt/lists/*
 
