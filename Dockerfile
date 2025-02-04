@@ -1,7 +1,6 @@
 ARG BUILD_SHA
 
-FROM instrumentisto/flutter:latest
-
+FROM ghcr.io/cirruslabs/flutter:3.27.3
 
 WORKDIR /pkgs/dartpad_shared
 COPY pkgs/dartpad_shared .
