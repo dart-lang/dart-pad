@@ -11,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'enable_gen_ai.dart';
 import 'model.dart';
+import 'suggest_fix.dart';
 import 'theme.dart';
 
 const _rowPadding = 2.0;
@@ -100,7 +102,27 @@ class ProblemWidget extends StatelessWidget {
                 overflow: TextOverflow.clip,
                 textAlign: TextAlign.end,
                 style: subtleText,
-              )
+              ),
+              IconButton(
+                onPressed: () => _quickFixes(context),
+                tooltip: 'Quick fixes',
+                icon: const Icon(Icons.lightbulb_outline),
+              ),
+              if (genAiEnabled)
+                IconButton(
+                  onPressed: () => suggestFix(
+                    context: context,
+                    errorMessage: issue.message,
+                    line: issue.location.line,
+                    column: issue.location.column,
+                  ),
+                  tooltip: 'Suggest fix',
+                  icon: Image.asset(
+                    'gemini_sparkle_192.png',
+                    width: 16,
+                    height: 16,
+                  ),
+                ),
             ],
           ),
           if (issue.correction case final correction?) ...[
@@ -166,6 +188,21 @@ class ProblemWidget extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _quickFixes(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context, listen: false);
+
+    appServices.editorService?.jumpTo(AnalysisIssue(
+      kind: issue.kind,
+      message: issue.message,
+      location: Location(
+        line: issue.location.line,
+        column: issue.location.column,
+      ),
+    ));
+
+    appServices.editorService?.showQuickFixes();
   }
 }
 

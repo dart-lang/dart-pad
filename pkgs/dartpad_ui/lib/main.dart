@@ -20,6 +20,7 @@ import 'console.dart';
 import 'docs.dart';
 import 'editor/editor.dart';
 import 'embed.dart';
+import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
@@ -28,6 +29,7 @@ import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
 import 'theme.dart';
+import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';
 
@@ -593,6 +595,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ListSamplesWidget(smallIcon: true),
               ],
 
+              if (genAiEnabled) ...[
+                const SizedBox(width: denseSpacing),
+                GeminiMenu(
+                  generateNewCode: () => _generateNewCode(context),
+                  updateExistingCode: () => _updateExistingCode(context),
+                ),
+              ],
+
               const SizedBox(width: defaultSpacing),
               // Hide the snippet title when the screen width is too small.
               if (constraints.maxWidth > smallScreenWidth)
@@ -636,6 +646,137 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final request = OpenInIdxRequest(code: code);
     final response = await appServices.services.openInIdx(request);
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
+  }
+
+  Future<void> _generateNewCode(BuildContext context) async {
+    final appModel = Provider.of<AppModel>(context, listen: false);
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+    final promptResponse = await showDialog<PromptDialogResponse>(
+      context: context,
+      builder: (context) => PromptDialog(
+        title: 'Generate New Code',
+        hint: 'Describe the code you want to generate',
+        initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
+        promptButtons: {
+          'to-do app':
+              'Generate a Flutter to-do app with add, remove, and complete task functionality',
+          'login screen':
+              'Generate a Flutter login screen with email and password fields, validation, and a submit button',
+          'tic-tac-toe':
+              'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
+      ),
+    );
+
+    if (!context.mounted ||
+        promptResponse == null ||
+        promptResponse.prompt.isEmpty) {
+      return;
+    }
+
+    LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
+    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
+
+    try {
+      final stream = appServices.generateCode(
+        GenerateCodeRequest(
+          appType: promptResponse.appType,
+          prompt: promptResponse.prompt,
+          attachments: promptResponse.attachments,
+        ),
+      );
+
+      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(
+          stream: stream,
+          title: 'Generating New Code',
+        ),
+      );
+
+      if (!context.mounted ||
+          generateResponse == null ||
+          generateResponse.source.isEmpty) {
+        return;
+      }
+
+      appModel.sourceCodeController.textNoScroll = generateResponse.source;
+      appServices.editorService!.focus();
+
+      if (generateResponse.runNow) appServices.performCompileAndRun();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error generating code');
+      appModel.appendLineToConsole('Generating code issue: $error');
+    }
+  }
+
+  Future<void> _updateExistingCode(BuildContext context) async {
+    final appModel = Provider.of<AppModel>(context, listen: false);
+    final appServices = Provider.of<AppServices>(context, listen: false);
+    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
+    final promptResponse = await showDialog<PromptDialogResponse>(
+      context: context,
+      builder: (context) => PromptDialog(
+        title: 'Update Existing Code',
+        hint: 'Describe the updates you\'d like to make to the code',
+        initialAppType: LocalStorage.instance.getLastUpdateCodeAppType(),
+        promptButtons: {
+          'pretty':
+              'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+          'fancy':
+              'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+          'pink':
+              'Make the app pink by changing the color scheme to use a rich, pink color palette',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
+      ),
+    );
+
+    if (!context.mounted ||
+        promptResponse == null ||
+        promptResponse.prompt.isEmpty) {
+      return;
+    }
+
+    LocalStorage.instance.saveLastUpdateCodeAppType(promptResponse.appType);
+    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
+
+    try {
+      final source = appModel.sourceCodeController.text;
+      final stream = appServices.updateCode(
+        UpdateCodeRequest(
+          appType: promptResponse.appType,
+          source: source,
+          prompt: promptResponse.prompt,
+          attachments: promptResponse.attachments,
+        ),
+      );
+
+      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
+        context: context,
+        builder: (context) => GeneratingCodeDialog(
+          stream: stream,
+          title: 'Updating Existing Code',
+          existingSource: source,
+        ),
+      );
+
+      if (!context.mounted ||
+          generateResponse == null ||
+          generateResponse.source.isEmpty) {
+        return;
+      }
+
+      appModel.sourceCodeController.textNoScroll = generateResponse.source;
+      appServices.editorService!.focus();
+
+      if (generateResponse.runNow) appServices.performCompileAndRun();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error updating code');
+      appModel.appendLineToConsole('Updating code issue: $error');
+    }
   }
 }
 
@@ -684,7 +825,7 @@ class EditorWithButtons extends StatelessWidget {
                         builder: (_, bool value, __) {
                           return PointerInterceptor(
                             child: MiniIconButton(
-                              icon: Icons.help_outline,
+                              icon: const Icon(Icons.help_outline),
                               tooltip: 'Show docs',
                               // small: true,
                               onPressed:
@@ -700,7 +841,7 @@ class EditorWithButtons extends StatelessWidget {
                         builder: (_, bool value, __) {
                           return PointerInterceptor(
                             child: MiniIconButton(
-                              icon: Icons.format_align_left,
+                              icon: const Icon(Icons.format_align_left),
                               tooltip: 'Format',
                               small: true,
                               onPressed: value ? null : onFormat,
@@ -1153,6 +1294,56 @@ class ContinueInMenu extends StatelessWidget {
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
               child: Text('IDX'),
+            ),
+          ),
+        ].map((widget) => PointerInterceptor(child: widget))
+      ],
+    );
+  }
+}
+
+class GeminiMenu extends StatelessWidget {
+  const GeminiMenu({
+    required this.generateNewCode,
+    required this.updateExistingCode,
+    super.key,
+  });
+
+  final VoidCallback generateNewCode;
+  final VoidCallback updateExistingCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = Image.asset(
+      'gemini_sparkle_192.png',
+      width: 24,
+      height: 24,
+    );
+
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return TextButton.icon(
+          onPressed: () => controller.toggleMenuState(),
+          icon: image,
+          label: const Text('Gemini'),
+        );
+      },
+      menuChildren: [
+        ...[
+          MenuItemButton(
+            leadingIcon: image,
+            onPressed: generateNewCode,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 32),
+              child: Text('Generate Code'),
+            ),
+          ),
+          MenuItemButton(
+            leadingIcon: image,
+            onPressed: updateExistingCode,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 32),
+              child: Text('Update Code'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))
