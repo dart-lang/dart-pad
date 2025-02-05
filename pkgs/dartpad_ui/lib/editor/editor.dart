@@ -151,7 +151,6 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   void showQuickFixes() {
-    // debugPrint('showQuickFixes');
     completionType = CompletionType.quickfix;
 
     codeMirror?.execCommand('autocomplete');
@@ -624,13 +623,15 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 500,
-        child: EditorWidget(
-          appModel: _appModel,
-          appServices: _appServices,
-        ),
-      );
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 500,
+      child: EditorWidget(
+        appModel: _appModel,
+        appServices: _appServices,
+      ),
+    );
+  }
 }
 
 class ReadOnlyDiffWidget extends StatelessWidget {
@@ -646,23 +647,25 @@ class ReadOnlyDiffWidget extends StatelessWidget {
   // NOTE: the focus is needed to enable GeneratingCodeDialog to process
   // keyboard shortcuts, e.g. cmd+enter
   @override
-  Widget build(BuildContext context) => Focus(
-        autofocus: true,
-        child: SizedBox(
-          height: 500,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: PrettyDiffText(
-              oldText: existingSource,
-              newText: newSource,
-              defaultTextStyle: GoogleFonts.robotoMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-              diffCleanupType: DiffCleanupType.SEMANTIC,
+  Widget build(BuildContext context) {
+    return Focus(
+      autofocus: true,
+      child: SizedBox(
+        height: 500,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: PrettyDiffText(
+            oldText: existingSource,
+            newText: newSource,
+            defaultTextStyle: GoogleFonts.robotoMono(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
+            diffCleanupType: DiffCleanupType.SEMANTIC,
           ),
         ),
-      );
+      ),
+    );
+  }
 }

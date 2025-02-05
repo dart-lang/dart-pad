@@ -4,7 +4,7 @@
 
 import 'package:logging/logging.dart';
 
-const bool verboseLogging = true;
+const bool verboseLogging = false;
 
 final _wsRegex = RegExp(r' \s+');
 

@@ -653,25 +653,27 @@ class EditableImageList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => ListView.builder(
-        reverse: true,
-        scrollDirection: Axis.horizontal,
-        // First item is the "Add Attachment" button
-        itemCount: attachments.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _AddImageWidget(
-              onAdd: attachments.length < maxAttachments ? onAdd : null,
-            );
-          } else {
-            final attachmentIndex = index - 1;
-            return _ImageAttachmentWidget(
-              attachment: attachments[attachmentIndex],
-              onRemove: () => onRemove(attachmentIndex),
-            );
-          }
-        },
-      );
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      reverse: true,
+      scrollDirection: Axis.horizontal,
+      // First item is the "Add Attachment" button
+      itemCount: attachments.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _AddImageWidget(
+            onAdd: attachments.length < maxAttachments ? onAdd : null,
+          );
+        } else {
+          final attachmentIndex = index - 1;
+          return _ImageAttachmentWidget(
+            attachment: attachments[attachmentIndex],
+            onRemove: () => onRemove(attachmentIndex),
+          );
+        }
+      },
+    );
+  }
 }
 
 class _ImageAttachmentWidget extends StatelessWidget {
@@ -684,63 +686,65 @@ class _ImageAttachmentWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          GestureDetector(
-            onTap: () {
-              showDialog<void>(
-                context: context,
-                builder: (BuildContext context) {
-                  return GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Dialog(
-                      backgroundColor: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: MemoryImage(attachment.bytes),
-                            fit: BoxFit.contain,
-                          ),
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () {
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext context) {
+                return GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: MemoryImage(attachment.bytes),
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                  );
-                },
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              width: 128,
-              height: 128,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: MemoryImage(attachment.bytes),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 4,
-            right: 12,
-            child: InkWell(
-              onTap: onRemove,
-              child: Tooltip(
-                message: 'Remove Image',
-                child: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  radius: 12,
-                  child: Icon(
-                    Icons.close,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSecondary,
                   ),
+                );
+              },
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            width: 128,
+            height: 128,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: MemoryImage(attachment.bytes),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 12,
+          child: InkWell(
+            onTap: onRemove,
+            child: Tooltip(
+              message: 'Remove Image',
+              child: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                radius: 12,
+                child: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSecondary,
                 ),
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 }
 
 class _AddImageWidget extends StatelessWidget {
@@ -748,32 +752,34 @@ class _AddImageWidget extends StatelessWidget {
   const _AddImageWidget({required this.onAdd});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(8),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: 128,
-            height: 128,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: SizedBox.square(
-                dimension: 128,
-                child: ElevatedButton(
-                  onPressed: onAdd,
-                  style: ElevatedButton.styleFrom(
-                    shape: const RoundedRectangleBorder(),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Add\nImage',
-                      textAlign: TextAlign.center,
-                    ),
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          width: 128,
+          height: 128,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox.square(
+              dimension: 128,
+              child: ElevatedButton(
+                onPressed: onAdd,
+                style: ElevatedButton.styleFrom(
+                  shape: const RoundedRectangleBorder(),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Add\nImage',
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
