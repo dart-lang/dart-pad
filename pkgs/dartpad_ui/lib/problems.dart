@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'enable_gen_ai.dart';
 import 'model.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
@@ -107,20 +108,21 @@ class ProblemWidget extends StatelessWidget {
                 tooltip: 'Quick fixes',
                 icon: const Icon(Icons.lightbulb_outline),
               ),
-              IconButton(
-                onPressed: () => suggestFix(
-                  context: context,
-                  errorMessage: issue.message,
-                  line: issue.location.line,
-                  column: issue.location.column,
+              if (genAiEnabled)
+                IconButton(
+                  onPressed: () => suggestFix(
+                    context: context,
+                    errorMessage: issue.message,
+                    line: issue.location.line,
+                    column: issue.location.column,
+                  ),
+                  tooltip: 'Suggest fix',
+                  icon: Image.asset(
+                    'gemini_sparkle_192.png',
+                    width: 16,
+                    height: 16,
+                  ),
                 ),
-                tooltip: 'Suggest fix',
-                icon: Image.asset(
-                  'gemini_sparkle_192.png',
-                  width: 16,
-                  height: 16,
-                ),
-              ),
             ],
           ),
           if (issue.correction case final correction?) ...[

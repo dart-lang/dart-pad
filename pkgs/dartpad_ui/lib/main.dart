@@ -20,6 +20,7 @@ import 'console.dart';
 import 'docs.dart';
 import 'editor/editor.dart';
 import 'embed.dart';
+import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
@@ -594,11 +595,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const ListSamplesWidget(smallIcon: true),
               ],
 
-              const SizedBox(width: denseSpacing),
-              GeminiMenu(
-                generateNewCode: () => _generateNewCode(context),
-                updateExistingCode: () => _updateExistingCode(context),
-              ),
+              if (genAiEnabled) ...[
+                const SizedBox(width: denseSpacing),
+                GeminiMenu(
+                  generateNewCode: () => _generateNewCode(context),
+                  updateExistingCode: () => _updateExistingCode(context),
+                ),
+              ],
 
               const SizedBox(width: defaultSpacing),
               // Hide the snippet title when the screen width is too small.

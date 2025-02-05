@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'enable_gen_ai.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -80,20 +81,21 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MiniIconButton(
-                    icon: Image.asset(
-                      'gemini_sparkle_192.png',
-                      width: 16,
-                      height: 16,
+                  if (genAiEnabled)
+                    MiniIconButton(
+                      icon: Image.asset(
+                        'gemini_sparkle_192.png',
+                        width: 16,
+                        height: 16,
+                      ),
+                      tooltip: 'Suggest fix',
+                      onPressed: consoleOutput.isEmpty
+                          ? null
+                          : () => suggestFix(
+                                context: context,
+                                errorMessage: consoleOutput,
+                              ),
                     ),
-                    tooltip: 'Suggest fix',
-                    onPressed: consoleOutput.isEmpty
-                        ? null
-                        : () => suggestFix(
-                              context: context,
-                              errorMessage: consoleOutput,
-                            ),
-                  ),
                   MiniIconButton(
                     icon: const Icon(Icons.playlist_remove),
                     tooltip: 'Clear console',
