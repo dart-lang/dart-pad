@@ -230,8 +230,8 @@ Future<String> _buildStorageArtifacts(
 
   final sdkJsPath =
       path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
-  final newSdkJsPath = path.join(sdk.flutterWebSdkPath,
-      'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
+  final newSdkJsPath = path.join(
+      sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
   final ddcModuleLoaderPath =
       path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
 
