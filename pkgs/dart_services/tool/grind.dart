@@ -263,9 +263,6 @@ Future<String> _buildStorageArtifacts(
       workingDirectory: dir.path,
     );
 
-    final ddcModuleLoaderPath =
-        path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
-
     copy(getFile(ddcModuleLoaderPath), artifactsDir);
     copy(getFile(newSdkJsPath), artifactsDir);
     copy(getFile('$newSdkJsPath.map'), artifactsDir);
