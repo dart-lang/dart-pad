@@ -52,8 +52,6 @@ class CommonServerImpl {
     await analyzer.init();
 
     compiler = Compiler(sdk, storageBucket: storageBucket);
-
-    ai = GenerativeAI();
   }
 
   Future<void> shutdown() async {
