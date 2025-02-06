@@ -37,7 +37,7 @@ class CommonServerImpl {
 
   late Analyzer analyzer;
   late Compiler compiler;
-  late GenerativeAI ai;
+  final ai = GenerativeAI();
 
   CommonServerImpl(
     this.sdk,
