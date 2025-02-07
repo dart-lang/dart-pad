@@ -420,6 +420,8 @@ The following packages, at the specified versions, are allowed:
 ${_allowedFlutterPackages().map((p) => '- $p').join('\n')}
 
 $modelSpecificInstructions
+
+Only output the Dart code for the program.
 ''');
 
 Content _dartSystemInstructions(String modelSpecificInstructions) =>
@@ -517,4 +519,8 @@ Imports must appear at the top of the file before any other code.
 ---
 
 $modelSpecificInstructions
+
+---
+
+Only output the Dart code for the program.
 ''');
