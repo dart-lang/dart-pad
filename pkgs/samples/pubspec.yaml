@@ -3,13 +3,13 @@ description: Sample code snippets for DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.1
 
 dependencies:
-  flame: ^1.23.0
+  flame: ^1.24.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.5
+  flutter_markdown: ^0.7.6
   google_generative_ai: ^0.4.6
   url_launcher: ^6.3.1
 
