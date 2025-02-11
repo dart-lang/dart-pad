@@ -3,7 +3,7 @@ description: The front-end UI of DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.6.0-0
+  sdk: ^3.6.1
 
 dependencies:
   collection: ^1.19.0
@@ -27,7 +27,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   test: ^1.25.7
 
 flutter:
