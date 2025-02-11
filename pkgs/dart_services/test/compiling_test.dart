@@ -33,24 +33,35 @@ void defineTests() {
     });
 
     void testDDCEndpoint(String endpointName,
-        {Future<DDCCompilationResults> Function(String source)? endpoint,
-        Future<DDCCompilationResults> Function(String source, String deltaDill)?
+        {required Future<DDCCompilationResults> Function(String source)
+            restartEndpoint,
+        Future<DDCCompilationResults> Function(
+                String source, String lastAcceptedDill)?
             reloadEndpoint,
-        required bool expectDeltaDill,
+        required bool expectNewDeltaDill,
         required String compiledIndicator}) {
+      Future<String> generateDeltaDill(
+          Future<DDCCompilationResults> Function(String source) restartEndpoint,
+          String source) async {
+        final result = await restartEndpoint(source);
+        return result.deltaDill!;
+      }
+
       group(endpointName, () {
         Future<void> Function() generateEndpointTest(String sample) {
           return () async {
             DDCCompilationResults result;
-            if (endpoint != null) {
-              result = await endpoint(sample);
+            if (reloadEndpoint == null) {
+              result = await restartEndpoint(sample);
             } else {
-              result = await reloadEndpoint!(sample, sampleDillFile);
+              final lastAcceptedDill =
+                  await generateDeltaDill(restartEndpoint, sample);
+              result = await reloadEndpoint(sample, lastAcceptedDill);
             }
             expect(result.problems, isEmpty);
             expect(result.success, true);
             expect(result.compiledJS, isNotEmpty);
-            expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
+            expect(result.deltaDill, expectNewDeltaDill ? isNotEmpty : isNull);
             expect(result.modulesBaseUrl, isNotEmpty);
 
             expect(result.compiledJS, contains(compiledIndicator));
@@ -99,10 +110,10 @@ void defineTests() {
 
         test('with single error', () async {
           DDCCompilationResults result;
-          if (endpoint != null) {
-            result = await endpoint(sampleCodeError);
+          if (reloadEndpoint == null) {
+            result = await restartEndpoint(sampleCodeError);
           } else {
-            result = await reloadEndpoint!(sampleCodeError, '');
+            result = await reloadEndpoint(sampleCodeError, '');
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
@@ -112,10 +123,12 @@ void defineTests() {
 
         test('with no main', () async {
           DDCCompilationResults result;
-          if (endpoint != null) {
-            result = await endpoint(sampleCodeNoMain);
+          if (reloadEndpoint == null) {
+            result = await restartEndpoint(sampleCodeNoMain);
           } else {
-            result = await reloadEndpoint!(sampleCodeNoMain, sampleDillFile);
+            final lastAcceptedDill =
+                await generateDeltaDill(restartEndpoint, sampleCode);
+            result = await reloadEndpoint(sampleCodeNoMain, lastAcceptedDill);
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
@@ -128,10 +141,12 @@ void defineTests() {
 
         test('with multiple errors', () async {
           DDCCompilationResults result;
-          if (endpoint != null) {
-            result = await endpoint(sampleCodeErrors);
+          if (reloadEndpoint == null) {
+            result = await restartEndpoint(sampleCodeErrors);
           } else {
-            result = await reloadEndpoint!(sampleCodeErrors, sampleDillFile);
+            final lastAcceptedDill =
+                await generateDeltaDill(restartEndpoint, sampleCode);
+            result = await reloadEndpoint(sampleCodeErrors, lastAcceptedDill);
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
@@ -146,20 +161,21 @@ void defineTests() {
     }
 
     testDDCEndpoint('compileDDC',
-        endpoint: (source) => compiler.compileDDC(source),
-        expectDeltaDill: false,
+        restartEndpoint: (source) => compiler.compileDDC(source),
+        expectNewDeltaDill: false,
         compiledIndicator: "define('dartpad_main', [");
     if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint('compileNewDDC',
-          endpoint: (source) => compiler.compileNewDDC(source),
-          expectDeltaDill: true,
+          restartEndpoint: (source) => compiler.compileNewDDC(source),
+          expectNewDeltaDill: true,
           compiledIndicator:
               'defineLibrary("package:dartpad_sample/main.dart"');
-      testDDCEndpoint('compileNewDDC',
+      testDDCEndpoint('compileNewDDCReload',
+          restartEndpoint: (source) => compiler.compileNewDDC(source),
           reloadEndpoint: (source, deltaDill) =>
               compiler.compileNewDDCReload(source, deltaDill),
-          expectDeltaDill: true,
+          expectNewDeltaDill: true,
           compiledIndicator:
               'defineLibrary("package:dartpad_sample/main.dart"');
     }

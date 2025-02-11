@@ -218,14 +218,15 @@ void main() {
 
     void testDDCEndpoint(String endpointName,
         Future<CompileDDCResponse> Function(CompileRequest) endpoint,
-        {required bool expectDeltaDill, required bool includeOldDeltaDill}) {
+        {required bool expectDeltaDill,
+        Future<String> Function(String source)? generateLastAcceptedDill}) {
       group(endpointName, () {
         test('compile', () async {
           final result = await endpoint(CompileRequest(source: '''
 void main() {
   print('hello world');
 }
-''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
           expect(result.result, isNotEmpty);
           expect(result.result.length, greaterThanOrEqualTo(1024));
           expect(result.modulesBaseUrl, isNotEmpty);
@@ -250,7 +251,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
           expect(result.result, isNotEmpty);
           expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
           expect(result.modulesBaseUrl, isNotEmpty);
@@ -262,7 +263,7 @@ class MyApp extends StatelessWidget {
 void main() {
   print('hello world')
 }
-''', deltaDill: includeOldDeltaDill ? sampleDillFile : null));
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
             fail('compile error expected');
           } on ApiRequestError catch (e) {
             expect(e.body, contains("Expected ';' after this."));
@@ -272,14 +273,17 @@ void main() {
     }
 
     testDDCEndpoint('compileDDC', (request) => client.compileDDC(request),
-        expectDeltaDill: false, includeOldDeltaDill: false);
+        expectDeltaDill: false);
     if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
       testDDCEndpoint(
           'compileNewDDC', (request) => client.compileNewDDC(request),
-          expectDeltaDill: true, includeOldDeltaDill: false);
+          expectDeltaDill: true);
       testDDCEndpoint('compileNewDDCReload',
           (request) => client.compileNewDDCReload(request),
-          expectDeltaDill: true, includeOldDeltaDill: true);
+          expectDeltaDill: true,
+          generateLastAcceptedDill: (source) async =>
+              (await client.compileNewDDC(CompileRequest(source: source)))
+                  .deltaDill!);
     }
 
     test('document', () async {
