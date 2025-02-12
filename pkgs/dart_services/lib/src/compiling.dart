@@ -140,6 +140,14 @@ class Compiler {
 
       final mainJsPath = path.join(temp.path, '$kMainDart.js');
 
+      // Later versions of Flutter remove the "sound" suffix from the file. If
+      // the suffixed version does not exist, the unsuffixed version is the
+      // sound file.
+      var ddcOutlinePath = '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill';
+      if (!File(ddcOutlinePath).existsSync()) {
+        ddcOutlinePath = '${_sdk.flutterWebSdkPath}/ddc_outline.dill';
+      }
+
       final arguments = <String>[
         if (useNew) ...[
           '--modules=ddc',
@@ -156,7 +164,7 @@ class Compiler {
           '-s',
           _projectTemplates.summaryFilePath,
           '-s',
-          '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill',
+          ddcOutlinePath,
         ],
         ...['-o', mainJsPath],
         '--enable-asserts',
