@@ -24,7 +24,10 @@ Future<void> main(List<String> args) async {
 
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
+  'dart_sdk_new.js',
   'flutter_web.js',
+  'flutter_web_new.js',
+  'ddc_module_loader.js',
 ];
 
 @Task('validate that we have the correct compilation artifacts available in '
@@ -91,7 +94,8 @@ void buildStorageArtifacts() async {
   delete(getDir('artifacts'));
   final instructions = <String>[];
 
-  // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
+  // build and copy ddc_module_loader.js, dart_sdk.js, flutter_web.js, and
+  // flutter_web.dill
   final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
@@ -106,6 +110,20 @@ void buildStorageArtifacts() async {
     log(instruction);
   }
 }
+
+// Packages to include in flutter_web.js. These are implicitly imported by all
+// flutter apps. Since DDC doesn't do tree-shaking these would be included in
+// every compilation.
+const _flutterPackages = {
+  'flutter',
+  'flutter_test',
+  'url_launcher_web',
+  'shared_preferences_web',
+  'video_player_web',
+  'shared_preferences_platform_interface',
+  'video_player_platform_interface',
+  'web',
+};
 
 Future<String> _buildStorageArtifacts(
   Directory dir,
@@ -153,16 +171,13 @@ Future<String> _buildStorageArtifacts(
         path.join(dir.path, 'lib', 'generated_plugin_registrant.dart'));
   }
 
-  // locate the artifacts
-  final flutterPackages = ['flutter', 'flutter_test'];
-
   final flutterLibraries = <String>[];
   final config = await findPackageConfig(dir);
   if (config == null) {
     throw FileSystemException('package config not found', dir.toString());
   }
   for (final package in config.packages) {
-    if (flutterPackages.contains(package.name)) {
+    if (_flutterPackages.contains(package.name)) {
       // This is a package we're interested in - add all the public libraries to
       // the list.
       final libPath = package.packageUriRoot.toFilePath();
@@ -209,18 +224,56 @@ Future<String> _buildStorageArtifacts(
     workingDirectory: dir.path,
   );
 
-  // Copy both to the project directory.
+  // Copy all to the project directory.
   final artifactsDir = getDir(path.join('artifacts'));
   artifactsDir.createSync(recursive: true);
 
   final sdkJsPath =
       path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
+  final newSdkJsPath = path.join(
+      sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
+  final ddcModuleLoaderPath =
+      path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
   copy(getFile('$sdkJsPath.map'), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
+
+  // We only expect these hot reload artifacts to work at version 3.8 and later.
+  if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+    final argumentsNew = <String>[
+      path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+      '-s',
+      dillPath,
+      '--modules=ddc',
+      '--canary',
+      '--source-map',
+      // The dill file will be the same between legacy and new compilation.
+      '--no-summarize',
+      '-o',
+      'flutter_web_new.js',
+      ...flutterLibraries
+    ];
+
+    await _run(
+      compilerPath,
+      arguments: argumentsNew,
+      workingDirectory: dir.path,
+    );
+
+    copy(getFile(ddcModuleLoaderPath), artifactsDir);
+    copy(getFile(newSdkJsPath), artifactsDir);
+    copy(getFile('$newSdkJsPath.map'), artifactsDir);
+    joinFile(artifactsDir, ['dart_sdk.js'])
+        .copySync(path.join('artifacts', 'dart_sdk_new.js'));
+    joinFile(artifactsDir, ['dart_sdk.js.map'])
+        .copySync(path.join('artifacts', 'dart_sdk_new.js.map'));
+
+    copy(joinFile(dir, ['flutter_web_new.js']), artifactsDir);
+    copy(joinFile(dir, ['flutter_web_new.js.map']), artifactsDir);
+  }
 
   final args = context.invocation.arguments;
   final bucket = switch (args.hasOption('bucket')) {

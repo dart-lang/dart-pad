@@ -22,6 +22,9 @@ abstract class ExecutionService {
     String javaScript, {
     String? modulesBaseUrl,
     String? engineVersion,
+    required bool isNewDDC,
+    required bool reload,
+    required bool isFlutter,
   });
   Stream<String> get onStdout;
   Future<void> reset();
@@ -38,7 +41,7 @@ abstract class EditorService {
 }
 
 class AppModel {
-  bool? _appIsFlutter;
+  final ValueNotifier<bool?> _appIsFlutter = ValueNotifier(null);
   bool? _usesPackageWeb;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
@@ -53,6 +56,9 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
   final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
+
+  final ValueNotifier<bool> hasRun = ValueNotifier(false);
+  final ValueNotifier<bool> canReload = ValueNotifier(false);
 
   final StatusController editorStatus = StatusController();
 
@@ -69,8 +75,25 @@ class AppModel {
 
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
+  bool _consoleShowingError = false;
+  final ValueNotifier<bool> showReload = ValueNotifier(false);
+  final ValueNotifier<bool> _useNewDDC = ValueNotifier(false);
+  final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
+
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
+    void updateCanReload() => canReload.value =
+        hasRun.value && !compilingBusy.value && currentDeltaDill.value != null;
+    hasRun.addListener(updateCanReload);
+    compilingBusy.addListener(updateCanReload);
+    currentDeltaDill.addListener(updateCanReload);
+
+    void updateShowReload() {
+      showReload.value = _useNewDDC.value && (_appIsFlutter.value ?? false);
+    }
+
+    _useNewDDC.addListener(updateShowReload);
+    _appIsFlutter.addListener(updateShowReload);
 
     _splitSubscription =
         splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
@@ -82,7 +105,10 @@ class AppModel {
     consoleOutput.value += '$str\n';
   }
 
-  void clearConsole() => consoleOutput.value = '';
+  void clearConsole() {
+    consoleOutput.value = '';
+    _consoleShowingError = false;
+  }
 
   void dispose() {
     consoleOutput.removeListener(_recalcLayout);
@@ -91,7 +117,7 @@ class AppModel {
 
   void _recalcLayout() {
     final hasConsoleText = consoleOutput.value.isNotEmpty;
-    final isFlutter = _appIsFlutter;
+    final isFlutter = _appIsFlutter.value;
     final usesPackageWeb = _usesPackageWeb;
 
     if (isFlutter == null || usesPackageWeb == null) {
@@ -148,12 +174,25 @@ class AppServices {
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
+  static const Set<Channel> _hotReloadableChannels = {
+    Channel.localhost,
+    Channel.main,
+  };
+
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
     services = ServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
+
+    void updateUseNewDDC() {
+      appModel._useNewDDC.value =
+          _hotReloadableChannels.contains(_channel.value);
+    }
+
+    updateUseNewDDC();
+    _channel.addListener(updateUseNewDDC);
   }
 
   EditorService? get editorService => _editorService;
@@ -304,20 +343,34 @@ class AppServices {
     appModel.appReady.value = true;
   }
 
-  Future<void> performCompileAndRun() async {
+  Future<void> _performCompileAndAction({required bool reload}) async {
     final source = appModel.sourceCodeController.text;
     final progress =
         appModel.editorStatus.showMessage(initialText: 'Compiling…');
 
     try {
-      final response = await _compileDDC(CompileRequest(source: source));
-      appModel.clearConsole();
+      CompileDDCResponse response;
+      if (!appModel._useNewDDC.value) {
+        response = await _compileDDC(CompileRequest(source: source));
+      } else if (reload) {
+        response = await _compileNewDDCReload(CompileRequest(
+            source: source, deltaDill: appModel.currentDeltaDill.value!));
+      } else {
+        response = await _compileNewDDC(CompileRequest(source: source));
+      }
+      if (!reload || appModel._consoleShowingError) {
+        appModel.clearConsole();
+      }
       _executeJavaScript(
         response.result,
         modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
         dartSource: source,
+        isNewDDC: appModel._useNewDDC.value,
+        reload: reload,
       );
+      appModel.currentDeltaDill.value = response.deltaDill;
+      appModel.hasRun.value = true;
     } catch (error) {
       appModel.clearConsole();
 
@@ -329,9 +382,18 @@ class AppServices {
       } else {
         appModel.appendLineToConsole('$error');
       }
+      appModel._consoleShowingError = true;
     } finally {
       progress.close();
     }
+  }
+
+  Future<void> performCompileAndReload() async {
+    _performCompileAndAction(reload: true);
+  }
+
+  Future<void> performCompileAndRun() async {
+    _performCompileAndAction(reload: false);
   }
 
   Future<FormatResponse> format(SourceRequest request) async {
@@ -365,6 +427,25 @@ class AppServices {
     }
   }
 
+  Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
+    try {
+      appModel.compilingBusy.value = true;
+      return await services.compileNewDDC(request);
+    } finally {
+      appModel.compilingBusy.value = false;
+    }
+  }
+
+  Future<CompileDDCResponse> _compileNewDDCReload(
+      CompileRequest request) async {
+    try {
+      appModel.compilingBusy.value = true;
+      return await services.compileNewDDCReload(request);
+    } finally {
+      appModel.compilingBusy.value = false;
+    }
+  }
+
   void registerExecutionService(ExecutionService? executionService) {
     // unregister the old
     stdoutSub?.cancel();
@@ -388,16 +469,20 @@ class AppServices {
     required String dartSource,
     String? modulesBaseUrl,
     String? engineVersion,
+    required bool isNewDDC,
+    required bool reload,
   }) {
-    appModel._appIsFlutter = hasFlutterWebMarker(javaScript);
+    final appIsFlutter = hasFlutterWebMarker(javaScript, isNewDDC: isNewDDC);
+    appModel._appIsFlutter.value = appIsFlutter;
     appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
-    _executionService?.execute(
-      javaScript,
-      modulesBaseUrl: modulesBaseUrl,
-      engineVersion: engineVersion,
-    );
+    _executionService?.execute(javaScript,
+        modulesBaseUrl: modulesBaseUrl,
+        engineVersion: engineVersion,
+        reload: reload,
+        isNewDDC: isNewDDC,
+        isFlutter: appIsFlutter);
   }
 
   void dispose() {
