@@ -25,8 +25,7 @@ dependencies:
 
 dev_dependencies:
   collection: ^1.19.0
-  # TODO: Unpin once stable is updated to Dart 3.7.
-  dart_flutter_team_lints: 3.2.1
+  dart_flutter_team_lints: ^3.2.1
   grinder: ^0.9.5
   json_serializable: ^6.9.2
   package_config: ^2.1.0
