@@ -190,7 +190,7 @@ Future<String> _buildStorageArtifacts(
   }
 
   // Make sure
-  // <flutter-sdk>/bin/cache/flutter_web_sdk/kernel/ddc_outline_sound.dill is
+  // <flutter-sdk>/bin/cache/flutter_web_sdk/kernel/ddc_outline.dill is
   // installed.
   await _run(
     sdk.flutterToolPath,
@@ -199,13 +199,13 @@ Future<String> _buildStorageArtifacts(
   );
 
   // Build the artifacts using DDC:
-  // dart-sdk/bin/dartdevc -s kernel/ddc_outline_sound.dill
+  // dart-sdk/bin/dartdevc -s kernel/ddc_outline.dill
   //     --modules=amd package:flutter/animation.dart ...
   final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dart');
-  final dillPath = path.join(
-    sdk.flutterWebSdkPath,
-    'ddc_outline_sound.dill',
-  );
+  var dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline_sound.dill');
+  if (!File(dillPath).existsSync()) {
+    dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
+  }
 
   final arguments = <String>[
     path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
@@ -228,12 +228,11 @@ Future<String> _buildStorageArtifacts(
   final artifactsDir = getDir(path.join('artifacts'));
   artifactsDir.createSync(recursive: true);
 
-  final sdkJsPath =
-      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
-  final newSdkJsPath = path.join(
-      sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
-  final ddcModuleLoaderPath =
-      path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
+  var sdkJsPath =
+      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit_sound/dart_sdk.js');
+  if (!File(sdkJsPath).existsSync()) {
+    sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
+  }
 
   copy(getFile(sdkJsPath), artifactsDir);
   copy(getFile('$sdkJsPath.map'), artifactsDir);
@@ -243,6 +242,15 @@ Future<String> _buildStorageArtifacts(
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
   if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+    var newSdkJsPath = path.join(
+        sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
+    if (!File(newSdkJsPath).existsSync()) {
+      newSdkJsPath = path.join(
+          sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit/dart_sdk.js');
+    }
+    final ddcModuleLoaderPath =
+        path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
+
     final argumentsNew = <String>[
       path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
       '-s',
