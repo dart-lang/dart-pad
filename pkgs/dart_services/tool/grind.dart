@@ -210,7 +210,7 @@ Future<String> _buildStorageArtifacts(
     dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
   }
   var sdkJsPath =
-      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit_sound/dart_sdk.js');
+      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
   if (!File(sdkJsPath).existsSync()) {
     sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
   }
