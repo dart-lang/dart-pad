@@ -206,12 +206,10 @@ Future<String> _buildStorageArtifacts(
   // Later versions of Flutter remove the "sound" suffix from files. If the
   // suffixed version does not exist, the unsuffixed version is the sound file.
   var dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline_sound.dill');
-  if (!File(dillPath).existsSync()) {
-    dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
-  }
   var sdkJsPath =
       path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
-  if (!File(sdkJsPath).existsSync()) {
+  if (!getFile(dillPath).existsSync()) {
+    dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
     sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
   }
 
@@ -249,7 +247,7 @@ Future<String> _buildStorageArtifacts(
     // file.
     var newSdkJsPath = path.join(
         sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
-    if (!File(newSdkJsPath).existsSync()) {
+    if (!getFile(newSdkJsPath).existsSync()) {
       newSdkJsPath = path.join(
           sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit/dart_sdk.js');
     }
