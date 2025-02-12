@@ -3,7 +3,7 @@ description: Shared code between the DartPad frontend and backend.
 publish_to: none
 
 environment:
-  sdk: ^3.7.0-0
+  sdk: ^3.6.1
 
 dependencies:
   http: ^1.2.1
