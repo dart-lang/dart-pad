@@ -202,9 +202,17 @@ Future<String> _buildStorageArtifacts(
   // dart-sdk/bin/dartdevc -s kernel/ddc_outline.dill
   //     --modules=amd package:flutter/animation.dart ...
   final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dart');
+
+  // Later versions of Flutter remove the "sound" suffix from files. If the
+  // suffixed version does not exist, the unsuffixed version is the sound file.
   var dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline_sound.dill');
   if (!File(dillPath).existsSync()) {
     dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
+  }
+  var sdkJsPath =
+      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit_sound/dart_sdk.js');
+  if (!File(sdkJsPath).existsSync()) {
+    sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
   }
 
   final arguments = <String>[
@@ -228,12 +236,6 @@ Future<String> _buildStorageArtifacts(
   final artifactsDir = getDir(path.join('artifacts'));
   artifactsDir.createSync(recursive: true);
 
-  var sdkJsPath =
-      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit_sound/dart_sdk.js');
-  if (!File(sdkJsPath).existsSync()) {
-    sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
-  }
-
   copy(getFile(sdkJsPath), artifactsDir);
   copy(getFile('$sdkJsPath.map'), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
@@ -242,6 +244,9 @@ Future<String> _buildStorageArtifacts(
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
   if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+    // Later versions of Flutter remove the "sound" suffix from the file. If
+    // the suffixed version does not exist, the unsuffixed version is the sound
+    // file.
     var newSdkJsPath = path.join(
         sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
     if (!File(newSdkJsPath).existsSync()) {
