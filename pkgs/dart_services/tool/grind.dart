@@ -24,8 +24,11 @@ Future<void> main(List<String> args) async {
 
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
-  'dart_sdk_new.js',
   'flutter_web.js',
+];
+
+final List<String> compilationArtifactsNew = [
+  'dart_sdk_new.js',
   'flutter_web_new.js',
   'ddc_module_loader.js',
 ];
@@ -45,7 +48,8 @@ void validateStorageArtifacts() async {
       'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket');
 
   final urlBase = 'https://storage.googleapis.com/$bucket/';
-  for (final artifact in compilationArtifacts) {
+  for (final artifact
+      in sdk.useNewDdcSdk ? compilationArtifactsNew : compilationArtifacts) {
     await _validateExists(Uri.parse('$urlBase$version/$artifact'));
   }
 }
@@ -241,7 +245,7 @@ Future<String> _buildStorageArtifacts(
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
-  if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+  if (sdk.useNewDdcSdk) {
     // Later versions of Flutter remove the "sound" suffix from the file. If
     // the suffixed version does not exist, the unsuffixed version is the sound
     // file.
