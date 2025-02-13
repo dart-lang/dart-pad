@@ -442,12 +442,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             keys.runKeyActivator1: () {
-              if (!appModel.compilingBusy.value) {
+              if (!appModel.compilingBusy.value.busy) {
                 appServices.performCompileAndRun();
               }
             },
             keys.runKeyActivator2: () {
-              if (!appModel.compilingBusy.value) {
+              if (!appModel.compilingBusy.value.busy) {
                 appServices.performCompileAndRun();
               }
             },
@@ -513,7 +513,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   void _handleRunStarted() {
     setState(() {
       // Switch to the application output tab.]
-      if (appModel.compilingBusy.value) {
+      if (appModel.compilingBusy.value != CompilingState.none) {
         tabController.animateTo(1);
       }
     });
@@ -531,19 +531,20 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<bool>(
+    return ValueListenableBuilder<CompilingState>(
       valueListenable: appModel.compilingBusy,
-      builder: (_, bool compiling, __) {
+      builder: (_, compiling, __) {
         final color = theme.colorScheme.surface;
 
+        // If reloading, show a progress spinner. If restarting, also display a
+        // semi-opaque overlay.
         return AnimatedContainer(
-          color: color.withValues(alpha: compiling ? 0.8 : 0),
+          color: color.withValues(
+              alpha: compiling == CompilingState.compiling ? 0.8 : 0),
           duration: animationDelay,
           curve: animationCurve,
-          child: compiling
-              ? const GoldenRatioCenter(
-                  child: CircularProgressIndicator(),
-                )
+          child: compiling.busy
+              ? const GoldenRatioCenter(child: CircularProgressIndicator())
               : const SizedBox(width: 1),
         );
       },
@@ -731,12 +732,13 @@ class EditorWithButtons extends StatelessWidget {
                           }),
                       const SizedBox(width: defaultSpacing),
                       // Run action
-                      ValueListenableBuilder<bool>(
+                      ValueListenableBuilder<CompilingState>(
                         valueListenable: appModel.compilingBusy,
-                        builder: (_, bool value, __) {
+                        builder: (_, compiling, __) {
                           return PointerInterceptor(
                             child: RunButton(
-                              onPressed: value ? null : onCompileAndRun,
+                              onPressed:
+                                  compiling.busy ? null : onCompileAndRun,
                             ),
                           );
                         },
