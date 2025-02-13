@@ -171,4 +171,6 @@ final class Sdk {
         _dartVersionMatch.firstMatch(dartVersion)!.group(2)!;
     return int.parse(dartVersionString);
   }
+
+  bool get useNewDdcSdk => dartMajorVersion >= 3 && dartMinorVersion >= 8;
 }
