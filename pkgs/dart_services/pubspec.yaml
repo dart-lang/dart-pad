@@ -3,7 +3,7 @@ description: The backend service for DartPad.
 publish_to: none
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.6.1
 
 dependencies:
   analysis_server_lib: ^0.2.5
@@ -26,8 +26,7 @@ dependencies:
 
 dev_dependencies:
   collection: ^1.19.0
-  # TODO: Unpin once stable is updated to Dart 3.7.
-  dart_flutter_team_lints: 3.2.1
+  dart_flutter_team_lints: ^3.2.1
   grinder: ^0.9.5
   json_serializable: ^6.9.2
   package_config: ^2.1.0

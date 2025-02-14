@@ -325,6 +325,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       appServices: appServices,
       onFormat: _handleFormatting,
       onCompileAndRun: appServices.performCompileAndRun,
+      onCompileAndReload: appServices.performCompileAndReload,
       key: _editorKey,
     );
 
@@ -787,12 +788,14 @@ class EditorWithButtons extends StatelessWidget {
     required this.appServices,
     required this.onFormat,
     required this.onCompileAndRun,
+    required this.onCompileAndReload,
   });
 
   final AppModel appModel;
   final AppServices appServices;
   final VoidCallback onFormat;
   final VoidCallback onCompileAndRun;
+  final VoidCallback onCompileAndReload;
 
   @override
   Widget build(BuildContext context) {
@@ -849,6 +852,24 @@ class EditorWithButtons extends StatelessWidget {
                           );
                         },
                       ),
+                      const SizedBox(width: defaultSpacing),
+                      // Run action
+                      ValueListenableBuilder(
+                          valueListenable: appModel.showReload,
+                          builder: (_, bool value, __) {
+                            if (!value) return const SizedBox();
+                            return ValueListenableBuilder<bool>(
+                              valueListenable: appModel.canReload,
+                              builder: (_, bool value, __) {
+                                return PointerInterceptor(
+                                  child: ReloadButton(
+                                    onPressed:
+                                        value ? onCompileAndReload : null,
+                                  ),
+                                );
+                              },
+                            );
+                          }),
                       const SizedBox(width: defaultSpacing),
                       // Run action
                       ValueListenableBuilder<bool>(

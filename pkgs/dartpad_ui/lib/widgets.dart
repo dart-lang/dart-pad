@@ -103,15 +103,42 @@ class MiniIconButton extends StatelessWidget {
   }
 }
 
-class RunButton extends StatelessWidget {
-  final VoidCallback? onPressed;
+class RunButton extends ActionButton {
+  const RunButton({super.key, super.onPressed})
+      : super(
+          text: 'Run',
+          icon: const Icon(
+            Icons.play_arrow,
+            color: Colors.black,
+            size: 20,
+          ),
+        );
+}
 
-  const RunButton({this.onPressed, super.key});
+class ReloadButton extends ActionButton {
+  const ReloadButton({super.key, super.onPressed})
+      : super(
+          text: 'Reload',
+          icon: const Icon(
+            Icons.refresh,
+            color: Colors.black,
+            size: 20,
+          ),
+        );
+}
+
+abstract class ActionButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String text;
+  final Icon icon;
+
+  const ActionButton(
+      {this.onPressed, super.key, required this.text, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Run',
+      message: text,
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
@@ -128,17 +155,13 @@ class RunButton extends StatelessWidget {
           ),
         ),
         onPressed: onPressed,
-        child: const Row(
+        child: Row(
           children: [
-            Icon(
-              Icons.play_arrow,
-              color: Colors.black,
-              size: 20,
-            ),
-            SizedBox(width: 8),
+            icon,
+            const SizedBox(width: 8),
             Text(
-              'Run',
-              style: TextStyle(color: Colors.black),
+              text,
+              style: const TextStyle(color: Colors.black),
             ),
           ],
         ),

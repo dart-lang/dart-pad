@@ -9,17 +9,18 @@ import 'package:dartpad_shared/services.dart';
 import 'package:http/http.dart';
 import 'package:test/test.dart';
 
+import 'src/sample_code.dart';
+
 void main() => defineTests();
 
 void defineTests() {
   group('server', () {
-    late final Sdk sdk;
+    final sdk = Sdk.fromLocalFlutter();
     late final EndpointsServer server;
     late final Client httpClient;
     late final ServicesClient client;
 
     setUpAll(() async {
-      sdk = Sdk.fromLocalFlutter();
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
       httpClient = Client();
@@ -215,19 +216,25 @@ void main() {
       }
     });
 
-    test('compileDDC', () async {
-      final result = await client.compileDDC(CompileRequest(source: '''
+    void testDDCEndpoint(String endpointName,
+        Future<CompileDDCResponse> Function(CompileRequest) endpoint,
+        {required bool expectDeltaDill,
+        Future<String> Function(String source)? generateLastAcceptedDill}) {
+      group(endpointName, () {
+        test('compile', () async {
+          final result = await endpoint(CompileRequest(source: '''
 void main() {
   print('hello world');
 }
-'''));
-      expect(result.result, isNotEmpty);
-      expect(result.result.length, greaterThanOrEqualTo(1024));
-      expect(result.modulesBaseUrl, isNotEmpty);
-    });
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
+          expect(result.result, isNotEmpty);
+          expect(result.result.length, greaterThanOrEqualTo(1024));
+          expect(result.modulesBaseUrl, isNotEmpty);
+          expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
+        });
 
-    test('compileDDC flutter', () async {
-      final result = await client.compileDDC(CompileRequest(source: '''
+        test('compile flutter', () async {
+          final result = await endpoint(CompileRequest(source: '''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -244,24 +251,40 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-'''));
-      expect(result.result, isNotEmpty);
-      expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
-      expect(result.modulesBaseUrl, isNotEmpty);
-    });
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
+          expect(result.result, isNotEmpty);
+          expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
+          expect(result.modulesBaseUrl, isNotEmpty);
+        });
 
-    test('compileDDC with error', () async {
-      try {
-        await client.compileDDC(CompileRequest(source: '''
+        test('compile with error', () async {
+          try {
+            await endpoint(CompileRequest(source: '''
 void main() {
   print('hello world')
 }
-'''));
-        fail('compile error expected');
-      } on ApiRequestError catch (e) {
-        expect(e.body, contains("Expected ';' after this."));
-      }
-    });
+''', deltaDill: await generateLastAcceptedDill?.call(sampleCode)));
+            fail('compile error expected');
+          } on ApiRequestError catch (e) {
+            expect(e.body, contains("Expected ';' after this."));
+          }
+        });
+      });
+    }
+
+    testDDCEndpoint('compileDDC', (request) => client.compileDDC(request),
+        expectDeltaDill: false);
+    if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+      testDDCEndpoint(
+          'compileNewDDC', (request) => client.compileNewDDC(request),
+          expectDeltaDill: true);
+      testDDCEndpoint('compileNewDDCReload',
+          (request) => client.compileNewDDCReload(request),
+          expectDeltaDill: true,
+          generateLastAcceptedDill: (source) async =>
+              (await client.compileNewDDC(CompileRequest(source: source)))
+                  .deltaDill!);
+    }
 
     test('document', () async {
       final result = await client.document(SourceRequest(

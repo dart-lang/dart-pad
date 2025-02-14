@@ -35,14 +35,19 @@ RelativeRect calculatePopupMenuPosition(
   );
 }
 
-bool hasFlutterWebMarker(String javaScript) {
+bool hasFlutterWebMarker(String javaScript, {required bool isNewDDC}) {
   const marker1 = 'window.flutterConfiguration';
   if (javaScript.contains(marker1)) {
     return true;
   }
-
-  // define('dartpad_main', ['dart_sdk', 'flutter_web']
-  if (javaScript.contains("define('") && javaScript.contains("'flutter_web'")) {
+  if (isNewDDC &&
+      javaScript.contains('defineLibrary(') &&
+      javaScript.contains('importLibrary("package:flutter/')) {
+    return true;
+    // define('dartpad_main', ['dart_sdk', 'flutter_web']
+  } else if (!isNewDDC &&
+      javaScript.contains("define('") &&
+      javaScript.contains("'flutter_web'")) {
     return true;
   }
 
