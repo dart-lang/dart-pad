@@ -13,7 +13,6 @@ class LocalStorageImpl extends LocalStorage {
   String? _lastCreateCodePrompt;
   String? _lastUpdateCodePrompt;
   AppType _lastCreateCodeAppType = AppType.flutter;
-  AppType _lastUpdateCodeAppType = AppType.flutter;
 
   @override
   void saveUserCode(String code) => _code = code;
@@ -45,13 +44,6 @@ class LocalStorageImpl extends LocalStorage {
   AppType getLastCreateCodeAppType() => _lastCreateCodeAppType;
 
   @override
-  AppType getLastUpdateCodeAppType() => _lastUpdateCodeAppType;
-
-  @override
   void saveLastCreateCodeAppType(AppType appType) =>
       _lastCreateCodeAppType = appType;
-
-  @override
-  void saveLastUpdateCodeAppType(AppType appType) =>
-      _lastUpdateCodeAppType = appType;
 }

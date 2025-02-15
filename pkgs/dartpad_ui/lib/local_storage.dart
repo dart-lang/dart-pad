@@ -24,7 +24,4 @@ abstract class LocalStorage {
 
   void saveLastUpdateCodePrompt(String prompt);
   String? getLastUpdateCodePrompt();
-
-  void saveLastUpdateCodeAppType(AppType appType);
-  AppType getLastUpdateCodeAppType();
 }

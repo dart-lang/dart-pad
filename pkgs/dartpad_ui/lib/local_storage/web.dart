@@ -13,7 +13,6 @@ const _userKeybindingKey = 'user_keybinding_';
 const _lastCreateCodePromptKey = 'last_create_code_prompt_';
 const _lastUpdateCodePromptKey = 'last_update_code_prompt_';
 const _lastCreateCodeAppTypeKey = 'last_create_code_app_type_';
-const _lastUpdateCodeAppTypeKey = 'last_update_code_app_type_';
 
 class LocalStorageImpl extends LocalStorage {
   @override
@@ -60,17 +59,4 @@ class LocalStorageImpl extends LocalStorage {
   @override
   void saveLastCreateCodeAppType(AppType appType) =>
       web.window.localStorage.setItem(_lastCreateCodeAppTypeKey, appType.name);
-
-  @override
-  AppType getLastUpdateCodeAppType() {
-    final appType = web.window.localStorage.getItem(_lastUpdateCodeAppTypeKey);
-    return AppType.values.firstWhere(
-      (e) => e.name == appType,
-      orElse: () => AppType.flutter,
-    );
-  }
-
-  @override
-  void saveLastUpdateCodeAppType(AppType appType) =>
-      web.window.localStorage.setItem(_lastUpdateCodeAppTypeKey, appType.name);
 }

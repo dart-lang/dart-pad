@@ -659,13 +659,20 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         title: 'Generate New Code',
         hint: 'Describe the code you want to generate',
         initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
-        promptButtons: {
+        flutterPromptButtons: {
           'to-do app':
               'Generate a Flutter to-do app with add, remove, and complete task functionality',
           'login screen':
               'Generate a Flutter login screen with email and password fields, validation, and a submit button',
           'tic-tac-toe':
               'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
+        dartPromptButtons: {
+          'hello, world': 'Generate a Dart hello world program',
+          'fibonacci':
+              'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
+          'factorial': 'Generate a Dart program that prints the factorial of 5',
           if (lastPrompt != null) 'your last prompt': lastPrompt,
         },
       ),
@@ -721,14 +728,20 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context) => PromptDialog(
         title: 'Update Existing Code',
         hint: 'Describe the updates you\'d like to make to the code',
-        initialAppType: LocalStorage.instance.getLastUpdateCodeAppType(),
-        promptButtons: {
+        initialAppType: appModel.appType,
+        flutterPromptButtons: {
           'pretty':
               'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
           'fancy':
               'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-          'pink':
-              'Make the app pink by changing the color scheme to use a rich, pink color palette',
+          'emoji':
+              'Make the app use emojis by adding appropriate emoji icons and text',
+          if (lastPrompt != null) 'your last prompt': lastPrompt,
+        },
+        dartPromptButtons: {
+          'pretty': 'Make the app pretty',
+          'fancy': 'Make the app fancy',
+          'emoji': 'Make the app use emojis',
           if (lastPrompt != null) 'your last prompt': lastPrompt,
         },
       ),
@@ -740,7 +753,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
 
-    LocalStorage.instance.saveLastUpdateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
 
     try {

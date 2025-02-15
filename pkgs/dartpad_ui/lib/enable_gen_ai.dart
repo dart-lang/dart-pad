@@ -1,2 +1,3 @@
 // turn on or off gen-ai features in the client
-const bool genAiEnabled = true; // TODO(csells): REMOVE
+// TODO(csells): SET TO FALSE WHEN DONE TESTING
+const bool genAiEnabled = true;

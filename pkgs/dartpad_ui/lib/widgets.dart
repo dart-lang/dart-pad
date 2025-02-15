@@ -318,14 +318,16 @@ class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
     required this.hint,
-    required this.promptButtons,
+    required this.flutterPromptButtons,
+    required this.dartPromptButtons,
     required this.initialAppType,
     super.key,
   });
 
   final String title;
   final String hint;
-  final Map<String, String> promptButtons;
+  final Map<String, String> flutterPromptButtons;
+  final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
 
   @override
@@ -386,7 +388,9 @@ class _PromptDialogState extends State<PromptDialog> {
                         spacing: 8,
                         alignment: MainAxisAlignment.start,
                         children: [
-                          for (final entry in widget.promptButtons.entries)
+                          for (final entry in _appType == AppType.flutter
+                              ? widget.flutterPromptButtons.entries
+                              : widget.dartPromptButtons.entries)
                             TextButton(
                               onPressed: () {
                                 _controller.text = entry.value;

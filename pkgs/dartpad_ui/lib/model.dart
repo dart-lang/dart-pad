@@ -43,6 +43,8 @@ abstract class EditorService {
 class AppModel {
   final ValueNotifier<bool?> _appIsFlutter = ValueNotifier(null);
   bool? _usesPackageWeb;
+  AppType get appType =>
+      _appIsFlutter.value ?? false ? AppType.flutter : AppType.dart;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
