@@ -445,12 +445,14 @@ class SuggestFixRequest {
   final int? line;
   final int? column;
   final String source;
+  final AppType appType;
 
   SuggestFixRequest({
     required this.errorMessage,
     required this.line,
     required this.column,
     required this.source,
+    required this.appType,
   });
 
   factory SuggestFixRequest.fromJson(Map<String, Object?> json) =>

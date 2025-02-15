@@ -12,6 +12,7 @@ import 'widgets.dart';
 
 Future<void> suggestFix({
   required BuildContext context,
+  required AppType appType,
   required String errorMessage,
   int? line,
   int? column,
@@ -25,6 +26,7 @@ Future<void> suggestFix({
   try {
     final stream = appServices.suggestFix(
       SuggestFixRequest(
+        appType: appType,
         errorMessage: errorMessage,
         line: line,
         column: column,

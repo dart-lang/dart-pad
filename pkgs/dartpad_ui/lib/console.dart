@@ -94,6 +94,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                       tooltip: 'Suggest fix',
                       onPressed: () => suggestFix(
                         context: context,
+                        appType: appModel.appType,
                         errorMessage: consoleOutput,
                       ),
                     ),

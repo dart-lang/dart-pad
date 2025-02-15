@@ -75,7 +75,7 @@ class ProblemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
+    final appModel = Provider.of<AppModel>(context, listen: false);
     final widget = Padding(
       padding: const EdgeInsets.only(bottom: _rowPadding),
       child: Column(
@@ -113,6 +113,7 @@ class ProblemWidget extends StatelessWidget {
                 IconButton(
                   onPressed: () => suggestFix(
                     context: context,
+                    appType: appModel.appType,
                     errorMessage: issue.message,
                     line: issue.location.line,
                     column: issue.location.column,

@@ -337,6 +337,7 @@ Map<String, dynamic> _$PackageInfoToJson(PackageInfo instance) =>
 
 SuggestFixRequest _$SuggestFixRequestFromJson(Map<String, dynamic> json) =>
     SuggestFixRequest(
+      appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       errorMessage: json['errorMessage'] as String,
       line: (json['line'] as num?)?.toInt(),
       column: (json['column'] as num?)?.toInt(),
@@ -345,6 +346,7 @@ SuggestFixRequest _$SuggestFixRequestFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
     <String, dynamic>{
+      'appType': _$AppTypeEnumMap[instance.appType]!,
       'errorMessage': instance.errorMessage,
       'line': instance.line,
       'column': instance.column,

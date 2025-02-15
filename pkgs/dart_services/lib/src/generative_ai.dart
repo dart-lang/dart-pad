@@ -31,11 +31,26 @@ class GenerativeAI {
 
   bool get _canGenAI => _geminiApiKey != null;
 
-  late final _fixModel = _canGenAI
+  late final _flutterFixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
           systemInstruction: _flutterSystemInstructions(
+            '''
+You will be given an error message in provided Flutter source code along with an
+optional line and column number where the error appears. Please fix the code and
+return it in it's entirety. The response should be the same program as the input
+with the error fixed.
+''',
+          ),
+        )
+      : null;
+
+  late final _dartFixModel = _canGenAI
+      ? GenerativeModel(
+          apiKey: _geminiApiKey!,
+          model: _geminiModel,
+          systemInstruction: _dartSystemInstructions(
             '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
@@ -47,13 +62,20 @@ with the error fixed.
       : null;
 
   Stream<String> suggestFix({
+    required AppType appType,
     required String message,
     required int? line,
     required int? column,
     required String source,
   }) async* {
     _checkCanAI();
-    assert(_fixModel != null);
+    assert(_flutterFixModel != null);
+    assert(_dartFixModel != null);
+
+    final model = switch (appType) {
+      AppType.flutter => _flutterFixModel!,
+      AppType.dart => _dartFixModel!,
+    };
 
     final prompt = '''
 ERROR MESSAGE: $message
@@ -62,7 +84,7 @@ ${column != null ? 'COLUMN: $column\n' : ''}
 SOURCE CODE:
 $source
 ''';
-    final stream = _fixModel!.generateContentStream([Content.text(prompt)]);
+    final stream = model.generateContentStream([Content.text(prompt)]);
     yield* cleanCode(_textOnly(stream));
   }
 
