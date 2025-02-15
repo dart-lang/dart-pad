@@ -27,7 +27,6 @@ abstract class ExecutionService {
     required bool isFlutter,
   });
   Stream<String> get onStdout;
-  Stream<String> get onStderr;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -103,9 +102,18 @@ class AppModel {
     });
   }
 
-  void appendLineToConsole(String str, {bool isError = false}) {
+  static final _errorRe = RegExp(
+    r'\b(unhandled|exception)\b',
+    caseSensitive: false,
+  );
+
+  void appendLineToConsole(String str) {
     consoleOutput.value += '$str\n';
-    if (isError) _consoleShowingError = true;
+
+    // NOTE(csells): workaround for https://github.com/dart-lang/dart-pad/issues/3148;
+    // this heuristic is not foolproof, but seems to work well for both Dart and
+    // Flutter unhandled exceptions based on limited testing.
+    if (_errorRe.hasMatch(str)) _consoleShowingError = true;
   }
 
   void clearConsole() {
@@ -173,7 +181,6 @@ class AppServices {
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
-  StreamSubscription<String>? stderrSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
@@ -473,7 +480,6 @@ class AppServices {
   void registerExecutionService(ExecutionService? executionService) {
     // unregister the old
     stdoutSub?.cancel();
-    stderrSub?.cancel();
 
     // replace the service
     _executionService = executionService;
@@ -482,8 +488,6 @@ class AppServices {
     if (_executionService != null) {
       stdoutSub =
           _executionService!.onStdout.listen(appModel.appendLineToConsole);
-      stderrSub = _executionService!.onStderr
-          .listen((str) => appModel.appendLineToConsole(str, isError: true));
     }
   }
 
