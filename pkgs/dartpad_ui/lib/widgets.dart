@@ -579,12 +579,15 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
           content: SizedBox(
             width: 700,
-            child: widget.existingSource == null
-                ? ReadOnlyEditorWidget(_generatedCode.toString())
-                : ReadOnlyDiffWidget(
-                    existingSource: widget.existingSource!,
-                    newSource: _generatedCode.toString(),
-                  ),
+            child: Focus(
+              autofocus: true,
+              child: widget.existingSource == null
+                  ? ReadOnlyEditorWidget(_generatedCode.toString())
+                  : ReadOnlyDiffWidget(
+                      existingSource: widget.existingSource!,
+                      newSource: _generatedCode.toString(),
+                    ),
+            ),
           ),
           actions: [
             Row(
