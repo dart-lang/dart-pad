@@ -16,6 +16,8 @@ Future<void> suggestFix({
   int? line,
   int? column,
 }) async {
+  assert(errorMessage.isNotEmpty);
+
   final appModel = Provider.of<AppModel>(context, listen: false);
   final appServices = Provider.of<AppServices>(context, listen: false);
   final existingSource = appModel.sourceCodeController.text;
@@ -30,7 +32,7 @@ Future<void> suggestFix({
       ),
     );
 
-    final result = await showDialog<GeneratingCodeDialogResponse>(
+    final result = await showDialog<String>(
       context: context,
       builder: (context) => GeneratingCodeDialog(
         stream: stream,
@@ -39,15 +41,15 @@ Future<void> suggestFix({
       ),
     );
 
-    if (!context.mounted || result == null || result.source.isEmpty) return;
+    if (!context.mounted || result == null || result.isEmpty) return;
 
-    if (result.source == existingSource) {
+    if (result == existingSource) {
       appModel.editorStatus.showToast('No suggested fix');
     } else {
       appModel.editorStatus.showToast('Fix suggested');
-      appModel.sourceCodeController.textNoScroll = result.source;
+      appModel.sourceCodeController.textNoScroll = result;
       appServices.editorService!.focus();
-      if (result.runNow) appServices.performCompileAndRun();
+      appServices.performCompileAndReloadOrRun();
     }
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');

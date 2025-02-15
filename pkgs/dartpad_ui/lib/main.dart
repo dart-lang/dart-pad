@@ -689,7 +689,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
+      final generateResponse = await showDialog<String>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -699,14 +699,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (!context.mounted ||
           generateResponse == null ||
-          generateResponse.source.isEmpty) {
+          generateResponse.isEmpty) {
         return;
       }
 
-      appModel.sourceCodeController.textNoScroll = generateResponse.source;
+      appModel.sourceCodeController.textNoScroll = generateResponse;
       appServices.editorService!.focus();
-
-      if (generateResponse.runNow) appServices.performCompileAndRun();
+      appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendLineToConsole('Generating code issue: $error');
@@ -755,7 +754,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
 
-      final generateResponse = await showDialog<GeneratingCodeDialogResponse>(
+      final generateResponse = await showDialog<String>(
         context: context,
         builder: (context) => GeneratingCodeDialog(
           stream: stream,
@@ -766,14 +765,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (!context.mounted ||
           generateResponse == null ||
-          generateResponse.source.isEmpty) {
+          generateResponse.isEmpty) {
         return;
       }
 
-      appModel.sourceCodeController.textNoScroll = generateResponse.source;
+      appModel.sourceCodeController.textNoScroll = generateResponse;
       appServices.editorService!.focus();
-
-      if (generateResponse.runNow) appServices.performCompileAndRun();
+      appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendLineToConsole('Updating code issue: $error');

@@ -103,12 +103,13 @@ class ProblemWidget extends StatelessWidget {
                 textAlign: TextAlign.end,
                 style: subtleText,
               ),
+              const SizedBox(width: denseSpacing),
               IconButton(
                 onPressed: () => _quickFixes(context),
                 tooltip: 'Quick fixes',
                 icon: const Icon(Icons.lightbulb_outline),
               ),
-              if (genAiEnabled)
+              if (genAiEnabled) ...[
                 IconButton(
                   onPressed: () => suggestFix(
                     context: context,
@@ -123,6 +124,8 @@ class ProblemWidget extends StatelessWidget {
                     height: 16,
                   ),
                 ),
+                const SizedBox(width: denseSpacing),
+              ],
             ],
           ),
           if (issue.correction case final correction?) ...[

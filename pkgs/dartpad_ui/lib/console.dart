@@ -4,8 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'enable_gen_ai.dart';
+import 'model.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -45,6 +47,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appModel = Provider.of<AppModel>(context, listen: false);
 
     return Container(
       decoration: BoxDecoration(
@@ -81,7 +84,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (genAiEnabled)
+                  if (genAiEnabled && appModel.consoleShowingError)
                     MiniIconButton(
                       icon: Image.asset(
                         'gemini_sparkle_192.png',
@@ -89,12 +92,10 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                         height: 16,
                       ),
                       tooltip: 'Suggest fix',
-                      onPressed: consoleOutput.isEmpty
-                          ? null
-                          : () => suggestFix(
-                                context: context,
-                                errorMessage: consoleOutput,
-                              ),
+                      onPressed: () => suggestFix(
+                        context: context,
+                        errorMessage: consoleOutput,
+                      ),
                     ),
                   MiniIconButton(
                     icon: const Icon(Icons.playlist_remove),

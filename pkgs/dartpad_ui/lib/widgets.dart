@@ -617,18 +617,9 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                   child: const Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: _done ? _onAccept : null,
-                  child: Text(
-                    'Accept',
-                    style: TextStyle(
-                      color: !_done ? theme.disabledColor : null,
-                    ),
-                  ),
-                ),
-                TextButton(
                   onPressed: _done ? _onAcceptAndRun : null,
                   child: Text(
-                    'Accept & Run',
+                    'Accept',
                     style: TextStyle(
                       color: !_done ? theme.disabledColor : null,
                     ),
@@ -642,22 +633,9 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
     );
   }
 
-  void _onAccept() {
-    assert(_done);
-    Navigator.pop(
-      context,
-      GeneratingCodeDialogResponse(
-          source: _generatedCode.toString(), runNow: false),
-    );
-  }
-
   void _onAcceptAndRun() {
     assert(_done);
-    Navigator.pop(
-      context,
-      GeneratingCodeDialogResponse(
-          source: _generatedCode.toString(), runNow: true),
-    );
+    Navigator.pop(context, _generatedCode.toString());
   }
 }
 

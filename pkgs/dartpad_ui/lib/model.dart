@@ -27,6 +27,7 @@ abstract class ExecutionService {
     required bool isFlutter,
   });
   Stream<String> get onStdout;
+  Stream<String> get onStderr;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -76,6 +77,7 @@ class AppModel {
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
   bool _consoleShowingError = false;
+  bool get consoleShowingError => _consoleShowingError;
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> _useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
@@ -101,8 +103,9 @@ class AppModel {
     });
   }
 
-  void appendLineToConsole(String str) {
+  void appendLineToConsole(String str, {bool isError = false}) {
     consoleOutput.value += '$str\n';
+    if (isError) _consoleShowingError = true;
   }
 
   void clearConsole() {
@@ -170,6 +173,7 @@ class AppServices {
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
+  StreamSubscription<String>? stderrSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
@@ -396,6 +400,14 @@ class AppServices {
     _performCompileAndAction(reload: false);
   }
 
+  Future<void> performCompileAndReloadOrRun() async {
+    if (appModel.showReload.value && appModel.canReload.value) {
+      performCompileAndReload();
+    } else {
+      performCompileAndRun();
+    }
+  }
+
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
@@ -461,6 +473,7 @@ class AppServices {
   void registerExecutionService(ExecutionService? executionService) {
     // unregister the old
     stdoutSub?.cancel();
+    stderrSub?.cancel();
 
     // replace the service
     _executionService = executionService;
@@ -469,6 +482,8 @@ class AppServices {
     if (_executionService != null) {
       stdoutSub =
           _executionService!.onStdout.listen(appModel.appendLineToConsole);
+      stderrSub = _executionService!.onStderr
+          .listen((str) => appModel.appendLineToConsole(str, isError: true));
     }
   }
 
@@ -550,7 +565,9 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  static const defaultChannel = Channel.stable;
+  // TODO(csells): REMOVE
+  // static const defaultChannel = Channel.stable;
+  static const defaultChannel = Channel.localhost;
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
@@ -602,14 +619,4 @@ class PromptDialogResponse {
   final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
-}
-
-class GeneratingCodeDialogResponse {
-  const GeneratingCodeDialogResponse({
-    required this.source,
-    required this.runNow,
-  });
-
-  final String source;
-  final bool runNow;
 }

@@ -6,12 +6,15 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
 
 class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _stderrController =
       StreamController<String>.broadcast();
 
   web.HTMLIFrameElement _frame;
@@ -51,6 +54,9 @@ class ExecutionServiceImpl implements ExecutionService {
   Stream<String> get onStdout => _stdoutController.stream;
 
   @override
+  Stream<String> get onStderr => _stderrController.stream;
+
+  @override
   set ignorePointer(bool ignorePointer) {
     _frame.style.pointerEvents = ignorePointer ? 'none' : 'auto';
   }
@@ -74,10 +80,12 @@ class ExecutionServiceImpl implements ExecutionService {
       // Redirect print messages to the host.
       script.writeln('''
 function dartPrint(message) {
+  // NOTE: runtime errors seem to be routed here and not to window.onerror
+  let isError = (new Error()).stack.includes('FlutterError.reportError');
   parent.postMessage({
     'sender': 'frame',
-    'type': 'stdout',
-    'message': message.toString()
+    'type': isError ? 'stderr' : 'stdout',
+    'message': message.toString(),
   }, '*');
 }
 ''');
@@ -130,9 +138,11 @@ function contextLoaded() {
       // Redirect print messages to the host.
       script.writeln('''
 function dartPrint(message) {
+  // NOTE: runtime errors seem to be routed here and not to window.onerror
+  let isError = (new Error()).stack.includes('FlutterError.reportError');
   parent.postMessage({
     'sender': 'frame',
-    'type': 'stdout',
+    'type': isError ? 'stderr' : 'stdout',
     'message': message.toString()
   }, '*');
 }
@@ -248,11 +258,12 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         // Ignore any exceptions before the iframe has completed
         // initialization.
         if (_readyCompleter.isCompleted) {
-          _stdoutController.add(data['message'] as String);
+          _stderrController.add(data['message'] as String);
         }
       } else if (type == 'ready' && !_readyCompleter.isCompleted) {
         _readyCompleter.complete();
       } else if (data['message'] != null) {
+        _stdoutController.add(data['stack'] as String); // TODO(csells): REMOVE
         _stdoutController.add(data['message'] as String);
       }
     });

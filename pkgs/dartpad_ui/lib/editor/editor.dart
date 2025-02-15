@@ -662,7 +662,15 @@ class ReadOnlyDiffWidget extends StatelessWidget {
               fontWeight: FontWeight.w400,
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
-            diffCleanupType: DiffCleanupType.SEMANTIC,
+            addedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 201, 255, 201),
+            ),
+            deletedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 249, 199, 199),
+              decoration: TextDecoration.lineThrough,
+            ),
           ),
         ),
       ),
