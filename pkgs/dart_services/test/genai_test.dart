@@ -7,65 +7,74 @@ import 'package:test/test.dart';
 
 void main() {
   group('GenerativeAI.cleanCode', () {
-    final unwrappedCode = '''
+    final code = '''
 void main() {
   print("hello, world");
 }
 ''';
-
-    test('handles code without markdown wrapper', () async {
-      final input = Stream.fromIterable(
-        unwrappedCode.split('\n').map((line) => '$line\n'),
-      );
-      final cleaned = await GenerativeAI.cleanCode(input).join();
-      expect(cleaned.trim(), unwrappedCode.trim());
-    });
+    final wrappedCode = '''
+```dart
+$code
+```
+''';
 
     test('handles code with markdown wrapper', () async {
       final input = Stream.fromIterable(
-        unwrappedCode.split('\n').map((line) => '$line\n'),
+        wrappedCode.split('\n').map((line) => '$line\n'),
       );
       final cleaned = await GenerativeAI.cleanCode(input).join();
-      expect(cleaned.trim(), unwrappedCode.trim());
+      expect(cleaned.trim(), code.trim());
     });
 
-    test('handles code with markdown wrapper and trailing newline', () async {
+    test('handles code with markdown wrapper and some leading gunk', () async {
       final input = Stream.fromIterable(
-        unwrappedCode.split('\n').map((line) => '$line\n'),
+        [
+          'some leading gunk\n',
+          ...wrappedCode.split('\n').map((line) => '$line\n')
+        ],
       );
       final cleaned = await GenerativeAI.cleanCode(input).join();
-      expect(cleaned.trim(), unwrappedCode.trim());
+      expect(cleaned.trim(), code.trim());
+    });
+
+    test('handles code with markdown wrapper and trailing gunk', () async {
+      final input = Stream.fromIterable(
+        [
+          ...wrappedCode.split('\n').map((line) => '$line\n'),
+          'some trailing gunk\n',
+        ],
+      );
+      final cleaned = await GenerativeAI.cleanCode(input).join();
+      expect(cleaned.trim(), code.trim());
     });
 
     test('handles single-chunk response with markdown wrapper', () async {
-      final input = Stream.fromIterable(
-        unwrappedCode.split('\n').map((line) => '$line\n'),
-      );
+      final input = Stream.fromIterable([wrappedCode]);
       final cleaned = await GenerativeAI.cleanCode(input).join();
-      expect(cleaned.trim(), unwrappedCode.trim());
+      expect(cleaned.trim(), code.trim());
     });
 
     test('handles partial first line buffering', () async {
       final input = Stream.fromIterable([
         '```',
         'dart\n',
-        'void main() {\n',
-        '  print("hello, world");\n',
-        '}\n',
+        ...code.split('\n').map((line) => '$line\n'),
         '```',
       ]);
 
       final cleaned = await GenerativeAI.cleanCode(input).join();
-      expect(cleaned.trim(), unwrappedCode.trim());
+      expect(cleaned.trim(), code.trim());
     });
 
     test('handles single-line code without trailing newline', () async {
-      final input = Stream.fromIterable(
-        ['void main() { print("hello, world"); }'],
-      );
+      final input = Stream.fromIterable([
+        '```dart\n',
+        'void main() { print("hello, world"); }',
+        '```',
+      ]);
 
       final cleaned = await GenerativeAI.cleanCode(input).join();
-      final oneline = unwrappedCode
+      final oneline = code
           .replaceAll('\n', ' ')
           .replaceAll('  ', ' ')
           .replaceAll('  ', ' ');

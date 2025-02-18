@@ -523,6 +523,7 @@ class GeneratingCodeDialog extends StatefulWidget {
 
 class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
   final _generatedCode = StringBuffer();
+  final _focusNode = FocusNode();
   bool _done = false;
   StreamSubscription<String>? _subscription;
 
@@ -537,6 +538,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
         _generatedCode.clear();
         _generatedCode.write(source);
         _done = true;
+        _focusNode.requestFocus();
       }),
     );
   }
@@ -581,6 +583,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
             width: 700,
             child: Focus(
               autofocus: true,
+              focusNode: _focusNode,
               child: widget.existingSource == null
                   ? ReadOnlyEditorWidget(_generatedCode.toString())
                   : ReadOnlyDiffWidget(

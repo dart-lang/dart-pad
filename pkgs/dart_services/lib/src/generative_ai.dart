@@ -203,77 +203,80 @@ $prompt
           .where((text) => text.isNotEmpty);
 
   static const startCodeBlock = '```dart\n';
-  static const endCodeBlock = '```';
+  static const endCodeBlock = '\n```';
 
-  static Stream<String> cleanCode(Stream<String> stream) async* {
-    var foundFirstLine = false;
+  /// Parses a stream of markdown text and yields only the content inside a
+  /// ```dart ... ``` code block.
+  ///
+  /// Any text before the first occurrence of "```dart" is ignored. Once inside
+  /// the code block, text is yielded until the closing "```" is encountered,
+  /// at which point any remaining text is ignored.
+  ///
+  /// This parser works in a streaming manner and does not assume that the start
+  /// or end markers are contained entirely in one chunk.
+  static Stream<String> cleanCode(Stream<String> input) async* {
+    const startMarker = '```dart\n';
+    const endMarker = '```';
     final buffer = StringBuffer();
-    await for (final chunk in stream) {
-      // looking for the start of the code block (if there is one)
-      if (!foundFirstLine) {
-        buffer.write(chunk);
-        if (chunk.contains('\n')) {
-          foundFirstLine = true;
-          final text = buffer.toString().replaceFirst(startCodeBlock, '');
-          buffer.clear();
-          if (text.isNotEmpty) yield text;
-          continue;
+    var foundStart = false;
+    var foundEnd = false;
+
+    await for (final chunk in input) {
+      if (foundEnd) continue;
+      buffer.write(chunk);
+
+      if (!foundStart) {
+        final str = buffer.toString();
+        final startIndex = str.indexOf(startMarker);
+        if (startIndex == -1) continue;
+
+        buffer.clear();
+        buffer.write(str.substring(startIndex + startMarker.length));
+        foundStart = true;
+      }
+
+      assert(foundStart);
+      assert(!foundEnd);
+
+      final str = buffer.toString();
+      final endIndex = str.indexOf(endMarker);
+      foundEnd = endIndex != -1;
+      final output = foundEnd ? str.substring(0, endIndex) : str;
+      yield output;
+      buffer.clear();
+    }
+  }
+
+  final _cachedAllowedFlutterPackages = List<String>.empty(growable: true);
+  List<String> _allowedFlutterPackages() {
+    if (_cachedAllowedFlutterPackages.isEmpty) {
+      final versions = getPackageVersions();
+      for (final MapEntry(key: name, value: version) in versions.entries) {
+        if (isSupportedPackage(name)) {
+          _cachedAllowedFlutterPackages.add('$name: $version');
         }
-
-        // still looking for the start of the first line
-        continue;
-      }
-
-      // looking for the end of the code block (if there is one)
-      assert(foundFirstLine);
-      String processedChunk;
-      if (chunk.endsWith(endCodeBlock)) {
-        processedChunk = chunk.substring(0, chunk.length - endCodeBlock.length);
-      } else if (chunk.endsWith('$endCodeBlock\n')) {
-        processedChunk =
-            '${chunk.substring(0, chunk.length - endCodeBlock.length - 1)}\n';
-      } else {
-        processedChunk = chunk;
-      }
-
-      if (processedChunk.isNotEmpty) yield processedChunk;
-    }
-
-    // if we're still in the first line, yield it
-    if (buffer.isNotEmpty) yield buffer.toString();
-  }
-}
-
-final _cachedAllowedFlutterPackages = List<String>.empty(growable: true);
-List<String> _allowedFlutterPackages() {
-  if (_cachedAllowedFlutterPackages.isEmpty) {
-    final versions = getPackageVersions();
-    for (final MapEntry(key: name, value: version) in versions.entries) {
-      if (isSupportedPackage(name)) {
-        _cachedAllowedFlutterPackages.add('$name: $version');
       }
     }
+
+    return _cachedAllowedFlutterPackages;
   }
 
-  return _cachedAllowedFlutterPackages;
-}
-
-final _cachedAllowedDartPackages = List<String>.empty(growable: true);
-List<String> _allowedDartPackages() {
-  if (_cachedAllowedDartPackages.isEmpty) {
-    final versions = getPackageVersions();
-    for (final MapEntry(key: name, value: version) in versions.entries) {
-      if (isSupportedDartPackage(name)) {
-        _cachedAllowedDartPackages.add('$name: $version');
+  final _cachedAllowedDartPackages = List<String>.empty(growable: true);
+  List<String> _allowedDartPackages() {
+    if (_cachedAllowedDartPackages.isEmpty) {
+      final versions = getPackageVersions();
+      for (final MapEntry(key: name, value: version) in versions.entries) {
+        if (isSupportedDartPackage(name)) {
+          _cachedAllowedDartPackages.add('$name: $version');
+        }
       }
     }
+
+    return _cachedAllowedDartPackages;
   }
 
-  return _cachedAllowedDartPackages;
-}
-
-Content _flutterSystemInstructions(String modelSpecificInstructions) =>
-    Content.text('''
+  Content _flutterSystemInstructions(String modelSpecificInstructions) =>
+      Content.text('''
 You're an expert Flutter developer and UI designer creating Custom User
 Interfaces: generated, bespoke, interactive interfaces created on-the-fly using
 the Flutter SDK API. You will produce a professional, release-ready Flutter
@@ -443,11 +446,12 @@ ${_allowedFlutterPackages().map((p) => '- $p').join('\n')}
 
 $modelSpecificInstructions
 
-Only output the Dart code for the program.
+Only output the Dart code for the program. Output that code wrapped in a
+Markdown ```dart``` tag.
 ''');
 
-Content _dartSystemInstructions(String modelSpecificInstructions) =>
-    Content.text('''
+  Content _dartSystemInstructions(String modelSpecificInstructions) =>
+      Content.text('''
 You're an expert Dart developer specializing in writing efficient, idiomatic,
 and production-ready Dart programs.  
 You will produce professional, release-ready Dart applications. All of the
@@ -494,7 +498,7 @@ and provide meaningful default values when needed.
 - **Ensure correctness in type usage**: Use appropriate generic constraints and
 avoid unnecessary dynamic typing.
 
-- If the program requires **parsing, async tasks, or JSON handling**, use Dart’s
+- If the program requires **parsing, async tasks, or JSON handling**, use Dart's
 built-in libraries like `dart:convert` and `dart:async` instead of external
 dependencies unless specified.
 
@@ -544,5 +548,7 @@ $modelSpecificInstructions
 
 ---
 
-Only output the Dart code for the program.
+Only output the Dart code for the program. Output that code wrapped in a
+Markdown ```dart``` tag.
 ''');
+}
