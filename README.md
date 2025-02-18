@@ -36,6 +36,18 @@ Some handy guides:
 - [Sharing Guide](https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide)
 - [Embedding Guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide)
 
+
+## Running Build Tasks with Grind
+
+Dart Services uses [Grinder](https://pub.dev/packages/grinder) to automate build tasks.
+
+To generate project templates and required artifacts, run:
+
+```sh
+dart tool/grind.dart build-project-templates
+dart tool/grind.dart build-storage-artifacts
+
+
 ## Issues and bugs
 
 Please file reports on the [GitHub Issue
