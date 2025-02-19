@@ -22,6 +22,6 @@ jobs:
       - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
         with:
           channel: ${{ matrix.sdk }}
-
+      - run: dart --version
       - name: Validate cross-workspace resolution
-        run: dart pub get
+        run: flutter pub get
