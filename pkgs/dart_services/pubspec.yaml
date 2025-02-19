@@ -2,6 +2,7 @@ name: dart_services
 description: The backend service for DartPad.
 publish_to: none
 
+resolution: workspace
 environment:
   sdk: ^3.6.1
 
@@ -10,7 +11,8 @@ dependencies:
   analyzer: ^7.1.0
   args: ^2.5.0
   bazel_worker: ^1.1.1
-  dartpad_shared: ^0.0.0
+  dartpad_shared:
+    path: ../dartpad_shared
   encrypt: ^5.0.3
   http: ^1.2.1
   json_annotation: ^4.9.0
@@ -32,7 +34,3 @@ dev_dependencies:
   synchronized: ^3.1.0+1
   test: ^1.25.9
   test_descriptor: ^2.0.1
-
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared

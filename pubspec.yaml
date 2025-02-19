@@ -1,0 +1,11 @@
+name: dartpad_workspace
+publish_to: none
+
+workspace:
+  - pkgs/dart_services
+  - pkgs/dartpad_shared
+  - pkgs/dartpad_ui
+  - pkgs/samples
+
+environment:
+  sdk: ^3.6.1

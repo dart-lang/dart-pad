@@ -22,11 +22,9 @@ jobs:
     defaults:
       run:
         working-directory: pkgs/dartpad_shared/
-
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
-
+      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
       - name: Install dart dependencies
         run: dart pub get
 
