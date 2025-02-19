@@ -132,11 +132,9 @@ void defineTests() {
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
-          expect(
-            result.problems.first.message,
-            contains(
-                "Invoked Dart programs must have a 'main' function defined"),
-          );
+          expect(result.problems.first.message,
+              contains("Error: Method not found: 'main'"));
+          expect(result.problems.first.message, startsWith('main.dart:'));
         });
 
         test('with multiple errors', () async {
