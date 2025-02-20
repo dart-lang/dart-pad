@@ -9,8 +9,19 @@ const kBootstrapDart = 'bootstrap.dart';
 const kBootstrapDartCode = r'''
 import 'main.dart' as user_code;
 
+import 'package:stack_trace/stack_trace.dart';
+
 void main() {
-  user_code.main();
+  Chain.capture(user_code.main, onError: (error, chain) {
+    print('DartPad caught unhandled ${error.runtimeType}:');
+    print('$error');
+    final simplifiedChain = chain
+        .toString()
+        .split('\n')
+        .takeWhile((line) => !line.endsWith(r'main$'))
+        .join('\n');
+    print('$simplifiedChain\nStack trace truncated and adjusted by DartPad...');
+  });
 }
 ''';
 
