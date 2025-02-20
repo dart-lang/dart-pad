@@ -22,15 +22,11 @@ jobs:
     defaults:
       run:
         working-directory: pkgs/dartpad_ui/
-    strategy:
-      fail-fast: false
-      matrix:
-        sdk: [ beta, main ]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
         with:
-          channel: ${{ matrix.sdk }}
+          channel: main
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze

@@ -33,7 +33,7 @@ jobs:
       - run: flutter --version
 
       - name: Install dart dependencies
-        run: flutter pub get
+        run: dart pub get
 
       - name: Analyze project source
         run: dart analyze --fatal-infos

@@ -4,9 +4,7 @@
 build/
 .buildlog
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-pubspec.lock
+.packages
 
 # Or the files created by dart2js.
 *.dart.js
