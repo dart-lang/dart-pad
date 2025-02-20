@@ -115,17 +115,7 @@ const Set<String> supportedBasicDartPackages = {
 };
 
 /// The set of all packages whose support in DartPad is deprecated.
-const Set<String> _deprecatedPackages = {
-  'js',
-};
-
-/// The set of core web libraries whose support in
-/// DartPad or Dart is deprecated.
-const Set<String> _deprecatedCoreWebLibraries = {
-  'js',
-  'html',
-  'js_util',
-};
+const Set<String> _deprecatedPackages = {};
 
 /// A set of all allowed `dart:` libraries, includes
 /// all libraries from "Core", some from "Web", and none from "VM".
@@ -139,18 +129,12 @@ const Set<String> _allowedCoreLibraries = {
   'typed_data',
   'js_interop',
   'js_interop_unsafe',
-  ..._deprecatedCoreWebLibraries,
   'ui',
 };
 
 /// Whether [libraryName] is the name of a supported `dart:` core library.
 bool isSupportedCoreLibrary(String libraryName) =>
     _allowedCoreLibraries.contains(libraryName);
-
-/// Whether [libraryName] is the name of a supported, but deprecated,
-/// `dart:` core web library.
-bool isDeprecatedCoreWebLibrary(String libraryName) =>
-    _deprecatedCoreWebLibraries.contains(libraryName);
 
 /// Whether [imports] denote use of Flutter Web.
 bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
