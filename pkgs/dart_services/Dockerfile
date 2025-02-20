@@ -4,8 +4,8 @@ ARG BUILD_SHA
 
 FROM gcr.io/$PROJECT_ID/flutter:$FLUTTER_CHANNEL
 
-WORKDIR /pkgs
-COPY pkgs .
+WORKDIR /
+COPY . .
 
 WORKDIR /pkgs/dart_services
 
