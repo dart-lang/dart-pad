@@ -54,7 +54,7 @@ class AppModel {
   final ValueNotifier<String> consoleOutput = ValueNotifier('');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
-  final ValueNotifier<CompilingState> compilingBusy =
+  final ValueNotifier<CompilingState> compilingState =
       ValueNotifier(CompilingState.none);
   final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
 
@@ -85,10 +85,10 @@ class AppModel {
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
     void updateCanReload() => canReload.value = hasRun.value &&
-        !compilingBusy.value.busy &&
+        !compilingState.value.busy &&
         currentDeltaDill.value != null;
     hasRun.addListener(updateCanReload);
-    compilingBusy.addListener(updateCanReload);
+    compilingState.addListener(updateCanReload);
     currentDeltaDill.addListener(updateCanReload);
 
     void updateShowReload() {
@@ -416,38 +416,38 @@ class AppServices {
 
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = CompilingState.compiling;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compile(request);
     } finally {
-      appModel.compilingBusy.value = CompilingState.none;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = CompilingState.compiling;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compileDDC(request);
     } finally {
-      appModel.compilingBusy.value = CompilingState.none;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = CompilingState.compiling;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compileNewDDC(request);
     } finally {
-      appModel.compilingBusy.value = CompilingState.none;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   Future<CompileDDCResponse> _compileNewDDCReload(
       CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = CompilingState.reloading;
+      appModel.compilingState.value = CompilingState.reloading;
       return await services.compileNewDDCReload(request);
     } finally {
-      appModel.compilingBusy.value = CompilingState.none;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
@@ -589,8 +589,8 @@ enum SplitDragState { inactive, active }
 
 enum CompilingState {
   none(false),
-  compiling(true),
-  reloading(true);
+  reloading(true),
+  restarting(true);
 
   final bool busy;
 
