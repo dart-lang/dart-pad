@@ -24,13 +24,13 @@ void defineTests() {
 
     test('isFlutterWebImport', () {
       expect(isFlutterWebImport(''), isFalse);
-      expect(isFlutterWebImport('dart:html'), isFalse);
+      expect(isFlutterWebImport('dart:js_interop'), isFalse);
       expect(isFlutterWebImport('dart:ui'), isTrue);
       expect(isFlutterWebImport('package:flutter/'), isTrue);
     });
 
-    test('isSupportedCoreLibrary allows dart:html', () {
-      expect(isSupportedCoreLibrary('html'), isTrue);
+    test('isSupportedCoreLibrary allows dart:js_interop', () {
+      expect(isSupportedCoreLibrary('js_interop'), isTrue);
     });
 
     test('isSupportedCoreLibrary allows dart:ui', () {

@@ -314,14 +314,6 @@ class AnalysisServerWrapper {
             correction: 'Try removing the import and usages of the library.',
             location: import.getLocation(source),
           ));
-        } else if (isDeprecatedCoreWebLibrary(libraryName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'info', // TODO(parlough): Expand to 'warning' in future.
-            message: "Deprecated core web library: 'dart:$libraryName'.",
-            correction: 'Try using static JS interop instead.',
-            url: 'https://dart.dev/go/next-gen-js-interop',
-            location: import.getLocation(source),
-          ));
         }
       } else if (import.packageImport) {
         final packageName = import.packageName;
