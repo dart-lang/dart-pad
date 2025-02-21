@@ -89,6 +89,8 @@ const Set<String> supportedBasicDartPackages = {
   'convert',
   'cross_file',
   'dartz',
+  'dio',
+  'dio_web_adapter',
   'english_words',
   'equatable',
   'fast_immutable_collections',
