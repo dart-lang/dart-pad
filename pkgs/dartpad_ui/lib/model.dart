@@ -571,8 +571,7 @@ enum Channel {
 
   const Channel(this.displayName, this.url);
 
-  // static const defaultChannel = Channel.stable;
-  static const defaultChannel = Channel.localhost; // TODO(csells): REMOVE
+  static const defaultChannel = Channel.stable;
 
   static List<Channel> get valuesWithoutLocalhost {
     return values.whereNot((channel) => channel == localhost).toList();
@@ -624,4 +623,14 @@ class PromptDialogResponse {
   final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
+}
+
+enum CompilingState {
+  none(false),
+  reloading(true),
+  restarting(true);
+
+  final bool busy;
+
+  const CompilingState(this.busy);
 }

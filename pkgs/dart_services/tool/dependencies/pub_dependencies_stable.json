@@ -31,7 +31,7 @@
   "flame_forge2d": "0.18.2+6",
   "flame_splash_screen": "0.3.1+1",
   "flame_tiled": "2.0.1",
-  "flutter_adaptive_scaffold": "0.3.1+1",
+  "flutter_adaptive_scaffold": "0.3.2",
   "flutter_bloc": "9.0.0",
   "flutter_hooks": "0.20.5",
   "flutter_map": "8.0.0",
