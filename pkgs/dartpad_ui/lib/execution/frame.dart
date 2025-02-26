@@ -125,10 +125,12 @@ function contextLoaded() {
 }''');
       if (isFlutter) {
         script.writeln(
-            'require(["dart_sdk_new", "flutter_web_new", "ddc_module_loader"], contextLoaded);');
+          'require(["dart_sdk_new", "flutter_web_new", "ddc_module_loader"], contextLoaded);',
+        );
       } else {
         script.writeln(
-            'require(["dart_sdk_new", "ddc_module_loader"], contextLoaded);');
+          'require(["dart_sdk_new", "ddc_module_loader"], contextLoaded);',
+        );
       }
     } else {
       // Redirect print messages to the host.
@@ -212,10 +214,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   Future<void> _send(String command, Map<String, Object?> params) {
     // TODO: Use dartpad.dev instead of '*'?
     _frame.contentWindowCrossOrigin?.postMessage(
-      {
-        'command': command,
-        ...params,
-      }.jsify(),
+      {'command': command, ...params}.jsify(),
       '*'.toJS,
     );
     return Future.value();
@@ -234,10 +233,12 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       _frame = clone;
     }
 
-    return _readyCompleter.future.timeout(const Duration(seconds: 1),
-        onTimeout: () {
-      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
-    });
+    return _readyCompleter.future.timeout(
+      const Duration(seconds: 1),
+      onTimeout: () {
+        if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+      },
+    );
   }
 
   void _initListener() {

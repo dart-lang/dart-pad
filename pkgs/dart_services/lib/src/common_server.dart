@@ -79,7 +79,9 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
     router.post(r'/api/<apiVersion>/compileNewDDC', handleCompileNewDDC);
     router.post(
-        r'/api/<apiVersion>/compileNewDDCReload', handleCompileNewDDCReload);
+      r'/api/<apiVersion>/compileNewDDCReload',
+      handleCompileNewDDCReload,
+    );
     router.post(r'/api/<apiVersion>/complete', handleComplete);
     router.post(r'/api/<apiVersion>/fixes', handleFixes);
     router.post(r'/api/<apiVersion>/format', handleFormat);
@@ -103,8 +105,9 @@ class CommonServerApi {
   Future<Response> handleAnalyze(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final result = await serialize(() {
       return impl.analyzer.analyze(sourceRequest.source);
@@ -116,8 +119,9 @@ class CommonServerApi {
   Future<Response> handleCompile(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final results = await serialize(() {
       return impl.compiler.compile(sourceRequest.source);
@@ -131,14 +135,15 @@ class CommonServerApi {
   }
 
   Future<Response> _handleCompileDDC(
-      Request request,
-      String apiVersion,
-      Future<DDCCompilationResults> Function(api.CompileRequest)
-          compile) async {
+    Request request,
+    String apiVersion,
+    Future<DDCCompilationResults> Function(api.CompileRequest) compile,
+  ) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final compileRequest =
-        api.CompileRequest.fromJson(await request.readAsJson());
+    final compileRequest = api.CompileRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final results = await serialize(() {
       return compile(compileRequest);
@@ -149,44 +154,59 @@ class CommonServerApi {
       if (modulesBaseUrl != null && modulesBaseUrl.isEmpty) {
         modulesBaseUrl = null;
       }
-      return ok(api.CompileDDCResponse(
-        result: results.compiledJS!,
-        deltaDill: results.deltaDill,
-        modulesBaseUrl: modulesBaseUrl,
-      ).toJson());
+      return ok(
+        api.CompileDDCResponse(
+          result: results.compiledJS!,
+          deltaDill: results.deltaDill,
+          modulesBaseUrl: modulesBaseUrl,
+        ).toJson(),
+      );
     } else {
       return failure(results.problems.map((p) => p.message).join('\n'));
     }
   }
 
   Future<Response> handleCompileDDC(Request request, String apiVersion) async {
-    return await _handleCompileDDC(request, apiVersion,
-        (request) => impl.compiler.compileDDC(request.source));
+    return await _handleCompileDDC(
+      request,
+      apiVersion,
+      (request) => impl.compiler.compileDDC(request.source),
+    );
   }
 
   Future<Response> handleCompileNewDDC(
-      Request request, String apiVersion) async {
-    return await _handleCompileDDC(request, apiVersion,
-        (request) => impl.compiler.compileNewDDC(request.source));
+    Request request,
+    String apiVersion,
+  ) async {
+    return await _handleCompileDDC(
+      request,
+      apiVersion,
+      (request) => impl.compiler.compileNewDDC(request.source),
+    );
   }
 
   Future<Response> handleCompileNewDDCReload(
-      Request request, String apiVersion) async {
+    Request request,
+    String apiVersion,
+  ) async {
     return await _handleCompileDDC(
-        request,
-        apiVersion,
-        (request) => impl.compiler
-            .compileNewDDCReload(request.source, request.deltaDill!));
+      request,
+      apiVersion,
+      (request) =>
+          impl.compiler.compileNewDDCReload(request.source, request.deltaDill!),
+    );
   }
 
   Future<Response> handleComplete(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
-    final result = await serialize(() =>
-        impl.analyzer.complete(sourceRequest.source, sourceRequest.offset!));
+    final result = await serialize(
+      () => impl.analyzer.complete(sourceRequest.source, sourceRequest.offset!),
+    );
 
     return ok(result.toJson());
   }
@@ -194,11 +214,13 @@ class CommonServerApi {
   Future<Response> handleFixes(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final result = await serialize(
-        () => impl.analyzer.fixes(sourceRequest.source, sourceRequest.offset!));
+      () => impl.analyzer.fixes(sourceRequest.source, sourceRequest.offset!),
+    );
 
     return ok(result.toJson());
   }
@@ -206,14 +228,12 @@ class CommonServerApi {
   Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final result = await serialize(() {
-      return impl.analyzer.format(
-        sourceRequest.source,
-        sourceRequest.offset,
-      );
+      return impl.analyzer.format(sourceRequest.source, sourceRequest.offset);
     });
 
     return ok(result.toJson());
@@ -222,14 +242,12 @@ class CommonServerApi {
   Future<Response> handleDocument(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest =
-        api.SourceRequest.fromJson(await request.readAsJson());
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     final result = await serialize(() {
-      return impl.analyzer.dartdoc(
-        sourceRequest.source,
-        sourceRequest.offset!,
-      );
+      return impl.analyzer.dartdoc(sourceRequest.source, sourceRequest.offset!);
     });
 
     return ok(result.toJson());
@@ -251,16 +269,18 @@ class CommonServerApi {
       );
 
       if (response.statusCode == 302) {
-        return ok(api.OpenInIdxResponse(idxUrl: response.headers['location']!)
-            .toJson());
+        return ok(
+          api.OpenInIdxResponse(idxUrl: response.headers['location']!).toJson(),
+        );
       } else {
         return Response.internalServerError(
-            body:
-                'Failed to read response from IDX server. Response: $response');
+          body: 'Failed to read response from IDX server. Response: $response',
+        );
       }
     } catch (error) {
       return Response.internalServerError(
-          body: 'Failed to read response from IDX server. Error: $error');
+        body: 'Failed to read response from IDX server. Error: $error',
+      );
     }
   }
 
@@ -281,10 +301,9 @@ class CommonServerApi {
   }
 
   Future<T> serialize<T>(Future<T> Function() fn) {
-    return scheduler.schedule(ClosureTask(
-      fn,
-      timeoutDuration: const Duration(minutes: 5),
-    ));
+    return scheduler.schedule(
+      ClosureTask(fn, timeoutDuration: const Duration(minutes: 5)),
+    );
   }
 
   api.VersionResponse version() {
@@ -339,12 +358,14 @@ extension RequestExtension on Request {
 }
 
 Middleware createCustomCorsHeadersMiddleware() {
-  return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers':
-        'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
-  });
+  return shelf_cors.createCorsHeadersMiddleware(
+    corsHeaders: <String, String>{
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers':
+          'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client',
+    },
+  );
 }
 
 Middleware logRequestsToLogger(Logger log) {
@@ -352,18 +373,21 @@ Middleware logRequestsToLogger(Logger log) {
     return (request) {
       final watch = Stopwatch()..start();
 
-      return Future.sync(() => innerHandler(request)).then((response) {
-        log.info(_formatMessage(request, watch.elapsed, response: response));
+      return Future.sync(() => innerHandler(request)).then(
+        (response) {
+          log.info(_formatMessage(request, watch.elapsed, response: response));
 
-        return response;
-      }, onError: (Object error, StackTrace stackTrace) {
-        if (error is HijackException) throw error;
+          return response;
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (error is HijackException) throw error;
 
-        log.info(_formatMessage(request, watch.elapsed, error: error));
+          log.info(_formatMessage(request, watch.elapsed, error: error));
 
-        // ignore: only_throw_errors
-        throw error;
-      });
+          // ignore: only_throw_errors
+          throw error;
+        },
+      );
     };
   };
 }
@@ -383,7 +407,8 @@ String _formatMessage(
   final ms = elapsedTime.inMilliseconds;
   final query = requestedUri.query == '' ? '' : '?${requestedUri.query}';
 
-  var message = '${ms.toString().padLeft(5)}ms ${size.toString().padLeft(4)}k '
+  var message =
+      '${ms.toString().padLeft(5)}ms ${size.toString().padLeft(4)}k '
       '$statusCode $method ${requestedUri.path}$query';
   if (error != null) {
     message = '$message [$error]';

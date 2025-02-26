@@ -28,7 +28,8 @@ const _flutterPackages = [
 /// This is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
 final Map<String, String> _packageVersions = packageVersionsFromPubspecLock(
-    project.ProjectTemplates.projectTemplates.flutterPath);
+  project.ProjectTemplates.projectTemplates.flutterPath,
+);
 
 /// Returns a mapping of Pub package name to package version.
 Map<String, String> getPackageVersions() => _packageVersions;
@@ -58,7 +59,8 @@ Map<String, String> packageVersionsFromPubspecLock(String templatePath) {
       packageVersions[name] = version;
     } else {
       throw StateError(
-          '$name does not have a well-formatted version: $version');
+        '$name does not have a well-formatted version: $version',
+      );
     }
   });
 

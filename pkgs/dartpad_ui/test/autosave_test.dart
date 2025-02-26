@@ -34,9 +34,7 @@ void main() {
       LocalStorage.instance.saveUserCode('');
       expect(LocalStorage.instance.getUserCode(), isNull);
 
-      await services.performInitialLoad(
-        getFallback: getFallback,
-      );
+      await services.performInitialLoad(getFallback: getFallback);
       expect(model.sourceCodeController.text, equals(Samples.defaultSnippet()));
     });
 
@@ -49,9 +47,7 @@ void main() {
         final services = AppServices(model, channel);
         expect(LocalStorage.instance.getUserCode(), equals(sample));
 
-        await services.performInitialLoad(
-          getFallback: getFallback,
-        );
+        await services.performInitialLoad(getFallback: getFallback);
         expect(model.sourceCodeController.text, equals(sample));
       });
 

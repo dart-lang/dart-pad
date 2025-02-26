@@ -17,8 +17,13 @@ void defineTests() {
   group('FlutterWebManager', () {
     test('initializes', () async {
       expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
-      final file = File(path.join(
-          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      final file = File(
+        path.join(
+          projectTemplates.flutterPath,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
       expect(await file.exists(), isTrue);
     });
 
@@ -64,15 +69,22 @@ void defineTests() {
 
   group('flutter web project', () {
     test('packagesFilePath', () async {
-      final packageConfig = File(path.join(
-          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      final packageConfig = File(
+        path.join(
+          projectTemplates.flutterPath,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
       expect(await packageConfig.exists(), true);
       final encoded = await packageConfig.readAsString();
       final contents = jsonDecode(encoded) as Map<String, dynamic>;
       expect(contents['packages'], isNotEmpty);
       final packages = contents['packages'] as List<dynamic>;
-      expect(packages.where((element) => (element as Map)['name'] == 'flutter'),
-          isNotEmpty);
+      expect(
+        packages.where((element) => (element as Map)['name'] == 'flutter'),
+        isNotEmpty,
+      );
     });
 
     test('summaryFilePath', () {

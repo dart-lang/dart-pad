@@ -86,19 +86,12 @@ extension SingleActivatorExtension on SingleActivator {
         ),
         borderRadius: const BorderRadius.all(Radius.circular(4)),
       ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 2,
-        horizontal: 6,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (shift)
-            const Icon(
-              Icons.arrow_upward,
-              size: 16,
-              color: subtleColor,
-            ),
+            const Icon(Icons.arrow_upward, size: 16, color: subtleColor),
           if (alt)
             Icon(
               _mac ? Icons.keyboard_option_key : Icons.keyboard_alt,

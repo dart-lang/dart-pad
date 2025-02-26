@@ -29,24 +29,28 @@ void _initViewFactory() {
   if (_viewFactoryInitialized) return;
   _viewFactoryInitialized = true;
 
-  ui_web.platformViewRegistry
-      .registerViewFactory(_viewType, _codeMirrorFactory);
+  ui_web.platformViewRegistry.registerViewFactory(
+    _viewType,
+    _codeMirrorFactory,
+  );
 }
 
 web.Element _codeMirrorFactory(int viewId) {
-  final div = web.document.createElement('div') as web.HTMLDivElement
-    ..style.width = '100%'
-    ..style.height = '100%';
+  final div =
+      web.document.createElement('div') as web.HTMLDivElement
+        ..style.width = '100%'
+        ..style.height = '100%';
 
   codeMirrorInstance = CodeMirror(
-      div,
-      <String, Object?>{
-        'lineNumbers': true,
-        'lineWrapping': true,
-        'mode': 'dart',
-        'theme': 'darkpad',
-        ...codeMirrorOptions,
-      }.jsify());
+    div,
+    <String, Object?>{
+      'lineNumbers': true,
+      'lineWrapping': true,
+      'mode': 'dart',
+      'theme': 'darkpad',
+      ...codeMirrorOptions,
+    }.jsify(),
+  );
 
   CodeMirror.commands.goLineLeft =
       ((JSObject? _) => _handleGoLineLeft(codeMirrorInstance!)).toJS;
@@ -75,11 +79,7 @@ class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
 
-  EditorWidget({
-    required this.appModel,
-    required this.appServices,
-    super.key,
-  }) {
+  EditorWidget({required this.appModel, required this.appServices, super.key}) {
     _initViewFactory();
   }
 
@@ -160,9 +160,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     if (issue.location.line != -1) {
       codeMirror!.getDoc().setSelection(
-            Position(line: line, ch: column),
-            Position(line: line, ch: column + issue.location.charLength),
-          );
+        Position(line: line, ch: column),
+        Position(line: line, ch: column + issue.location.charLength),
+      );
     } else {
       codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
@@ -218,7 +218,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // Use a longer delay so that the platform view is displayed
     // correctly when compiled to Wasm
     Future.delayed(
-        const Duration(milliseconds: 80), () => codeMirror!.refresh());
+      const Duration(milliseconds: 80),
+      () => codeMirror!.refresh(),
+    );
 
     codeMirror!.on(
       'change',
@@ -242,38 +244,46 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     );
 
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
-    appModel.analysisIssues
-        .addListener(() => _updateIssues(appModel.analysisIssues.value));
+    appModel.analysisIssues.addListener(
+      () => _updateIssues(appModel.analysisIssues.value),
+    );
     appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
 
     widget.appServices.registerEditorService(this);
 
-    CodeMirror.commands.autocomplete = (CodeMirror codeMirror) {
-      _completions().then((completions) {
-        codeMirror.showHint(
-            HintOptions(hint: CodeMirror.hint.dart, results: completions));
-      });
-      return JSObject();
-    }.toJS;
+    CodeMirror.commands.autocomplete =
+        (CodeMirror codeMirror) {
+          _completions().then((completions) {
+            codeMirror.showHint(
+              HintOptions(hint: CodeMirror.hint.dart, results: completions),
+            );
+          });
+          return JSObject();
+        }.toJS;
 
     CodeMirror.registerHelper(
-        'hint',
-        'dart',
-        (CodeMirror editor, [HintOptions? options]) {
-          return options!.results;
-        }.toJS);
+      'hint',
+      'dart',
+      (CodeMirror editor, [HintOptions? options]) {
+        return options!.results;
+      }.toJS,
+    );
 
     // Listen for document body to be visible, then force a code mirror refresh.
     final observer = web.IntersectionObserver(
-      (JSArray<web.IntersectionObserverEntry> entries,
-          web.IntersectionObserver observer) {
+      (
+        JSArray<web.IntersectionObserverEntry> entries,
+        web.IntersectionObserver observer,
+      ) {
         for (final entry in entries.toDart) {
           if (entry.isIntersecting) {
             observer.unobserve(web.document.body!);
             // Use a longer delay so that the platform view is displayed
             // correctly when compiled to Wasm
             Future.delayed(
-                const Duration(milliseconds: 80), () => codeMirror!.refresh());
+              const Duration(milliseconds: 80),
+              () => codeMirror!.refresh(),
+            );
             return;
           }
         }
@@ -311,8 +321,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       child: HtmlElementView(
         key: _elementViewKey,
         viewType: _viewType,
-        onPlatformViewCreated: (id) =>
-            _platformViewCreated(id, darkMode: darkMode),
+        onPlatformViewCreated:
+            (id) => _platformViewCreated(id, darkMode: darkMode),
       ),
     );
   }
@@ -324,8 +334,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     widget.appServices.registerEditorService(null);
 
-    widget.appModel.sourceCodeController
-        .removeListener(_updateCodemirrorFromModel);
+    widget.appModel.sourceCodeController.removeListener(
+      _updateCodemirrorFromModel,
+    );
     widget.appModel.appReady.removeListener(_updateEditableStatus);
     widget.appModel.vimKeymapsEnabled.removeListener(_updateCodemirrorKeymap);
 
@@ -377,10 +388,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       doc.markText(
         Position(line: line, ch: column),
         Position(line: line, ch: column + issue.location.charLength),
-        MarkTextOptions(
-          className: 'squiggle-$kind',
-          title: issue.message,
-        ),
+        MarkTextOptions(className: 'squiggle-$kind', title: issue.message),
       );
     }
   }
@@ -410,24 +418,27 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       }
 
       return HintResults(
-        list: [
-          ...response.fixes.map((change) => change.toHintResult(editor)),
-          ...response.assists.map((change) => change.toHintResult(editor)),
-        ].toJS,
+        list:
+            [
+              ...response.fixes.map((change) => change.toHintResult(editor)),
+              ...response.assists.map((change) => change.toHintResult(editor)),
+            ].toJS,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
       );
     } else {
       final response = await appServices.services
           .complete(
-              services.SourceRequest(source: source, offset: sourceOffset))
+            services.SourceRequest(source: source, offset: sourceOffset),
+          )
           .onError((error, st) => services.CompleteResponse.empty);
 
       final offset = response.replacementOffset;
       final length = response.replacementLength;
-      final hints = response.suggestions
-          .map((suggestion) => suggestion.toHintResult())
-          .toList();
+      final hints =
+          response.suggestions
+              .map((suggestion) => suggestion.toHintResult())
+              .toList();
 
       // Remove hints where both the replacement text and the display text are
       // the same.
@@ -491,15 +502,10 @@ void _weHandleElsewhere(CodeMirror editor) {
 
 const codeMirrorOptions = {
   'autoCloseBrackets': true,
-  'autoCloseTags': {
-    'whenOpening': true,
-    'whenClosing': true,
-  },
+  'autoCloseTags': {'whenOpening': true, 'whenClosing': true},
   'autofocus': false,
   'cursorHeight': 0.85,
-  'continueComments': {
-    'continueLineComment': false,
-  },
+  'continueComments': {'continueLineComment': false},
   'extraKeys': {
     'Esc': '...',
     'Esc Tab': false,
@@ -522,32 +528,22 @@ const codeMirrorOptions = {
     'Shift-Cmd-F': 'weHandleElsewhere',
     'Cmd-Alt-F': false,
   },
-  'gutters': [
-    'CodeMirror-linenumbers',
-  ],
+  'gutters': ['CodeMirror-linenumbers'],
   'highlightSelectionMatches': {
     'style': 'highlight-selection-matches',
     'showToken': false,
     'annotateScrollbar': true,
   },
-  'hintOptions': {
-    'completeSingle': false,
-  },
+  'hintOptions': {'completeSingle': false},
   'indentUnit': 2,
   'matchBrackets': true,
-  'matchTags': {
-    'bothTags': true,
-  },
+  'matchTags': {'bothTags': true},
   'tabSize': 2,
   'viewportMargin': 100,
   'scrollbarStyle': 'simple',
 };
 
-enum CompletionType {
-  auto,
-  manual,
-  quickfix,
-}
+enum CompletionType { auto, manual, quickfix }
 
 extension CompletionSuggestionExtension on services.CompletionSuggestion {
   HintResult toHintResult() {

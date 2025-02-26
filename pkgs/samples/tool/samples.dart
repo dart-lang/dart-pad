@@ -9,11 +9,19 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) {
-  final argParser = ArgParser()
-    ..addFlag('verify',
-        negatable: false, help: 'Verify the generated samples files.')
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Display this help output.');
+  final argParser =
+      ArgParser()
+        ..addFlag(
+          'verify',
+          negatable: false,
+          help: 'Verify the generated samples files.',
+        )
+        ..addFlag(
+          'help',
+          abbr: 'h',
+          negatable: false,
+          help: 'Display this help output.',
+        );
 
   final argResults = argParser.parse(args);
 
@@ -31,20 +39,16 @@ void main(List<String> args) {
   }
 }
 
-const Set<String> categories = {
-  'Defaults',
-  'Dart',
-  'Flutter',
-  'Ecosystem',
-};
+const Set<String> categories = {'Defaults', 'Dart', 'Flutter', 'Ecosystem'};
 
 class Samples {
   late final List<Sample> samples;
 
   void parse() {
     // read the samples
-    final json =
-        jsonDecode(File(p.join('lib', 'samples.json')).readAsStringSync());
+    final json = jsonDecode(
+      File(p.join('lib', 'samples.json')).readAsStringSync(),
+    );
 
     samples = (json as List).map((j) => Sample.fromJson(j)).toList();
 
@@ -236,7 +240,8 @@ class Sample implements Comparable<Sample> {
     var gen = id;
     while (gen.contains('-')) {
       final index = id.indexOf('-');
-      gen = gen.substring(0, index) +
+      gen =
+          gen.substring(0, index) +
           gen.substring(index + 1, index + 2).toUpperCase() +
           gen.substring(index + 2);
     }
@@ -280,6 +285,9 @@ $source
   static String _idFromName(String name) =>
       name.trim().toLowerCase().replaceAll(' ', '-');
 
-  static final RegExp _copyrightCommentPattern =
-      RegExp(r'^\/\/ Copyright.*LICENSE file.', multiLine: true, dotAll: true);
+  static final RegExp _copyrightCommentPattern = RegExp(
+    r'^\/\/ Copyright.*LICENSE file.',
+    multiLine: true,
+    dotAll: true,
+  );
 }

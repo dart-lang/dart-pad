@@ -49,48 +49,51 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        border: widget.showDivider
-            ? Border(
-                top: Divider.createBorderSide(
-                context,
-                width: 8.0,
-                color: theme.colorScheme.surface,
-              ))
-            : null,
+        border:
+            widget.showDivider
+                ? Border(
+                  top: Divider.createBorderSide(
+                    context,
+                    width: 8.0,
+                    color: theme.colorScheme.surface,
+                  ),
+                )
+                : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
       child: ValueListenableBuilder(
         valueListenable: widget.output,
-        builder: (context, value, _) => Stack(
-          children: [
-            SizedBox.expand(
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: SelectableText(
-                  value,
-                  maxLines: null,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: theme.textTheme.bodyMedium?.fontSize,
+        builder:
+            (context, value, _) => Stack(
+              children: [
+                SizedBox.expand(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: SelectableText(
+                      value,
+                      maxLines: null,
+                      style: GoogleFonts.robotoMono(
+                        fontSize: theme.textTheme.bodyMedium?.fontSize,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(denseSpacing),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MiniIconButton(
-                    icon: Icons.playlist_remove,
-                    tooltip: 'Clear console',
-                    onPressed: value.isEmpty ? null : _clearConsole,
+                Padding(
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MiniIconButton(
+                        icon: Icons.playlist_remove,
+                        tooltip: 'Clear console',
+                        onPressed: value.isEmpty ? null : _clearConsole,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }

@@ -42,18 +42,9 @@ abstract final class Samples {
   ];
 
   static const Map<String, List<Sample>> categories = {
-    'Dart': [
-      _fibonacci,
-      _helloWorld,
-    ],
-    'Flutter': [
-      _counter,
-      _sunflower,
-    ],
-    'Ecosystem': [
-      _flameGame,
-      _googleSdk,
-    ],
+    'Dart': [_fibonacci, _helloWorld],
+    'Flutter': [_counter, _sunflower],
+    'Ecosystem': [_flameGame, _googleSdk],
   };
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);

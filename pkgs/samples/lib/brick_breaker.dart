@@ -50,10 +50,7 @@ class _GameAppState extends State<GameApp> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xffa9d6e5),
-                Color(0xfff2e8cf),
-              ],
+              colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
             ),
           ),
           child: SafeArea(
@@ -64,9 +61,7 @@ class _GameAppState extends State<GameApp> {
                   child: SizedBox(
                     width: gameWidth,
                     height: gameHeight,
-                    child: GameWidget(
-                      game: game,
-                    ),
+                    child: GameWidget(game: game),
                   ),
                 ),
               ),
@@ -81,9 +76,12 @@ class _GameAppState extends State<GameApp> {
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapDetector {
   BrickBreaker()
-      : super(
-            camera: CameraComponent.withFixedResolution(
-                width: gameWidth, height: gameHeight));
+    : super(
+        camera: CameraComponent.withFixedResolution(
+          width: gameWidth,
+          height: gameHeight,
+        ),
+      );
 
   final rand = math.Random();
   double get width => size.x;
@@ -102,20 +100,27 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
 
-    world.add(Ball(
-      difficultyModifier: difficultyModifier,
-      radius: ballRadius,
-      position: size / 2,
-      velocity:
-          Vector2((rand.nextDouble() - 0.5) * width, height * 0.3).normalized()
-            ..scale(height / 4),
-    ));
+    world.add(
+      Ball(
+        difficultyModifier: difficultyModifier,
+        radius: ballRadius,
+        position: size / 2,
+        velocity:
+            Vector2(
+                (rand.nextDouble() - 0.5) * width,
+                height * 0.3,
+              ).normalized()
+              ..scale(height / 4),
+      ),
+    );
 
-    world.add(Paddle(
-      size: Vector2(paddleWidth, paddleHeight),
-      cornerRadius: const Radius.circular(ballRadius / 2),
-      position: Vector2(width / 2, height * 0.95),
-    ));
+    world.add(
+      Paddle(
+        size: Vector2(paddleWidth, paddleHeight),
+        cornerRadius: const Radius.circular(ballRadius / 2),
+        position: Vector2(width / 2, height * 0.95),
+      ),
+    );
 
     world.addAll([
       for (var i = 0; i < brickColors.length; i++)
@@ -162,12 +167,14 @@ class Ball extends CircleComponent
     required double radius,
     required this.difficultyModifier,
   }) : super(
-            radius: radius,
-            anchor: Anchor.center,
-            paint: Paint()
-              ..color = const Color(0xff1e6091)
-              ..style = PaintingStyle.fill,
-            children: [CircleHitbox()]);
+         radius: radius,
+         anchor: Anchor.center,
+         paint:
+             Paint()
+               ..color = const Color(0xff1e6091)
+               ..style = PaintingStyle.fill,
+         children: [CircleHitbox()],
+       );
 
   final Vector2 velocity;
   final double difficultyModifier;
@@ -180,7 +187,9 @@ class Ball extends CircleComponent
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is PlayArea) {
       if (intersectionPoints.first.y <= 0) {
@@ -190,16 +199,19 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
-        add(RemoveEffect(
-          delay: 0.35,
-          onComplete: () {
-            game.startGame();
-          },
-        ));
+        add(
+          RemoveEffect(
+            delay: 0.35,
+            onComplete: () {
+              game.startGame();
+            },
+          ),
+        );
       }
     } else if (other is Paddle) {
       velocity.y = -velocity.y;
-      velocity.x = velocity.x +
+      velocity.x =
+          velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
     } else if (other is Brick) {
       if (position.y < other.position.y - other.size.y / 2) {
@@ -226,9 +238,10 @@ class Paddle extends PositionComponent
 
   final Radius cornerRadius;
 
-  final _paint = Paint()
-    ..color = const Color(0xff1e6091)
-    ..style = PaintingStyle.fill;
+  final _paint =
+      Paint()
+        ..color = const Color(0xff1e6091)
+        ..style = PaintingStyle.fill;
 
   @override
   void update(double dt) {
@@ -237,12 +250,16 @@ class Paddle extends PositionComponent
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      position.x =
-          (position.x - (dt * 500)).clamp(width / 2, game.width - width / 2);
+      position.x = (position.x - (dt * 500)).clamp(
+        width / 2,
+        game.width - width / 2,
+      );
     } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      position.x =
-          (position.x + (dt * 500)).clamp(width / 2, game.width - width / 2);
+      position.x = (position.x + (dt * 500)).clamp(
+        width / 2,
+        game.width - width / 2,
+      );
     }
   }
 
@@ -250,10 +267,7 @@ class Paddle extends PositionComponent
   void render(Canvas canvas) {
     super.render(canvas);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Offset.zero & size.toSize(),
-        cornerRadius,
-      ),
+      RRect.fromRectAndRadius(Offset.zero & size.toSize(), cornerRadius),
       _paint,
     );
   }
@@ -262,27 +276,32 @@ class Paddle extends PositionComponent
   void onDragUpdate(DragUpdateEvent event) {
     if (isRemoved) return;
     super.onDragUpdate(event);
-    position.x = (position.x + event.localDelta.x)
-        .clamp(width / 2, game.width - width / 2);
+    position.x = (position.x + event.localDelta.x).clamp(
+      width / 2,
+      game.width - width / 2,
+    );
   }
 }
 
 class Brick extends RectangleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
   Brick(Vector2 position, Color color)
-      : super(
-          position: position,
-          size: Vector2(brickWidth, brickHeight),
-          anchor: Anchor.center,
-          paint: Paint()
-            ..color = color
-            ..style = PaintingStyle.fill,
-          children: [RectangleHitbox()],
-        );
+    : super(
+        position: position,
+        size: Vector2(brickWidth, brickHeight),
+        anchor: Anchor.center,
+        paint:
+            Paint()
+              ..color = color
+              ..style = PaintingStyle.fill,
+        children: [RectangleHitbox()],
+      );
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
     super.onCollisionStart(intersectionPoints, other);
     removeFromParent();
 

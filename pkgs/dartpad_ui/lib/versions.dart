@@ -11,16 +11,14 @@ import 'theme.dart';
 class VersionTable extends StatelessWidget {
   final VersionResponse version;
 
-  const VersionTable({
-    required this.version,
-    super.key,
-  });
+  const VersionTable({required this.version, super.key});
 
   @override
   Widget build(BuildContext context) {
     final packages = version.packages.where((p) => p.supported).toList();
 
-    var versionText = 'Based on Dart SDK ${version.dartVersion} '
+    var versionText =
+        'Based on Dart SDK ${version.dartVersion} '
         'and Flutter SDK ${version.flutterVersion}';
     final experiments = version.experiments.join(', ');
     if (experiments.isNotEmpty) {

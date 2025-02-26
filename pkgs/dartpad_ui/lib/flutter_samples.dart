@@ -14,16 +14,17 @@ class FlutterSampleLoader {
     // There are only two hosted versions of the docs: master/main and stable.
     final sampleUrl = switch (channel) {
       'master' ||
-      'main' =>
-        'https://main-api.flutter.dev/snippets/$sampleId.dart',
+      'main' => 'https://main-api.flutter.dev/snippets/$sampleId.dart',
       _ => 'https://api.flutter.dev/snippets/$sampleId.dart',
     };
 
     final response = await client.get(Uri.parse(sampleUrl));
 
     if (response.statusCode != 200) {
-      throw Exception('Unable to load sample '
-          '(${response.statusCode} ${response.reasonPhrase}})');
+      throw Exception(
+        'Unable to load sample '
+        '(${response.statusCode} ${response.reasonPhrase}})',
+      );
     }
 
     return response.body;

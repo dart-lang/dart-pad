@@ -42,11 +42,17 @@ class ServicesClient {
 
   Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
       _requestPost(
-          'compileNewDDC', request.toJson(), CompileDDCResponse.fromJson);
+        'compileNewDDC',
+        request.toJson(),
+        CompileDDCResponse.fromJson,
+      );
 
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
       _requestPost(
-          'compileNewDDCReload', request.toJson(), CompileDDCResponse.fromJson);
+        'compileNewDDCReload',
+        request.toJson(),
+        CompileDDCResponse.fromJson,
+      );
 
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
@@ -64,7 +70,8 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, Object?>);
+          json.decode(response.body) as Map<String, Object?>,
+        );
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
@@ -86,7 +93,8 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, Object?>);
+          json.decode(response.body) as Map<String, Object?>,
+        );
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }

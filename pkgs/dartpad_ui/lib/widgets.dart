@@ -14,12 +14,7 @@ class Hyperlink extends StatefulWidget {
   final String? displayText;
   final TextStyle? style;
 
-  const Hyperlink({
-    required this.url,
-    this.displayText,
-    this.style,
-    super.key,
-  });
+  const Hyperlink({required this.url, this.displayText, this.style, super.key});
 
   @override
   State<Hyperlink> createState() => _HyperlinkState();
@@ -95,26 +90,18 @@ class MiniIconButton extends StatelessWidget {
 
 class RunButton extends ActionButton {
   const RunButton({super.key, super.onPressed})
-      : super(
-          text: 'Run',
-          icon: const Icon(
-            Icons.play_arrow,
-            color: Colors.black,
-            size: 20,
-          ),
-        );
+    : super(
+        text: 'Run',
+        icon: const Icon(Icons.play_arrow, color: Colors.black, size: 20),
+      );
 }
 
 class ReloadButton extends ActionButton {
   const ReloadButton({super.key, super.onPressed})
-      : super(
-          text: 'Reload',
-          icon: const Icon(
-            Icons.refresh,
-            color: Colors.black,
-            size: 20,
-          ),
-        );
+    : super(
+        text: 'Reload',
+        icon: const Icon(Icons.refresh, color: Colors.black, size: 20),
+      );
 }
 
 abstract class ActionButton extends StatelessWidget {
@@ -122,8 +109,12 @@ abstract class ActionButton extends StatelessWidget {
   final String text;
   final Icon icon;
 
-  const ActionButton(
-      {this.onPressed, super.key, required this.text, required this.icon});
+  const ActionButton({
+    this.onPressed,
+    super.key,
+    required this.text,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,27 +123,25 @@ abstract class ActionButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
-          shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4)))),
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) {
-              if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withValues(alpha: 0.4);
-              }
-
-              return runButtonColor;
-            },
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
           ),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return runButtonColor.withValues(alpha: 0.4);
+            }
+
+            return runButtonColor;
+          }),
         ),
         onPressed: onPressed,
         child: Row(
           children: [
             icon,
             const SizedBox(width: 8),
-            Text(
-              text,
-              style: const TextStyle(color: Colors.black),
-            ),
+            Text(text, style: const TextStyle(color: Colors.black)),
           ],
         ),
       ),
@@ -165,10 +154,7 @@ abstract class ActionButton extends StatelessWidget {
 class StatusWidget extends StatelessWidget {
   final StatusController status;
 
-  const StatusWidget({
-    required this.status,
-    super.key,
-  });
+  const StatusWidget({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -185,9 +171,10 @@ class StatusWidget extends StatelessWidget {
       builder: (context, MessageStatus status, _) {
         return AnimatedOpacity(
           opacity: status.state == MessageState.closing ? 0.0 : 1.0,
-          duration: status.state == MessageState.showing
-              ? Duration.zero
-              : animationDelay,
+          duration:
+              status.state == MessageState.showing
+                  ? Duration.zero
+                  : animationDelay,
           curve: animationCurve,
           child: Material(
             shape: const StadiumBorder(),
@@ -223,54 +210,55 @@ class MediumDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = smaller ? 400.0 : 500.0;
-      final height = smaller ? 325.0 : 400.0;
-      final theme = Theme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = smaller ? 400.0 : 500.0;
+        final height = smaller ? 325.0 : 400.0;
+        final theme = Theme.of(context);
 
-      return PointerInterceptor(
-        child: AlertDialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          title: Text(title, maxLines: 1),
-          contentTextStyle: theme.textTheme.bodyMedium,
-          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: width,
-                height: height,
-                child: ClipRect(child: child),
+        return PointerInterceptor(
+          child: AlertDialog(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            title: Text(title, maxLines: 1),
+            contentTextStyle: theme.textTheme.bodyMedium,
+            contentPadding: const EdgeInsets.fromLTRB(
+              24,
+              defaultSpacing,
+              24,
+              8,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: width,
+                  height: height,
+                  child: ClipRect(child: child),
+                ),
+                const Divider(),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
               ),
-              const Divider(),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
 class GoldenRatioCenter extends StatelessWidget {
   final Widget child;
 
-  const GoldenRatioCenter({
-    required this.child,
-    super.key,
-  });
+  const GoldenRatioCenter({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: const Alignment(0.0, -(1.618 / 4)),
-      child: child,
-    );
+    return Align(alignment: const Alignment(0.0, -(1.618 / 4)), child: child);
   }
 }
 
@@ -279,7 +267,7 @@ final class Logo extends StatelessWidget {
   final double width;
 
   const Logo({super.key, this.width = defaultIconSize, String? type})
-      : _type = type;
+    : _type = type;
 
   @override
   Widget build(BuildContext context) {

@@ -10,8 +10,9 @@ import 'package:test/test.dart';
 void main() {
   group('gists', () {
     test('parses json', () {
-      final gist =
-          Gist.fromJson(jsonDecode(jsonSample) as Map<String, Object?>);
+      final gist = Gist.fromJson(
+        jsonDecode(jsonSample) as Map<String, Object?>,
+      );
 
       expect(gist.id, 'd3bd83918d21b6d5f778bdc69c3d36d6');
       expect(gist.description, 'Fibonacci');
@@ -20,29 +21,33 @@ void main() {
     });
 
     test('finds main.dart', () {
-      final gist =
-          Gist.fromJson(jsonDecode(jsonSample) as Map<String, Object?>);
+      final gist = Gist.fromJson(
+        jsonDecode(jsonSample) as Map<String, Object?>,
+      );
 
       expect(gist.mainDartSource, isNotNull);
     });
 
     test('recognizes main.dart missing', () {
-      final gist =
-          Gist.fromJson(jsonDecode(jsonSampleNoMain) as Map<String, Object?>);
+      final gist = Gist.fromJson(
+        jsonDecode(jsonSampleNoMain) as Map<String, Object?>,
+      );
 
       expect(gist.mainDartSource, isNull);
     });
 
     test('validates main.dart missing', () {
-      final gist =
-          Gist.fromJson(jsonDecode(jsonSampleNoMain) as Map<String, Object?>);
+      final gist = Gist.fromJson(
+        jsonDecode(jsonSampleNoMain) as Map<String, Object?>,
+      );
 
       expect(gist.validationIssues, isNotEmpty);
     });
 
     test('validates unexpected dart content file', () {
       final gist = Gist.fromJson(
-          jsonDecode(jsonSampleAlternativeFile) as Map<String, Object?>);
+        jsonDecode(jsonSampleAlternativeFile) as Map<String, Object?>,
+      );
 
       expect(gist.validationIssues, isNotEmpty);
     });
