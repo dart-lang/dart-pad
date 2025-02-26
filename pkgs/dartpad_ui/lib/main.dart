@@ -232,8 +232,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   late final SplitViewController mainSplitter;
   late final TabController tabController;
 
-  final ValueKey<String> _executionWidgetKey =
-      const ValueKey('execution-widget');
+  final Key _executionWidgetKey = GlobalKey(debugLabel: 'execution-widget');
   final ValueKey<String> _loadingOverlayKey =
       const ValueKey('loading-overlay-widget');
   final ValueKey<String> _editorKey = const ValueKey('editor');
