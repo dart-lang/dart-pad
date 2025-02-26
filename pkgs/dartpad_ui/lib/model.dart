@@ -614,6 +614,16 @@ class SplitDragStateManager {
 
 enum SplitDragState { inactive, active }
 
+enum CompilingState {
+  none(false),
+  reloading(true),
+  restarting(true);
+
+  final bool busy;
+
+  const CompilingState(this.busy);
+}
+
 class PromptDialogResponse {
   const PromptDialogResponse({
     required this.appType,
@@ -624,14 +634,4 @@ class PromptDialogResponse {
   final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
-}
-
-enum CompilingState {
-  none(false),
-  reloading(true),
-  restarting(true);
-
-  final bool busy;
-
-  const CompilingState(this.busy);
 }
