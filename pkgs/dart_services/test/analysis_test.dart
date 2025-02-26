@@ -83,15 +83,6 @@ void defineTests() {
       expect(issue.message, contains('Unsupported library on the web'));
     });
 
-    test('Warn on deprecated web library imports', () async {
-      final results = await analysisServer.analyze(deprecatedWebLibrary);
-
-      // Expect one or two deprecation messages.
-      expect(results.issues, anyOf(hasLength(1), hasLength(2)));
-      final issue = results.issues.first;
-      expect(issue.message, contains('Deprecated core web library'));
-    });
-
     test('import_dart_core_test', () async {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";

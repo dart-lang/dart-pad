@@ -38,11 +38,13 @@ class ExecutionServiceImpl implements ExecutionService {
     }
 
     return _send(reload ? 'executeReload' : 'execute', {
-      'js': _decorateJavaScript(javaScript,
-          modulesBaseUrl: modulesBaseUrl,
-          isNewDDC: isNewDDC,
-          reload: reload,
-          isFlutter: isFlutter),
+      'js': _decorateJavaScript(
+        javaScript,
+        modulesBaseUrl: modulesBaseUrl,
+        isNewDDC: isNewDDC,
+        reload: reload,
+        isFlutter: isFlutter,
+      ),
       if (engineVersion != null)
         'canvasKitBaseUrl': _canvasKitUrl(engineVersion),
     });
@@ -62,11 +64,13 @@ class ExecutionServiceImpl implements ExecutionService {
   @override
   Future<void> tearDown() => _reset();
 
-  String _decorateJavaScript(String javaScript,
-      {String? modulesBaseUrl,
-      required bool isNewDDC,
-      required bool reload,
-      required bool isFlutter}) {
+  String _decorateJavaScript(
+    String javaScript, {
+    String? modulesBaseUrl,
+    required bool isNewDDC,
+    required bool reload,
+    required bool isFlutter,
+  }) {
     if (reload) return javaScript;
 
     final script = StringBuffer();

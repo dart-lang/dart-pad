@@ -2,12 +2,14 @@ name: dartpad_ui
 description: The front-end UI of DartPad.
 publish_to: none
 
+resolution: workspace
 environment:
   sdk: ^3.6.1
 
 dependencies:
   collection: ^1.19.0
-  dartpad_shared: any
+  dartpad_shared:
+    path: ../dartpad_shared
   flutter:
     sdk: flutter
   flutter_markdown: ^0.7.2
@@ -43,7 +45,3 @@ flutter:
     - assets/idx_192.png
     - assets/RobotoMono-Bold.ttf
     - assets/RobotoMono-Regular.ttf
-
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared

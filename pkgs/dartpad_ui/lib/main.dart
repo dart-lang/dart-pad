@@ -234,8 +234,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   late final SplitViewController mainSplitter;
   late final TabController tabController;
 
-  final ValueKey<String> _executionWidgetKey =
-      const ValueKey('execution-widget');
+  final Key _executionWidgetKey = GlobalKey(debugLabel: 'execution-widget');
   final ValueKey<String> _loadingOverlayKey =
       const ValueKey('loading-overlay-widget');
   final ValueKey<String> _editorKey = const ValueKey('editor');
@@ -292,12 +291,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         appServices.performCompileAndRun();
       }
     });
-    appModel.compilingBusy.addListener(_handleRunStarted);
+    appModel.compilingState.addListener(_handleRunStarted);
   }
 
   @override
   void dispose() {
-    appModel.compilingBusy.removeListener(_handleRunStarted);
+    appModel.compilingState.removeListener(_handleRunStarted);
 
     appServices.dispose();
     appModel.dispose();
@@ -444,12 +443,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             keys.runKeyActivator1: () {
-              if (!appModel.compilingBusy.value) {
+              if (!appModel.compilingState.value.busy) {
                 appServices.performCompileAndRun();
               }
             },
             keys.runKeyActivator2: () {
-              if (!appModel.compilingBusy.value) {
+              if (!appModel.compilingState.value.busy) {
                 appServices.performCompileAndRun();
               }
             },
@@ -515,7 +514,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   void _handleRunStarted() {
     setState(() {
       // Switch to the application output tab.]
-      if (appModel.compilingBusy.value) {
+      if (appModel.compilingState.value != CompilingState.none) {
         tabController.animateTo(1);
       }
     });
@@ -533,19 +532,20 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<bool>(
-      valueListenable: appModel.compilingBusy,
-      builder: (_, bool compiling, __) {
+    return ValueListenableBuilder<CompilingState>(
+      valueListenable: appModel.compilingState,
+      builder: (_, compilingState, __) {
         final color = theme.colorScheme.surface;
+        final compiling = compilingState == CompilingState.restarting;
 
+        // If reloading, show a progress spinner. If restarting, also display a
+        // semi-opaque overlay.
         return AnimatedContainer(
           color: color.withValues(alpha: compiling ? 0.8 : 0),
           duration: animationDelay,
           curve: animationCurve,
           child: compiling
-              ? const GoldenRatioCenter(
-                  child: CircularProgressIndicator(),
-                )
+              ? const GoldenRatioCenter(child: CircularProgressIndicator())
               : const SizedBox(width: 1),
         );
       },
@@ -882,12 +882,13 @@ class EditorWithButtons extends StatelessWidget {
                           }),
                       const SizedBox(width: defaultSpacing),
                       // Run action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.compilingBusy,
-                        builder: (_, bool value, __) {
+                      ValueListenableBuilder<CompilingState>(
+                        valueListenable: appModel.compilingState,
+                        builder: (_, compiling, __) {
                           return PointerInterceptor(
                             child: RunButton(
-                              onPressed: value ? null : onCompileAndRun,
+                              onPressed:
+                                  compiling.busy ? null : onCompileAndRun,
                             ),
                           );
                         },

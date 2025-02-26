@@ -56,7 +56,8 @@ class AppModel {
   final ValueNotifier<String> consoleOutput = ValueNotifier('');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
-  final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
+  final ValueNotifier<CompilingState> compilingState =
+      ValueNotifier(CompilingState.none);
   final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
 
   final ValueNotifier<bool> hasRun = ValueNotifier(false);
@@ -81,22 +82,23 @@ class AppModel {
   bool get consoleShowingError => _consoleShowingError;
 
   final ValueNotifier<bool> showReload = ValueNotifier(false);
-  final ValueNotifier<bool> _useNewDDC = ValueNotifier(false);
+  final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
-    void updateCanReload() => canReload.value =
-        hasRun.value && !compilingBusy.value && currentDeltaDill.value != null;
+    void updateCanReload() => canReload.value = hasRun.value &&
+        !compilingState.value.busy &&
+        currentDeltaDill.value != null;
     hasRun.addListener(updateCanReload);
-    compilingBusy.addListener(updateCanReload);
+    compilingState.addListener(updateCanReload);
     currentDeltaDill.addListener(updateCanReload);
 
     void updateShowReload() {
-      showReload.value = _useNewDDC.value && (_appIsFlutter.value ?? false);
+      showReload.value = useNewDDC.value && (_appIsFlutter.value ?? false);
     }
 
-    _useNewDDC.addListener(updateShowReload);
+    useNewDDC.addListener(updateShowReload);
     _appIsFlutter.addListener(updateShowReload);
 
     _splitSubscription =
@@ -201,7 +203,7 @@ class AppServices {
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
 
     void updateUseNewDDC() {
-      appModel._useNewDDC.value =
+      appModel.useNewDDC.value =
           _hotReloadableChannels.contains(_channel.value);
     }
 
@@ -358,13 +360,15 @@ class AppServices {
   }
 
   Future<void> _performCompileAndAction({required bool reload}) async {
+    final willUseReload = reload && appModel.useNewDDC.value;
+
     final source = appModel.sourceCodeController.text;
-    final progress =
-        appModel.editorStatus.showMessage(initialText: 'Compiling…');
+    final progress = appModel.editorStatus
+        .showMessage(initialText: willUseReload ? 'Reloading…' : 'Compiling…');
 
     try {
       CompileDDCResponse response;
-      if (!appModel._useNewDDC.value) {
+      if (!appModel.useNewDDC.value) {
         response = await _compileDDC(CompileRequest(source: source));
       } else if (reload) {
         response = await _compileNewDDCReload(CompileRequest(
@@ -380,7 +384,7 @@ class AppServices {
         modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
         dartSource: source,
-        isNewDDC: appModel._useNewDDC.value,
+        isNewDDC: appModel.useNewDDC.value,
         reload: reload,
       );
       appModel.currentDeltaDill.value = response.deltaDill;
@@ -433,10 +437,10 @@ class AppServices {
 
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compile(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
@@ -454,29 +458,29 @@ class AppServices {
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compileDDC(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compileNewDDC(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   Future<CompileDDCResponse> _compileNewDDCReload(
       CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.reloading;
       return await services.compileNewDDCReload(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
@@ -511,12 +515,14 @@ class AppServices {
     appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
-    _executionService?.execute(javaScript,
-        modulesBaseUrl: modulesBaseUrl,
-        engineVersion: engineVersion,
-        reload: reload,
-        isNewDDC: isNewDDC,
-        isFlutter: appIsFlutter);
+    _executionService?.execute(
+      javaScript,
+      modulesBaseUrl: modulesBaseUrl,
+      engineVersion: engineVersion,
+      reload: reload,
+      isNewDDC: isNewDDC,
+      isFlutter: appIsFlutter,
+    );
   }
 
   void dispose() {
