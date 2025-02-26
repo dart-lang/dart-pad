@@ -340,11 +340,23 @@ class CommonServerApi {
         },
         context: {'shelf.io.buffer_output': false}, // disable buffering
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       final logger = Logger(action);
-      logger.severe('$action error: $e');
+      logger.severe('Error during $action operation: $e', e, stackTrace);
+
+      String errorMessage;
+      if (e is TimeoutException) {
+        errorMessage = 'Operation timed out while processing $action request.';
+      } else if (e is FormatException) {
+        errorMessage = 'Invalid format in $action request: $e';
+      } else if (e is IOException) {
+        errorMessage = 'I/O error occurred during $action operation: $e';
+      } else {
+        errorMessage = 'Failed to process $action request. Error: $e';
+      }
+
       return Response.internalServerError(
-        body: 'Failed to $action. Error: $e',
+        body: errorMessage,
       );
     }
   }

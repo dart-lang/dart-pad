@@ -35,7 +35,8 @@ class GenerativeAI {
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _flutterSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.flutter,
             '''
 You will be given an error message in provided Flutter source code along with an
 optional line and column number where the error appears. Please fix the code and
@@ -50,7 +51,8 @@ with the error fixed.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _dartSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.dart,
             '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
@@ -92,7 +94,8 @@ $source
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _flutterSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.flutter,
             '''
 Generate a Flutter program that satisfies the provided description.
 ''',
@@ -104,7 +107,8 @@ Generate a Flutter program that satisfies the provided description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _dartSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.dart,
             '''
 Generate a Dart program that satisfies the provided description.
 ''',
@@ -138,7 +142,8 @@ Generate a Dart program that satisfies the provided description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _flutterSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.flutter,
             '''
 You will be given an existing Flutter program and a description of a change to
 be made to it. Generate an updated Flutter program that satisfies the
@@ -152,7 +157,8 @@ description.
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
-          systemInstruction: _dartSystemInstructions(
+          systemInstruction: _systemInstructions(
+            AppType.dart,
             '''
 You will be given an existing Dart program and a description of a change to
 be made to it. Generate an updated Dart program that satisfies the
@@ -230,6 +236,8 @@ $prompt
         final startIndex = str.indexOf(startMarker);
         if (startIndex == -1) continue;
 
+        // Reset buffer to contain only content after the start marker
+        // This handles cases where the marker is split across chunks
         buffer.clear();
         buffer.write(str.substring(startIndex + startMarker.length));
         foundStart = true;
@@ -241,42 +249,63 @@ $prompt
       final str = buffer.toString();
       final endIndex = str.indexOf(endMarker);
       foundEnd = endIndex != -1;
+
+      // Only extract up to the end marker if found, otherwise yield the entire buffer
+      // This handles partial code blocks that may be completed in future chunks
       final output = foundEnd ? str.substring(0, endIndex) : str;
       yield output;
       buffer.clear();
     }
+
+    // Note: If stream ends without an end marker, we've already yielded all content
   }
 
-  final _cachedAllowedFlutterPackages = List<String>.empty(growable: true);
-  List<String> _allowedFlutterPackages() {
-    if (_cachedAllowedFlutterPackages.isEmpty) {
+  final _cachedAllowedPackages = <AppType, List<String>>{
+    AppType.flutter: [],
+    AppType.dart: [],
+  };
+
+  List<String> _allowedPackages(AppType appType) {
+    final cachedList = _cachedAllowedPackages[appType]!;
+
+    if (cachedList.isEmpty) {
       final versions = getPackageVersions();
       for (final MapEntry(key: name, value: version) in versions.entries) {
-        if (isSupportedPackage(name)) {
-          _cachedAllowedFlutterPackages.add('$name: $version');
-        }
+        final isSupported = appType == AppType.flutter
+            ? isSupportedPackage(name)
+            : isSupportedDartPackage(name);
+        if (isSupported) cachedList.add('$name: $version');
       }
     }
 
-    return _cachedAllowedFlutterPackages;
+    return cachedList;
   }
 
-  final _cachedAllowedDartPackages = List<String>.empty(growable: true);
-  List<String> _allowedDartPackages() {
-    if (_cachedAllowedDartPackages.isEmpty) {
-      final versions = getPackageVersions();
-      for (final MapEntry(key: name, value: version) in versions.entries) {
-        if (isSupportedDartPackage(name)) {
-          _cachedAllowedDartPackages.add('$name: $version');
-        }
-      }
-    }
+  Content _systemInstructions(
+    AppType appType,
+    String modelSpecificInstructions,
+  ) {
+    final instructions = _appInstructions[appType]!;
+    final packageList = _allowedPackages(appType).map((p) => '- $p').join('\n');
+    final footer = '''
+ALLOWED PACKAGES
+The following packages, at the specified versions, are allowed:
+$packageList
 
-    return _cachedAllowedDartPackages;
+If a package is not listed, it should not be used.
+Package imports must appear at the top of the file before any other code.
+
+$modelSpecificInstructions
+
+Only output the Dart code for the program. Output the code wrapped in a
+Markdown ```dart``` tag.
+''';
+
+    return Content.text('$instructions\n\n$footer');
   }
 
-  Content _flutterSystemInstructions(String modelSpecificInstructions) =>
-      Content.text('''
+  static const Map<AppType, String> _appInstructions = {
+    AppType.flutter: '''
 You're an expert Flutter developer and UI designer creating Custom User
 Interfaces: generated, bespoke, interactive interfaces created on-the-fly using
 the Flutter SDK API. You will produce a professional, release-ready Flutter
@@ -300,8 +329,9 @@ numbered steps in the process is a separate part of the process, and can be
 considered separate prompts; later steps have access to the output of the
 earlier steps):
 
-1. PRD: plan how to build a rich UI that fully satisfies the user's needs.
-2. APP_PRODUCTION: integrate all the data from the previous steps and generate
+1. REQUIREMENTS: plan how to build a rich UI that fully satisfies the user's
+   needs.
+2. IMPLEMENTATION: integrate all the data from the previous steps and generate
    the principal widget for a Flutter app (the one that should be supplied as
    the home widget for MaterialApp), including the DATA_MODEL.
 3. OUTPUT: output the finished application code only, with no explanations or
@@ -311,7 +341,8 @@ After each step in the process, integrate the information you have collected in
 the previous step and move to the next step without stopping for verification
 from the user. The only output shall be the result of the OUTPUT step.
 
-# Requirements for Generating UI Code
+
+### REQUIREMENTS FOR GENERATING UI CODE
 All portions of the UI shall be implemented and functional, without TODO items
 or placeholders.
 
@@ -436,22 +467,8 @@ single file which contains a complete app meant to be able to run immediately.
 The output you will create is the contents of the main.dart file.
 
 Make sure to take into account any attachments as part of the user's prompt.
-
-ALLOWED PACKAGES:
-Allowed packages which are used must be imported using the IMPORT given in order
-for the app to build.
-
-The following packages, at the specified versions, are allowed:
-${_allowedFlutterPackages().map((p) => '- $p').join('\n')}
-
-$modelSpecificInstructions
-
-Only output the Dart code for the program. Output that code wrapped in a
-Markdown ```dart``` tag.
-''');
-
-  Content _dartSystemInstructions(String modelSpecificInstructions) =>
-      Content.text('''
+''',
+    AppType.dart: '''
 You're an expert Dart developer specializing in writing efficient, idiomatic,
 and production-ready Dart programs.  
 You will produce professional, release-ready Dart applications. All of the
@@ -473,9 +490,8 @@ After each step in the process, integrate the information from the previous step
 and move forward without requiring user verification.  
 The **only output** shall be the final, complete Dart program.
 
----
 
-### **Requirements for Generating Dart Code**
+### REQUIREMENTS FOR GENERATING DART CODE
 - All logic and functionality **must be fully implemented**—no TODOs,
 placeholders, or incomplete functions.
 
@@ -511,9 +527,8 @@ potentially failing operations in `try/catch` blocks.
 - **Programs must be designed for reusability**: Functions and classes should be
 structured to allow modularity and extension without unnecessary global state.
 
----
 
-### **Final Output Requirement**
+### FINAL OUTPUT REQUIREMENT
 - The **only** output shall be a **complete, compilable Dart program** in a
 **single file** that runs immediately.
 
@@ -523,32 +538,12 @@ in the prompt.
 - If any attachments are provided, they must be considered as part of the
 prompt.
 
----
 
-### **Instructions for Generating Code**
+### INSTRUCTIONS FOR GENERATING CODE
 **DO NOT** include Flutter-related imports, widgets, UI components, or anything
 related to mobile app development.
 
 You are generating a **pure Dart** program with a `main` function entry point.
-
----
-
-### **Allowed Packages**
-The following Dart packages are explicitly allowed. If a package is not listed,
-it should not be used unless explicitly requested in the prompt.
-
-Allowed packages must be imported exactly as specified:
-${_allowedDartPackages().map((p) => '- $p').join('\n')}
-
-Imports must appear at the top of the file before any other code.
-
----
-
-$modelSpecificInstructions
-
----
-
-Only output the Dart code for the program. Output that code wrapped in a
-Markdown ```dart``` tag.
-''');
+''',
+  };
 }
