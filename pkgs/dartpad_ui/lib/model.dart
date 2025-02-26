@@ -79,6 +79,7 @@ class AppModel {
 
   bool _consoleShowingError = false;
   bool get consoleShowingError => _consoleShowingError;
+
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> _useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
