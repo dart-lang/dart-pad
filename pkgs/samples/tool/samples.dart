@@ -204,10 +204,19 @@ abstract final class Samples {
   }
 
   String _mapForCategory(String category) {
-    final items = samples.where((s) => s.category == category);
-    return ''''$category': [
-      ${items.map((i) => i.sourceId).join(',\n      ')},
-    ]''';
+    final items = samples.where((s) => s.category == category).toList();
+    final buffer = StringBuffer();
+    buffer.write("'$category': [");
+    //Put a comma between each item, but not after the last item
+    for (var i = 0; i < items.length; i++) {
+      buffer.write(items[i].sourceId);
+      if (i < items.length - 1) {
+        buffer.write(', ');
+      }
+    }
+    buffer.write(']');
+
+    return buffer.toString();
   }
 }
 
