@@ -42,9 +42,18 @@ abstract final class Samples {
   ];
 
   static const Map<String, List<Sample>> categories = {
-    'Dart': [_fibonacci, _helloWorld],
-    'Flutter': [_counter, _sunflower],
-    'Ecosystem': [_flameGame, _googleSdk],
+    'Dart': [
+      _fibonacci,
+      _helloWorld,
+    ],
+    'Flutter': [
+      _counter,
+      _sunflower,
+    ],
+    'Ecosystem': [
+      _flameGame,
+      _googleSdk,
+    ],
   };
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
@@ -119,11 +128,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello, World!'),
-        ),
-      ),
+      home: Scaffold(body: Center(child: Text('Hello, World!'))),
     );
   }
 }
@@ -184,10 +189,7 @@ class _GameAppState extends State<GameApp> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xffa9d6e5),
-                Color(0xfff2e8cf),
-              ],
+              colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
             ),
           ),
           child: SafeArea(
@@ -198,9 +200,7 @@ class _GameAppState extends State<GameApp> {
                   child: SizedBox(
                     width: gameWidth,
                     height: gameHeight,
-                    child: GameWidget(
-                      game: game,
-                    ),
+                    child: GameWidget(game: game),
                   ),
                 ),
               ),
@@ -215,9 +215,12 @@ class _GameAppState extends State<GameApp> {
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapDetector {
   BrickBreaker()
-      : super(
-            camera: CameraComponent.withFixedResolution(
-                width: gameWidth, height: gameHeight));
+    : super(
+        camera: CameraComponent.withFixedResolution(
+          width: gameWidth,
+          height: gameHeight,
+        ),
+      );
 
   final rand = math.Random();
   double get width => size.x;
@@ -236,20 +239,27 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
 
-    world.add(Ball(
-      difficultyModifier: difficultyModifier,
-      radius: ballRadius,
-      position: size / 2,
-      velocity:
-          Vector2((rand.nextDouble() - 0.5) * width, height * 0.3).normalized()
-            ..scale(height / 4),
-    ));
+    world.add(
+      Ball(
+        difficultyModifier: difficultyModifier,
+        radius: ballRadius,
+        position: size / 2,
+        velocity:
+            Vector2(
+                (rand.nextDouble() - 0.5) * width,
+                height * 0.3,
+              ).normalized()
+              ..scale(height / 4),
+      ),
+    );
 
-    world.add(Paddle(
-      size: Vector2(paddleWidth, paddleHeight),
-      cornerRadius: const Radius.circular(ballRadius / 2),
-      position: Vector2(width / 2, height * 0.95),
-    ));
+    world.add(
+      Paddle(
+        size: Vector2(paddleWidth, paddleHeight),
+        cornerRadius: const Radius.circular(ballRadius / 2),
+        position: Vector2(width / 2, height * 0.95),
+      ),
+    );
 
     world.addAll([
       for (var i = 0; i < brickColors.length; i++)
@@ -296,12 +306,14 @@ class Ball extends CircleComponent
     required double radius,
     required this.difficultyModifier,
   }) : super(
-            radius: radius,
-            anchor: Anchor.center,
-            paint: Paint()
-              ..color = const Color(0xff1e6091)
-              ..style = PaintingStyle.fill,
-            children: [CircleHitbox()]);
+         radius: radius,
+         anchor: Anchor.center,
+         paint:
+             Paint()
+               ..color = const Color(0xff1e6091)
+               ..style = PaintingStyle.fill,
+         children: [CircleHitbox()],
+       );
 
   final Vector2 velocity;
   final double difficultyModifier;
@@ -314,7 +326,9 @@ class Ball extends CircleComponent
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is PlayArea) {
       if (intersectionPoints.first.y <= 0) {
@@ -324,16 +338,19 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
-        add(RemoveEffect(
-          delay: 0.35,
-          onComplete: () {
-            game.startGame();
-          },
-        ));
+        add(
+          RemoveEffect(
+            delay: 0.35,
+            onComplete: () {
+              game.startGame();
+            },
+          ),
+        );
       }
     } else if (other is Paddle) {
       velocity.y = -velocity.y;
-      velocity.x = velocity.x +
+      velocity.x =
+          velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
     } else if (other is Brick) {
       if (position.y < other.position.y - other.size.y / 2) {
@@ -360,9 +377,10 @@ class Paddle extends PositionComponent
 
   final Radius cornerRadius;
 
-  final _paint = Paint()
-    ..color = const Color(0xff1e6091)
-    ..style = PaintingStyle.fill;
+  final _paint =
+      Paint()
+        ..color = const Color(0xff1e6091)
+        ..style = PaintingStyle.fill;
 
   @override
   void update(double dt) {
@@ -371,12 +389,16 @@ class Paddle extends PositionComponent
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      position.x =
-          (position.x - (dt * 500)).clamp(width / 2, game.width - width / 2);
+      position.x = (position.x - (dt * 500)).clamp(
+        width / 2,
+        game.width - width / 2,
+      );
     } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      position.x =
-          (position.x + (dt * 500)).clamp(width / 2, game.width - width / 2);
+      position.x = (position.x + (dt * 500)).clamp(
+        width / 2,
+        game.width - width / 2,
+      );
     }
   }
 
@@ -384,10 +406,7 @@ class Paddle extends PositionComponent
   void render(Canvas canvas) {
     super.render(canvas);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Offset.zero & size.toSize(),
-        cornerRadius,
-      ),
+      RRect.fromRectAndRadius(Offset.zero & size.toSize(), cornerRadius),
       _paint,
     );
   }
@@ -396,27 +415,32 @@ class Paddle extends PositionComponent
   void onDragUpdate(DragUpdateEvent event) {
     if (isRemoved) return;
     super.onDragUpdate(event);
-    position.x = (position.x + event.localDelta.x)
-        .clamp(width / 2, game.width - width / 2);
+    position.x = (position.x + event.localDelta.x).clamp(
+      width / 2,
+      game.width - width / 2,
+    );
   }
 }
 
 class Brick extends RectangleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
   Brick(Vector2 position, Color color)
-      : super(
-          position: position,
-          size: Vector2(brickWidth, brickHeight),
-          anchor: Anchor.center,
-          paint: Paint()
-            ..color = color
-            ..style = PaintingStyle.fill,
-          children: [RectangleHitbox()],
-        );
+    : super(
+        position: position,
+        size: Vector2(brickWidth, brickHeight),
+        anchor: Anchor.center,
+        paint:
+            Paint()
+              ..color = color
+              ..style = PaintingStyle.fill,
+        children: [RectangleHitbox()],
+      );
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
     super.onCollisionStart(intersectionPoints, other);
     removeFromParent();
 
@@ -513,14 +537,14 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: switch (apiKey) {
         final providedKey? => ChatWidget(apiKey: providedKey),
-        _ => ApiKeyWidget(onSubmitted: (key) {
+        _ => ApiKeyWidget(
+          onSubmitted: (key) {
             setState(() => apiKey = key);
-          }),
+          },
+        ),
       },
     );
   }
@@ -549,18 +573,21 @@ class ApiKeyWidget extends StatelessWidget {
             Link(
               uri: Uri.https('makersuite.google.com', '/app/apikey'),
               target: LinkTarget.blank,
-              builder: (context, followLink) => TextButton(
-                onPressed: followLink,
-                child: const Text('Get an API Key'),
-              ),
+              builder:
+                  (context, followLink) => TextButton(
+                    onPressed: followLink,
+                    child: const Text('Get an API Key'),
+                  ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    decoration:
-                        textFieldDecoration(context, 'Enter your API key'),
+                    decoration: textFieldDecoration(
+                      context,
+                      'Enter your API key',
+                    ),
                     controller: _textController,
                     onSubmitted: (value) {
                       onSubmitted(value);
@@ -603,10 +630,7 @@ class _ChatWidgetState extends State<ChatWidget> {
   @override
   void initState() {
     super.initState();
-    _model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: widget.apiKey,
-    );
+    _model = GenerativeModel(model: 'gemini-pro', apiKey: widget.apiKey);
     _chat = _model.startChat();
   }
 
@@ -614,9 +638,7 @@ class _ChatWidgetState extends State<ChatWidget> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(
-          milliseconds: 750,
-        ),
+        duration: const Duration(milliseconds: 750),
         curve: Curves.easeOutCirc,
       ),
     );
@@ -649,18 +671,17 @@ class _ChatWidgetState extends State<ChatWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 25,
-              horizontal: 15,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 15),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     autofocus: true,
                     focusNode: _textFieldFocus,
-                    decoration:
-                        textFieldDecoration(context, 'Enter a prompt...'),
+                    decoration: textFieldDecoration(
+                      context,
+                      'Enter a prompt...',
+                    ),
                     controller: _textController,
                     onSubmitted: (String value) {
                       _sendChatMessage(value);
@@ -694,9 +715,7 @@ class _ChatWidgetState extends State<ChatWidget> {
     });
 
     try {
-      final response = await _chat.sendMessage(
-        Content.text(message),
-      );
+      final response = await _chat.sendMessage(Content.text(message));
       final text = response.text;
 
       if (text == null) {
@@ -728,16 +747,14 @@ class _ChatWidgetState extends State<ChatWidget> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Something went wrong'),
-          content: SingleChildScrollView(
-            child: Text(message),
-          ),
+          content: SingleChildScrollView(child: Text(message)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text('OK'),
-            )
+            ),
           ],
         );
       },
@@ -765,15 +782,13 @@ class MessageWidget extends StatelessWidget {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 480),
             decoration: BoxDecoration(
-              color: isFromUser
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color:
+                  isFromUser
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(18),
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
-              horizontal: 20,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             margin: const EdgeInsets.only(bottom: 8),
             child: MarkdownBody(data: text),
           ),
@@ -788,20 +803,12 @@ InputDecoration textFieldDecoration(BuildContext context, String hintText) =>
       contentPadding: const EdgeInsets.all(15),
       hintText: hintText,
       border: OutlineInputBorder(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(14),
-        ),
-        borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.secondary,
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(14),
-        ),
-        borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.secondary,
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
       ),
     );
 ''',
@@ -825,9 +832,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: Colors.blue,
-      ),
+      theme: ThemeData(colorSchemeSeed: Colors.blue),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -836,10 +841,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final String title;
 
-  const MyHomePage({
-    super.key,
-    required this.title,
-  });
+  const MyHomePage({super.key, required this.title});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -857,16 +859,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'You have pushed the button this many times:',
-            ),
+            const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -922,16 +920,12 @@ class _SunflowerState extends State<Sunflower> {
       ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Sunflower'),
-        ),
+        appBar: AppBar(title: const Text('Sunflower')),
         body: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: SunflowerWidget(seeds),
-              ),
+              Expanded(child: SunflowerWidget(seeds)),
               const SizedBox(height: 20),
               Text('Showing ${seeds.round()} seeds'),
               SizedBox(
@@ -973,26 +967,30 @@ class SunflowerWidget extends StatelessWidget {
       final theta = i * tau / phi;
       final r = math.sqrt(i) * scaleFactor;
 
-      seedWidgets.add(AnimatedAlign(
-        key: ValueKey(i),
-        duration: Duration(milliseconds: rng.nextInt(500) + 250),
-        curve: Curves.easeInOut,
-        alignment: Alignment(r * math.cos(theta), -1 * r * math.sin(theta)),
-        child: const Dot(true),
-      ));
+      seedWidgets.add(
+        AnimatedAlign(
+          key: ValueKey(i),
+          duration: Duration(milliseconds: rng.nextInt(500) + 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment(r * math.cos(theta), -1 * r * math.sin(theta)),
+          child: const Dot(true),
+        ),
+      );
     }
 
     for (var j = seeds; j < maxSeeds; j++) {
       final x = math.cos(tau * j / (maxSeeds - 1)) * 0.9;
       final y = math.sin(tau * j / (maxSeeds - 1)) * 0.9;
 
-      seedWidgets.add(AnimatedAlign(
-        key: ValueKey(j),
-        duration: Duration(milliseconds: rng.nextInt(500) + 250),
-        curve: Curves.easeInOut,
-        alignment: Alignment(x, y),
-        child: const Dot(false),
-      ));
+      seedWidgets.add(
+        AnimatedAlign(
+          key: ValueKey(j),
+          duration: Duration(milliseconds: rng.nextInt(500) + 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment(x, y),
+          child: const Dot(false),
+        ),
+      );
     }
 
     return FittedBox(
@@ -1021,10 +1019,7 @@ class Dot extends StatelessWidget {
         color: lit ? Colors.orange : Colors.grey.shade700,
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: const SizedBox(
-        height: size,
-        width: size,
-      ),
+      child: const SizedBox(height: size, width: size),
     );
   }
 }
