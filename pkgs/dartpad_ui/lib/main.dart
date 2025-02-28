@@ -542,82 +542,12 @@ class TabbedConsole extends StatefulWidget {
 
 class _TabbedConsoleState extends State<TabbedConsole>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_handleTabChange);
-    // Switch to the error tab  whenever a new error is received
-    widget.errorOutput.addListener(_switchToErrorTab);
-    if (widget.errorOutput.value.isNotEmpty) {
-      _switchToErrorTab();
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.removeListener(_handleTabChange);
-    _tabController.dispose();
-    widget.errorOutput.removeListener(_switchToErrorTab);
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(TabbedConsole oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.errorOutput != widget.errorOutput) {
-      widget.errorOutput.removeListener(_switchToErrorTab);
-      widget.errorOutput.addListener(_switchToErrorTab);
-    }
-  }
-
-  void _handleTabChange() {
-    // Rebuild to trigger AnimatedSwitcher
-    setState(() {});
-  }
-
-  void _switchToErrorTab() {
-    _tabController.animateTo(1);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            child: _getTabView(_tabController.index),
-          ),
-        ),
-        TabBar(
-          controller: _tabController,
-          tabs: [Tab(text: 'Output'), Tab(text: 'Errors')],
-        ),
-      ],
-    );
-  }
-
-  Widget _getTabView(int index) {
+    final showError = widget.errorOutput.value.isNotEmpty;
     return ConsoleWidget(
-      key: ValueKey('ConsoleWidget $index'),
-      onClearConsole: () {
-        widget.output.value = '';
-        widget.errorOutput.value = '';
-      },
-      output: switch (index) {
-        0 => widget.output,
-        _ => widget.errorOutput,
-      },
-      isError: switch (index) {
-        0 => false,
-        _ => true,
-      },
+      isError: showError,
+      output: showError ? widget.errorOutput : widget.output,
     );
   }
 }
