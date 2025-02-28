@@ -27,6 +27,7 @@ abstract class ExecutionService {
     required bool isFlutter,
   });
   Stream<String> get onStdout;
+  Stream<String> get onStderr;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -54,6 +55,7 @@ class AppModel {
 
   final TextEditingController sourceCodeController = TextEditingController();
   final ValueNotifier<String> consoleOutput = ValueNotifier('');
+  final ValueNotifier<String> errorOutput = ValueNotifier('');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<CompilingState> compilingState = ValueNotifier(
@@ -80,8 +82,7 @@ class AppModel {
 
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
-  bool _consoleShowingError = false;
-  bool get consoleShowingError => _consoleShowingError;
+  bool get consoleShowingError => errorOutput.value.isNotEmpty;
 
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
@@ -89,6 +90,7 @@ class AppModel {
 
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
+    errorOutput.addListener(_recalcLayout);
     void updateCanReload() =>
         canReload.value =
             hasRun.value &&
@@ -112,32 +114,29 @@ class AppModel {
     });
   }
 
-  static final _errorRe = RegExp(
-    r'\b(unhandled|exception)\b',
-    caseSensitive: false,
-  );
-
   void appendLineToConsole(String str) {
     consoleOutput.value += '$str\n';
+  }
 
-    // NOTE(csells): workaround for https://github.com/dart-lang/dart-pad/issues/3148;
-    // this heuristic is not foolproof, but seems to work well for both Dart and
-    // Flutter unhandled exceptions based on limited testing.
-    if (_errorRe.hasMatch(str)) _consoleShowingError = true;
+  void appendError(String str) {
+    errorOutput.value += '$str\n';
   }
 
   void clearConsole() {
+    print('clearConsole');
     consoleOutput.value = '';
-    _consoleShowingError = false;
+    errorOutput.value = '';
   }
 
   void dispose() {
     consoleOutput.removeListener(_recalcLayout);
+    errorOutput.removeListener(_recalcLayout);
     _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
-    final hasConsoleText = consoleOutput.value.isNotEmpty;
+    final hasConsoleText =
+        consoleOutput.value.isNotEmpty || errorOutput.value.isNotEmpty;
     final isFlutter = _appIsFlutter.value;
     final usesPackageWeb = _usesPackageWeb;
 
@@ -191,12 +190,13 @@ class AppServices {
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
+  StreamSubscription<String>? stderrSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
   static const Set<Channel> _hotReloadableChannels = {
-    Channel.localhost,
+    // Channel.localhost,
     Channel.main,
   };
 
@@ -390,7 +390,7 @@ class AppServices {
       } else {
         response = await _compileNewDDC(CompileRequest(source: source));
       }
-      if (!reload || appModel._consoleShowingError) {
+      if (!reload || appModel.consoleShowingError) {
         appModel.clearConsole();
       }
       _executeJavaScript(
@@ -409,12 +409,11 @@ class AppServices {
       appModel.editorStatus.showToast('Compilation failed');
 
       if (error is ApiRequestError) {
-        appModel.appendLineToConsole(error.message);
-        appModel.appendLineToConsole(error.body);
+        appModel.appendError(error.message);
+        appModel.appendError(error.body);
       } else {
-        appModel.appendLineToConsole('$error');
+        appModel.appendError('$error');
       }
-      appModel._consoleShowingError = true;
     } finally {
       progress.close();
     }
@@ -502,6 +501,7 @@ class AppServices {
   void registerExecutionService(ExecutionService? executionService) {
     // unregister the old
     stdoutSub?.cancel();
+    stderrSub?.cancel();
 
     // replace the service
     _executionService = executionService;
@@ -509,7 +509,10 @@ class AppServices {
     // register the new
     if (_executionService != null) {
       stdoutSub = _executionService!.onStdout.listen(
-        appModel.appendLineToConsole,
+        (msg) => appModel.appendLineToConsole(msg),
+      );
+      stderrSub = _executionService!.onStderr.listen(
+        (msg) => appModel.appendError(msg),
       );
     }
   }

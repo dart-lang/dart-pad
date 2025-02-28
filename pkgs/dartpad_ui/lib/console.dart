@@ -10,14 +10,17 @@ import 'enable_gen_ai.dart';
 import 'model.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
+import 'utils.dart';
 import 'widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
+  final bool isError;
   final ValueNotifier<String> output;
 
   const ConsoleWidget({
     this.showDivider = true,
+    this.isError = false,
     required this.output,
     super.key,
   });
@@ -66,52 +69,57 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
       padding: const EdgeInsets.all(denseSpacing),
       child: ValueListenableBuilder(
         valueListenable: widget.output,
-        builder:
-            (context, consoleOutput, _) => Stack(
-              children: [
-                SizedBox.expand(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: SelectableText(
-                      consoleOutput,
-                      maxLines: null,
-                      style: GoogleFonts.robotoMono(
-                        fontSize: theme.textTheme.bodyMedium?.fontSize,
-                      ),
+        builder: (context, consoleOutput, _) {
+          return Stack(
+            children: [
+              SizedBox.expand(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: SelectableText(
+                    consoleOutput,
+                    maxLines: null,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: theme.textTheme.bodyMedium?.fontSize,
+                      color: switch (widget.isError) {
+                        false => theme.textTheme.bodyMedium?.color,
+                        true => theme.colorScheme.error.darker,
+                      },
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(denseSpacing),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (genAiEnabled && appModel.consoleShowingError)
-                        MiniIconButton(
-                          icon: Image.asset(
-                            'gemini_sparkle_192.png',
-                            width: 16,
-                            height: 16,
-                          ),
-                          tooltip: 'Suggest fix',
-                          onPressed:
-                              () => suggestFix(
-                                context: context,
-                                appType: appModel.appType,
-                                errorMessage: consoleOutput,
-                              ),
-                        ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(denseSpacing),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (genAiEnabled && appModel.consoleShowingError)
                       MiniIconButton(
-                        icon: const Icon(Icons.playlist_remove),
-                        tooltip: 'Clear console',
-                        onPressed: consoleOutput.isEmpty ? null : _clearConsole,
+                        icon: Image.asset(
+                          'gemini_sparkle_192.png',
+                          width: 16,
+                          height: 16,
+                        ),
+                        tooltip: 'Suggest fix',
+                        onPressed:
+                            () => suggestFix(
+                              context: context,
+                              appType: appModel.appType,
+                              errorMessage: consoleOutput,
+                            ),
                       ),
-                    ],
-                  ),
+                    MiniIconButton(
+                      icon: const Icon(Icons.playlist_remove),
+                      tooltip: 'Clear console',
+                      onPressed: consoleOutput.isEmpty ? null : _clearConsole,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

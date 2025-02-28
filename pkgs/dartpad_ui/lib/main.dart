@@ -350,10 +350,16 @@ class _DartPadMainPageState extends State<DartPadMainPage>
                     SizedBox(height: domHeight, child: executionWidget),
                     SizedBox(
                       height: consoleHeight,
-                      child: ConsoleWidget(
-                        output: appModel.consoleOutput,
-                        showDivider: mode == LayoutMode.both,
+                      // child: ConsoleWidget(
+                      //   output: appModel.consoleOutput,
+                      //   showDivider: mode == LayoutMode.both,
+                      //   key: _consoleKey,
+                      // ),
+                      child: TabbedConsole(
                         key: _consoleKey,
+                        output: appModel.consoleOutput,
+                        errorOutput: appModel.errorOutput,
+                        showDivider: mode == LayoutMode.both,
                       ),
                     ),
                   ],
@@ -507,6 +513,98 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         tabController.animateTo(1);
       }
     });
+  }
+}
+
+class TabbedConsole extends StatefulWidget {
+  final ValueNotifier<String> output;
+  final ValueNotifier<String> errorOutput;
+  final bool showDivider;
+
+  const TabbedConsole({
+    required this.output,
+    required this.errorOutput,
+    required this.showDivider,
+    super.key,
+  });
+
+  @override
+  _TabbedConsoleState createState() => _TabbedConsoleState();
+}
+
+class _TabbedConsoleState extends State<TabbedConsole>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
+    // Switch to the error tab  whenever a new error is received
+    widget.errorOutput.addListener(_switchToErrorTab);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    widget.errorOutput.removeListener(_switchToErrorTab);
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(TabbedConsole oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.errorOutput != widget.errorOutput) {
+      widget.errorOutput.removeListener(_switchToErrorTab);
+      widget.errorOutput.addListener(_switchToErrorTab);
+    }
+  }
+
+  void _handleTabChange() {
+    // Rebuild to trigger AnimatedSwitcher
+    setState(() {});
+  }
+
+  void _switchToErrorTab() {
+    _tabController.animateTo(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: _getTabView(_tabController.index),
+          ),
+        ),
+        TabBar(
+          controller: _tabController,
+          tabs: [Tab(text: 'Output'), Tab(text: 'Errors')],
+        ),
+      ],
+    );
+  }
+
+  Widget _getTabView(int index) {
+    return ConsoleWidget(
+      key: ValueKey('ConsoleWidget $index'),
+      output: switch (index) {
+        0 => widget.output,
+        _ => widget.errorOutput,
+      },
+      showDivider: widget.showDivider,
+      isError: switch (index) {
+        0 => false,
+        _ => true,
+      },
+    );
   }
 }
 

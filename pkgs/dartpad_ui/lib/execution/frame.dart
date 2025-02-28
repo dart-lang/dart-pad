@@ -14,6 +14,8 @@ import '../model.dart';
 class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =
       StreamController<String>.broadcast();
+  final StreamController<String> _stderrController =
+      StreamController<String>.broadcast();
 
   web.HTMLIFrameElement _frame;
   late String _frameSrc;
@@ -52,6 +54,9 @@ class ExecutionServiceImpl implements ExecutionService {
 
   @override
   Stream<String> get onStdout => _stdoutController.stream;
+
+  @override
+  Stream<String> get onStderr => _stderrController.stream;
 
   @override
   set ignorePointer(bool ignorePointer) {
@@ -254,7 +259,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         // Ignore any exceptions before the iframe has completed
         // initialization.
         if (_readyCompleter.isCompleted) {
-          _stdoutController.add(data['message'] as String);
+          _stderrController.add(data['message'] as String);
         }
       } else if (type == 'ready' && !_readyCompleter.isCompleted) {
         _readyCompleter.complete();
