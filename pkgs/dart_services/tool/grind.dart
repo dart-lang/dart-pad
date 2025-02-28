@@ -22,10 +22,7 @@ Future<void> main(List<String> args) async {
   return grind(args);
 }
 
-final List<String> compilationArtifacts = [
-  'dart_sdk.js',
-  'flutter_web.js',
-];
+final List<String> compilationArtifacts = ['dart_sdk.js', 'flutter_web.js'];
 
 final List<String> compilationArtifactsNew = [
   'dart_sdk_new.js',
@@ -33,8 +30,10 @@ final List<String> compilationArtifactsNew = [
   'ddc_module_loader.js',
 ];
 
-@Task('validate that we have the correct compilation artifacts available in '
-    'google storage')
+@Task(
+  'validate that we have the correct compilation artifacts available in '
+  'google storage',
+)
 void validateStorageArtifacts() async {
   final args = context.invocation.arguments;
   final sdk = Sdk.fromLocalFlutter();
@@ -45,7 +44,8 @@ void validateStorageArtifacts() async {
   };
 
   print(
-      'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket');
+    'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket',
+  );
 
   final urlBase = 'https://storage.googleapis.com/$bucket/';
   for (final artifact
@@ -103,8 +103,9 @@ void buildStorageArtifacts() async {
   final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
-    instructions
-        .add(await _buildStorageArtifacts(temp, sdk, channel: sdk.channel));
+    instructions.add(
+      await _buildStorageArtifacts(temp, sdk, channel: sdk.channel),
+    );
   } finally {
     temp.deleteSync(recursive: true);
   }
@@ -167,12 +168,14 @@ Future<String> _buildStorageArtifacts(
   // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
   // Context: https://github.com/flutter/flutter/pull/106921
 
-  final pluginRegistrant = File(path.join(
-      dir.path, '.dart_tool', 'dartpad', 'web_plugin_registrant.dart'));
+  final pluginRegistrant = File(
+    path.join(dir.path, '.dart_tool', 'dartpad', 'web_plugin_registrant.dart'),
+  );
   if (pluginRegistrant.existsSync()) {
     Directory(path.join(dir.path, 'lib')).createSync();
     pluginRegistrant.copySync(
-        path.join(dir.path, 'lib', 'generated_plugin_registrant.dart'));
+      path.join(dir.path, 'lib', 'generated_plugin_registrant.dart'),
+    );
   }
 
   final flutterLibraries = <String>[];
@@ -210,8 +213,10 @@ Future<String> _buildStorageArtifacts(
   // Later versions of Flutter remove the "sound" suffix from files. If the
   // suffixed version does not exist, the unsuffixed version is the sound file.
   var dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline_sound.dill');
-  var sdkJsPath =
-      path.join(sdk.flutterWebSdkPath, 'amd-canvaskit-sound/dart_sdk.js');
+  var sdkJsPath = path.join(
+    sdk.flutterWebSdkPath,
+    'amd-canvaskit-sound/dart_sdk.js',
+  );
   if (!getFile(dillPath).existsSync()) {
     dillPath = path.join(sdk.flutterWebSdkPath, 'ddc_outline.dill');
     sdkJsPath = path.join(sdk.flutterWebSdkPath, 'amd-canvaskit/dart_sdk.js');
@@ -225,14 +230,10 @@ Future<String> _buildStorageArtifacts(
     '--source-map',
     '-o',
     'flutter_web.js',
-    ...flutterLibraries
+    ...flutterLibraries,
   ];
 
-  await _run(
-    compilerPath,
-    arguments: arguments,
-    workingDirectory: dir.path,
-  );
+  await _run(compilerPath, arguments: arguments, workingDirectory: dir.path);
 
   // Copy all to the project directory.
   final artifactsDir = getDir(path.join('artifacts'));
@@ -250,13 +251,19 @@ Future<String> _buildStorageArtifacts(
     // the suffixed version does not exist, the unsuffixed version is the sound
     // file.
     var newSdkJsPath = path.join(
-        sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit-sound/dart_sdk.js');
+      sdk.flutterWebSdkPath,
+      'ddcLibraryBundle-canvaskit-sound/dart_sdk.js',
+    );
     if (!getFile(newSdkJsPath).existsSync()) {
       newSdkJsPath = path.join(
-          sdk.flutterWebSdkPath, 'ddcLibraryBundle-canvaskit/dart_sdk.js');
+        sdk.flutterWebSdkPath,
+        'ddcLibraryBundle-canvaskit/dart_sdk.js',
+      );
     }
-    final ddcModuleLoaderPath =
-        path.join(sdk.dartSdkPath, 'lib/dev_compiler/ddc/ddc_module_loader.js');
+    final ddcModuleLoaderPath = path.join(
+      sdk.dartSdkPath,
+      'lib/dev_compiler/ddc/ddc_module_loader.js',
+    );
 
     final argumentsNew = <String>[
       path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
@@ -269,7 +276,7 @@ Future<String> _buildStorageArtifacts(
       '--no-summarize',
       '-o',
       'flutter_web_new.js',
-      ...flutterLibraries
+      ...flutterLibraries,
     ];
 
     await _run(
@@ -281,10 +288,12 @@ Future<String> _buildStorageArtifacts(
     copy(getFile(ddcModuleLoaderPath), artifactsDir);
     copy(getFile(newSdkJsPath), artifactsDir);
     copy(getFile('$newSdkJsPath.map'), artifactsDir);
-    joinFile(artifactsDir, ['dart_sdk.js'])
-        .copySync(path.join('artifacts', 'dart_sdk_new.js'));
-    joinFile(artifactsDir, ['dart_sdk.js.map'])
-        .copySync(path.join('artifacts', 'dart_sdk_new.js.map'));
+    joinFile(artifactsDir, [
+      'dart_sdk.js',
+    ]).copySync(path.join('artifacts', 'dart_sdk_new.js'));
+    joinFile(artifactsDir, [
+      'dart_sdk.js.map',
+    ]).copySync(path.join('artifacts', 'dart_sdk_new.js.map'));
 
     copy(joinFile(dir, ['flutter_web_new.js']), artifactsDir);
     copy(joinFile(dir, ['flutter_web_new.js.map']), artifactsDir);
@@ -315,11 +324,13 @@ Future<void> _run(
   String? workingDirectory,
   Map<String, String> environment = const {},
 }) async {
-  final process = await runWithLogging(executable,
-      arguments: arguments,
-      workingDirectory: workingDirectory,
-      environment: environment,
-      log: log);
+  final process = await runWithLogging(
+    executable,
+    arguments: arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+    log: log,
+  );
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
     fail('Unable to exec $executable, failed with code $exitCode');

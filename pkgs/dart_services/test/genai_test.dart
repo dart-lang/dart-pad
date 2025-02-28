@@ -27,23 +27,19 @@ $code
     });
 
     test('handles code with markdown wrapper and some leading gunk', () async {
-      final input = Stream.fromIterable(
-        [
-          'some leading gunk\n',
-          ...wrappedCode.split('\n').map((line) => '$line\n')
-        ],
-      );
+      final input = Stream.fromIterable([
+        'some leading gunk\n',
+        ...wrappedCode.split('\n').map((line) => '$line\n'),
+      ]);
       final cleaned = await GenerativeAI.cleanCode(input).join();
       expect(cleaned.trim(), code.trim());
     });
 
     test('handles code with markdown wrapper and trailing gunk', () async {
-      final input = Stream.fromIterable(
-        [
-          ...wrappedCode.split('\n').map((line) => '$line\n'),
-          'some trailing gunk\n',
-        ],
-      );
+      final input = Stream.fromIterable([
+        ...wrappedCode.split('\n').map((line) => '$line\n'),
+        'some trailing gunk\n',
+      ]);
       final cleaned = await GenerativeAI.cleanCode(input).join();
       expect(cleaned.trim(), code.trim());
     });

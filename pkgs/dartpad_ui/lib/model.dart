@@ -56,8 +56,9 @@ class AppModel {
   final ValueNotifier<String> consoleOutput = ValueNotifier('');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
-  final ValueNotifier<CompilingState> compilingState =
-      ValueNotifier(CompilingState.none);
+  final ValueNotifier<CompilingState> compilingState = ValueNotifier(
+    CompilingState.none,
+  );
   final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
 
   final ValueNotifier<bool> hasRun = ValueNotifier(false);
@@ -70,8 +71,9 @@ class AppModel {
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
-  final ValueNotifier<SplitDragState> splitViewDragState =
-      ValueNotifier(SplitDragState.inactive);
+  final ValueNotifier<SplitDragState> splitViewDragState = ValueNotifier(
+    SplitDragState.inactive,
+  );
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
   late final StreamSubscription<SplitDragState> _splitSubscription;
@@ -87,9 +89,11 @@ class AppModel {
 
   AppModel() {
     consoleOutput.addListener(_recalcLayout);
-    void updateCanReload() => canReload.value = hasRun.value &&
-        !compilingState.value.busy &&
-        currentDeltaDill.value != null;
+    void updateCanReload() =>
+        canReload.value =
+            hasRun.value &&
+            !compilingState.value.busy &&
+            currentDeltaDill.value != null;
     hasRun.addListener(updateCanReload);
     compilingState.addListener(updateCanReload);
     currentDeltaDill.addListener(updateCanReload);
@@ -101,8 +105,9 @@ class AppModel {
     useNewDDC.addListener(updateShowReload);
     _appIsFlutter.addListener(updateShowReload);
 
-    _splitSubscription =
-        splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
+    _splitSubscription = splitDragStateManager.onSplitDragUpdated.listen((
+      SplitDragState value,
+    ) {
       splitViewDragState.value = value;
     });
   }
@@ -203,8 +208,9 @@ class AppServices {
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
 
     void updateUseNewDDC() {
-      appModel.useNewDDC.value =
-          _hotReloadableChannels.contains(_channel.value);
+      appModel.useNewDDC.value = _hotReloadableChannels.contains(
+        _channel.value,
+      );
     }
 
     updateUseNewDDC();
@@ -225,8 +231,9 @@ class AppServices {
 
   void resetTo({String? type}) {
     type ??= 'dart';
-    final source =
-        Samples.defaultSnippet(forFlutter: type.toLowerCase() == 'flutter');
+    final source = Samples.defaultSnippet(
+      forFlutter: type.toLowerCase() == 'flutter',
+    );
 
     // Reset the source.
     appModel.sourceCodeController.text = source;
@@ -278,8 +285,9 @@ class AppServices {
 
     if (flutterSampleId != null) {
       final loader = FlutterSampleLoader();
-      final progress =
-          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      final progress = appModel.editorStatus.showMessage(
+        initialText: 'Loading…',
+      );
       try {
         final sample = await loader.loadFlutterSample(
           sampleId: flutterSampleId,
@@ -308,8 +316,9 @@ class AppServices {
 
     if (gistId != null) {
       final gistLoader = GistLoader();
-      final progress =
-          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      final progress = appModel.editorStatus.showMessage(
+        initialText: 'Loading…',
+      );
       try {
         final gist = await gistLoader.load(gistId);
         progress.close();
@@ -363,16 +372,21 @@ class AppServices {
     final willUseReload = reload && appModel.useNewDDC.value;
 
     final source = appModel.sourceCodeController.text;
-    final progress = appModel.editorStatus
-        .showMessage(initialText: willUseReload ? 'Reloading…' : 'Compiling…');
+    final progress = appModel.editorStatus.showMessage(
+      initialText: willUseReload ? 'Reloading…' : 'Compiling…',
+    );
 
     try {
       CompileDDCResponse response;
       if (!appModel.useNewDDC.value) {
         response = await _compileDDC(CompileRequest(source: source));
       } else if (reload) {
-        response = await _compileNewDDCReload(CompileRequest(
-            source: source, deltaDill: appModel.currentDeltaDill.value!));
+        response = await _compileNewDDCReload(
+          CompileRequest(
+            source: source,
+            deltaDill: appModel.currentDeltaDill.value!,
+          ),
+        );
       } else {
         response = await _compileNewDDC(CompileRequest(source: source));
       }
@@ -475,7 +489,8 @@ class AppServices {
   }
 
   Future<CompileDDCResponse> _compileNewDDCReload(
-      CompileRequest request) async {
+    CompileRequest request,
+  ) async {
     try {
       appModel.compilingState.value = CompilingState.reloading;
       return await services.compileNewDDCReload(request);
@@ -493,8 +508,9 @@ class AppServices {
 
     // register the new
     if (_executionService != null) {
-      stdoutSub =
-          _executionService!.onStdout.listen(appModel.appendLineToConsole);
+      stdoutSub = _executionService!.onStdout.listen(
+        appModel.appendLineToConsole,
+      );
     }
   }
 
@@ -557,8 +573,10 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.editorStatus
-            .showMessage(initialText: message, name: 'problems');
+        appModel.editorStatus.showMessage(
+          initialText: message,
+          name: 'problems',
+        );
       } else {
         progress.updateText(message);
       }
@@ -605,12 +623,15 @@ class SplitDragStateManager {
       StreamController<SplitDragState>.broadcast();
   late final Stream<SplitDragState> onSplitDragUpdated;
 
-  SplitDragStateManager(
-      {Duration timeout = const Duration(milliseconds: 100)}) {
-    onSplitDragUpdated = _splitDragStateController.stream.timeout(timeout,
-        onTimeout: (eventSink) {
-      eventSink.add(SplitDragState.inactive);
-    });
+  SplitDragStateManager({
+    Duration timeout = const Duration(milliseconds: 100),
+  }) {
+    onSplitDragUpdated = _splitDragStateController.stream.timeout(
+      timeout,
+      onTimeout: (eventSink) {
+        eventSink.add(SplitDragState.inactive);
+      },
+    );
   }
 
   void handleSplitChanged() {

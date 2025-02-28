@@ -42,10 +42,7 @@ void defineTests() {
     });
 
     test('keeps a "dart:core" path intact', () {
-      expectNormalizeFilePaths(
-        'dart:core/foo.dart',
-        'dart:core/foo.dart',
-      );
+      expectNormalizeFilePaths('dart:core/foo.dart', 'dart:core/foo.dart');
     });
 
     test('keeps a web URL intact', () {

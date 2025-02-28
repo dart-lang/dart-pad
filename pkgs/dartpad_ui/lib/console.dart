@@ -52,62 +52,66 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        border: widget.showDivider
-            ? Border(
-                top: Divider.createBorderSide(
-                context,
-                width: 8.0,
-                color: theme.colorScheme.surface,
-              ))
-            : null,
+        border:
+            widget.showDivider
+                ? Border(
+                  top: Divider.createBorderSide(
+                    context,
+                    width: 8.0,
+                    color: theme.colorScheme.surface,
+                  ),
+                )
+                : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
       child: ValueListenableBuilder(
         valueListenable: widget.output,
-        builder: (context, consoleOutput, _) => Stack(
-          children: [
-            SizedBox.expand(
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: SelectableText(
-                  consoleOutput,
-                  maxLines: null,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: theme.textTheme.bodyMedium?.fontSize,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(denseSpacing),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (genAiEnabled && appModel.consoleShowingError)
-                    MiniIconButton(
-                      icon: Image.asset(
-                        'gemini_sparkle_192.png',
-                        width: 16,
-                        height: 16,
-                      ),
-                      tooltip: 'Suggest fix',
-                      onPressed: () => suggestFix(
-                        context: context,
-                        appType: appModel.appType,
-                        errorMessage: consoleOutput,
+        builder:
+            (context, consoleOutput, _) => Stack(
+              children: [
+                SizedBox.expand(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: SelectableText(
+                      consoleOutput,
+                      maxLines: null,
+                      style: GoogleFonts.robotoMono(
+                        fontSize: theme.textTheme.bodyMedium?.fontSize,
                       ),
                     ),
-                  MiniIconButton(
-                    icon: const Icon(Icons.playlist_remove),
-                    tooltip: 'Clear console',
-                    onPressed: consoleOutput.isEmpty ? null : _clearConsole,
                   ),
-                ],
-              ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(denseSpacing),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (genAiEnabled && appModel.consoleShowingError)
+                        MiniIconButton(
+                          icon: Image.asset(
+                            'gemini_sparkle_192.png',
+                            width: 16,
+                            height: 16,
+                          ),
+                          tooltip: 'Suggest fix',
+                          onPressed:
+                              () => suggestFix(
+                                context: context,
+                                appType: appModel.appType,
+                                errorMessage: consoleOutput,
+                              ),
+                        ),
+                      MiniIconButton(
+                        icon: const Icon(Icons.playlist_remove),
+                        tooltip: 'Clear console',
+                        onPressed: consoleOutput.isEmpty ? null : _clearConsole,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
       ),
     );
   }

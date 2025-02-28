@@ -29,9 +29,7 @@ class SourceRequest {
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
-  AnalysisResponse({
-    required this.issues,
-  });
+  AnalysisResponse({required this.issues});
 
   factory AnalysisResponse.fromJson(Map<String, Object?> json) =>
       _$AnalysisResponseFromJson(json);
@@ -108,10 +106,7 @@ class DiagnosticMessage {
   final String message;
   final Location location;
 
-  DiagnosticMessage({
-    required this.message,
-    required this.location,
-  });
+  DiagnosticMessage({required this.message, required this.location});
 
   factory DiagnosticMessage.fromJson(Map<String, Object?> json) =>
       _$DiagnosticMessageFromJson(json);
@@ -167,10 +162,7 @@ class FormatResponse {
   final String source;
   final int? offset;
 
-  FormatResponse({
-    required this.source,
-    required this.offset,
-  });
+  FormatResponse({required this.source, required this.offset});
 
   factory FormatResponse.fromJson(Map<String, Object?> json) =>
       _$FormatResponseFromJson(json);
@@ -183,18 +175,12 @@ class FormatResponse {
 
 @JsonSerializable()
 class FixesResponse {
-  static final FixesResponse empty = FixesResponse(
-    fixes: [],
-    assists: [],
-  );
+  static final FixesResponse empty = FixesResponse(fixes: [], assists: []);
 
   final List<SourceChange> fixes;
   final List<SourceChange> assists;
 
-  FixesResponse({
-    required this.fixes,
-    required this.assists,
-  });
+  FixesResponse({required this.fixes, required this.assists});
 
   factory FixesResponse.fromJson(Map<String, Object?> json) =>
       _$FixesResponseFromJson(json);
@@ -269,10 +255,7 @@ class LinkedEditSuggestion {
   final String value;
   final String kind;
 
-  LinkedEditSuggestion({
-    required this.value,
-    required this.kind,
-  });
+  LinkedEditSuggestion({required this.value, required this.kind});
 
   factory LinkedEditSuggestion.fromJson(Map<String, Object?> json) =>
       _$LinkedEditSuggestionFromJson(json);
@@ -391,9 +374,7 @@ class VersionResponse {
 class OpenInIdxRequest {
   final String code;
 
-  OpenInIdxRequest({
-    required this.code,
-  });
+  OpenInIdxRequest({required this.code});
 
   factory OpenInIdxRequest.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxRequestFromJson(json);
@@ -408,9 +389,7 @@ class OpenInIdxRequest {
 class OpenInIdxResponse {
   final String idxUrl;
 
-  OpenInIdxResponse({
-    required this.idxUrl,
-  });
+  OpenInIdxResponse({required this.idxUrl});
 
   factory OpenInIdxResponse.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxResponseFromJson(json);
@@ -461,7 +440,8 @@ class SuggestFixRequest {
   Map<String, Object?> toJson() => _$SuggestFixRequestToJson(this);
 
   @override
-  String toString() => 'SuggestFixRequest '
+  String toString() =>
+      'SuggestFixRequest '
       '[$errorMessage] '
       '[${source.substring(0, 10)} (...)';
 }
@@ -529,8 +509,8 @@ class Attachment {
     required this.name,
     required Uint8List bytes,
     required this.mimeType,
-  })  : base64EncodedBytes = base64Encode(bytes),
-        _cachedBytes = bytes;
+  }) : base64EncodedBytes = base64Encode(bytes),
+       _cachedBytes = bytes;
 
   final String name;
   final String base64EncodedBytes;

@@ -18,10 +18,7 @@ class ProjectTemplates {
 
   factory ProjectTemplates() {
     final basePath = _baseTemplateProject();
-    final summaryFilePath = path.join(
-      'artifacts',
-      'flutter_web.dill',
-    );
+    final summaryFilePath = path.join('artifacts', 'flutter_web.dill');
     return ProjectTemplates._(
       dartPath: path.join(basePath, 'dart_project'),
       flutterPath: path.join(basePath, 'flutter_project'),

@@ -11,12 +11,15 @@ class GistLoader {
   final http.Client client = http.Client();
 
   Future<Gist> load(String gistId) async {
-    final response =
-        await client.get(Uri.parse('https://api.github.com/gists/$gistId'));
+    final response = await client.get(
+      Uri.parse('https://api.github.com/gists/$gistId'),
+    );
 
     if (response.statusCode != 200) {
-      throw Exception('Unable to load gist '
-          '(${response.statusCode} ${response.reasonPhrase}})');
+      throw Exception(
+        'Unable to load gist '
+        '(${response.statusCode} ${response.reasonPhrase}})',
+      );
     }
 
     return Gist.fromJson(jsonDecode(response.body) as Map<String, Object?>);
@@ -46,7 +49,7 @@ class Gist {
   }
 
   factory Gist.fromJson(Map<String, Object?> json) {
-/* {
+    /* {
   "id": "d3bd83918d21b6d5f778bdc69c3d36d6",
   "description": "Fibonacci",
   "owner": {
@@ -77,10 +80,11 @@ class Gist {
       id: json['id'] as String,
       description: json['description'] as String?,
       owner: owner['login'] as String?,
-      files: files.values
-          .cast<Map<String, Object?>>()
-          .map(GistFile.fromJson)
-          .toList(),
+      files:
+          files.values
+              .cast<Map<String, Object?>>()
+              .map(GistFile.fromJson)
+              .toList(),
     );
   }
 
@@ -98,14 +102,17 @@ class Gist {
   }
 
   void _validateGist() {
-    final file =
-        files.singleWhereOrNull((file) => file.fileName.endsWith('.dart'));
+    final file = files.singleWhereOrNull(
+      (file) => file.fileName.endsWith('.dart'),
+    );
 
     if (file == null) {
       validationIssues.add('Warning: no Dart file found in the gist');
     } else if (file.fileName != defaultFileName) {
-      validationIssues.add('Warning: no gist content in $defaultFileName '
-          '(loading from ${file.fileName})');
+      validationIssues.add(
+        'Warning: no gist content in $defaultFileName '
+        '(loading from ${file.fileName})',
+      );
     }
   }
 }

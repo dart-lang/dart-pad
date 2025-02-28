@@ -46,14 +46,14 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: switch (apiKey) {
         final providedKey? => ChatWidget(apiKey: providedKey),
-        _ => ApiKeyWidget(onSubmitted: (key) {
+        _ => ApiKeyWidget(
+          onSubmitted: (key) {
             setState(() => apiKey = key);
-          }),
+          },
+        ),
       },
     );
   }
@@ -82,18 +82,21 @@ class ApiKeyWidget extends StatelessWidget {
             Link(
               uri: Uri.https('makersuite.google.com', '/app/apikey'),
               target: LinkTarget.blank,
-              builder: (context, followLink) => TextButton(
-                onPressed: followLink,
-                child: const Text('Get an API Key'),
-              ),
+              builder:
+                  (context, followLink) => TextButton(
+                    onPressed: followLink,
+                    child: const Text('Get an API Key'),
+                  ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    decoration:
-                        textFieldDecoration(context, 'Enter your API key'),
+                    decoration: textFieldDecoration(
+                      context,
+                      'Enter your API key',
+                    ),
                     controller: _textController,
                     onSubmitted: (value) {
                       onSubmitted(value);
@@ -136,10 +139,7 @@ class _ChatWidgetState extends State<ChatWidget> {
   @override
   void initState() {
     super.initState();
-    _model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: widget.apiKey,
-    );
+    _model = GenerativeModel(model: 'gemini-pro', apiKey: widget.apiKey);
     _chat = _model.startChat();
   }
 
@@ -147,9 +147,7 @@ class _ChatWidgetState extends State<ChatWidget> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(
-          milliseconds: 750,
-        ),
+        duration: const Duration(milliseconds: 750),
         curve: Curves.easeOutCirc,
       ),
     );
@@ -182,18 +180,17 @@ class _ChatWidgetState extends State<ChatWidget> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 25,
-              horizontal: 15,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 15),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     autofocus: true,
                     focusNode: _textFieldFocus,
-                    decoration:
-                        textFieldDecoration(context, 'Enter a prompt...'),
+                    decoration: textFieldDecoration(
+                      context,
+                      'Enter a prompt...',
+                    ),
                     controller: _textController,
                     onSubmitted: (String value) {
                       _sendChatMessage(value);
@@ -227,9 +224,7 @@ class _ChatWidgetState extends State<ChatWidget> {
     });
 
     try {
-      final response = await _chat.sendMessage(
-        Content.text(message),
-      );
+      final response = await _chat.sendMessage(Content.text(message));
       final text = response.text;
 
       if (text == null) {
@@ -261,16 +256,14 @@ class _ChatWidgetState extends State<ChatWidget> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Something went wrong'),
-          content: SingleChildScrollView(
-            child: Text(message),
-          ),
+          content: SingleChildScrollView(child: Text(message)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text('OK'),
-            )
+            ),
           ],
         );
       },
@@ -298,15 +291,13 @@ class MessageWidget extends StatelessWidget {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 480),
             decoration: BoxDecoration(
-              color: isFromUser
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color:
+                  isFromUser
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(18),
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
-              horizontal: 20,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             margin: const EdgeInsets.only(bottom: 8),
             child: MarkdownBody(data: text),
           ),
@@ -321,19 +312,11 @@ InputDecoration textFieldDecoration(BuildContext context, String hintText) =>
       contentPadding: const EdgeInsets.all(15),
       hintText: hintText,
       border: OutlineInputBorder(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(14),
-        ),
-        borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.secondary,
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(14),
-        ),
-        borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.secondary,
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
       ),
     );

@@ -91,10 +91,17 @@ extension type Doc._(JSObject _) implements JSObject {
   external void setSelection(Position position, [Position head]);
   external JSArray<TextMarker> getAllMarks();
   external TextMarker markText(
-      Position from, Position to, MarkTextOptions options);
+    Position from,
+    Position to,
+    MarkTextOptions options,
+  );
   external int? indexFromPos(Position pos);
-  external void replaceRange(String replacement, Position from,
-      [Position? to, String? origin]);
+  external void replaceRange(
+    String replacement,
+    Position from, [
+    Position? to,
+    String? origin,
+  ]);
   external Position posFromIndex(int index);
 }
 
@@ -125,10 +132,7 @@ extension type MarkTextOptions._(JSObject _) implements JSObject {
   external String className;
   external String title;
 
-  external factory MarkTextOptions({
-    String className,
-    String title,
-  });
+  external factory MarkTextOptions({String className, String title});
 }
 
 @anonymous
@@ -181,7 +185,7 @@ extension type Vim._(JSObject _) implements JSObject {
   external void exitInsertMode(CodeMirror cm);
 
   void handleEsc(CodeMirror cm) => switch (cm.getKeymap()) {
-        'vim-insert' => exitInsertMode(cm),
-        _ => _,
-      };
+    'vim-insert' => exitInsertMode(cm),
+    _ => _,
+  };
 }

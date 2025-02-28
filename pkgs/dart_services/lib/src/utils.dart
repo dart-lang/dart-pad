@@ -52,17 +52,22 @@ Future<Process> runWithLogging(
   Map<String, String> environment = const {},
   required void Function(String) log,
 }) async {
-  log([
-    '${path.basename(executable)} ${arguments.join(' ')}:',
-    if (workingDirectory != null) 'cwd: $workingDirectory',
-    if (environment.isNotEmpty) 'env: $environment',
-  ].join('\n  '));
+  log(
+    [
+      '${path.basename(executable)} ${arguments.join(' ')}:',
+      if (workingDirectory != null) 'cwd: $workingDirectory',
+      if (environment.isNotEmpty) 'env: $environment',
+    ].join('\n  '),
+  );
 
-  final process = await Process.start(executable, arguments,
-      workingDirectory: workingDirectory,
-      environment: environment,
-      includeParentEnvironment: true,
-      runInShell: Platform.isWindows);
+  final process = await Process.start(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+    includeParentEnvironment: true,
+    runInShell: Platform.isWindows,
+  );
   process.stdout.listen((out) => log(systemEncoding.decode(out).trimRight()));
   process.stderr.listen((out) => log(systemEncoding.decode(out).trimRight()));
   return process;

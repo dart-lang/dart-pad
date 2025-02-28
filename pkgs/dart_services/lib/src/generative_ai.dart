@@ -31,37 +31,33 @@ class GenerativeAI {
 
   bool get _canGenAI => _geminiApiKey != null;
 
-  late final _flutterFixModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.flutter,
-            '''
+  late final _flutterFixModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.flutter, '''
 You will be given an error message in provided Flutter source code along with an
 optional line and column number where the error appears. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
 with the error fixed.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
-  late final _dartFixModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.dart,
-            '''
+  late final _dartFixModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.dart, '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
 with the error fixed.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
   Stream<String> suggestFix({
     required AppType appType,
@@ -90,31 +86,27 @@ $source
     yield* cleanCode(_textOnly(stream));
   }
 
-  late final _newFlutterCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.flutter,
-            '''
+  late final _newFlutterCodeModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.flutter, '''
 Generate a Flutter program that satisfies the provided description.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
-  late final _newDartCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.dart,
-            '''
+  late final _newDartCodeModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.dart, '''
 Generate a Dart program that satisfies the provided description.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
   Stream<String> generateCode({
     required AppType appType,
@@ -138,35 +130,31 @@ Generate a Dart program that satisfies the provided description.
     yield* cleanCode(_textOnly(stream));
   }
 
-  late final _updateFlutterCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.flutter,
-            '''
+  late final _updateFlutterCodeModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.flutter, '''
 You will be given an existing Flutter program and a description of a change to
 be made to it. Generate an updated Flutter program that satisfies the
 description.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
-  late final _updateDartCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(
-            AppType.dart,
-            '''
+  late final _updateDartCodeModel =
+      _canGenAI
+          ? GenerativeModel(
+            apiKey: _geminiApiKey!,
+            model: _geminiModel,
+            systemInstruction: _systemInstructions(AppType.dart, '''
 You will be given an existing Dart program and a description of a change to
 be made to it. Generate an updated Dart program that satisfies the
 description.
-''',
-          ),
-        )
-      : null;
+'''),
+          )
+          : null;
 
   Stream<String> updateCode({
     required AppType appType,
@@ -271,9 +259,10 @@ $prompt
     if (cachedList.isEmpty) {
       final versions = getPackageVersions();
       for (final MapEntry(key: name, value: version) in versions.entries) {
-        final isSupported = appType == AppType.flutter
-            ? isSupportedPackage(name)
-            : isSupportedDartPackage(name);
+        final isSupported =
+            appType == AppType.flutter
+                ? isSupportedPackage(name)
+                : isSupportedDartPackage(name);
         if (isSupported) cachedList.add('$name: $version');
       }
     }

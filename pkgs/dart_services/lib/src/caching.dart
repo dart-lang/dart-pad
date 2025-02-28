@@ -43,7 +43,7 @@ class RedisCache implements ServerCache {
   static const Duration cacheOperationTimeout = Duration(milliseconds: 10000);
 
   RedisCache(String redisUriString, this._sdk, this.serverVersion)
-      : redisUri = Uri.parse(redisUriString) {
+    : redisUri = Uri.parse(redisUriString) {
     _reconnect();
   }
 
@@ -116,21 +116,25 @@ class RedisCache implements ServerCache {
           _setUpConnection(newConnection);
           // If the client disconnects, discard the client and try to connect again.
 
-          newConnection.outputSink.done.then((_) {
-            _resetConnection();
-            log.warning('$_logPrefix: connection terminated, reconnecting');
-            _reconnect();
-          }).catchError((dynamic e) {
-            _resetConnection();
-            log.warning(
-                '$_logPrefix: connection terminated with error $e, reconnecting');
-            _reconnect();
-          });
+          newConnection.outputSink.done
+              .then((_) {
+                _resetConnection();
+                log.warning('$_logPrefix: connection terminated, reconnecting');
+                _reconnect();
+              })
+              .catchError((dynamic e) {
+                _resetConnection();
+                log.warning(
+                  '$_logPrefix: connection terminated with error $e, reconnecting',
+                );
+                _reconnect();
+              });
         })
         .timeout(const Duration(milliseconds: _connectionRetryMaxMs))
         .catchError((_) {
           log.severe(
-              '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
+            '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...',
+          );
           Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
             _reconnect(nextRetryMs);
           });
@@ -159,12 +163,18 @@ class RedisCache implements ServerCache {
     } else {
       final commands = RespCommandsTier2(redisClient!);
       try {
-        value = await commands.get(key).timeout(cacheOperationTimeout,
-            onTimeout: () async {
-          log.warning('$_logPrefix: timeout on get operation for key $key');
-          await _connection?.close();
-          return null;
-        });
+        value = await commands
+            .get(key)
+            .timeout(
+              cacheOperationTimeout,
+              onTimeout: () async {
+                log.warning(
+                  '$_logPrefix: timeout on get operation for key $key',
+                );
+                await _connection?.close();
+                return null;
+              },
+            );
       } catch (e) {
         log.warning('$_logPrefix: error on get operation for key $key: $e');
       }
@@ -182,12 +192,18 @@ class RedisCache implements ServerCache {
 
     final commands = RespCommandsTier2(redisClient!);
     try {
-      await commands.del([key]).timeout(cacheOperationTimeout,
-          onTimeout: () async {
-        log.warning('$_logPrefix: timeout on remove operation for key $key');
-        await _connection?.close();
-        return 0; // 0 keys deleted
-      });
+      await commands
+          .del([key])
+          .timeout(
+            cacheOperationTimeout,
+            onTimeout: () async {
+              log.warning(
+                '$_logPrefix: timeout on remove operation for key $key',
+              );
+              await _connection?.close();
+              return 0; // 0 keys deleted
+            },
+          );
     } catch (e) {
       log.warning('$_logPrefix: error on remove operation for key $key: $e');
     }
@@ -208,10 +224,13 @@ class RedisCache implements ServerCache {
         if (expiration != null) {
           await commands.pexpire(key, expiration);
         }
-      }).timeout(cacheOperationTimeout, onTimeout: () {
-        log.warning('$_logPrefix: timeout on set operation for key $key');
-        _connection?.close();
-      });
+      }).timeout(
+        cacheOperationTimeout,
+        onTimeout: () {
+          log.warning('$_logPrefix: timeout on set operation for key $key');
+          _connection?.close();
+        },
+      );
     } catch (e) {
       log.warning('$_logPrefix: error on set operation for key $key: $e');
     }

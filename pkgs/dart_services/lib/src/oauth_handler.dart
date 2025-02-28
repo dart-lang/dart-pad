@@ -60,8 +60,10 @@ class GitHubOAuthHandler {
     if (!initializationEndedInErrorState) {
       // Add our routes to the router.
       _logger.fine('Adding GitHub OAuth routes to passed router.');
-      router.get('/$entryPointGitHubOAuthInitiate/<randomState|[a-zA-Z0-9]+>',
-          _initiateHandler);
+      router.get(
+        '/$entryPointGitHubOAuthInitiate/<randomState|[a-zA-Z0-9]+>',
+        _initiateHandler,
+      );
       router.get('/$entryPointGitHubReturnAuthorize', _returnAuthorizeHandler);
     } else {
       _logger.fine('''Attempt to add GitHub OAuth routes to router FAILED
@@ -89,31 +91,36 @@ because initialization of GitHubOAuthHandler failed earlier.''');
 
     final clientId =
         _stripQuotes(Platform.environment['PK_GITHUB_OAUTH_CLIENT_ID']) ??
-            'MissingClientIdEnvironmentalVariable';
+        'MissingClientIdEnvironmentalVariable';
     final clientSecret =
         _stripQuotes(Platform.environment['PK_GITHUB_OAUTH_CLIENT_SECRET']) ??
-            'MissingClientSecretEnvironmentalVariable';
+        'MissingClientSecretEnvironmentalVariable';
     var authReturnUrl =
         _stripQuotes(Platform.environment['K_GITHUB_OAUTH_AUTH_RETURN_URL']) ??
-            '';
-    var returnToAppUrl = _stripQuotes(
-            Platform.environment['K_GITHUB_OAUTH_RETURN_TO_APP_URL']) ??
+        '';
+    var returnToAppUrl =
+        _stripQuotes(
+          Platform.environment['K_GITHUB_OAUTH_RETURN_TO_APP_URL'],
+        ) ??
         '';
 
     var missingEnvVariables = false;
     if (clientId == 'MissingClientIdEnvironmentalVariable') {
       _logger.severe(
-          'PK_GITHUB_OAUTH_CLIENT_ID environmental variable not set! This is REQUIRED.');
+        'PK_GITHUB_OAUTH_CLIENT_ID environmental variable not set! This is REQUIRED.',
+      );
       missingEnvVariables = true;
     }
     if (clientSecret == 'MissingClientSecretEnvironmentalVariable') {
       _logger.severe(
-          'PK_GITHUB_OAUTH_CLIENT_SECRET environmental variable not set! This is REQUIRED.');
+        'PK_GITHUB_OAUTH_CLIENT_SECRET environmental variable not set! This is REQUIRED.',
+      );
       missingEnvVariables = true;
     }
     if (missingEnvVariables) {
       _logger.severe(
-          'GitHub OAuth Handler DISABLED - Ensure all required environmental variables are set and re-run.');
+        'GitHub OAuth Handler DISABLED - Ensure all required environmental variables are set and re-run.',
+      );
       initializationEndedInErrorState = true;
       return false;
     }
@@ -129,13 +136,15 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
       // This would be the locally running dart-services server.
       authReturnUrl = 'http://localhost:8080/$entryPointGitHubReturnAuthorize';
       _logger.fine(
-          'K_GITHUB_OAUTH_AUTH_RETURN_URL environmental variable not set - defaulting to "$authReturnUrl"');
+        'K_GITHUB_OAUTH_AUTH_RETURN_URL environmental variable not set - defaulting to "$authReturnUrl"',
+      );
     }
     if (returnToAppUrl.isEmpty) {
       // This would be the locally running dart-pad server.
       returnToAppUrl = 'http://localhost:8000/index.html';
       _logger.fine(
-          'K_GITHUB_OAUTH_RETURN_TO_APP_URL environmental variable not set - defaulting to "$returnToAppUrl"');
+        'K_GITHUB_OAUTH_RETURN_TO_APP_URL environmental variable not set - defaulting to "$returnToAppUrl"',
+      );
     }
     return init(clientId, clientSecret, authReturnUrl, returnToAppUrl);
   }
@@ -144,8 +153,12 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
   /// static class variables.
   /// All required parameters are passed directly to this init() routine.
   /// Returns true if initialization was successful.
-  static Future<bool> init(String clientId, String clientSecret,
-      String authReturnUrl, String returnToAppUrl) async {
+  static Future<bool> init(
+    String clientId,
+    String clientSecret,
+    String authReturnUrl,
+    String returnToAppUrl,
+  ) async {
     _clientId = clientId;
     _clientSecret = clientSecret;
     _authReturnUrl = authReturnUrl;
@@ -162,17 +175,20 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
     }
     if (_authReturnUrl.isEmpty) {
       _logger.severe(
-          'GitHubOAuthHandler no authorization return url passed to init().');
+        'GitHubOAuthHandler no authorization return url passed to init().',
+      );
       missingParameters = true;
     }
     if (_returnToAppUrl.isEmpty) {
-      _logger
-          .severe('GitHubOAuthHandler no return ti app url passed to init().');
+      _logger.severe(
+        'GitHubOAuthHandler no return ti app url passed to init().',
+      );
       missingParameters = true;
     }
     if (missingParameters) {
       _logger.severe(
-          'GitHub OAuth Handler DISABLED - Ensure all required parameters not passed to init().');
+        'GitHub OAuth Handler DISABLED - Ensure all required parameters not passed to init().',
+      );
       initializationEndedInErrorState = true;
       return false;
     }
@@ -190,7 +206,9 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
   ///  The calling app will need to use the originally sent random token
   ///  to decrypt the returned GitHub authorization token.
   static Future<Response> _initiateHandler(
-      Request request, String randomState) async {
+    Request request,
+    String randomState,
+  ) async {
     // See if we have anything stored for this random state.
     var timestampStr = await _cache.get(randomState);
     var newRequest = false;
@@ -206,8 +224,11 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
 
     // Store this state/timestamp pair within the cache so
     // we can later verify state on a return from GitHub.
-    await _cache.set(randomState, timestampStr,
-        expiration: tenMinuteExpiration);
+    await _cache.set(
+      randomState,
+      timestampStr,
+      expiration: tenMinuteExpiration,
+    );
 
     /*
       Incoming Random String from DartPad.
@@ -298,42 +319,46 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
         final bodydata = json.encode(map);
 
         await client
-            .post(Uri.parse(githubExchangeCodeUri),
-                headers: {
-                  'Accept': 'application/vnd.github.v3+json',
-                  'Content-Type': 'application/json',
-                },
-                body: bodydata)
+            .post(
+              Uri.parse(githubExchangeCodeUri),
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+              },
+              body: bodydata,
+            )
             .then((http.Response postResponse) {
-          late String accessToken, scope;
-          if (postResponse.statusCode >= 200 &&
-              postResponse.statusCode <= 299) {
-            final retObj =
-                jsonDecode(postResponse.body) as Map<String, dynamic>;
+              late String accessToken, scope;
+              if (postResponse.statusCode >= 200 &&
+                  postResponse.statusCode <= 299) {
+                final retObj =
+                    jsonDecode(postResponse.body) as Map<String, dynamic>;
 
-            accessToken = retObj['access_token'] as String;
-            scope = retObj['scope'] as String;
+                accessToken = retObj['access_token'] as String;
+                scope = retObj['scope'] as String;
 
-            tokenAquired = true;
+                tokenAquired = true;
 
-            // We can delete this record because we are done.
-            _cache.remove(state);
+                // We can delete this record because we are done.
+                _cache.remove(state);
 
-            // Encrypt the auth token using the original random state.
-            final encrBase64AuthToken =
-                _encryptAndBase64EncodeAuthToken(accessToken, state);
-            // Build URL to redirect back to the app.
-            backToAppUrl += '?gh=$encrBase64AuthToken&scope=$scope';
+                // Encrypt the auth token using the original random state.
+                final encrBase64AuthToken = _encryptAndBase64EncodeAuthToken(
+                  accessToken,
+                  state,
+                );
+                // Build URL to redirect back to the app.
+                backToAppUrl += '?gh=$encrBase64AuthToken&scope=$scope';
 
-            _logger.fine('success - redirecting back to app');
-          } else if (postResponse.statusCode == 404) {
-            throw Exception('contentNotFound');
-          } else if (postResponse.statusCode == 403) {
-            throw Exception('rateLimitExceeded');
-          } else if (postResponse.statusCode != 200) {
-            throw Exception('unknown');
-          }
-        });
+                _logger.fine('success - redirecting back to app');
+              } else if (postResponse.statusCode == 404) {
+                throw Exception('contentNotFound');
+              } else if (postResponse.statusCode == 403) {
+                throw Exception('rateLimitExceeded');
+              } else if (postResponse.statusCode != 200) {
+                throw Exception('unknown');
+              }
+            });
       }
 
       if (!validCallback || !tokenAquired) {
@@ -361,7 +386,9 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
   /// The symetric decrypting routine is used client side in Dart-Pad t
   /// decrypt the received token.
   static String _encryptAndBase64EncodeAuthToken(
-      String ghAuthToken, String randomStateWeWereSent) {
+    String ghAuthToken,
+    String randomStateWeWereSent,
+  ) {
     if (randomStateWeWereSent.isEmpty) {
       return 'ERROR-no stored initial state';
     }

@@ -28,8 +28,10 @@ import 'dart:math';
 import 'package:foo/foo.dart';
 void main() { }
 ''';
-        expect(getAllImportsFor(source).map((import) => import.uri.stringValue),
-            unorderedEquals(['dart:math', 'package:foo/foo.dart']));
+        expect(
+          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          unorderedEquals(['dart:math', 'package:foo/foo.dart']),
+        );
       });
 
       test('two', () {
@@ -41,9 +43,13 @@ import 'package:bar/bar.dart';
 void main() { }
 ''';
         expect(
-            getAllImportsFor(source).map((import) => import.uri.stringValue),
-            unorderedEquals(
-                ['dart:math', 'package:foo/foo.dart', 'package:bar/bar.dart']));
+          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          unorderedEquals([
+            'dart:math',
+            'package:foo/foo.dart',
+            'package:bar/bar.dart',
+          ]),
+        );
       });
 
       test('three', () {
@@ -56,14 +62,15 @@ import 'mybazfile.dart';
 void main() { }
 ''';
         expect(
-            getAllImportsFor(source).map((import) => import.uri.stringValue),
-            unorderedEquals([
-              'dart:math',
-              'package:foo/foo.dart',
-              'package:bar/bar.dart',
-              'package:baz/baz.dart',
-              'mybazfile.dart'
-            ]));
+          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          unorderedEquals([
+            'dart:math',
+            'package:foo/foo.dart',
+            'package:bar/bar.dart',
+            'package:baz/baz.dart',
+            'mybazfile.dart',
+          ]),
+        );
       });
     });
   });

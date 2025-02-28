@@ -32,17 +32,22 @@ void defineTests() {
       expect(result.sourceMap, isNull);
     });
 
-    void testDDCEndpoint(String endpointName,
-        {required Future<DDCCompilationResults> Function(String source)
-            restartEndpoint,
-        Future<DDCCompilationResults> Function(
-                String source, String lastAcceptedDill)?
-            reloadEndpoint,
-        required bool expectNewDeltaDill,
-        required String compiledIndicator}) {
+    void testDDCEndpoint(
+      String endpointName, {
+      required Future<DDCCompilationResults> Function(String source)
+      restartEndpoint,
+      Future<DDCCompilationResults> Function(
+        String source,
+        String lastAcceptedDill,
+      )?
+      reloadEndpoint,
+      required bool expectNewDeltaDill,
+      required String compiledIndicator,
+    }) {
       Future<String> generateDeltaDill(
-          Future<DDCCompilationResults> Function(String source) restartEndpoint,
-          String source) async {
+        Future<DDCCompilationResults> Function(String source) restartEndpoint,
+        String source,
+      ) async {
         final result = await restartEndpoint(source);
         return result.deltaDill!;
       }
@@ -54,8 +59,10 @@ void defineTests() {
             if (reloadEndpoint == null) {
               result = await restartEndpoint(sample);
             } else {
-              final lastAcceptedDill =
-                  await generateDeltaDill(restartEndpoint, sample);
+              final lastAcceptedDill = await generateDeltaDill(
+                restartEndpoint,
+                sample,
+              );
               result = await reloadEndpoint(sample, lastAcceptedDill);
             }
             expect(result.problems, isEmpty);
@@ -68,20 +75,11 @@ void defineTests() {
           };
         }
 
-        test(
-          'simple',
-          generateEndpointTest(sampleCode),
-        );
+        test('simple', generateEndpointTest(sampleCode));
 
-        test(
-          'with web',
-          generateEndpointTest(sampleCodeWeb),
-        );
+        test('with web', generateEndpointTest(sampleCodeWeb));
 
-        test(
-          'with Flutter',
-          generateEndpointTest(sampleCodeFlutter),
-        );
+        test('with Flutter', generateEndpointTest(sampleCodeFlutter));
 
         test(
           'with Flutter Counter',
@@ -103,10 +101,7 @@ void defineTests() {
           generateEndpointTest(sampleCodeFlutterImplicitAnimations),
         );
 
-        test(
-          'with async',
-          generateEndpointTest(sampleCodeAsync),
-        );
+        test('with async', generateEndpointTest(sampleCodeAsync));
 
         test('with single error', () async {
           DDCCompilationResults result;
@@ -117,8 +112,10 @@ void defineTests() {
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
-          expect(result.problems[0].toString(),
-              contains('Error: Expected \';\' after this.'));
+          expect(
+            result.problems[0].toString(),
+            contains('Error: Expected \';\' after this.'),
+          );
         });
 
         test('with no main', () async {
@@ -126,14 +123,18 @@ void defineTests() {
           if (reloadEndpoint == null) {
             result = await restartEndpoint(sampleCodeNoMain);
           } else {
-            final lastAcceptedDill =
-                await generateDeltaDill(restartEndpoint, sampleCode);
+            final lastAcceptedDill = await generateDeltaDill(
+              restartEndpoint,
+              sampleCode,
+            );
             result = await reloadEndpoint(sampleCodeNoMain, lastAcceptedDill);
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
-          expect(result.problems.first.message,
-              contains("Error: Method not found: 'main'"));
+          expect(
+            result.problems.first.message,
+            contains("Error: Method not found: 'main'"),
+          );
           expect(result.problems.first.message, startsWith('main.dart:'));
         });
 
@@ -142,40 +143,53 @@ void defineTests() {
           if (reloadEndpoint == null) {
             result = await restartEndpoint(sampleCodeErrors);
           } else {
-            final lastAcceptedDill =
-                await generateDeltaDill(restartEndpoint, sampleCode);
+            final lastAcceptedDill = await generateDeltaDill(
+              restartEndpoint,
+              sampleCode,
+            );
             result = await reloadEndpoint(sampleCodeErrors, lastAcceptedDill);
           }
           expect(result.success, false);
           expect(result.problems.length, 1);
-          expect(result.problems[0].toString(),
-              contains('Error: Method not found: \'print1\'.'));
-          expect(result.problems[0].toString(),
-              contains('Error: Method not found: \'print2\'.'));
-          expect(result.problems[0].toString(),
-              contains('Error: Method not found: \'print3\'.'));
+          expect(
+            result.problems[0].toString(),
+            contains('Error: Method not found: \'print1\'.'),
+          );
+          expect(
+            result.problems[0].toString(),
+            contains('Error: Method not found: \'print2\'.'),
+          );
+          expect(
+            result.problems[0].toString(),
+            contains('Error: Method not found: \'print3\'.'),
+          );
         });
       });
     }
 
-    testDDCEndpoint('compileDDC',
-        restartEndpoint: (source) => compiler.compileDDC(source),
-        expectNewDeltaDill: false,
-        compiledIndicator: "define('dartpad_main', [");
+    testDDCEndpoint(
+      'compileDDC',
+      restartEndpoint: (source) => compiler.compileDDC(source),
+      expectNewDeltaDill: false,
+      compiledIndicator: "define('dartpad_main', [",
+    );
     if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
       // DDC only supports these at version 3.8 and higher.
-      testDDCEndpoint('compileNewDDC',
-          restartEndpoint: (source) => compiler.compileNewDDC(source),
-          expectNewDeltaDill: true,
-          compiledIndicator:
-              'defineLibrary("package:dartpad_sample/main.dart"');
-      testDDCEndpoint('compileNewDDCReload',
-          restartEndpoint: (source) => compiler.compileNewDDC(source),
-          reloadEndpoint: (source, deltaDill) =>
-              compiler.compileNewDDCReload(source, deltaDill),
-          expectNewDeltaDill: true,
-          compiledIndicator:
-              'defineLibrary("package:dartpad_sample/main.dart"');
+      testDDCEndpoint(
+        'compileNewDDC',
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
+        expectNewDeltaDill: true,
+        compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
+      );
+      testDDCEndpoint(
+        'compileNewDDCReload',
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
+        reloadEndpoint:
+            (source, deltaDill) =>
+                compiler.compileNewDDCReload(source, deltaDill),
+        expectNewDeltaDill: true,
+        compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
+      );
     }
 
     test('sourcemap', () async {
@@ -245,8 +259,10 @@ void main() { missingMethod ('foo'); }
 ''';
       final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
-      expect(result.problems.single.message,
-          contains("Error when reading 'lib/foo.dart'"));
+      expect(
+        result.problems.single.message,
+        contains("Error when reading 'lib/foo.dart'"),
+      );
     });
 
     test('bad import - http', () async {
@@ -256,8 +272,10 @@ void main() { missingMethod ('foo'); }
 ''';
       final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
-      expect(result.problems.single.message,
-          contains("Error when reading 'http://example.com'"));
+      expect(
+        result.problems.single.message,
+        contains("Error when reading 'http://example.com'"),
+      );
     });
 
     test('multiple bad imports', () async {
@@ -267,10 +285,14 @@ import 'package:bar';
 ''';
       final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
-      expect(result.problems.single.message,
-          contains("Invalid package URI 'package:foo'"));
-      expect(result.problems.single.message,
-          contains("Invalid package URI 'package:bar'"));
+      expect(
+        result.problems.single.message,
+        contains("Invalid package URI 'package:foo'"),
+      );
+      expect(
+        result.problems.single.message,
+        contains("Invalid package URI 'package:bar'"),
+      );
     });
 
     test('disallow compiler warnings', () async {

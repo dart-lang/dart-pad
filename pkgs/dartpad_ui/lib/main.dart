@@ -46,9 +46,7 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({
-    super.key,
-  });
+  const DartPadApp({super.key});
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
@@ -58,14 +56,15 @@ class _DartPadAppState extends State<DartPadApp> {
   late final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: _homePageBuilder,
-      ),
+      GoRoute(path: '/', builder: _homePageBuilder),
       GoRoute(
         path: '/:gistId',
-        builder: (context, state) => _homePageBuilder(context, state,
-            gist: state.pathParameters['gistId']),
+        builder:
+            (context, state) => _homePageBuilder(
+              context,
+              state,
+              gist: state.pathParameters['gistId'],
+            ),
       ),
     ],
   );
@@ -120,8 +119,11 @@ class _DartPadAppState extends State<DartPadApp> {
     });
   }
 
-  Widget _homePageBuilder(BuildContext context, GoRouterState state,
-      {String? gist}) {
+  Widget _homePageBuilder(
+    BuildContext context,
+    GoRouterState state, {
+    String? gist,
+  }) {
     final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
@@ -158,9 +160,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.light,
         dividerColor: lightDividerColor,
-        dividerTheme: const DividerThemeData(
-          color: lightDividerColor,
-        ),
+        dividerTheme: const DividerThemeData(color: lightDividerColor),
         scaffoldBackgroundColor: Colors.white,
         menuButtonTheme: MenuButtonThemeData(
           style: MenuItemButton.styleFrom(
@@ -181,9 +181,7 @@ class _DartPadAppState extends State<DartPadApp> {
         ),
         brightness: Brightness.dark,
         dividerColor: darkDividerColor,
-        dividerTheme: const DividerThemeData(
-          color: darkDividerColor,
-        ),
+        dividerTheme: const DividerThemeData(color: darkDividerColor),
         textButtonTheme: const TextButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
@@ -218,10 +216,10 @@ class DartPadMainPage extends StatefulWidget {
     this.builtinSampleId,
     this.flutterSampleId,
   }) : super(
-          key: ValueKey(
-            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
-          ),
-        );
+         key: ValueKey(
+           'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
+         ),
+       );
 
   @override
   State<DartPadMainPage> createState() => _DartPadMainPageState();
@@ -235,8 +233,9 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   late final TabController tabController;
 
   final Key _executionWidgetKey = GlobalKey(debugLabel: 'execution-widget');
-  final ValueKey<String> _loadingOverlayKey =
-      const ValueKey('loading-overlay-widget');
+  final ValueKey<String> _loadingOverlayKey = const ValueKey(
+    'loading-overlay-widget',
+  );
   final ValueKey<String> _editorKey = const ValueKey('editor');
   final ValueKey<String> _consoleKey = const ValueKey('console');
   final ValueKey<String> _tabBarKey = const ValueKey('tab-bar');
@@ -247,50 +246,47 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   void initState() {
     super.initState();
 
-    tabController = TabController(length: 2, vsync: this)
-      ..addListener(
-        () {
-          // Rebuild when the user changes tabs so that the IndexedStack updates
-          // its active child view.
-          setState(() {});
-        },
-      );
+    tabController = TabController(length: 2, vsync: this)..addListener(() {
+      // Rebuild when the user changes tabs so that the IndexedStack updates
+      // its active child view.
+      setState(() {});
+    });
 
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
-    mainSplitter =
-        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
-          ..addListener(() {
-            appModel.splitDragStateManager.handleSplitChanged();
-          });
+    mainSplitter = SplitViewController(
+      weights: [leftPanelSize, 1.0 - leftPanelSize],
+    )..addListener(() {
+      appModel.splitDragStateManager.handleSplitChanged();
+    });
 
-    final channel = widget.initialChannel != null
-        ? Channel.forName(widget.initialChannel!)
-        : null;
+    final channel =
+        widget.initialChannel != null
+            ? Channel.forName(widget.initialChannel!)
+            : null;
 
     appModel = AppModel();
-    appServices = AppServices(
-      appModel,
-      channel ?? Channel.defaultChannel,
-    );
+    appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
 
     appServices.populateVersions();
     appServices
         .performInitialLoad(
-      gistId: widget.gistId,
-      sampleId: widget.builtinSampleId,
-      flutterSampleId: widget.flutterSampleId,
-      channel: widget.initialChannel,
-      keybinding: LocalStorage.instance.getUserKeybinding(),
-      getFallback: () =>
-          LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet(),
-    )
+          gistId: widget.gistId,
+          sampleId: widget.builtinSampleId,
+          flutterSampleId: widget.flutterSampleId,
+          channel: widget.initialChannel,
+          keybinding: LocalStorage.instance.getUserKeybinding(),
+          getFallback:
+              () =>
+                  LocalStorage.instance.getUserCode() ??
+                  Samples.defaultSnippet(),
+        )
         .then((value) {
-      // Start listening for inject code messages.
-      handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
-      if (widget.runOnLoad) {
-        appServices.performCompileAndRun();
-      }
-    });
+          // Start listening for inject code messages.
+          handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
+          if (widget.runOnLoad) {
+            appServices.performCompileAndRun();
+          }
+        });
     appModel.compilingState.addListener(_handleRunStarted);
   }
 
@@ -330,10 +326,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
     final tabBar = TabBar(
       controller: tabController,
-      tabs: const [
-        Tab(text: 'Code'),
-        Tab(text: 'Output'),
-      ],
+      tabs: const [Tab(text: 'Code'), Tab(text: 'Output')],
       // Remove the divider line at the bottom of the tab bar.
       dividerHeight: 0,
       key: _tabBarKey,
@@ -348,8 +341,9 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             return LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final domHeight = mode.calcDomHeight(constraints.maxHeight);
-                final consoleHeight =
-                    mode.calcConsoleHeight(constraints.maxHeight);
+                final consoleHeight = mode.calcConsoleHeight(
+                  constraints.maxHeight,
+                );
 
                 return Column(
                   children: [
@@ -372,69 +366,67 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       ],
     );
 
-    final scaffold = LayoutBuilder(builder: (context, constraints) {
-      // Use the mobile UI layout for small screen widths.
-      if (constraints.maxWidth <= smallScreenWidth) {
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: widget.embedMode
-              ? tabBar
-              : DartPadAppBar(
-                  theme: theme,
-                  appServices: appServices,
-                  appModel: appModel,
-                  widget: widget,
-                  bottom: tabBar,
+    final scaffold = LayoutBuilder(
+      builder: (context, constraints) {
+        // Use the mobile UI layout for small screen widths.
+        if (constraints.maxWidth <= smallScreenWidth) {
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar:
+                widget.embedMode
+                    ? tabBar
+                    : DartPadAppBar(
+                      theme: theme,
+                      appServices: appServices,
+                      appModel: appModel,
+                      widget: widget,
+                      bottom: tabBar,
+                    ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: IndexedStack(
+                    index: tabController.index,
+                    children: [editor, executionStack],
+                  ),
                 ),
-          body: Column(
-            children: [
-              Expanded(
-                child: IndexedStack(
-                  index: tabController.index,
-                  children: [
-                    editor,
-                    executionStack,
-                  ],
+                if (!widget.embedMode)
+                  const StatusLineWidget(mobileVersion: true),
+              ],
+            ),
+          );
+        } else {
+          // Return the desktop UI.
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar:
+                widget.embedMode
+                    ? null
+                    : DartPadAppBar(
+                      theme: theme,
+                      appServices: appServices,
+                      appModel: appModel,
+                      widget: widget,
+                    ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: SplitView(
+                    viewMode: SplitViewMode.Horizontal,
+                    gripColor: theme.colorScheme.surface,
+                    gripColorActive: theme.colorScheme.surface,
+                    gripSize: defaultGripSize,
+                    controller: mainSplitter,
+                    children: [editor, executionStack],
+                  ),
                 ),
-              ),
-              if (!widget.embedMode)
-                const StatusLineWidget(mobileVersion: true),
-            ],
-          ),
-        );
-      } else {
-        // Return the desktop UI.
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: widget.embedMode
-              ? null
-              : DartPadAppBar(
-                  theme: theme,
-                  appServices: appServices,
-                  appModel: appModel,
-                  widget: widget,
-                ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SplitView(
-                  viewMode: SplitViewMode.Horizontal,
-                  gripColor: theme.colorScheme.surface,
-                  gripColorActive: theme.colorScheme.surface,
-                  gripSize: defaultGripSize,
-                  controller: mainSplitter,
-                  children: [
-                    editor,
-                    executionStack,
-                  ],
-                ),
-              ),
-              if (!widget.embedMode) const StatusLineWidget(),
-            ],
-          ),
-        );
-      }
-    });
+                if (!widget.embedMode) const StatusLineWidget(),
+              ],
+            ),
+          );
+        }
+      },
+    );
 
     return Provider<AppServices>.value(
       value: appServices,
@@ -476,10 +468,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
               appServices.editorService?.showQuickFixes();
             },
           },
-          child: Focus(
-            autofocus: true,
-            child: scaffold,
-          ),
+          child: Focus(autofocus: true, child: scaffold),
         ),
       ),
     );
@@ -522,10 +511,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 }
 
 class LoadingOverlay extends StatelessWidget {
-  const LoadingOverlay({
-    super.key,
-    required this.appModel,
-  });
+  const LoadingOverlay({super.key, required this.appModel});
 
   final AppModel appModel;
 
@@ -544,9 +530,10 @@ class LoadingOverlay extends StatelessWidget {
           color: color.withValues(alpha: compiling ? 0.8 : 0),
           duration: animationDelay,
           curve: animationCurve,
-          child: compiling
-              ? const GoldenRatioCenter(child: CircularProgressIndicator())
-              : const SizedBox(width: 1),
+          child:
+              compiling
+                  ? const GoldenRatioCenter(child: CircularProgressIndicator())
+                  : const SizedBox(width: 1),
         );
       },
     );
@@ -571,76 +558,80 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        title: SizedBox(
-          height: toolbarItemHeight,
-          child: Row(
-            children: [
-              const Logo(width: 32, type: 'dart'),
-              const SizedBox(width: denseSpacing),
-              Text(appName,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AppBar(
+          backgroundColor: theme.colorScheme.surface,
+          title: SizedBox(
+            height: toolbarItemHeight,
+            child: Row(
+              children: [
+                const Logo(width: 32, type: 'dart'),
+                const SizedBox(width: denseSpacing),
+                Text(
+                  appName,
                   style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface)),
-              // Hide new snippet buttons when the screen width is too small.
-              if (constraints.maxWidth > smallScreenWidth) ...[
-                const SizedBox(width: defaultSpacing * 4),
-                NewSnippetWidget(appServices: appServices),
-                const SizedBox(width: denseSpacing),
-                const ListSamplesWidget(),
-              ] else ...[
-                const SizedBox(width: defaultSpacing),
-                NewSnippetWidget(appServices: appServices, smallIcon: true),
-                const SizedBox(width: defaultSpacing),
-                const ListSamplesWidget(smallIcon: true),
-              ],
-
-              if (genAiEnabled) ...[
-                const SizedBox(width: denseSpacing),
-                GeminiMenu(
-                  generateNewCode: () => _generateNewCode(context),
-                  updateExistingCode: () => _updateExistingCode(context),
-                ),
-              ],
-
-              const SizedBox(width: defaultSpacing),
-              // Hide the snippet title when the screen width is too small.
-              if (constraints.maxWidth > smallScreenWidth)
-                Expanded(
-                  child: Center(
-                    child: ValueListenableBuilder<String>(
-                      valueListenable: appModel.title,
-                      builder: (_, String value, __) => Text(value),
-                    ),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-              const SizedBox(width: defaultSpacing),
-            ],
-          ),
-        ),
-        bottom: bottom,
-        actions: [
-          // Hide the Install SDK button when the screen width is too small.
-          if (constraints.maxWidth > smallScreenWidth)
-            ContinueInMenu(
-              openInIdx: _openInIDX,
+                // Hide new snippet buttons when the screen width is too small.
+                if (constraints.maxWidth > smallScreenWidth) ...[
+                  const SizedBox(width: defaultSpacing * 4),
+                  NewSnippetWidget(appServices: appServices),
+                  const SizedBox(width: denseSpacing),
+                  const ListSamplesWidget(),
+                ] else ...[
+                  const SizedBox(width: defaultSpacing),
+                  NewSnippetWidget(appServices: appServices, smallIcon: true),
+                  const SizedBox(width: defaultSpacing),
+                  const ListSamplesWidget(smallIcon: true),
+                ],
+
+                if (genAiEnabled) ...[
+                  const SizedBox(width: denseSpacing),
+                  GeminiMenu(
+                    generateNewCode: () => _generateNewCode(context),
+                    updateExistingCode: () => _updateExistingCode(context),
+                  ),
+                ],
+
+                const SizedBox(width: defaultSpacing),
+                // Hide the snippet title when the screen width is too small.
+                if (constraints.maxWidth > smallScreenWidth)
+                  Expanded(
+                    child: Center(
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: appModel.title,
+                        builder: (_, String value, __) => Text(value),
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: defaultSpacing),
+              ],
             ),
-          const SizedBox(width: denseSpacing),
-          _BrightnessButton(
-            handleBrightnessChange: widget.handleBrightnessChanged,
           ),
-          const OverflowMenu(),
-        ],
-      );
-    });
+          bottom: bottom,
+          actions: [
+            // Hide the Install SDK button when the screen width is too small.
+            if (constraints.maxWidth > smallScreenWidth)
+              ContinueInMenu(openInIdx: _openInIDX),
+            const SizedBox(width: denseSpacing),
+            _BrightnessButton(
+              handleBrightnessChange: widget.handleBrightnessChanged,
+            ),
+            const OverflowMenu(),
+          ],
+        );
+      },
+    );
   }
 
   @override
   // kToolbarHeight is set to 56.0 in the framework.
-  Size get preferredSize => bottom == null
-      ? const Size(double.infinity, 56.0)
-      : const Size(double.infinity, 112.0);
+  Size get preferredSize =>
+      bottom == null
+          ? const Size(double.infinity, 56.0)
+          : const Size(double.infinity, 112.0);
 
   Future<void> _openInIDX() async {
     final code = appModel.sourceCodeController.text;
@@ -655,27 +646,29 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
-      builder: (context) => PromptDialog(
-        title: 'Generate New Code',
-        hint: 'Describe the code you want to generate',
-        initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
-        flutterPromptButtons: {
-          'to-do app':
-              'Generate a Flutter to-do app with add, remove, and complete task functionality',
-          'login screen':
-              'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-          'tic-tac-toe':
-              'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-          if (lastPrompt != null) 'your last prompt': lastPrompt,
-        },
-        dartPromptButtons: {
-          'hello, world': 'Generate a Dart hello world program',
-          'fibonacci':
-              'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
-          'factorial': 'Generate a Dart program that prints the factorial of 5',
-          if (lastPrompt != null) 'your last prompt': lastPrompt,
-        },
-      ),
+      builder:
+          (context) => PromptDialog(
+            title: 'Generate New Code',
+            hint: 'Describe the code you want to generate',
+            initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
+            flutterPromptButtons: {
+              'to-do app':
+                  'Generate a Flutter to-do app with add, remove, and complete task functionality',
+              'login screen':
+                  'Generate a Flutter login screen with email and password fields, validation, and a submit button',
+              'tic-tac-toe':
+                  'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+              if (lastPrompt != null) 'your last prompt': lastPrompt,
+            },
+            dartPromptButtons: {
+              'hello, world': 'Generate a Dart hello world program',
+              'fibonacci':
+                  'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
+              'factorial':
+                  'Generate a Dart program that prints the factorial of 5',
+              if (lastPrompt != null) 'your last prompt': lastPrompt,
+            },
+          ),
     );
 
     if (!context.mounted ||
@@ -698,10 +691,11 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       final generateResponse = await showDialog<String>(
         context: context,
-        builder: (context) => GeneratingCodeDialog(
-          stream: stream,
-          title: 'Generating New Code',
-        ),
+        builder:
+            (context) => GeneratingCodeDialog(
+              stream: stream,
+              title: 'Generating New Code',
+            ),
       );
 
       if (!context.mounted ||
@@ -725,26 +719,27 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
-      builder: (context) => PromptDialog(
-        title: 'Update Existing Code',
-        hint: 'Describe the updates you\'d like to make to the code',
-        initialAppType: appModel.appType,
-        flutterPromptButtons: {
-          'pretty':
-              'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-          'fancy':
-              'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-          'emoji':
-              'Make the app use emojis by adding appropriate emoji icons and text',
-          if (lastPrompt != null) 'your last prompt': lastPrompt,
-        },
-        dartPromptButtons: {
-          'pretty': 'Make the app pretty',
-          'fancy': 'Make the app fancy',
-          'emoji': 'Make the app use emojis',
-          if (lastPrompt != null) 'your last prompt': lastPrompt,
-        },
-      ),
+      builder:
+          (context) => PromptDialog(
+            title: 'Update Existing Code',
+            hint: 'Describe the updates you\'d like to make to the code',
+            initialAppType: appModel.appType,
+            flutterPromptButtons: {
+              'pretty':
+                  'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+              'fancy':
+                  'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+              'emoji':
+                  'Make the app use emojis by adding appropriate emoji icons and text',
+              if (lastPrompt != null) 'your last prompt': lastPrompt,
+            },
+            dartPromptButtons: {
+              'pretty': 'Make the app pretty',
+              'fancy': 'Make the app fancy',
+              'emoji': 'Make the app use emojis',
+              if (lastPrompt != null) 'your last prompt': lastPrompt,
+            },
+          ),
     );
 
     if (!context.mounted ||
@@ -768,11 +763,12 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       final generateResponse = await showDialog<String>(
         context: context,
-        builder: (context) => GeneratingCodeDialog(
-          stream: stream,
-          title: 'Updating Existing Code',
-          existingSource: source,
-        ),
+        builder:
+            (context) => GeneratingCodeDialog(
+              stream: stream,
+              title: 'Updating Existing Code',
+              existingSource: source,
+            ),
       );
 
       if (!context.mounted ||
@@ -815,10 +811,7 @@ class EditorWithButtons extends StatelessWidget {
           child: SectionWidget(
             child: Stack(
               children: [
-                EditorWidget(
-                  appModel: appModel,
-                  appServices: appServices,
-                ),
+                EditorWidget(appModel: appModel, appServices: appServices),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: denseSpacing,
@@ -865,21 +858,21 @@ class EditorWithButtons extends StatelessWidget {
                       const SizedBox(width: defaultSpacing),
                       // Run action
                       ValueListenableBuilder(
-                          valueListenable: appModel.showReload,
-                          builder: (_, bool value, __) {
-                            if (!value) return const SizedBox();
-                            return ValueListenableBuilder<bool>(
-                              valueListenable: appModel.canReload,
-                              builder: (_, bool value, __) {
-                                return PointerInterceptor(
-                                  child: ReloadButton(
-                                    onPressed:
-                                        value ? onCompileAndReload : null,
-                                  ),
-                                );
-                              },
-                            );
-                          }),
+                        valueListenable: appModel.showReload,
+                        builder: (_, bool value, __) {
+                          if (!value) return const SizedBox();
+                          return ValueListenableBuilder<bool>(
+                            valueListenable: appModel.canReload,
+                            builder: (_, bool value, __) {
+                              return PointerInterceptor(
+                                child: ReloadButton(
+                                  onPressed: value ? onCompileAndReload : null,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                       const SizedBox(width: defaultSpacing),
                       // Run action
                       ValueListenableBuilder<CompilingState>(
@@ -899,9 +892,7 @@ class EditorWithButtons extends StatelessWidget {
                 Container(
                   alignment: Alignment.bottomRight,
                   padding: const EdgeInsets.all(denseSpacing),
-                  child: StatusWidget(
-                    status: appModel.editorStatus,
-                  ),
+                  child: StatusWidget(status: appModel.editorStatus),
                 ),
               ],
             ),
@@ -957,10 +948,7 @@ class EditorWithButtons extends StatelessWidget {
             }
             return MediumDialog(
               title: title,
-              child: DocsWidget(
-                appModel: appModel,
-                documentResponse: result,
-              ),
+              child: DocsWidget(appModel: appModel, documentResponse: result),
             );
           },
         );
@@ -978,10 +966,7 @@ class EditorWithButtons extends StatelessWidget {
 class StatusLineWidget extends StatelessWidget {
   final bool mobileVersion;
 
-  const StatusLineWidget({
-    this.mobileVersion = false,
-    super.key,
-  });
+  const StatusLineWidget({this.mobileVersion = false, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -990,9 +975,7 @@ class StatusLineWidget extends StatelessWidget {
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-      ),
+      decoration: BoxDecoration(color: theme.colorScheme.surface),
       padding: const EdgeInsets.symmetric(
         vertical: denseSpacing,
         horizontal: defaultSpacing,
@@ -1003,17 +986,19 @@ class StatusLineWidget extends StatelessWidget {
             message: 'Keyboard shortcuts',
             waitDuration: tooltipDelay,
             child: TextButton(
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (context) => MediumDialog(
-                  title: 'Keyboard shortcuts',
-                  smaller: true,
-                  child: KeyBindingsTable(
-                    bindings: keys.keyBindings,
-                    appModel: appModel,
+              onPressed:
+                  () => showDialog<void>(
+                    context: context,
+                    builder:
+                        (context) => MediumDialog(
+                          title: 'Keyboard shortcuts',
+                          smaller: true,
+                          child: KeyBindingsTable(
+                            bindings: keys.keyBindings,
+                            appModel: appModel,
+                          ),
+                        ),
                   ),
-                ),
-              ),
               child: Icon(
                 Icons.keyboard,
                 color: Theme.of(context).colorScheme.onPrimary,
@@ -1105,16 +1090,8 @@ class NewSnippetWidget extends StatelessWidget {
   final bool smallIcon;
 
   static const _menuItems = [
-    (
-      label: 'Dart snippet',
-      icon: Logo(type: 'dart'),
-      kind: 'dart',
-    ),
-    (
-      label: 'Flutter snippet',
-      icon: Logo(type: 'flutter'),
-      kind: 'flutter',
-    ),
+    (label: 'Dart snippet', icon: Logo(type: 'dart'), kind: 'dart'),
+    (label: 'Flutter snippet', icon: Logo(type: 'flutter'), kind: 'flutter'),
   ];
 
   const NewSnippetWidget({
@@ -1150,7 +1127,7 @@ class NewSnippetWidget extends StatelessWidget {
               ),
               onPressed: () => appServices.resetTo(type: item.kind),
             ),
-          )
+          ),
       ],
     );
   }
@@ -1186,22 +1163,20 @@ class ListSamplesWidget extends StatelessWidget {
           in Samples.categories.entries) ...[
         MenuItemButton(
           onPressed: null,
-          child: Text(
-            category,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          child: Text(category, style: Theme.of(context).textTheme.bodyLarge),
         ),
         for (final sample in samples)
           MenuItemButton(
             leadingIcon: Logo(type: sample.icon),
-            onPressed: () =>
-                GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            onPressed:
+                () =>
+                    GoRouter.of(context).replaceQueryParam('sample', sample.id),
             child: Padding(
               padding: const EdgeInsets.only(right: 32),
               child: Text(sample.name),
             ),
           ),
-      ]
+      ],
     ];
 
     return menuItems.map((e) => PointerInterceptor(child: e)).toList();
@@ -1209,9 +1184,7 @@ class ListSamplesWidget extends StatelessWidget {
 }
 
 class SelectChannelWidget extends StatelessWidget {
-  const SelectChannelWidget({
-    super.key,
-  });
+  const SelectChannelWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1220,27 +1193,28 @@ class SelectChannelWidget extends StatelessWidget {
 
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
-      builder: (context, Channel value, _) => MenuAnchor(
-        builder: (context, MenuController controller, Widget? child) {
-          return TextButton.icon(
-            onPressed: () => controller.toggleMenuState(),
-            icon: const Icon(Icons.tune, size: smallIconSize),
-            label: Text('${value.displayName} channel'),
-          );
-        },
-        menuChildren: [
-          for (final channel in channels)
-            PointerInterceptor(
-              child: MenuItemButton(
-                onPressed: () => _onTap(context, channel),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-                  child: Text('${channel.displayName} channel'),
+      builder:
+          (context, Channel value, _) => MenuAnchor(
+            builder: (context, MenuController controller, Widget? child) {
+              return TextButton.icon(
+                onPressed: () => controller.toggleMenuState(),
+                icon: const Icon(Icons.tune, size: smallIconSize),
+                label: Text('${value.displayName} channel'),
+              );
+            },
+            menuChildren: [
+              for (final channel in channels)
+                PointerInterceptor(
+                  child: MenuItemButton(
+                    onPressed: () => _onTap(context, channel),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                      child: Text('${channel.displayName} channel'),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
-      ),
+            ],
+          ),
     );
   }
 
@@ -1263,13 +1237,10 @@ class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
   static const _menuItems = [
-    (
-      label: 'Install SDK',
-      uri: 'https://flutter.dev/get-started',
-    ),
+    (label: 'Install SDK', uri: 'https://flutter.dev/get-started'),
     (
       label: 'Sharing guide',
-      uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide'
+      uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
     ),
   ];
 
@@ -1293,7 +1264,7 @@ class OverflowMenu extends StatelessWidget {
                 child: Text(item.label),
               ),
             ),
-          )
+          ),
       ],
     );
   }
@@ -1328,7 +1299,7 @@ class ContinueInMenu extends StatelessWidget {
               child: Text('IDX'),
             ),
           ),
-        ].map((widget) => PointerInterceptor(child: widget))
+        ].map((widget) => PointerInterceptor(child: widget)),
       ],
     );
   }
@@ -1346,11 +1317,7 @@ class GeminiMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset(
-      'gemini_sparkle_192.png',
-      width: 24,
-      height: 24,
-    );
+    final image = Image.asset('gemini_sparkle_192.png', width: 24, height: 24);
 
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
@@ -1378,7 +1345,7 @@ class GeminiMenu extends StatelessWidget {
               child: Text('Update Code'),
             ),
           ),
-        ].map((widget) => PointerInterceptor(child: widget))
+        ].map((widget) => PointerInterceptor(child: widget)),
       ],
     );
   }
@@ -1433,7 +1400,8 @@ class KeyBindingsTable extends StatelessWidget {
                     }
                     first = false;
                     children.add(
-                        (shortcut as SingleActivator).renderToWidget(context));
+                      (shortcut as SingleActivator).renderToWidget(context),
+                    );
                   }
                   return Row(children: children);
                 },
@@ -1442,9 +1410,7 @@ class KeyBindingsTable extends StatelessWidget {
           ),
         ),
         const Divider(),
-        _VimModeSwitch(
-          appModel: appModel,
-        ),
+        _VimModeSwitch(appModel: appModel),
       ],
     );
   }
@@ -1453,10 +1419,7 @@ class KeyBindingsTable extends StatelessWidget {
 class VersionInfoWidget extends StatefulWidget {
   final ValueListenable<VersionResponse?> versions;
 
-  const VersionInfoWidget(
-    this.versions, {
-    super.key,
-  });
+  const VersionInfoWidget(this.versions, {super.key});
 
   @override
   State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
@@ -1494,9 +1457,7 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
 }
 
 class _BrightnessButton extends StatelessWidget {
-  const _BrightnessButton({
-    required this.handleBrightnessChange,
-  });
+  const _BrightnessButton({required this.handleBrightnessChange});
 
   final void Function(BuildContext, bool) handleBrightnessChange;
 
@@ -1507,9 +1468,10 @@ class _BrightnessButton extends StatelessWidget {
       preferBelow: true,
       message: 'Toggle brightness',
       child: IconButton(
-        icon: Theme.of(context).brightness == Brightness.light
-            ? const Icon(Icons.dark_mode_outlined)
-            : const Icon(Icons.light_mode_outlined),
+        icon:
+            Theme.of(context).brightness == Brightness.light
+                ? const Icon(Icons.dark_mode_outlined)
+                : const Icon(Icons.light_mode_outlined),
         onPressed: () {
           handleBrightnessChange(context, !isBright);
         },
@@ -1521,9 +1483,7 @@ class _BrightnessButton extends StatelessWidget {
 class _VimModeSwitch extends StatelessWidget {
   final AppModel appModel;
 
-  const _VimModeSwitch({
-    required this.appModel,
-  });
+  const _VimModeSwitch({required this.appModel});
 
   @override
   Widget build(BuildContext context) {
