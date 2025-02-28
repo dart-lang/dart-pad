@@ -123,7 +123,6 @@ class AppModel {
   }
 
   void clearConsole() {
-    print('clearConsole');
     consoleOutput.value = '';
     errorOutput.value = '';
   }

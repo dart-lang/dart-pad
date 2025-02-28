@@ -17,11 +17,13 @@ class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
   final bool isError;
   final ValueNotifier<String> output;
+  final VoidCallback? onClearConsole;
 
   const ConsoleWidget({
-    this.showDivider = true,
+    this.showDivider = false,
     this.isError = false,
     required this.output,
+    this.onClearConsole,
     super.key,
   });
 
@@ -125,7 +127,10 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _clearConsole() {
-    widget.output.value = '';
+    final onClear =widget.onClearConsole;
+    if (onClear != null) {
+      onClear();
+    }
   }
 
   void _scrollToEnd() {

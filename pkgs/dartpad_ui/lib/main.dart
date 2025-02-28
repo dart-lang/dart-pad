@@ -230,9 +230,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   late final AppModel appModel;
   late final AppServices appServices;
   late final SplitViewController mainSplitter;
+  late final SplitViewController consoleSplitter;
   late final TabController tabController;
 
-  final Key _executionWidgetKey = GlobalKey(debugLabel: 'execution-widget');
+  final GlobalKey _executionWidgetKey = GlobalKey(
+    debugLabel: 'execution-widget',
+  );
   final ValueKey<String> _loadingOverlayKey = const ValueKey(
     'loading-overlay-widget',
   );
@@ -255,6 +258,13 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter = SplitViewController(
       weights: [leftPanelSize, 1.0 - leftPanelSize],
+    )..addListener(() {
+      appModel.splitDragStateManager.handleSplitChanged();
+    });
+
+    consoleSplitter = SplitViewController(
+      weights: [0.7, 0.3],
+      limits: [WeightLimit(max: 0.9), WeightLimit(min: 0.1)],
     )..addListener(() {
       appModel.splitDragStateManager.handleSplitChanged();
     });
@@ -335,35 +345,35 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final executionStack = Stack(
       key: _executionStackKey,
       children: [
-        ValueListenableBuilder(
-          valueListenable: appModel.layoutMode,
-          builder: (context, LayoutMode mode, _) {
-            return LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final domHeight = mode.calcDomHeight(constraints.maxHeight);
-                final consoleHeight = mode.calcConsoleHeight(
-                  constraints.maxHeight,
-                );
-
-                return Column(
-                  children: [
-                    SizedBox(height: domHeight, child: executionWidget),
-                    SizedBox(
-                      height: consoleHeight,
-                      // child: ConsoleWidget(
-                      //   output: appModel.consoleOutput,
-                      //   showDivider: mode == LayoutMode.both,
-                      //   key: _consoleKey,
-                      // ),
-                      child: TabbedConsole(
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return ValueListenableBuilder(
+              valueListenable: appModel.layoutMode,
+              builder: (context, LayoutMode mode, _) {
+                print('layoutMode = $mode');
+                return switch (mode) {
+                  LayoutMode.both => SplitView(
+                    viewMode: SplitViewMode.Vertical,
+                    gripColor: theme.colorScheme.surface,
+                    gripColorActive: theme.colorScheme.surface,
+                    gripSize: defaultGripSize,
+                    controller: consoleSplitter,
+                    children: [
+                      executionWidget,
+                      TabbedConsole(
                         key: _consoleKey,
                         output: appModel.consoleOutput,
                         errorOutput: appModel.errorOutput,
-                        showDivider: mode == LayoutMode.both,
                       ),
-                    ),
-                  ],
-                );
+                    ],
+                  ),
+                  LayoutMode.justDom => executionWidget,
+                  LayoutMode.justConsole => TabbedConsole(
+                    key: _consoleKey,
+                    output: appModel.consoleOutput,
+                    errorOutput: appModel.errorOutput,
+                  ),
+                };
               },
             );
           },
@@ -519,12 +529,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 class TabbedConsole extends StatefulWidget {
   final ValueNotifier<String> output;
   final ValueNotifier<String> errorOutput;
-  final bool showDivider;
 
   const TabbedConsole({
     required this.output,
     required this.errorOutput,
-    required this.showDivider,
     super.key,
   });
 
@@ -543,6 +551,9 @@ class _TabbedConsoleState extends State<TabbedConsole>
     _tabController.addListener(_handleTabChange);
     // Switch to the error tab  whenever a new error is received
     widget.errorOutput.addListener(_switchToErrorTab);
+    if (widget.errorOutput.value.isNotEmpty) {
+      _switchToErrorTab();
+    }
   }
 
   @override
@@ -595,11 +606,14 @@ class _TabbedConsoleState extends State<TabbedConsole>
   Widget _getTabView(int index) {
     return ConsoleWidget(
       key: ValueKey('ConsoleWidget $index'),
+      onClearConsole: () {
+        widget.output.value = '';
+        widget.errorOutput.value = '';
+      },
       output: switch (index) {
         0 => widget.output,
         _ => widget.errorOutput,
       },
-      showDivider: widget.showDivider,
       isError: switch (index) {
         0 => false,
         _ => true,
