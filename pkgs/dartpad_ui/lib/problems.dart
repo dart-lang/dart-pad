@@ -11,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'enable_gen_ai.dart';
 import 'model.dart';
+import 'suggest_fix.dart';
 import 'theme.dart';
 
 const _rowPadding = 2.0;
@@ -19,7 +21,10 @@ const _rowPadding = 2.0;
 class ProblemsTableWidget extends StatelessWidget {
   final List<AnalysisIssue> problems;
 
-  const ProblemsTableWidget({required this.problems, super.key});
+  const ProblemsTableWidget({
+    required this.problems,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +37,7 @@ class ProblemsTableWidget extends StatelessWidget {
     var height = 0.0;
     // ignore: prefer_is_empty
     if (problems.length > 0) {
-      height =
-          lineHeight * math.min(problems.length, visibleIssues) +
+      height = lineHeight * math.min(problems.length, visibleIssues) +
           1 +
           denseSpacing * 2;
     }
@@ -43,7 +47,9 @@ class ProblemsTableWidget extends StatelessWidget {
       duration: animationDelay,
       curve: animationCurve,
       child: Container(
-        decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+        ),
         padding: const EdgeInsets.all(denseSpacing),
         child: ListView.builder(
           itemCount: problems.length,
@@ -61,12 +67,15 @@ class ProblemWidget extends StatelessWidget {
   final MenuController _menuController = MenuController();
   final AnalysisIssue issue;
 
-  ProblemWidget({required this.issue, super.key});
+  ProblemWidget({
+    required this.issue,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
+    final appModel = Provider.of<AppModel>(context, listen: false);
     final widget = Padding(
       padding: const EdgeInsets.only(bottom: _rowPadding),
       child: Column(
@@ -77,8 +86,7 @@ class ProblemWidget extends StatelessWidget {
                 issue.errorIcon,
                 size: smallIconSize,
                 color: issue.colorFor(
-                  darkMode: colorScheme.brightness == Brightness.dark,
-                ),
+                    darkMode: colorScheme.brightness == Brightness.dark),
               ),
               const SizedBox(width: denseSpacing),
               Expanded(
@@ -95,6 +103,30 @@ class ProblemWidget extends StatelessWidget {
                 textAlign: TextAlign.end,
                 style: subtleText,
               ),
+              const SizedBox(width: denseSpacing),
+              IconButton(
+                onPressed: () => _quickFixes(context),
+                tooltip: 'Quick fixes',
+                icon: const Icon(Icons.lightbulb_outline),
+              ),
+              if (genAiEnabled) ...[
+                IconButton(
+                  onPressed: () => suggestFix(
+                    context: context,
+                    appType: appModel.appType,
+                    errorMessage: issue.message,
+                    line: issue.location.line,
+                    column: issue.location.column,
+                  ),
+                  tooltip: 'Suggest fix',
+                  icon: Image.asset(
+                    'gemini_sparkle_192.png',
+                    width: 16,
+                    height: 16,
+                  ),
+                ),
+                const SizedBox(width: denseSpacing),
+              ],
             ],
           ),
           if (issue.correction case final correction?) ...[
@@ -161,20 +193,35 @@ class ProblemWidget extends StatelessWidget {
       ),
     );
   }
+
+  void _quickFixes(BuildContext context) {
+    final appServices = Provider.of<AppServices>(context, listen: false);
+
+    appServices.editorService?.jumpTo(AnalysisIssue(
+      kind: issue.kind,
+      message: issue.message,
+      location: Location(
+        line: issue.location.line,
+        column: issue.location.column,
+      ),
+    ));
+
+    appServices.editorService?.showQuickFixes();
+  }
 }
 
 extension AnalysisIssueExtension on AnalysisIssue {
   Color colorFor({bool darkMode = true}) => switch (kind) {
-    'error' => darkMode ? darkErrorColor : lightErrorColor,
-    'warning' => darkMode ? darkWarningColor : lightWarningColor,
-    'info' => darkMode ? darkInfoColor : lightInfoColor,
-    _ => darkMode ? darkIssueColor : lightIssueColor,
-  };
+        'error' => darkMode ? darkErrorColor : lightErrorColor,
+        'warning' => darkMode ? darkWarningColor : lightWarningColor,
+        'info' => darkMode ? darkInfoColor : lightInfoColor,
+        _ => darkMode ? darkIssueColor : lightIssueColor
+      };
 
   IconData get errorIcon => switch (kind) {
-    'error' => Icons.error_outline,
-    'warning' => Icons.warning_outlined,
-    'info' => Icons.info_outline,
-    _ => Icons.error_outline,
-  };
+        'error' => Icons.error_outline,
+        'warning' => Icons.warning_outlined,
+        'info' => Icons.info_outline,
+        _ => Icons.error_outline
+      };
 }

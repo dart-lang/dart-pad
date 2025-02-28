@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
@@ -81,7 +82,7 @@ function dartPrint(message) {
   parent.postMessage({
     'sender': 'frame',
     'type': 'stdout',
-    'message': message.toString()
+    'message': message.toString(),
   }, '*');
 }
 ''');

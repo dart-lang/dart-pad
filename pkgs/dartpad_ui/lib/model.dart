@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -43,6 +43,8 @@ abstract class EditorService {
 class AppModel {
   final ValueNotifier<bool?> _appIsFlutter = ValueNotifier(null);
   bool? _usesPackageWeb;
+  AppType get appType =>
+      _appIsFlutter.value ?? false ? AppType.flutter : AppType.dart;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
@@ -79,6 +81,7 @@ class AppModel {
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
   bool _consoleShowingError = false;
+  bool get consoleShowingError => _consoleShowingError;
 
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
@@ -109,8 +112,18 @@ class AppModel {
     });
   }
 
+  static final _errorRe = RegExp(
+    r'\b(unhandled|exception)\b',
+    caseSensitive: false,
+  );
+
   void appendLineToConsole(String str) {
     consoleOutput.value += '$str\n';
+
+    // NOTE(csells): workaround for https://github.com/dart-lang/dart-pad/issues/3148;
+    // this heuristic is not foolproof, but seems to work well for both Dart and
+    // Flutter unhandled exceptions based on limited testing.
+    if (_errorRe.hasMatch(str)) _consoleShowingError = true;
   }
 
   void clearConsole() {
@@ -171,7 +184,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final http.Client _httpClient = http.Client();
+  final Client _httpClient = Client();
   late ServicesClient services;
 
   ExecutionService? _executionService;
@@ -415,6 +428,14 @@ class AppServices {
     _performCompileAndAction(reload: false);
   }
 
+  Future<void> performCompileAndReloadOrRun() async {
+    if (appModel.showReload.value && appModel.canReload.value) {
+      performCompileAndReload();
+    } else {
+      performCompileAndRun();
+    }
+  }
+
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
@@ -435,6 +456,18 @@ class AppServices {
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
+  }
+
+  Stream<String> suggestFix(SuggestFixRequest request) {
+    return services.suggestFix(request);
+  }
+
+  Stream<String> generateCode(GenerateCodeRequest request) {
+    return services.generateCode(request);
+  }
+
+  Stream<String> updateCode(UpdateCodeRequest request) {
+    return services.updateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
@@ -616,4 +649,16 @@ enum CompilingState {
   final bool busy;
 
   const CompilingState(this.busy);
+}
+
+class PromptDialogResponse {
+  const PromptDialogResponse({
+    required this.appType,
+    required this.prompt,
+    this.attachments = const [],
+  });
+
+  final AppType appType;
+  final String prompt;
+  final List<Attachment> attachments;
 }

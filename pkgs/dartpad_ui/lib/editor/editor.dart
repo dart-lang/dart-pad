@@ -10,10 +10,13 @@ import 'dart:ui_web' as ui_web;
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
 import '../model.dart';
+import '../utils.dart';
 import 'codemirror.dart';
 
 // TODO: implement find / find next
@@ -579,5 +582,94 @@ extension SourceChangeExtension on services.SourceChange {
         );
       }
     }.toJS;
+  }
+}
+
+class ReadOnlyEditorWidget extends StatefulWidget {
+  const ReadOnlyEditorWidget(this.source, {super.key});
+  final String source;
+
+  @override
+  State<ReadOnlyEditorWidget> createState() => _ReadOnlyEditorWidgetState();
+}
+
+class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
+  final _appModel = AppModel()..appReady.value = false;
+  late final _appServices = AppServices(_appModel, Channel.defaultChannel);
+
+  @override
+  void initState() {
+    super.initState();
+    _appModel.sourceCodeController.text = widget.source;
+  }
+
+  @override
+  void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
+    if (widget.source != oldWidget.source) {
+      _appModel.sourceCodeController.textNoScroll = widget.source;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _appModel.dispose();
+    _appServices.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 500,
+      child: EditorWidget(
+        appModel: _appModel,
+        appServices: _appServices,
+      ),
+    );
+  }
+}
+
+class ReadOnlyDiffWidget extends StatelessWidget {
+  const ReadOnlyDiffWidget({
+    required this.existingSource,
+    required this.newSource,
+    super.key,
+  });
+
+  final String existingSource;
+  final String newSource;
+
+  // NOTE: the focus is needed to enable GeneratingCodeDialog to process
+  // keyboard shortcuts, e.g. cmd+enter
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      autofocus: true,
+      child: SizedBox(
+        height: 500,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: PrettyDiffText(
+            oldText: existingSource,
+            newText: newSource,
+            defaultTextStyle: GoogleFonts.robotoMono(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+            addedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 201, 255, 201),
+            ),
+            deletedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 249, 199, 199),
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
