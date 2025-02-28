@@ -622,10 +622,7 @@ class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 500,
-      child: EditorWidget(
-        appModel: _appModel,
-        appServices: _appServices,
-      ),
+      child: EditorWidget(appModel: _appModel, appServices: _appServices),
     );
   }
 }

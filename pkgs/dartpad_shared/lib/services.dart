@@ -114,10 +114,7 @@ class ServicesClient {
     String action,
     Map<String, Object?> request,
   ) async* {
-    final httpRequest = Request(
-      'POST',
-      Uri.parse('${rootUrl}api/v3/$action'),
-    );
+    final httpRequest = Request('POST', Uri.parse('${rootUrl}api/v3/$action'));
     httpRequest.encoding = utf8;
     httpRequest.headers['Content-Type'] = 'application/json';
     httpRequest.body = json.encode(request);

@@ -24,12 +24,7 @@ class Hyperlink extends StatefulWidget {
   final String? displayText;
   final TextStyle? style;
 
-  const Hyperlink({
-    required this.url,
-    this.displayText,
-    this.style,
-    super.key,
-  });
+  const Hyperlink({required this.url, this.displayText, this.style, super.key});
 
   @override
   State<Hyperlink> createState() => _HyperlinkState();
@@ -105,26 +100,18 @@ class MiniIconButton extends StatelessWidget {
 
 class RunButton extends ActionButton {
   const RunButton({super.key, super.onPressed})
-      : super(
-          text: 'Run',
-          icon: const Icon(
-            Icons.play_arrow,
-            color: Colors.black,
-            size: 20,
-          ),
-        );
+    : super(
+        text: 'Run',
+        icon: const Icon(Icons.play_arrow, color: Colors.black, size: 20),
+      );
 }
 
 class ReloadButton extends ActionButton {
   const ReloadButton({super.key, super.onPressed})
-      : super(
-          text: 'Reload',
-          icon: const Icon(
-            Icons.refresh,
-            color: Colors.black,
-            size: 20,
-          ),
-        );
+    : super(
+        text: 'Reload',
+        icon: const Icon(Icons.refresh, color: Colors.black, size: 20),
+      );
 }
 
 abstract class ActionButton extends StatelessWidget {
@@ -132,8 +119,12 @@ abstract class ActionButton extends StatelessWidget {
   final String text;
   final Icon icon;
 
-  const ActionButton(
-      {this.onPressed, super.key, required this.text, required this.icon});
+  const ActionButton({
+    this.onPressed,
+    super.key,
+    required this.text,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -142,27 +133,25 @@ abstract class ActionButton extends StatelessWidget {
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
-          shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4)))),
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) {
-              if (states.contains(WidgetState.disabled)) {
-                return runButtonColor.withValues(alpha: 0.4);
-              }
-
-              return runButtonColor;
-            },
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
           ),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return runButtonColor.withValues(alpha: 0.4);
+            }
+
+            return runButtonColor;
+          }),
         ),
         onPressed: onPressed,
         child: Row(
           children: [
             icon,
             const SizedBox(width: 8),
-            Text(
-              text,
-              style: const TextStyle(color: Colors.black),
-            ),
+            Text(text, style: const TextStyle(color: Colors.black)),
           ],
         ),
       ),
@@ -175,10 +164,7 @@ abstract class ActionButton extends StatelessWidget {
 class StatusWidget extends StatelessWidget {
   final StatusController status;
 
-  const StatusWidget({
-    required this.status,
-    super.key,
-  });
+  const StatusWidget({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -195,9 +181,10 @@ class StatusWidget extends StatelessWidget {
       builder: (context, MessageStatus status, _) {
         return AnimatedOpacity(
           opacity: status.state == MessageState.closing ? 0.0 : 1.0,
-          duration: status.state == MessageState.showing
-              ? Duration.zero
-              : animationDelay,
+          duration:
+              status.state == MessageState.showing
+                  ? Duration.zero
+                  : animationDelay,
           curve: animationCurve,
           child: Material(
             shape: const StadiumBorder(),
@@ -233,61 +220,59 @@ class MediumDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = smaller ? 400.0 : 500.0;
-      final height = smaller ? 325.0 : 400.0;
-      final theme = Theme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = smaller ? 400.0 : 500.0;
+        final height = smaller ? 325.0 : 400.0;
+        final theme = Theme.of(context);
 
-      return PointerInterceptor(
-        child: AlertDialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(
-              color: theme.colorScheme.outline,
-              width: 1,
+        return PointerInterceptor(
+          child: AlertDialog(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(color: theme.colorScheme.outline, width: 1),
             ),
-          ),
-          title: Text(title, maxLines: 1),
-          contentTextStyle: theme.textTheme.bodyMedium,
-          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: width,
-                height: height,
-                child: ClipRect(child: child),
+            title: Text(title, maxLines: 1),
+            contentTextStyle: theme.textTheme.bodyMedium,
+            contentPadding: const EdgeInsets.fromLTRB(
+              24,
+              defaultSpacing,
+              24,
+              8,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: width,
+                  height: height,
+                  child: ClipRect(child: child),
+                ),
+                const Divider(),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
               ),
-              const Divider(),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
 class GoldenRatioCenter extends StatelessWidget {
   final Widget child;
 
-  const GoldenRatioCenter({
-    required this.child,
-    super.key,
-  });
+  const GoldenRatioCenter({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: const Alignment(0.0, -(1.618 / 4)),
-      child: child,
-    );
+    return Align(alignment: const Alignment(0.0, -(1.618 / 4)), child: child);
   }
 }
 
@@ -296,7 +281,7 @@ final class Logo extends StatelessWidget {
   final double width;
 
   const Logo({super.key, this.width = defaultIconSize, String? type})
-      : _type = type;
+    : _type = type;
 
   @override
   Widget build(BuildContext context) {
@@ -388,9 +373,10 @@ class _PromptDialogState extends State<PromptDialog> {
                         spacing: 8,
                         alignment: MainAxisAlignment.start,
                         children: [
-                          for (final entry in _appType == AppType.flutter
-                              ? widget.flutterPromptButtons.entries
-                              : widget.dartPromptButtons.entries)
+                          for (final entry
+                              in _appType == AppType.flutter
+                                  ? widget.flutterPromptButtons.entries
+                                  : widget.dartPromptButtons.entries)
                             TextButton(
                               onPressed: () {
                                 _controller.text = entry.value;
@@ -456,15 +442,17 @@ class _PromptDialogState extends State<PromptDialog> {
           ),
           ValueListenableBuilder(
             valueListenable: _controller,
-            builder: (context, controller, _) => TextButton(
-              onPressed: controller.text.isEmpty ? null : _onGenerate,
-              child: Text(
-                'Generate',
-                style: TextStyle(
-                  color: controller.text.isEmpty ? theme.disabledColor : null,
+            builder:
+                (context, controller, _) => TextButton(
+                  onPressed: controller.text.isEmpty ? null : _onGenerate,
+                  child: Text(
+                    'Generate',
+                    style: TextStyle(
+                      color:
+                          controller.text.isEmpty ? theme.disabledColor : null,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         ],
       ),
@@ -487,9 +475,7 @@ class _PromptDialogState extends State<PromptDialog> {
       setState(() => _attachments.removeAt(index));
 
   Future<void> _addAttachment() async {
-    final pic = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
+    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pic == null) return;
 
@@ -533,13 +519,14 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
     _subscription = widget.stream.listen(
       (text) => setState(() => _generatedCode.write(text)),
-      onDone: () => setState(() {
-        final source = _generatedCode.toString().trim();
-        _generatedCode.clear();
-        _generatedCode.write(source);
-        _done = true;
-        _focusNode.requestFocus();
-      }),
+      onDone:
+          () => setState(() {
+            final source = _generatedCode.toString().trim();
+            _generatedCode.clear();
+            _generatedCode.write(source);
+            _done = true;
+            _focusNode.requestFocus();
+          }),
     );
   }
 
@@ -584,12 +571,13 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
             child: Focus(
               autofocus: true,
               focusNode: _focusNode,
-              child: widget.existingSource == null
-                  ? ReadOnlyEditorWidget(_generatedCode.toString())
-                  : ReadOnlyDiffWidget(
-                      existingSource: widget.existingSource!,
-                      newSource: _generatedCode.toString(),
-                    ),
+              child:
+                  widget.existingSource == null
+                      ? ReadOnlyEditorWidget(_generatedCode.toString())
+                      : ReadOnlyDiffWidget(
+                        existingSource: widget.existingSource!,
+                        newSource: _generatedCode.toString(),
+                      ),
             ),
           ),
           actions: [
@@ -606,12 +594,13 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                           TextSpan(
                             text: 'Google AI',
                             style: TextStyle(color: theme.colorScheme.primary),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                url_launcher.launchUrl(
-                                  Uri.parse('https://ai.google.dev/'),
-                                );
-                              },
+                            recognizer:
+                                TapGestureRecognizer()
+                                  ..onTap = () {
+                                    url_launcher.launchUrl(
+                                      Uri.parse('https://ai.google.dev/'),
+                                    );
+                                  },
                           ),
                           TextSpan(
                             text: ' and the Gemini API',
@@ -781,10 +770,7 @@ class _AddImageWidget extends StatelessWidget {
                   shape: const RoundedRectangleBorder(),
                 ),
                 child: const Center(
-                  child: Text(
-                    'Add\nImage',
-                    textAlign: TextAlign.center,
-                  ),
+                  child: Text('Add\nImage', textAlign: TextAlign.center),
                 ),
               ),
             ),

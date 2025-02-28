@@ -440,7 +440,8 @@ class SuggestFixRequest {
   Map<String, Object?> toJson() => _$SuggestFixRequestToJson(this);
 
   @override
-  String toString() => 'SuggestFixRequest '
+  String toString() =>
+      'SuggestFixRequest '
       '[$errorMessage] '
       '[${source.substring(0, 10)} (...)';
 }
@@ -508,8 +509,8 @@ class Attachment {
     required this.name,
     required Uint8List bytes,
     required this.mimeType,
-  })  : base64EncodedBytes = base64Encode(bytes),
-        _cachedBytes = bytes;
+  }) : base64EncodedBytes = base64Encode(bytes),
+       _cachedBytes = bytes;
 
   final String name;
   final String base64EncodedBytes;

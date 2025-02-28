@@ -293,8 +293,9 @@ class CommonServerApi {
   Future<Response> suggestFix(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final suggestFixRequest =
-        api.SuggestFixRequest.fromJson(await request.readAsJson());
+    final suggestFixRequest = api.SuggestFixRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     return _streamResponse(
       'suggestFix',
@@ -312,8 +313,9 @@ class CommonServerApi {
   Future<Response> generateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final generateCodeRequest =
-        api.GenerateCodeRequest.fromJson(await request.readAsJson());
+    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     return _streamResponse(
       'generateCode',
@@ -329,8 +331,9 @@ class CommonServerApi {
   Future<Response> updateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final updateCodeRequest =
-        api.UpdateCodeRequest.fromJson(await request.readAsJson());
+    final updateCodeRequest = api.UpdateCodeRequest.fromJson(
+      await request.readAsJson(),
+    );
 
     return _streamResponse(
       'updateCode',
@@ -375,9 +378,7 @@ class CommonServerApi {
         errorMessage = 'Failed to process $action request. Error: $e';
       }
 
-      return Response.internalServerError(
-        body: errorMessage,
-      );
+      return Response.internalServerError(body: errorMessage);
     }
   }
 

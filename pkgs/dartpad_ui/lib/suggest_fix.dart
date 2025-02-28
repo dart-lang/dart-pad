@@ -36,11 +36,12 @@ Future<void> suggestFix({
 
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => GeneratingCodeDialog(
-        stream: stream,
-        title: 'Generating Fix Suggestion',
-        existingSource: existingSource,
-      ),
+      builder:
+          (context) => GeneratingCodeDialog(
+            stream: stream,
+            title: 'Generating Fix Suggestion',
+            existingSource: existingSource,
+          ),
     );
 
     if (!context.mounted || result == null || result.isEmpty) return;
