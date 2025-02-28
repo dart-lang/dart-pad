@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
@@ -36,6 +37,7 @@ class CommonServerImpl {
 
   late Analyzer analyzer;
   late Compiler compiler;
+  final ai = GenerativeAI();
 
   CommonServerImpl(
     this.sdk,
@@ -85,6 +87,9 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/format', handleFormat);
     router.post(r'/api/<apiVersion>/document', handleDocument);
     router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
+    router.post(r'/api/<apiVersion>/generateCode', generateCode);
+    router.post(r'/api/<apiVersion>/updateCode', updateCode);
+    router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
     return router;
   }();
 
@@ -261,6 +266,98 @@ class CommonServerApi {
     } catch (error) {
       return Response.internalServerError(
           body: 'Failed to read response from IDX server. Error: $error');
+    }
+  }
+
+  @Route.post('$apiPrefix/suggestFix')
+  Future<Response> suggestFix(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final suggestFixRequest =
+        api.SuggestFixRequest.fromJson(await request.readAsJson());
+
+    return _streamResponse(
+      'suggestFix',
+      impl.ai.suggestFix(
+        appType: suggestFixRequest.appType,
+        message: suggestFixRequest.errorMessage,
+        line: suggestFixRequest.line,
+        column: suggestFixRequest.column,
+        source: suggestFixRequest.source,
+      ),
+    );
+  }
+
+  @Route.post('$apiPrefix/generateCode')
+  Future<Response> generateCode(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final generateCodeRequest =
+        api.GenerateCodeRequest.fromJson(await request.readAsJson());
+
+    return _streamResponse(
+      'generateCode',
+      impl.ai.generateCode(
+        appType: generateCodeRequest.appType,
+        prompt: generateCodeRequest.prompt,
+        attachments: generateCodeRequest.attachments,
+      ),
+    );
+  }
+
+  @Route.post('$apiPrefix/updateCode')
+  Future<Response> updateCode(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final updateCodeRequest =
+        api.UpdateCodeRequest.fromJson(await request.readAsJson());
+
+    return _streamResponse(
+      'updateCode',
+      impl.ai.updateCode(
+        appType: updateCodeRequest.appType,
+        prompt: updateCodeRequest.prompt,
+        source: updateCodeRequest.source,
+        attachments: updateCodeRequest.attachments,
+      ),
+    );
+  }
+
+  Future<Response> _streamResponse(
+    String action,
+    Stream<String> inputStream,
+  ) async {
+    try {
+      // NOTE: disabling gzip so that the client gets the data in the same
+      // chunks that the LLM is providing it to us. With gzip, the client
+      // receives the data all at once at the end of the stream.
+      final outputStream = inputStream.transform(utf8.encoder);
+      return Response.ok(
+        outputStream,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8', // describe our bytes
+          'Content-Encoding': 'identity', // disable gzip
+        },
+        context: {'shelf.io.buffer_output': false}, // disable buffering
+      );
+    } catch (e, stackTrace) {
+      final logger = Logger(action);
+      logger.severe('Error during $action operation: $e', e, stackTrace);
+
+      String errorMessage;
+      if (e is TimeoutException) {
+        errorMessage = 'Operation timed out while processing $action request.';
+      } else if (e is FormatException) {
+        errorMessage = 'Invalid format in $action request: $e';
+      } else if (e is IOException) {
+        errorMessage = 'I/O error occurred during $action operation: $e';
+      } else {
+        errorMessage = 'Failed to process $action request. Error: $e';
+      }
+
+      return Response.internalServerError(
+        body: errorMessage,
+      );
     }
   }
 

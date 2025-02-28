@@ -4,7 +4,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import 'enable_gen_ai.dart';
+import 'model.dart';
+import 'suggest_fix.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -28,7 +32,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   @override
   void initState() {
     super.initState();
-
     scrollController = ScrollController();
     widget.output.addListener(_scrollToEnd);
   }
@@ -38,13 +41,13 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     widget.output.removeListener(_scrollToEnd);
     scrollController?.dispose();
     scrollController = null;
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appModel = Provider.of<AppModel>(context, listen: false);
 
     return Container(
       decoration: BoxDecoration(
@@ -61,13 +64,13 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
       padding: const EdgeInsets.all(denseSpacing),
       child: ValueListenableBuilder(
         valueListenable: widget.output,
-        builder: (context, value, _) => Stack(
+        builder: (context, consoleOutput, _) => Stack(
           children: [
             SizedBox.expand(
               child: SingleChildScrollView(
                 controller: scrollController,
                 child: SelectableText(
-                  value,
+                  consoleOutput,
                   maxLines: null,
                   style: GoogleFonts.robotoMono(
                     fontSize: theme.textTheme.bodyMedium?.fontSize,
@@ -81,10 +84,24 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (genAiEnabled && appModel.consoleShowingError)
+                    MiniIconButton(
+                      icon: Image.asset(
+                        'gemini_sparkle_192.png',
+                        width: 16,
+                        height: 16,
+                      ),
+                      tooltip: 'Suggest fix',
+                      onPressed: () => suggestFix(
+                        context: context,
+                        appType: appModel.appType,
+                        errorMessage: consoleOutput,
+                      ),
+                    ),
                   MiniIconButton(
-                    icon: Icons.playlist_remove,
+                    icon: const Icon(Icons.playlist_remove),
                     tooltip: 'Clear console',
-                    onPressed: value.isEmpty ? null : _clearConsole,
+                    onPressed: consoleOutput.isEmpty ? null : _clearConsole,
                   ),
                 ],
               ),
@@ -100,9 +117,16 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   }
 
   void _scrollToEnd() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      scrollController?.animateTo(
-        scrollController!.position.maxScrollExtent,
+    if (!mounted) return;
+    final controller = scrollController;
+    if (controller == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!controller.hasClients) return;
+
+      controller.animateTo(
+        controller.position.maxScrollExtent,
         duration: animationDelay,
         curve: animationCurve,
       );

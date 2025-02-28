@@ -193,3 +193,13 @@ enum MessageState {
 extension StringUtils on String {
   String? get nullIfEmpty => isEmpty ? null : this;
 }
+
+extension TextEditingControllerExtensions on TextEditingController {
+  // set the source w/o scrolling to the top
+  set textNoScroll(String text) {
+    value = TextEditingValue(
+      text: text,
+      selection: const TextSelection.collapsed(offset: 0),
+    );
+  }
+}

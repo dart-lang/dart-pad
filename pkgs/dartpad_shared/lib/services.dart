@@ -51,6 +51,15 @@ class ServicesClient {
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
 
+  Stream<String> suggestFix(SuggestFixRequest request) =>
+      _requestPostStream('suggestFix', request.toJson());
+
+  Stream<String> generateCode(GenerateCodeRequest request) =>
+      _requestPostStream('generateCode', request.toJson());
+
+  Stream<String> updateCode(UpdateCodeRequest request) =>
+      _requestPostStream('updateCode', request.toJson());
+
   void dispose() => client.close();
 
   Future<T> _requestGet<T>(
@@ -90,6 +99,28 @@ class ServicesClient {
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
+    }
+  }
+
+  Stream<String> _requestPostStream(
+    String action,
+    Map<String, Object?> request,
+  ) async* {
+    final httpRequest = Request(
+      'POST',
+      Uri.parse('${rootUrl}api/v3/$action'),
+    );
+    httpRequest.encoding = utf8;
+    httpRequest.headers['Content-Type'] = 'application/json';
+    httpRequest.body = json.encode(request);
+    final response = await client.send(httpRequest);
+
+    if (response.statusCode != 200) throw ApiRequestError(action, '');
+
+    try {
+      yield* response.stream.transform(utf8.decoder);
+    } on FormatException catch (e) {
+      throw ApiRequestError('$action: $e', '');
     }
   }
 }
