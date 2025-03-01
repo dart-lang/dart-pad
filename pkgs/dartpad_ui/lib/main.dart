@@ -345,37 +345,38 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final executionStack = Stack(
       key: _executionStackKey,
       children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return ValueListenableBuilder(
-              valueListenable: appModel.layoutMode,
-              builder: (context, LayoutMode mode, _) {
-                print('layoutMode = $mode');
-                return switch (mode) {
-                  LayoutMode.both => SplitView(
-                    viewMode: SplitViewMode.Vertical,
-                    gripColor: theme.colorScheme.surface,
-                    gripColorActive: theme.colorScheme.surface,
-                    gripSize: defaultGripSize,
-                    controller: consoleSplitter,
-                    children: [
-                      executionWidget,
-                      TabbedConsole(
-                        key: _consoleKey,
-                        output: appModel.consoleOutput,
-                        errorOutput: appModel.errorOutput,
-                      ),
-                    ],
-                  ),
-                  LayoutMode.justDom => executionWidget,
-                  LayoutMode.justConsole => TabbedConsole(
+        ValueListenableBuilder(
+          valueListenable: appModel.layoutMode,
+          builder: (context, LayoutMode mode, _) {
+            print('mode = $mode');
+            return switch (mode) {
+              LayoutMode.both => SplitView(
+                viewMode: SplitViewMode.Vertical,
+                gripColor: theme.colorScheme.surface,
+                gripColorActive: theme.colorScheme.surface,
+                gripSize: defaultGripSize,
+                controller: consoleSplitter,
+                children: [
+                  executionWidget,
+                  ConsoleWidget(
                     key: _consoleKey,
-                    output: appModel.consoleOutput,
-                    errorOutput: appModel.errorOutput,
+                    output: appModel.consoleNotifier,
                   ),
-                };
-              },
-            );
+                ],
+              ),
+              LayoutMode.justDom => executionWidget,
+              LayoutMode.justConsole => Column(
+                children: [
+                  SizedBox(height: 0, width: 0, child: executionWidget),
+                  Expanded(
+                    child: ConsoleWidget(
+                      key: _consoleKey,
+                      output: appModel.consoleNotifier,
+                    ),
+                  ),
+                ],
+              ),
+            };
           },
         ),
         loadingOverlay,
@@ -511,7 +512,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
-      appModel.appendLineToConsole('Formatting issue: $error');
+      appModel.appendError('Formatting issue: $error');
       return;
     }
   }
@@ -523,32 +524,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         tabController.animateTo(1);
       }
     });
-  }
-}
-
-class TabbedConsole extends StatefulWidget {
-  final ValueNotifier<String> output;
-  final ValueNotifier<String> errorOutput;
-
-  const TabbedConsole({
-    required this.output,
-    required this.errorOutput,
-    super.key,
-  });
-
-  @override
-  _TabbedConsoleState createState() => _TabbedConsoleState();
-}
-
-class _TabbedConsoleState extends State<TabbedConsole>
-    with SingleTickerProviderStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    final showError = widget.errorOutput.value.isNotEmpty;
-    return ConsoleWidget(
-      isError: showError,
-      output: showError ? widget.errorOutput : widget.output,
-    );
   }
 }
 
@@ -751,7 +726,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
-      appModel.appendLineToConsole('Generating code issue: $error');
+      appModel.appendError('Generating code issue: $error');
     }
   }
 
@@ -824,7 +799,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
-      appModel.appendLineToConsole('Updating code issue: $error');
+      appModel.appendError('Updating code issue: $error');
     }
   }
 }
@@ -999,7 +974,7 @@ class EditorWithButtons extends StatelessWidget {
       appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error retrieving docs');
-      appModel.appendLineToConsole('$error');
+      appModel.appendError('$error');
       return;
     }
   }

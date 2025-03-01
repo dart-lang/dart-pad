@@ -15,12 +15,10 @@ import 'widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
-  final bool isError;
-  final ValueNotifier<String> output;
+  final ConsoleNotifier output;
 
   const ConsoleWidget({
     this.showDivider = false,
-    this.isError = false,
     required this.output,
     super.key,
   });
@@ -67,20 +65,21 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
-      child: ValueListenableBuilder(
-        valueListenable: widget.output,
-        builder: (context, consoleOutput, _) {
+      child: ListenableBuilder(
+        listenable: widget.output,
+        builder: (context, _) {
+          print('valueToDisplay = ${widget.output.valueToDisplay}');
           return Stack(
             children: [
               SizedBox.expand(
                 child: SingleChildScrollView(
                   controller: scrollController,
                   child: SelectableText(
-                    consoleOutput,
+                    widget.output.valueToDisplay,
                     maxLines: null,
                     style: GoogleFonts.robotoMono(
                       fontSize: theme.textTheme.bodyMedium?.fontSize,
-                      color: switch (widget.isError) {
+                      color: switch (widget.output.hasError) {
                         false => theme.textTheme.bodyMedium?.color,
                         true => theme.colorScheme.error.darker,
                       },
@@ -106,13 +105,16 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                             () => suggestFix(
                               context: context,
                               appType: appModel.appType,
-                              errorMessage: consoleOutput,
+                              errorMessage: widget.output.error,
                             ),
                       ),
                     MiniIconButton(
                       icon: const Icon(Icons.playlist_remove),
                       tooltip: 'Clear console',
-                      onPressed: consoleOutput.isEmpty ? null : _clearConsole,
+                      onPressed:
+                          widget.output.isEmpty
+                              ? null
+                              : () => widget.output.clear(),
                     ),
                   ],
                 ),
@@ -122,10 +124,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
         },
       ),
     );
-  }
-
-  void _clearConsole() {
-    widget.output.value = '';
   }
 
   void _scrollToEnd() {

@@ -54,8 +54,7 @@ class AppModel {
   final ValueNotifier<String> title = ValueNotifier('');
 
   final TextEditingController sourceCodeController = TextEditingController();
-  final ValueNotifier<String> consoleOutput = ValueNotifier('');
-  final ValueNotifier<String> errorOutput = ValueNotifier('');
+  final ConsoleNotifier consoleNotifier = ConsoleNotifier('', '');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<CompilingState> compilingState = ValueNotifier(
@@ -82,15 +81,14 @@ class AppModel {
 
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
-  bool get consoleShowingError => errorOutput.value.isNotEmpty;
+  bool get consoleShowingError => consoleNotifier.error.isNotEmpty;
 
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
   AppModel() {
-    consoleOutput.addListener(_recalcLayout);
-    errorOutput.addListener(_recalcLayout);
+    consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
         canReload.value =
             hasRun.value &&
@@ -115,27 +113,26 @@ class AppModel {
   }
 
   void appendLineToConsole(String str) {
-    consoleOutput.value += '$str\n';
+    print('appendLineToConsole $str');
+    consoleNotifier.output += '$str\n';
   }
 
   void appendError(String str) {
-    errorOutput.value += '$str\n';
+    print('appendError $str');
+    consoleNotifier.error += '$str\n';
   }
 
   void clearConsole() {
-    consoleOutput.value = '';
-    errorOutput.value = '';
+    consoleNotifier.clear();
   }
 
   void dispose() {
-    consoleOutput.removeListener(_recalcLayout);
-    errorOutput.removeListener(_recalcLayout);
+    consoleNotifier.removeListener(_recalcLayout);
     _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
-    final hasConsoleText =
-        consoleOutput.value.isNotEmpty || errorOutput.value.isNotEmpty;
+    final hasConsoleText = !consoleNotifier.isEmpty;
     final isFlutter = _appIsFlutter.value;
     final usesPackageWeb = _usesPackageWeb;
 
@@ -302,7 +299,7 @@ class AppServices {
         appModel.editorStatus.showToast('Error loading sample');
         progress.close();
 
-        appModel.appendLineToConsole('Error loading sample: $e');
+        appModel.appendError('Error loading sample: $e');
 
         appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
@@ -347,7 +344,7 @@ class AppServices {
         appModel.editorStatus.showToast('Error loading gist');
         progress.close();
 
-        appModel.appendLineToConsole('Error loading gist: $e');
+        appModel.appendError('Error loading gist: $e');
 
         appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
@@ -507,9 +504,10 @@ class AppServices {
 
     // register the new
     if (_executionService != null) {
-      stdoutSub = _executionService!.onStdout.listen(
-        (msg) => appModel.appendLineToConsole(msg),
-      );
+      stdoutSub = _executionService!.onStdout.listen((msg) {
+        print('stdout: $msg');
+        appModel.appendLineToConsole(msg);
+      });
       stderrSub = _executionService!.onStderr.listen(
         (msg) => appModel.appendError(msg),
       );
@@ -663,4 +661,35 @@ class PromptDialogResponse {
   final AppType appType;
   final String prompt;
   final List<Attachment> attachments;
+}
+
+class ConsoleNotifier extends ChangeNotifier {
+  String _output;
+  String _error;
+
+  ConsoleNotifier(this._output, this._error);
+
+  String get output => _output;
+
+  set output(String value) {
+    print('output = $value');
+    _output = value;
+    notifyListeners();
+  }
+
+  String get error => _error;
+  set error(String value) {
+    _error = value;
+    notifyListeners();
+  }
+
+  void clear() {
+    _output = '';
+    _error = '';
+    notifyListeners();
+  }
+
+  bool get isEmpty => _output.isEmpty && _error.isEmpty;
+  bool get hasError => _error.isNotEmpty;
+  String get valueToDisplay => hasError ? _error : _output;
 }
