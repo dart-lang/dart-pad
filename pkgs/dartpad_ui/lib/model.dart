@@ -113,12 +113,10 @@ class AppModel {
   }
 
   void appendLineToConsole(String str) {
-    print('appendLineToConsole $str');
     consoleNotifier.output += '$str\n';
   }
 
   void appendError(String str) {
-    print('appendError $str');
     consoleNotifier.error += '$str\n';
   }
 
