@@ -15,7 +15,7 @@ function replaceJavaScript(value) {
   scriptNode.async = false;
   scriptNode.text = value;
   document.head.appendChild(scriptNode);
-};
+}
 
 // Handles incoming messages.
 function messageHandler(e) {
@@ -26,7 +26,17 @@ function messageHandler(e) {
   } else if (obj.command === 'executeReload') {
     runFlutterApp(obj.js, obj.canvasKitBaseUrl, true);
   }
-};
+}
+
+// Used by the bootstrapped flutter script to report Flutter errors to DartPad
+// separately from console output.
+function reportFlutterError(e) {
+  parent.postMessage({
+    'sender': 'frame',
+    'type': 'stderr',
+    'message': e
+  }, '*');
+}
 
 function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
   var blob = new Blob([compiledScript], { type: 'text/javascript' });
