@@ -348,7 +348,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         ValueListenableBuilder(
           valueListenable: appModel.layoutMode,
           builder: (context, LayoutMode mode, _) {
-            print('mode = $mode');
             return switch (mode) {
               LayoutMode.both => SplitView(
                 viewMode: SplitViewMode.Vertical,
