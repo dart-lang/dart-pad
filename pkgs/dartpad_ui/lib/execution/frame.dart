@@ -254,7 +254,6 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         return;
       }
       final type = data['type'] as String?;
-      print('got message! $data');
 
       if (type == 'stderr') {
         // Ignore any exceptions before the iframe has completed

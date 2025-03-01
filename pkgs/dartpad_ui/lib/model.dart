@@ -669,7 +669,6 @@ class ConsoleNotifier extends ChangeNotifier {
   String get output => _output;
 
   set output(String value) {
-    print('output = $value');
     _output = value;
     notifyListeners();
   }

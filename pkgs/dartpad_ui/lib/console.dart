@@ -68,7 +68,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
       child: ListenableBuilder(
         listenable: widget.output,
         builder: (context, _) {
-          print('valueToDisplay = ${widget.output.valueToDisplay}');
           return Stack(
             children: [
               SizedBox.expand(
