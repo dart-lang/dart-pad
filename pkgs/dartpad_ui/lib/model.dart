@@ -503,7 +503,6 @@ class AppServices {
     // register the new
     if (_executionService != null) {
       stdoutSub = _executionService!.onStdout.listen((msg) {
-        print('stdout: $msg');
         appModel.appendLineToConsole(msg);
       });
       stderrSub = _executionService!.onStderr.listen(
