@@ -23,11 +23,20 @@ https://flutter.dev/get-started.
 To run the server, run:
 
 ```bash
-$ dart bin/server.dart
+dart bin/server.dart
 ```
 
 The server will run from port 8080 and export several JSON APIs, like
 `/api/v3/analyze` and `/api/v3/compile`.
+
+To test Gemini API features on a local machine,
+get an API key from [Google AI Studio](https://aistudio.google.com)
+and set the `PK_GEMINI_API_KEY` environment variable before running:
+
+```
+export PK_GEMINI_API_KEY=<YOUR_API_KEY>
+dart bin/server.dart
+```
 
 ### Testing
 
@@ -38,7 +47,7 @@ To run tests:
 ### Building storage artifacts
 
 Dart services pre-compiles `.dill` files for the Dart SDK and Flutter Web SDK, which
-are uploaded to Cloud Storage automatically. These files are located in the 
+are uploaded to Cloud Storage automatically. These files are located in the
 `artifacts/` directory.
 
 If you need to re-generate these files, run the following command.
@@ -83,7 +92,7 @@ that the dependencies resolve and update the pinned versions specified in the
 
 ## Redis
 
-You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS. 
+You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS.
 
 See the [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
 
@@ -99,3 +108,7 @@ Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dart-pad/blob/main/CONTRIBUTING.md) first.
 You can view our license
 [here](https://github.com/dart-lang/dart-pad/blob/main/LICENSE).
+
+## Invoke local backend from local UI
+
+See [dart_services/README](../dartpad_ui/README.md)

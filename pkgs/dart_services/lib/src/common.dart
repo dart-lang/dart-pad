@@ -21,6 +21,7 @@ import 'dart:ui_web' as ui_web;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 import 'generated_plugin_registrant.dart' as pluginRegistrant;
@@ -29,7 +30,16 @@ import 'main.dart' as entrypoint;
 @JS('window')
 external JSObject get _window;
 
+@JS('reportFlutterError')
+external void _reportFlutterError(String message);
+
 Future<void> main() async {
+  // Capture errors and throw them to the JS console so DartPad can report them
+  // correctly.
+  FlutterError.onError = (details) {
+    _reportFlutterError(details.toString());
+  };
+
   // Mock DWDS indicators to allow Flutter to register hot reload 'reassemble'
   // extension.
   _window[r'$dwdsVersion'] = true.toJS;
