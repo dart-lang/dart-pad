@@ -230,9 +230,12 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   late final AppModel appModel;
   late final AppServices appServices;
   late final SplitViewController mainSplitter;
+  late final SplitViewController consoleSplitter;
   late final TabController tabController;
 
-  final Key _executionWidgetKey = GlobalKey(debugLabel: 'execution-widget');
+  final GlobalKey _executionWidgetKey = GlobalKey(
+    debugLabel: 'execution-widget',
+  );
   final ValueKey<String> _loadingOverlayKey = const ValueKey(
     'loading-overlay-widget',
   );
@@ -255,6 +258,13 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter = SplitViewController(
       weights: [leftPanelSize, 1.0 - leftPanelSize],
+    )..addListener(() {
+      appModel.splitDragStateManager.handleSplitChanged();
+    });
+
+    consoleSplitter = SplitViewController(
+      weights: [0.7, 0.3],
+      limits: [WeightLimit(max: 0.9), WeightLimit(min: 0.1)],
     )..addListener(() {
       appModel.splitDragStateManager.handleSplitChanged();
     });
@@ -338,28 +348,34 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         ValueListenableBuilder(
           valueListenable: appModel.layoutMode,
           builder: (context, LayoutMode mode, _) {
-            return LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final domHeight = mode.calcDomHeight(constraints.maxHeight);
-                final consoleHeight = mode.calcConsoleHeight(
-                  constraints.maxHeight,
-                );
-
-                return Column(
-                  children: [
-                    SizedBox(height: domHeight, child: executionWidget),
-                    SizedBox(
-                      height: consoleHeight,
-                      child: ConsoleWidget(
-                        output: appModel.consoleOutput,
-                        showDivider: mode == LayoutMode.both,
-                        key: _consoleKey,
-                      ),
+            return switch (mode) {
+              LayoutMode.both => SplitView(
+                viewMode: SplitViewMode.Vertical,
+                gripColor: theme.colorScheme.surface,
+                gripColorActive: theme.colorScheme.surface,
+                gripSize: defaultGripSize,
+                controller: consoleSplitter,
+                children: [
+                  executionWidget,
+                  ConsoleWidget(
+                    key: _consoleKey,
+                    output: appModel.consoleNotifier,
+                  ),
+                ],
+              ),
+              LayoutMode.justDom => executionWidget,
+              LayoutMode.justConsole => Column(
+                children: [
+                  SizedBox(height: 0, width: 0, child: executionWidget),
+                  Expanded(
+                    child: ConsoleWidget(
+                      key: _consoleKey,
+                      output: appModel.consoleNotifier,
                     ),
-                  ],
-                );
-              },
-            );
+                  ),
+                ],
+              ),
+            };
           },
         ),
         loadingOverlay,
@@ -495,7 +511,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error formatting code');
-      appModel.appendLineToConsole('Formatting issue: $error');
+      appModel.appendError('Formatting issue: $error');
       return;
     }
   }
@@ -709,7 +725,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
-      appModel.appendLineToConsole('Generating code issue: $error');
+      appModel.appendError('Generating code issue: $error');
     }
   }
 
@@ -782,7 +798,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
-      appModel.appendLineToConsole('Updating code issue: $error');
+      appModel.appendError('Updating code issue: $error');
     }
   }
 }
@@ -957,7 +973,7 @@ class EditorWithButtons extends StatelessWidget {
       appServices.editorService!.focus();
     } catch (error) {
       appModel.editorStatus.showToast('Error retrieving docs');
-      appModel.appendLineToConsole('$error');
+      appModel.appendError('$error');
       return;
     }
   }
