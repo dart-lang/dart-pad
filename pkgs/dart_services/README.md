@@ -47,7 +47,7 @@ To run tests:
 ### Building storage artifacts
 
 Dart services pre-compiles `.dill` files for the Dart SDK and Flutter Web SDK, which
-are uploaded to Cloud Storage automatically. These files are located in the 
+are uploaded to Cloud Storage automatically. These files are located in the
 `artifacts/` directory.
 
 If you need to re-generate these files, run the following command.
@@ -92,7 +92,7 @@ that the dependencies resolve and update the pinned versions specified in the
 
 ## Redis
 
-You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS. 
+You can install and run a local redis cache. Run `sudo apt-get install redis-server` to install on Ubuntu or `brew install redis` for macOS.
 
 See the [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
 
@@ -108,3 +108,7 @@ Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dart-pad/blob/main/CONTRIBUTING.md) first.
 You can view our license
 [here](https://github.com/dart-lang/dart-pad/blob/main/LICENSE).
+
+## Invoke local backend from local UI
+
+See [dart_services/README](../dartpad_ui/README.md)
