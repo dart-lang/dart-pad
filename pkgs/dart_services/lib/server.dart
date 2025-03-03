@@ -35,6 +35,14 @@ Future<void> main(List<String> args) async {
               'The name of the Cloud Storage bucket for compilation artifacts.',
           defaultsTo: 'nnbd_artifacts',
         )
+        ..addOption(
+          'genui-key',
+          valueHelp: 'key',
+          help:
+              'Genui key to be passed with request. '
+              'Is not needed for one plat service, that will use service account for this.',
+          defaultsTo: null,
+        )
         ..addFlag(
           'help',
           abbr: 'h',
