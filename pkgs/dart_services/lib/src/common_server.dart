@@ -289,6 +289,20 @@ class CommonServerApi {
     }
   }
 
+  Future<Response> handleGenui(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final sourceRequest = api.SourceRequest.fromJson(
+      await request.readAsJson(),
+    );
+
+    final result = await serialize(() {
+      return impl.analyzer.dartdoc(sourceRequest.source, sourceRequest.offset!);
+    });
+
+    return ok(result.toJson());
+  }
+
   @Route.post('$apiPrefix/suggestFix')
   Future<Response> suggestFix(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
