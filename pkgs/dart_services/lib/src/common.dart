@@ -17,11 +17,11 @@ void main() {
 // This code should be kept up-to-date with
 // https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/web/bootstrap.dart#L236.
 const kBootstrapFlutterCode = r'''
-import 'package:flutter/foundation.dart';
 import 'dart:ui_web' as ui_web;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 import 'generated_plugin_registrant.dart' as pluginRegistrant;
