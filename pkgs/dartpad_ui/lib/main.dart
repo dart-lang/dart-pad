@@ -579,8 +579,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             ? [
               const SizedBox(width: denseSpacing),
               GeminiMenu(
-                generateNewCode: () => _generateNewCode(context),
-                updateExistingCode: () => _updateExistingCode(context),
+                generateDartCode: () => _generateNewCode(context, AppType.dart),
+                generateFlutterCode:
+                    () => _generateNewCode(context, AppType.flutter),
               ),
             ]
             : <Widget>[];
@@ -660,7 +661,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
   }
 
-  Future<void> _generateNewCode(BuildContext context) async {
+  Future<void> _generateNewCode(BuildContext context, AppType appType) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
@@ -670,7 +671,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           (context) => PromptDialog(
             title: 'Generate New Code',
             hint: 'Describe the code you want to generate',
-            initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
+            initialAppType: appType,
             flutterPromptButtons: {
               'to-do app':
                   'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -703,7 +704,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     try {
       final stream = appServices.generateCode(
         GenerateCodeRequest(
-          appType: promptResponse.appType,
+          appType: appType,
           prompt: promptResponse.prompt,
           attachments: promptResponse.attachments,
         ),
@@ -1328,13 +1329,13 @@ class ContinueInMenu extends StatelessWidget {
 
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
-    required this.generateNewCode,
-    required this.updateExistingCode,
+    required this.generateDartCode,
+    required this.generateFlutterCode,
     super.key,
   });
 
-  final VoidCallback generateNewCode;
-  final VoidCallback updateExistingCode;
+  final VoidCallback generateDartCode;
+  final VoidCallback generateFlutterCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1352,7 +1353,7 @@ class GeminiMenu extends StatelessWidget {
         ...[
           MenuItemButton(
             leadingIcon: image,
-            onPressed: generateNewCode,
+            onPressed: generateDartCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
               child: Text('Dart with Gemini'),
@@ -1360,7 +1361,7 @@ class GeminiMenu extends StatelessWidget {
           ),
           MenuItemButton(
             leadingIcon: image,
-            onPressed: updateExistingCode,
+            onPressed: generateFlutterCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
               child: Text('Flutter with Gemini'),
