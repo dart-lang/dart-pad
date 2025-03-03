@@ -574,6 +574,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedGeminiMenu =
+        genAiEnabled
+            ? [
+              const SizedBox(width: denseSpacing),
+              GeminiMenu(
+                generateNewCode: () => _generateNewCode(context),
+                updateExistingCode: () => _updateExistingCode(context),
+              ),
+            ]
+            : <Widget>[];
     return LayoutBuilder(
       builder: (context, constraints) {
         return AppBar(
@@ -595,20 +605,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
                   const SizedBox(width: denseSpacing),
+                  ...resolvedGeminiMenu,
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, smallIcon: true),
                   const SizedBox(width: defaultSpacing),
+                  ...resolvedGeminiMenu,
                   const ListSamplesWidget(smallIcon: true),
-                ],
-
-                if (genAiEnabled) ...[
-                  const SizedBox(width: denseSpacing),
-                  GeminiMenu(
-                    generateNewCode: () => _generateNewCode(context),
-                    updateExistingCode: () => _updateExistingCode(context),
-                  ),
                 ],
 
                 const SizedBox(width: defaultSpacing),
@@ -1340,7 +1344,7 @@ class GeminiMenu extends StatelessWidget {
         return TextButton.icon(
           onPressed: () => controller.toggleMenuState(),
           icon: image,
-          label: const Text('Gemini'),
+          label: const Text('New via Gemini'),
         );
       },
       menuChildren: [
@@ -1350,7 +1354,7 @@ class GeminiMenu extends StatelessWidget {
             onPressed: generateNewCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
-              child: Text('Generate Code'),
+              child: Text('Dart with Gemini'),
             ),
           ),
           MenuItemButton(
@@ -1358,7 +1362,7 @@ class GeminiMenu extends StatelessWidget {
             onPressed: updateExistingCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
-              child: Text('Update Code'),
+              child: Text('Flutter with Gemini'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
