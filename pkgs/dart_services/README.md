@@ -23,11 +23,20 @@ https://flutter.dev/get-started.
 To run the server, run:
 
 ```bash
-$ dart bin/server.dart
+dart bin/server.dart
 ```
 
 The server will run from port 8080 and export several JSON APIs, like
 `/api/v3/analyze` and `/api/v3/compile`.
+
+To test Gemini API features on a local machine,
+get an API key from [Google AI Studio](https://aistudio.google.com)
+and set the `PK_GEMINI_API_KEY` environment variable before running:
+
+```
+export PK_GEMINI_API_KEY=<YOUR_API_KEY>
+dart bin/server.dart
+```
 
 ### Testing
 
