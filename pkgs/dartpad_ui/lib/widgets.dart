@@ -815,8 +815,8 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             child: Image.asset(
               'gemini_sparkle_192.png',
               fit: BoxFit.fill,
-              height: 24,
-              width: 24,
+              height: 20,
+              width: 20,
             ),
           ),
         ),

@@ -1339,7 +1339,7 @@ class GeminiMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset('gemini_sparkle_192.png', width: 24, height: 24);
+    final image = Image.asset('gemini_sparkle_192.png', width: 18, height: 18);
 
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
