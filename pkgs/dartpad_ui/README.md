@@ -25,10 +25,14 @@ configure the `flutter run` web server to pass CORS headers for
 
 2. Start the backend as instructed in [dart_services/README](../dart_services/README.md)
 
-3. Temporary update default to point to localhost in [model.dart](lib/model.dart):
+3. Run and open UI
+
+   Pass parameter `channel=localhost` to the UI.
+
+   This is example of command and URL to start and open UI at the port 8888:
 
     ```
-    static const defaultChannel = Channel.localhost;
-    ```
+    flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security"
 
-4. Start the ui as instructed [above](#how-to-run)
+    http://localhost:8888/?channel=localhost
+    ```
