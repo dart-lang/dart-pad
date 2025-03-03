@@ -780,3 +780,49 @@ class _AddImageWidget extends StatelessWidget {
     );
   }
 }
+
+class GeminiCodeEditTool extends StatefulWidget {
+  const GeminiCodeEditTool({super.key});
+
+  @override
+  State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
+}
+
+class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
+  // final image = Image.asset('gemini_sparkle_192.png', width: 24, height: 24);
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: Divider.createBorderSide(
+            context,
+            width: 8.0,
+            color: theme.colorScheme.surface,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.all(denseSpacing),
+      child: TextField(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+          hintText: 'Ask Gemini to change your code or app!',
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Image.asset(
+              'gemini_sparkle_192.png',
+              fit: BoxFit.fill,
+              height: 24,
+              width: 24,
+            ),
+          ),
+        ),
+        maxLines: 8,
+        minLines: 1,
+      ),
+    );
+  }
+}

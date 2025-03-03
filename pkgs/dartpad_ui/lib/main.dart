@@ -918,6 +918,7 @@ class EditorWithButtons extends StatelessWidget {
             ),
           ),
         ),
+        const GeminiCodeEditTool(),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,
           builder: (context, issues, _) {
