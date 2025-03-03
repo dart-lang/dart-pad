@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
           valueHelp: 'key',
           help:
               'Genui key to be passed with request. '
-              'Is not needed for one plat service, that will use service account for this.',
+              'Is not needed for hosted one plat service, as it will use service account.',
           defaultsTo: null,
         )
         ..addFlag(
