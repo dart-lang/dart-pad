@@ -2,7 +2,7 @@
 
 The main DartPad web UI implemented using [Flutter Web](https://flutter.dev/multi-platform/web).
 
-## How to run {#run}
+## How to run
 
 To run this locally, run:
 
@@ -31,4 +31,4 @@ configure the `flutter run` web server to pass CORS headers for
     static const defaultChannel = Channel.localhost;
     ```
 
-4. Start the ui as instructed [above](#run)
+4. Start the ui as instructed [above](#how-to-run)
