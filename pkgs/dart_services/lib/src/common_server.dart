@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -311,6 +312,7 @@ class CommonServerApi {
 
   @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
+    print('!!!! generate code');
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateCodeRequest = api.GenerateCodeRequest.fromJson(
@@ -324,6 +326,19 @@ class CommonServerApi {
         prompt: generateCodeRequest.prompt,
         attachments: generateCodeRequest.attachments,
       ),
+    );
+  }
+
+  @Route.post('$apiPrefix/generateUi')
+  Future<Response> handleGenui(Request request, String apiVersion) async {
+    print('!!!! generate ui');
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    await invokeFlutterGenUi();
+
+    return _streamResponse(
+      'generateUi',
+      Stream.fromIterable(['hello', ' from', ' genui']),
     );
   }
 
