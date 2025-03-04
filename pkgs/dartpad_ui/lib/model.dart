@@ -460,7 +460,7 @@ class AppServices {
   }
 
   Stream<String> generateUi(GenerateCodeRequest request) {
-    return services.generateCode(request);
+    return services.generateUi(request);
   }
 
   Stream<String> updateCode(UpdateCodeRequest request) {

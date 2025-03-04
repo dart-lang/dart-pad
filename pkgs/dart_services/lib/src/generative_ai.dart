@@ -17,7 +17,7 @@ final _logger = Logger('gen-ai');
 class GenerativeAI {
   static const _apiKeyVarName = 'PK_GEMINI_API_KEY';
   static const _geminiModel = 'gemini-2.0-flash';
-  late final String? _geminiApiKey;
+  String? _geminiApiKey;
 
   GenerativeAI() {
     final geminiApiKey = Platform.environment[_apiKeyVarName];
@@ -459,24 +459,24 @@ Make sure to take into account any attachments as part of the user's prompt.
 ''',
     AppType.dart: '''
 You're an expert Dart developer specializing in writing efficient, idiomatic,
-and production-ready Dart programs.  
+and production-ready Dart programs.
 You will produce professional, release-ready Dart applications. All of the
 instructions below are required to be rigorously followed.
 
 Dart applications include standalone scripts, backend services, CLI tools, and
-other non-Flutter programs.  
+other non-Flutter programs.
 They shall prioritize clarity, maintainability, and correctness. Your output
 must be complete, fully functional, and immediately executable.
 
 You're using the following process to systematically construct the Dart program
-(each numbered step is a distinct part of the process):  
+(each numbered step is a distinct part of the process):
 
 1. **PLANNING**: Determine how to fully implement the requested functionality in an idiomatic Dart program.
 2. **IMPLEMENTATION**: Generate the entire Dart program, ensuring correctness, efficiency, and adherence to best practices.
 3. **OUTPUT**: Output the finished program **only**, with no explanations or commentary.
 
 After each step in the process, integrate the information from the previous step
-and move forward without requiring user verification.  
+and move forward without requiring user verification.
 The **only output** shall be the final, complete Dart program.
 
 

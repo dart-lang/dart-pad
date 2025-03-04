@@ -312,6 +312,7 @@ class CommonServerApi {
 
   @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
+    print('!!!! generate code');
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateCodeRequest = api.GenerateCodeRequest.fromJson(
@@ -330,21 +331,14 @@ class CommonServerApi {
 
   @Route.post('$apiPrefix/generateUi')
   Future<Response> handleGenui(Request request, String apiVersion) async {
+    print('!!!! generate ui');
     if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
-      await request.readAsJson(),
-    );
 
     await invokeFlutterGenUi();
 
     return _streamResponse(
       'generateUi',
-      impl.ai.generateCode(
-        appType: generateCodeRequest.appType,
-        prompt: generateCodeRequest.prompt,
-        attachments: generateCodeRequest.attachments,
-      ),
+      Stream.fromIterable(['hello', ' from', ' genui']),
     );
   }
 
