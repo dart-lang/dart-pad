@@ -289,7 +289,6 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/suggestFix')
   Future<Response> suggestFix(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
@@ -309,7 +308,6 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
@@ -327,7 +325,6 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/updateCode')
   Future<Response> updateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
