@@ -327,6 +327,26 @@ class CommonServerApi {
     );
   }
 
+  @Route.post('$apiPrefix/generateUi')
+  Future<Response> generateUi(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+      await request.readAsJson(),
+    );
+
+    return _streamResponse(
+      'generateUi',
+      Stream.fromIterable([
+        'hello',
+        ' from',
+        ' genui',
+        ' for ',
+        generateCodeRequest.prompt,
+      ]),
+    );
+  }
+
   @Route.post('$apiPrefix/updateCode')
   Future<Response> updateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
