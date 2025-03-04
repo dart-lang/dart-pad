@@ -14,7 +14,6 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 import 'src/caching.dart';
 import 'src/common_server.dart';
 import 'src/logging.dart';
-import 'src/oauth_handler.dart';
 import 'src/sdk.dart';
 
 final Logger _logger = Logger('services');
@@ -87,8 +86,6 @@ Starting dart-services:
   Cloud Run Environment variables: $cloudRunEnvVars'''.trim(),
   );
 
-  await GitHubOAuthHandler.initFromEnvironmentalVars();
-
   final server = await EndpointsServer.serve(
     port,
     sdk,
@@ -141,10 +138,6 @@ class EndpointsServer {
     commonServer = CommonServerApi(
       CommonServerImpl(sdk, cache, storageBucket: storageBucket),
     );
-
-    // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
-    GitHubOAuthHandler.setCache(cache);
-    GitHubOAuthHandler.addRoutes(commonServer.router);
 
     final pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))
