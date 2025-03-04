@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -231,6 +232,9 @@ class CommonServerApi {
   }
 
   Future<Response> handleFormat(Request request, String apiVersion) async {
+    print('!!!! invokeFlutterGenUi');
+    await invokeFlutterGenUi();
+
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest = api.SourceRequest.fromJson(
