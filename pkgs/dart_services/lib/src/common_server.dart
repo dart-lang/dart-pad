@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -289,18 +290,24 @@ class CommonServerApi {
     }
   }
 
+  @Route.post('$apiPrefix/generateUi')
   Future<Response> handleGenui(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final sourceRequest = api.SourceRequest.fromJson(
+    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
       await request.readAsJson(),
     );
 
-    final result = await serialize(() {
-      return impl.analyzer.dartdoc(sourceRequest.source, sourceRequest.offset!);
-    });
+    await invokeFlutterGenUi();
 
-    return ok(result.toJson());
+    return _streamResponse(
+      'generateUi',
+      impl.ai.generateCode(
+        appType: generateCodeRequest.appType,
+        prompt: generateCodeRequest.prompt,
+        attachments: generateCodeRequest.attachments,
+      ),
+    );
   }
 
   @Route.post('$apiPrefix/suggestFix')
