@@ -290,26 +290,6 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/generateUi')
-  Future<Response> handleGenui(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
-      await request.readAsJson(),
-    );
-
-    await invokeFlutterGenUi();
-
-    return _streamResponse(
-      'generateUi',
-      impl.ai.generateCode(
-        appType: generateCodeRequest.appType,
-        prompt: generateCodeRequest.prompt,
-        attachments: generateCodeRequest.attachments,
-      ),
-    );
-  }
-
   @Route.post('$apiPrefix/suggestFix')
   Future<Response> suggestFix(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
@@ -340,6 +320,26 @@ class CommonServerApi {
 
     return _streamResponse(
       'generateCode',
+      impl.ai.generateCode(
+        appType: generateCodeRequest.appType,
+        prompt: generateCodeRequest.prompt,
+        attachments: generateCodeRequest.attachments,
+      ),
+    );
+  }
+
+  @Route.post('$apiPrefix/generateUi')
+  Future<Response> handleGenui(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+      await request.readAsJson(),
+    );
+
+    await invokeFlutterGenUi();
+
+    return _streamResponse(
+      'generateUi',
       impl.ai.generateCode(
         appType: generateCodeRequest.appType,
         prompt: generateCodeRequest.prompt,
