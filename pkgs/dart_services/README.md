@@ -31,10 +31,10 @@ The server will run from port 8080 and export several JSON APIs, like
 
 To test Gemini API features on a local machine,
 get an API key from [Google AI Studio](https://aistudio.google.com)
-and set the `PK_GEMINI_API_KEY` environment variable before running:
+and set the `GEMINI_API_KEY` environment variable before running:
 
 ```
-export PK_GEMINI_API_KEY=<YOUR_API_KEY>
+export GEMINI_API_KEY=<YOUR_API_KEY>
 dart bin/server.dart
 ```
 
