@@ -12,9 +12,11 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
+import 'main.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
@@ -839,22 +841,15 @@ class GeminiEditPrefixIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appModel = Provider.of<AppModel>(context, listen: false);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(width: textFieldIsFocused ? 12 : 8),
         ...[
           textFieldIsFocused
-              ? SizedBox(
-                width: 26,
-                height: 26,
-                child: IconButton.filledTonal(
-                  onPressed: () => {},
-                  padding: EdgeInsets.all(0.0),
-                  icon: const Icon(Icons.add),
-                  iconSize: 16,
-                ),
-              )
+              ? GeminiCodeEditMenu(currentAppType: appModel.appType)
               : SizedBox(
                 width: 29,
                 child: Align(
@@ -899,6 +894,98 @@ class GeminiEditSuffixIcon extends StatelessWidget {
                 ),
               )
               : null,
+    );
+  }
+}
+
+class GeminiCodeEditMenu extends StatelessWidget {
+  final Map<AppType, Map<String, String>> promptSuggestions;
+  final AppType currentAppType;
+
+  const GeminiCodeEditMenu({
+    super.key,
+    required this.currentAppType,
+    this.promptSuggestions = const {
+      AppType.dart: {
+        'pretty-dart': 'Make the app pretty',
+        'fancy-dart': 'Make the app fancy',
+        'emoji-dart': 'Make the app use emojis',
+      },
+      AppType.flutter: {
+        'pretty':
+            'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+        'fancy':
+            'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+        'emoji':
+            'Make the app use emojis by adding appropriate emoji icons and text',
+      },
+    },
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> resolvedPromptSuggestions =
+        promptSuggestions[currentAppType]?.entries.map((entry) {
+          final String promptName = entry.key;
+          final String promptText = entry.value;
+          return GeminiCodeEditMenuItem(
+            displayName: promptName,
+            promptText: promptText,
+          );
+        }).toList() ??
+        [];
+    final List<Widget> resolvedMenuItems = [
+      ...resolvedPromptSuggestions,
+      MenuItemButton(
+        leadingIcon: const Icon(Icons.image),
+        onPressed: () => {},
+        child: Padding(
+          padding: EdgeInsets.only(right: 32),
+          child: Text('Add image'),
+        ),
+      ),
+    ];
+
+    return MenuAnchor(
+      builder: (context, MenuController controller, Widget? child) {
+        return SizedBox(
+          height: 26,
+          width: 26,
+          child: IconButton.filledTonal(
+            onPressed: () => controller.toggleMenuState(),
+            padding: EdgeInsets.all(0.0),
+            icon: const Icon(Icons.add),
+            iconSize: 16,
+          ),
+        );
+      },
+      alignmentOffset: Offset(0, 10),
+      menuChildren: [
+        ...resolvedMenuItems.map((widget) => PointerInterceptor(child: widget)),
+      ],
+    );
+  }
+}
+
+class GeminiCodeEditMenuItem extends StatelessWidget {
+  const GeminiCodeEditMenuItem({
+    super.key,
+    required this.displayName,
+    required this.promptText,
+  });
+
+  final String displayName;
+  final String promptText;
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuItemButton(
+      leadingIcon: const Icon(Icons.arrow_right_alt),
+      onPressed: () => {},
+      child: Padding(
+        padding: EdgeInsets.only(right: 32),
+        child: Text(displayName),
+      ),
     );
   }
 }
