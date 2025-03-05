@@ -43,7 +43,7 @@ class CommonServerImpl {
     this.sdk,
     this.cache, {
     this.storageBucket = 'nnbd_artifacts',
-    required genUiKey,
+    genUiKey,
   });
 
   Future<void> init() async {
