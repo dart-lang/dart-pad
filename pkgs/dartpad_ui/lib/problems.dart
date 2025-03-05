@@ -115,7 +115,7 @@ class ProblemWidget extends StatelessWidget {
                       ),
                   tooltip: 'Suggest fix',
                   icon: Image.asset(
-                    'gemini_sparkle_192.png',
+                    'assets/gemini_sparkle_192.png',
                     width: 16,
                     height: 16,
                   ),

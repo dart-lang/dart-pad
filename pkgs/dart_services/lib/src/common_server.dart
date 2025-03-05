@@ -46,7 +46,7 @@ class CommonServerImpl {
   });
 
   Future<void> init() async {
-    log.fine('initing CommonServerImpl');
+    log.fine('initializing CommonServerImpl');
 
     analyzer = Analyzer(sdk);
     await analyzer.init();
@@ -289,7 +289,6 @@ class CommonServerApi {
     }
   }
 
-  @Route.post('$apiPrefix/suggestFix')
   Future<Response> suggestFix(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
@@ -309,7 +308,6 @@ class CommonServerApi {
     );
   }
 
-  @Route.post('$apiPrefix/generateCode')
   Future<Response> generateCode(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
