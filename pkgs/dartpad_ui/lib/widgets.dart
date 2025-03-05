@@ -928,7 +928,7 @@ class GeminiCodeEditMenu extends StatelessWidget {
         promptSuggestions[currentAppType]?.entries.map((entry) {
           final String promptName = entry.key;
           final String promptText = entry.value;
-          return GeminiCodeEditMenuItem(
+          return GeminiCodeEditMenuPromptSuggestion(
             displayName: promptName,
             promptText: promptText,
           );
@@ -967,8 +967,8 @@ class GeminiCodeEditMenu extends StatelessWidget {
   }
 }
 
-class GeminiCodeEditMenuItem extends StatelessWidget {
-  const GeminiCodeEditMenuItem({
+class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
+  const GeminiCodeEditMenuPromptSuggestion({
     super.key,
     required this.displayName,
     required this.promptText,
