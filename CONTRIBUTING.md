@@ -27,15 +27,15 @@ Contributions made by corporations are covered by a different agreement than the
 2) If you are updating an existing sample, create your own gist based on the existing samples.
    Gist IDs can be found in the [index file](https://github.com/dart-lang/dart-pad/blob/main/web/index.html#L54).
    Fork the gist, if necessary, then update the contents with the new version from dartpad_examples.
- 
+
    Otherwise, use the same gist layout as the samples to make sure that DartPad recognizes it:
      * `index.html` for the HTML snippet used to build the output page
      * `styles.css` for the style sheet
-     * `main.dart` for the Dart code. 
- 
+     * `main.dart` for the Dart code.
+
    You can test your gist after updating or creating it by appending the gist ID to the URL for
    dartpad.
- 
+
 3) Add or change sample Gist IDs to the [index file](https://github.com/dart-lang/dart-pad/blob/main/web/index.html#L54),
    and submit a PR for review.
 
@@ -44,3 +44,7 @@ Contributions made by corporations are covered by a different agreement than the
 To run the server, see the [dart_services readme](https://github.com/dart-lang/dart-pad/blob/main/pkgs/dart_services/README.md).
 
 To run the front-end, see the [dartpad_ui readme](https://github.com/dart-lang/dart-pad/blob/main/pkgs/dartpad_ui/README.md).
+
+## Other
+
+See internal details at go/dartpad-manual.
