@@ -855,7 +855,7 @@ class GeminiEditPrefixIcon extends StatelessWidget {
                 ),
               )
               : SizedBox(
-                width: 30,
+                width: 29,
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Image.asset(
@@ -867,7 +867,7 @@ class GeminiEditPrefixIcon extends StatelessWidget {
                 ),
               ),
         ],
-        SizedBox(width: 6),
+        SizedBox(width: textFieldIsFocused ? 4 : 5),
       ],
     );
   }
