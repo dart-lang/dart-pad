@@ -47,4 +47,4 @@ To run the front-end, see the [dartpad_ui readme](https://github.com/dart-lang/d
 
 ## Other
 
-See internal readme at go/dartpad-manual.
+See internal details at go/dartpad-manual.
