@@ -333,6 +333,7 @@ class CommonServerApi {
       await request.readAsJson(),
     );
 
+    // TODO(polina-c): setup streaming
     return _streamResponse(
       'generateUi',
       Stream.fromIterable([
