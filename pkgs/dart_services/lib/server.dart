@@ -34,6 +34,14 @@ Future<void> main(List<String> args) async {
               'The name of the Cloud Storage bucket for compilation artifacts.',
           defaultsTo: 'nnbd_artifacts',
         )
+        ..addOption(
+          'genui-key',
+          valueHelp: 'key',
+          help:
+              'Genui api key to be passed with request. '
+              'Not needed for hosted instance, just for local development.',
+          defaultsTo: null,
+        )
         ..addFlag(
           'help',
           abbr: 'h',
@@ -71,6 +79,7 @@ Future<void> main(List<String> args) async {
   final redisServerUri = results['redis-url'] as String?;
   final storageBucket =
       results['storage-bucket'] as String? ?? 'nnbd_artifacts';
+  final genUiKey = results['genui-key'] as String?;
 
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
@@ -91,6 +100,7 @@ Starting dart-services:
     sdk,
     redisServerUri,
     storageBucket,
+    genUiKey: genUiKey,
   );
 
   _logger.info('Listening on port ${server.port}');
@@ -101,12 +111,14 @@ class EndpointsServer {
     int port,
     Sdk sdk,
     String? redisServerUri,
-    String storageBucket,
-  ) async {
+    String storageBucket, {
+    String? genUiKey,
+  }) async {
     final endpointsServer = EndpointsServer._(
       sdk,
       redisServerUri,
       storageBucket,
+      genUiKey: genUiKey,
     );
     await endpointsServer._init();
 
@@ -125,7 +137,12 @@ class EndpointsServer {
 
   late final CommonServerApi commonServer;
 
-  EndpointsServer._(Sdk sdk, String? redisServerUri, String storageBucket) {
+  EndpointsServer._(
+    Sdk sdk,
+    String? redisServerUri,
+    String storageBucket, {
+    String? genUiKey,
+  }) {
     // The name of the Cloud Run revision being run, for more detail please see:
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
@@ -136,7 +153,12 @@ class EndpointsServer {
             : RedisCache(redisServerUri, sdk, serverVersion);
 
     commonServer = CommonServerApi(
-      CommonServerImpl(sdk, cache, storageBucket: storageBucket),
+      CommonServerImpl(
+        sdk,
+        cache,
+        storageBucket: storageBucket,
+        genUiKey: genUiKey,
+      ),
     );
 
     final pipeline = const Pipeline()
