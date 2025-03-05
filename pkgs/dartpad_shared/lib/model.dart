@@ -470,6 +470,21 @@ class GenerateCodeRequest {
 }
 
 @JsonSerializable()
+class GenerateUiRequest {
+  final String prompt;
+
+  GenerateUiRequest({required this.prompt});
+
+  factory GenerateUiRequest.fromJson(Map<String, Object?> json) =>
+      _$GenerateUiRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$GenerateUiRequestToJson(this);
+
+  @override
+  String toString() => 'GenerateUiRequest [$prompt]';
+}
+
+@JsonSerializable()
 class UpdateCodeRequest {
   final AppType appType;
   final String prompt;
