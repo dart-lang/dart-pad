@@ -789,7 +789,8 @@ class GeminiCodeEditTool extends StatefulWidget {
 }
 
 class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
-  // final image = Image.asset('gemini_sparkle_192.png', width: 24, height: 24);
+  bool _textInputIsFocused = false;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -805,24 +806,98 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
         ),
       ),
       padding: const EdgeInsets.all(denseSpacing),
-      child: TextField(
-        decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-          hintText: 'Ask Gemini to change your code or app!',
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Image.asset(
-              'gemini_sparkle_192.png',
-              fit: BoxFit.fill,
-              height: 20,
-              width: 20,
+      child: Focus(
+        onFocusChange:
+            (value) => setState(() {
+              _textInputIsFocused = value;
+            }),
+        child: TextField(
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            hintText: 'Ask Gemini to change your code or app!',
+            prefixIcon: GeminiEditPrefixIcon(
+              textFieldIsFocused: _textInputIsFocused,
+            ),
+            suffixIcon: GeminiEditSuffixIcon(
+              textFieldIsFocused: _textInputIsFocused,
             ),
           ),
+          maxLines: 8,
+          minLines: 1,
         ),
-        maxLines: 8,
-        minLines: 1,
       ),
+    );
+  }
+}
+
+class GeminiEditPrefixIcon extends StatelessWidget {
+  const GeminiEditPrefixIcon({super.key, required this.textFieldIsFocused});
+
+  final bool textFieldIsFocused;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(width: textFieldIsFocused ? 12 : 8),
+        ...[
+          textFieldIsFocused
+              ? SizedBox(
+                width: 26,
+                height: 26,
+                child: IconButton.filledTonal(
+                  onPressed: () => {},
+                  padding: EdgeInsets.all(0.0),
+                  icon: const Icon(Icons.add),
+                  iconSize: 16,
+                ),
+              )
+              : SizedBox(
+                width: 30,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Image.asset(
+                    'gemini_sparkle_192.png',
+                    fit: BoxFit.contain,
+                    height: 24,
+                    width: 24,
+                  ),
+                ),
+              ),
+        ],
+        SizedBox(width: 6),
+      ],
+    );
+  }
+}
+
+class GeminiEditSuffixIcon extends StatelessWidget {
+  const GeminiEditSuffixIcon({super.key, required this.textFieldIsFocused});
+
+  final bool textFieldIsFocused;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30,
+      child:
+          textFieldIsFocused
+              ? Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: IconButton(
+                    padding: EdgeInsets.all(0),
+                    onPressed: () => {},
+                    icon: const Icon(Icons.send),
+                    iconSize: 14,
+                  ),
+                ),
+              )
+              : null,
     );
   }
 }
