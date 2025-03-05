@@ -167,6 +167,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.black.withAlpha(128),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
@@ -193,6 +194,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.white.withAlpha(128),
       ),
     );
   }

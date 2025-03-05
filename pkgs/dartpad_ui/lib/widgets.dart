@@ -816,6 +816,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
             hintText: 'Ask Gemini to change your code or app!',
+            hintStyle: TextStyle(color: Theme.of(context).hintColor),
             prefixIcon: GeminiEditPrefixIcon(
               textFieldIsFocused: _textInputIsFocused,
             ),
