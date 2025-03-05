@@ -16,7 +16,6 @@ import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
 import '../model.dart';
-import '../utils.dart';
 import 'codemirror.dart';
 
 // TODO: implement find / find next
@@ -585,44 +584,58 @@ extension SourceChangeExtension on services.SourceChange {
   }
 }
 
-class ReadOnlyEditorWidget extends StatefulWidget {
-  const ReadOnlyEditorWidget(this.source, {super.key});
+class ReadOnlyCodeWidget extends StatefulWidget {
+  const ReadOnlyCodeWidget(this.source, {super.key});
   final String source;
 
   @override
-  State<ReadOnlyEditorWidget> createState() => _ReadOnlyEditorWidgetState();
+  State<ReadOnlyCodeWidget> createState() => _ReadOnlyCodeWidgetState();
 }
 
-class _ReadOnlyEditorWidgetState extends State<ReadOnlyEditorWidget> {
-  final _appModel = AppModel()..appReady.value = false;
-  late final _appServices = AppServices(_appModel, Channel.defaultChannel);
+class _ReadOnlyCodeWidgetState extends State<ReadOnlyCodeWidget> {
+  final _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _appModel.sourceCodeController.text = widget.source;
+    _textController.text = widget.source;
   }
 
   @override
-  void didUpdateWidget(covariant ReadOnlyEditorWidget oldWidget) {
+  void didUpdateWidget(covariant ReadOnlyCodeWidget oldWidget) {
     if (widget.source != oldWidget.source) {
-      _appModel.sourceCodeController.textNoScroll = widget.source;
+      setState(() {
+        _textController.text = widget.source;
+      });
     }
+
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   void dispose() {
-    _appModel.dispose();
-    _appServices.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 500,
-      child: EditorWidget(appModel: _appModel, appServices: _appServices),
+    return Focus(
+      autofocus: true,
+      child: SizedBox(
+        height: 500,
+        child: TextField(
+          controller: _textController,
+          readOnly: true,
+          maxLines: null,
+          style: GoogleFonts.robotoMono(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+          decoration: const InputDecoration(border: InputBorder.none),
+        ),
+      ),
     );
   }
 }
