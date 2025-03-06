@@ -91,6 +91,7 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/document', handleDocument);
     router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
+    router.post(r'/api/<apiVersion>/generateUi', generateUi);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
     return router;

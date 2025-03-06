@@ -123,7 +123,11 @@ class ServicesClient {
     httpRequest.body = json.encode(request);
     final response = await client.send(httpRequest);
 
-    if (response.statusCode != 200) throw ApiRequestError(action, '');
+    if (response.statusCode != 200)
+      throw ApiRequestError(
+        action,
+        '${response.statusCode}: ${response.reasonPhrase}',
+      );
 
     try {
       yield* response.stream.transform(utf8.decoder);
