@@ -795,6 +795,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
 
   @override
   Widget build(BuildContext context) {
+    final appModel = Provider.of<AppModel>(context, listen: false);
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -821,6 +822,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             hintStyle: TextStyle(color: Theme.of(context).hintColor),
             prefixIcon: GeminiEditPrefixIcon(
               textFieldIsFocused: _textInputIsFocused,
+              appType: appModel.appType,
             ),
             suffixIcon: GeminiEditSuffixIcon(
               textFieldIsFocused: _textInputIsFocused,
@@ -835,21 +837,24 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
 }
 
 class GeminiEditPrefixIcon extends StatelessWidget {
-  const GeminiEditPrefixIcon({super.key, required this.textFieldIsFocused});
+  const GeminiEditPrefixIcon({
+    super.key,
+    required this.textFieldIsFocused,
+    required this.appType,
+  });
 
   final bool textFieldIsFocused;
+  final AppType appType;
 
   @override
   Widget build(BuildContext context) {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(width: textFieldIsFocused ? 12 : 8),
         ...[
           textFieldIsFocused
-              ? GeminiCodeEditMenu(currentAppType: appModel.appType)
+              ? GeminiCodeEditMenu(currentAppType: appType)
               : SizedBox(
                 width: 29,
                 child: Align(
