@@ -37,11 +37,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: RobotoMono
+      fonts:
+        - asset: assets/RobotoMono-Regular.ttf
+        - asset: assets/RobotoMono-Bold.ttf
+          weight: 700
   assets:
     - assets/dart_logo_192.png
     - assets/flame_logo_192.png
     - assets/flutter_logo_192.png
     - assets/gemini_sparkle_192.png
     - assets/idx_192.png
-    - assets/RobotoMono-Bold.ttf
-    - assets/RobotoMono-Regular.ttf
