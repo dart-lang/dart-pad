@@ -697,12 +697,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     try {
-      final stream = appServices.generateCode(
-        GenerateCodeRequest(
-          appType: promptResponse.appType,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
+      final stream = appServices.generateUi(
+        GenerateUiRequest(prompt: promptResponse.prompt),
       );
 
       final generateResponse = await showDialog<String>(
