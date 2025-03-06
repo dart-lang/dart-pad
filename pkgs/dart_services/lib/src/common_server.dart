@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -34,6 +35,7 @@ class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
   final String storageBucket;
+  final String? genUiKey;
 
   late Analyzer analyzer;
   late Compiler compiler;
@@ -43,7 +45,7 @@ class CommonServerImpl {
     this.sdk,
     this.cache, {
     this.storageBucket = 'nnbd_artifacts',
-    genUiKey,
+    this.genUiKey,
   });
 
   Future<void> init() async {
@@ -330,7 +332,7 @@ class CommonServerApi {
   Future<Response> generateUi(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+    final generateUiRequest = api.GenerateUiRequest.fromJson(
       await request.readAsJson(),
     );
 
@@ -338,11 +340,10 @@ class CommonServerApi {
     return _streamResponse(
       'generateUi',
       Stream.fromIterable([
-        'hello',
-        ' from',
-        ' genui',
-        ' for ',
-        generateCodeRequest.prompt,
+        await invokeFlutterGenUi(
+          prompt: generateUiRequest.prompt,
+          apiKey: this.impl.genUiKey,
+        ),
       ]),
     );
   }
