@@ -43,10 +43,11 @@ class CommonServerImpl {
     this.sdk,
     this.cache, {
     this.storageBucket = 'nnbd_artifacts',
+    genUiKey,
   });
 
   Future<void> init() async {
-    log.fine('initing CommonServerImpl');
+    log.fine('initializing CommonServerImpl');
 
     analyzer = Analyzer(sdk);
     await analyzer.init();
@@ -322,6 +323,25 @@ class CommonServerApi {
         prompt: generateCodeRequest.prompt,
         attachments: generateCodeRequest.attachments,
       ),
+    );
+  }
+
+  Future<Response> generateUi(Request request, String apiVersion) async {
+    if (apiVersion != api3) return unhandledVersion(apiVersion);
+
+    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+      await request.readAsJson(),
+    );
+
+    return _streamResponse(
+      'generateUi',
+      Stream.fromIterable([
+        'hello',
+        ' from',
+        ' genui',
+        ' for ',
+        generateCodeRequest.prompt,
+      ]),
     );
   }
 

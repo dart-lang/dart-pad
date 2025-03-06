@@ -329,21 +329,23 @@ Map<String, dynamic> _$PackageInfoToJson(PackageInfo instance) =>
 
 SuggestFixRequest _$SuggestFixRequestFromJson(Map<String, dynamic> json) =>
     SuggestFixRequest(
-      appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       errorMessage: json['errorMessage'] as String,
       line: (json['line'] as num?)?.toInt(),
       column: (json['column'] as num?)?.toInt(),
       source: json['source'] as String,
+      appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
     );
 
 Map<String, dynamic> _$SuggestFixRequestToJson(SuggestFixRequest instance) =>
     <String, dynamic>{
-      'appType': _$AppTypeEnumMap[instance.appType]!,
       'errorMessage': instance.errorMessage,
       'line': instance.line,
       'column': instance.column,
       'source': instance.source,
+      'appType': _$AppTypeEnumMap[instance.appType]!,
     };
+
+const _$AppTypeEnumMap = {AppType.dart: 'dart', AppType.flutter: 'flutter'};
 
 GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
     GenerateCodeRequest(
@@ -363,7 +365,11 @@ Map<String, dynamic> _$GenerateCodeRequestToJson(
   'attachments': instance.attachments,
 };
 
-const _$AppTypeEnumMap = {AppType.dart: 'dart', AppType.flutter: 'flutter'};
+GenerateUiRequest _$GenerateUiRequestFromJson(Map<String, dynamic> json) =>
+    GenerateUiRequest(prompt: json['prompt'] as String);
+
+Map<String, dynamic> _$GenerateUiRequestToJson(GenerateUiRequest instance) =>
+    <String, dynamic>{'prompt': instance.prompt};
 
 UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
     UpdateCodeRequest(
