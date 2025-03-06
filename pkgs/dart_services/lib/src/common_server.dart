@@ -342,7 +342,7 @@ class CommonServerApi {
       Stream.fromIterable([
         await invokeFlutterGenUi(
           prompt: generateUiRequest.prompt,
-          apiKey: this.impl.genUiKey,
+          apiKey: impl.genUiKey,
         ),
       ]),
     );
