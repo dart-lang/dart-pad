@@ -4,3 +4,10 @@
 
 // Turn on or off gen-ai features in the client.
 const bool genAiEnabled = true;
+
+/*
+Command to run locally with gemini replaced with genui:
+
+flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
+  --web-launch-url=http://localhost:8888/?channel=localhost&genui=true
+*/
