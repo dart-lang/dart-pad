@@ -336,16 +336,15 @@ class CommonServerApi {
       await request.readAsJson(),
     );
 
+    final resultStream = Stream.fromIterable([
+      await invokeFlutterGenUi(
+        prompt: generateUiRequest.prompt,
+        apiKey: impl.genUiKey,
+      ),
+    ]);
+
     // TODO(polina-c): setup streaming
-    return _streamResponse(
-      'generateUi',
-      Stream.fromIterable([
-        await invokeFlutterGenUi(
-          prompt: generateUiRequest.prompt,
-          apiKey: impl.genUiKey,
-        ),
-      ]),
-    );
+    return _streamResponse('generateUi', resultStream);
   }
 
   Future<Response> updateCode(Request request, String apiVersion) async {

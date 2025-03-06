@@ -703,6 +703,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     try {
       final Stream<String> stream;
       if (widget.useGenui) {
+        // ignore: avoid_print
+        print('Generating UI with genui');
         stream = appServices.generateUi(
           GenerateUiRequest(prompt: promptResponse.prompt),
         );
