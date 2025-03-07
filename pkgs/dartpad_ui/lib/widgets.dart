@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -793,6 +794,14 @@ class GeminiCodeEditTool extends StatefulWidget {
 
 class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
+  final TextEditingController codeEditPromptController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    codeEditPromptController.dispose();
+    super.dispose();
+  }
 
   AppType analyzedAppTypeFromSource(AppModel appModel) {
     if (appModel.sourceCodeController.text.contains(
@@ -801,6 +810,10 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
       return AppType.flutter;
     }
     return AppType.dart;
+  }
+
+  void handlePromptSuggestion(String promptText) {
+    codeEditPromptController.text = promptText;
   }
 
   @override
@@ -824,6 +837,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
               _textInputIsFocused = value;
             }),
         child: TextField(
+          controller: codeEditPromptController,
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -831,6 +845,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             hintStyle: TextStyle(color: Theme.of(context).hintColor),
             prefixIcon: GeminiEditPrefixIcon(
               textFieldIsFocused: _textInputIsFocused,
+              handlePromptSuggestion: handlePromptSuggestion,
               appType: analyzedAppTypeFromSource(widget.appModel),
             ),
             suffixIcon: GeminiEditSuffixIcon(
@@ -850,10 +865,12 @@ class GeminiEditPrefixIcon extends StatelessWidget {
     super.key,
     required this.textFieldIsFocused,
     required this.appType,
+    required this.handlePromptSuggestion,
   });
 
   final bool textFieldIsFocused;
   final AppType appType;
+  final void Function(String) handlePromptSuggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -863,7 +880,10 @@ class GeminiEditPrefixIcon extends StatelessWidget {
         SizedBox(width: textFieldIsFocused ? 12 : 8),
         ...[
           textFieldIsFocused
-              ? GeminiCodeEditMenu(currentAppType: appType)
+              ? GeminiCodeEditMenu(
+                currentAppType: appType,
+                handlePromptSuggestion: handlePromptSuggestion,
+              )
               : SizedBox(
                 width: 29,
                 child: Align(
@@ -915,10 +935,13 @@ class GeminiEditSuffixIcon extends StatelessWidget {
 class GeminiCodeEditMenu extends StatelessWidget {
   final Map<AppType, Map<String, String>> promptSuggestions;
   final AppType currentAppType;
+  final void Function(String) handlePromptSuggestion;
 
   const GeminiCodeEditMenu({
     super.key,
     required this.currentAppType,
+    required this.handlePromptSuggestion,
+
     this.promptSuggestions = const {
       AppType.dart: {
         'pretty-dart': 'Make the app pretty',
@@ -945,6 +968,7 @@ class GeminiCodeEditMenu extends StatelessWidget {
           return GeminiCodeEditMenuPromptSuggestion(
             displayName: promptName,
             promptText: promptText,
+            handlePromptSuggestion: () => handlePromptSuggestion(promptText),
           );
         }).toList() ??
         [];
@@ -961,12 +985,12 @@ class GeminiCodeEditMenu extends StatelessWidget {
     ];
 
     return MenuAnchor(
-      builder: (context, MenuController controller, Widget? child) {
+      builder: (context, MenuController menuController, Widget? child) {
         return SizedBox(
           height: 26,
           width: 26,
           child: IconButton.filledTonal(
-            onPressed: () => controller.toggleMenuState(),
+            onPressed: () => menuController.toggleMenuState(),
             padding: EdgeInsets.all(0.0),
             icon: const Icon(Icons.add),
             iconSize: 16,
@@ -986,16 +1010,18 @@ class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
     super.key,
     required this.displayName,
     required this.promptText,
+    required this.handlePromptSuggestion,
   });
 
   final String displayName;
   final String promptText;
+  final VoidCallback handlePromptSuggestion;
 
   @override
   Widget build(BuildContext context) {
     return MenuItemButton(
       leadingIcon: const Icon(Icons.arrow_right_alt),
-      onPressed: () => {},
+      onPressed: handlePromptSuggestion,
       child: Padding(
         padding: EdgeInsets.only(right: 32),
         child: Text(displayName),
