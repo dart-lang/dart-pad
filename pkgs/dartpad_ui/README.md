@@ -29,7 +29,7 @@ configure the `flutter run` web server to pass CORS headers for
 
    Pass parameter `channel=localhost` to the UI.
 
-   This is command to start and open UI connected to local backend:
+   This command will start and open the UI connected to local backend:
 
     ```
     flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
