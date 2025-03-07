@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:dartpad_shared/model.dart' as api;
+import 'package:dartpad_shared/util.dart' show getAllImportsFor;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 

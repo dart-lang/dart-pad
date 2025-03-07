@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
+import 'package:dartpad_shared/util.dart' show getAllImportsFor;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
 import 'project_templates.dart';
-import 'pub.dart';
 import 'sdk.dart';
 
 final Logger _logger = Logger('compiler');

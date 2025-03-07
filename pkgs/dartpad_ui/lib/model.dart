@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
+import 'package:dartpad_shared/util.dart' show getAllImportsFor, usesFlutterWeb;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -523,7 +524,7 @@ class AppServices {
     required bool isNewDDC,
     required bool reload,
   }) {
-    final appIsFlutter = hasFlutterWebMarker(javaScript, isNewDDC: isNewDDC);
+    final appIsFlutter = usesFlutterWeb(getAllImportsFor(dartSource));
     appModel._appIsFlutter.value = appIsFlutter;
     appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
