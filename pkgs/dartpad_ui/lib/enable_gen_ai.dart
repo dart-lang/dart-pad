@@ -3,4 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Turn on or off gen-ai features in the client.
-const bool genAiEnabled = true;
+const bool genAiEnabled = false;

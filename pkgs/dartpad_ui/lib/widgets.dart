@@ -324,13 +324,6 @@ class _PromptDialogState extends State<PromptDialog> {
   final _controller = TextEditingController();
   final _attachments = List<Attachment>.empty(growable: true);
   final _focusNode = FocusNode();
-  late AppType _appType;
-
-  @override
-  void initState() {
-    super.initState();
-    _appType = widget.initialAppType;
-  }
 
   @override
   void dispose() {
@@ -367,64 +360,47 @@ class _PromptDialogState extends State<PromptDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OverflowBar(
-                        spacing: 8,
-                        alignment: MainAxisAlignment.start,
-                        children: [
-                          for (final entry
-                              in _appType == AppType.flutter
-                                  ? widget.flutterPromptButtons.entries
-                                  : widget.dartPromptButtons.entries)
-                            TextButton(
-                              onPressed: () {
-                                _controller.text = entry.value;
-                                _focusNode.requestFocus();
-                              },
-                              child: Text(entry.key),
-                            ),
-                        ],
-                      ),
-                    ),
-                    SegmentedButton<AppType>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment<AppType>(
-                          value: AppType.dart,
-                          label: Text('Dart'),
-                          tooltip: 'Generate Dart code',
-                        ),
-                        ButtonSegment<AppType>(
-                          value: AppType.flutter,
-                          label: Text('Flutter'),
-                          tooltip: 'Generate Flutter code',
-                        ),
-                      ],
-                      selected: {_appType},
-                      onSelectionChanged: (selected) {
-                        setState(() => _appType = selected.first);
-                        _focusNode.requestFocus();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _controller,
                   focusNode: _focusNode,
                   autofocus: true,
                   decoration: InputDecoration(
-                    labelText: widget.hint,
+                    hintText: widget.hint,
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    labelText: 'Code generation prompt',
                     alignLabelWithHint: true,
                     border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OverflowBar(
+                        alignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          for (final entry
+                              in widget.initialAppType == AppType.flutter
+                                  ? widget.flutterPromptButtons.entries
+                                  : widget.dartPromptButtons.entries)
+                            OutlinedButton.icon(
+                              icon: PromptSuggestionIcon(),
+                              onPressed: () {
+                                _controller.text = entry.value;
+                                _focusNode.requestFocus();
+                              },
+                              label: Text(entry.key),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
                 SizedBox(
-                  height: 128,
+                  height: 64,
                   child: EditableImageList(
                     attachments: _attachments,
                     onRemove: _removeAttachment,
@@ -465,7 +441,7 @@ class _PromptDialogState extends State<PromptDialog> {
     Navigator.pop(
       context,
       PromptDialogResponse(
-        appType: _appType,
+        appType: widget.initialAppType,
         prompt: _controller.text,
         attachments: _attachments,
       ),
@@ -656,7 +632,6 @@ class EditableImageList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      reverse: true,
       scrollDirection: Axis.horizontal,
       // First item is the "Add Attachment" button
       itemCount: attachments.length + 1,
@@ -664,6 +639,7 @@ class EditableImageList extends StatelessWidget {
         if (index == 0) {
           return _AddImageWidget(
             onAdd: attachments.length < maxAttachments ? onAdd : null,
+            hasAttachments: attachments.isNotEmpty,
           );
         } else {
           final attachmentIndex = index - 1;
@@ -714,19 +690,19 @@ class _ImageAttachmentWidget extends StatelessWidget {
           },
           child: Container(
             margin: const EdgeInsets.all(8),
-            width: 128,
-            height: 128,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: MemoryImage(attachment.bytes),
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
           ),
         ),
         Positioned(
           top: 4,
-          right: 12,
+          right: 4,
           child: InkWell(
             onTap: onRemove,
             child: Tooltip(
@@ -750,34 +726,39 @@ class _ImageAttachmentWidget extends StatelessWidget {
 
 class _AddImageWidget extends StatelessWidget {
   final void Function()? onAdd;
-  const _AddImageWidget({required this.onAdd});
+  final bool hasAttachments;
+  const _AddImageWidget({required this.onAdd, required this.hasAttachments});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          width: 128,
-          height: 128,
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: SizedBox.square(
-              dimension: 128,
-              child: ElevatedButton(
-                onPressed: onAdd,
-                style: ElevatedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(),
-                ),
-                child: const Center(
-                  child: Text('Add\nImage', textAlign: TextAlign.center),
-                ),
-              ),
-            ),
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: IconButton.filledTonal(
+            icon: Icon(Icons.add),
+            onPressed: onAdd,
           ),
         ),
-      ),
+        if (!hasAttachments)
+          Text('Add image(s) to support your prompt. (optional)'),
+      ],
+    );
+  }
+}
+
+class PromptSuggestionIcon extends StatelessWidget {
+  const PromptSuggestionIcon({super.key, this.height = 18, this.width = 18});
+
+  final double height;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'prompt_suggestion_icon.png',
+      height: height,
+      width: width,
     );
   }
 }
@@ -1019,11 +1000,7 @@ class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuItemButton(
-      leadingIcon: Image.asset(
-        'prompt_suggestion_icon.png',
-        height: 18,
-        width: 18,
-      ),
+      leadingIcon: PromptSuggestionIcon(),
       onPressed: handlePromptSuggestion,
       child: Padding(
         padding: EdgeInsets.only(right: 32),

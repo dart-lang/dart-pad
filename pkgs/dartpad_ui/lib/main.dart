@@ -667,12 +667,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+    final resolvedDialogTitle =
+        'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Generate New Code',
-            hint: 'Describe the code you want to generate',
+            title: resolvedDialogTitle,
+            hint:
+                'Describe what kind of code, features, and/or UI you want Gemini to create.',
             initialAppType: appType,
             flutterPromptButtons: {
               'to-do app':
