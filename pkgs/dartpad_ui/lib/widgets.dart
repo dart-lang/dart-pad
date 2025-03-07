@@ -974,7 +974,7 @@ class GeminiCodeEditMenu extends StatelessWidget {
     final List<Widget> resolvedMenuItems = [
       ...resolvedPromptSuggestions,
       MenuItemButton(
-        leadingIcon: const Icon(Icons.image),
+        leadingIcon: const Icon(Icons.image, size: 16),
         onPressed: () => {},
         child: Padding(
           padding: EdgeInsets.only(right: 32),
@@ -1019,7 +1019,11 @@ class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuItemButton(
-      leadingIcon: const Icon(Icons.arrow_right_alt),
+      leadingIcon: Image.asset(
+        'prompt_suggestion_icon.png',
+        height: 18,
+        width: 18,
+      ),
       onPressed: handlePromptSuggestion,
       child: Padding(
         padding: EdgeInsets.only(right: 32),
