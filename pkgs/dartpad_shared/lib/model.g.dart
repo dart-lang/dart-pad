@@ -25,7 +25,7 @@ AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>
-    <String, dynamic>{'issues': instance.issues};
+    <String, dynamic>{'issues': instance.issues, 'imports': instance.imports};
 
 AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
     AnalysisIssue(
