@@ -4,11 +4,25 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'project_templates.dart' as project;
+
+List<String> extractImportStrings(List<ImportDirective> imports) {
+  return [
+    for (final import in imports)
+      if (import.uri.stringValue != null) import.uri.stringValue!,
+  ];
+}
+
+/// Extract all imports from [dartSource] source code.
+List<ImportDirective> getAllImportsFor(String dartSource) {
+  final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
+  return unit.directives.whereType<ImportDirective>().toList();
+}
 
 /// Flutter packages which do not have version numbers in pubspec.lock.
 const _flutterPackages = [

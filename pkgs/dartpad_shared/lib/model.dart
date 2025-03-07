@@ -27,9 +27,10 @@ class SourceRequest {
 
 @JsonSerializable()
 class AnalysisResponse {
+  final List<String> imports;
   final List<AnalysisIssue> issues;
 
-  AnalysisResponse({required this.issues});
+  AnalysisResponse({required this.issues, required this.imports});
 
   factory AnalysisResponse.fromJson(Map<String, Object?> json) =>
       _$AnalysisResponseFromJson(json);

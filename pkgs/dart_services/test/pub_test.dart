@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad_shared/util.dart' show getAllImportsFor;
+import 'package:dart_services/src/pub.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
@@ -18,7 +18,7 @@ void defineTests() {
       test('bad source', () {
         final imports = getAllImportsFor('foo bar;\n baz\nimport mybad;\n');
         expect(imports, hasLength(1));
-        expect(imports.single.uri.stringValue, equals(''));
+        expect(imports.single, equals(''));
       });
 
       test('one', () {
@@ -29,7 +29,7 @@ import 'package:foo/foo.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          getAllImportsFor(source),
           unorderedEquals(['dart:math', 'package:foo/foo.dart']),
         );
       });
@@ -43,7 +43,7 @@ import 'package:bar/bar.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          getAllImportsFor(source),
           unorderedEquals([
             'dart:math',
             'package:foo/foo.dart',
@@ -62,7 +62,7 @@ import 'mybazfile.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source).map((import) => import.uri.stringValue),
+          getAllImportsFor(source),
           unorderedEquals([
             'dart:math',
             'package:foo/foo.dart',

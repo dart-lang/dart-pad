@@ -21,6 +21,7 @@ AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
           (json['issues'] as List<dynamic>)
               .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
               .toList(),
+      imports: List<String>.from(json['imports'] as List<dynamic>),
     );
 
 Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>

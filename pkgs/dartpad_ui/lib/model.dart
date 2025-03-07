@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
-import 'package:dartpad_shared/util.dart' show getAllImportsFor, usesFlutterWeb;
+import 'package:dartpad_shared/util.dart' show usesFlutterWeb, usesPackageWeb;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -524,18 +524,13 @@ class AppServices {
     required bool isNewDDC,
     required bool reload,
   }) {
-    final appIsFlutter = usesFlutterWeb(getAllImportsFor(dartSource));
-    appModel._appIsFlutter.value = appIsFlutter;
-    appModel._usesPackageWeb = hasPackageWebImport(dartSource);
-    appModel._recalcLayout();
-
     _executionService?.execute(
       javaScript,
       modulesBaseUrl: modulesBaseUrl,
       engineVersion: engineVersion,
       reload: reload,
       isNewDDC: isNewDDC,
-      isFlutter: appIsFlutter,
+      isFlutter: appModel._appIsFlutter.value ?? false,
     );
   }
 
@@ -551,6 +546,9 @@ class AppServices {
         SourceRequest(source: appModel.sourceCodeController.text),
       );
       appModel.analysisIssues.value = results.issues;
+      appModel._appIsFlutter.value = usesFlutterWeb(results.imports);
+      appModel._usesPackageWeb = usesPackageWeb(results.imports);
+      appModel._recalcLayout();
     } catch (error) {
       appModel.analysisIssues.value = [
         AnalysisIssue(

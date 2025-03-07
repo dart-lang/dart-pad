@@ -2,19 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/utilities.dart' show parseString;
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
-/// Extract all imports from [dartSource] source code.
-List<ImportDirective> getAllImportsFor(String dartSource) {
-  final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
-  return unit.directives.whereType<ImportDirective>().toList();
-}
-
 /// Whether [imports] denote use of Flutter Web.
-bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
-    imports.any((import) => isFlutterWebImport(import.uri.stringValue));
+bool usesFlutterWeb(List<String> imports) => imports.any(isFlutterWebImport);
+
+bool usesPackageWeb(List<String> imports) {
+  return imports.any(
+    (i) => _packageNameFromPackageUri(i)?.contains('web') ?? false,
+  );
+}
 
 bool isSupportedFlutterPackage(String package) =>
     _packagesIndicatingFlutter.contains(package);
