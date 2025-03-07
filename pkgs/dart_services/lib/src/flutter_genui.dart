@@ -10,18 +10,15 @@ Future<String> invokeFlutterGenUi({
   required String prompt,
   String? apiKey,
 }) async {
-  print('invokeFlutterGenUi: $prompt');
-
   final response = await _requestGenui(prompt: prompt, apiKey: apiKey);
   if (response.statusCode != 200) {
     throw Exception('Failed to generate ui: ${response.body}');
   }
 
   final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+  final flutterCode = decoded['flutterCode'] as String;
 
-  print(decoded);
-
-  return decoded.toString();
+  return flutterCode;
 }
 
 Future<http.Response> _requestGenui({required String prompt, String? apiKey}) {
