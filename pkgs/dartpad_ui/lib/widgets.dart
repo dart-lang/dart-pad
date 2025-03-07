@@ -300,6 +300,27 @@ final class Logo extends StatelessWidget {
 bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
 
+class ImageAttachments {
+  final attachments = List<Attachment>.empty(growable: true);
+
+  void removeAttachment(int index) => attachments.removeAt(index);
+
+  Future<void> addAttachment() async {
+    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pic == null) return;
+
+    final bytes = await pic.readAsBytes();
+    attachments.add(
+      Attachment.fromBytes(
+        name: pic.name,
+        bytes: bytes,
+        mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+      ),
+    );
+  }
+}
+
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
@@ -322,8 +343,8 @@ class PromptDialog extends StatefulWidget {
 
 class _PromptDialogState extends State<PromptDialog> {
   final _controller = TextEditingController();
-  final _attachments = List<Attachment>.empty(growable: true);
   final _focusNode = FocusNode();
+  final imageAttachmentsHelper = ImageAttachments();
 
   @override
   void dispose() {
@@ -402,9 +423,15 @@ class _PromptDialogState extends State<PromptDialog> {
                 SizedBox(
                   height: 64,
                   child: EditableImageList(
-                    attachments: _attachments,
-                    onRemove: _removeAttachment,
-                    onAdd: _addAttachment,
+                    attachments: imageAttachmentsHelper.attachments,
+                    onRemove: (int index) {
+                      imageAttachmentsHelper.removeAttachment(index);
+                      setState(() {});
+                    },
+                    onAdd: () async {
+                      await imageAttachmentsHelper.addAttachment();
+                      setState(() {});
+                    },
                     maxAttachments: 3,
                   ),
                 ),
@@ -443,27 +470,7 @@ class _PromptDialogState extends State<PromptDialog> {
       PromptDialogResponse(
         appType: widget.initialAppType,
         prompt: _controller.text,
-        attachments: _attachments,
-      ),
-    );
-  }
-
-  void _removeAttachment(int index) =>
-      setState(() => _attachments.removeAt(index));
-
-  Future<void> _addAttachment() async {
-    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    if (pic == null) return;
-
-    final bytes = await pic.readAsBytes();
-    setState(
-      () => _attachments.add(
-        Attachment.fromBytes(
-          name: pic.name,
-          bytes: bytes,
-          mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
-        ),
+        attachments: imageAttachmentsHelper.attachments,
       ),
     );
   }
