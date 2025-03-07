@@ -12,7 +12,6 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
@@ -784,7 +783,9 @@ class _AddImageWidget extends StatelessWidget {
 }
 
 class GeminiCodeEditTool extends StatefulWidget {
-  const GeminiCodeEditTool({super.key});
+  const GeminiCodeEditTool({super.key, required this.appModel});
+
+  final AppModel appModel;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -793,9 +794,17 @@ class GeminiCodeEditTool extends StatefulWidget {
 class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
 
+  AppType analyzedAppTypeFromSource(AppModel appModel) {
+    if (appModel.sourceCodeController.text.contains(
+      """import 'package:flutter""",
+    )) {
+      return AppType.flutter;
+    }
+    return AppType.dart;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final appModel = Provider.of<AppModel>(context, listen: false);
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -822,7 +831,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             hintStyle: TextStyle(color: Theme.of(context).hintColor),
             prefixIcon: GeminiEditPrefixIcon(
               textFieldIsFocused: _textInputIsFocused,
-              appType: appModel.appType,
+              appType: analyzedAppTypeFromSource(widget.appModel),
             ),
             suffixIcon: GeminiEditSuffixIcon(
               textFieldIsFocused: _textInputIsFocused,
