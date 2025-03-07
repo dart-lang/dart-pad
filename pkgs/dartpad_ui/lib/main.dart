@@ -780,7 +780,7 @@ class EditorWithButtons extends StatelessWidget {
               stream: stream,
               title: 'Updating Existing Code',
               existingSource: source,
-              promptReset: () {
+              onAcceptReset: () {
                 promptTextController.text = '';
                 imageAttachmentsManager.attachments.clear();
               },

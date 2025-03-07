@@ -481,14 +481,14 @@ class GeneratingCodeDialog extends StatefulWidget {
     required this.stream,
     required this.title,
     this.existingSource,
-    this.promptReset,
+    this.onAcceptReset,
     super.key,
   });
 
   final Stream<String> stream;
   final String title;
   final String? existingSource;
-  final Function? promptReset;
+  final Function? onAcceptReset;
 
   @override
   State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
@@ -621,7 +621,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   void _onAcceptAndRun() {
     assert(_done);
-    widget.promptReset?.call();
+    widget.onAcceptReset?.call();
     Navigator.pop(context, _generatedCode.toString());
   }
 }
