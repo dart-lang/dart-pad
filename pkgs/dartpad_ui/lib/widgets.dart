@@ -300,7 +300,7 @@ final class Logo extends StatelessWidget {
 bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
 
-class ImageAttachments {
+class ImageAttachmentsManager {
   final attachments = List<Attachment>.empty(growable: true);
 
   void removeAttachment(int index) => attachments.removeAt(index);
@@ -344,7 +344,7 @@ class PromptDialog extends StatefulWidget {
 class _PromptDialogState extends State<PromptDialog> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
-  final imageAttachmentsHelper = ImageAttachments();
+  final imageAttachmentsManager = ImageAttachmentsManager();
 
   @override
   void dispose() {
@@ -423,13 +423,13 @@ class _PromptDialogState extends State<PromptDialog> {
                 SizedBox(
                   height: 64,
                   child: EditableImageList(
-                    attachments: imageAttachmentsHelper.attachments,
+                    attachments: imageAttachmentsManager.attachments,
                     onRemove: (int index) {
-                      imageAttachmentsHelper.removeAttachment(index);
+                      imageAttachmentsManager.removeAttachment(index);
                       setState(() {});
                     },
                     onAdd: () async {
-                      await imageAttachmentsHelper.addAttachment();
+                      await imageAttachmentsManager.addAttachment();
                       setState(() {});
                     },
                     maxAttachments: 3,
@@ -470,7 +470,7 @@ class _PromptDialogState extends State<PromptDialog> {
       PromptDialogResponse(
         appType: widget.initialAppType,
         prompt: _controller.text,
-        attachments: imageAttachmentsHelper.attachments,
+        attachments: imageAttachmentsManager.attachments,
       ),
     );
   }
@@ -481,12 +481,15 @@ class GeneratingCodeDialog extends StatefulWidget {
     required this.stream,
     required this.title,
     this.existingSource,
+    this.promptReset,
     super.key,
   });
 
   final Stream<String> stream;
   final String title;
   final String? existingSource;
+  final Function? promptReset;
+
   @override
   State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
 }
@@ -618,6 +621,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   void _onAcceptAndRun() {
     assert(_done);
+    widget.promptReset?.call();
     Navigator.pop(context, _generatedCode.toString());
   }
 }
@@ -788,9 +792,20 @@ class PromptSuggestionIcon extends StatelessWidget {
 }
 
 class GeminiCodeEditTool extends StatefulWidget {
-  const GeminiCodeEditTool({super.key, required this.appModel});
+  const GeminiCodeEditTool({
+    super.key,
+    required this.appModel,
+    required this.onUpdateCode,
+  });
 
   final AppModel appModel;
+  final Future<void> Function(
+    BuildContext,
+    PromptDialogResponse,
+    TextEditingController,
+    ImageAttachmentsManager,
+  )
+  onUpdateCode;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -800,7 +815,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
   final TextEditingController codeEditPromptController =
       TextEditingController();
-  final imageAttachmentsHelper = ImageAttachments();
+  final imageAttachmentsManager = ImageAttachmentsManager();
 
   @override
   void dispose() {
@@ -824,6 +839,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appType = analyzedAppTypeFromSource(widget.appModel);
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
@@ -853,27 +869,40 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                 prefixIcon: GeminiEditPrefixIcon(
                   textFieldIsFocused: _textInputIsFocused,
                   handlePromptSuggestion: handlePromptSuggestion,
-                  appType: analyzedAppTypeFromSource(widget.appModel),
+                  appType: appType,
                   onAddImage: () async {
-                    await imageAttachmentsHelper.addAttachment();
+                    await imageAttachmentsManager.addAttachment();
                     setState(() {});
                   },
                 ),
                 suffixIcon: GeminiEditSuffixIcon(
                   textFieldIsFocused: _textInputIsFocused,
+                  onGenerate: () {
+                    widget.onUpdateCode(
+                      context,
+                      PromptDialogResponse(
+                        appType: appType,
+                        prompt: codeEditPromptController.text,
+                        attachments: imageAttachmentsManager.attachments,
+                      ),
+                      codeEditPromptController,
+                      imageAttachmentsManager,
+                    );
+                    setState(() {});
+                  },
                 ),
               ),
               maxLines: 8,
               minLines: 1,
             ),
-            if (imageAttachmentsHelper.attachments.isNotEmpty)
+            if (imageAttachmentsManager.attachments.isNotEmpty)
               SizedBox(
                 height: 32,
                 child: EditableImageList(
                   compactDisplay: true,
-                  attachments: imageAttachmentsHelper.attachments,
+                  attachments: imageAttachmentsManager.attachments,
                   onRemove: (int index) {
-                    imageAttachmentsHelper.removeAttachment(index);
+                    imageAttachmentsManager.removeAttachment(index);
                     setState(() {});
                   },
                   onAdd: () => {}, // the Add button isn't shown here
@@ -934,9 +963,14 @@ class GeminiEditPrefixIcon extends StatelessWidget {
 }
 
 class GeminiEditSuffixIcon extends StatelessWidget {
-  const GeminiEditSuffixIcon({super.key, required this.textFieldIsFocused});
+  const GeminiEditSuffixIcon({
+    super.key,
+    required this.textFieldIsFocused,
+    required this.onGenerate,
+  });
 
   final bool textFieldIsFocused;
+  final void Function() onGenerate;
 
   @override
   Widget build(BuildContext context) {
@@ -951,7 +985,7 @@ class GeminiEditSuffixIcon extends StatelessWidget {
                   height: 26,
                   child: IconButton(
                     padding: EdgeInsets.all(0),
-                    onPressed: () => {},
+                    onPressed: onGenerate,
                     icon: const Icon(Icons.send),
                     iconSize: 14,
                   ),

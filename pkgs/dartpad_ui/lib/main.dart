@@ -738,79 +738,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appModel.appendError('Generating code issue: $error');
     }
   }
-
-  Future<void> _updateExistingCode(BuildContext context) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: 'Update Existing Code',
-            hint: 'Describe the updates you\'d like to make to the code',
-            initialAppType: appModel.appType,
-            flutterPromptButtons: {
-              'pretty':
-                  'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-              'fancy':
-                  'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-              'emoji':
-                  'Make the app use emojis by adding appropriate emoji icons and text',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'pretty': 'Make the app pretty',
-              'fancy': 'Make the app fancy',
-              'emoji': 'Make the app use emojis',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
-
-    try {
-      final source = appModel.sourceCodeController.text;
-      final stream = appServices.updateCode(
-        UpdateCodeRequest(
-          appType: promptResponse.appType,
-          source: source,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
-      );
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Updating Existing Code',
-              existingSource: source,
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error updating code');
-      appModel.appendError('Updating code issue: $error');
-    }
-  }
 }
 
 class EditorWithButtons extends StatelessWidget {
@@ -828,6 +755,52 @@ class EditorWithButtons extends StatelessWidget {
   final VoidCallback onFormat;
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
+
+  Future<void> _updateExistingCode(
+    BuildContext context,
+    PromptDialogResponse promptInfo,
+    TextEditingController promptTextController,
+    ImageAttachmentsManager imageAttachmentsManager,
+  ) async {
+    try {
+      final source = appModel.sourceCodeController.text;
+      final stream = appServices.updateCode(
+        UpdateCodeRequest(
+          appType: promptInfo.appType,
+          source: source,
+          prompt: promptInfo.prompt,
+          attachments: promptInfo.attachments,
+        ),
+      );
+
+      final generateResponse = await showDialog<String>(
+        context: context,
+        builder:
+            (context) => GeneratingCodeDialog(
+              stream: stream,
+              title: 'Updating Existing Code',
+              existingSource: source,
+              promptReset: () {
+                promptTextController.text = '';
+                imageAttachmentsManager.attachments.clear();
+              },
+            ),
+      );
+
+      if (!context.mounted ||
+          generateResponse == null ||
+          generateResponse.isEmpty) {
+        return;
+      }
+
+      appModel.sourceCodeController.textNoScroll = generateResponse;
+      appServices.editorService!.focus();
+      appServices.performCompileAndReloadOrRun();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error updating code');
+      appModel.appendError('Updating code issue: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -924,7 +897,10 @@ class EditorWithButtons extends StatelessWidget {
             ),
           ),
         ),
-        GeminiCodeEditTool(appModel: appModel),
+        GeminiCodeEditTool(
+          appModel: appModel,
+          onUpdateCode: _updateExistingCode,
+        ),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,
           builder: (context, issues, _) {
