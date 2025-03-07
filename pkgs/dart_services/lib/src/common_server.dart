@@ -40,6 +40,7 @@ class CommonServerImpl {
   late Analyzer analyzer;
   late Compiler compiler;
   final ai = GenerativeAI();
+  final genui = GenUi();
 
   CommonServerImpl(
     this.sdk,
@@ -337,10 +338,7 @@ class CommonServerApi {
     );
 
     final resultStream = Stream.fromIterable([
-      await invokeFlutterGenUi(
-        prompt: generateUiRequest.prompt,
-        apiKey: impl.genUiKey,
-      ),
+      await impl.genui.generateCode(prompt: generateUiRequest.prompt),
     ]);
 
     // TODO(polina-c): setup better streaming
