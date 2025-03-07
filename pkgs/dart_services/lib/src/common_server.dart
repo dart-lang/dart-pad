@@ -343,7 +343,7 @@ class CommonServerApi {
       ),
     ]);
 
-    // TODO(polina-c): setup streaming
+    // TODO(polina-c): setup better streaming
     return _streamResponse('generateUi', resultStream);
   }
 

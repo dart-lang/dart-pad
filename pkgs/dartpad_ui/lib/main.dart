@@ -302,6 +302,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           }
         });
     appModel.compilingState.addListener(_handleRunStarted);
+
+    debugPrint(
+      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
+    );
   }
 
   @override
@@ -703,8 +707,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     try {
       final Stream<String> stream;
       if (widget.useGenui) {
-        // ignore: avoid_print
-        print('Generating UI with genui');
         stream = appServices.generateUi(
           GenerateUiRequest(prompt: promptResponse.prompt),
         );
