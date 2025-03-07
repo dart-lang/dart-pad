@@ -50,6 +50,7 @@ class AppModel {
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
+  final ValueNotifier<List<String>> packageImports = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
@@ -550,6 +551,7 @@ class AppServices {
         SourceRequest(source: appModel.sourceCodeController.text),
       );
       appModel.analysisIssues.value = results.issues;
+      appModel.packageImports.value = results.imports ?? [];
     } catch (error) {
       appModel.analysisIssues.value = [
         AnalysisIssue(
@@ -558,6 +560,7 @@ class AppServices {
           location: Location(line: 0, column: 0),
         ),
       ];
+      appModel.packageImports.value = [];
     }
   }
 

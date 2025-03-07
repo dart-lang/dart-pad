@@ -384,8 +384,16 @@ class AnalysisServerWrapper {
         );
       }
     }
+    final reportedImports =
+        imports
+            .where((import) => import.packageImport || import.dartImport)
+            .map((import) => import.uri.stringValue!)
+            .toList();
 
-    return api.AnalysisResponse(issues: [...importIssues, ...issues]);
+    return api.AnalysisResponse(
+      issues: [...importIssues, ...issues],
+      imports: reportedImports,
+    );
   }
 
   /// Cleanly shutdown the Analysis Server.

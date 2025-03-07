@@ -83,6 +83,7 @@ class MyApp extends StatelessWidget {
       );
 
       expect(result, isNotNull);
+      expect(result.imports, contains('package:flutter/material.dart'));
       expect(result.issues, isEmpty);
     });
 
