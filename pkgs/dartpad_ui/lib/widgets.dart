@@ -646,6 +646,9 @@ class EditableImageList extends StatelessWidget {
       itemCount: attachments.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
+          if (compactDisplay) {
+            return SizedBox(height: 0, width: 0);
+          }
           return _AddImageWidget(
             onAdd: attachments.length < maxAttachments ? onAdd : null,
             hasAttachments: attachments.isNotEmpty,
@@ -679,6 +682,8 @@ class _ImageAttachmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedThumbnailEdgeInsets =
+        compactDisplay ? EdgeInsets.fromLTRB(0, 4, 4, 0) : EdgeInsets.all(8);
     return Stack(
       children: [
         GestureDetector(
@@ -704,7 +709,7 @@ class _ImageAttachmentWidget extends StatelessWidget {
             );
           },
           child: Container(
-            margin: const EdgeInsets.all(8),
+            margin: resolvedThumbnailEdgeInsets,
             width: compactDisplay ? compactThumbnailSize : regularThumbnailSize,
             height:
                 compactDisplay ? compactThumbnailSize : regularThumbnailSize,
@@ -717,19 +722,22 @@ class _ImageAttachmentWidget extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 4,
-          right: 4,
-          child: InkWell(
-            onTap: onRemove,
-            child: Tooltip(
-              message: 'Remove Image',
-              child: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                radius: 12,
-                child: Icon(
-                  Icons.close,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onSecondary,
+          top: compactDisplay ? 2 : 4,
+          right: compactDisplay ? 2 : 4,
+          child: Transform.scale(
+            scale: compactDisplay ? 0.7 : 1,
+            child: InkWell(
+              onTap: onRemove,
+              child: Tooltip(
+                message: 'Remove Image',
+                child: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  radius: 12,
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondary,
+                  ),
                 ),
               ),
             ),
@@ -792,6 +800,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
   final TextEditingController codeEditPromptController =
       TextEditingController();
+  final imageAttachmentsHelper = ImageAttachments();
 
   @override
   void dispose() {
@@ -832,24 +841,46 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             (value) => setState(() {
               _textInputIsFocused = value;
             }),
-        child: TextField(
-          controller: codeEditPromptController,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            hintText: 'Ask Gemini to change your code or app!',
-            hintStyle: TextStyle(color: Theme.of(context).hintColor),
-            prefixIcon: GeminiEditPrefixIcon(
-              textFieldIsFocused: _textInputIsFocused,
-              handlePromptSuggestion: handlePromptSuggestion,
-              appType: analyzedAppTypeFromSource(widget.appModel),
+        child: Column(
+          children: [
+            TextField(
+              controller: codeEditPromptController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                hintText: 'Ask Gemini to change your code or app!',
+                hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                prefixIcon: GeminiEditPrefixIcon(
+                  textFieldIsFocused: _textInputIsFocused,
+                  handlePromptSuggestion: handlePromptSuggestion,
+                  appType: analyzedAppTypeFromSource(widget.appModel),
+                  onAddImage: () async {
+                    await imageAttachmentsHelper.addAttachment();
+                    setState(() {});
+                  },
+                ),
+                suffixIcon: GeminiEditSuffixIcon(
+                  textFieldIsFocused: _textInputIsFocused,
+                ),
+              ),
+              maxLines: 8,
+              minLines: 1,
             ),
-            suffixIcon: GeminiEditSuffixIcon(
-              textFieldIsFocused: _textInputIsFocused,
-            ),
-          ),
-          maxLines: 8,
-          minLines: 1,
+            if (imageAttachmentsHelper.attachments.isNotEmpty)
+              SizedBox(
+                height: 32,
+                child: EditableImageList(
+                  compactDisplay: true,
+                  attachments: imageAttachmentsHelper.attachments,
+                  onRemove: (int index) {
+                    imageAttachmentsHelper.removeAttachment(index);
+                    setState(() {});
+                  },
+                  onAdd: () => {}, // the Add button isn't shown here
+                  maxAttachments: 3,
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -862,11 +893,13 @@ class GeminiEditPrefixIcon extends StatelessWidget {
     required this.textFieldIsFocused,
     required this.appType,
     required this.handlePromptSuggestion,
+    required this.onAddImage,
   });
 
   final bool textFieldIsFocused;
   final AppType appType;
   final void Function(String) handlePromptSuggestion;
+  final void Function() onAddImage;
 
   @override
   Widget build(BuildContext context) {
@@ -879,6 +912,7 @@ class GeminiEditPrefixIcon extends StatelessWidget {
               ? GeminiCodeEditMenu(
                 currentAppType: appType,
                 handlePromptSuggestion: handlePromptSuggestion,
+                onAddImage: onAddImage,
               )
               : SizedBox(
                 width: 29,
@@ -932,11 +966,13 @@ class GeminiCodeEditMenu extends StatelessWidget {
   final Map<AppType, Map<String, String>> promptSuggestions;
   final AppType currentAppType;
   final void Function(String) handlePromptSuggestion;
+  final void Function() onAddImage;
 
   const GeminiCodeEditMenu({
     super.key,
     required this.currentAppType,
     required this.handlePromptSuggestion,
+    required this.onAddImage,
 
     this.promptSuggestions = const {
       AppType.dart: {
@@ -972,7 +1008,7 @@ class GeminiCodeEditMenu extends StatelessWidget {
       ...resolvedPromptSuggestions,
       MenuItemButton(
         leadingIcon: const Icon(Icons.image, size: 16),
-        onPressed: () => {},
+        onPressed: onAddImage,
         child: Padding(
           padding: EdgeInsets.only(right: 32),
           child: Text('Add image'),
