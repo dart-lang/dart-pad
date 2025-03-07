@@ -11,12 +11,14 @@ void defineTests() {
   group('pub', () {
     group('getAllImportsFor', () {
       test('empty', () {
-        expect(getAllImportsFor(''), isEmpty);
-        expect(getAllImportsFor('   \n '), isEmpty);
+        expect(extractImportStrings(getAllImportsFor('')), isEmpty);
+        expect(extractImportStrings(getAllImportsFor('   \n ')), isEmpty);
       });
 
       test('bad source', () {
-        final imports = getAllImportsFor('foo bar;\n baz\nimport mybad;\n');
+        final imports = extractImportStrings(
+          getAllImportsFor('foo bar;\n baz\nimport mybad;\n'),
+        );
         expect(imports, hasLength(1));
         expect(imports.single, equals(''));
       });
@@ -29,7 +31,7 @@ import 'package:foo/foo.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source),
+          extractImportStrings(getAllImportsFor(source)),
           unorderedEquals(['dart:math', 'package:foo/foo.dart']),
         );
       });
@@ -43,7 +45,7 @@ import 'package:bar/bar.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source),
+          extractImportStrings(getAllImportsFor(source)),
           unorderedEquals([
             'dart:math',
             'package:foo/foo.dart',
@@ -62,7 +64,7 @@ import 'mybazfile.dart';
 void main() { }
 ''';
         expect(
-          getAllImportsFor(source),
+          extractImportStrings(getAllImportsFor(source)),
           unorderedEquals([
             'dart:math',
             'package:foo/foo.dart',
