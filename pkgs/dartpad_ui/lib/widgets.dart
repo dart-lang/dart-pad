@@ -620,6 +620,7 @@ class EditableImageList extends StatelessWidget {
   final void Function(int index) onRemove;
   final void Function() onAdd;
   final int maxAttachments;
+  final bool compactDisplay;
 
   const EditableImageList({
     super.key,
@@ -627,6 +628,7 @@ class EditableImageList extends StatelessWidget {
     required this.onRemove,
     required this.onAdd,
     required this.maxAttachments,
+    this.compactDisplay = false,
   });
 
   @override
@@ -646,6 +648,7 @@ class EditableImageList extends StatelessWidget {
           return _ImageAttachmentWidget(
             attachment: attachments[attachmentIndex],
             onRemove: () => onRemove(attachmentIndex),
+            compactDisplay: compactDisplay,
           );
         }
       },
@@ -656,11 +659,16 @@ class EditableImageList extends StatelessWidget {
 class _ImageAttachmentWidget extends StatelessWidget {
   final Attachment attachment;
   final void Function() onRemove;
+  final bool compactDisplay;
 
   const _ImageAttachmentWidget({
     required this.attachment,
     required this.onRemove,
+    required this.compactDisplay,
   });
+
+  final double regularThumbnailSize = 64;
+  final double compactThumbnailSize = 32;
 
   @override
   Widget build(BuildContext context) {
@@ -690,8 +698,9 @@ class _ImageAttachmentWidget extends StatelessWidget {
           },
           child: Container(
             margin: const EdgeInsets.all(8),
-            width: 64,
-            height: 64,
+            width: compactDisplay ? compactThumbnailSize : regularThumbnailSize,
+            height:
+                compactDisplay ? compactThumbnailSize : regularThumbnailSize,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: MemoryImage(attachment.bytes),
