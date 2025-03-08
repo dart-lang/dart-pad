@@ -35,7 +35,6 @@ class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
   final String storageBucket;
-  final String? genUiKey;
 
   late Analyzer analyzer;
   late Compiler compiler;
@@ -46,7 +45,6 @@ class CommonServerImpl {
     this.sdk,
     this.cache, {
     this.storageBucket = 'nnbd_artifacts',
-    this.genUiKey,
   });
 
   Future<void> init() async {
