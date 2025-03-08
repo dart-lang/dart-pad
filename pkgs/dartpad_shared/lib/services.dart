@@ -63,6 +63,9 @@ class ServicesClient {
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _requestPostStream('generateCode', request.toJson());
 
+  Stream<String> generateUi(GenerateUiRequest request) =>
+      _requestPostStream('generateUi', request.toJson());
+
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 
@@ -120,7 +123,12 @@ class ServicesClient {
     httpRequest.body = json.encode(request);
     final response = await client.send(httpRequest);
 
-    if (response.statusCode != 200) throw ApiRequestError(action, '');
+    if (response.statusCode != 200) {
+      throw ApiRequestError(
+        action,
+        '${response.statusCode}: ${response.reasonPhrase}',
+      );
+    }
 
     try {
       yield* response.stream.transform(utf8.decoder);
