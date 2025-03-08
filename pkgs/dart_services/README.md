@@ -32,7 +32,8 @@ The server will run from port 8080 and export several JSON APIs, like
 
 ### Enable code generation
 
-To test code generation features on a local machine, configure API keys.
+To test code generation features on a local machine, configure API keys,
+all or just needed ones.
 
 Get an GEMINI_API_KEY key from [Google AI Studio](https://aistudio.google.com)
 See how to get GENUI_API_KEY in internal go/dartpad-manual.
