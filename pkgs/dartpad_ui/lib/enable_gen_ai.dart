@@ -6,9 +6,16 @@
 const bool genAiEnabled = false;
 
 /*
-When [genAiEnabled] is true, use this
-command to run locally with local backend and gemini replaced with genui:
+
+To use GenUI locally:
+
+1. Set genAiEnabled to true above.
+
+2. See go/dartpad-manual-genui for instructions on how to start backend with GENUI_API_KEY.
+
+3. Use this command to run UI:
 
 flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
   --web-launch-url="http://localhost:8888/?channel=localhost&genui=true"
+
 */
