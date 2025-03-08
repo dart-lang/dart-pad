@@ -29,9 +29,9 @@ class SourceRequest {
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
-  final List<String>? imports;
+  final List<String> imports;
 
-  AnalysisResponse({required this.issues, this.imports});
+  AnalysisResponse({required this.issues, required this.imports});
 
   factory AnalysisResponse.fromJson(Map<String, Object?> json) =>
       _$AnalysisResponseFromJson(json);
