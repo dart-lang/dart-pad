@@ -22,7 +22,7 @@ AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
               .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
               .toList(),
       imports:
-          (json['imports'] as List<dynamic>?)?.map((e) => e as String).toList(),
+          (json['imports'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>
