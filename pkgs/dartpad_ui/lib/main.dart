@@ -130,6 +130,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
+    final useGenui = state.uri.queryParameters['genui'] == 'true';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -139,6 +140,7 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
+      useGenui: useGenui,
     );
   }
 
@@ -206,6 +208,7 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
+  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -215,6 +218,7 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
+    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -298,6 +302,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           }
         });
     appModel.compilingState.addListener(_handleRunStarted);
+
+    debugPrint(
+      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
+    );
   }
 
   @override
@@ -697,13 +705,20 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     try {
-      final stream = appServices.generateCode(
-        GenerateCodeRequest(
-          appType: promptResponse.appType,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
-      );
+      final Stream<String> stream;
+      if (widget.useGenui) {
+        stream = appServices.generateUi(
+          GenerateUiRequest(prompt: promptResponse.prompt),
+        );
+      } else {
+        stream = appServices.generateCode(
+          GenerateCodeRequest(
+            appType: promptResponse.appType,
+            prompt: promptResponse.prompt,
+            attachments: promptResponse.attachments,
+          ),
+        );
+      }
 
       final generateResponse = await showDialog<String>(
         context: context,
