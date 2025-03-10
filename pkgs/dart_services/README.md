@@ -1,5 +1,3 @@
-do not merge
-
 # Dart Services
 
 A server backend to support DartPad.
