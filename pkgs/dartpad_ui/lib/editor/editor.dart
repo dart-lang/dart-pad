@@ -16,6 +16,7 @@ import 'package:web/web.dart' as web;
 
 import '../local_storage.dart';
 import '../model.dart';
+import '../widgets.dart';
 import 'codemirror.dart';
 
 // TODO: implement find / find next
@@ -320,11 +321,36 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
       //       VoidCallbackIntent(_focusNode.previousFocus),
       // },
-      child: HtmlElementView(
-        key: _elementViewKey,
-        viewType: _viewType,
-        onPlatformViewCreated:
-            (id) => _platformViewCreated(id, darkMode: darkMode),
+      child: Stack(
+        children: [
+          HtmlElementView(
+            key: _elementViewKey,
+            viewType: _viewType,
+            onPlatformViewCreated:
+                (id) => _platformViewCreated(id, darkMode: darkMode),
+          ),
+          ValueListenableBuilder<GenAiState>(
+            valueListenable: widget.appModel.genAiState,
+            builder: (
+              BuildContext context,
+              GenAiState genAiState,
+              Widget? child,
+            ) {
+              if (genAiState == GenAiState.standby) {
+                return SizedBox(width: 0, height: 0);
+              }
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                ),
+                child: GeneratingCodePanel(
+                  appModel: widget.appModel,
+                  appServices: widget.appServices,
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

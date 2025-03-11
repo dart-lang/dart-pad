@@ -756,15 +756,21 @@ class EditorWithButtons extends StatelessWidget {
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
 
-  Future<void> _updateExistingCode(
+  Future<void> _requestGeminiCodeUpdate(
     BuildContext context,
     PromptDialogResponse promptInfo,
     TextEditingController promptTextController,
     ImageAttachmentsManager imageAttachmentsManager,
   ) async {
+    appModel.genAiCodeStreamIsDone.value = false;
+
     try {
+      appModel.genAiActivePromptInfo = promptInfo;
+      appModel.genAiActivePromptTextController = promptTextController;
+      appModel.genAiActiveImageAttachmentsManager = imageAttachmentsManager;
+
       final source = appModel.sourceCodeController.text;
-      final stream = appServices.updateCode(
+      appModel.genAiCodeStream.value = appServices.updateCode(
         UpdateCodeRequest(
           appType: promptInfo.appType,
           source: source,
@@ -773,33 +779,64 @@ class EditorWithButtons extends StatelessWidget {
         ),
       );
 
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Updating Existing Code',
-              existingSource: source,
-              onAcceptReset: () {
-                promptTextController.text = '';
-                imageAttachmentsManager.attachments.clear();
-              },
-            ),
-      );
+      appModel.genAiState.value = GenAiState.generating;
 
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
+      // final generateResponse = await showDialog<String>(
+      //   context: context,
+      //   builder:
+      //       (context) => GeneratingCodeDialog(
+      //         stream: stream,
+      //         title: 'Updating Existing Code',
+      //         existingSource: source,
+      //         onAcceptReset: () {
+      //           promptTextController.text = '';
+      //           imageAttachmentsManager.attachments.clear();
+      //         },
+      //       ),
+      // );
 
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
+      // if (!context.mounted ||
+      //     generateResponse == null ||
+      //     generateResponse.isEmpty) {
+      //   return;
+      // }
+
+      // appModel.sourceCodeController.textNoScroll = generateResponse;
+      // appServices.editorService!.focus();
+      // appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendError('Updating code issue: $error');
     }
+  }
+
+  void onAcceptUpdateCode() {
+    assert(appModel.genAiCodeStreamIsDone.value);
+    appModel.genAiActivePromptTextController?.text = '';
+    appModel.genAiActiveImageAttachmentsManager?.attachments.clear();
+
+    final generatedCode = appModel.genAiCodeStreamBuffer.value.toString();
+    if (generatedCode.isEmpty) {
+      return;
+    }
+    appModel.sourceCodeController.textNoScroll = generatedCode;
+    appServices.editorService!.focus();
+    appServices.performCompileAndReloadOrRun();
+    appModel.genAiState.value = GenAiState.standby;
+    appModel.genAiCodeStreamBuffer.value.clear();
+  }
+
+  void onEditUpdateCodePrompt() {
+    appModel.genAiState.value = GenAiState.standby;
+    appModel.genAiCodeStreamBuffer.value.clear();
+  }
+
+  void onCancelUpdateCode() {
+    appModel.genAiActivePromptTextController?.text = '';
+    appModel.genAiActiveImageAttachmentsManager?.attachments.clear();
+    appModel.genAiState.value = GenAiState.standby;
+    appModel.genAiCodeStreamBuffer.value.clear();
+    // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
   }
 
   @override
@@ -899,7 +936,10 @@ class EditorWithButtons extends StatelessWidget {
         ),
         GeminiCodeEditTool(
           appModel: appModel,
-          onUpdateCode: _updateExistingCode,
+          onUpdateCode: _requestGeminiCodeUpdate,
+          onAcceptUpdateCode: onAcceptUpdateCode,
+          onCancelUpdateCode: onCancelUpdateCode,
+          onEditUpdateCodePrompt: onEditUpdateCodePrompt,
         ),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,

@@ -626,6 +626,124 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
   }
 }
 
+class GeneratingCodePanel extends StatefulWidget {
+  const GeneratingCodePanel({
+    required this.appModel,
+    required this.appServices,
+    super.key,
+  });
+
+  final AppModel appModel;
+  final AppServices appServices;
+
+  @override
+  State<GeneratingCodePanel> createState() => _GeneratingCodePanelState();
+}
+
+class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
+  final _focusNode = FocusNode();
+  StreamSubscription<String>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _subscription = widget.appModel.genAiCodeStream.value.listen(
+      (text) => widget.appModel.genAiCodeStreamBuffer.value.write(text),
+      onDone: () {
+        final source =
+            widget.appModel.genAiCodeStreamBuffer.value.toString().trim();
+        widget.appModel.genAiCodeStreamBuffer.value.clear();
+        widget.appModel.genAiCodeStreamBuffer.value.write(source);
+        widget.appModel.genAiCodeStreamIsDone.value = true;
+        _focusNode.requestFocus();
+        widget.appModel.genAiState.value = GenAiState.awaitingAcceptReject;
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final existingSource = widget.appModel.sourceCodeController.text;
+    return ValueListenableBuilder(
+      valueListenable: widget.appModel.genAiCodeStreamBuffer,
+      builder: (
+        BuildContext context,
+        StringBuffer genAiCodeStreamBuffer,
+        Widget? child,
+      ) {
+        return SizedBox(
+          width: 700,
+          child: Focus(
+            autofocus: true,
+            focusNode: _focusNode,
+            child: ReadOnlyDiffWidget(
+              existingSource: existingSource,
+              newSource: genAiCodeStreamBuffer.toString(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ),
+  //  [
+  //   Row(
+  //     children: [
+  //       Expanded(
+  //         child: Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: RichText(
+  //             text: TextSpan(
+  //               text: 'Powered by ',
+  //               style: DefaultTextStyle.of(context).style,
+  //               children: [
+  //                 TextSpan(
+  //                   text: 'Google AI',
+  //                   style: TextStyle(color: theme.colorScheme.primary),
+  //                   recognizer:
+  //                       TapGestureRecognizer()
+  //                         ..onTap = () {
+  //                           url_launcher.launchUrl(
+  //                             Uri.parse('https://ai.google.dev/'),
+  //                           );
+  //                         },
+  //                 ),
+  //                 TextSpan(
+  //                   text: ' and the Gemini API',
+  //                   style: DefaultTextStyle.of(context).style,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //       TextButton(
+  //         onPressed: () => Navigator.pop(context),
+  //         child: const Text('Cancel'),
+  //       ),
+  //       TextButton(
+  //         onPressed: _done ? _onAcceptAndRun : null,
+  //         child: Text(
+  //           'Accept',
+  //           style: TextStyle(
+  //             color: !_done ? theme.disabledColor : null,
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   ),
+  // ],
+  // ),
+}
+
 class EditableImageList extends StatelessWidget {
   final List<Attachment> attachments;
   final void Function(int index) onRemove;
@@ -796,6 +914,9 @@ class GeminiCodeEditTool extends StatefulWidget {
     super.key,
     required this.appModel,
     required this.onUpdateCode,
+    required this.onCancelUpdateCode,
+    required this.onEditUpdateCodePrompt,
+    required this.onAcceptUpdateCode,
   });
 
   final AppModel appModel;
@@ -806,6 +927,9 @@ class GeminiCodeEditTool extends StatefulWidget {
     ImageAttachmentsManager,
   )
   onUpdateCode;
+  final VoidCallback onCancelUpdateCode;
+  final VoidCallback onEditUpdateCodePrompt;
+  final VoidCallback onAcceptUpdateCode;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -840,7 +964,8 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appType = analyzedAppTypeFromSource(widget.appModel);
-    return Container(
+
+    final textInputBlock = Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         border: Border(
@@ -913,6 +1038,101 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
         ),
       ),
     );
+
+    final acceptRejectBlock = ValueListenableBuilder<GenAiState>(
+      valueListenable: widget.appModel.genAiState,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        if (genAiState == GenAiState.standby) {
+          return SizedBox(width: 0, height: 0);
+        }
+        final geminiIcon = Image.asset(
+          'assets/gemini_sparkle_192.png',
+          width: 16,
+          height: 16,
+        );
+        final GeminiMessageTextTheme = TextStyle(
+          color: Color.fromARGB(255, 60, 60, 60),
+        );
+        // TODO(alsobrian) 3/11/25: ExpectNever?
+        final resolvedStatusMessage =
+            genAiState == GenAiState.generating
+                ? Text('Generating your code', style: GeminiMessageTextTheme)
+                : Text(
+                  'Gemini proposed the above',
+                  style: GeminiMessageTextTheme,
+                );
+        final resolvedButtons =
+            genAiState == GenAiState.generating
+                ? [
+                  TextButton(
+                    onPressed: widget.onCancelUpdateCode,
+                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                  ),
+                ]
+                : [
+                  TextButton(
+                    onPressed: widget.onCancelUpdateCode,
+                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                  ),
+                  OutlinedButton(
+                    onPressed: widget.onEditUpdateCodePrompt,
+                    child: Text('Change Prompt', style: GeminiMessageTextTheme),
+                  ),
+                  FilledButton(
+                    onPressed: widget.onAcceptUpdateCode,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Color(0xff2e64de),
+                    ),
+                    child: Text(
+                      'Accept',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ];
+        return Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[
+                Color(0xFFD7E6FF),
+                Color(0xFFC7E4FF),
+                Color(0xFFDCE2FF),
+                // Color(0xFF2E64De),
+                // Color(0xFF3C8FE3),
+                // Color(0xFF987BE9),
+              ],
+            ),
+          ), //Color.fromRGBO(200, 230, 255, 1.0)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    geminiIcon,
+                    SizedBox(width: 8),
+                    resolvedStatusMessage,
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      spacing: 12,
+                      children: resolvedButtons,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    return Column(children: [acceptRejectBlock, textInputBlock]);
   }
 }
 

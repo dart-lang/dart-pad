@@ -14,6 +14,7 @@ import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
+import 'widgets.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
@@ -40,6 +41,8 @@ abstract class EditorService {
   int get cursorOffset;
   void focus();
 }
+
+enum GenAiState { standby, generating, awaitingAcceptReject }
 
 class AppModel {
   final ValueNotifier<bool?> _appIsFlutter = ValueNotifier(null);
@@ -87,6 +90,20 @@ class AppModel {
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
+
+  final ValueNotifier<GenAiState> genAiState = ValueNotifier(
+    GenAiState.standby,
+  );
+  final ValueNotifier<Stream<String>> genAiCodeStream = ValueNotifier(
+    Stream<String>.empty(),
+  );
+  final ValueNotifier<StringBuffer> genAiCodeStreamBuffer = ValueNotifier(
+    StringBuffer(),
+  );
+  final ValueNotifier<bool> genAiCodeStreamIsDone = ValueNotifier(true);
+  PromptDialogResponse? genAiActivePromptInfo;
+  TextEditingController? genAiActivePromptTextController;
+  ImageAttachmentsManager? genAiActiveImageAttachmentsManager;
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
