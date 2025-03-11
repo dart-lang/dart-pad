@@ -42,15 +42,14 @@ abstract class EditorService {
 }
 
 class AppModel {
-  final ValueNotifier<bool?> _appIsFlutter = ValueNotifier(null);
-  bool? _usesPackageWeb;
+  final ValueNotifier<bool?> appIsFlutter = ValueNotifier(null);
   AppType get appType =>
-      _appIsFlutter.value ?? false ? AppType.flutter : AppType.dart;
+      appIsFlutter.value == true ? AppType.flutter : AppType.dart;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
-  final ValueNotifier<List<String>> packageImports = ValueNotifier([]);
+  final ValueNotifier<List<String>> importUrls = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
@@ -100,11 +99,16 @@ class AppModel {
     currentDeltaDill.addListener(updateCanReload);
 
     void updateShowReload() {
-      showReload.value = useNewDDC.value && (_appIsFlutter.value ?? false);
+      showReload.value = useNewDDC.value && (appIsFlutter.value ?? false);
+    }
+
+    void updateAppType() {
+      appIsFlutter.value = hasFlutterImports(importUrls.value);
     }
 
     useNewDDC.addListener(updateShowReload);
-    _appIsFlutter.addListener(updateShowReload);
+    appIsFlutter.addListener(updateShowReload);
+    importUrls.addListener(updateAppType);
 
     _splitSubscription = splitDragStateManager.onSplitDragUpdated.listen((
       SplitDragState value,
@@ -132,10 +136,10 @@ class AppModel {
 
   void _recalcLayout() {
     final hasConsoleText = !consoleNotifier.isEmpty;
-    final isFlutter = _appIsFlutter.value;
-    final usesPackageWeb = _usesPackageWeb;
+    final isFlutter = appIsFlutter.value;
+    final usesPackageWeb = hasPackageWebImport(importUrls.value);
 
-    if (isFlutter == null || usesPackageWeb == null) {
+    if (isFlutter == null) {
       _layoutMode.value = LayoutMode.both;
     } else if (usesPackageWeb) {
       _layoutMode.value = LayoutMode.both;
@@ -524,9 +528,6 @@ class AppServices {
     required bool isNewDDC,
     required bool reload,
   }) {
-    final appIsFlutter = hasFlutterWebMarker(javaScript, isNewDDC: isNewDDC);
-    appModel._appIsFlutter.value = appIsFlutter;
-    appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
     _executionService?.execute(
@@ -535,7 +536,7 @@ class AppServices {
       engineVersion: engineVersion,
       reload: reload,
       isNewDDC: isNewDDC,
-      isFlutter: appIsFlutter,
+      isFlutter: appModel.appIsFlutter.value ?? false,
     );
   }
 
@@ -551,7 +552,7 @@ class AppServices {
         SourceRequest(source: appModel.sourceCodeController.text),
       );
       appModel.analysisIssues.value = results.issues;
-      appModel.packageImports.value = results.imports ?? [];
+      appModel.importUrls.value = results.imports;
     } catch (error) {
       appModel.analysisIssues.value = [
         AnalysisIssue(
@@ -560,7 +561,7 @@ class AppServices {
           location: Location(line: 0, column: 0),
         ),
       ];
-      appModel.packageImports.value = [];
+      appModel.importUrls.value = [];
     }
   }
 

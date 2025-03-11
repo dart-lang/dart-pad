@@ -36,29 +36,12 @@ RelativeRect calculatePopupMenuPosition(
   );
 }
 
-bool hasFlutterWebMarker(String javaScript, {required bool isNewDDC}) {
-  const marker1 = 'window.flutterConfiguration';
-  if (javaScript.contains(marker1)) {
-    return true;
-  }
-  if (isNewDDC &&
-      javaScript.contains('defineLibrary(') &&
-      javaScript.contains('importLibrary("package:flutter/')) {
-    return true;
-    // define('dartpad_main', ['dart_sdk', 'flutter_web']
-  } else if (!isNewDDC &&
-      javaScript.contains("define('") &&
-      javaScript.contains("'flutter_web'")) {
-    return true;
-  }
-
-  return false;
+bool hasFlutterImports(List<String> imports) {
+  return imports.any((import) => import.startsWith('package:flutter/'));
 }
 
-bool hasPackageWebImport(String dartSource) {
-  // TODO(devoncarew): There are better ways to do this.
-  return dartSource.contains("import 'package:web/") ||
-      dartSource.contains('import "package:web/');
+bool hasPackageWebImport(List<String> imports) {
+  return imports.any((import) => import.startsWith('package:web/'));
 }
 
 extension ColorExtension on Color {
