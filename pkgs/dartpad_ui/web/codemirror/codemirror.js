@@ -1,3 +1,6 @@
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 //  codemirror.js
 //      addon/comment/comment.js
 //      addon/comment/continuecomment.js
