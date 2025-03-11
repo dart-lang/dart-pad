@@ -649,15 +649,19 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
     super.initState();
 
     _subscription = widget.appModel.genAiCodeStream.value.listen(
-      (text) => widget.appModel.genAiCodeStreamBuffer.value.write(text),
+      (text) => setState(() {
+        widget.appModel.genAiCodeStreamBuffer.value.write(text);
+      }),
       onDone: () {
-        final source =
-            widget.appModel.genAiCodeStreamBuffer.value.toString().trim();
-        widget.appModel.genAiCodeStreamBuffer.value.clear();
-        widget.appModel.genAiCodeStreamBuffer.value.write(source);
-        widget.appModel.genAiCodeStreamIsDone.value = true;
-        _focusNode.requestFocus();
-        widget.appModel.genAiState.value = GenAiState.awaitingAcceptReject;
+        setState(() {
+          final source =
+              widget.appModel.genAiCodeStreamBuffer.value.toString().trim();
+          widget.appModel.genAiCodeStreamBuffer.value.clear();
+          widget.appModel.genAiCodeStreamBuffer.value.write(source);
+          widget.appModel.genAiCodeStreamIsDone.value = true;
+          _focusNode.requestFocus();
+          widget.appModel.genAiState.value = GenAiState.awaitingAcceptReject;
+        });
       },
     );
   }
