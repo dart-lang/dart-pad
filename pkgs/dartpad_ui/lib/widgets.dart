@@ -672,22 +672,48 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
   Widget build(BuildContext context) {
     final existingSource = widget.appModel.sourceCodeController.text;
     return ValueListenableBuilder(
-      valueListenable: widget.appModel.genAiCodeStreamBuffer,
+      valueListenable: widget.appModel.genAiCodeStreamIsDone,
       builder: (
         BuildContext context,
-        StringBuffer genAiCodeStreamBuffer,
+        bool genAiCodeStreamIsDone,
         Widget? child,
       ) {
-        return SizedBox(
-          width: 700,
-          child: Focus(
-            autofocus: true,
-            focusNode: _focusNode,
-            child: ReadOnlyDiffWidget(
-              existingSource: existingSource,
-              newSource: genAiCodeStreamBuffer.toString(),
+        final resolvedSpinner =
+            genAiCodeStreamIsDone
+                ? SizedBox(width: 0, height: 0)
+                : Positioned(
+                  top: 10,
+                  right: 10,
+                  child: AnimatedContainer(
+                    duration: animationDelay,
+                    curve: animationCurve,
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+        return Stack(
+          children: [
+            resolvedSpinner,
+            ValueListenableBuilder(
+              valueListenable: widget.appModel.genAiCodeStreamBuffer,
+              builder: (
+                BuildContext context,
+                StringBuffer genAiCodeStreamBuffer,
+                Widget? child,
+              ) {
+                return SizedBox(
+                  width: 700,
+                  child: Focus(
+                    autofocus: true,
+                    focusNode: _focusNode,
+                    child: ReadOnlyDiffWidget(
+                      existingSource: existingSource,
+                      newSource: genAiCodeStreamBuffer.toString(),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
+          ],
         );
       },
     );
