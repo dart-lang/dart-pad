@@ -820,7 +820,6 @@ class EditorWithButtons extends StatelessWidget {
       return;
     }
     appModel.sourceCodeController.textNoScroll = generatedCode;
-    appServices.editorService!.focus();
     appServices.performCompileAndReloadOrRun();
     appModel.genAiState.value = GenAiState.standby;
     appModel.genAiCodeStreamBuffer.value.clear();
@@ -845,92 +844,121 @@ class EditorWithButtons extends StatelessWidget {
       children: [
         Expanded(
           child: SectionWidget(
-            child: Stack(
-              children: [
-                EditorWidget(appModel: appModel, appServices: appServices),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: denseSpacing,
-                    horizontal: defaultSpacing,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    // We use explicit directionality here in order to have the
-                    // format and run buttons on the right hand side of the
-                    // editing area.
-                    textDirection: TextDirection.ltr,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dartdoc help button
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.docHelpBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.help_outline),
-                              tooltip: 'Show docs',
-                              // small: true,
-                              onPressed:
-                                  value ? null : () => _showDocs(context),
-                            ),
-                          );
-                        },
+            child: ValueListenableBuilder<GenAiState>(
+              valueListenable: appModel.genAiState,
+              builder: (
+                BuildContext context,
+                GenAiState genAiState,
+                Widget? child,
+              ) {
+                return Stack(
+                  children: [
+                    if (genAiState == GenAiState.standby) ...[
+                      EditorWidget(
+                        appModel: appModel,
+                        appServices: appServices,
                       ),
-                      const SizedBox(width: denseSpacing),
-                      // Format action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.formattingBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.format_align_left),
-                              tooltip: 'Format',
-                              small: true,
-                              onPressed: value ? null : onFormat,
-                            ),
-                          );
-                        },
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: denseSpacing,
+                        horizontal: defaultSpacing,
                       ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder(
-                        valueListenable: appModel.showReload,
-                        builder: (_, bool value, __) {
-                          if (!value) return const SizedBox();
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: appModel.canReload,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        // We use explicit directionality here in order to have the
+                        // format and run buttons on the right hand side of the
+                        // editing area.
+                        textDirection: TextDirection.ltr,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Dartdoc help button
+                          ValueListenableBuilder<bool>(
+                            valueListenable: appModel.docHelpBusy,
                             builder: (_, bool value, __) {
                               return PointerInterceptor(
-                                child: ReloadButton(
-                                  onPressed: value ? onCompileAndReload : null,
+                                child: MiniIconButton(
+                                  icon: const Icon(Icons.help_outline),
+                                  tooltip: 'Show docs',
+                                  // small: true,
+                                  onPressed:
+                                      value ? null : () => _showDocs(context),
                                 ),
                               );
                             },
-                          );
-                        },
+                          ),
+                          const SizedBox(width: denseSpacing),
+                          // Format action
+                          ValueListenableBuilder<bool>(
+                            valueListenable: appModel.formattingBusy,
+                            builder: (_, bool value, __) {
+                              return PointerInterceptor(
+                                child: MiniIconButton(
+                                  icon: const Icon(Icons.format_align_left),
+                                  tooltip: 'Format',
+                                  small: true,
+                                  onPressed: value ? null : onFormat,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: defaultSpacing),
+                          // Run action
+                          ValueListenableBuilder(
+                            valueListenable: appModel.showReload,
+                            builder: (_, bool value, __) {
+                              if (!value) return const SizedBox();
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: appModel.canReload,
+                                builder: (_, bool value, __) {
+                                  return PointerInterceptor(
+                                    child: ReloadButton(
+                                      onPressed:
+                                          value ? onCompileAndReload : null,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(width: defaultSpacing),
+                          // Run action
+                          ValueListenableBuilder<CompilingState>(
+                            valueListenable: appModel.compilingState,
+                            builder: (_, compiling, __) {
+                              return PointerInterceptor(
+                                child: RunButton(
+                                  onPressed:
+                                      compiling.busy ? null : onCompileAndRun,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder<CompilingState>(
-                        valueListenable: appModel.compilingState,
-                        builder: (_, compiling, __) {
-                          return PointerInterceptor(
-                            child: RunButton(
-                              onPressed:
-                                  compiling.busy ? null : onCompileAndRun,
-                            ),
-                          );
-                        },
+                    ),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.all(denseSpacing),
+                      child: StatusWidget(status: appModel.editorStatus),
+                    ),
+
+                    if (genAiState == GenAiState.standby) ...[
+                      SizedBox(width: 0, height: 0),
+                    ] else ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                        child: GeneratingCodePanel(
+                          appModel: appModel,
+                          appServices: appServices,
+                        ),
                       ),
                     ],
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.all(denseSpacing),
-                  child: StatusWidget(status: appModel.editorStatus),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ),
         ),
