@@ -464,6 +464,10 @@ class AppServices {
     return services.generateCode(request);
   }
 
+  Stream<String> generateUi(GenerateUiRequest request) {
+    return services.generateUi(request);
+  }
+
   Stream<String> updateCode(UpdateCodeRequest request) {
     return services.updateCode(request);
   }

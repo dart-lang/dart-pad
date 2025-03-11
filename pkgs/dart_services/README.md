@@ -29,14 +29,23 @@ dart bin/server.dart
 The server will run from port 8080 and export several JSON APIs, like
 `/api/v3/analyze` and `/api/v3/compile`.
 
-To test Gemini API features on a local machine,
-get an API key from [Google AI Studio](https://aistudio.google.com)
-and set the `GEMINI_API_KEY` environment variable before running:
 
-```
-export GEMINI_API_KEY=<YOUR_API_KEY>
-dart bin/server.dart
-```
+### Enabling code generation
+
+To test code generation features locally:
+
+1. Get needed API keys:
+
+   * Get a GEMINI_API_KEY key from [Google AI Studio](https://aistudio.google.com)
+   * See how to get a GENUI_API_KEY in the internal go/dartpad-manual.
+
+2. Set the needed environment variables before running:
+
+   ```
+   export GEMINI_API_KEY=<YOUR_GEMINI_API_KEY>
+   export GENUI_API_KEY=<YOUR_GENUI_API_KEY>
+   dart bin/server.dart
+   ```
 
 ### Testing
 
