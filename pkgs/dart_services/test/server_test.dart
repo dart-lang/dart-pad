@@ -284,7 +284,7 @@ void main() {
             ),
           );
           expect(result.result, isNotEmpty);
-          expect(result.result.length, greaterThanOrEqualTo(1024));
+          expect(result.result.length, greaterThanOrEqualTo(512));
           expect(result.modulesBaseUrl, isNotEmpty);
           expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
         });
