@@ -103,6 +103,10 @@ class AppModel {
   PromptDialogResponse? genAiActivePromptInfo;
   TextEditingController? genAiActivePromptTextController;
   ImageAttachmentsManager? genAiActiveImageAttachmentsManager;
+  final TextEditingController genAiNewCodePromptController =
+      TextEditingController();
+  final TextEditingController genAiCodeEditPromptController =
+      TextEditingController();
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
@@ -673,12 +677,14 @@ class PromptDialogResponse {
   const PromptDialogResponse({
     required this.appType,
     required this.prompt,
-    this.attachments = const [],
+    required this.promptTextController,
+    required this.imageAttachmentsManager,
   });
 
   final AppType appType;
   final String prompt;
-  final List<Attachment> attachments;
+  final TextEditingController promptTextController;
+  final ImageAttachmentsManager imageAttachmentsManager;
 }
 
 class ConsoleNotifier extends ChangeNotifier {

@@ -328,6 +328,7 @@ class PromptDialog extends StatefulWidget {
     required this.flutterPromptButtons,
     required this.dartPromptButtons,
     required this.initialAppType,
+    required this.promptTextController,
     super.key,
   });
 
@@ -336,19 +337,18 @@ class PromptDialog extends StatefulWidget {
   final Map<String, String> flutterPromptButtons;
   final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
+  final TextEditingController promptTextController;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
 }
 
 class _PromptDialogState extends State<PromptDialog> {
-  final _controller = TextEditingController();
   final _focusNode = FocusNode();
   final imageAttachmentsManager = ImageAttachmentsManager();
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -375,7 +375,7 @@ class _PromptDialogState extends State<PromptDialog> {
                 meta: _mac,
                 control: _nonMac,
               ): () {
-                if (_controller.text.isNotEmpty) _onGenerate();
+                if (widget.promptTextController.text.isNotEmpty) _onGenerate();
               },
             },
             child: Column(
@@ -383,7 +383,7 @@ class _PromptDialogState extends State<PromptDialog> {
               children: [
                 const SizedBox(height: 12),
                 TextField(
-                  controller: _controller,
+                  controller: widget.promptTextController,
                   focusNode: _focusNode,
                   autofocus: true,
                   decoration: InputDecoration(
@@ -409,7 +409,7 @@ class _PromptDialogState extends State<PromptDialog> {
                             OutlinedButton.icon(
                               icon: PromptSuggestionIcon(),
                               onPressed: () {
-                                _controller.text = entry.value;
+                                widget.promptTextController.text = entry.value;
                                 _focusNode.requestFocus();
                               },
                               label: Text(entry.key),
@@ -445,7 +445,7 @@ class _PromptDialogState extends State<PromptDialog> {
             child: const Text('Cancel'),
           ),
           ValueListenableBuilder(
-            valueListenable: _controller,
+            valueListenable: widget.promptTextController,
             builder:
                 (context, controller, _) => TextButton(
                   onPressed: controller.text.isEmpty ? null : _onGenerate,
@@ -464,13 +464,14 @@ class _PromptDialogState extends State<PromptDialog> {
   }
 
   void _onGenerate() {
-    assert(_controller.text.isNotEmpty);
+    assert(widget.promptTextController.text.isNotEmpty);
     Navigator.pop(
       context,
       PromptDialogResponse(
         appType: widget.initialAppType,
-        prompt: _controller.text,
-        attachments: imageAttachmentsManager.attachments,
+        prompt: widget.promptTextController.text,
+        imageAttachmentsManager: imageAttachmentsManager,
+        promptTextController: widget.promptTextController,
       ),
     );
   }
@@ -897,6 +898,7 @@ class GeminiCodeEditTool extends StatefulWidget {
     required this.onCancelUpdateCode,
     required this.onEditUpdateCodePrompt,
     required this.onAcceptUpdateCode,
+    required this.codeEditPromptController,
   });
 
   final AppModel appModel;
@@ -910,6 +912,7 @@ class GeminiCodeEditTool extends StatefulWidget {
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onEditUpdateCodePrompt;
   final VoidCallback onAcceptUpdateCode;
+  final TextEditingController codeEditPromptController;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -917,13 +920,10 @@ class GeminiCodeEditTool extends StatefulWidget {
 
 class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
-  final TextEditingController codeEditPromptController =
-      TextEditingController();
   final imageAttachmentsManager = ImageAttachmentsManager();
 
   @override
   void dispose() {
-    codeEditPromptController.dispose();
     super.dispose();
   }
 
@@ -937,7 +937,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   }
 
   void handlePromptSuggestion(String promptText) {
-    codeEditPromptController.text = promptText;
+    widget.codeEditPromptController.text = promptText;
   }
 
   @override
@@ -965,7 +965,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
         child: Column(
           children: [
             TextField(
-              controller: codeEditPromptController,
+              controller: widget.codeEditPromptController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -987,10 +987,11 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       context,
                       PromptDialogResponse(
                         appType: appType,
-                        prompt: codeEditPromptController.text,
-                        attachments: imageAttachmentsManager.attachments,
+                        prompt: widget.codeEditPromptController.text,
+                        imageAttachmentsManager: imageAttachmentsManager,
+                        promptTextController: widget.codeEditPromptController,
                       ),
-                      codeEditPromptController,
+                      widget.codeEditPromptController,
                       imageAttachmentsManager,
                     );
                     setState(() {});

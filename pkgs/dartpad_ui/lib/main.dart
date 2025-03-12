@@ -694,6 +694,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   'Generate a Dart program that prints the factorial of 5',
               if (lastPrompt != null) 'your last prompt': lastPrompt,
             },
+            promptTextController: appModel.genAiNewCodePromptController,
           ),
     );
 
@@ -706,33 +707,41 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
+    appModel.genAiCodeStreamIsDone.value = false;
     try {
-      final stream = appServices.generateCode(
+      appModel.genAiActivePromptInfo = promptResponse;
+      appModel.genAiActivePromptTextController =
+          promptResponse.promptTextController;
+      appModel.genAiActiveImageAttachmentsManager =
+          promptResponse.imageAttachmentsManager;
+
+      appModel.genAiCodeStream.value = appServices.generateCode(
         GenerateCodeRequest(
           appType: appType,
           prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
+          attachments: promptResponse.imageAttachmentsManager.attachments,
         ),
       );
 
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Generating New Code',
-            ),
-      );
+      appModel.genAiState.value = GenAiState.generating;
+      // final generateResponse = await showDialog<String>(
+      //   context: context,
+      //   builder:
+      //       (context) => GeneratingCodeDialog(
+      //         stream: stream,
+      //         title: 'Generating New Code',
+      //       ),
+      // );
 
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
+      // if (!context.mounted ||
+      //     generateResponse == null ||
+      //     generateResponse.isEmpty) {
+      //   return;
+      // }
 
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
+      // appModel.sourceCodeController.textNoScroll = generateResponse;
+      // appServices.editorService!.focus();
+      // appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendError('Generating code issue: $error');
@@ -775,7 +784,7 @@ class EditorWithButtons extends StatelessWidget {
           appType: promptInfo.appType,
           source: source,
           prompt: promptInfo.prompt,
-          attachments: promptInfo.attachments,
+          attachments: promptInfo.imageAttachmentsManager.attachments,
         ),
       );
 
@@ -944,6 +953,7 @@ class EditorWithButtons extends StatelessWidget {
           onAcceptUpdateCode: onAcceptUpdateCode,
           onCancelUpdateCode: onCancelUpdateCode,
           onEditUpdateCodePrompt: onEditUpdateCodePrompt,
+          codeEditPromptController: appModel.genAiCodeEditPromptController,
         ),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,
