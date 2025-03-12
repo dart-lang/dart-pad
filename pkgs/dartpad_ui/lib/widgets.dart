@@ -329,6 +329,7 @@ class PromptDialog extends StatefulWidget {
     required this.dartPromptButtons,
     required this.initialAppType,
     required this.promptTextController,
+    required this.imageAttachmentsManager,
     super.key,
   });
 
@@ -338,6 +339,7 @@ class PromptDialog extends StatefulWidget {
   final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
   final TextEditingController promptTextController;
+  final ImageAttachmentsManager imageAttachmentsManager;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
@@ -345,7 +347,6 @@ class PromptDialog extends StatefulWidget {
 
 class _PromptDialogState extends State<PromptDialog> {
   final _focusNode = FocusNode();
-  final imageAttachmentsManager = ImageAttachmentsManager();
 
   @override
   void dispose() {
@@ -424,13 +425,13 @@ class _PromptDialogState extends State<PromptDialog> {
                 SizedBox(
                   height: 64,
                   child: EditableImageList(
-                    attachments: imageAttachmentsManager.attachments,
+                    attachments: widget.imageAttachmentsManager.attachments,
                     onRemove: (int index) {
-                      imageAttachmentsManager.removeAttachment(index);
+                      widget.imageAttachmentsManager.removeAttachment(index);
                       setState(() {});
                     },
                     onAdd: () async {
-                      await imageAttachmentsManager.addAttachment();
+                      await widget.imageAttachmentsManager.addAttachment();
                       setState(() {});
                     },
                     maxAttachments: 3,
@@ -471,7 +472,7 @@ class _PromptDialogState extends State<PromptDialog> {
       PromptDialogResponse(
         appType: widget.initialAppType,
         prompt: widget.promptTextController.text,
-        imageAttachmentsManager: imageAttachmentsManager,
+        imageAttachmentsManager: widget.imageAttachmentsManager,
         promptTextController: widget.promptTextController,
       ),
     );
@@ -650,19 +651,21 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
   void initState() {
     super.initState();
 
-    _subscription = widget.appModel.genAiCodeStream.value.listen(
+    final genAiManager = widget.appModel.genAiManager;
+
+    final stream = genAiManager.stream;
+
+    _subscription = stream.value.listen(
       (text) => setState(() {
-        widget.appModel.genAiCodeStreamBuffer.value.write(text);
+        genAiManager.writeToStreamBuffer(text);
       }),
       onDone: () {
         setState(() {
-          final source =
-              widget.appModel.genAiCodeStreamBuffer.value.toString().trim();
-          widget.appModel.genAiCodeStreamBuffer.value.clear();
-          widget.appModel.genAiCodeStreamBuffer.value.write(source);
-          widget.appModel.genAiCodeStreamIsDone.value = true;
+          final source = genAiManager.generatedCode().trim();
+          genAiManager.setStreamBufferValue(source);
+          genAiManager.setStreamIsDone(true);
           _focusNode.requestFocus();
-          widget.appModel.genAiState.value = GenAiState.awaitingAcceptReject;
+          genAiManager.enterAwaitingAcceptReject();
         });
       },
     );
@@ -676,9 +679,10 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
 
   @override
   Widget build(BuildContext context) {
+    final genAiManager = widget.appModel.genAiManager;
     final existingSource = widget.appModel.sourceCodeController.text;
     return ValueListenableBuilder(
-      valueListenable: widget.appModel.genAiCodeStreamIsDone,
+      valueListenable: genAiManager.streamIsDone,
       builder: (
         BuildContext context,
         bool genAiCodeStreamIsDone,
@@ -700,7 +704,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
           children: [
             resolvedSpinner,
             ValueListenableBuilder(
-              valueListenable: widget.appModel.genAiCodeStreamBuffer,
+              valueListenable: genAiManager.streamBuffer,
               builder: (
                 BuildContext context,
                 StringBuffer genAiCodeStreamBuffer,
@@ -713,7 +717,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
                     focusNode: _focusNode,
                     child: ValueListenableBuilder(
                       valueListenable:
-                          widget.appModel.genAiGeneratingNewProject,
+                          widget.appModel.genAiManager.isGeneratingNewProject,
                       builder: (
                         BuildContext context,
                         bool genAiGeneratingNewProject,
@@ -922,7 +926,6 @@ class GeminiCodeEditTool extends StatefulWidget {
     required this.onCancelUpdateCode,
     required this.onEditUpdateCodePrompt,
     required this.onAcceptUpdateCode,
-    required this.codeEditPromptController,
   });
 
   final AppModel appModel;
@@ -936,7 +939,6 @@ class GeminiCodeEditTool extends StatefulWidget {
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onEditUpdateCodePrompt;
   final VoidCallback onAcceptUpdateCode;
-  final TextEditingController codeEditPromptController;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -944,7 +946,13 @@ class GeminiCodeEditTool extends StatefulWidget {
 
 class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
-  final imageAttachmentsManager = ImageAttachmentsManager();
+  late GenAiManager genAiManager;
+
+  @override
+  void initState() {
+    super.initState();
+    genAiManager = widget.appModel.genAiManager;
+  }
 
   @override
   void dispose() {
@@ -961,13 +969,16 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   }
 
   void handlePromptSuggestion(String promptText) {
-    widget.codeEditPromptController.text = promptText;
+    genAiManager.setEditPromptText(promptText);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appType = analyzedAppTypeFromSource(widget.appModel);
+    final promptController = genAiManager.codeEditPromptController;
+    final imageAttachmentsManager =
+        genAiManager.codeEditImageAttachmentsManager;
 
     final textInputBlock = Container(
       decoration: BoxDecoration(
@@ -989,7 +1000,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
         child: Column(
           children: [
             TextField(
-              controller: widget.codeEditPromptController,
+              controller: promptController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -1004,6 +1015,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                     setState(() {});
                   },
                 ),
+                // TODO(alsobrian) 3/12/25: clean up the GeminiEditSuffixIcon fields for all the genAiManager stuff repeated
                 suffixIcon: GeminiEditSuffixIcon(
                   textFieldIsFocused: _textInputIsFocused,
                   onGenerate: () {
@@ -1011,11 +1023,11 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       context,
                       PromptDialogResponse(
                         appType: appType,
-                        prompt: widget.codeEditPromptController.text,
+                        prompt: promptController.text,
                         imageAttachmentsManager: imageAttachmentsManager,
-                        promptTextController: widget.codeEditPromptController,
+                        promptTextController: promptController,
                       ),
-                      widget.codeEditPromptController,
+                      promptController,
                       imageAttachmentsManager,
                     );
                     setState(() {});
@@ -1045,7 +1057,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
     );
 
     final acceptRejectBlock = ValueListenableBuilder<GenAiState>(
-      valueListenable: widget.appModel.genAiState,
+      valueListenable: genAiManager.currentState,
       builder: (BuildContext context, GenAiState genAiState, Widget? child) {
         if (genAiState == GenAiState.standby) {
           return SizedBox(width: 0, height: 0);

@@ -702,7 +702,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   'Generate a Dart program that prints the factorial of 5',
               if (lastPrompt != null) 'your last prompt': lastPrompt,
             },
-            promptTextController: appModel.genAiNewCodePromptController,
+            promptTextController: appModel.genAiManager.newCodePromptController,
+            imageAttachmentsManager:
+                appModel.genAiManager.newCodeImageAttachmentsManager,
           ),
     );
 
@@ -715,33 +717,32 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
-    appModel.genAiCodeStreamIsDone.value = false;
-    appModel.genAiGeneratingNewProject.value = true;
+    appModel.genAiManager.enterGeneratingNew();
 
     try {
-      appModel.genAiActivePromptInfo = promptResponse;
-      appModel.genAiActivePromptTextController =
-          promptResponse.promptTextController;
-      appModel.genAiActiveImageAttachmentsManager =
-          promptResponse.imageAttachmentsManager;
+      // appModel.genAiManager.linkPromptSource(promptResponse);
 
       if (widget.useGenui) {
-        appModel.genAiCodeStream.value = appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
+        appModel.genAiManager.startStream(
+          appServices.generateUi(
+            GenerateUiRequest(prompt: promptResponse.prompt),
+          ),
         );
       } else {
-        appModel.genAiCodeStream.value = appServices.generateCode(
-          GenerateCodeRequest(
-            appType: appType,
-            prompt: promptResponse.prompt,
-            attachments: promptResponse.imageAttachmentsManager.attachments,
+        appModel.genAiManager.startStream(
+          appServices.generateCode(
+            GenerateCodeRequest(
+              appType: appType,
+              prompt: promptResponse.prompt,
+              attachments: promptResponse.imageAttachmentsManager.attachments,
+            ),
           ),
         );
       }
-      appModel.genAiState.value = GenAiState.generating;
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendError('Generating code issue: $error');
+      appModel.genAiManager.enterStandby();
     }
   }
 }
@@ -768,56 +769,49 @@ class EditorWithButtons extends StatelessWidget {
     TextEditingController promptTextController,
     ImageAttachmentsManager imageAttachmentsManager,
   ) async {
-    appModel.genAiCodeStreamIsDone.value = false;
-    appModel.genAiGeneratingNewProject.value = false;
+    appModel.genAiManager.enterGeneratingEdit();
 
     try {
-      appModel.genAiActivePromptInfo = promptInfo;
-      appModel.genAiActivePromptTextController = promptTextController;
-      appModel.genAiActiveImageAttachmentsManager = imageAttachmentsManager;
+      // appModel.genAiManager.linkPromptSource(promptInfo);
 
       final source = appModel.sourceCodeController.text;
-      appModel.genAiCodeStream.value = appServices.updateCode(
-        UpdateCodeRequest(
-          appType: promptInfo.appType,
-          source: source,
-          prompt: promptInfo.prompt,
-          attachments: promptInfo.imageAttachmentsManager.attachments,
+      appModel.genAiManager.startStream(
+        appServices.updateCode(
+          UpdateCodeRequest(
+            appType: promptInfo.appType,
+            source: source,
+            prompt: promptInfo.prompt,
+            attachments: promptInfo.imageAttachmentsManager.attachments,
+          ),
         ),
       );
-
-      appModel.genAiState.value = GenAiState.generating;
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendError('Updating code issue: $error');
+      appModel.genAiManager.enterStandby();
     }
   }
 
   void onAcceptUpdateCode() {
-    assert(appModel.genAiCodeStreamIsDone.value);
-    appModel.genAiActivePromptTextController?.text = '';
-    appModel.genAiActiveImageAttachmentsManager?.attachments.clear();
+    assert(appModel.genAiManager.streamIsDone.value);
+    appModel.genAiManager.resetInputs();
 
-    final generatedCode = appModel.genAiCodeStreamBuffer.value.toString();
+    final generatedCode = appModel.genAiManager.generatedCode();
     if (generatedCode.isEmpty) {
       return;
     }
     appModel.sourceCodeController.textNoScroll = generatedCode;
     appServices.performCompileAndReloadOrRun();
-    appModel.genAiState.value = GenAiState.standby;
-    appModel.genAiCodeStreamBuffer.value.clear();
+    appModel.genAiManager.enterStandby();
   }
 
   void onEditUpdateCodePrompt() {
-    appModel.genAiState.value = GenAiState.standby;
-    appModel.genAiCodeStreamBuffer.value.clear();
+    appModel.genAiManager.enterStandby();
   }
 
   void onCancelUpdateCode() {
-    appModel.genAiActivePromptTextController?.text = '';
-    appModel.genAiActiveImageAttachmentsManager?.attachments.clear();
-    appModel.genAiState.value = GenAiState.standby;
-    appModel.genAiCodeStreamBuffer.value.clear();
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
     // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
   }
 
@@ -828,7 +822,7 @@ class EditorWithButtons extends StatelessWidget {
         Expanded(
           child: SectionWidget(
             child: ValueListenableBuilder<GenAiState>(
-              valueListenable: appModel.genAiState,
+              valueListenable: appModel.genAiManager.currentState,
               builder: (
                 BuildContext context,
                 GenAiState genAiState,
@@ -951,7 +945,6 @@ class EditorWithButtons extends StatelessWidget {
           onAcceptUpdateCode: onAcceptUpdateCode,
           onCancelUpdateCode: onCancelUpdateCode,
           onEditUpdateCodePrompt: onEditUpdateCodePrompt,
-          codeEditPromptController: appModel.genAiCodeEditPromptController,
         ),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,

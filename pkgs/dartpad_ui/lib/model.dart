@@ -42,8 +42,6 @@ abstract class EditorService {
   void focus();
 }
 
-enum GenAiState { standby, generating, awaitingAcceptReject }
-
 class AppModel {
   final ValueNotifier<bool?> appIsFlutter = ValueNotifier(null);
   AppType get appType =>
@@ -90,24 +88,7 @@ class AppModel {
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
-  final ValueNotifier<GenAiState> genAiState = ValueNotifier(
-    GenAiState.standby,
-  );
-  final ValueNotifier<Stream<String>> genAiCodeStream = ValueNotifier(
-    Stream<String>.empty(),
-  );
-  final ValueNotifier<StringBuffer> genAiCodeStreamBuffer = ValueNotifier(
-    StringBuffer(),
-  );
-  final ValueNotifier<bool> genAiCodeStreamIsDone = ValueNotifier(true);
-  PromptDialogResponse? genAiActivePromptInfo;
-  TextEditingController? genAiActivePromptTextController;
-  ImageAttachmentsManager? genAiActiveImageAttachmentsManager;
-  final TextEditingController genAiNewCodePromptController =
-      TextEditingController();
-  final TextEditingController genAiCodeEditPromptController =
-      TextEditingController();
-  final ValueNotifier<bool> genAiGeneratingNewProject = ValueNotifier(true);
+  final GenAiManager genAiManager = GenAiManager();
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
@@ -720,4 +701,93 @@ class ConsoleNotifier extends ChangeNotifier {
   bool get isEmpty => _output.isEmpty && _error.isEmpty;
   bool get hasError => _error.isNotEmpty;
   String get valueToDisplay => hasError ? _error : _output;
+}
+
+enum GenAiState { standby, generating, awaitingAcceptReject }
+
+class GenAiManager {
+  final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
+  final ValueNotifier<Stream<String>> stream = ValueNotifier(
+    Stream<String>.empty(),
+  );
+  final ValueNotifier<StringBuffer> streamBuffer = ValueNotifier(
+    StringBuffer(),
+  );
+  final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
+  TextEditingController? activePromptTextController;
+  ImageAttachmentsManager? activeImageAttachmentsManager;
+  final TextEditingController newCodePromptController = TextEditingController();
+  final TextEditingController codeEditPromptController =
+      TextEditingController();
+  final ImageAttachmentsManager newCodeImageAttachmentsManager =
+      ImageAttachmentsManager();
+  final ImageAttachmentsManager codeEditImageAttachmentsManager =
+      ImageAttachmentsManager();
+  final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
+
+  GenAiManager();
+
+  ValueNotifier<GenAiState> get currentState {
+    return state;
+  }
+
+  void enterGeneratingNew() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = true;
+    activePromptTextController = newCodePromptController;
+    activeImageAttachmentsManager = newCodeImageAttachmentsManager;
+  }
+
+  void enterGeneratingEdit() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = false;
+    activePromptTextController = codeEditPromptController;
+    activeImageAttachmentsManager = codeEditImageAttachmentsManager;
+  }
+
+  void enterStandby() {
+    state.value = GenAiState.standby;
+    streamIsDone.value = true;
+    streamBuffer.value.clear();
+  }
+
+  void enterAwaitingAcceptReject() {
+    state.value = GenAiState.awaitingAcceptReject;
+  }
+
+  // void linkPromptSource(PromptDialogResponse promptResponse) {
+  //   //TODO(alsobrian) 3/12/25: clean up, check to see how much is necessary and actually used
+  //   activePromptTextController = promptResponse.promptTextController;
+  //   activeImageAttachmentsManager = promptResponse.imageAttachmentsManager;
+  // }
+
+  void startStream(Stream<String> newStream) {
+    stream.value = newStream;
+  }
+
+  void setStreamIsDone(bool which) {
+    streamIsDone.value = which;
+  }
+
+  void resetInputs() {
+    activePromptTextController?.text = '';
+    activeImageAttachmentsManager?.attachments.clear();
+  }
+
+  String generatedCode() {
+    return streamBuffer.value.toString();
+  }
+
+  void setEditPromptText(String newPrompt) {
+    codeEditPromptController.text = newPrompt;
+  }
+
+  void writeToStreamBuffer(String text) {
+    streamBuffer.value.write(text);
+  }
+
+  void setStreamBufferValue(String text) {
+    streamBuffer.value.clear();
+    streamBuffer.value.write(text);
+  }
 }
