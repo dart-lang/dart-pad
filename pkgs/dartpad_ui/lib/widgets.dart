@@ -400,7 +400,8 @@ class _PromptDialogState extends State<PromptDialog> {
                   children: [
                     Expanded(
                       child: OverflowBar(
-                        alignment: MainAxisAlignment.spaceBetween,
+                        alignment: MainAxisAlignment.center,
+                        spacing: 12,
                         children: [
                           for (final entry
                               in widget.initialAppType == AppType.flutter
@@ -896,11 +897,20 @@ class PromptSuggestionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'prompt_suggestion_icon.png',
-      height: height,
-      width: width,
-    );
+    return Theme.of(context).brightness == Brightness.light
+        ? Opacity(
+          opacity: 0.75,
+          child: Image.asset(
+            'prompt_suggestion_icon_lightmode.png',
+            height: height,
+            width: width,
+          ),
+        )
+        : Image.asset(
+          'prompt_suggestion_icon_darkmode.png',
+          height: height,
+          width: width,
+        );
   }
 }
 
