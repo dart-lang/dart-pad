@@ -708,6 +708,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     appModel.genAiCodeStreamIsDone.value = false;
+    appModel.genAiGeneratingNewProject.value = true;
     try {
       appModel.genAiActivePromptInfo = promptResponse;
       appModel.genAiActivePromptTextController =
@@ -724,24 +725,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       );
 
       appModel.genAiState.value = GenAiState.generating;
-      // final generateResponse = await showDialog<String>(
-      //   context: context,
-      //   builder:
-      //       (context) => GeneratingCodeDialog(
-      //         stream: stream,
-      //         title: 'Generating New Code',
-      //       ),
-      // );
-
-      // if (!context.mounted ||
-      //     generateResponse == null ||
-      //     generateResponse.isEmpty) {
-      //   return;
-      // }
-
-      // appModel.sourceCodeController.textNoScroll = generateResponse;
-      // appServices.editorService!.focus();
-      // appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendError('Generating code issue: $error');
@@ -772,6 +755,7 @@ class EditorWithButtons extends StatelessWidget {
     ImageAttachmentsManager imageAttachmentsManager,
   ) async {
     appModel.genAiCodeStreamIsDone.value = false;
+    appModel.genAiGeneratingNewProject.value = false;
 
     try {
       appModel.genAiActivePromptInfo = promptInfo;

@@ -710,9 +710,23 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
                   child: Focus(
                     autofocus: true,
                     focusNode: _focusNode,
-                    child: ReadOnlyDiffWidget(
-                      existingSource: existingSource,
-                      newSource: genAiCodeStreamBuffer.toString(),
+                    child: ValueListenableBuilder(
+                      valueListenable:
+                          widget.appModel.genAiGeneratingNewProject,
+                      builder: (
+                        BuildContext context,
+                        bool genAiGeneratingNewProject,
+                        Widget? child,
+                      ) {
+                        return genAiGeneratingNewProject
+                            ? ReadOnlyCodeWidget(
+                              genAiCodeStreamBuffer.toString(),
+                            )
+                            : ReadOnlyDiffWidget(
+                              existingSource: existingSource,
+                              newSource: genAiCodeStreamBuffer.toString(),
+                            );
+                      },
                     ),
                   ),
                 );

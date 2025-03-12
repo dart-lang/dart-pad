@@ -107,6 +107,7 @@ class AppModel {
       TextEditingController();
   final TextEditingController genAiCodeEditPromptController =
       TextEditingController();
+  final ValueNotifier<bool> genAiGeneratingNewProject = ValueNotifier(true);
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
