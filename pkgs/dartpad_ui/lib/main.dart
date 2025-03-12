@@ -780,30 +780,6 @@ class EditorWithButtons extends StatelessWidget {
       );
 
       appModel.genAiState.value = GenAiState.generating;
-
-      // final generateResponse = await showDialog<String>(
-      //   context: context,
-      //   builder:
-      //       (context) => GeneratingCodeDialog(
-      //         stream: stream,
-      //         title: 'Updating Existing Code',
-      //         existingSource: source,
-      //         onAcceptReset: () {
-      //           promptTextController.text = '';
-      //           imageAttachmentsManager.attachments.clear();
-      //         },
-      //       ),
-      // );
-
-      // if (!context.mounted ||
-      //     generateResponse == null ||
-      //     generateResponse.isEmpty) {
-      //   return;
-      // }
-
-      // appModel.sourceCodeController.textNoScroll = generateResponse;
-      // appServices.editorService!.focus();
-      // appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendError('Updating code issue: $error');
