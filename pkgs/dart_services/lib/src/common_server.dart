@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -38,12 +39,12 @@ class CommonServerImpl {
   late Analyzer analyzer;
   late Compiler compiler;
   final ai = GenerativeAI();
+  final GenUi genui = GenUi();
 
   CommonServerImpl(
     this.sdk,
     this.cache, {
     this.storageBucket = 'nnbd_artifacts',
-    genUiKey,
   });
 
   Future<void> init() async {
@@ -91,6 +92,7 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/document', handleDocument);
     router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
+    router.post(r'/api/<apiVersion>/generateUi', generateUi);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
     return router;
@@ -329,20 +331,16 @@ class CommonServerApi {
   Future<Response> generateUi(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
-    final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+    final generateUiRequest = api.GenerateUiRequest.fromJson(
       await request.readAsJson(),
     );
 
-    return _streamResponse(
-      'generateUi',
-      Stream.fromIterable([
-        'hello',
-        ' from',
-        ' genui',
-        ' for ',
-        generateCodeRequest.prompt,
-      ]),
-    );
+    final resultStream = Stream.fromIterable([
+      await impl.genui.generateCode(prompt: generateUiRequest.prompt),
+    ]);
+
+    // TODO(polina-c): setup better streaming
+    return _streamResponse('generateUi', resultStream);
   }
 
   Future<Response> updateCode(Request request, String apiVersion) async {

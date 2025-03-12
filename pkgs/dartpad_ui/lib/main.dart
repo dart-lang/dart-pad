@@ -130,6 +130,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
+    final useGenui = state.uri.queryParameters['genui'] == 'true';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -139,6 +140,7 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
+      useGenui: useGenui,
     );
   }
 
@@ -208,6 +210,7 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
+  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -217,6 +220,7 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
+    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -300,6 +304,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           }
         });
     appModel.compilingState.addListener(_handleRunStarted);
+
+    debugPrint(
+      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
+    );
   }
 
   @override
@@ -709,6 +717,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     appModel.genAiCodeStreamIsDone.value = false;
     appModel.genAiGeneratingNewProject.value = true;
+
     try {
       appModel.genAiActivePromptInfo = promptResponse;
       appModel.genAiActivePromptTextController =
@@ -716,14 +725,19 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       appModel.genAiActiveImageAttachmentsManager =
           promptResponse.imageAttachmentsManager;
 
-      appModel.genAiCodeStream.value = appServices.generateCode(
-        GenerateCodeRequest(
-          appType: appType,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.imageAttachmentsManager.attachments,
-        ),
-      );
-
+      if (widget.useGenui) {
+        appModel.genAiCodeStream.value = appServices.generateUi(
+          GenerateUiRequest(prompt: promptResponse.prompt),
+        );
+      } else {
+        appModel.genAiCodeStream.value = appServices.generateCode(
+          GenerateCodeRequest(
+            appType: appType,
+            prompt: promptResponse.prompt,
+            attachments: promptResponse.imageAttachmentsManager.attachments,
+          ),
+        );
+      }
       appModel.genAiState.value = GenAiState.generating;
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
