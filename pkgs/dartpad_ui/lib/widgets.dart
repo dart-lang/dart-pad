@@ -722,56 +722,6 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
       },
     );
   }
-
-  // ),
-  //  [
-  //   Row(
-  //     children: [
-  //       Expanded(
-  //         child: Align(
-  //           alignment: Alignment.centerLeft,
-  //           child: RichText(
-  //             text: TextSpan(
-  //               text: 'Powered by ',
-  //               style: DefaultTextStyle.of(context).style,
-  //               children: [
-  //                 TextSpan(
-  //                   text: 'Google AI',
-  //                   style: TextStyle(color: theme.colorScheme.primary),
-  //                   recognizer:
-  //                       TapGestureRecognizer()
-  //                         ..onTap = () {
-  //                           url_launcher.launchUrl(
-  //                             Uri.parse('https://ai.google.dev/'),
-  //                           );
-  //                         },
-  //                 ),
-  //                 TextSpan(
-  //                   text: ' and the Gemini API',
-  //                   style: DefaultTextStyle.of(context).style,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //       TextButton(
-  //         onPressed: () => Navigator.pop(context),
-  //         child: const Text('Cancel'),
-  //       ),
-  //       TextButton(
-  //         onPressed: _done ? _onAcceptAndRun : null,
-  //         child: Text(
-  //           'Accept',
-  //           style: TextStyle(
-  //             color: !_done ? theme.disabledColor : null,
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   ),
-  // ],
-  // ),
 }
 
 class EditableImageList extends StatelessWidget {
