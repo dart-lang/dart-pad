@@ -753,7 +753,7 @@ class GenAiManager {
     state.value = GenAiState.awaitingAcceptReject;
   }
 
-  void startStream(Stream<String> newStream) {
+  void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
     stream.value = newStream;
   }
 
