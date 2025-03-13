@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Turn on or off gen-ai features in the client.
-const bool genAiEnabled = false;
+const bool genAiEnabled = true;
 
 /*
 
@@ -14,7 +14,8 @@ These are options to exercise GenUI :
 
   a. Set genAiEnabled to true above.
 
-  b. See go/dartpad-manual-genui for instructions on how to start backend with GENUI_API_KEY.
+  b. See go/dartpad-manual-genui, section "GenUi Integration"
+     for instructions on how to start backend with GENUI_API_KEY.
 
   c. Use this command to run UI:
 

@@ -43,7 +43,7 @@ class GenUi {
 
     return http.post(
       Uri.parse(
-        'https://autopush-devgenui.sandbox.googleapis.com/v1beta1/firstparty/generateidecode?key=$_genuiApiKey',
+        'https://devgenui.pa.googleapis.com/v1internal/firstparty/generateidecode?key=$_genuiApiKey',
       ),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
