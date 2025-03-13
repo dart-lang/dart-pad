@@ -1,13 +1,19 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 name: dartpad_ui
 description: The front-end UI of DartPad.
 publish_to: none
 
+resolution: workspace
 environment:
-  sdk: ^3.6.0-0
+  sdk: ^3.7.0
 
 dependencies:
   collection: ^1.19.0
-  dartpad_shared: any
+  dartpad_shared:
+    path: ../dartpad_shared
   flutter:
     sdk: flutter
   flutter_markdown: ^0.7.2
@@ -15,9 +21,12 @@ dependencies:
     sdk: flutter
   go_router: ^14.1.4
   google_fonts: ^6.2.1
-  http: ^1.2.1
+  http: ^1.3.0
+  image_picker: ^1.1.2
   json_annotation: ^4.9.0
+  mime: ^2.0.0
   pointer_interceptor: ^0.10.1
+  pretty_diff_text: ^2.0.0
   provider: ^6.1.2
   split_view: ^3.2.1
   url_launcher: ^6.3.0
@@ -27,20 +36,20 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   test: ^1.25.7
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: RobotoMono
+      fonts:
+        - asset: assets/RobotoMono-Regular.ttf
+        - asset: assets/RobotoMono-Bold.ttf
+          weight: 700
   assets:
     - assets/dart_logo_192.png
     - assets/flame_logo_192.png
     - assets/flutter_logo_192.png
     - assets/gemini_sparkle_192.png
     - assets/idx_192.png
-    - assets/RobotoMono-Bold.ttf
-    - assets/RobotoMono-Regular.ttf
-
-dependency_overrides:
-  dartpad_shared:
-    path: ../dartpad_shared

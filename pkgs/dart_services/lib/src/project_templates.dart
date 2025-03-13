@@ -18,10 +18,7 @@ class ProjectTemplates {
 
   factory ProjectTemplates() {
     final basePath = _baseTemplateProject();
-    final summaryFilePath = path.join(
-      'artifacts',
-      'flutter_web.dill',
-    );
+    final summaryFilePath = path.join('artifacts', 'flutter_web.dill');
     return ProjectTemplates._(
       dartPath: path.join(basePath, 'dart_project'),
       flutterPath: path.join(basePath, 'flutter_project'),
@@ -89,6 +86,8 @@ const Set<String> supportedBasicDartPackages = {
   'convert',
   'cross_file',
   'dartz',
+  'dio',
+  'dio_web_adapter',
   'english_words',
   'equatable',
   'fast_immutable_collections',
@@ -115,17 +114,7 @@ const Set<String> supportedBasicDartPackages = {
 };
 
 /// The set of all packages whose support in DartPad is deprecated.
-const Set<String> _deprecatedPackages = {
-  'js',
-};
-
-/// The set of core web libraries whose support in
-/// DartPad or Dart is deprecated.
-const Set<String> _deprecatedCoreWebLibraries = {
-  'js',
-  'html',
-  'js_util',
-};
+const Set<String> _deprecatedPackages = {};
 
 /// A set of all allowed `dart:` libraries, includes
 /// all libraries from "Core", some from "Web", and none from "VM".
@@ -139,18 +128,12 @@ const Set<String> _allowedCoreLibraries = {
   'typed_data',
   'js_interop',
   'js_interop_unsafe',
-  ..._deprecatedCoreWebLibraries,
   'ui',
 };
 
 /// Whether [libraryName] is the name of a supported `dart:` core library.
 bool isSupportedCoreLibrary(String libraryName) =>
     _allowedCoreLibraries.contains(libraryName);
-
-/// Whether [libraryName] is the name of a supported, but deprecated,
-/// `dart:` core web library.
-bool isDeprecatedCoreWebLibrary(String libraryName) =>
-    _deprecatedCoreWebLibraries.contains(libraryName);
 
 /// Whether [imports] denote use of Flutter Web.
 bool usesFlutterWeb(Iterable<ImportDirective> imports) =>
@@ -193,9 +176,14 @@ String? _packageNameFromPackageUri(String uriString) {
   return uri.pathSegments.first;
 }
 
-bool isSupportedPackage(String package) =>
-    _packagesIndicatingFlutter.contains(package) ||
+bool isSupportedFlutterPackage(String package) =>
+    _packagesIndicatingFlutter.contains(package);
+
+bool isSupportedDartPackage(String package) =>
     supportedBasicDartPackages.contains(package);
+
+bool isSupportedPackage(String package) =>
+    isSupportedFlutterPackage(package) || isSupportedDartPackage(package);
 
 /// If the specified [package] is deprecated in DartPad and
 /// slated to be removed in a future update.

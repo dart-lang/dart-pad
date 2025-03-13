@@ -17,20 +17,25 @@ void defineTests() {
   group('FlutterWebManager', () {
     test('initializes', () async {
       expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
-      final file = File(path.join(
-          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      final file = File(
+        path.join(
+          projectTemplates.flutterPath,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
       expect(await file.exists(), isTrue);
     });
 
     test('isFlutterWebImport', () {
       expect(isFlutterWebImport(''), isFalse);
-      expect(isFlutterWebImport('dart:html'), isFalse);
+      expect(isFlutterWebImport('dart:js_interop'), isFalse);
       expect(isFlutterWebImport('dart:ui'), isTrue);
       expect(isFlutterWebImport('package:flutter/'), isTrue);
     });
 
-    test('isSupportedCoreLibrary allows dart:html', () {
-      expect(isSupportedCoreLibrary('html'), isTrue);
+    test('isSupportedCoreLibrary allows dart:js_interop', () {
+      expect(isSupportedCoreLibrary('js_interop'), isTrue);
     });
 
     test('isSupportedCoreLibrary allows dart:ui', () {
@@ -64,15 +69,22 @@ void defineTests() {
 
   group('flutter web project', () {
     test('packagesFilePath', () async {
-      final packageConfig = File(path.join(
-          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      final packageConfig = File(
+        path.join(
+          projectTemplates.flutterPath,
+          '.dart_tool',
+          'package_config.json',
+        ),
+      );
       expect(await packageConfig.exists(), true);
       final encoded = await packageConfig.readAsString();
       final contents = jsonDecode(encoded) as Map<String, dynamic>;
       expect(contents['packages'], isNotEmpty);
       final packages = contents['packages'] as List<dynamic>;
-      expect(packages.where((element) => (element as Map)['name'] == 'flutter'),
-          isNotEmpty);
+      expect(
+        packages.where((element) => (element as Map)['name'] == 'flutter'),
+        isNotEmpty,
+      );
     });
 
     test('summaryFilePath', () {

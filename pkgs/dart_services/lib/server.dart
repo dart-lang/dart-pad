@@ -14,21 +14,32 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 import 'src/caching.dart';
 import 'src/common_server.dart';
 import 'src/logging.dart';
-import 'src/oauth_handler.dart';
 import 'src/sdk.dart';
 
 final Logger _logger = Logger('services');
 
 Future<void> main(List<String> args) async {
-  final parser = ArgParser()
-    ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
-    ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
-    ..addOption('storage-bucket',
-        valueHelp: 'name',
-        help: 'The name of the Cloud Storage bucket for compilation artifacts.',
-        defaultsTo: 'nnbd_artifacts')
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Show this usage information.');
+  final parser =
+      ArgParser()
+        ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
+        ..addOption(
+          'redis-url',
+          valueHelp: 'url',
+          help: 'The redis server url.',
+        )
+        ..addOption(
+          'storage-bucket',
+          valueHelp: 'name',
+          help:
+              'The name of the Cloud Storage bucket for compilation artifacts.',
+          defaultsTo: 'nnbd_artifacts',
+        )
+        ..addFlag(
+          'help',
+          abbr: 'h',
+          negatable: false,
+          help: 'Show this usage information.',
+        );
 
   final results = parser.parse(args);
   if (results['help'] as bool) {
@@ -66,18 +77,21 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.info('''
+  _logger.info(
+    '''
 Starting dart-services:
   port: $port
   sdkPath: ${sdk.dartSdkPath}
   redisServerUri: $redisServerUri
-  Cloud Run Environment variables: $cloudRunEnvVars'''
-      .trim());
+  Cloud Run Environment variables: $cloudRunEnvVars'''.trim(),
+  );
 
-  await GitHubOAuthHandler.initFromEnvironmentalVars();
-
-  final server =
-      await EndpointsServer.serve(port, sdk, redisServerUri, storageBucket);
+  final server = await EndpointsServer.serve(
+    port,
+    sdk,
+    redisServerUri,
+    storageBucket,
+  );
 
   _logger.info('Listening on port ${server.port}');
 }
@@ -89,8 +103,11 @@ class EndpointsServer {
     String? redisServerUri,
     String storageBucket,
   ) async {
-    final endpointsServer =
-        EndpointsServer._(sdk, redisServerUri, storageBucket);
+    final endpointsServer = EndpointsServer._(
+      sdk,
+      redisServerUri,
+      storageBucket,
+    );
     await endpointsServer._init();
 
     endpointsServer.server = await shelf.serve(
@@ -113,19 +130,14 @@ class EndpointsServer {
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
 
-    final cache = redisServerUri == null
-        ? NoopCache()
-        : RedisCache(redisServerUri, sdk, serverVersion);
+    final cache =
+        redisServerUri == null
+            ? NoopCache()
+            : RedisCache(redisServerUri, sdk, serverVersion);
 
-    commonServer = CommonServerApi(CommonServerImpl(
-      sdk,
-      cache,
-      storageBucket: storageBucket,
-    ));
-
-    // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
-    GitHubOAuthHandler.setCache(cache);
-    GitHubOAuthHandler.addRoutes(commonServer.router);
+    commonServer = CommonServerApi(
+      CommonServerImpl(sdk, cache, storageBucket: storageBucket),
+    );
 
     final pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))

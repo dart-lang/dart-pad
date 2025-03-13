@@ -24,8 +24,9 @@ RelativeRect calculatePopupMenuPosition(
 }) {
   final render = context.findRenderObject() as RenderBox;
   final size = render.size;
-  final offset =
-      render.localToGlobal(Offset(0, growUpwards ? -size.height : size.height));
+  final offset = render.localToGlobal(
+    Offset(0, growUpwards ? -size.height : size.height),
+  );
 
   return RelativeRect.fromLTRB(
     offset.dx,
@@ -35,24 +36,12 @@ RelativeRect calculatePopupMenuPosition(
   );
 }
 
-bool hasFlutterWebMarker(String javaScript) {
-  const marker1 = 'window.flutterConfiguration';
-  if (javaScript.contains(marker1)) {
-    return true;
-  }
-
-  // define('dartpad_main', ['dart_sdk', 'flutter_web']
-  if (javaScript.contains("define('") && javaScript.contains("'flutter_web'")) {
-    return true;
-  }
-
-  return false;
+bool hasFlutterImports(List<String> imports) {
+  return imports.any((import) => import.startsWith('package:flutter/'));
 }
 
-bool hasPackageWebImport(String dartSource) {
-  // TODO(devoncarew): There are better ways to do this.
-  return dartSource.contains("import 'package:web/") ||
-      dartSource.contains('import "package:web/');
+bool hasPackageWebImport(List<String> imports) {
+  return imports.any((import) => import.startsWith('package:web/'));
 }
 
 extension ColorExtension on Color {
@@ -99,8 +88,9 @@ class StatusController {
     return message;
   }
 
-  final ValueNotifier<MessageStatus> _state =
-      ValueNotifier(MessageStatus.empty);
+  final ValueNotifier<MessageStatus> _state = ValueNotifier(
+    MessageStatus.empty,
+  );
 
   ValueListenable<MessageStatus> get state => _state;
 
@@ -142,8 +132,8 @@ class Message {
   MessageState _state = MessageState.opening;
 
   Message._(StatusController parent, String message, {this.name})
-      : _parent = parent,
-        _message = message;
+    : _parent = parent,
+      _message = message;
 
   MessageState get state => _state;
 
@@ -158,8 +148,10 @@ class Message {
 }
 
 class MessageStatus {
-  static final MessageStatus empty =
-      MessageStatus(message: '', state: MessageState.closing);
+  static final MessageStatus empty = MessageStatus(
+    message: '',
+    state: MessageState.closing,
+  );
 
   final String message;
   final MessageState state;
@@ -179,12 +171,18 @@ class MessageStatus {
   String toString() => '[$state] $message';
 }
 
-enum MessageState {
-  opening,
-  showing,
-  closing;
-}
+enum MessageState { opening, showing, closing }
 
 extension StringUtils on String {
   String? get nullIfEmpty => isEmpty ? null : this;
+}
+
+extension TextEditingControllerExtensions on TextEditingController {
+  // set the source w/o scrolling to the top
+  set textNoScroll(String text) {
+    value = TextEditingValue(
+      text: text,
+      selection: const TextSelection.collapsed(offset: 0),
+    );
+  }
 }

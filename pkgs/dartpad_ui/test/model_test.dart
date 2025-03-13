@@ -14,16 +14,7 @@ void main() {
 
     test('supported channels', () {
       final result = Channel.valuesWithoutLocalhost.map((c) => c.name).toList();
-      expect(
-        result,
-        unorderedMatches(
-          [
-            'main',
-            'beta',
-            'stable',
-          ],
-        ),
-      );
+      expect(result, unorderedMatches(['main', 'beta', 'stable']));
     });
   });
 }

@@ -1,15 +1,20 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 name: samples
 description: Sample code snippets for DartPad.
 publish_to: none
 
+resolution: workspace
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.7.0
 
 dependencies:
-  flame: ^1.23.0
+  flame: ^1.25.0
   flutter:
     sdk: flutter
-  flutter_markdown: ^0.7.5
+  flutter_markdown: ^0.7.6
   google_generative_ai: ^0.4.6
   url_launcher: ^6.3.1
 

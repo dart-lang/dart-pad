@@ -31,12 +31,14 @@ class Analyzer {
     analysisServer = AnalysisServerWrapper(sdkPath: sdk.dartSdkPath);
     await analysisServer.init();
 
-    unawaited(analysisServer.onExit.then((int code) {
-      _logger.severe('analysis server exited, code: $code');
-      if (code != 0) {
-        exit(code);
-      }
-    }));
+    unawaited(
+      analysisServer.onExit.then((int code) {
+        _logger.severe('analysis server exited, code: $code');
+        if (code != 0) {
+          exit(code);
+        }
+      }),
+    );
   }
 
   Future<api.AnalysisResponse> analyze(String source) async {
@@ -71,20 +73,19 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   late AnalysisServer analysisServer;
 
-  AnalysisServerWrapper({
-    required this.sdkPath,
-    String? projectPath,
-  }) :
-        // During analysis, we use the Flutter project template.
-        projectPath =
-            projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
+  AnalysisServerWrapper({required this.sdkPath, String? projectPath})
+    : // During analysis, we use the Flutter project template.
+      projectPath =
+          projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
 
   String get mainPath => _getPathFromName(kMainDart);
 
   Future<void> init() async {
     const serverArgs = <String>['--client-id=DartPad'];
-    _logger.info('Starting analysis server '
-        '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})');
+    _logger.info(
+      'Starting analysis server '
+      '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})',
+    );
 
     analysisServer = await AnalysisServer.create(
       sdkPath: sdkPath,
@@ -93,8 +94,11 @@ class AnalysisServerWrapper {
 
     try {
       analysisServer.server.onError.listen((ServerError error) {
-        _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
-            error.message, StackTrace.fromString(error.stackTrace));
+        _logger.severe(
+          'server error${error.isFatal ? ' (fatal)' : ''}',
+          error.message,
+          StackTrace.fromString(error.stackTrace),
+        );
       });
       await analysisServer.server.onConnected.first;
       await analysisServer.server.setSubscriptions(<String>['STATUS']);
@@ -128,47 +132,51 @@ class AnalysisServerWrapper {
       maxResults: maxResults,
     );
 
-    final suggestions =
-        results.suggestions.where((CompletionSuggestion suggestion) {
-      // Filter suggestions that would require adding an import.
-      return suggestion.isNotImported != true;
-    }).where((CompletionSuggestion suggestion) {
-      if (suggestion.kind != 'IMPORT') return true;
+    final suggestions = results.suggestions
+        .where((CompletionSuggestion suggestion) {
+          // Filter suggestions that would require adding an import.
+          return suggestion.isNotImported != true;
+        })
+        .where((CompletionSuggestion suggestion) {
+          if (suggestion.kind != 'IMPORT') return true;
 
-      // We do not want to enable arbitrary discovery of file system resources.
-      // In order to avoid returning local file paths, we only allow returning
-      // import kinds that are dart: or package: imports.
-      if (suggestion.completion.startsWith('dart:')) {
-        return true;
-      }
+          // We do not want to enable arbitrary discovery of file system resources.
+          // In order to avoid returning local file paths, we only allow returning
+          // import kinds that are dart: or package: imports.
+          if (suggestion.completion.startsWith('dart:')) {
+            return true;
+          }
 
-      // Filter package suggestions to allowlisted packages.
-      if (suggestion.completion.startsWith('package:')) {
-        var packageName = suggestion.completion.substring('package:'.length);
-        packageName = packageName.split('/').first;
-        return isSupportedPackage(packageName);
-      }
+          // Filter package suggestions to allowlisted packages.
+          if (suggestion.completion.startsWith('package:')) {
+            var packageName = suggestion.completion.substring(
+              'package:'.length,
+            );
+            packageName = packageName.split('/').first;
+            return isSupportedPackage(packageName);
+          }
 
-      return false;
-    });
+          return false;
+        });
 
     return api.CompleteResponse(
       replacementOffset: results.replacementOffset,
       replacementLength: results.replacementLength,
-      suggestions: suggestions.map((suggestion) {
-        return api.CompletionSuggestion(
-          kind: suggestion.kind,
-          relevance: suggestion.relevance,
-          completion: suggestion.completion,
-          deprecated: suggestion.isDeprecated,
-          selectionOffset: suggestion.selectionOffset,
-          displayText: suggestion.displayText,
-          parameterNames: suggestion.parameterNames,
-          returnType: suggestion.returnType,
-          elementKind: suggestion.element?.kind,
-          elementParameters: suggestion.element?.parameters,
-        );
-      }).toList(),
+      suggestions:
+          suggestions.map((suggestion) {
+            return api.CompletionSuggestion(
+              kind: suggestion.kind,
+              relevance: suggestion.relevance,
+              completion: suggestion.completion,
+              deprecated: suggestion.isDeprecated,
+              selectionOffset: suggestion.selectionOffset,
+              displayText: suggestion.displayText,
+              parameterNames: suggestion.parameterNames,
+              returnType: suggestion.returnType,
+              elementKind: suggestion.element?.kind,
+              elementParameters: suggestion.element?.parameters,
+            );
+          }).toList(),
     );
   }
 
@@ -185,17 +193,21 @@ class AnalysisServerWrapper {
 
     // Filter any source changes that want to act on files other than main.dart.
     fixChanges.removeWhere(
-        (change) => change.edits.any((edit) => edit.file != mainFile));
+      (change) => change.edits.any((edit) => edit.file != mainFile),
+    );
     assistsChanges.removeWhere(
-        (change) => change.edits.any((edit) => edit.file != mainFile));
+      (change) => change.edits.any((edit) => edit.file != mainFile),
+    );
 
     return api.FixesResponse(
-      fixes: fixChanges.map((change) {
-        return change.toApiSourceChange();
-      }).toList(),
-      assists: assistsChanges.map((change) {
-        return change.toApiSourceChange();
-      }).toList(),
+      fixes:
+          fixChanges.map((change) {
+            return change.toApiSourceChange();
+          }).toList(),
+      assists:
+          assistsChanges.map((change) {
+            return change.toApiSourceChange();
+          }).toList(),
     );
   }
 
@@ -203,25 +215,32 @@ class AnalysisServerWrapper {
   /// current cursor location and a modified offset is returned if necessary to
   /// maintain the cursors original position in the formatted code.
   Future<api.FormatResponse> format(String src, int? offset) {
-    return _formatImpl(src, offset).then((FormatResult editResult) {
-      final edits = editResult.edits;
+    return _formatImpl(src, offset)
+        .then((FormatResult editResult) {
+          final edits = editResult.edits;
 
-      edits.sort((SourceEdit e1, SourceEdit e2) =>
-          -1 * e1.offset.compareTo(e2.offset));
+          edits.sort(
+            (SourceEdit e1, SourceEdit e2) =>
+                -1 * e1.offset.compareTo(e2.offset),
+          );
 
-      for (final edit in edits) {
-        src = src.replaceRange(
-            edit.offset, edit.offset + edit.length, edit.replacement);
-      }
+          for (final edit in edits) {
+            src = src.replaceRange(
+              edit.offset,
+              edit.offset + edit.length,
+              edit.replacement,
+            );
+          }
 
-      return api.FormatResponse(
-        source: src,
-        offset: offset == null ? 0 : editResult.selectionOffset,
-      );
-    }).catchError((dynamic error) {
-      _logger.fine('format error: $error');
-      return api.FormatResponse(source: src, offset: offset);
-    });
+          return api.FormatResponse(
+            source: src,
+            offset: offset == null ? 0 : editResult.selectionOffset,
+          );
+        })
+        .catchError((dynamic error) {
+          _logger.fine('format error: $error');
+          return api.FormatResponse(source: src, offset: offset);
+        });
   }
 
   Future<api.DocumentResponse> dartdoc(String src, int offset) async {
@@ -255,41 +274,45 @@ class AnalysisServerWrapper {
 
     // Loop over all files and collect errors.
     for (final sourcePath in sources.keys) {
-      errors
-          .addAll((await analysisServer.analysis.getErrors(sourcePath)).errors);
+      errors.addAll(
+        (await analysisServer.analysis.getErrors(sourcePath)).errors,
+      );
     }
 
-    final issues = errors.map((error) {
-      final issue = api.AnalysisIssue(
-        kind: error.severity.toLowerCase(),
-        message: utils.normalizeFilePaths(error.message),
-        code: error.code.toLowerCase(),
-        location: api.Location(
-          charStart: error.location.offset,
-          charLength: error.location.length,
-          line: error.location.startLine,
-          column: error.location.startColumn,
-        ),
-        correction: error.correction == null
-            ? null
-            : utils.normalizeFilePaths(error.correction!),
-        url: error.url,
-        contextMessages: error.contextMessages?.map((m) {
-          return api.DiagnosticMessage(
-            message: utils.normalizeFilePaths(m.message),
+    final issues =
+        errors.map((error) {
+          final issue = api.AnalysisIssue(
+            kind: error.severity.toLowerCase(),
+            message: utils.normalizeFilePaths(error.message),
+            code: error.code.toLowerCase(),
             location: api.Location(
-              charStart: m.location.offset,
-              charLength: m.location.length,
-              line: m.location.startLine,
-              column: m.location.startColumn,
+              charStart: error.location.offset,
+              charLength: error.location.length,
+              line: error.location.startLine,
+              column: error.location.startColumn,
             ),
+            correction:
+                error.correction == null
+                    ? null
+                    : utils.normalizeFilePaths(error.correction!),
+            url: error.url,
+            contextMessages:
+                error.contextMessages?.map((m) {
+                  return api.DiagnosticMessage(
+                    message: utils.normalizeFilePaths(m.message),
+                    location: api.Location(
+                      charStart: m.location.offset,
+                      charLength: m.location.length,
+                      line: m.location.startLine,
+                      column: m.location.startColumn,
+                    ),
+                  );
+                }).toList(),
+            hasFix: error.hasFix,
           );
-        }).toList(),
-        hasFix: error.hasFix,
-      );
 
-      return issue;
-    }).toList();
+          return issue;
+        }).toList();
 
     issues.sort((api.AnalysisIssue a, api.AnalysisIssue b) {
       // Order issues by severity.
@@ -308,58 +331,69 @@ class AnalysisServerWrapper {
       if (import.dartImport) {
         final libraryName = import.packageName;
         if (!isSupportedCoreLibrary(libraryName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'error',
-            message: "Unsupported library on the web: 'dart:$libraryName'.",
-            correction: 'Try removing the import and usages of the library.',
-            location: import.getLocation(source),
-          ));
-        } else if (isDeprecatedCoreWebLibrary(libraryName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'info', // TODO(parlough): Expand to 'warning' in future.
-            message: "Deprecated core web library: 'dart:$libraryName'.",
-            correction: 'Try using static JS interop instead.',
-            url: 'https://dart.dev/go/next-gen-js-interop',
-            location: import.getLocation(source),
-          ));
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'error',
+              message: "Unsupported library on the web: 'dart:$libraryName'.",
+              correction: 'Try removing the import and usages of the library.',
+              location: import.getLocation(source),
+            ),
+          );
         }
       } else if (import.packageImport) {
         final packageName = import.packageName;
 
         if (isFirebasePackage(packageName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'warning',
-            message: 'Firebase is no longer supported by DartPad.',
-            url:
-                'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
-            location: import.getLocation(source),
-          ));
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'warning',
+              message: 'Firebase is no longer supported by DartPad.',
+              url:
+                  'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
+              location: import.getLocation(source),
+            ),
+          );
         } else if (isDeprecatedPackage(packageName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'warning',
-            message: "Deprecated package: 'package:$packageName'.",
-            correction: 'Try removing the import and usages of the package.',
-            url: 'https://github.com/dart-lang/dart-pad/wiki/'
-                'Package-and-plugin-support#deprecated-packages',
-            location: import.getLocation(source),
-          ));
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'warning',
+              message: "Deprecated package: 'package:$packageName'.",
+              correction: 'Try removing the import and usages of the package.',
+              url:
+                  'https://github.com/dart-lang/dart-pad/wiki/'
+                  'Package-and-plugin-support#deprecated-packages',
+              location: import.getLocation(source),
+            ),
+          );
         } else if (!isSupportedPackage(packageName)) {
-          importIssues.add(api.AnalysisIssue(
-            kind: 'warning',
-            message: "Unsupported package: 'package:$packageName'.",
-            location: import.getLocation(source),
-          ));
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'warning',
+              message: "Unsupported package: 'package:$packageName'.",
+              location: import.getLocation(source),
+            ),
+          );
         }
       } else {
-        importIssues.add(api.AnalysisIssue(
-          kind: 'error',
-          message: 'Import type not supported.',
-          location: import.getLocation(source),
-        ));
+        importIssues.add(
+          api.AnalysisIssue(
+            kind: 'error',
+            message: 'Import type not supported.',
+            location: import.getLocation(source),
+          ),
+        );
       }
     }
+    final reportedImports =
+        imports
+            .where((import) => import.packageImport || import.dartImport)
+            .map((import) => import.uri.stringValue!)
+            .toList();
 
-    return api.AnalysisResponse(issues: [...importIssues, ...issues]);
+    return api.AnalysisResponse(
+      issues: [...importIssues, ...issues],
+      imports: reportedImports,
+    );
   }
 
   /// Cleanly shutdown the Analysis Server.
@@ -407,7 +441,7 @@ class AnalysisServerWrapper {
     // Remove all the existing overlays.
     final contentOverlays = <String, ContentOverlayType>{
       for (final overlayPath in _overlayPaths)
-        overlayPath: RemoveContentOverlay()
+        overlayPath: RemoveContentOverlay(),
     };
 
     // Add (or replace) new overlays for the given files.
@@ -446,28 +480,31 @@ extension SourceChangeExtension on SourceChange {
   api.SourceChange toApiSourceChange() {
     return api.SourceChange(
       message: message,
-      edits: edits
-          .expand((fileEdit) => fileEdit.edits)
-          .map(
-            (edit) => api.SourceEdit(
-              offset: edit.offset,
-              length: edit.length,
-              replacement: edit.replacement,
-            ),
-          )
-          .toList(),
-      linkedEditGroups: linkedEditGroups.map((editGroup) {
-        return api.LinkedEditGroup(
-          offsets: editGroup.positions.map((pos) => pos.offset).toList(),
-          length: editGroup.length,
-          suggestions: editGroup.suggestions.map((sug) {
-            return api.LinkedEditSuggestion(
-              value: sug.value,
-              kind: sug.kind,
+      edits:
+          edits
+              .expand((fileEdit) => fileEdit.edits)
+              .map(
+                (edit) => api.SourceEdit(
+                  offset: edit.offset,
+                  length: edit.length,
+                  replacement: edit.replacement,
+                ),
+              )
+              .toList(),
+      linkedEditGroups:
+          linkedEditGroups.map((editGroup) {
+            return api.LinkedEditGroup(
+              offsets: editGroup.positions.map((pos) => pos.offset).toList(),
+              length: editGroup.length,
+              suggestions:
+                  editGroup.suggestions.map((sug) {
+                    return api.LinkedEditSuggestion(
+                      value: sug.value,
+                      kind: sug.kind,
+                    );
+                  }).toList(),
             );
           }).toList(),
-        );
-      }).toList(),
       selectionOffset: selection?.offset,
     );
   }

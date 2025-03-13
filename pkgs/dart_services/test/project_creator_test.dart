@@ -39,20 +39,13 @@ void defineTests() {
       });
 
       test('project directory is created', () async {
-        await d.dir('project_templates', [
-          d.dir('dart_project'),
-        ]).validate();
+        await d.dir('project_templates', [d.dir('dart_project')]).validate();
       });
 
       test('pubspec is created', () async {
         await d.dir('project_templates', [
           d.dir('dart_project', [
-            d.file(
-              'pubspec.yaml',
-              allOf([
-                contains('sdk: ^$languageVersion'),
-              ]),
-            ),
+            d.file('pubspec.yaml', allOf([contains('sdk: ^$languageVersion')])),
           ]),
         ]).validate();
       });
@@ -81,9 +74,7 @@ void defineTests() {
       });
 
       test('project directory is created', () async {
-        await d.dir('project_templates', [
-          d.dir('flutter_project'),
-        ]).validate();
+        await d.dir('project_templates', [d.dir('flutter_project')]).validate();
       });
 
       test('Flutter Web directories are created', () async {
@@ -91,7 +82,7 @@ void defineTests() {
           d.dir('flutter_project', [
             d.dir('lib'),
             d.dir('web', [d.file('index.html', isEmpty)]),
-          ])
+          ]),
         ]).validate();
       });
 

@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -22,8 +22,12 @@ abstract class ExecutionService {
     String javaScript, {
     String? modulesBaseUrl,
     String? engineVersion,
+    required bool isNewDDC,
+    required bool reload,
+    required bool isFlutter,
   });
   Stream<String> get onStdout;
+  Stream<String> get onStderr;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -38,21 +42,28 @@ abstract class EditorService {
 }
 
 class AppModel {
-  bool? _appIsFlutter;
-  bool? _usesPackageWeb;
+  final ValueNotifier<bool?> appIsFlutter = ValueNotifier(null);
+  AppType get appType =>
+      appIsFlutter.value == true ? AppType.flutter : AppType.dart;
 
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
+  final ValueNotifier<List<String>> importUrls = ValueNotifier([]);
 
   final ValueNotifier<String> title = ValueNotifier('');
 
   final TextEditingController sourceCodeController = TextEditingController();
-  final ValueNotifier<String> consoleOutput = ValueNotifier('');
+  final ConsoleNotifier consoleNotifier = ConsoleNotifier('', '');
 
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
-  final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
+  final ValueNotifier<CompilingState> compilingState = ValueNotifier(
+    CompilingState.none,
+  );
   final ValueNotifier<bool> docHelpBusy = ValueNotifier(false);
+
+  final ValueNotifier<bool> hasRun = ValueNotifier(false);
+  final ValueNotifier<bool> canReload = ValueNotifier(false);
 
   final StatusController editorStatus = StatusController();
 
@@ -61,40 +72,74 @@ class AppModel {
   final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
   ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
-  final ValueNotifier<SplitDragState> splitViewDragState =
-      ValueNotifier(SplitDragState.inactive);
+  final ValueNotifier<SplitDragState> splitViewDragState = ValueNotifier(
+    SplitDragState.inactive,
+  );
 
   final SplitDragStateManager splitDragStateManager = SplitDragStateManager();
   late final StreamSubscription<SplitDragState> _splitSubscription;
 
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
-  AppModel() {
-    consoleOutput.addListener(_recalcLayout);
+  bool get consoleShowingError => consoleNotifier.error.isNotEmpty;
 
-    _splitSubscription =
-        splitDragStateManager.onSplitDragUpdated.listen((SplitDragState value) {
+  final ValueNotifier<bool> showReload = ValueNotifier(false);
+  final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
+  final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
+
+  AppModel() {
+    consoleNotifier.addListener(_recalcLayout);
+    void updateCanReload() =>
+        canReload.value =
+            hasRun.value &&
+            !compilingState.value.busy &&
+            currentDeltaDill.value != null;
+    hasRun.addListener(updateCanReload);
+    compilingState.addListener(updateCanReload);
+    currentDeltaDill.addListener(updateCanReload);
+
+    void updateShowReload() {
+      showReload.value = useNewDDC.value && (appIsFlutter.value ?? false);
+    }
+
+    void updateAppType() {
+      appIsFlutter.value = hasFlutterImports(importUrls.value);
+    }
+
+    useNewDDC.addListener(updateShowReload);
+    appIsFlutter.addListener(updateShowReload);
+    importUrls.addListener(updateAppType);
+
+    _splitSubscription = splitDragStateManager.onSplitDragUpdated.listen((
+      SplitDragState value,
+    ) {
       splitViewDragState.value = value;
     });
   }
 
   void appendLineToConsole(String str) {
-    consoleOutput.value += '$str\n';
+    consoleNotifier.output += '$str\n';
   }
 
-  void clearConsole() => consoleOutput.value = '';
+  void appendError(String str) {
+    consoleNotifier.error += '$str\n';
+  }
+
+  void clearConsole() {
+    consoleNotifier.clear();
+  }
 
   void dispose() {
-    consoleOutput.removeListener(_recalcLayout);
+    consoleNotifier.removeListener(_recalcLayout);
     _splitSubscription.cancel();
   }
 
   void _recalcLayout() {
-    final hasConsoleText = consoleOutput.value.isNotEmpty;
-    final isFlutter = _appIsFlutter;
-    final usesPackageWeb = _usesPackageWeb;
+    final hasConsoleText = !consoleNotifier.isEmpty;
+    final isFlutter = appIsFlutter.value;
+    final usesPackageWeb = hasPackageWebImport(importUrls.value);
 
-    if (isFlutter == null || usesPackageWeb == null) {
+    if (isFlutter == null) {
       _layoutMode.value = LayoutMode.both;
     } else if (usesPackageWeb) {
       _layoutMode.value = LayoutMode.both;
@@ -137,16 +182,22 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final http.Client _httpClient = http.Client();
+  final Client _httpClient = Client();
   late ServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
+  StreamSubscription<String>? stderrSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
+
+  static const Set<Channel> _hotReloadableChannels = {
+    Channel.localhost,
+    Channel.main,
+  };
 
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
@@ -154,6 +205,15 @@ class AppServices {
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
+
+    void updateUseNewDDC() {
+      appModel.useNewDDC.value = _hotReloadableChannels.contains(
+        _channel.value,
+      );
+    }
+
+    updateUseNewDDC();
+    _channel.addListener(updateUseNewDDC);
   }
 
   EditorService? get editorService => _editorService;
@@ -170,8 +230,9 @@ class AppServices {
 
   void resetTo({String? type}) {
     type ??= 'dart';
-    final source =
-        Samples.defaultSnippet(forFlutter: type.toLowerCase() == 'flutter');
+    final source = Samples.defaultSnippet(
+      forFlutter: type.toLowerCase() == 'flutter',
+    );
 
     // Reset the source.
     appModel.sourceCodeController.text = source;
@@ -223,8 +284,9 @@ class AppServices {
 
     if (flutterSampleId != null) {
       final loader = FlutterSampleLoader();
-      final progress =
-          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      final progress = appModel.editorStatus.showMessage(
+        initialText: 'Loading…',
+      );
       try {
         final sample = await loader.loadFlutterSample(
           sampleId: flutterSampleId,
@@ -240,7 +302,7 @@ class AppServices {
         appModel.editorStatus.showToast('Error loading sample');
         progress.close();
 
-        appModel.appendLineToConsole('Error loading sample: $e');
+        appModel.appendError('Error loading sample: $e');
 
         appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
@@ -253,8 +315,9 @@ class AppServices {
 
     if (gistId != null) {
       final gistLoader = GistLoader();
-      final progress =
-          appModel.editorStatus.showMessage(initialText: 'Loading…');
+      final progress = appModel.editorStatus.showMessage(
+        initialText: 'Loading…',
+      );
       try {
         final gist = await gistLoader.load(gistId);
         progress.close();
@@ -284,7 +347,7 @@ class AppServices {
         appModel.editorStatus.showToast('Error loading gist');
         progress.close();
 
-        appModel.appendLineToConsole('Error loading gist: $e');
+        appModel.appendError('Error loading gist: $e');
 
         appModel.sourceCodeController.text = getFallback();
         appModel.appReady.value = true;
@@ -304,33 +367,70 @@ class AppServices {
     appModel.appReady.value = true;
   }
 
-  Future<void> performCompileAndRun() async {
+  Future<void> _performCompileAndAction({required bool reload}) async {
+    final willUseReload = reload && appModel.useNewDDC.value;
+
     final source = appModel.sourceCodeController.text;
-    final progress =
-        appModel.editorStatus.showMessage(initialText: 'Compiling…');
+    final progress = appModel.editorStatus.showMessage(
+      initialText: willUseReload ? 'Reloading…' : 'Compiling…',
+    );
 
     try {
-      final response = await _compileDDC(CompileRequest(source: source));
-      appModel.clearConsole();
+      CompileDDCResponse response;
+      if (!appModel.useNewDDC.value) {
+        response = await _compileDDC(CompileRequest(source: source));
+      } else if (reload) {
+        response = await _compileNewDDCReload(
+          CompileRequest(
+            source: source,
+            deltaDill: appModel.currentDeltaDill.value!,
+          ),
+        );
+      } else {
+        response = await _compileNewDDC(CompileRequest(source: source));
+      }
+      if (!reload || appModel.consoleShowingError) {
+        appModel.clearConsole();
+      }
       _executeJavaScript(
         response.result,
         modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
         dartSource: source,
+        isNewDDC: appModel.useNewDDC.value,
+        reload: reload,
       );
+      appModel.currentDeltaDill.value = response.deltaDill;
+      appModel.hasRun.value = true;
     } catch (error) {
       appModel.clearConsole();
 
       appModel.editorStatus.showToast('Compilation failed');
 
       if (error is ApiRequestError) {
-        appModel.appendLineToConsole(error.message);
-        appModel.appendLineToConsole(error.body);
+        appModel.appendError(error.message);
+        appModel.appendError(error.body);
       } else {
-        appModel.appendLineToConsole('$error');
+        appModel.appendError('$error');
       }
     } finally {
       progress.close();
+    }
+  }
+
+  Future<void> performCompileAndReload() async {
+    _performCompileAndAction(reload: true);
+  }
+
+  Future<void> performCompileAndRun() async {
+    _performCompileAndAction(reload: false);
+  }
+
+  Future<void> performCompileAndReloadOrRun() async {
+    if (appModel.showReload.value && appModel.canReload.value) {
+      performCompileAndReload();
+    } else {
+      performCompileAndRun();
     }
   }
 
@@ -349,33 +449,74 @@ class AppServices {
 
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compile(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
     }
+  }
+
+  Stream<String> suggestFix(SuggestFixRequest request) {
+    return services.suggestFix(request);
+  }
+
+  Stream<String> generateCode(GenerateCodeRequest request) {
+    return services.generateCode(request);
+  }
+
+  Stream<String> generateUi(GenerateUiRequest request) {
+    return services.generateUi(request);
+  }
+
+  Stream<String> updateCode(UpdateCodeRequest request) {
+    return services.updateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
-      appModel.compilingBusy.value = true;
+      appModel.compilingState.value = CompilingState.restarting;
       return await services.compileDDC(request);
     } finally {
-      appModel.compilingBusy.value = false;
+      appModel.compilingState.value = CompilingState.none;
+    }
+  }
+
+  Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
+    try {
+      appModel.compilingState.value = CompilingState.restarting;
+      return await services.compileNewDDC(request);
+    } finally {
+      appModel.compilingState.value = CompilingState.none;
+    }
+  }
+
+  Future<CompileDDCResponse> _compileNewDDCReload(
+    CompileRequest request,
+  ) async {
+    try {
+      appModel.compilingState.value = CompilingState.reloading;
+      return await services.compileNewDDCReload(request);
+    } finally {
+      appModel.compilingState.value = CompilingState.none;
     }
   }
 
   void registerExecutionService(ExecutionService? executionService) {
     // unregister the old
     stdoutSub?.cancel();
+    stderrSub?.cancel();
 
     // replace the service
     _executionService = executionService;
 
     // register the new
     if (_executionService != null) {
-      stdoutSub =
-          _executionService!.onStdout.listen(appModel.appendLineToConsole);
+      stdoutSub = _executionService!.onStdout.listen((msg) {
+        appModel.appendLineToConsole(msg);
+      });
+      stderrSub = _executionService!.onStderr.listen(
+        (msg) => appModel.appendError(msg),
+      );
     }
   }
 
@@ -388,15 +529,18 @@ class AppServices {
     required String dartSource,
     String? modulesBaseUrl,
     String? engineVersion,
+    required bool isNewDDC,
+    required bool reload,
   }) {
-    appModel._appIsFlutter = hasFlutterWebMarker(javaScript);
-    appModel._usesPackageWeb = hasPackageWebImport(dartSource);
     appModel._recalcLayout();
 
     _executionService?.execute(
       javaScript,
       modulesBaseUrl: modulesBaseUrl,
       engineVersion: engineVersion,
+      reload: reload,
+      isNewDDC: isNewDDC,
+      isFlutter: appModel.appIsFlutter.value ?? false,
     );
   }
 
@@ -412,6 +556,7 @@ class AppServices {
         SourceRequest(source: appModel.sourceCodeController.text),
       );
       appModel.analysisIssues.value = results.issues;
+      appModel.importUrls.value = results.imports;
     } catch (error) {
       appModel.analysisIssues.value = [
         AnalysisIssue(
@@ -420,6 +565,7 @@ class AppServices {
           location: Location(line: 0, column: 0),
         ),
       ];
+      appModel.importUrls.value = [];
     }
   }
 
@@ -432,8 +578,10 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.editorStatus
-            .showMessage(initialText: message, name: 'problems');
+        appModel.editorStatus.showMessage(
+          initialText: message,
+          name: 'problems',
+        );
       } else {
         progress.updateText(message);
       }
@@ -480,12 +628,15 @@ class SplitDragStateManager {
       StreamController<SplitDragState>.broadcast();
   late final Stream<SplitDragState> onSplitDragUpdated;
 
-  SplitDragStateManager(
-      {Duration timeout = const Duration(milliseconds: 100)}) {
-    onSplitDragUpdated = _splitDragStateController.stream.timeout(timeout,
-        onTimeout: (eventSink) {
-      eventSink.add(SplitDragState.inactive);
-    });
+  SplitDragStateManager({
+    Duration timeout = const Duration(milliseconds: 100),
+  }) {
+    onSplitDragUpdated = _splitDragStateController.stream.timeout(
+      timeout,
+      onTimeout: (eventSink) {
+        eventSink.add(SplitDragState.inactive);
+      },
+    );
   }
 
   void handleSplitChanged() {
@@ -494,3 +645,55 @@ class SplitDragStateManager {
 }
 
 enum SplitDragState { inactive, active }
+
+enum CompilingState {
+  none(false),
+  reloading(true),
+  restarting(true);
+
+  final bool busy;
+
+  const CompilingState(this.busy);
+}
+
+class PromptDialogResponse {
+  const PromptDialogResponse({
+    required this.appType,
+    required this.prompt,
+    this.attachments = const [],
+  });
+
+  final AppType appType;
+  final String prompt;
+  final List<Attachment> attachments;
+}
+
+class ConsoleNotifier extends ChangeNotifier {
+  String _output;
+  String _error;
+
+  ConsoleNotifier(this._output, this._error);
+
+  String get output => _output;
+
+  set output(String value) {
+    _output = value;
+    notifyListeners();
+  }
+
+  String get error => _error;
+  set error(String value) {
+    _error = value;
+    notifyListeners();
+  }
+
+  void clear() {
+    _output = '';
+    _error = '';
+    notifyListeners();
+  }
+
+  bool get isEmpty => _output.isEmpty && _error.isEmpty;
+  bool get hasError => _error.isNotEmpty;
+  String get valueToDisplay => hasError ? _error : _output;
+}

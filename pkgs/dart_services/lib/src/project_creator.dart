@@ -30,9 +30,9 @@ class ProjectCreator {
     required String dartLanguageVersion,
     required File dependenciesFile,
     required LogFunction log,
-  })  : _dartLanguageVersion = dartLanguageVersion,
-        _dependenciesFile = dependenciesFile,
-        _log = log;
+  }) : _dartLanguageVersion = dartLanguageVersion,
+       _dependenciesFile = dependenciesFile,
+       _log = log;
 
   /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
   /// and `analysis_options.yaml`.
@@ -41,20 +41,22 @@ class ProjectCreator {
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
     final dependencies = _dependencyVersions(supportedBasicDartPackages);
-    File(path.join(projectPath, 'pubspec.yaml'))
-        .writeAsStringSync(createPubspec(
-      includeFlutterWeb: false,
-      dartLanguageVersion: _dartLanguageVersion,
-      dependencies: dependencies,
-    ));
+    File(path.join(projectPath, 'pubspec.yaml')).writeAsStringSync(
+      createPubspec(
+        includeFlutterWeb: false,
+        dartLanguageVersion: _dartLanguageVersion,
+        dependencies: dependencies,
+      ),
+    );
 
     final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
     if (exitCode != 0) {
       throw StateError('pub get failed ($exitCode)');
     }
 
-    File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(_createAnalysisOptionsContents());
+    File(
+      path.join(projectPath, 'analysis_options.yaml'),
+    ).writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
@@ -70,12 +72,13 @@ class ProjectCreator {
       ...supportedBasicDartPackages,
       ...supportedFlutterPackages,
     });
-    File(path.join(projectPath, 'pubspec.yaml'))
-        .writeAsStringSync(createPubspec(
-      includeFlutterWeb: true,
-      dartLanguageVersion: _dartLanguageVersion,
-      dependencies: dependencies,
-    ));
+    File(path.join(projectPath, 'pubspec.yaml')).writeAsStringSync(
+      createPubspec(
+        includeFlutterWeb: true,
+        dartLanguageVersion: _dartLanguageVersion,
+        dependencies: dependencies,
+      ),
+    );
 
     final exitCode = await runFlutterPubGet(_sdk, projectPath, log: _log);
     if (exitCode != 0) {
@@ -85,16 +88,24 @@ class ProjectCreator {
     // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
     // Context: https://github.com/flutter/flutter/pull/106921
 
-    final pluginRegistrant = File(path.join(
-        projectPath, '.dart_tool', 'dartpad', 'web_plugin_registrant.dart'));
+    final pluginRegistrant = File(
+      path.join(
+        projectPath,
+        '.dart_tool',
+        'dartpad',
+        'web_plugin_registrant.dart',
+      ),
+    );
     if (pluginRegistrant.existsSync()) {
       Directory(path.join(projectPath, 'lib')).createSync();
       pluginRegistrant.copySync(
-          path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'));
+        path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'),
+      );
     }
 
-    File(path.join(projectPath, 'analysis_options.yaml'))
-        .writeAsStringSync(_createAnalysisOptionsContents());
+    File(
+      path.join(projectPath, 'analysis_options.yaml'),
+    ).writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   String _createAnalysisOptionsContents() {
@@ -113,8 +124,9 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
   }
 
   Map<String, String> _dependencyVersions(Iterable<String> packages) {
-    final allVersions =
-        parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
+    final allVersions = parsePubDependenciesFile(
+      dependenciesFile: _dependenciesFile,
+    );
     return {
       for (final package in packages) package: allVersions[package] ?? 'any',
     };

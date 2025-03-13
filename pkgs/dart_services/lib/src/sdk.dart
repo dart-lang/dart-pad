@@ -69,8 +69,11 @@ final class Sdk {
     // looking for a 'FLUTTER_ROOT' environment variable.
 
     // <flutter-sdk>/bin/cache/dart-sdk/bin/dart
-    final potentialFlutterSdkPath = path.dirname(path.dirname(
-        path.dirname(path.dirname(path.dirname(Platform.resolvedExecutable)))));
+    final potentialFlutterSdkPath = path.dirname(
+      path.dirname(
+        path.dirname(path.dirname(path.dirname(Platform.resolvedExecutable))),
+      ),
+    );
 
     final String flutterSdkPath;
     if (_validFlutterSdk(potentialFlutterSdkPath)) {
@@ -122,17 +125,21 @@ final class Sdk {
     // analytics disclaimer).
 
     try {
-      return jsonDecode(Process.runSync(
-        flutterToolPath,
-        ['--version', '--machine'],
-        workingDirectory: flutterSdkPath,
-      ).stdout.toString().trim()) as Map<String, Object?>;
+      return jsonDecode(
+            Process.runSync(flutterToolPath, [
+              '--version',
+              '--machine',
+            ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
+          )
+          as Map<String, Object?>;
     } on FormatException {
-      return jsonDecode(Process.runSync(
-        flutterToolPath,
-        ['--version', '--machine'],
-        workingDirectory: flutterSdkPath,
-      ).stdout.toString().trim()) as Map<String, Object?>;
+      return jsonDecode(
+            Process.runSync(flutterToolPath, [
+              '--version',
+              '--machine',
+            ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
+          )
+          as Map<String, Object?>;
     }
   }
 
@@ -157,4 +164,20 @@ final class Sdk {
 
     return true;
   }
+
+  static final _dartVersionMatch = RegExp(r'([0-9]+).([0-9]+)');
+
+  int get dartMajorVersion {
+    final dartVersionString =
+        _dartVersionMatch.firstMatch(dartVersion)!.group(1)!;
+    return int.parse(dartVersionString);
+  }
+
+  int get dartMinorVersion {
+    final dartVersionString =
+        _dartVersionMatch.firstMatch(dartVersion)!.group(2)!;
+    return int.parse(dartVersionString);
+  }
+
+  bool get useNewDdcSdk => dartMajorVersion >= 3 && dartMinorVersion >= 8;
 }

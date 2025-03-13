@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
@@ -26,9 +29,9 @@ class SourceRequest {
 class AnalysisResponse {
   final List<AnalysisIssue> issues;
 
-  AnalysisResponse({
-    required this.issues,
-  });
+  final List<String> imports;
+
+  AnalysisResponse({required this.issues, required this.imports});
 
   factory AnalysisResponse.fromJson(Map<String, Object?> json) =>
       _$AnalysisResponseFromJson(json);
@@ -105,10 +108,7 @@ class DiagnosticMessage {
   final String message;
   final Location location;
 
-  DiagnosticMessage({
-    required this.message,
-    required this.location,
-  });
+  DiagnosticMessage({required this.message, required this.location});
 
   factory DiagnosticMessage.fromJson(Map<String, Object?> json) =>
       _$DiagnosticMessageFromJson(json);
@@ -119,8 +119,9 @@ class DiagnosticMessage {
 @JsonSerializable()
 class CompileRequest {
   final String source;
+  final String? deltaDill;
 
-  CompileRequest({required this.source});
+  CompileRequest({required this.source, this.deltaDill});
 
   factory CompileRequest.fromJson(Map<String, Object?> json) =>
       _$CompileRequestFromJson(json);
@@ -143,10 +144,12 @@ class CompileResponse {
 @JsonSerializable()
 class CompileDDCResponse {
   final String result;
+  final String? deltaDill;
   final String? modulesBaseUrl;
 
   CompileDDCResponse({
     required this.result,
+    required this.deltaDill,
     required this.modulesBaseUrl,
   });
 
@@ -161,10 +164,7 @@ class FormatResponse {
   final String source;
   final int? offset;
 
-  FormatResponse({
-    required this.source,
-    required this.offset,
-  });
+  FormatResponse({required this.source, required this.offset});
 
   factory FormatResponse.fromJson(Map<String, Object?> json) =>
       _$FormatResponseFromJson(json);
@@ -177,18 +177,12 @@ class FormatResponse {
 
 @JsonSerializable()
 class FixesResponse {
-  static final FixesResponse empty = FixesResponse(
-    fixes: [],
-    assists: [],
-  );
+  static final FixesResponse empty = FixesResponse(fixes: [], assists: []);
 
   final List<SourceChange> fixes;
   final List<SourceChange> assists;
 
-  FixesResponse({
-    required this.fixes,
-    required this.assists,
-  });
+  FixesResponse({required this.fixes, required this.assists});
 
   factory FixesResponse.fromJson(Map<String, Object?> json) =>
       _$FixesResponseFromJson(json);
@@ -263,10 +257,7 @@ class LinkedEditSuggestion {
   final String value;
   final String kind;
 
-  LinkedEditSuggestion({
-    required this.value,
-    required this.kind,
-  });
+  LinkedEditSuggestion({required this.value, required this.kind});
 
   factory LinkedEditSuggestion.fromJson(Map<String, Object?> json) =>
       _$LinkedEditSuggestionFromJson(json);
@@ -385,9 +376,7 @@ class VersionResponse {
 class OpenInIdxRequest {
   final String code;
 
-  OpenInIdxRequest({
-    required this.code,
-  });
+  OpenInIdxRequest({required this.code});
 
   factory OpenInIdxRequest.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxRequestFromJson(json);
@@ -402,9 +391,7 @@ class OpenInIdxRequest {
 class OpenInIdxResponse {
   final String idxUrl;
 
-  OpenInIdxResponse({
-    required this.idxUrl,
-  });
+  OpenInIdxResponse({required this.idxUrl});
 
   factory OpenInIdxResponse.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxResponseFromJson(json);
@@ -431,4 +418,121 @@ class PackageInfo {
       _$PackageInfoFromJson(json);
 
   Map<String, Object?> toJson() => _$PackageInfoToJson(this);
+}
+
+@JsonSerializable()
+class SuggestFixRequest {
+  final String errorMessage;
+  final int? line;
+  final int? column;
+  final String source;
+  final AppType appType;
+
+  SuggestFixRequest({
+    required this.errorMessage,
+    required this.line,
+    required this.column,
+    required this.source,
+    required this.appType,
+  });
+
+  factory SuggestFixRequest.fromJson(Map<String, Object?> json) =>
+      _$SuggestFixRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$SuggestFixRequestToJson(this);
+
+  @override
+  String toString() =>
+      'SuggestFixRequest '
+      '[$errorMessage] '
+      '[${source.substring(0, 10)} (...)';
+}
+
+enum AppType { dart, flutter }
+
+@JsonSerializable()
+class GenerateCodeRequest {
+  final AppType appType;
+  final String prompt;
+  final List<Attachment> attachments;
+
+  GenerateCodeRequest({
+    required this.appType,
+    required this.prompt,
+    required this.attachments,
+  });
+
+  factory GenerateCodeRequest.fromJson(Map<String, Object?> json) =>
+      _$GenerateCodeRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$GenerateCodeRequestToJson(this);
+
+  @override
+  String toString() => 'GenerateCodeRequest [$prompt]';
+}
+
+@JsonSerializable()
+class GenerateUiRequest {
+  final String prompt;
+
+  GenerateUiRequest({required this.prompt});
+
+  factory GenerateUiRequest.fromJson(Map<String, Object?> json) =>
+      _$GenerateUiRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$GenerateUiRequestToJson(this);
+
+  @override
+  String toString() => 'GenerateUiRequest [$prompt]';
+}
+
+@JsonSerializable()
+class UpdateCodeRequest {
+  final AppType appType;
+  final String prompt;
+  final String source;
+  final List<Attachment> attachments;
+
+  UpdateCodeRequest({
+    required this.appType,
+    required this.prompt,
+    required this.source,
+    required this.attachments,
+  });
+
+  factory UpdateCodeRequest.fromJson(Map<String, Object?> json) =>
+      _$UpdateCodeRequestFromJson(json);
+
+  Map<String, Object?> toJson() => _$UpdateCodeRequestToJson(this);
+
+  @override
+  String toString() => 'UpdateCodeRequest [$prompt]';
+}
+
+@JsonSerializable()
+class Attachment {
+  Attachment({
+    required this.name,
+    required this.base64EncodedBytes,
+    required this.mimeType,
+  });
+
+  factory Attachment.fromJson(Map<String, Object?> json) =>
+      _$AttachmentFromJson(json);
+
+  Map<String, Object?> toJson() => _$AttachmentToJson(this);
+
+  Attachment.fromBytes({
+    required this.name,
+    required Uint8List bytes,
+    required this.mimeType,
+  }) : base64EncodedBytes = base64Encode(bytes),
+       _cachedBytes = bytes;
+
+  final String name;
+  final String base64EncodedBytes;
+  final String mimeType;
+
+  Uint8List? _cachedBytes;
+  Uint8List get bytes => _cachedBytes ??= base64Decode(base64EncodedBytes);
 }

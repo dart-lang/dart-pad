@@ -27,5 +27,7 @@ Middleware createCorsHeadersMiddleware({
       response.change(headers: corsHeaders);
 
   return createMiddleware(
-      requestHandler: handleOptionsRequest, responseHandler: addCorsHeaders);
+    requestHandler: handleOptionsRequest,
+    responseHandler: addCorsHeaders,
+  );
 }

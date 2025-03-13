@@ -33,16 +33,12 @@ class _SunflowerState extends State<Sunflower> {
       ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Sunflower'),
-        ),
+        appBar: AppBar(title: const Text('Sunflower')),
         body: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: SunflowerWidget(seeds),
-              ),
+              Expanded(child: SunflowerWidget(seeds)),
               const SizedBox(height: 20),
               Text('Showing ${seeds.round()} seeds'),
               SizedBox(
@@ -84,26 +80,30 @@ class SunflowerWidget extends StatelessWidget {
       final theta = i * tau / phi;
       final r = math.sqrt(i) * scaleFactor;
 
-      seedWidgets.add(AnimatedAlign(
-        key: ValueKey(i),
-        duration: Duration(milliseconds: rng.nextInt(500) + 250),
-        curve: Curves.easeInOut,
-        alignment: Alignment(r * math.cos(theta), -1 * r * math.sin(theta)),
-        child: const Dot(true),
-      ));
+      seedWidgets.add(
+        AnimatedAlign(
+          key: ValueKey(i),
+          duration: Duration(milliseconds: rng.nextInt(500) + 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment(r * math.cos(theta), -1 * r * math.sin(theta)),
+          child: const Dot(true),
+        ),
+      );
     }
 
     for (var j = seeds; j < maxSeeds; j++) {
       final x = math.cos(tau * j / (maxSeeds - 1)) * 0.9;
       final y = math.sin(tau * j / (maxSeeds - 1)) * 0.9;
 
-      seedWidgets.add(AnimatedAlign(
-        key: ValueKey(j),
-        duration: Duration(milliseconds: rng.nextInt(500) + 250),
-        curve: Curves.easeInOut,
-        alignment: Alignment(x, y),
-        child: const Dot(false),
-      ));
+      seedWidgets.add(
+        AnimatedAlign(
+          key: ValueKey(j),
+          duration: Duration(milliseconds: rng.nextInt(500) + 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment(x, y),
+          child: const Dot(false),
+        ),
+      );
     }
 
     return FittedBox(
@@ -132,10 +132,7 @@ class Dot extends StatelessWidget {
         color: lit ? Colors.orange : Colors.grey.shade700,
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: const SizedBox(
-        height: size,
-        width: size,
-      ),
+      child: const SizedBox(height: size, width: size),
     );
   }
 }

@@ -41,17 +41,19 @@ void defineTests() {
       expect(issue.location.line, 2);
       expect(issue.location.column, 7);
       expect(issue.kind, 'info');
-      expect(issue.message,
-          'An uninitialized variable should have an explicit type annotation.');
+      expect(
+        issue.message,
+        'An uninitialized variable should have an explicit type annotation.',
+      );
       expect(issue.code, 'prefer_typing_uninitialized_variables');
     });
 
     test('completions polluted on second request (repro #126)', () async {
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.complete(completionFilterCode, 17).then((results) {
-        return analysisServer
-            .complete(completionFilterCode, 17)
-            .then((results) {
+        return analysisServer.complete(completionFilterCode, 17).then((
+          results,
+        ) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
           expect(completionsContains(results, 'print'), true);
@@ -68,10 +70,13 @@ void defineTests() {
       final completions = results.suggestions;
 
       if (completions.isNotEmpty) {
-        expect(completions.every((completion) {
-          return completion.completion.startsWith('dart:') ||
-              completion.completion.startsWith('package:');
-        }), true);
+        expect(
+          completions.every((completion) {
+            return completion.completion.startsWith('dart:') ||
+                completion.completion.startsWith('package:');
+          }),
+          true,
+        );
       }
     });
 
@@ -83,15 +88,6 @@ void defineTests() {
       expect(issue.message, contains('Unsupported library on the web'));
     });
 
-    test('Warn on deprecated web library imports', () async {
-      final results = await analysisServer.analyze(deprecatedWebLibrary);
-
-      // Expect one or two deprecation messages.
-      expect(results.issues, anyOf(hasLength(1), hasLength(2)));
-      final issue = results.issues.first;
-      expect(issue.message, contains('Deprecated core web library'));
-    });
-
     test('import_dart_core_test', () async {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";
@@ -100,13 +96,15 @@ void defineTests() {
       final completions = results.suggestions;
 
       expect(
-        completions
-            .every((completion) => completion.completion.startsWith('dart:')),
+        completions.every(
+          (completion) => completion.completion.startsWith('dart:'),
+        ),
         true,
       );
       expect(
-        completions
-            .any((completion) => completion.completion.startsWith('dart:')),
+        completions.any(
+          (completion) => completion.completion.startsWith('dart:'),
+        ),
         true,
       );
     });
@@ -130,7 +128,9 @@ void defineTests() {
       // "Insert ';'"
       expect(changes.map((e) => e.message), contains(startsWith('Insert ')));
       expect(
-          changes.map((e) => e.edits.first.replacement), contains(equals(';')));
+        changes.map((e) => e.edits.first.replacement),
+        contains(equals(';')),
+      );
     });
 
     test('format simple', () async {
@@ -139,8 +139,10 @@ void defineTests() {
     });
 
     test('format good code', () async {
-      final results =
-          await analysisServer.format(formattedCode.replaceAll('\n', ' '), 0);
+      final results = await analysisServer.format(
+        formattedCode.replaceAll('\n', ' '),
+        0,
+      );
       expect(results.source, formattedCode);
     });
 
@@ -163,8 +165,10 @@ void defineTests() {
       // just after A
       final idx = 61;
       expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
-      final results =
-          await analysisServer.complete(completionLargeNamespaces, 61);
+      final results = await analysisServer.complete(
+        completionLargeNamespaces,
+        61,
+      );
       expect(completionsContains(results, 'A'), true);
       expect(completionsContains(results, 'AB'), true);
       expect(completionsContains(results, 'ABC'), true);
@@ -202,8 +206,9 @@ void defineTests() {
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results =
-          await analysisServer.analyze(sampleCodeFlutterDraggableCard);
+      final results = await analysisServer.analyze(
+        sampleCodeFlutterDraggableCard,
+      );
       expect(results.issues, isEmpty);
     });
 
@@ -228,9 +233,10 @@ class HelloWorld extends StatelessWidget {
       expect(issue.location.line, 3);
       expect(issue.kind, 'error');
       expect(
-          issue.message,
-          "A value of type 'int' can't be assigned to a variable of type "
-          "'String'.");
+        issue.message,
+        "A value of type 'int' can't be assigned to a variable of type "
+        "'String'.",
+      );
     });
 
     // https://github.com/dart-lang/dart-pad/issues/2005
@@ -255,8 +261,10 @@ class HelloWorld extends StatelessWidget {
       final issue = results.issues[0];
       expect(issue.location.line, 4);
       expect(issue.kind, 'info');
-      expect(issue.message,
-          'An uninitialized variable should have an explicit type annotation.');
+      expect(
+        issue.message,
+        'An uninitialized variable should have an explicit type annotation.',
+      );
     });
 
     test('analyze counter app', () async {
@@ -265,8 +273,9 @@ class HelloWorld extends StatelessWidget {
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results =
-          await analysisServer.analyze(sampleCodeFlutterDraggableCard);
+      final results = await analysisServer.analyze(
+        sampleCodeFlutterDraggableCard,
+      );
       expect(results.issues, isEmpty);
     });
 
@@ -276,8 +285,9 @@ class HelloWorld extends StatelessWidget {
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results =
-          await analysisServer.analyze(sampleCodeFlutterDraggableCard);
+      final results = await analysisServer.analyze(
+        sampleCodeFlutterDraggableCard,
+      );
       expect(results.issues, isEmpty);
     });
   });
@@ -285,8 +295,9 @@ class HelloWorld extends StatelessWidget {
 
 /// Returns whether the completion [response] contains [expected].
 bool completionsContains(api.CompleteResponse response, String expected) {
-  return response.suggestions
-      .any((completion) => completion.completion == expected);
+  return response.suggestions.any(
+    (completion) => completion.completion == expected,
+  );
 }
 
 const completionCode = r'''

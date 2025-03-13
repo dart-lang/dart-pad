@@ -40,8 +40,34 @@ class ServicesClient {
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
+      _requestPost(
+        'compileNewDDC',
+        request.toJson(),
+        CompileDDCResponse.fromJson,
+      );
+
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
+      _requestPost(
+        'compileNewDDCReload',
+        request.toJson(),
+        CompileDDCResponse.fromJson,
+      );
+
   Future<OpenInIdxResponse> openInIdx(OpenInIdxRequest request) =>
       _requestPost('openInIDX', request.toJson(), OpenInIdxResponse.fromJson);
+
+  Stream<String> suggestFix(SuggestFixRequest request) =>
+      _requestPostStream('suggestFix', request.toJson());
+
+  Stream<String> generateCode(GenerateCodeRequest request) =>
+      _requestPostStream('generateCode', request.toJson());
+
+  Stream<String> generateUi(GenerateUiRequest request) =>
+      _requestPostStream('generateUi', request.toJson());
+
+  Stream<String> updateCode(UpdateCodeRequest request) =>
+      _requestPostStream('updateCode', request.toJson());
 
   void dispose() => client.close();
 
@@ -56,7 +82,8 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, Object?>);
+          json.decode(response.body) as Map<String, Object?>,
+        );
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
@@ -78,10 +105,35 @@ class ServicesClient {
     } else {
       try {
         return responseFactory(
-            json.decode(response.body) as Map<String, Object?>);
+          json.decode(response.body) as Map<String, Object?>,
+        );
       } on FormatException catch (e) {
         throw ApiRequestError('$action: $e', response.body);
       }
+    }
+  }
+
+  Stream<String> _requestPostStream(
+    String action,
+    Map<String, Object?> request,
+  ) async* {
+    final httpRequest = Request('POST', Uri.parse('${rootUrl}api/v3/$action'));
+    httpRequest.encoding = utf8;
+    httpRequest.headers['Content-Type'] = 'application/json';
+    httpRequest.body = json.encode(request);
+    final response = await client.send(httpRequest);
+
+    if (response.statusCode != 200) {
+      throw ApiRequestError(
+        action,
+        '${response.statusCode}: ${response.reasonPhrase}',
+      );
+    }
+
+    try {
+      yield* response.stream.transform(utf8.decoder);
+    } on FormatException catch (e) {
+      throw ApiRequestError('$action: $e', '');
     }
   }
 }

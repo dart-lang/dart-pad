@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
@@ -26,20 +27,23 @@ class Compiler {
 
   final ProjectTemplates _projectTemplates;
 
-  Compiler(
-    Sdk sdk, {
-    required String storageBucket,
-  }) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
+  Compiler(Sdk sdk, {required String storageBucket})
+    : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
 
   Compiler._(this._sdk, this._dartPath, this._storageBucket)
-      : _ddcDriver = BazelWorkerDriver(
-            () => Process.start(_dartPath, [
-                  path.join(_sdk.dartSdkPath, 'bin', 'snapshots',
-                      'dartdevc.dart.snapshot'),
-                  '--persistent_worker'
-                ]),
-            maxWorkers: 1),
-        _projectTemplates = ProjectTemplates.projectTemplates;
+    : _ddcDriver = BazelWorkerDriver(
+        () => Process.start(_dartPath, [
+          path.join(
+            _sdk.dartSdkPath,
+            'bin',
+            'snapshots',
+            'dartdevc.dart.snapshot',
+          ),
+          '--persistent_worker',
+        ]),
+        maxWorkers: 1,
+      ),
+      _projectTemplates = ProjectTemplates.projectTemplates;
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
@@ -75,13 +79,18 @@ class Compiler {
 
       _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}');
 
-      final result =
-          await Process.run(_dartPath, arguments, workingDirectory: temp.path);
+      final result = await Process.run(
+        _dartPath,
+        arguments,
+        workingDirectory: temp.path,
+      );
 
       if (result.exitCode != 0) {
-        final results = CompilationResults(problems: <CompilationProblem>[
-          CompilationProblem._(result.stdout as String),
-        ]);
+        final results = CompilationResults(
+          problems: <CompilationProblem>[
+            CompilationProblem._(result.stdout as String),
+          ],
+        );
         return results;
       } else {
         String? sourceMap;
@@ -104,7 +113,11 @@ class Compiler {
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
-  Future<DDCCompilationResults> compileDDC(String source) async {
+  Future<DDCCompilationResults> _compileDDC(
+    String source, {
+    String? deltaDill,
+    required bool useNew,
+  }) async {
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
@@ -126,18 +139,42 @@ class Compiler {
 
       File(bootstrapPath).writeAsStringSync(bootstrapContents);
       File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
+      final newDeltaKernelPath = path.join(temp.path, 'new_kernel.dill');
+      String? oldDillPath;
+      if (deltaDill != null) {
+        final oldDillBytes = base64Decode(deltaDill);
+        oldDillPath = path.join(temp.path, 'old_kernel.dill');
+        File(oldDillPath)
+          ..createSync()
+          ..writeAsBytesSync(oldDillBytes);
+      }
+
+      final mainJsPath = path.join(temp.path, '$kMainDart.js');
+
+      // Later versions of Flutter remove the "sound" suffix from the file. If
+      // the suffixed version does not exist, the unsuffixed version is the
+      // sound file.
+      var ddcOutlinePath = '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill';
+      if (!File(ddcOutlinePath).existsSync()) {
+        ddcOutlinePath = '${_sdk.flutterWebSdkPath}/ddc_outline.dill';
+      }
 
       final arguments = <String>[
-        '--modules=amd',
+        if (useNew) ...[
+          '--modules=ddc',
+          '--canary',
+          '--reload-delta-kernel=$newDeltaKernelPath',
+          if (oldDillPath != null) '--reload-last-accepted-kernel=$oldDillPath',
+        ],
+        if (!useNew) ...['--modules=amd', '--module-name=dartpad_main'],
         '--no-summarize',
         if (usingFlutter) ...[
           '-s',
           _projectTemplates.summaryFilePath,
           '-s',
-          '${_sdk.flutterWebSdkPath}/ddc_outline_sound.dill',
+          ddcOutlinePath,
         ],
-        ...['-o', path.join(temp.path, '$kMainDart.js')],
-        ...['--module-name', 'dartpad_main'],
+        ...['-o', mainJsPath],
         '--enable-asserts',
         if (_sdk.experiments.isNotEmpty)
           '--enable-experiment=${_sdk.experiments.join(",")}',
@@ -145,34 +182,40 @@ class Compiler {
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
-      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
-
       _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}"');
 
-      final response =
-          await _ddcDriver.doWork(WorkRequest(arguments: arguments));
-
+      final response = await _ddcDriver.doWork(
+        WorkRequest(arguments: arguments),
+      );
       if (response.exitCode != 0) {
-        if (response.output.contains("Undefined name 'main'")) {
-          return DDCCompilationResults._missingMain;
-        }
         return DDCCompilationResults.failed([
           CompilationProblem._(_rewritePaths(response.output)),
         ]);
       } else {
-        // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
-        // a result, the JS code produced above does *not* provide a name for
-        // the module it contains. That's a problem for DartPad, since it's
-        // adding the code to a script tag in an iframe rather than loading it
-        // as an individual file from baseURL. As a workaround, this replace
-        // statement injects a name into the module definition.
-        final processedJs = mainJs
-            .readAsStringSync()
-            .replaceFirst('define([', "define('dartpad_main', [");
+        final mainJs = File(mainJsPath);
+        final newDeltaDill = File(newDeltaKernelPath);
+
+        var compiledJs = mainJs.readAsStringSync();
+
+        if (!useNew) {
+          // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
+          // a result, the JS code produced above does *not* provide a name for
+          // the module it contains. That's a problem for DartPad, since it's
+          // adding the code to a script tag in an iframe rather than loading it
+          // as an individual file from baseURL. As a workaround, this replace
+          // statement injects a name into the module definition.
+          compiledJs = compiledJs.replaceFirst(
+            'define([',
+            "define('dartpad_main', [",
+          );
+        }
 
         final results = DDCCompilationResults(
-          compiledJS: processedJs,
-          modulesBaseUrl: 'https://storage.googleapis.com/$_storageBucket'
+          compiledJS: compiledJs,
+          deltaDill:
+              useNew ? base64Encode(newDeltaDill.readAsBytesSync()) : null,
+          modulesBaseUrl:
+              'https://storage.googleapis.com/$_storageBucket'
               '/${_sdk.dartVersion}/',
         );
         return results;
@@ -184,6 +227,21 @@ class Compiler {
       temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}');
     }
+  }
+
+  Future<DDCCompilationResults> compileDDC(String source) async {
+    return await _compileDDC(source, useNew: false);
+  }
+
+  Future<DDCCompilationResults> compileNewDDC(String source) async {
+    return await _compileDDC(source, useNew: true);
+  }
+
+  Future<DDCCompilationResults> compileNewDDCReload(
+    String source,
+    String deltaDill,
+  ) async {
+    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {
@@ -209,31 +267,26 @@ class CompilationResults {
   bool get success => problems.isEmpty;
 
   @override
-  String toString() => success
-      ? 'CompilationResults: Success'
-      : 'Compilation errors: ${problems.join('\n')}';
+  String toString() =>
+      success
+          ? 'CompilationResults: Success'
+          : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// The result of a DDC compile.
 class DDCCompilationResults {
-  static const DDCCompilationResults _missingMain =
-      DDCCompilationResults.failed([
-    CompilationProblem._(
-      "Invoked Dart programs must have a 'main' function defined.\n"
-      'To learn more, visit https://dart.dev/to/main-function.',
-    ),
-  ]);
-
   final String? compiledJS;
+  final String? deltaDill;
   final String? modulesBaseUrl;
   final List<CompilationProblem> problems;
 
-  DDCCompilationResults({this.compiledJS, this.modulesBaseUrl})
-      : problems = const <CompilationProblem>[];
+  DDCCompilationResults({this.compiledJS, this.deltaDill, this.modulesBaseUrl})
+    : problems = const <CompilationProblem>[];
 
   const DDCCompilationResults.failed(this.problems)
-      : compiledJS = null,
-        modulesBaseUrl = null;
+    : compiledJS = null,
+      deltaDill = null,
+      modulesBaseUrl = null;
 
   bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
 
@@ -241,9 +294,10 @@ class DDCCompilationResults {
   bool get success => problems.isEmpty;
 
   @override
-  String toString() => success
-      ? 'CompilationResults: Success'
-      : 'Compilation errors: ${problems.join('\n')}';
+  String toString() =>
+      success
+          ? 'CompilationResults: Success'
+          : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// An issue associated with [CompilationResults].
@@ -301,19 +355,21 @@ bool _doNothing(String from, String to) {
 String _rewritePaths(String output) {
   final lines = output.split('\n');
 
-  return lines.map((line) {
-    const token1 = 'lib/bootstrap.dart:';
-    var index = line.indexOf(token1);
-    if (index != -1) {
-      return 'main.dart:${line.substring(index + token1.length)}';
-    }
+  return lines
+      .map((line) {
+        const token1 = 'lib/bootstrap.dart:';
+        var index = line.indexOf(token1);
+        if (index != -1) {
+          return 'main.dart:${line.substring(index + token1.length)}';
+        }
 
-    const token2 = 'lib/main.dart:';
-    index = line.indexOf(token2);
-    if (index != -1) {
-      return 'main.dart:${line.substring(index + token2.length)}';
-    }
+        const token2 = 'lib/main.dart:';
+        index = line.indexOf(token2);
+        if (index != -1) {
+          return 'main.dart:${line.substring(index + token2.length)}';
+        }
 
-    return line;
-  }).join('\n');
+        return line;
+      })
+      .join('\n');
 }
