@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Turn on or off gen-ai features in the client.
-const bool genAiEnabled = true;
+const bool genAiEnabled = false;
 
 /*
 
@@ -31,5 +31,6 @@ These are options to exercise GenUI :
       --web-launch-url="http://localhost:8888/?genui=true"
 
 
-2. To use GenUI on  http://preview.dartpad.dev just add `&genui=true` to the URL.
+3. To use GenUI on  http://preview.dartpad.dev just add `&genui=true` to the URL.
+
 */
