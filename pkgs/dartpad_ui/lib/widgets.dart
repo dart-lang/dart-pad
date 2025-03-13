@@ -471,7 +471,6 @@ class _PromptDialogState extends State<PromptDialog> {
       context,
       PromptDialogResponse(
         appType: widget.initialAppType,
-        prompt: widget.promptTextController.text,
         imageAttachmentsManager: widget.imageAttachmentsManager,
         promptTextController: widget.promptTextController,
       ),
@@ -929,13 +928,7 @@ class GeminiCodeEditTool extends StatefulWidget {
   });
 
   final AppModel appModel;
-  final Future<void> Function(
-    BuildContext,
-    PromptDialogResponse,
-    TextEditingController,
-    ImageAttachmentsManager,
-  )
-  onUpdateCode;
+  final Future<void> Function(BuildContext, PromptDialogResponse) onUpdateCode;
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onEditUpdateCodePrompt;
   final VoidCallback onAcceptUpdateCode;
@@ -1015,7 +1008,6 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                     setState(() {});
                   },
                 ),
-                // TODO(alsobrian) 3/12/25: clean up the GeminiEditSuffixIcon fields for all the genAiManager stuff repeated
                 suffixIcon: GeminiEditSuffixIcon(
                   textFieldIsFocused: _textInputIsFocused,
                   onGenerate: () {
@@ -1023,12 +1015,9 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       context,
                       PromptDialogResponse(
                         appType: appType,
-                        prompt: promptController.text,
                         imageAttachmentsManager: imageAttachmentsManager,
                         promptTextController: promptController,
                       ),
-                      promptController,
-                      imageAttachmentsManager,
                     );
                     setState(() {});
                   },

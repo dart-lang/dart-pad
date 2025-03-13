@@ -662,13 +662,11 @@ enum CompilingState {
 class PromptDialogResponse {
   const PromptDialogResponse({
     required this.appType,
-    required this.prompt,
     required this.promptTextController,
     required this.imageAttachmentsManager,
   });
 
   final AppType appType;
-  final String prompt;
   final TextEditingController promptTextController;
   final ImageAttachmentsManager imageAttachmentsManager;
 }
@@ -754,12 +752,6 @@ class GenAiManager {
   void enterAwaitingAcceptReject() {
     state.value = GenAiState.awaitingAcceptReject;
   }
-
-  // void linkPromptSource(PromptDialogResponse promptResponse) {
-  //   //TODO(alsobrian) 3/12/25: clean up, check to see how much is necessary and actually used
-  //   activePromptTextController = promptResponse.promptTextController;
-  //   activeImageAttachmentsManager = promptResponse.imageAttachmentsManager;
-  // }
 
   void startStream(Stream<String> newStream) {
     stream.value = newStream;

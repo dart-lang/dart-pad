@@ -710,12 +710,14 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (!context.mounted ||
         promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
+        promptResponse.promptTextController.text.isEmpty) {
       return;
     }
 
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
+    LocalStorage.instance.saveLastCreateCodePrompt(
+      promptResponse.promptTextController.text,
+    );
 
     appModel.genAiManager.enterGeneratingNew();
 
@@ -725,7 +727,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (widget.useGenui) {
         appModel.genAiManager.startStream(
           appServices.generateUi(
-            GenerateUiRequest(prompt: promptResponse.prompt),
+            GenerateUiRequest(prompt: promptResponse.promptTextController.text),
           ),
         );
       } else {
@@ -733,7 +735,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           appServices.generateCode(
             GenerateCodeRequest(
               appType: appType,
-              prompt: promptResponse.prompt,
+              prompt: promptResponse.promptTextController.text,
               attachments: promptResponse.imageAttachmentsManager.attachments,
             ),
           ),
@@ -766,21 +768,17 @@ class EditorWithButtons extends StatelessWidget {
   Future<void> _requestGeminiCodeUpdate(
     BuildContext context,
     PromptDialogResponse promptInfo,
-    TextEditingController promptTextController,
-    ImageAttachmentsManager imageAttachmentsManager,
   ) async {
     appModel.genAiManager.enterGeneratingEdit();
 
     try {
-      // appModel.genAiManager.linkPromptSource(promptInfo);
-
       final source = appModel.sourceCodeController.text;
       appModel.genAiManager.startStream(
         appServices.updateCode(
           UpdateCodeRequest(
             appType: promptInfo.appType,
             source: source,
-            prompt: promptInfo.prompt,
+            prompt: promptInfo.promptTextController.text,
             attachments: promptInfo.imageAttachmentsManager.attachments,
           ),
         ),
