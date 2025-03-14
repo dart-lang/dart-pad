@@ -15,7 +15,7 @@ These are options to exercise GenUI :
   a. Set genAiEnabled to true above.
 
   b. See go/dartpad-manual-genui, section "GenUi Integration"
-     for instructions on how to start backend with GENUI_API_KEY.
+     for instructions on how to start backend with genui keys configured.
 
   c. Use this command to run UI:
 
