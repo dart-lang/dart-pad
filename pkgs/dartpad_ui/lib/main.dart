@@ -957,7 +957,16 @@ class EditorWithButtons extends StatelessWidget {
             ValueListenableBuilder<List<AnalysisIssue>>(
               valueListenable: appModel.analysisIssues,
               builder: (context, issues, _) {
-                return ProblemsTableWidget(problems: issues);
+                return ValueListenableBuilder<GenAiState>(
+                  valueListenable: appModel.genAiManager.state,
+                  builder: (_, genAiState, __) {
+                    if (genAiState != GenAiState.awaitingAcceptReject &&
+                        genAiState != GenAiState.generating) {
+                      return ProblemsTableWidget(problems: issues);
+                    }
+                    return SizedBox(width: 0, height: 0);
+                  },
+                );
               },
             ),
           ],
