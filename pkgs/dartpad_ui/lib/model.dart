@@ -722,6 +722,7 @@ class GenAiManager {
   final ImageAttachmentsManager codeEditImageAttachmentsManager =
       ImageAttachmentsManager();
   final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
+  final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
 
   GenAiManager();
 

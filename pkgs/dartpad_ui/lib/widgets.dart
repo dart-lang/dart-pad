@@ -660,11 +660,16 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
       }),
       onDone: () {
         setState(() {
-          final source = genAiManager.generatedCode().trim();
-          genAiManager.setStreamBufferValue(source);
+          final generatedCode = genAiManager.generatedCode().trim();
+          // if (generatedCode.isEmpty) {
+          //   return;
+          // }
+          genAiManager.setStreamBufferValue(generatedCode);
           genAiManager.setStreamIsDone(true);
-          _focusNode.requestFocus();
           genAiManager.enterAwaitingAcceptReject();
+          _focusNode.requestFocus();
+          widget.appModel.sourceCodeController.textNoScroll = generatedCode;
+          widget.appServices.performCompileAndRun();
         });
       },
     );
@@ -679,7 +684,6 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
   @override
   Widget build(BuildContext context) {
     final genAiManager = widget.appModel.genAiManager;
-    final existingSource = widget.appModel.sourceCodeController.text;
     return ValueListenableBuilder(
       valueListenable: genAiManager.streamIsDone,
       builder: (
@@ -709,29 +713,35 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
                 StringBuffer genAiCodeStreamBuffer,
                 Widget? child,
               ) {
-                return SizedBox(
-                  width: 700,
-                  child: Focus(
-                    autofocus: true,
-                    focusNode: _focusNode,
-                    child: ValueListenableBuilder(
-                      valueListenable:
-                          widget.appModel.genAiManager.isGeneratingNewProject,
-                      builder: (
-                        BuildContext context,
-                        bool genAiGeneratingNewProject,
-                        Widget? child,
-                      ) {
-                        return genAiGeneratingNewProject
-                            ? ReadOnlyCodeWidget(
-                              genAiCodeStreamBuffer.toString(),
-                            )
-                            : ReadOnlyDiffWidget(
-                              existingSource: existingSource,
-                              newSource: genAiCodeStreamBuffer.toString(),
-                            );
-                      },
-                    ),
+                return Focus(
+                  autofocus: true,
+                  focusNode: _focusNode,
+                  child: ValueListenableBuilder(
+                    valueListenable:
+                        widget.appModel.genAiManager.isGeneratingNewProject,
+                    builder: (
+                      BuildContext context,
+                      bool genAiGeneratingNewProject,
+                      Widget? child,
+                    ) {
+                      return ValueListenableBuilder(
+                        valueListenable: genAiManager.preGenAiSourceCode,
+                        builder: (
+                          BuildContext context,
+                          String existingSource,
+                          Widget? child,
+                        ) {
+                          return genAiGeneratingNewProject
+                              ? ReadOnlyCodeWidget(
+                                genAiCodeStreamBuffer.toString(),
+                              )
+                              : ReadOnlyDiffWidget(
+                                existingSource: existingSource,
+                                newSource: genAiCodeStreamBuffer.toString(),
+                              );
+                        },
+                      );
+                    },
                   ),
                 );
               },
@@ -923,8 +933,10 @@ class GeminiCodeEditTool extends StatefulWidget {
     required this.appModel,
     required this.onUpdateCode,
     required this.onCancelUpdateCode,
+    required this.onRejectSuggestedCode,
     required this.onEditUpdateCodePrompt,
     required this.onAcceptUpdateCode,
+    required this.enabled,
   });
 
   final AppModel appModel;
@@ -932,6 +944,8 @@ class GeminiCodeEditTool extends StatefulWidget {
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onEditUpdateCodePrompt;
   final VoidCallback onAcceptUpdateCode;
+  final VoidCallback onRejectSuggestedCode;
+  final bool enabled;
 
   @override
   State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -993,13 +1007,18 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
         child: Column(
           children: [
             TextField(
+              enabled: widget.enabled,
               controller: promptController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                hintText: 'Ask Gemini to change your code or app!',
+                hintText:
+                    widget.enabled
+                        ? 'Ask Gemini to change your code or app!'
+                        : '',
                 hintStyle: TextStyle(color: Theme.of(context).hintColor),
                 prefixIcon: GeminiEditPrefixIcon(
+                  enabled: widget.enabled,
                   textFieldIsFocused: _textInputIsFocused,
                   handlePromptSuggestion: handlePromptSuggestion,
                   appType: appType,
@@ -1077,7 +1096,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                 ]
                 : [
                   TextButton(
-                    onPressed: widget.onCancelUpdateCode,
+                    onPressed: widget.onRejectSuggestedCode,
                     child: Text('Cancel', style: GeminiMessageTextTheme),
                   ),
                   OutlinedButton(
@@ -1149,12 +1168,14 @@ class GeminiEditPrefixIcon extends StatelessWidget {
     required this.appType,
     required this.handlePromptSuggestion,
     required this.onAddImage,
+    required this.enabled,
   });
 
   final bool textFieldIsFocused;
   final AppType appType;
   final void Function(String) handlePromptSuggestion;
   final void Function() onAddImage;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -1173,11 +1194,14 @@ class GeminiEditPrefixIcon extends StatelessWidget {
                 width: 29,
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Image.asset(
-                    'gemini_sparkle_192.png',
-                    fit: BoxFit.contain,
-                    height: 24,
-                    width: 24,
+                  child: Opacity(
+                    opacity: enabled ? 1 : 0.45,
+                    child: Image.asset(
+                      'gemini_sparkle_192.png',
+                      fit: BoxFit.contain,
+                      height: 24,
+                      width: 24,
+                    ),
                   ),
                 ),
               ),

@@ -769,8 +769,9 @@ class EditorWithButtons extends StatelessWidget {
     BuildContext context,
     PromptDialogResponse promptInfo,
   ) async {
+    appModel.genAiManager.preGenAiSourceCode.value =
+        appModel.sourceCodeController.text;
     appModel.genAiManager.enterGeneratingEdit();
-
     try {
       final source = appModel.sourceCodeController.text;
       appModel.genAiManager.startStream(
@@ -793,17 +794,13 @@ class EditorWithButtons extends StatelessWidget {
   void onAcceptUpdateCode() {
     assert(appModel.genAiManager.streamIsDone.value);
     appModel.genAiManager.resetInputs();
-
-    final generatedCode = appModel.genAiManager.generatedCode();
-    if (generatedCode.isEmpty) {
-      return;
-    }
-    appModel.sourceCodeController.textNoScroll = generatedCode;
-    appServices.performCompileAndReloadOrRun();
     appModel.genAiManager.enterStandby();
   }
 
   void onEditUpdateCodePrompt() {
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndRun();
     appModel.genAiManager.enterStandby();
   }
 
@@ -813,20 +810,24 @@ class EditorWithButtons extends StatelessWidget {
     // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
   }
 
+  void onRejectSuggestedCode() {
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndRun();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SectionWidget(
-            child: ValueListenableBuilder<GenAiState>(
-              valueListenable: appModel.genAiManager.currentState,
-              builder: (
-                BuildContext context,
-                GenAiState genAiState,
-                Widget? child,
-              ) {
-                return Stack(
+    return ValueListenableBuilder<GenAiState>(
+      valueListenable: appModel.genAiManager.currentState,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        return Column(
+          children: [
+            Expanded(
+              child: SectionWidget(
+                child: Stack(
                   children: [
                     if (genAiState == GenAiState.standby) ...[
                       EditorWidget(
@@ -925,6 +926,8 @@ class EditorWithButtons extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Theme.of(context).scaffoldBackgroundColor,
                         ),
+                        alignment: Alignment.topLeft,
+                        padding: const EdgeInsets.all(denseSpacing),
                         child: GeneratingCodePanel(
                           appModel: appModel,
                           appServices: appServices,
@@ -932,25 +935,27 @@ class EditorWithButtons extends StatelessWidget {
                       ),
                     ],
                   ],
-                );
+                ),
+              ),
+            ),
+            GeminiCodeEditTool(
+              appModel: appModel,
+              enabled: appModel.genAiManager.state.value == GenAiState.standby,
+              onUpdateCode: _requestGeminiCodeUpdate,
+              onAcceptUpdateCode: onAcceptUpdateCode,
+              onCancelUpdateCode: onCancelUpdateCode,
+              onEditUpdateCodePrompt: onEditUpdateCodePrompt,
+              onRejectSuggestedCode: onRejectSuggestedCode,
+            ),
+            ValueListenableBuilder<List<AnalysisIssue>>(
+              valueListenable: appModel.analysisIssues,
+              builder: (context, issues, _) {
+                return ProblemsTableWidget(problems: issues);
               },
             ),
-          ),
-        ),
-        GeminiCodeEditTool(
-          appModel: appModel,
-          onUpdateCode: _requestGeminiCodeUpdate,
-          onAcceptUpdateCode: onAcceptUpdateCode,
-          onCancelUpdateCode: onCancelUpdateCode,
-          onEditUpdateCodePrompt: onEditUpdateCodePrompt,
-        ),
-        ValueListenableBuilder<List<AnalysisIssue>>(
-          valueListenable: appModel.analysisIssues,
-          builder: (context, issues, _) {
-            return ProblemsTableWidget(problems: issues);
-          },
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
