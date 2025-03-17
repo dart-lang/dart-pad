@@ -544,22 +544,31 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<CompilingState>(
-      valueListenable: appModel.compilingState,
-      builder: (_, compilingState, __) {
-        final color = theme.colorScheme.surface;
-        final compiling = compilingState == CompilingState.restarting;
+    return ValueListenableBuilder<GenAiState>(
+      valueListenable: appModel.genAiManager.state,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        return ValueListenableBuilder<CompilingState>(
+          valueListenable: appModel.compilingState,
+          builder: (_, compilingState, __) {
+            final color = theme.colorScheme.surface;
+            final loading =
+                compilingState == CompilingState.restarting ||
+                genAiState == GenAiState.generating;
 
-        // If reloading, show a progress spinner. If restarting, also display a
-        // semi-opaque overlay.
-        return AnimatedContainer(
-          color: color.withValues(alpha: compiling ? 0.8 : 0),
-          duration: animationDelay,
-          curve: animationCurve,
-          child:
-              compiling
-                  ? const GoldenRatioCenter(child: CircularProgressIndicator())
-                  : const SizedBox(width: 1),
+            // If reloading, show a progress spinner. If restarting, also display a
+            // semi-opaque overlay.
+            return AnimatedContainer(
+              color: color.withValues(alpha: loading ? 0.8 : 0),
+              duration: animationDelay,
+              curve: animationCurve,
+              child:
+                  loading
+                      ? const GoldenRatioCenter(
+                        child: CircularProgressIndicator(),
+                      )
+                      : const SizedBox(width: 1),
+            );
+          },
         );
       },
     );
@@ -722,8 +731,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     appModel.genAiManager.enterGeneratingNew();
 
     try {
-      // appModel.genAiManager.linkPromptSource(promptResponse);
-
       if (widget.useGenui) {
         appModel.genAiManager.startStream(
           appServices.generateUi(
