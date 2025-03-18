@@ -179,5 +179,12 @@ final class Sdk {
     return int.parse(dartVersionString);
   }
 
-  bool get useNewDdcSdk => dartMajorVersion >= 3 && dartMinorVersion >= 8;
+  // Currently we only allow using the new DDC module systme on the main or
+  // local channels.
+  bool get _channelSupportsNewDdcSdk => !stableChannel && !betaChannel;
+
+  bool get useNewDdcSdk =>
+      dartMajorVersion >= 3 &&
+      dartMinorVersion >= 8 &&
+      _channelSupportsNewDdcSdk;
 }
