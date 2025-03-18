@@ -211,6 +211,9 @@ class AppServices {
       appModel.useNewDDC.value = _hotReloadableChannels.contains(
         _channel.value,
       );
+
+      // Mark any current delta as invalid as it's from another channel.
+      appModel.currentDeltaDill.value = null;
     }
 
     updateUseNewDDC();
