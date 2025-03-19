@@ -728,6 +728,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       promptResponse.promptTextController.text,
     );
 
+    appModel.genAiManager.preGenAiSourceCode.value =
+        appModel.sourceCodeController.text;
     appModel.genAiManager.enterGeneratingNew();
 
     try {
