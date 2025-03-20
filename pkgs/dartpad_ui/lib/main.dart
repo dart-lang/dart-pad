@@ -303,6 +303,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         });
     appModel.compilingState.addListener(_handleRunStarted);
 
+    tabController.addListener(() {
+      // Refresh the editor if switching to the code editor tab,
+      // to allow CodeMirror to update its custom rendering.
+      if (tabController.index == 0) {
+        appServices.editorService?.refreshViewAfterWait();
+      }
+    });
+
     debugPrint(
       'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
     );
@@ -314,6 +322,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
     appServices.dispose();
     appModel.dispose();
+
+    tabController.dispose();
 
     super.dispose();
   }
