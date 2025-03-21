@@ -297,9 +297,6 @@ final class Logo extends StatelessWidget {
   }
 }
 
-bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
-bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
-
 class ImageAttachmentsManager {
   final attachments = List<Attachment>.empty(growable: true);
 
@@ -371,11 +368,7 @@ class _PromptDialogState extends State<PromptDialog> {
           width: 700,
           child: CallbackShortcuts(
             bindings: {
-              SingleActivator(
-                LogicalKeyboardKey.enter,
-                meta: _mac,
-                control: _nonMac,
-              ): () {
+              SingleActivator(LogicalKeyboardKey.enter): () {
                 if (widget.promptTextController.text.isNotEmpty) _onGenerate();
               },
             },
@@ -861,30 +854,10 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
             }),
         child: Column(
           children: [
-            TextField(
-              enabled: widget.enabled,
-              controller: promptController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                hintText:
-                    widget.enabled
-                        ? 'Ask Gemini to change your code or app!'
-                        : '',
-                hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                prefixIcon: GeminiEditPrefixIcon(
-                  enabled: widget.enabled,
-                  textFieldIsFocused: _textInputIsFocused,
-                  handlePromptSuggestion: handlePromptSuggestion,
-                  appType: appType,
-                  onAddImage: () async {
-                    await imageAttachmentsManager.addAttachment();
-                    setState(() {});
-                  },
-                ),
-                suffixIcon: GeminiEditSuffixIcon(
-                  textFieldIsFocused: _textInputIsFocused,
-                  onGenerate: () {
+            CallbackShortcuts(
+              bindings: {
+                SingleActivator(LogicalKeyboardKey.enter): () {
+                  if (promptController.text.isNotEmpty) {
                     widget.onUpdateCode(
                       context,
                       PromptDialogResponse(
@@ -894,11 +867,48 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       ),
                     );
                     setState(() {});
-                  },
+                  }
+                },
+              },
+              child: TextField(
+                enabled: widget.enabled,
+                controller: promptController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  hintText:
+                      widget.enabled
+                          ? 'Ask Gemini to change your code or app!'
+                          : '',
+                  hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                  prefixIcon: GeminiEditPrefixIcon(
+                    enabled: widget.enabled,
+                    textFieldIsFocused: _textInputIsFocused,
+                    handlePromptSuggestion: handlePromptSuggestion,
+                    appType: appType,
+                    onAddImage: () async {
+                      await imageAttachmentsManager.addAttachment();
+                      setState(() {});
+                    },
+                  ),
+                  suffixIcon: GeminiEditSuffixIcon(
+                    textFieldIsFocused: _textInputIsFocused,
+                    onGenerate: () {
+                      widget.onUpdateCode(
+                        context,
+                        PromptDialogResponse(
+                          appType: appType,
+                          imageAttachmentsManager: imageAttachmentsManager,
+                          promptTextController: promptController,
+                        ),
+                      );
+                      setState(() {});
+                    },
+                  ),
                 ),
+                maxLines: 8,
+                minLines: 1,
               ),
-              maxLines: 8,
-              minLines: 1,
             ),
             if (imageAttachmentsManager.attachments.isNotEmpty)
               SizedBox(
