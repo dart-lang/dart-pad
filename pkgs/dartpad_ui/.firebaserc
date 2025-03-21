@@ -1,5 +1,13 @@
 {
-  "projects": {
-    "default": "genui-dartpad"
-  }
+  "projects": {},
+  "targets": {
+    "genui-dartpad": {
+      "hosting": {
+        "genui-dartpad": [
+          "genui-dartpad"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
