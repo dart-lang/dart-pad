@@ -1,15 +1,10 @@
 {
-  "projects": {
-    "default": "dart-pad"
-  },
+  "projects": {},
   "targets": {
-    "dart-pad": {
+    "genui-dartpad": {
       "hosting": {
-        "dartpad": [
-          "dart-pad-a3c64"
-        ],
-        "preview": [
-          "sketch-pad-1cebb"
+        "genui-dartpad": [
+          "genui-dartpad"
         ]
       }
     }
