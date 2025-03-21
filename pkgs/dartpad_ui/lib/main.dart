@@ -1411,8 +1411,8 @@ class GeminiMenu extends StatelessWidget {
       builder:
           (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: image,
-            label: const Text('Gemini'),
-            tooltip: 'New via Gemini',
+            label: const Text('New via Gemini'),
+            tooltip: 'Create a new snippet with Gemini',
             hideLabel: hideLabel,
             onToggle: controller.toggleMenuState,
           ),
