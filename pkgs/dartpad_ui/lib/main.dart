@@ -608,21 +608,22 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedGeminiMenu =
-        genAiEnabled
-            ? [
-              const SizedBox(width: denseSpacing),
-              GeminiMenu(
-                generateDartCode: () => _generateNewCode(context, AppType.dart),
-                generateFlutterCode:
-                    () => _generateNewCode(context, AppType.flutter),
-                hideLabel: false, // !wideLayout,
-              ),
-            ]
-            : <Widget>[];
     return LayoutBuilder(
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth > smallScreenWidth;
+        final resolvedGeminiMenu =
+            genAiEnabled
+                ? [
+                  const SizedBox(width: denseSpacing),
+                  GeminiMenu(
+                    generateDartCode:
+                        () => _generateNewCode(context, AppType.dart),
+                    generateFlutterCode:
+                        () => _generateNewCode(context, AppType.flutter),
+                    hideLabel: false, // !wideLayout,
+                  ),
+                ]
+                : <Widget>[];
 
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
@@ -653,16 +654,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const ListSamplesWidget(hideLabel: true),
                 ],
 
-                // if (genAiEnabled) ...[
-                //   const SizedBox(width: denseSpacing),
-                //   GeminiMenu(
-                //     generateDartCode:
-                //         () => _generateNewCode(context, AppType.dart),
-                //     generateFlutterCode:
-                //         () => _generateNewCode(context, AppType.flutter),
-                //     hideLabel: !wideLayout,
-                //   ),
-                // ],
                 const SizedBox(width: defaultSpacing),
                 // Hide the snippet title when the screen width is too small.
                 if (wideLayout)
