@@ -511,9 +511,14 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
       onDone: () {
         setState(() {
           final generatedCode = genAiManager.generatedCode().trim();
-          // if (generatedCode.isEmpty) {
-          //   return;
-          // }
+          if (generatedCode.isEmpty) {
+            widget.appModel.editorStatus.showToast('Error generating code');
+            widget.appModel.appendError(
+              'There was an error generating your code, please try again.',
+            );
+            widget.appModel.genAiManager.enterStandby();
+            return;
+          }
           genAiManager.setStreamBufferValue(generatedCode);
           genAiManager.setStreamIsDone(true);
           genAiManager.enterAwaitingAcceptReject();
