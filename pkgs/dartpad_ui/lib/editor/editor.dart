@@ -186,6 +186,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   @override
+  void refreshViewAfterWait() {
+    // Use a longer delay so that the platform view is displayed
+    // correctly when compiled to Wasm.
+    Future<void>.delayed(const Duration(milliseconds: 80), () {
+      codeMirror?.refresh();
+    });
+  }
+
+  @override
   void initState() {
     super.initState();
     _autosaveTimer = Timer.periodic(const Duration(seconds: 5), _autosave);
@@ -217,12 +226,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // darkmode
     _updateCodemirrorMode(darkMode);
 
-    // Use a longer delay so that the platform view is displayed
-    // correctly when compiled to Wasm
-    Future.delayed(
-      const Duration(milliseconds: 80),
-      () => codeMirror!.refresh(),
-    );
+    refreshViewAfterWait();
 
     codeMirror!.on(
       'change',
@@ -280,12 +284,8 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
         for (final entry in entries.toDart) {
           if (entry.isIntersecting) {
             observer.unobserve(web.document.body!);
-            // Use a longer delay so that the platform view is displayed
-            // correctly when compiled to Wasm
-            Future.delayed(
-              const Duration(milliseconds: 80),
-              () => codeMirror!.refresh(),
-            );
+
+            refreshViewAfterWait();
             return;
           }
         }

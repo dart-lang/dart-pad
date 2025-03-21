@@ -1210,3 +1210,38 @@ class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
     );
   }
 }
+
+class CollapsibleIconToggleButton extends StatelessWidget {
+  const CollapsibleIconToggleButton({
+    super.key,
+    required this.onToggle,
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+    this.hideLabel = false,
+    this.compact = false,
+  });
+
+  final void Function() onToggle;
+  final Widget icon;
+  final Text label;
+  final String tooltip;
+  final bool hideLabel;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      waitDuration: tooltipDelay,
+      child:
+          hideLabel
+              ? IconButton(
+                icon: icon,
+                onPressed: onToggle,
+                visualDensity: compact ? VisualDensity.compact : null,
+              )
+              : TextButton.icon(icon: icon, label: label, onPressed: onToggle),
+    );
+  }
+}

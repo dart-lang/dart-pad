@@ -40,6 +40,9 @@ abstract class EditorService {
   void jumpTo(AnalysisIssue issue);
   int get cursorOffset;
   void focus();
+
+  /// Let the editor know to account for any resizing or visibility changes.
+  void refreshViewAfterWait();
 }
 
 class AppModel {
