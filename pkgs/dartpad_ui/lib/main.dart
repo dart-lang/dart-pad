@@ -1103,7 +1103,7 @@ class StatusLineWidget extends StatelessWidget {
               },
               child: const Row(
                 children: [
-                  Text('Privacy notice'),
+                  Text('Privacy notice :)'),
                   SizedBox(width: denseSpacing),
                   Icon(Icons.launch, size: 16),
                 ],
