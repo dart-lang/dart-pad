@@ -50,7 +50,7 @@ class _GenuiEnv {
       },
       body: jsonEncode(<String, String>{
         'userPrompt': prompt,
-        'modelUrl': 'genuigemini://models/gemini-2.0-flash',
+        'skipPayload': 'true',
       }),
     );
 
