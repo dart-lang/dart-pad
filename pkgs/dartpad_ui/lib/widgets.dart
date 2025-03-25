@@ -1062,7 +1062,7 @@ class GeminiEditPrefixIcon extends StatelessWidget {
                   child: Opacity(
                     opacity: enabled ? 1 : 0.45,
                     child: Image.asset(
-                      'gemini_sparkle_192.png',
+                      'assets/gemini_sparkle_192.png',
                       fit: BoxFit.contain,
                       height: 24,
                       width: 24,
