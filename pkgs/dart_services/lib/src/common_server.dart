@@ -346,6 +346,7 @@ class CommonServerApi {
       // TODO(polina-c): setup better streaming
       return _streamResponse('generateUi', resultStream);
     } catch (e, stackTrace) {
+      log.severe('generateUi error', e, stackTrace);
       return Response.internalServerError(body: 'Failed to generate UI: $e');
     }
   }
