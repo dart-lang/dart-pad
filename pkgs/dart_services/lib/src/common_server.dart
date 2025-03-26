@@ -329,7 +329,7 @@ class CommonServerApi {
   }
 
   Future<Response> generateUi(Request request, String apiVersion) async {
-    log.fine('generateUi: $apiVersion, ${request.headers}');
+    log.info('generateUi: $apiVersion, ${request.headers}');
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateUiRequest = api.GenerateUiRequest.fromJson(
