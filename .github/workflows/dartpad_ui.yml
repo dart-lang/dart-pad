@@ -34,8 +34,6 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
-      - name: validate that GenAI has not been enabled
-        run: git grep "genAiEnabled = false"
       - run: dart format --set-exit-if-changed .
       - run: flutter build web
       - run: flutter test
