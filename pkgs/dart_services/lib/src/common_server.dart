@@ -329,19 +329,25 @@ class CommonServerApi {
   }
 
   Future<Response> generateUi(Request request, String apiVersion) async {
-    log.info('generateUi: $apiVersion, ${request.headers}');
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateUiRequest = api.GenerateUiRequest.fromJson(
       await request.readAsJson(),
     );
 
-    final resultStream = Stream.fromIterable([
-      await impl.genui.generateCode(prompt: generateUiRequest.prompt),
-    ]);
+    try {
+      final code = await impl.genui.generateCode(
+        prompt: generateUiRequest.prompt,
+      );
 
-    // TODO(polina-c): setup better streaming
-    return _streamResponse('generateUi', resultStream);
+      final resultStream = Stream.fromIterable([code]);
+
+      // TODO(polina-c): setup better streaming
+      return _streamResponse('generateUi', resultStream);
+    } catch (e, stackTrace) {
+      log.warning('generateUi error', e, stackTrace);
+      return Response.internalServerError(body: 'Failed to generate UI: $e');
+    }
   }
 
   Future<Response> updateCode(Request request, String apiVersion) async {
