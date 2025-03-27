@@ -56,7 +56,7 @@ class _GenuiEnv {
 
     if (response.statusCode != 200) {
       _logger.warning(
-        'Failed to generate ui at genui, $name: ${response.statusCode}, ${response.body}',
+        'Failed to generate ui at genui, $name: ${response.statusCode}, response-headers: ${response.headers}, response-body: ${response.body}',
       );
       return null;
     }
