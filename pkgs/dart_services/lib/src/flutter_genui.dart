@@ -57,11 +57,13 @@ class _GenuiEnv {
     );
 
     if (response.statusCode != 200) {
-      _logger.warning('''Failed to generate ui with genui, $name:
-${response.statusCode}
-response-headers: ${response.headers}
-key: $keyHint
-${response.body}''');
+      _logger.warning(
+        'Failed to generate ui with genui, $name: '
+        '${response.statusCode}; '
+        'response-headers: ${response.headers}; '
+        'key: $keyHint; '
+        '${response.body.replaceAll('\n', ' ')}',
+      );
       return null;
     }
 
