@@ -729,7 +729,7 @@ class _ImageAttachmentWidget extends StatelessWidget {
           child: InkWell(
             onTap: onRemove,
             child: Tooltip(
-              message: 'Remove Image',
+              message: 'Remove image',
               child: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 radius: 12,
@@ -770,7 +770,7 @@ class _AddImageWidget extends StatelessWidget {
                   shape: const RoundedRectangleBorder(),
                 ),
                 child: const Center(
-                  child: Text('Add\nImage', textAlign: TextAlign.center),
+                  child: Text('Add\nimage', textAlign: TextAlign.center),
                 ),
               ),
             ),
