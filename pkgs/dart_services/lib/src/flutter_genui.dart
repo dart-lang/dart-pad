@@ -13,6 +13,7 @@ final _logger = Logger('genui');
 class _GenuiEnv {
   late final Uri? apiUrl;
   final String name;
+  late final String keyHint;
 
   _GenuiEnv({
     required this.name,
@@ -28,6 +29,7 @@ class _GenuiEnv {
     } else {
       _logger.info('$apiKeyVarName set; genui features at $name ENABLED');
       apiUrl = Uri.parse('$url?key=$key');
+      keyHint = '${key[0]}..${key[key.length - 1]}';
     }
   }
 
@@ -55,9 +57,11 @@ class _GenuiEnv {
     );
 
     if (response.statusCode != 200) {
-      _logger.warning(
-        'Failed to generate ui at genui, $name: ${response.statusCode}, response-headers: ${response.headers}, response-body: ${response.body}',
-      );
+      _logger.warning('''Failed to generate ui with genui, $name:
+${response.statusCode}
+response-headers: ${response.headers}
+key: $keyHint
+${response.body}''');
       return null;
     }
 
