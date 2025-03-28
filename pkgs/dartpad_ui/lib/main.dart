@@ -690,7 +690,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Generate New Code',
+            title: 'Generate new code',
             hint: 'Describe the code you want to generate',
             initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
             flutterPromptButtons: {
@@ -743,7 +743,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder:
             (context) => GeneratingCodeDialog(
               stream: stream,
-              title: 'Generating New Code',
+              title: 'Generating new code',
             ),
       );
 
@@ -770,7 +770,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Update Existing Code',
+            title: 'Update existing code',
             hint: 'Describe the updates you\'d like to make to the code',
             initialAppType: appModel.appType,
             flutterPromptButtons: {
@@ -815,7 +815,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder:
             (context) => GeneratingCodeDialog(
               stream: stream,
-              title: 'Updating Existing Code',
+              title: 'Updating existing code',
               existingSource: source,
             ),
       );
@@ -1384,7 +1384,7 @@ class GeminiMenu extends StatelessWidget {
             onPressed: generateNewCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
-              child: Text('Generate Code'),
+              child: Text('Generate code'),
             ),
           ),
           MenuItemButton(
@@ -1392,7 +1392,7 @@ class GeminiMenu extends StatelessWidget {
             onPressed: updateExistingCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
-              child: Text('Update Code'),
+              child: Text('Update code'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
@@ -1542,7 +1542,7 @@ class _VimModeSwitch extends StatelessWidget {
       builder: (BuildContext context, bool value, Widget? child) {
         return SwitchListTile(
           value: value,
-          title: const Text('Use Vim Key Bindings'),
+          title: const Text('Use Vim key bindings'),
           onChanged: _handleToggle,
         );
       },
