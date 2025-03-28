@@ -60,10 +60,11 @@ class _GenuiEnv {
       // Logs take just first line, so no new lines.
       _logger.warning(
         'Failed to generate ui with genui, $name: '
-        '${response.statusCode}; '
-        'response-headers: ${response.headers}; '
-        'key: $keyHint; '
-        '${response.body.replaceAll('\n', ' ')}',
+                '${response.statusCode}; '
+                'response-headers: ${response.headers}; '
+                'key: $keyHint; '
+                '${response.body}'
+            .replaceAll('\n', ' '),
       );
       return null;
     }
