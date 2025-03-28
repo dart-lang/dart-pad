@@ -57,6 +57,7 @@ class _GenuiEnv {
     );
 
     if (response.statusCode != 200) {
+      // Logs take just first line, so no new lines.
       _logger.warning(
         'Failed to generate ui with genui, $name: '
         '${response.statusCode}; '
