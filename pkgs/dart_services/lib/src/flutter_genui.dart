@@ -73,18 +73,19 @@ ${response.body}''');
 }
 
 class GenUi {
-  late final _GenuiEnv _prodGenui, _stagingGenui;
+  late final _GenuiEnv _primaryGenui, _fallbackGenui;
 
   GenUi() {
-    _prodGenui = _GenuiEnv(
-      name: 'prod',
+    // TODO(polina-c): make prod primary when b/407075363 is investigated and b/406570040 is fixed
+    _fallbackGenui = _GenuiEnv(
+      name: 'prod;fallback',
       apiKeyVarName: 'GENUI_API_KEY',
       url:
           'https://devgenui.pa.googleapis.com/v1internal/firstparty/generateidecode',
     );
 
-    _stagingGenui = _GenuiEnv(
-      name: 'staging',
+    _primaryGenui = _GenuiEnv(
+      name: 'staging;primary',
       apiKeyVarName: 'GENUI_API_KEY_STAGING',
       url:
           'https://autopush-devgenui.sandbox.googleapis.com/v1beta1/firstparty/generateidecode',
@@ -92,13 +93,13 @@ class GenUi {
   }
 
   Future<String> generateCode({required String prompt}) async {
-    final prodResult = await _prodGenui.request(prompt: prompt);
+    final prodResult = await _primaryGenui.request(prompt: prompt);
 
     if (prodResult != null) {
       return prodResult;
     }
 
-    final stagingResult = await _stagingGenui.request(prompt: prompt);
+    final stagingResult = await _fallbackGenui.request(prompt: prompt);
 
     if (stagingResult == null) {
       throw Exception('Failed to generate code from GenUI');
