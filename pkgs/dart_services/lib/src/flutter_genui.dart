@@ -77,38 +77,24 @@ class _GenuiEnv {
 }
 
 class GenUi {
-  late final _GenuiEnv _primaryGenui, _fallbackGenui;
+  late final _GenuiEnv _prod;
 
   GenUi() {
-    // TODO(polina-c): make prod primary when b/407075363 is investigated and b/406570040 is fixed
-    _fallbackGenui = _GenuiEnv(
+    _prod = _GenuiEnv(
       name: 'prod;fallback',
       apiKeyVarName: 'GENUI_API_KEY',
       url:
           'https://devgenui.pa.googleapis.com/v1internal/firstparty/generateidecode',
     );
-
-    _primaryGenui = _GenuiEnv(
-      name: 'staging;primary',
-      apiKeyVarName: 'GENUI_API_KEY_STAGING',
-      url:
-          'https://autopush-devgenui.sandbox.googleapis.com/v1beta1/firstparty/generateidecode',
-    );
   }
 
   Future<String> generateCode({required String prompt}) async {
-    final prodResult = await _primaryGenui.request(prompt: prompt);
+    final result = await _prod.request(prompt: prompt);
 
-    if (prodResult != null) {
-      return prodResult;
-    }
-
-    final stagingResult = await _fallbackGenui.request(prompt: prompt);
-
-    if (stagingResult == null) {
+    if (result == null) {
       throw Exception('Failed to generate code from GenUI');
     }
 
-    return stagingResult;
+    return result;
   }
 }
