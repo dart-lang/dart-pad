@@ -181,7 +181,7 @@ final class Sdk {
 
   // Currently we only allow using the new DDC module systme on the main or
   // local channels.
-  bool get _channelSupportsNewDdcSdk => !stableChannel && !betaChannel;
+  bool get _channelSupportsNewDdcSdk => !stableChannel;
 
   bool get useNewDdcSdk =>
       dartMajorVersion >= 3 &&
