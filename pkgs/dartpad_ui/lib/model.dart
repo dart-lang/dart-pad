@@ -200,6 +200,7 @@ class AppServices {
   static const Set<Channel> _hotReloadableChannels = {
     Channel.localhost,
     Channel.main,
+    Channel.beta,
   };
 
   AppServices(this.appModel, Channel channel) {
