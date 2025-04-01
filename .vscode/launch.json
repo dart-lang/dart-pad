@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "ui",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkjs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+            ],
+        }
+    ],
+}
