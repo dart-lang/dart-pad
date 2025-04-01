@@ -81,7 +81,7 @@ class GenUi {
 
   GenUi() {
     _prod = _GenuiEnv(
-      name: 'prod;fallback',
+      name: 'prod',
       apiKeyVarName: 'GENUI_API_KEY',
       url:
           'https://devgenui.pa.googleapis.com/v1internal/firstparty/generateidecode',
