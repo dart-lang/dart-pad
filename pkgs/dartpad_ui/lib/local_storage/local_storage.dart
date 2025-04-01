@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'interface.dart';
-import 'stub.dart' if (dart.library.js_util) 'local_storage/web.dart';
+import 'stub.dart' if (dart.library.js_util) 'web.dart';
 
 abstract class LocalStorage {
   static LocalStorageInterface instance = LocalStorageImpl();
