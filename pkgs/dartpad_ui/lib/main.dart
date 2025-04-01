@@ -28,7 +28,7 @@ import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'theme.dart';
+import 'primitives/theme.dart';
 import 'utils.dart';
 import 'versions.dart';
 import 'widgets.dart';

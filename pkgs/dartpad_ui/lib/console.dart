@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'enable_gen_ai.dart';
 import 'model.dart';
 import 'suggest_fix.dart';
-import 'theme.dart';
+import 'primitives/theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
 

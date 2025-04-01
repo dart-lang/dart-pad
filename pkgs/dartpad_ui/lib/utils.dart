@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'theme.dart';
+import 'primitives/theme.dart';
 
 String pluralize(String word, int count) {
   return count == 1 ? word : '${word}s';

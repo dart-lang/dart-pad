@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'theme.dart';
+import 'primitives/theme.dart';
 
 bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
 bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
