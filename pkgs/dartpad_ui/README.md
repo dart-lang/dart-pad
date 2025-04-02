@@ -64,7 +64,7 @@ If you want to collaborate on intermediate version, you can publish it to your o
 
 2. Run `firebase init`
 
-3. Make sure your current Flutter channel is stable
+3. Make sure your current Flutter channel is set to `stable`
 
 3. Run the commands:
 
