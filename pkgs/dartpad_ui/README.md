@@ -44,7 +44,9 @@ If you want to collaborate on intermediate version, you can publish it to your o
 
 1. In firebase.json temporarily change target to your project name.
 
-2. Run the commands:
+2. Make sure your current Flutter channel is stable
+
+3. Run the commands:
 
    ```
    cd pkgs/dartpad_ui
@@ -52,4 +54,4 @@ If you want to collaborate on intermediate version, you can publish it to your o
    firebase hosting:channel:deploy <your project name>
    ```
 
-See https://firebase.google.com/docs/hosting on how to configure Firebase Hosting.
+See https://firebase.google.com/docs/hosting.
