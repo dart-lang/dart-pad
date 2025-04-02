@@ -719,24 +719,24 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (!context.mounted ||
         promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
+        promptResponse.prompt.text.isEmpty) {
       return;
     }
 
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
+    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt.text);
 
     try {
       final Stream<String> stream;
       if (widget.useGenui) {
         stream = appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
+          GenerateUiRequest(prompt: promptResponse.prompt.text),
         );
       } else {
         stream = appServices.generateCode(
           GenerateCodeRequest(
             appType: promptResponse.appType,
-            prompt: promptResponse.prompt,
+            prompt: promptResponse.prompt.text,
             attachments: promptResponse.attachments,
           ),
         );
@@ -797,11 +797,11 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (!context.mounted ||
         promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
+        promptResponse.prompt.text.isEmpty) {
       return;
     }
 
-    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
+    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt.text);
 
     try {
       final source = appModel.sourceCodeController.text;
@@ -809,7 +809,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         UpdateCodeRequest(
           appType: promptResponse.appType,
           source: source,
-          prompt: promptResponse.prompt,
+          prompt: promptResponse.prompt.text,
           attachments: promptResponse.attachments,
         ),
       );

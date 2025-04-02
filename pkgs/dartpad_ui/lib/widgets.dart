@@ -465,7 +465,7 @@ class _PromptDialogState extends State<PromptDialog> {
       context,
       PromptDialogResponse(
         appType: _appType,
-        prompt: _controller.text,
+        prompt: _controller,
         attachments: _attachments,
       ),
     );
