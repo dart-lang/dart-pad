@@ -14,6 +14,7 @@ import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
+import 'widgets.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
@@ -89,6 +90,8 @@ class AppModel {
   final ValueNotifier<bool> showReload = ValueNotifier(false);
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
+
+  final GenAiManager genAiManager = GenAiManager();
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
@@ -200,7 +203,6 @@ class AppServices {
   static const Set<Channel> _hotReloadableChannels = {
     Channel.localhost,
     Channel.main,
-    Channel.beta,
   };
 
   AppServices(this.appModel, Channel channel) {
@@ -663,13 +665,13 @@ enum CompilingState {
 class PromptDialogResponse {
   const PromptDialogResponse({
     required this.appType,
-    required this.prompt,
-    this.attachments = const [],
+    required this.promptTextController,
+    required this.imageAttachmentsManager,
   });
 
   final AppType appType;
-  final String prompt;
-  final List<Attachment> attachments;
+  final TextEditingController promptTextController;
+  final ImageAttachmentsManager imageAttachmentsManager;
 }
 
 class ConsoleNotifier extends ChangeNotifier {
@@ -700,4 +702,88 @@ class ConsoleNotifier extends ChangeNotifier {
   bool get isEmpty => _output.isEmpty && _error.isEmpty;
   bool get hasError => _error.isNotEmpty;
   String get valueToDisplay => hasError ? _error : _output;
+}
+
+enum GenAiState { standby, generating, awaitingAcceptReject }
+
+class GenAiManager {
+  final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
+  final ValueNotifier<Stream<String>> stream = ValueNotifier(
+    Stream<String>.empty(),
+  );
+  final ValueNotifier<StringBuffer> streamBuffer = ValueNotifier(
+    StringBuffer(),
+  );
+  final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
+  TextEditingController? activePromptTextController;
+  ImageAttachmentsManager? activeImageAttachmentsManager;
+  final TextEditingController newCodePromptController = TextEditingController();
+  final TextEditingController codeEditPromptController =
+      TextEditingController();
+  final ImageAttachmentsManager newCodeImageAttachmentsManager =
+      ImageAttachmentsManager();
+  final ImageAttachmentsManager codeEditImageAttachmentsManager =
+      ImageAttachmentsManager();
+  final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
+  final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
+
+  GenAiManager();
+
+  ValueNotifier<GenAiState> get currentState {
+    return state;
+  }
+
+  void enterGeneratingNew() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = true;
+    activePromptTextController = newCodePromptController;
+    activeImageAttachmentsManager = newCodeImageAttachmentsManager;
+  }
+
+  void enterGeneratingEdit() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = false;
+    activePromptTextController = codeEditPromptController;
+    activeImageAttachmentsManager = codeEditImageAttachmentsManager;
+  }
+
+  void enterStandby() {
+    state.value = GenAiState.standby;
+    streamIsDone.value = true;
+    streamBuffer.value.clear();
+  }
+
+  void enterAwaitingAcceptReject() {
+    state.value = GenAiState.awaitingAcceptReject;
+  }
+
+  void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
+    stream.value = newStream;
+  }
+
+  void setStreamIsDone(bool which) {
+    streamIsDone.value = which;
+  }
+
+  void resetInputs() {
+    activePromptTextController?.text = '';
+    activeImageAttachmentsManager?.attachments.clear();
+  }
+
+  String generatedCode() {
+    return streamBuffer.value.toString();
+  }
+
+  void setEditPromptText(String newPrompt) {
+    codeEditPromptController.text = newPrompt;
+  }
+
+  void writeToStreamBuffer(String text) {
+    streamBuffer.value.write(text);
+  }
+
+  void setStreamBufferValue(String text) {
+    streamBuffer.value.clear();
+    streamBuffer.value.write(text);
+  }
 }

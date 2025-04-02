@@ -15,6 +15,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
+import 'main.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
@@ -296,8 +297,26 @@ final class Logo extends StatelessWidget {
   }
 }
 
-bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
-bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
+class ImageAttachmentsManager {
+  final attachments = List<Attachment>.empty(growable: true);
+
+  void removeAttachment(int index) => attachments.removeAt(index);
+
+  Future<void> addAttachment() async {
+    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pic == null) return;
+
+    final bytes = await pic.readAsBytes();
+    attachments.add(
+      Attachment.fromBytes(
+        name: pic.name,
+        bytes: bytes,
+        mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+      ),
+    );
+  }
+}
 
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
@@ -306,6 +325,8 @@ class PromptDialog extends StatefulWidget {
     required this.flutterPromptButtons,
     required this.dartPromptButtons,
     required this.initialAppType,
+    required this.promptTextController,
+    required this.imageAttachmentsManager,
     super.key,
   });
 
@@ -314,26 +335,18 @@ class PromptDialog extends StatefulWidget {
   final Map<String, String> flutterPromptButtons;
   final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
+  final TextEditingController promptTextController;
+  final ImageAttachmentsManager imageAttachmentsManager;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
 }
 
 class _PromptDialogState extends State<PromptDialog> {
-  final _controller = TextEditingController();
-  final _attachments = List<Attachment>.empty(growable: true);
   final _focusNode = FocusNode();
-  late AppType _appType;
-
-  @override
-  void initState() {
-    super.initState();
-    _appType = widget.initialAppType;
-  }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -355,79 +368,65 @@ class _PromptDialogState extends State<PromptDialog> {
           width: 700,
           child: CallbackShortcuts(
             bindings: {
-              SingleActivator(
-                LogicalKeyboardKey.enter,
-                meta: _mac,
-                control: _nonMac,
-              ): () {
-                if (_controller.text.isNotEmpty) _onGenerate();
+              SingleActivator(LogicalKeyboardKey.enter): () {
+                if (widget.promptTextController.text.isNotEmpty) _onGenerate();
               },
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OverflowBar(
-                        spacing: 8,
-                        alignment: MainAxisAlignment.start,
-                        children: [
-                          for (final entry
-                              in _appType == AppType.flutter
-                                  ? widget.flutterPromptButtons.entries
-                                  : widget.dartPromptButtons.entries)
-                            TextButton(
-                              onPressed: () {
-                                _controller.text = entry.value;
-                                _focusNode.requestFocus();
-                              },
-                              child: Text(entry.key),
-                            ),
-                        ],
-                      ),
-                    ),
-                    SegmentedButton<AppType>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment<AppType>(
-                          value: AppType.dart,
-                          label: Text('Dart'),
-                          tooltip: 'Generate Dart code',
-                        ),
-                        ButtonSegment<AppType>(
-                          value: AppType.flutter,
-                          label: Text('Flutter'),
-                          tooltip: 'Generate Flutter code',
-                        ),
-                      ],
-                      selected: {_appType},
-                      onSelectionChanged: (selected) {
-                        setState(() => _appType = selected.first);
-                        _focusNode.requestFocus();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 TextField(
-                  controller: _controller,
+                  controller: widget.promptTextController,
                   focusNode: _focusNode,
                   autofocus: true,
                   decoration: InputDecoration(
-                    labelText: widget.hint,
+                    hintText: widget.hint,
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    labelText: 'Code generation prompt',
                     alignLabelWithHint: true,
                     border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OverflowBar(
+                        alignment: MainAxisAlignment.center,
+                        spacing: 12,
+                        children: [
+                          for (final entry
+                              in widget.initialAppType == AppType.flutter
+                                  ? widget.flutterPromptButtons.entries
+                                  : widget.dartPromptButtons.entries)
+                            OutlinedButton.icon(
+                              icon: PromptSuggestionIcon(),
+                              onPressed: () {
+                                widget.promptTextController.text = entry.value;
+                                _focusNode.requestFocus();
+                              },
+                              label: Text(entry.key),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
                 SizedBox(
-                  height: 128,
+                  height: 64,
                   child: EditableImageList(
-                    attachments: _attachments,
-                    onRemove: _removeAttachment,
-                    onAdd: _addAttachment,
+                    attachments: widget.imageAttachmentsManager.attachments,
+                    onRemove: (int index) {
+                      widget.imageAttachmentsManager.removeAttachment(index);
+                      setState(() {});
+                    },
+                    onAdd: () async {
+                      await widget.imageAttachmentsManager.addAttachment();
+                      setState(() {});
+                    },
                     maxAttachments: 3,
                   ),
                 ),
@@ -441,7 +440,7 @@ class _PromptDialogState extends State<PromptDialog> {
             child: const Text('Cancel'),
           ),
           ValueListenableBuilder(
-            valueListenable: _controller,
+            valueListenable: widget.promptTextController,
             builder:
                 (context, controller, _) => TextButton(
                   onPressed: controller.text.isEmpty ? null : _onGenerate,
@@ -460,73 +459,67 @@ class _PromptDialogState extends State<PromptDialog> {
   }
 
   void _onGenerate() {
-    assert(_controller.text.isNotEmpty);
+    assert(widget.promptTextController.text.isNotEmpty);
     Navigator.pop(
       context,
       PromptDialogResponse(
-        appType: _appType,
-        prompt: _controller.text,
-        attachments: _attachments,
-      ),
-    );
-  }
-
-  void _removeAttachment(int index) =>
-      setState(() => _attachments.removeAt(index));
-
-  Future<void> _addAttachment() async {
-    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    if (pic == null) return;
-
-    final bytes = await pic.readAsBytes();
-    setState(
-      () => _attachments.add(
-        Attachment.fromBytes(
-          name: pic.name,
-          bytes: bytes,
-          mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
-        ),
+        appType: widget.initialAppType,
+        imageAttachmentsManager: widget.imageAttachmentsManager,
+        promptTextController: widget.promptTextController,
       ),
     );
   }
 }
 
-class GeneratingCodeDialog extends StatefulWidget {
-  const GeneratingCodeDialog({
-    required this.stream,
-    required this.title,
-    this.existingSource,
+class GeneratingCodePanel extends StatefulWidget {
+  const GeneratingCodePanel({
+    required this.appModel,
+    required this.appServices,
     super.key,
   });
 
-  final Stream<String> stream;
-  final String title;
-  final String? existingSource;
+  final AppModel appModel;
+  final AppServices appServices;
+
   @override
-  State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
+  State<GeneratingCodePanel> createState() => _GeneratingCodePanelState();
 }
 
-class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
-  final _generatedCode = StringBuffer();
+class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
   final _focusNode = FocusNode();
-  bool _done = false;
   StreamSubscription<String>? _subscription;
 
   @override
   void initState() {
     super.initState();
 
-    _subscription = widget.stream.listen(
-      (text) => setState(() => _generatedCode.write(text)),
-      onDone:
-          () => setState(() {
-            final source = _generatedCode.toString().trim();
-            _generatedCode.clear();
-            _generatedCode.write(source);
-            _done = true;
-            _focusNode.requestFocus();
-          }),
+    final genAiManager = widget.appModel.genAiManager;
+
+    final stream = genAiManager.stream;
+
+    _subscription = stream.value.listen(
+      (text) => setState(() {
+        genAiManager.writeToStreamBuffer(text);
+      }),
+      onDone: () {
+        setState(() {
+          final generatedCode = genAiManager.generatedCode().trim();
+          if (generatedCode.isEmpty) {
+            widget.appModel.editorStatus.showToast('Error generating code');
+            widget.appModel.appendError(
+              'There was an error generating your code, please try again.',
+            );
+            widget.appModel.genAiManager.enterStandby();
+            return;
+          }
+          genAiManager.setStreamBufferValue(generatedCode);
+          genAiManager.setStreamIsDone(true);
+          genAiManager.enterAwaitingAcceptReject();
+          _focusNode.requestFocus();
+          widget.appModel.sourceCodeController.textNoScroll = generatedCode;
+          widget.appServices.performCompileAndRun();
+        });
+      },
     );
   }
 
@@ -538,103 +531,73 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return PointerInterceptor(
-      child: CallbackShortcuts(
-        bindings: {
-          SingleActivator(
-            LogicalKeyboardKey.enter,
-            meta: _mac,
-            control: _nonMac,
-          ): () {
-            if (_done) _onAcceptAndRun();
-          },
-        },
-        child: AlertDialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: theme.colorScheme.outline),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(widget.title),
-              if (!_done) const CircularProgressIndicator(),
-            ],
-          ),
-          contentTextStyle: theme.textTheme.bodyMedium,
-          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: SizedBox(
-            width: 700,
-            child: Focus(
-              autofocus: true,
-              focusNode: _focusNode,
-              child:
-                  widget.existingSource == null
-                      ? ReadOnlyCodeWidget(_generatedCode.toString())
-                      : ReadOnlyDiffWidget(
-                        existingSource: widget.existingSource!,
-                        newSource: _generatedCode.toString(),
-                      ),
-            ),
-          ),
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: RichText(
-                      text: TextSpan(
-                        text: 'Powered by ',
-                        style: DefaultTextStyle.of(context).style,
-                        children: [
-                          TextSpan(
-                            text: 'Google AI',
-                            style: TextStyle(color: theme.colorScheme.primary),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap = () {
-                                    url_launcher.launchUrl(
-                                      Uri.parse('https://ai.google.dev/'),
-                                    );
-                                  },
-                          ),
-                          TextSpan(
-                            text: ' and the Gemini API',
-                            style: DefaultTextStyle.of(context).style,
-                          ),
-                        ],
-                      ),
-                    ),
+    final genAiManager = widget.appModel.genAiManager;
+    return ValueListenableBuilder(
+      valueListenable: genAiManager.streamIsDone,
+      builder: (
+        BuildContext context,
+        bool genAiCodeStreamIsDone,
+        Widget? child,
+      ) {
+        final resolvedSpinner =
+            genAiCodeStreamIsDone
+                ? SizedBox(width: 0, height: 0)
+                : Positioned(
+                  top: 10,
+                  right: 10,
+                  child: AnimatedContainer(
+                    duration: animationDelay,
+                    curve: animationCurve,
+                    child: CircularProgressIndicator(),
                   ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: _done ? _onAcceptAndRun : null,
-                  child: Text(
-                    'Accept',
-                    style: TextStyle(
-                      color: !_done ? theme.disabledColor : null,
-                    ),
+                );
+        return Stack(
+          children: [
+            resolvedSpinner,
+            ValueListenableBuilder(
+              valueListenable: genAiManager.streamBuffer,
+              builder: (
+                BuildContext context,
+                StringBuffer genAiCodeStreamBuffer,
+                Widget? child,
+              ) {
+                return Focus(
+                  autofocus: true,
+                  focusNode: _focusNode,
+                  child: ValueListenableBuilder(
+                    valueListenable:
+                        widget.appModel.genAiManager.isGeneratingNewProject,
+                    builder: (
+                      BuildContext context,
+                      bool genAiGeneratingNewProject,
+                      Widget? child,
+                    ) {
+                      return ValueListenableBuilder(
+                        valueListenable: genAiManager.preGenAiSourceCode,
+                        builder: (
+                          BuildContext context,
+                          String existingSource,
+                          Widget? child,
+                        ) {
+                          return genAiGeneratingNewProject
+                              ? ReadOnlyCodeWidget(
+                                genAiCodeStreamBuffer.toString(),
+                              )
+                              : ReadOnlyDiffWidget(
+                                existingSource: existingSource,
+                                newSource: genAiCodeStreamBuffer.toString(),
+                              );
+                        },
+                      );
+                    },
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  void _onAcceptAndRun() {
-    assert(_done);
-    Navigator.pop(context, _generatedCode.toString());
   }
 }
 
@@ -643,6 +606,7 @@ class EditableImageList extends StatelessWidget {
   final void Function(int index) onRemove;
   final void Function() onAdd;
   final int maxAttachments;
+  final bool compactDisplay;
 
   const EditableImageList({
     super.key,
@@ -650,25 +614,30 @@ class EditableImageList extends StatelessWidget {
     required this.onRemove,
     required this.onAdd,
     required this.maxAttachments,
+    this.compactDisplay = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      reverse: true,
       scrollDirection: Axis.horizontal,
       // First item is the "Add Attachment" button
       itemCount: attachments.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
+          if (compactDisplay) {
+            return SizedBox(height: 0, width: 0);
+          }
           return _AddImageWidget(
             onAdd: attachments.length < maxAttachments ? onAdd : null,
+            hasAttachments: attachments.isNotEmpty,
           );
         } else {
           final attachmentIndex = index - 1;
           return _ImageAttachmentWidget(
             attachment: attachments[attachmentIndex],
             onRemove: () => onRemove(attachmentIndex),
+            compactDisplay: compactDisplay,
           );
         }
       },
@@ -679,14 +648,21 @@ class EditableImageList extends StatelessWidget {
 class _ImageAttachmentWidget extends StatelessWidget {
   final Attachment attachment;
   final void Function() onRemove;
+  final bool compactDisplay;
 
   const _ImageAttachmentWidget({
     required this.attachment,
     required this.onRemove,
+    required this.compactDisplay,
   });
+
+  final double regularThumbnailSize = 64;
+  final double compactThumbnailSize = 32;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedThumbnailEdgeInsets =
+        compactDisplay ? EdgeInsets.fromLTRB(0, 4, 4, 0) : EdgeInsets.all(8);
     return Stack(
       children: [
         GestureDetector(
@@ -712,31 +688,35 @@ class _ImageAttachmentWidget extends StatelessWidget {
             );
           },
           child: Container(
-            margin: const EdgeInsets.all(8),
-            width: 128,
-            height: 128,
+            margin: resolvedThumbnailEdgeInsets,
+            width: compactDisplay ? compactThumbnailSize : regularThumbnailSize,
+            height:
+                compactDisplay ? compactThumbnailSize : regularThumbnailSize,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: MemoryImage(attachment.bytes),
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
           ),
         ),
         Positioned(
-          top: 4,
-          right: 12,
-          child: InkWell(
-            onTap: onRemove,
-            child: Tooltip(
-              message: 'Remove image',
-              child: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                radius: 12,
-                child: Icon(
-                  Icons.close,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onSecondary,
+          top: compactDisplay ? 2 : 4,
+          right: compactDisplay ? 2 : 4,
+          child: Transform.scale(
+            scale: compactDisplay ? 0.7 : 1,
+            child: InkWell(
+              onTap: onRemove,
+              child: Tooltip(
+                message: 'Remove Image',
+                child: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  radius: 12,
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondary,
+                  ),
                 ),
               ),
             ),
@@ -749,33 +729,483 @@ class _ImageAttachmentWidget extends StatelessWidget {
 
 class _AddImageWidget extends StatelessWidget {
   final void Function()? onAdd;
-  const _AddImageWidget({required this.onAdd});
+  final bool hasAttachments;
+  const _AddImageWidget({required this.onAdd, required this.hasAttachments});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          width: 128,
-          height: 128,
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: SizedBox.square(
-              dimension: 128,
-              child: ElevatedButton(
-                onPressed: onAdd,
-                style: ElevatedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(),
-                ),
-                child: const Center(
-                  child: Text('Add\nimage', textAlign: TextAlign.center),
-                ),
-              ),
-            ),
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: IconButton.filledTonal(
+            icon: Icon(Icons.add),
+            onPressed: onAdd,
           ),
         ),
+        if (!hasAttachments)
+          Text('Add image(s) to support your prompt. (optional)'),
+      ],
+    );
+  }
+}
+
+class PromptSuggestionIcon extends StatelessWidget {
+  const PromptSuggestionIcon({super.key, this.height = 18, this.width = 18});
+
+  final double height;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.light
+        ? Opacity(
+          opacity: 0.75,
+          child: Image.asset(
+            'prompt_suggestion_icon_lightmode.png',
+            height: height,
+            width: width,
+          ),
+        )
+        : Image.asset(
+          'prompt_suggestion_icon_darkmode.png',
+          height: height,
+          width: width,
+        );
+  }
+}
+
+class GeminiCodeEditTool extends StatefulWidget {
+  const GeminiCodeEditTool({
+    super.key,
+    required this.appModel,
+    required this.onUpdateCode,
+    required this.onCancelUpdateCode,
+    required this.onRejectSuggestedCode,
+    required this.onEditUpdateCodePrompt,
+    required this.onAcceptUpdateCode,
+    required this.enabled,
+  });
+
+  final AppModel appModel;
+  final Future<void> Function(BuildContext, PromptDialogResponse) onUpdateCode;
+  final VoidCallback onCancelUpdateCode;
+  final VoidCallback onEditUpdateCodePrompt;
+  final VoidCallback onAcceptUpdateCode;
+  final VoidCallback onRejectSuggestedCode;
+  final bool enabled;
+
+  @override
+  State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
+}
+
+class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
+  bool _textInputIsFocused = false;
+  late GenAiManager genAiManager;
+
+  @override
+  void initState() {
+    super.initState();
+    genAiManager = widget.appModel.genAiManager;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  AppType analyzedAppTypeFromSource(AppModel appModel) {
+    if (appModel.sourceCodeController.text.contains(
+      """import 'package:flutter""",
+    )) {
+      return AppType.flutter;
+    }
+    return AppType.dart;
+  }
+
+  void handlePromptSuggestion(String promptText) {
+    genAiManager.setEditPromptText(promptText);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appType = analyzedAppTypeFromSource(widget.appModel);
+    final promptController = genAiManager.codeEditPromptController;
+    final imageAttachmentsManager =
+        genAiManager.codeEditImageAttachmentsManager;
+
+    final textInputBlock = Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: Divider.createBorderSide(
+            context,
+            width: 8.0,
+            color: theme.colorScheme.surface,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.all(denseSpacing),
+      child: Focus(
+        onFocusChange:
+            (value) => setState(() {
+              _textInputIsFocused = value;
+            }),
+        child: Column(
+          children: [
+            CallbackShortcuts(
+              bindings: {
+                SingleActivator(LogicalKeyboardKey.enter): () {
+                  if (promptController.text.isNotEmpty) {
+                    widget.onUpdateCode(
+                      context,
+                      PromptDialogResponse(
+                        appType: appType,
+                        imageAttachmentsManager: imageAttachmentsManager,
+                        promptTextController: promptController,
+                      ),
+                    );
+                    setState(() {});
+                  }
+                },
+              },
+              child: TextField(
+                enabled: widget.enabled,
+                controller: promptController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  hintText:
+                      widget.enabled
+                          ? 'Ask Gemini to change your code or app!'
+                          : '',
+                  hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                  prefixIcon: GeminiEditPrefixIcon(
+                    enabled: widget.enabled,
+                    textFieldIsFocused: _textInputIsFocused,
+                    handlePromptSuggestion: handlePromptSuggestion,
+                    appType: appType,
+                    onAddImage: () async {
+                      await imageAttachmentsManager.addAttachment();
+                      setState(() {});
+                    },
+                  ),
+                  suffixIcon: GeminiEditSuffixIcon(
+                    textFieldIsFocused: _textInputIsFocused,
+                    onGenerate: () {
+                      widget.onUpdateCode(
+                        context,
+                        PromptDialogResponse(
+                          appType: appType,
+                          imageAttachmentsManager: imageAttachmentsManager,
+                          promptTextController: promptController,
+                        ),
+                      );
+                      setState(() {});
+                    },
+                  ),
+                ),
+                maxLines: 8,
+                minLines: 1,
+              ),
+            ),
+            if (imageAttachmentsManager.attachments.isNotEmpty)
+              SizedBox(
+                height: 32,
+                child: EditableImageList(
+                  compactDisplay: true,
+                  attachments: imageAttachmentsManager.attachments,
+                  onRemove: (int index) {
+                    imageAttachmentsManager.removeAttachment(index);
+                    setState(() {});
+                  },
+                  onAdd: () => {}, // the Add button isn't shown here
+                  maxAttachments: 3,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    final acceptRejectBlock = ValueListenableBuilder<GenAiState>(
+      valueListenable: genAiManager.currentState,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        if (genAiState == GenAiState.standby) {
+          return SizedBox(width: 0, height: 0);
+        }
+        final geminiIcon = Image.asset(
+          'assets/gemini_sparkle_192.png',
+          width: 16,
+          height: 16,
+        );
+        final GeminiMessageTextTheme = TextStyle(
+          color: Color.fromARGB(255, 60, 60, 60),
+        );
+        // TODO(alsobrian) 3/11/25: ExpectNever?
+        final resolvedStatusMessage =
+            genAiState == GenAiState.generating
+                ? Text('Generating your code', style: GeminiMessageTextTheme)
+                : Text(
+                  'Gemini proposed the above',
+                  style: GeminiMessageTextTheme,
+                );
+        final resolvedButtons =
+            genAiState == GenAiState.generating
+                ? [
+                  TextButton(
+                    onPressed: widget.onCancelUpdateCode,
+                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                  ),
+                ]
+                : [
+                  TextButton(
+                    onPressed: widget.onRejectSuggestedCode,
+                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                  ),
+                  OutlinedButton(
+                    onPressed: widget.onEditUpdateCodePrompt,
+                    child: Text('Change Prompt', style: GeminiMessageTextTheme),
+                  ),
+                  FilledButton(
+                    onPressed: widget.onAcceptUpdateCode,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Color(0xff2e64de),
+                    ),
+                    child: Text(
+                      'Accept',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ];
+        return Container(
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[
+                Color(0xFFD7E6FF),
+                Color(0xFFC7E4FF),
+                Color(0xFFDCE2FF),
+                // Color(0xFF2E64De),
+                // Color(0xFF3C8FE3),
+                // Color(0xFF987BE9),
+              ],
+            ),
+          ), //Color.fromRGBO(200, 230, 255, 1.0)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    geminiIcon,
+                    SizedBox(width: 8),
+                    resolvedStatusMessage,
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      spacing: 12,
+                      children: resolvedButtons,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    return Column(children: [acceptRejectBlock, textInputBlock]);
+  }
+}
+
+class GeminiEditPrefixIcon extends StatelessWidget {
+  const GeminiEditPrefixIcon({
+    super.key,
+    required this.textFieldIsFocused,
+    required this.appType,
+    required this.handlePromptSuggestion,
+    required this.onAddImage,
+    required this.enabled,
+  });
+
+  final bool textFieldIsFocused;
+  final AppType appType;
+  final void Function(String) handlePromptSuggestion;
+  final void Function() onAddImage;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(width: textFieldIsFocused ? 12 : 8),
+        ...[
+          textFieldIsFocused
+              ? GeminiCodeEditMenu(
+                currentAppType: appType,
+                handlePromptSuggestion: handlePromptSuggestion,
+                onAddImage: onAddImage,
+              )
+              : SizedBox(
+                width: 29,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Opacity(
+                    opacity: enabled ? 1 : 0.45,
+                    child: Image.asset(
+                      'assets/gemini_sparkle_192.png',
+                      fit: BoxFit.contain,
+                      height: 24,
+                      width: 24,
+                    ),
+                  ),
+                ),
+              ),
+        ],
+        SizedBox(width: textFieldIsFocused ? 4 : 5),
+      ],
+    );
+  }
+}
+
+class GeminiEditSuffixIcon extends StatelessWidget {
+  const GeminiEditSuffixIcon({
+    super.key,
+    required this.textFieldIsFocused,
+    required this.onGenerate,
+  });
+
+  final bool textFieldIsFocused;
+  final void Function() onGenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30,
+      child:
+          textFieldIsFocused
+              ? Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: IconButton(
+                    padding: EdgeInsets.all(0),
+                    onPressed: onGenerate,
+                    icon: const Icon(Icons.send),
+                    iconSize: 14,
+                  ),
+                ),
+              )
+              : null,
+    );
+  }
+}
+
+class GeminiCodeEditMenu extends StatelessWidget {
+  final Map<AppType, Map<String, String>> promptSuggestions;
+  final AppType currentAppType;
+  final void Function(String) handlePromptSuggestion;
+  final void Function() onAddImage;
+
+  const GeminiCodeEditMenu({
+    super.key,
+    required this.currentAppType,
+    required this.handlePromptSuggestion,
+    required this.onAddImage,
+
+    this.promptSuggestions = const {
+      AppType.dart: {
+        'pretty-dart': 'Make the app pretty',
+        'fancy-dart': 'Make the app fancy',
+        'emoji-dart': 'Make the app use emojis',
+      },
+      AppType.flutter: {
+        'pretty':
+            'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+        'fancy':
+            'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+        'emoji':
+            'Make the app use emojis by adding appropriate emoji icons and text',
+      },
+    },
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> resolvedPromptSuggestions =
+        promptSuggestions[currentAppType]?.entries.map((entry) {
+          final String promptName = entry.key;
+          final String promptText = entry.value;
+          return GeminiCodeEditMenuPromptSuggestion(
+            displayName: promptName,
+            promptText: promptText,
+            handlePromptSuggestion: () => handlePromptSuggestion(promptText),
+          );
+        }).toList() ??
+        [];
+    final List<Widget> resolvedMenuItems = [
+      ...resolvedPromptSuggestions,
+      MenuItemButton(
+        leadingIcon: const Icon(Icons.image, size: 16),
+        onPressed: onAddImage,
+        child: Padding(
+          padding: EdgeInsets.only(right: 32),
+          child: Text('Add image'),
+        ),
+      ),
+    ];
+
+    return MenuAnchor(
+      builder: (context, MenuController menuController, Widget? child) {
+        return SizedBox(
+          height: 26,
+          width: 26,
+          child: IconButton.filledTonal(
+            onPressed: () => menuController.toggleMenuState(),
+            padding: EdgeInsets.all(0.0),
+            icon: const Icon(Icons.add),
+            iconSize: 16,
+          ),
+        );
+      },
+      alignmentOffset: Offset(0, 10),
+      menuChildren: [
+        ...resolvedMenuItems.map((widget) => PointerInterceptor(child: widget)),
+      ],
+    );
+  }
+}
+
+class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
+  const GeminiCodeEditMenuPromptSuggestion({
+    super.key,
+    required this.displayName,
+    required this.promptText,
+    required this.handlePromptSuggestion,
+  });
+
+  final String displayName;
+  final String promptText;
+  final VoidCallback handlePromptSuggestion;
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuItemButton(
+      leadingIcon: PromptSuggestionIcon(),
+      onPressed: handlePromptSuggestion,
+      child: Padding(
+        padding: EdgeInsets.only(right: 32),
+        child: Text(displayName),
       ),
     );
   }
