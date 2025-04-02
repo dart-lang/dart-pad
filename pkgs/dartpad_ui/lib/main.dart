@@ -21,7 +21,7 @@ import 'docs.dart';
 import 'editor/editor.dart';
 import 'embed.dart';
 import 'execution/execution.dart';
-import 'extensions.dart';
+import 'primitives/extensions.dart';
 import 'model.dart';
 import 'primitives/enable_gen_ai.dart';
 import 'primitives/keys.dart' as keys;
