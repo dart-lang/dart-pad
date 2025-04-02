@@ -51,7 +51,7 @@ If you want to collaborate on intermediate version, you can publish it to your o
    ```
    cd pkgs/dartpad_ui
    flutter build web --wasm
-   firebase hosting:channel:deploy <your project name>
+   firebase hosting:channel:deploy dartpad
    ```
 
 See https://firebase.google.com/docs/hosting.

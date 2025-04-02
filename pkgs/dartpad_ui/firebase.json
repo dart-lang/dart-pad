@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "target": "dartpad-polina",
+      "target": "dartpad",
       "public": "build/web",
       "ignore": [
         "firebase.json",
