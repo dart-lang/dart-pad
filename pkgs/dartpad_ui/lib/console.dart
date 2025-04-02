@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'primitives/enable_gen_ai.dart';
 import 'model.dart';
-import 'suggest_fix.dart';
+import 'primitives/enable_gen_ai.dart';
 import 'primitives/theme.dart';
 import 'primitives/utils.dart';
-import 'widgets.dart';
+import 'simple_widgets.dart';
+import 'suggest_fix.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
