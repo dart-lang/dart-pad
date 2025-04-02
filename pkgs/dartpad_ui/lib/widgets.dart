@@ -16,8 +16,8 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
 import 'model.dart';
-import 'theme.dart';
-import 'utils.dart';
+import 'primitives/theme.dart';
+import 'primitives/utils.dart';
 
 class Hyperlink extends StatefulWidget {
   final String url;

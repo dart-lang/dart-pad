@@ -4,8 +4,8 @@
 
 import 'package:dartpad_ui/local_storage/local_storage.dart';
 import 'package:dartpad_ui/model.dart';
-import 'package:dartpad_ui/samples.g.dart';
-import 'package:dartpad_ui/utils.dart';
+import 'package:dartpad_ui/primitives/samples.g.dart';
+import 'package:dartpad_ui/primitives/utils.dart';
 import 'package:test/test.dart';
 
 String getFallback() =>

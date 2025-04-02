@@ -4,7 +4,7 @@
 
 import 'package:dartpad_shared/model.dart';
 
-import '../utils.dart';
+import '../primitives/utils.dart';
 import 'interface.dart';
 
 class LocalStorageImpl extends LocalStorageInterface {
