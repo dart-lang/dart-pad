@@ -665,13 +665,13 @@ enum CompilingState {
 class PromptDialogResponse {
   const PromptDialogResponse({
     required this.appType,
-    required this.promptTextController,
-    required this.imageAttachmentsManager,
+    required this.prompt,
+    this.attachments = const [],
   });
 
   final AppType appType;
-  final TextEditingController promptTextController;
-  final ImageAttachmentsManager imageAttachmentsManager;
+  final String prompt;
+  final List<Attachment> attachments;
 }
 
 class ConsoleNotifier extends ChangeNotifier {
@@ -716,14 +716,15 @@ class GenAiManager {
   );
   final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
   TextEditingController? activePromptTextController;
-  ImageAttachmentsManager? activeImageAttachmentsManager;
+
   final TextEditingController newCodePromptController = TextEditingController();
   final TextEditingController codeEditPromptController =
       TextEditingController();
-  final ImageAttachmentsManager newCodeImageAttachmentsManager =
-      ImageAttachmentsManager();
-  final ImageAttachmentsManager codeEditImageAttachmentsManager =
-      ImageAttachmentsManager();
+
+  List<Attachment>? activeAttachments;
+  final List<Attachment> newCodeAttachments = [];
+  final List<Attachment> codeEditAttachments = [];
+
   final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
   final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
 
@@ -737,14 +738,14 @@ class GenAiManager {
     state.value = GenAiState.generating;
     isGeneratingNewProject.value = true;
     activePromptTextController = newCodePromptController;
-    activeImageAttachmentsManager = newCodeImageAttachmentsManager;
+    activeAttachments = newCodeAttachments;
   }
 
   void enterGeneratingEdit() {
     state.value = GenAiState.generating;
     isGeneratingNewProject.value = false;
     activePromptTextController = codeEditPromptController;
-    activeImageAttachmentsManager = codeEditImageAttachmentsManager;
+    activeAttachments = codeEditAttachments;
   }
 
   void enterStandby() {
@@ -767,7 +768,7 @@ class GenAiManager {
 
   void resetInputs() {
     activePromptTextController?.text = '';
-    activeImageAttachmentsManager?.attachments.clear();
+    activeAttachments?.clear();
   }
 
   String generatedCode() {

@@ -731,21 +731,18 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (lastPrompt != null) 'your last prompt': lastPrompt,
             },
             promptTextController: appModel.genAiManager.newCodePromptController,
-            imageAttachmentsManager:
-                appModel.genAiManager.newCodeImageAttachmentsManager,
+            attachments: appModel.genAiManager.newCodeAttachments,
           ),
     );
 
     if (!context.mounted ||
         promptResponse == null ||
-        promptResponse.promptTextController.text.isEmpty) {
+        promptResponse.prompt.isEmpty) {
       return;
     }
 
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(
-      promptResponse.promptTextController.text,
-    );
+    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
     appModel.genAiManager.preGenAiSourceCode.value =
         appModel.sourceCodeController.text;
@@ -755,7 +752,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (widget.useGenui) {
         appModel.genAiManager.startStream(
           appServices.generateUi(
-            GenerateUiRequest(prompt: promptResponse.promptTextController.text),
+            GenerateUiRequest(prompt: promptResponse.prompt),
           ),
         );
       } else {
@@ -763,8 +760,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           appServices.generateCode(
             GenerateCodeRequest(
               appType: appType,
-              prompt: promptResponse.promptTextController.text,
-              attachments: promptResponse.imageAttachmentsManager.attachments,
+              prompt: promptResponse.prompt,
+              attachments: promptResponse.attachments,
             ),
           ),
         );
@@ -807,8 +804,8 @@ class EditorWithButtons extends StatelessWidget {
           UpdateCodeRequest(
             appType: promptInfo.appType,
             source: source,
-            prompt: promptInfo.promptTextController.text,
-            attachments: promptInfo.imageAttachmentsManager.attachments,
+            prompt: promptInfo.prompt,
+            attachments: promptInfo.attachments,
           ),
         ),
       );

@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
@@ -295,27 +293,6 @@ final class Logo extends StatelessWidget {
   }
 }
 
-class ImageAttachmentsManager {
-  final attachments = List<Attachment>.empty(growable: true);
-
-  void removeAttachment(int index) => attachments.removeAt(index);
-
-  Future<void> addAttachment() async {
-    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    if (pic == null) return;
-
-    final bytes = await pic.readAsBytes();
-    attachments.add(
-      Attachment.fromBytes(
-        name: pic.name,
-        bytes: bytes,
-        mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
-      ),
-    );
-  }
-}
-
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
@@ -324,7 +301,7 @@ class PromptDialog extends StatefulWidget {
     required this.dartPromptButtons,
     required this.initialAppType,
     required this.promptTextController,
-    required this.imageAttachmentsManager,
+    required this.attachments,
     super.key,
   });
 
@@ -334,7 +311,7 @@ class PromptDialog extends StatefulWidget {
   final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
   final TextEditingController promptTextController;
-  final ImageAttachmentsManager imageAttachmentsManager;
+  final List<Attachment> attachments;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
@@ -416,13 +393,13 @@ class _PromptDialogState extends State<PromptDialog> {
                 SizedBox(
                   height: 64,
                   child: EditableImageList(
-                    attachments: widget.imageAttachmentsManager.attachments,
+                    attachments: widget.attachments,
                     onRemove: (int index) {
-                      widget.imageAttachmentsManager.removeAttachment(index);
+                      widget.attachments.removeAt(index);
                       setState(() {});
                     },
                     onAdd: () async {
-                      await widget.imageAttachmentsManager.addAttachment();
+                      await addAttachmentWithPicker(widget.attachments);
                       setState(() {});
                     },
                     maxAttachments: 3,
@@ -462,8 +439,8 @@ class _PromptDialogState extends State<PromptDialog> {
       context,
       PromptDialogResponse(
         appType: widget.initialAppType,
-        imageAttachmentsManager: widget.imageAttachmentsManager,
-        promptTextController: widget.promptTextController,
+        attachments: widget.attachments,
+        prompt: widget.promptTextController.text,
       ),
     );
   }
@@ -830,8 +807,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
     final theme = Theme.of(context);
     final appType = analyzedAppTypeFromSource(widget.appModel);
     final promptController = genAiManager.codeEditPromptController;
-    final imageAttachmentsManager =
-        genAiManager.codeEditImageAttachmentsManager;
+    final attachments = genAiManager.codeEditAttachments;
 
     final textInputBlock = Container(
       decoration: BoxDecoration(
@@ -860,8 +836,8 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       context,
                       PromptDialogResponse(
                         appType: appType,
-                        imageAttachmentsManager: imageAttachmentsManager,
-                        promptTextController: promptController,
+                        attachments: attachments,
+                        prompt: promptController.text,
                       ),
                     );
                     setState(() {});
@@ -885,7 +861,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                     handlePromptSuggestion: handlePromptSuggestion,
                     appType: appType,
                     onAddImage: () async {
-                      await imageAttachmentsManager.addAttachment();
+                      await addAttachmentWithPicker(attachments);
                       setState(() {});
                     },
                   ),
@@ -896,8 +872,8 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                         context,
                         PromptDialogResponse(
                           appType: appType,
-                          imageAttachmentsManager: imageAttachmentsManager,
-                          promptTextController: promptController,
+                          attachments: attachments,
+                          prompt: promptController.text,
                         ),
                       );
                       setState(() {});
@@ -908,14 +884,14 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                 minLines: 1,
               ),
             ),
-            if (imageAttachmentsManager.attachments.isNotEmpty)
+            if (attachments.isNotEmpty)
               SizedBox(
                 height: 32,
                 child: EditableImageList(
                   compactDisplay: true,
-                  attachments: imageAttachmentsManager.attachments,
+                  attachments: attachments,
                   onRemove: (int index) {
-                    imageAttachmentsManager.removeAttachment(index);
+                    attachments.removeAt(index);
                     setState(() {});
                   },
                   onAdd: () => {}, // the Add button isn't shown here
