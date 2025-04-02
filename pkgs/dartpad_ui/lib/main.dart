@@ -1407,6 +1407,10 @@ class GeminiMenu extends StatelessWidget {
       height: 24,
     );
 
+    Widget menu(String text) {
+      return Padding(padding: EdgeInsets.only(right: 32), child: Text(text));
+    }
+
     return MenuAnchor(
       builder:
           (_, MenuController controller, _) => CollapsibleIconToggleButton(
@@ -1421,18 +1425,12 @@ class GeminiMenu extends StatelessWidget {
           MenuItemButton(
             leadingIcon: image,
             onPressed: generateNewDartCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Dart Snippet'),
-            ),
+            child: menu('Dart Snippet'),
           ),
           MenuItemButton(
             leadingIcon: image,
             onPressed: generateNewFlutterCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Flutter Snippet'),
-            ),
+            child: menu('Dart Snippet'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],
