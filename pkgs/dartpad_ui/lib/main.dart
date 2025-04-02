@@ -24,7 +24,7 @@ import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
-import 'local_storage.dart';
+import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';

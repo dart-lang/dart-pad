@@ -14,7 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:web/web.dart' as web;
 
-import '../local_storage.dart';
+import '../local_storage/local_storage.dart';
 import '../model.dart';
 import 'codemirror.dart';
 
