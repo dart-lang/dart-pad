@@ -42,7 +42,25 @@ There are options to run UI locally:
 
 If you want to collaborate on intermediate version, you can publish it to your own Firebase project:
 
-1. In .firebaserc temporarily change target to your project name.
+1. In .firebaserc temporarily change project names.
+
+   ```
+   {
+      "projects": {
+         "default": "<your project name>"
+      },
+      "targets": {
+         "<your project name>": {
+            "hosting": {
+               "dartpad": [
+                  "<your project name>"
+               ],
+               "preview": [
+                  "<your project name>"
+               ]
+         ...
+   ```
+
 
 2. Run `firebase init`
 
