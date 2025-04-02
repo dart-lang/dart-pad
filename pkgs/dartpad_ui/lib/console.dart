@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'enable_gen_ai.dart';
 import 'model.dart';
-import 'primitives/enable_gen_ai.dart';
-import 'primitives/theme.dart';
-import 'primitives/utils.dart';
 import 'suggest_fix.dart';
+import 'theme.dart';
+import 'utils.dart';
 import 'widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {

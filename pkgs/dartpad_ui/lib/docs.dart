@@ -8,7 +8,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'model.dart';
-import 'primitives/theme.dart';
+import 'theme.dart';
 
 class DocsWidget extends StatefulWidget {
   final AppModel appModel;
