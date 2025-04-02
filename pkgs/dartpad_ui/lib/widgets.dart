@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -940,33 +938,33 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
           width: 16,
           height: 16,
         );
-        final GeminiMessageTextTheme = TextStyle(
+        final geminiMessageTextTheme = TextStyle(
           color: Color.fromARGB(255, 60, 60, 60),
         );
         // TODO(alsobrian) 3/11/25: ExpectNever?
         final resolvedStatusMessage =
             genAiState == GenAiState.generating
-                ? Text('Generating your code', style: GeminiMessageTextTheme)
+                ? Text('Generating your code', style: geminiMessageTextTheme)
                 : Text(
                   'Gemini proposed the above',
-                  style: GeminiMessageTextTheme,
+                  style: geminiMessageTextTheme,
                 );
         final resolvedButtons =
             genAiState == GenAiState.generating
                 ? [
                   TextButton(
                     onPressed: widget.onCancelUpdateCode,
-                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                    child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
                 ]
                 : [
                   TextButton(
                     onPressed: widget.onRejectSuggestedCode,
-                    child: Text('Cancel', style: GeminiMessageTextTheme),
+                    child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
                   OutlinedButton(
                     onPressed: widget.onEditUpdateCodePrompt,
-                    child: Text('Change Prompt', style: GeminiMessageTextTheme),
+                    child: Text('Change Prompt', style: geminiMessageTextTheme),
                   ),
                   FilledButton(
                     onPressed: widget.onAcceptUpdateCode,

@@ -616,9 +616,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ? [
                   const SizedBox(width: denseSpacing),
                   GeminiMenu(
-                    generateDartCode:
+                    generateNewDartCode:
                         () => _generateNewCode(context, AppType.dart),
-                    generateFlutterCode:
+                    generateNewFlutterCode:
                         () => _generateNewCode(context, AppType.flutter),
                     hideLabel: false, // !wideLayout,
                   ),
@@ -1389,15 +1389,15 @@ class ContinueInMenu extends StatelessWidget {
 
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
+    required this.generateNewDartCode,
+    required this.generateNewFlutterCode,
     required this.hideLabel,
-    required this.generateDartCode,
-    required this.generateFlutterCode,
     super.key,
   });
 
   final bool hideLabel;
-  final VoidCallback generateDartCode;
-  final VoidCallback generateFlutterCode;
+  final VoidCallback generateNewDartCode;
+  final VoidCallback generateNewFlutterCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1420,7 +1420,7 @@ class GeminiMenu extends StatelessWidget {
         ...[
           MenuItemButton(
             leadingIcon: image,
-            onPressed: generateDartCode,
+            onPressed: generateNewDartCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
               child: Text('Dart Snippet'),
@@ -1428,7 +1428,7 @@ class GeminiMenu extends StatelessWidget {
           ),
           MenuItemButton(
             leadingIcon: image,
-            onPressed: generateFlutterCode,
+            onPressed: generateNewFlutterCode,
             child: const Padding(
               padding: EdgeInsets.only(right: 32),
               child: Text('Flutter Snippet'),
