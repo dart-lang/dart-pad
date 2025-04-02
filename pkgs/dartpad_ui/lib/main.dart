@@ -1159,7 +1159,7 @@ class NewSnippetWidget extends StatelessWidget {
       builder:
           (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: const Icon(Icons.add_circle),
-            label: const Text('New'),
+            label: const Text('Create'),
             tooltip: 'Create a new snippet',
             hideLabel: hideLabel,
             onToggle: controller.toggleMenuState,
