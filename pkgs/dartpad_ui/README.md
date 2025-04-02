@@ -37,3 +37,40 @@ There are options to run UI locally:
     flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
       --web-launch-url=http://localhost:8888/?channel=localhost
     ```
+
+## How to publish
+
+If you want to collaborate on intermediate version, you can publish it to your own Firebase project:
+
+1. In .firebaserc temporarily change project names.
+
+   ```
+   {
+      "projects": {
+         "default": "<your project name>"
+      },
+      "targets": {
+         "<your project name>": {
+            "hosting": {
+               "dartpad": [
+                  "<your project name>"
+               ],
+               "preview": [
+                  "<your project name>"
+               ]
+         ...
+   ```
+
+2. Run `firebase init`
+
+3. Make sure your current Flutter channel is set to `stable`
+
+4. Run the commands:
+
+   ```
+   cd pkgs/dartpad_ui
+   flutter build web --wasm
+   firebase hosting:channel:deploy <your project name>
+   ```
+
+See https://firebase.google.com/docs/hosting.

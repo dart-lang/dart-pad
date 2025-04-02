@@ -631,7 +631,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (genAiEnabled) ...[
                   const SizedBox(width: denseSpacing),
                   GeminiMenu(
-                    generateNewCode: () => _generateNewCode(context),
+                    generateNewDartCode:
+                        () => _generateNewCode(context, AppType.dart),
+                    generateNewFlutterCode:
+                        () => _generateNewCode(context, AppType.flutter),
                     updateExistingCode: () => _updateExistingCode(context),
                     hideLabel: !wideLayout,
                   ),
@@ -682,7 +685,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
   }
 
-  Future<void> _generateNewCode(BuildContext context) async {
+  Future<void> _generateNewCode(BuildContext context, AppType? appType) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
@@ -692,7 +695,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           (context) => PromptDialog(
             title: 'Generate new code',
             hint: 'Describe the code you want to generate',
-            initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
+            initialAppType:
+                appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
             flutterPromptButtons: {
               'to-do app':
                   'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -1155,7 +1159,7 @@ class NewSnippetWidget extends StatelessWidget {
       builder:
           (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: const Icon(Icons.add_circle),
-            label: const Text('New'),
+            label: const Text('Create'),
             tooltip: 'Create a new snippet',
             hideLabel: hideLabel,
             onToggle: controller.toggleMenuState,
@@ -1350,14 +1354,16 @@ class ContinueInMenu extends StatelessWidget {
 
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
-    required this.generateNewCode,
+    required this.generateNewDartCode,
+    required this.generateNewFlutterCode,
     required this.updateExistingCode,
     required this.hideLabel,
     super.key,
   });
 
   final bool hideLabel;
-  final VoidCallback generateNewCode;
+  final VoidCallback generateNewDartCode;
+  final VoidCallback generateNewFlutterCode;
   final VoidCallback updateExistingCode;
 
   @override
@@ -1367,6 +1373,10 @@ class GeminiMenu extends StatelessWidget {
       width: 24,
       height: 24,
     );
+
+    Widget menu(String text) {
+      return Padding(padding: EdgeInsets.only(right: 32), child: Text(text));
+    }
 
     return MenuAnchor(
       builder:
@@ -1381,19 +1391,18 @@ class GeminiMenu extends StatelessWidget {
         ...[
           MenuItemButton(
             leadingIcon: image,
-            onPressed: generateNewCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Generate code'),
-            ),
+            onPressed: generateNewDartCode,
+            child: menu('Dart Snippet'),
+          ),
+          MenuItemButton(
+            leadingIcon: image,
+            onPressed: generateNewFlutterCode,
+            child: menu('Flutter Snippet'),
           ),
           MenuItemButton(
             leadingIcon: image,
             onPressed: updateExistingCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Update code'),
-            ),
+            child: menu('Update code'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],
