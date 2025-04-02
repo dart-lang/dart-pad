@@ -40,7 +40,7 @@ There are options to run UI locally:
 
 ## How to publish
 
-If you want to collaborate on intermediate version, you can publish it to your own Firebase project:
+If you want to collaborate on an intermediate version, you can publish it to your own Firebase project:
 
 1. In .firebaserc temporarily change project names.
 
