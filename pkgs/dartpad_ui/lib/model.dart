@@ -90,6 +90,8 @@ class AppModel {
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
+  final GenAiManager genAiManager = GenAiManager();
+
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>

@@ -18,6 +18,7 @@ import 'package:vtable/vtable.dart';
 
 import 'console.dart';
 import 'docs.dart';
+import 'editor/editing_prompt.dart';
 import 'editor/editor.dart';
 import 'embed.dart';
 import 'enable_gen_ai.dart';
@@ -856,6 +857,59 @@ class EditorWithButtons extends StatelessWidget {
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
 
+  Future<void> _requestGeminiCodeUpdate(
+    BuildContext context,
+    PromptDialogResponse promptInfo,
+  ) async {
+    appModel.genAiManager.preGenAiSourceCode.value =
+        appModel.sourceCodeController.text;
+    appModel.genAiManager.enterGeneratingEdit();
+    try {
+      final source = appModel.sourceCodeController.text;
+      appModel.genAiManager.startStream(
+        appServices.updateCode(
+          UpdateCodeRequest(
+            appType: promptInfo.appType,
+            source: source,
+            prompt: promptInfo.prompt.text,
+            attachments: promptInfo.attachments,
+          ),
+        ),
+      );
+    } catch (error) {
+      appModel.editorStatus.showToast('Error updating code');
+      appModel.appendError('Updating code issue: $error');
+      appModel.genAiManager.enterStandby();
+    }
+  }
+
+  void onAcceptUpdateCode() {
+    assert(appModel.genAiManager.streamIsDone.value);
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+  }
+
+  void onEditUpdateCodePrompt() {
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndRun();
+    appModel.genAiManager.enterStandby();
+  }
+
+  void onCancelUpdateCode() {
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+    // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
+  }
+
+  void onRejectSuggestedCode() {
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndRun();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -951,10 +1005,28 @@ class EditorWithButtons extends StatelessWidget {
             ),
           ),
         ),
+        GeminiCodeEditTool(
+          appModel: appModel,
+          enabled: appModel.genAiManager.state.value == GenAiState.standby,
+          onUpdateCode: _requestGeminiCodeUpdate,
+          onAcceptUpdateCode: onAcceptUpdateCode,
+          onCancelUpdateCode: onCancelUpdateCode,
+          onEditUpdateCodePrompt: onEditUpdateCodePrompt,
+          onRejectSuggestedCode: onRejectSuggestedCode,
+        ),
         ValueListenableBuilder<List<AnalysisIssue>>(
           valueListenable: appModel.analysisIssues,
           builder: (context, issues, _) {
-            return ProblemsTableWidget(problems: issues);
+            return ValueListenableBuilder<GenAiState>(
+              valueListenable: appModel.genAiManager.state,
+              builder: (_, genAiState, __) {
+                if (genAiState != GenAiState.awaitingAcceptReject &&
+                    genAiState != GenAiState.generating) {
+                  return ProblemsTableWidget(problems: issues);
+                }
+                return SizedBox(width: 0, height: 0);
+              },
+            );
           },
         ),
       ],

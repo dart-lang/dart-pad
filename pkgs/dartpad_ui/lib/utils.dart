@@ -5,8 +5,11 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dartpad_shared/model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 import 'theme.dart';
 
@@ -185,4 +188,19 @@ extension TextEditingControllerExtensions on TextEditingController {
       selection: const TextSelection.collapsed(offset: 0),
     );
   }
+}
+
+Future<void> addAttachmentWithPicker(List<Attachment> attachments) async {
+  final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+  if (pic == null) return;
+
+  final bytes = await pic.readAsBytes();
+  attachments.add(
+    Attachment.fromBytes(
+      name: pic.name,
+      bytes: bytes,
+      mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+    ),
+  );
 }
