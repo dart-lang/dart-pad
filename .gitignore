@@ -17,3 +17,6 @@ pubspec.lock
 
 # IDE configuration
 .idea/
+
+# Diagrams created by https://pub.dev/packages/layerlens
+**/DEPENDENCIES.md
