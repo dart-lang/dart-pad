@@ -3,13 +3,10 @@
     "default": "dartpad-polina"
   },
   "targets": {
-    "dart-pad": {
+    "dartpad-polina": {
       "hosting": {
         "dartpad": [
           "dartpad-polina"
-        ],
-        "preview": [
-          "sketch-pad-1cebb"
         ]
       }
     }
