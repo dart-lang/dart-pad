@@ -61,7 +61,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
          ...
    ```
 
-2. Run `firebase init`
+2. Run `firebase init`, select 'Hosting' and go through wizard.
 
 3. Make sure your current Flutter channel is set to `stable`
 

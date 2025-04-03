@@ -11,6 +11,20 @@
             ],
         },
         {
+            "name": "ui, beta channel",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+                "--web-port",
+                "8888",
+                "--web-launch-url",
+                "http://localhost:8888/?channel=beta",
+            ],
+        },
+        {
             "name": "ui, local backend",
             "request": "launch",
             "type": "dart",
