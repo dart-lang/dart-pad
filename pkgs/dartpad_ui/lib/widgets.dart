@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -293,6 +294,56 @@ final class Logo extends StatelessWidget {
   }
 }
 
+/// A widget that listens for changes to multiple different [ValueListenable]s
+/// and rebuilds for change notifications from any of them.
+///
+/// The current value of each [ValueListenable] is provided by the `values`
+/// parameter in [builder], where the index of each value in the list is equal
+/// to the index of its parent [ValueListenable] in [listenables].
+///
+/// This widget is preferred over nesting many [ValueListenableBuilder]s in a
+/// single build method.
+class MultiValueListenableBuilder extends StatefulWidget {
+  const MultiValueListenableBuilder({
+    super.key,
+    required this.listenables,
+    required this.builder,
+  });
+
+  final List<ValueListenable<dynamic>> listenables;
+  final Widget Function(BuildContext context) builder;
+
+  @override
+  State<MultiValueListenableBuilder> createState() =>
+      _MultiValueListenableBuilderState();
+}
+
+class _MultiValueListenableBuilderState
+    extends State<MultiValueListenableBuilder> {
+  @override
+  void initState() {
+    super.initState();
+    for (final l in widget.listenables) {
+      l.addListener(_onChange);
+    }
+  }
+
+  void _onChange() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context);
+  }
+
+  @override
+  void dispose() {
+    for (final l in widget.listenables) {
+      l.removeListener(_onChange);
+    }
+    super.dispose();
+  }
+}
+
 class PromptDialog extends StatefulWidget {
   const PromptDialog({
     required this.title,
@@ -529,43 +580,28 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
         return Stack(
           children: [
             resolvedSpinner,
-            ValueListenableBuilder(
-              valueListenable: genAiManager.streamBuffer,
-              builder: (
-                BuildContext context,
-                StringBuffer genAiCodeStreamBuffer,
-                Widget? child,
-              ) {
+            MultiValueListenableBuilder(
+              listenables: [
+                genAiManager.streamBuffer,
+                widget.appModel.genAiManager.isGeneratingNewProject,
+                genAiManager.preGenAiSourceCode,
+              ],
+              builder: (_) {
+                final genAiCodeStreamBuffer =
+                    genAiManager.streamBuffer.value.toString();
+                final isGeneratingNewProject =
+                    widget.appModel.genAiManager.isGeneratingNewProject.value;
                 return Focus(
                   autofocus: true,
                   focusNode: _focusNode,
-                  child: ValueListenableBuilder(
-                    valueListenable:
-                        widget.appModel.genAiManager.isGeneratingNewProject,
-                    builder: (
-                      BuildContext context,
-                      bool genAiGeneratingNewProject,
-                      Widget? child,
-                    ) {
-                      return ValueListenableBuilder(
-                        valueListenable: genAiManager.preGenAiSourceCode,
-                        builder: (
-                          BuildContext context,
-                          String existingSource,
-                          Widget? child,
-                        ) {
-                          return genAiGeneratingNewProject
-                              ? ReadOnlyCodeWidget(
-                                genAiCodeStreamBuffer.toString(),
-                              )
-                              : ReadOnlyDiffWidget(
-                                existingSource: existingSource,
-                                newSource: genAiCodeStreamBuffer.toString(),
-                              );
-                        },
-                      );
-                    },
-                  ),
+                  child:
+                      isGeneratingNewProject
+                          ? ReadOnlyCodeWidget(genAiCodeStreamBuffer)
+                          : ReadOnlyDiffWidget(
+                            existingSource:
+                                genAiManager.preGenAiSourceCode.value,
+                            newSource: genAiCodeStreamBuffer,
+                          ),
                 );
               },
             ),
