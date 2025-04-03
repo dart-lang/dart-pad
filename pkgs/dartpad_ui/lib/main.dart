@@ -611,10 +611,11 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth > smallScreenWidth;
-        final resolvedGeminiMenu =
+
+        List<Widget> resolvedGeminiMenu(double spacing) =>
             genAiEnabled
                 ? [
-                  const SizedBox(width: denseSpacing),
+                  SizedBox(width: spacing),
                   GeminiMenu(
                     generateNewDartCode:
                         () => _generateNewCode(context, AppType.dart),
@@ -644,13 +645,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
                   const SizedBox(width: denseSpacing),
-                  ...resolvedGeminiMenu,
+                  ...resolvedGeminiMenu(denseSpacing),
+                  const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, hideLabel: true),
                   const SizedBox(width: defaultSpacing),
-                  ...resolvedGeminiMenu,
+                  ...resolvedGeminiMenu(defaultSpacing),
+                  const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(hideLabel: true),
                 ],
 
