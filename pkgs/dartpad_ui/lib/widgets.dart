@@ -377,7 +377,7 @@ class _PromptDialogState extends State<PromptDialog> {
                                   ? widget.flutterPromptButtons.entries
                                   : widget.dartPromptButtons.entries)
                             OutlinedButton.icon(
-                              icon: PromptSuggestionIcon(),
+                              icon: _PromptSuggestionIcon(),
                               onPressed: () {
                                 widget.promptTextController.text = entry.value;
                                 _focusNode.requestFocus();
@@ -725,14 +725,14 @@ class _AddImageWidget extends StatelessWidget {
   }
 }
 
-class PromptSuggestionIcon extends StatelessWidget {
-  const PromptSuggestionIcon({super.key, this.height = 18, this.width = 18});
-
-  final double height;
-  final double width;
+class _PromptSuggestionIcon extends StatelessWidget {
+  const _PromptSuggestionIcon();
 
   @override
   Widget build(BuildContext context) {
+    const height = 18.0;
+    const width = 18.0;
+
     return Theme.of(context).brightness == Brightness.light
         ? Opacity(
           opacity: 0.75,
@@ -855,7 +855,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                           ? 'Ask Gemini to change your code or app!'
                           : '',
                   hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                  prefixIcon: GeminiEditPrefixIcon(
+                  prefixIcon: _GeminiEditPrefixIcon(
                     enabled: widget.enabled,
                     textFieldIsFocused: _textInputIsFocused,
                     handlePromptSuggestion: handlePromptSuggestion,
@@ -865,7 +865,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                       setState(() {});
                     },
                   ),
-                  suffixIcon: GeminiEditSuffixIcon(
+                  suffixIcon: _GeminiEditSuffixIcon(
                     textFieldIsFocused: _textInputIsFocused,
                     onGenerate: () {
                       widget.onUpdateCode(
@@ -1000,9 +1000,8 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
   }
 }
 
-class GeminiEditPrefixIcon extends StatelessWidget {
-  const GeminiEditPrefixIcon({
-    super.key,
+class _GeminiEditPrefixIcon extends StatelessWidget {
+  const _GeminiEditPrefixIcon({
     required this.textFieldIsFocused,
     required this.appType,
     required this.handlePromptSuggestion,
@@ -1024,7 +1023,7 @@ class GeminiEditPrefixIcon extends StatelessWidget {
         SizedBox(width: textFieldIsFocused ? 12 : 8),
         ...[
           textFieldIsFocused
-              ? GeminiCodeEditMenu(
+              ? _GeminiCodeEditMenu(
                 currentAppType: appType,
                 handlePromptSuggestion: handlePromptSuggestion,
                 onAddImage: onAddImage,
@@ -1051,9 +1050,8 @@ class GeminiEditPrefixIcon extends StatelessWidget {
   }
 }
 
-class GeminiEditSuffixIcon extends StatelessWidget {
-  const GeminiEditSuffixIcon({
-    super.key,
+class _GeminiEditSuffixIcon extends StatelessWidget {
+  const _GeminiEditSuffixIcon({
     required this.textFieldIsFocused,
     required this.onGenerate,
   });
@@ -1085,34 +1083,32 @@ class GeminiEditSuffixIcon extends StatelessWidget {
   }
 }
 
-class GeminiCodeEditMenu extends StatelessWidget {
-  final Map<AppType, Map<String, String>> promptSuggestions;
+class _GeminiCodeEditMenu extends StatelessWidget {
   final AppType currentAppType;
   final void Function(String) handlePromptSuggestion;
   final void Function() onAddImage;
 
-  const GeminiCodeEditMenu({
-    super.key,
+  const _GeminiCodeEditMenu({
     required this.currentAppType,
     required this.handlePromptSuggestion,
     required this.onAddImage,
-
-    this.promptSuggestions = const {
-      AppType.dart: {
-        'pretty-dart': 'Make the app pretty',
-        'fancy-dart': 'Make the app fancy',
-        'emoji-dart': 'Make the app use emojis',
-      },
-      AppType.flutter: {
-        'pretty':
-            'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-        'fancy':
-            'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-        'emoji':
-            'Make the app use emojis by adding appropriate emoji icons and text',
-      },
-    },
   });
+
+  final promptSuggestions = const {
+    AppType.dart: {
+      'pretty-dart': 'Make the app pretty',
+      'fancy-dart': 'Make the app fancy',
+      'emoji-dart': 'Make the app use emojis',
+    },
+    AppType.flutter: {
+      'pretty':
+          'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+      'fancy':
+          'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+      'emoji':
+          'Make the app use emojis by adding appropriate emoji icons and text',
+    },
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -1120,7 +1116,7 @@ class GeminiCodeEditMenu extends StatelessWidget {
         promptSuggestions[currentAppType]?.entries.map((entry) {
           final String promptName = entry.key;
           final String promptText = entry.value;
-          return GeminiCodeEditMenuPromptSuggestion(
+          return _GeminiCodeEditMenuPromptSuggestion(
             displayName: promptName,
             promptText: promptText,
             handlePromptSuggestion: () => handlePromptSuggestion(promptText),
@@ -1160,9 +1156,8 @@ class GeminiCodeEditMenu extends StatelessWidget {
   }
 }
 
-class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
-  const GeminiCodeEditMenuPromptSuggestion({
-    super.key,
+class _GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
+  const _GeminiCodeEditMenuPromptSuggestion({
     required this.displayName,
     required this.promptText,
     required this.handlePromptSuggestion,
@@ -1175,7 +1170,7 @@ class GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuItemButton(
-      leadingIcon: PromptSuggestionIcon(),
+      leadingIcon: _PromptSuggestionIcon(),
       onPressed: handlePromptSuggestion,
       child: Padding(
         padding: EdgeInsets.only(right: 32),
