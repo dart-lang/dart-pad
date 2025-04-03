@@ -1427,7 +1427,7 @@ class GeminiMenu extends StatelessWidget {
           MenuItemButton(
             leadingIcon: image,
             onPressed: generateNewFlutterCode,
-            child: menu('Dart Snippet'),
+            child: menu('Flutter Snippet'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],

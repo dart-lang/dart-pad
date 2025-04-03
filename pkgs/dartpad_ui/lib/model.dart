@@ -14,7 +14,6 @@ import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
-import 'widgets.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
