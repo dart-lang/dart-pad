@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "dart-pad"
+    "default": "dartpad-polina"
   },
   "targets": {
-    "dart-pad": {
+    "dartpad-polina": {
       "hosting": {
         "dartpad": [
-          "dart-pad-a3c64"
+          "dartpad-polina"
         ],
         "preview": [
-          "sketch-pad-1cebb"
+          "dartpad-polina"
         ]
       }
     }
