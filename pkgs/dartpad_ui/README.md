@@ -61,11 +61,9 @@ If you want to collaborate on an intermediate version, you can publish it to you
          ...
    ```
 
-2. Run `firebase init`, select 'Hosting' and go through wizard.
+2. Make sure your current Flutter channel is set to `stable`
 
-3. Make sure your current Flutter channel is set to `stable`
-
-4. Run the commands:
+3. Run the commands:
 
    ```
    cd pkgs/dartpad_ui
