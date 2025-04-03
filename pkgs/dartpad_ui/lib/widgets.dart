@@ -737,13 +737,13 @@ class PromptSuggestionIcon extends StatelessWidget {
         ? Opacity(
           opacity: 0.75,
           child: Image.asset(
-            'prompt_suggestion_icon_lightmode.png',
+            'assets/prompt_suggestion_icon_lightmode.png',
             height: height,
             width: width,
           ),
         )
         : Image.asset(
-          'prompt_suggestion_icon_darkmode.png',
+          'assets/prompt_suggestion_icon_darkmode.png',
           height: height,
           width: width,
         );
