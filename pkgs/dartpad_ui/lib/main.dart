@@ -644,14 +644,12 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (wideLayout) ...[
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
-                  const SizedBox(width: denseSpacing),
                   ...resolvedGeminiMenu(denseSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, hideLabel: true),
-                  const SizedBox(width: defaultSpacing),
                   ...resolvedGeminiMenu(defaultSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(hideLabel: true),
