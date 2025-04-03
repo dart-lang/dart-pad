@@ -1588,13 +1588,3 @@ class _VimModeSwitch extends StatelessWidget {
     appModel.vimKeymapsEnabled.value = value;
   }
 }
-
-extension MenuControllerToggleMenu on MenuController {
-  void toggleMenuState() {
-    if (isOpen) {
-      close();
-    } else {
-      open();
-    }
-  }
-}
