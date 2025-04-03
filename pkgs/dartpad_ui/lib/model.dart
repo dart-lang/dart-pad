@@ -374,7 +374,6 @@ class AppServices {
   }
 
   Future<void> _performCompileAndAction({required bool reload}) async {
-    print('!!!!! Performing compile and ${reload ? 'reload' : 'run'}');
     final willUseReload = reload && appModel.useNewDDC.value;
 
     final source = appModel.sourceCodeController.text;
