@@ -656,27 +656,24 @@ class ReadOnlyDiffWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Focus(
       autofocus: true,
-      child: SizedBox(
-        height: 500,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: PrettyDiffText(
-            oldText: existingSource,
-            newText: newSource,
-            defaultTextStyle: GoogleFonts.robotoMono(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-            addedTextStyle: const TextStyle(
-              color: Colors.black,
-              backgroundColor: Color.fromARGB(255, 201, 255, 201),
-            ),
-            deletedTextStyle: const TextStyle(
-              color: Colors.black,
-              backgroundColor: Color.fromARGB(255, 249, 199, 199),
-              decoration: TextDecoration.lineThrough,
-            ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: PrettyDiffText(
+          oldText: existingSource,
+          newText: newSource,
+          defaultTextStyle: GoogleFonts.robotoMono(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+          addedTextStyle: const TextStyle(
+            color: Colors.black,
+            backgroundColor: Color.fromARGB(255, 201, 255, 201),
+          ),
+          deletedTextStyle: const TextStyle(
+            color: Colors.black,
+            backgroundColor: Color.fromARGB(255, 249, 199, 199),
+            decoration: TextDecoration.lineThrough,
           ),
         ),
       ),

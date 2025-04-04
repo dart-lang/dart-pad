@@ -90,6 +90,8 @@ class AppModel {
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
+  final GenAiManager genAiManager = GenAiManager();
+
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
@@ -700,4 +702,89 @@ class ConsoleNotifier extends ChangeNotifier {
   bool get isEmpty => _output.isEmpty && _error.isEmpty;
   bool get hasError => _error.isNotEmpty;
   String get valueToDisplay => hasError ? _error : _output;
+}
+
+enum GenAiState { standby, generating, awaitingAcceptReject }
+
+class GenAiManager {
+  final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
+  final ValueNotifier<Stream<String>> stream = ValueNotifier(
+    Stream<String>.empty(),
+  );
+  final ValueNotifier<StringBuffer> streamBuffer = ValueNotifier(
+    StringBuffer(),
+  );
+  final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
+  TextEditingController? activePromptTextController;
+
+  final TextEditingController newCodePromptController = TextEditingController();
+  final TextEditingController codeEditPromptController =
+      TextEditingController();
+
+  List<Attachment>? activeAttachments;
+  final List<Attachment> newCodeAttachments = [];
+  final List<Attachment> codeEditAttachments = [];
+
+  final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
+  final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
+
+  GenAiManager();
+
+  ValueNotifier<GenAiState> get currentState {
+    return state;
+  }
+
+  void enterGeneratingNew() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = true;
+    activePromptTextController = newCodePromptController;
+    activeAttachments = newCodeAttachments;
+  }
+
+  void enterGeneratingEdit() {
+    state.value = GenAiState.generating;
+    isGeneratingNewProject.value = false;
+    activePromptTextController = codeEditPromptController;
+    activeAttachments = codeEditAttachments;
+  }
+
+  void enterStandby() {
+    state.value = GenAiState.standby;
+    streamIsDone.value = true;
+    streamBuffer.value.clear();
+  }
+
+  void enterAwaitingAcceptReject() {
+    state.value = GenAiState.awaitingAcceptReject;
+  }
+
+  void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
+    stream.value = newStream;
+  }
+
+  void setStreamIsDone(bool which) {
+    streamIsDone.value = which;
+  }
+
+  void resetInputs() {
+    activePromptTextController?.text = '';
+    activeAttachments?.clear();
+  }
+
+  String generatedCode() {
+    return streamBuffer.value.toString();
+  }
+
+  void setEditPromptText(String newPrompt) {
+    codeEditPromptController.text = newPrompt;
+  }
+
+  void writeToStreamBuffer(String text) {
+    streamBuffer.value.write(text);
+  }
+
+  void setStreamBufferValue(String text) {
+    streamBuffer.value.clear();
+    streamBuffer.value.write(text);
+  }
 }

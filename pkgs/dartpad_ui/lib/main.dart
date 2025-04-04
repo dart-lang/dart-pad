@@ -169,6 +169,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.black.withAlpha(128),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
@@ -200,6 +201,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.white.withAlpha(128),
       ),
     );
   }
@@ -557,22 +559,31 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<CompilingState>(
-      valueListenable: appModel.compilingState,
-      builder: (_, compilingState, __) {
-        final color = theme.colorScheme.surface;
-        final compiling = compilingState == CompilingState.restarting;
+    return ValueListenableBuilder<GenAiState>(
+      valueListenable: appModel.genAiManager.state,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        return ValueListenableBuilder<CompilingState>(
+          valueListenable: appModel.compilingState,
+          builder: (_, compilingState, __) {
+            final color = theme.colorScheme.surface;
+            final loading =
+                compilingState == CompilingState.restarting ||
+                genAiState == GenAiState.generating;
 
-        // If reloading, show a progress spinner. If restarting, also display a
-        // semi-opaque overlay.
-        return AnimatedContainer(
-          color: color.withValues(alpha: compiling ? 0.8 : 0),
-          duration: animationDelay,
-          curve: animationCurve,
-          child:
-              compiling
-                  ? const GoldenRatioCenter(child: CircularProgressIndicator())
-                  : const SizedBox(width: 1),
+            // If reloading, show a progress spinner. If restarting, also display a
+            // semi-opaque overlay.
+            return AnimatedContainer(
+              color: color.withValues(alpha: loading ? 0.8 : 0),
+              duration: animationDelay,
+              curve: animationCurve,
+              child:
+                  loading
+                      ? const GoldenRatioCenter(
+                        child: CircularProgressIndicator(),
+                      )
+                      : const SizedBox(width: 1),
+            );
+          },
         );
       },
     );
@@ -601,6 +612,20 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth > smallScreenWidth;
 
+        List<Widget> resolvedGeminiMenu(double spacing) =>
+            genAiEnabled
+                ? [
+                  SizedBox(width: spacing),
+                  GeminiMenu(
+                    generateNewDartCode:
+                        () => _generateNewCode(context, AppType.dart),
+                    generateNewFlutterCode:
+                        () => _generateNewCode(context, AppType.flutter),
+                    hideLabel: false, // !wideLayout,
+                  ),
+                ]
+                : <Widget>[];
+
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
           title: SizedBox(
@@ -619,25 +644,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (wideLayout) ...[
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
+                  ...resolvedGeminiMenu(denseSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, hideLabel: true),
-                  const SizedBox(width: defaultSpacing),
-                  const ListSamplesWidget(hideLabel: true),
-                ],
-
-                if (genAiEnabled) ...[
+                  ...resolvedGeminiMenu(defaultSpacing),
                   const SizedBox(width: denseSpacing),
-                  GeminiMenu(
-                    generateNewDartCode:
-                        () => _generateNewCode(context, AppType.dart),
-                    generateNewFlutterCode:
-                        () => _generateNewCode(context, AppType.flutter),
-                    updateExistingCode: () => _updateExistingCode(context),
-                    hideLabel: !wideLayout,
-                  ),
+                  const ListSamplesWidget(hideLabel: true),
                 ],
 
                 const SizedBox(width: defaultSpacing),
@@ -685,18 +700,20 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
   }
 
-  Future<void> _generateNewCode(BuildContext context, AppType? appType) async {
+  Future<void> _generateNewCode(BuildContext context, AppType appType) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+    final resolvedDialogTitle =
+        'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Generate new code',
-            hint: 'Describe the code you want to generate',
-            initialAppType:
-                appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
+            title: resolvedDialogTitle,
+            hint:
+                'Describe what kind of code, features, and/or UI you want Gemini to create.',
+            initialAppType: appType,
             flutterPromptButtons: {
               'to-do app':
                   'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -714,6 +731,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   'Generate a Dart program that prints the factorial of 5',
               if (lastPrompt != null) 'your last prompt': lastPrompt,
             },
+            promptTextController: appModel.genAiManager.newCodePromptController,
+            attachments: appModel.genAiManager.newCodeAttachments,
           ),
     );
 
@@ -726,116 +745,32 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
     LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
+    appModel.genAiManager.preGenAiSourceCode.value =
+        appModel.sourceCodeController.text;
+    appModel.genAiManager.enterGeneratingNew();
+
     try {
-      final Stream<String> stream;
       if (widget.useGenui) {
-        stream = appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
+        appModel.genAiManager.startStream(
+          appServices.generateUi(
+            GenerateUiRequest(prompt: promptResponse.prompt),
+          ),
         );
       } else {
-        stream = appServices.generateCode(
-          GenerateCodeRequest(
-            appType: promptResponse.appType,
-            prompt: promptResponse.prompt,
-            attachments: promptResponse.attachments,
+        appModel.genAiManager.startStream(
+          appServices.generateCode(
+            GenerateCodeRequest(
+              appType: appType,
+              prompt: promptResponse.prompt,
+              attachments: promptResponse.attachments,
+            ),
           ),
         );
       }
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Generating new code',
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
     } catch (error) {
       appModel.editorStatus.showToast('Error generating code');
       appModel.appendError('Generating code issue: $error');
-    }
-  }
-
-  Future<void> _updateExistingCode(BuildContext context) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: 'Update existing code',
-            hint: 'Describe the updates you\'d like to make to the code',
-            initialAppType: appModel.appType,
-            flutterPromptButtons: {
-              'pretty':
-                  'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-              'fancy':
-                  'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-              'emoji':
-                  'Make the app use emojis by adding appropriate emoji icons and text',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'pretty': 'Make the app pretty',
-              'fancy': 'Make the app fancy',
-              'emoji': 'Make the app use emojis',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
-
-    try {
-      final source = appModel.sourceCodeController.text;
-      final stream = appServices.updateCode(
-        UpdateCodeRequest(
-          appType: promptResponse.appType,
-          source: source,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
-      );
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Updating existing code',
-              existingSource: source,
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error updating code');
-      appModel.appendError('Updating code issue: $error');
+      appModel.genAiManager.enterStandby();
     }
   }
 }
@@ -856,108 +791,206 @@ class EditorWithButtons extends StatelessWidget {
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
 
+  Future<void> _requestGeminiCodeUpdate(
+    BuildContext context,
+    PromptDialogResponse promptInfo,
+  ) async {
+    appModel.genAiManager.preGenAiSourceCode.value =
+        appModel.sourceCodeController.text;
+    appModel.genAiManager.enterGeneratingEdit();
+    try {
+      final source = appModel.sourceCodeController.text;
+      appModel.genAiManager.startStream(
+        appServices.updateCode(
+          UpdateCodeRequest(
+            appType: promptInfo.appType,
+            source: source,
+            prompt: promptInfo.prompt,
+            attachments: promptInfo.attachments,
+          ),
+        ),
+      );
+    } catch (error) {
+      appModel.editorStatus.showToast('Error updating code');
+      appModel.appendError('Updating code issue: $error');
+      appModel.genAiManager.enterStandby();
+    }
+  }
+
+  void onAcceptUpdateCode() {
+    assert(appModel.genAiManager.streamIsDone.value);
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+  }
+
+  void onEditUpdateCodePrompt() {
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndReloadOrRun();
+    appModel.genAiManager.enterStandby();
+  }
+
+  void onCancelUpdateCode() {
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+    // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
+  }
+
+  void onRejectSuggestedCode() {
+    appModel.genAiManager.resetInputs();
+    appModel.genAiManager.enterStandby();
+    appModel.sourceCodeController.textNoScroll =
+        appModel.genAiManager.preGenAiSourceCode.value;
+    appServices.performCompileAndReloadOrRun();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SectionWidget(
-            child: Stack(
-              children: [
-                EditorWidget(appModel: appModel, appServices: appServices),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: denseSpacing,
-                    horizontal: defaultSpacing,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    // We use explicit directionality here in order to have the
-                    // format and run buttons on the right hand side of the
-                    // editing area.
-                    textDirection: TextDirection.ltr,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dartdoc help button
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.docHelpBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.help_outline),
-                              tooltip: 'Show docs',
-                              // small: true,
-                              onPressed:
-                                  value ? null : () => _showDocs(context),
-                            ),
-                          );
-                        },
+    return ValueListenableBuilder<GenAiState>(
+      valueListenable: appModel.genAiManager.currentState,
+      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+        return Column(
+          children: [
+            Expanded(
+              child: SectionWidget(
+                child: Stack(
+                  children: [
+                    if (genAiState == GenAiState.standby) ...[
+                      EditorWidget(
+                        appModel: appModel,
+                        appServices: appServices,
                       ),
-                      const SizedBox(width: denseSpacing),
-                      // Format action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.formattingBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.format_align_left),
-                              tooltip: 'Format',
-                              small: true,
-                              onPressed: value ? null : onFormat,
-                            ),
-                          );
-                        },
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: denseSpacing,
+                        horizontal: defaultSpacing,
                       ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder(
-                        valueListenable: appModel.showReload,
-                        builder: (_, bool value, __) {
-                          if (!value) return const SizedBox();
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: appModel.canReload,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        // We use explicit directionality here in order to have the
+                        // format and run buttons on the right hand side of the
+                        // editing area.
+                        textDirection: TextDirection.ltr,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Dartdoc help button
+                          ValueListenableBuilder<bool>(
+                            valueListenable: appModel.docHelpBusy,
                             builder: (_, bool value, __) {
                               return PointerInterceptor(
-                                child: ReloadButton(
-                                  onPressed: value ? onCompileAndReload : null,
+                                child: MiniIconButton(
+                                  icon: const Icon(Icons.help_outline),
+                                  tooltip: 'Show docs',
+                                  // small: true,
+                                  onPressed:
+                                      value ? null : () => _showDocs(context),
                                 ),
                               );
                             },
-                          );
-                        },
+                          ),
+                          const SizedBox(width: denseSpacing),
+                          // Format action
+                          ValueListenableBuilder<bool>(
+                            valueListenable: appModel.formattingBusy,
+                            builder: (_, bool value, __) {
+                              return PointerInterceptor(
+                                child: MiniIconButton(
+                                  icon: const Icon(Icons.format_align_left),
+                                  tooltip: 'Format',
+                                  small: true,
+                                  onPressed: value ? null : onFormat,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: defaultSpacing),
+                          // Run action
+                          ValueListenableBuilder(
+                            valueListenable: appModel.showReload,
+                            builder: (_, bool value, __) {
+                              if (!value) return const SizedBox();
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: appModel.canReload,
+                                builder: (_, bool value, __) {
+                                  return PointerInterceptor(
+                                    child: ReloadButton(
+                                      onPressed:
+                                          value ? onCompileAndReload : null,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(width: defaultSpacing),
+                          // Run action
+                          ValueListenableBuilder<CompilingState>(
+                            valueListenable: appModel.compilingState,
+                            builder: (_, compiling, __) {
+                              return PointerInterceptor(
+                                child: RunButton(
+                                  onPressed:
+                                      compiling.busy ? null : onCompileAndRun,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder<CompilingState>(
-                        valueListenable: appModel.compilingState,
-                        builder: (_, compiling, __) {
-                          return PointerInterceptor(
-                            child: RunButton(
-                              onPressed:
-                                  compiling.busy ? null : onCompileAndRun,
-                            ),
-                          );
-                        },
+                    ),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.all(denseSpacing),
+                      child: StatusWidget(status: appModel.editorStatus),
+                    ),
+
+                    if (genAiState == GenAiState.standby) ...[
+                      SizedBox(width: 0, height: 0),
+                    ] else ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                        alignment: Alignment.topLeft,
+                        padding: const EdgeInsets.all(denseSpacing),
+                        child: GeneratingCodePanel(
+                          appModel: appModel,
+                          appServices: appServices,
+                        ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-                Container(
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.all(denseSpacing),
-                  child: StatusWidget(status: appModel.editorStatus),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-        ValueListenableBuilder<List<AnalysisIssue>>(
-          valueListenable: appModel.analysisIssues,
-          builder: (context, issues, _) {
-            return ProblemsTableWidget(problems: issues);
-          },
-        ),
-      ],
+            GeminiCodeEditTool(
+              appModel: appModel,
+              enabled: appModel.genAiManager.state.value == GenAiState.standby,
+              onUpdateCode: _requestGeminiCodeUpdate,
+              onAcceptUpdateCode: onAcceptUpdateCode,
+              onCancelUpdateCode: onCancelUpdateCode,
+              onEditUpdateCodePrompt: onEditUpdateCodePrompt,
+              onRejectSuggestedCode: onRejectSuggestedCode,
+            ),
+            ValueListenableBuilder<List<AnalysisIssue>>(
+              valueListenable: appModel.analysisIssues,
+              builder: (context, issues, _) {
+                return ValueListenableBuilder<GenAiState>(
+                  valueListenable: appModel.genAiManager.state,
+                  builder: (_, genAiState, __) {
+                    if (genAiState != GenAiState.awaitingAcceptReject &&
+                        genAiState != GenAiState.generating) {
+                      return ProblemsTableWidget(problems: issues);
+                    }
+                    return SizedBox(width: 0, height: 0);
+                  },
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1356,7 +1389,6 @@ class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
     required this.generateNewDartCode,
     required this.generateNewFlutterCode,
-    required this.updateExistingCode,
     required this.hideLabel,
     super.key,
   });
@@ -1364,7 +1396,6 @@ class GeminiMenu extends StatelessWidget {
   final bool hideLabel;
   final VoidCallback generateNewDartCode;
   final VoidCallback generateNewFlutterCode;
-  final VoidCallback updateExistingCode;
 
   @override
   Widget build(BuildContext context) {
@@ -1383,7 +1414,7 @@ class GeminiMenu extends StatelessWidget {
           (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: image,
             label: const Text('Gemini'),
-            tooltip: 'Generate code with Gemini',
+            tooltip: 'Create a new snippet with code generated by Gemini',
             hideLabel: hideLabel,
             onToggle: controller.toggleMenuState,
           ),
@@ -1398,11 +1429,6 @@ class GeminiMenu extends StatelessWidget {
             leadingIcon: image,
             onPressed: generateNewFlutterCode,
             child: menu('Flutter Snippet'),
-          ),
-          MenuItemButton(
-            leadingIcon: image,
-            onPressed: updateExistingCode,
-            child: menu('Update code'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],
@@ -1551,7 +1577,7 @@ class _VimModeSwitch extends StatelessWidget {
       builder: (BuildContext context, bool value, Widget? child) {
         return SwitchListTile(
           value: value,
-          title: const Text('Use Vim key bindings'),
+          title: const Text('Use Vim Key Bindings'),
           onChanged: _handleToggle,
         );
       },
@@ -1560,15 +1586,5 @@ class _VimModeSwitch extends StatelessWidget {
 
   void _handleToggle(bool value) {
     appModel.vimKeymapsEnabled.value = value;
-  }
-}
-
-extension MenuControllerToggleMenu on MenuController {
-  void toggleMenuState() {
-    if (isOpen) {
-      close();
-    } else {
-      open();
-    }
   }
 }
