@@ -1,15 +1,10 @@
 {
-  "projects": {
-    "default": "dartpad-polina"
-  },
+  "projects": {},
   "targets": {
-    "dartpad-polina": {
+    "genui-dartpad": {
       "hosting": {
-        "dartpad": [
-          "dartpad-polina"
-        ],
-        "preview": [
-          "dartpad-polina"
+        "genui-dartpad": [
+          "genui-dartpad"
         ]
       }
     }
