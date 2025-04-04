@@ -5,10 +5,10 @@
   "targets": {
     "dartpad-polina": {
       "hosting": {
-        "preview": [
+        "dartpad": [
           "dartpad-polina"
         ],
-        "genui-dartpad": [
+        "preview": [
           "dartpad-polina"
         ]
       }
