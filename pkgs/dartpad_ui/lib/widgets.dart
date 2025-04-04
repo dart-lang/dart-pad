@@ -111,7 +111,9 @@ class ReloadButton extends ActionButton {
     : super(
         text: 'Reload',
         icon: const Icon(Icons.flash_on, color: Colors.black, size: 20),
-        tooltip: 'Reload the current page',
+        tooltip:
+            'Apply the changes with the hot reload mechanism, '
+            'that rerenders the modified widgets, without losing the state.',
       );
 }
 
