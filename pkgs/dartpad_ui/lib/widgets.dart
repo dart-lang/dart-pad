@@ -110,7 +110,8 @@ class ReloadButton extends ActionButton {
   const ReloadButton({super.key, super.onPressed})
     : super(
         text: 'Reload',
-        icon: const Icon(Icons.refresh, color: Colors.black, size: 20),
+        icon: const Icon(Icons.flash_on, color: Colors.black, size: 20),
+        tooltip: 'Reload the current page',
       );
 }
 
