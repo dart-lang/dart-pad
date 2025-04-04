@@ -110,7 +110,10 @@ class ReloadButton extends ActionButton {
   const ReloadButton({super.key, super.onPressed})
     : super(
         text: 'Reload',
-        icon: const Icon(Icons.refresh, color: Colors.black, size: 20),
+        icon: const Icon(Icons.flash_on, color: Colors.black, size: 20),
+        tooltip:
+            'Apply the changes with the hot reload mechanism: '
+            'rerender just modified widgets, without losing the state.',
       );
 }
 
@@ -118,18 +121,20 @@ abstract class ActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final Icon icon;
+  final String? tooltip;
 
   const ActionButton({
     this.onPressed,
     super.key,
     required this.text,
     required this.icon,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: text,
+      message: tooltip ?? text,
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
