@@ -826,7 +826,7 @@ class EditorWithButtons extends StatelessWidget {
   void onEditUpdateCodePrompt() {
     appModel.sourceCodeController.textNoScroll =
         appModel.genAiManager.preGenAiSourceCode.value;
-    appServices.performCompileAndRun();
+    appServices.performCompileAndReloadOrRun();
     appModel.genAiManager.enterStandby();
   }
 
@@ -841,7 +841,7 @@ class EditorWithButtons extends StatelessWidget {
     appModel.genAiManager.enterStandby();
     appModel.sourceCodeController.textNoScroll =
         appModel.genAiManager.preGenAiSourceCode.value;
-    appServices.performCompileAndRun();
+    appServices.performCompileAndReloadOrRun();
   }
 
   @override
