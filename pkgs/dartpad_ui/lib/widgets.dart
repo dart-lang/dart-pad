@@ -119,18 +119,20 @@ abstract class ActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final Icon icon;
+  final String? tooltip;
 
   const ActionButton({
     this.onPressed,
     super.key,
     required this.text,
     required this.icon,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: text,
+      message: tooltip ?? text,
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
