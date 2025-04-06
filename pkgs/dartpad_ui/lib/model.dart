@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
-import 'editor/editor.dart';
+import 'docs.dart';
 import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
@@ -92,9 +92,7 @@ class AppModel {
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
   AppModel() {
-    if (codeMirrorInstance == null) {
-      consoleNotifier.addListener(_recalcLayout);
-    }
+    DocsWidget(appModel: AppModel(), documentResponse: DocumentResponse());
 
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
