@@ -92,8 +92,8 @@ class AppModel {
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
   AppModel() {
-    if (codeMirrorInstance != null) {
-      codeMirrorInstance?.events.toString();
+    if (codeMirrorInstance == null) {
+      consoleNotifier.addListener(_recalcLayout);
     }
 
     consoleNotifier.addListener(_recalcLayout);
