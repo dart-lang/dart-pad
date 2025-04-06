@@ -91,9 +91,9 @@ class AppModel {
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
-  AppModel() {
-    DocsWidget(appModel: AppModel(), documentResponse: DocumentResponse());
+  DocsWidget? docsWidget;
 
+  AppModel() {
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
         canReload.value =
