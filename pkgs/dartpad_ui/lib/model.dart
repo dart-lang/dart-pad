@@ -10,11 +10,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
+import 'editor/editor.dart';
 import 'flutter_samples.dart';
 import 'gists.dart';
 import 'samples.g.dart';
 import 'utils.dart';
-import 'editor/editor.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
@@ -92,6 +92,10 @@ class AppModel {
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
   AppModel() {
+    if (codeMirrorInstance != null) {
+      codeMirrorInstance?.events.toString();
+    }
+
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
         canReload.value =
