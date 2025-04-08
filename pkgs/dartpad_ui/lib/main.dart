@@ -1318,7 +1318,7 @@ class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
   static const _menuItems = [
-    (label: 'Install SDK :)', uri: 'https://flutter.dev/get-started'),
+    (label: 'Install SDK', uri: 'https://flutter.dev/get-started'),
     (
       label: 'Sharing guide',
       uri: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
