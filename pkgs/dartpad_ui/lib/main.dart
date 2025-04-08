@@ -19,6 +19,7 @@ import 'package:vtable/vtable.dart';
 import 'console.dart';
 import 'docs.dart';
 import 'editor/editor.dart';
+import 'editor/generating_panel.dart';
 import 'embed.dart';
 import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
