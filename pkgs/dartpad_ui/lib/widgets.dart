@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-import 'editor/editor.dart';
 import 'extensions.dart';
 import 'model.dart';
 import 'theme.dart';
