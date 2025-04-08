@@ -60,26 +60,26 @@ class EditorWithButtons extends StatelessWidget {
     }
   }
 
-  void onAcceptUpdateCode() {
+  void _handleAcceptUpdateCode() {
     assert(appModel.genAiManager.streamIsDone.value);
     appModel.genAiManager.resetInputs();
     appModel.genAiManager.enterStandby();
   }
 
-  void onEditUpdateCodePrompt() {
+  void _handleEditUpdateCodePrompt() {
     appModel.sourceCodeController.textNoScroll =
         appModel.genAiManager.preGenAiSourceCode.value;
     appServices.performCompileAndReloadOrRun();
     appModel.genAiManager.enterStandby();
   }
 
-  void onCancelUpdateCode() {
+  void _handleCancelUpdateCode() {
     appModel.genAiManager.resetInputs();
     appModel.genAiManager.enterStandby();
     // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
   }
 
-  void onRejectSuggestedCode() {
+  void _handleRejectSuggestedCode() {
     appModel.genAiManager.resetInputs();
     appModel.genAiManager.enterStandby();
     appModel.sourceCodeController.textNoScroll =
@@ -211,10 +211,10 @@ class EditorWithButtons extends StatelessWidget {
               appModel: appModel,
               enabled: appModel.genAiManager.state.value == GenAiState.standby,
               onUpdateCode: _requestGeminiCodeUpdate,
-              onAcceptUpdateCode: onAcceptUpdateCode,
-              onCancelUpdateCode: onCancelUpdateCode,
-              onEditUpdateCodePrompt: onEditUpdateCodePrompt,
-              onRejectSuggestedCode: onRejectSuggestedCode,
+              onAcceptUpdateCode: _handleAcceptUpdateCode,
+              onCancelUpdateCode: _handleCancelUpdateCode,
+              onEditUpdateCodePrompt: _handleEditUpdateCodePrompt,
+              onRejectSuggestedCode: _handleRejectSuggestedCode,
             ),
             ValueListenableBuilder<List<AnalysisIssue>>(
               valueListenable: appModel.analysisIssues,
