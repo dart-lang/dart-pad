@@ -622,19 +622,16 @@ class _ReadOnlyCodeWidgetState extends State<ReadOnlyCodeWidget> {
   Widget build(BuildContext context) {
     return Focus(
       autofocus: true,
-      child: SizedBox(
-        height: 500,
-        child: TextField(
-          controller: _textController,
-          readOnly: true,
-          maxLines: null,
-          style: GoogleFonts.robotoMono(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          decoration: const InputDecoration(border: InputBorder.none),
+      child: TextField(
+        controller: _textController,
+        readOnly: true,
+        maxLines: null,
+        style: GoogleFonts.robotoMono(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
+        decoration: const InputDecoration(border: InputBorder.none),
       ),
     );
   }
