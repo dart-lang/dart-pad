@@ -1134,3 +1134,42 @@ class CollapsibleIconToggleButton extends StatelessWidget {
     );
   }
 }
+
+class SectionWidget extends StatelessWidget {
+  final String? title;
+  final Widget? actions;
+  final Widget child;
+
+  const SectionWidget({
+    this.title,
+    this.actions,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var finalChild = child;
+
+    if (title != null || actions != null) {
+      finalChild = Column(
+        children: [
+          Row(
+            children: [
+              if (title != null) Text(title!, style: subtleText),
+              const Expanded(child: SizedBox(width: defaultSpacing)),
+              if (actions != null) actions!,
+            ],
+          ),
+          const Divider(),
+          Expanded(child: child),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(denseSpacing),
+      child: finalChild,
+    );
+  }
+}
