@@ -76,7 +76,6 @@ class EditorWithButtons extends StatelessWidget {
   void _handleCancelUpdateCode() {
     appModel.genAiManager.resetInputs();
     appModel.genAiManager.enterStandby();
-    // TODO(alsobrian) 3/11/25: Clean up stream, buffer etc.?
   }
 
   void _handleRejectSuggestedCode() {
@@ -216,19 +215,19 @@ class EditorWithButtons extends StatelessWidget {
               onEditUpdateCodePrompt: _handleEditUpdateCodePrompt,
               onRejectSuggestedCode: _handleRejectSuggestedCode,
             ),
-            ValueListenableBuilder<List<AnalysisIssue>>(
-              valueListenable: appModel.analysisIssues,
-              builder: (context, issues, _) {
-                return ValueListenableBuilder<GenAiState>(
-                  valueListenable: appModel.genAiManager.state,
-                  builder: (_, genAiState, __) {
-                    if (genAiState != GenAiState.awaitingAcceptReject &&
-                        genAiState != GenAiState.generating) {
-                      return ProblemsTableWidget(problems: issues);
-                    }
-                    return SizedBox(width: 0, height: 0);
-                  },
-                );
+            MultiValueListenableBuilder(
+              listenables: [
+                appModel.analysisIssues,
+                appModel.genAiManager.state,
+              ],
+              builder: (_) {
+                if (genAiState != GenAiState.awaitingAcceptReject &&
+                    genAiState != GenAiState.generating) {
+                  return ProblemsTableWidget(
+                    problems: appModel.analysisIssues.value,
+                  );
+                }
+                return SizedBox(width: 0, height: 0);
               },
             ),
           ],
