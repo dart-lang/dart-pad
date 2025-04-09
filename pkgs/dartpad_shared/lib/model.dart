@@ -373,12 +373,12 @@ class VersionResponse {
 }
 
 @JsonSerializable()
-class OpenInIdxRequest {
+class OpenInFirebaseStudioRequest {
   final String code;
 
-  OpenInIdxRequest({required this.code});
+  OpenInFirebaseStudioRequest({required this.code});
 
-  factory OpenInIdxRequest.fromJson(Map<String, Object?> json) =>
+  factory OpenInFirebaseStudioRequest.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxRequestFromJson(json);
 
   Map<String, Object?> toJson() => _$OpenInIdxRequestToJson(this);
@@ -389,9 +389,9 @@ class OpenInIdxRequest {
 
 @JsonSerializable()
 class OpenInIdxResponse {
-  final String idxUrl;
+  final String firebaseStudioUrl;
 
-  OpenInIdxResponse({required this.idxUrl});
+  OpenInIdxResponse({required this.firebaseStudioUrl});
 
   factory OpenInIdxResponse.fromJson(Map<String, Object?> json) =>
       _$OpenInIdxResponseFromJson(json);
@@ -399,7 +399,7 @@ class OpenInIdxResponse {
   Map<String, Object?> toJson() => _$OpenInIdxResponseToJson(this);
 
   @override
-  String toString() => 'OpenInIdxResponse [$idxUrl]';
+  String toString() => 'OpenInIdxResponse [$firebaseStudioUrl]';
 }
 
 @JsonSerializable()

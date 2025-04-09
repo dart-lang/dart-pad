@@ -304,17 +304,17 @@ Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
       'packages': instance.packages,
     };
 
-OpenInIdxRequest _$OpenInIdxRequestFromJson(Map<String, dynamic> json) =>
-    OpenInIdxRequest(code: json['code'] as String);
+OpenInFirebaseStudioRequest _$OpenInIdxRequestFromJson(Map<String, dynamic> json) =>
+    OpenInFirebaseStudioRequest(code: json['code'] as String);
 
-Map<String, dynamic> _$OpenInIdxRequestToJson(OpenInIdxRequest instance) =>
+Map<String, dynamic> _$OpenInIdxRequestToJson(OpenInFirebaseStudioRequest instance) =>
     <String, dynamic>{'code': instance.code};
 
 OpenInIdxResponse _$OpenInIdxResponseFromJson(Map<String, dynamic> json) =>
-    OpenInIdxResponse(idxUrl: json['idxUrl'] as String);
+    OpenInIdxResponse(firebaseStudioUrl: json['idxUrl'] as String);
 
 Map<String, dynamic> _$OpenInIdxResponseToJson(OpenInIdxResponse instance) =>
-    <String, dynamic>{'idxUrl': instance.idxUrl};
+    <String, dynamic>{'idxUrl': instance.firebaseStudioUrl};
 
 PackageInfo _$PackageInfoFromJson(Map<String, dynamic> json) => PackageInfo(
   name: json['name'] as String,

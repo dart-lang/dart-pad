@@ -90,7 +90,10 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/fixes', handleFixes);
     router.post(r'/api/<apiVersion>/format', handleFormat);
     router.post(r'/api/<apiVersion>/document', handleDocument);
-    router.post(r'/api/<apiVersion>/openInIDX', handleOpenInIdx);
+    router.post(
+      r'/api/<apiVersion>/openInFirebaseStudio',
+      handleOpenInFirebaseStudio,
+    );
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
     router.post(r'/api/<apiVersion>/generateUi', generateUi);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
@@ -261,9 +264,15 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  Future<Response> handleOpenInIdx(Request request, String apiVersion) async {
-    final code = api.OpenInIdxRequest.fromJson(await request.readAsJson()).code;
-    final idxUrl = Uri.parse('https://idx.google.com/run.api');
+  Future<Response> handleOpenInFirebaseStudio(
+    Request request,
+    String apiVersion,
+  ) async {
+    final code =
+        api.OpenInFirebaseStudioRequest.fromJson(
+          await request.readAsJson(),
+        ).code;
+    final idxUrl = Uri.parse('https://studio.firebase.google.com/run.api');
 
     final data = {
       'project[files][lib/main.dart]': code,
@@ -278,7 +287,9 @@ class CommonServerApi {
 
       if (response.statusCode == 302) {
         return ok(
-          api.OpenInIdxResponse(idxUrl: response.headers['location']!).toJson(),
+          api.OpenInIdxResponse(
+            firebaseStudioUrl: response.headers['location']!,
+          ).toJson(),
         );
       } else {
         return Response.internalServerError(
