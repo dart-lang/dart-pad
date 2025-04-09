@@ -675,7 +675,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           actions: [
             // Hide the Install SDK button when the screen width is too small.
             if (constraints.maxWidth > smallScreenWidth)
-              ContinueInMenu(openInIdx: _openInIDX),
+              ContinueInMenu(openInFirebaseStudio: _openInFirebaseStudio),
             const SizedBox(width: denseSpacing),
             _BrightnessButton(
               handleBrightnessChange: widget.handleBrightnessChanged,
@@ -694,11 +694,11 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           ? const Size(double.infinity, 56.0)
           : const Size(double.infinity, 112.0);
 
-  Future<void> _openInIDX() async {
+  Future<void> _openInFirebaseStudio() async {
     final code = appModel.sourceCodeController.text;
-    final request = OpenInIdxRequest(code: code);
-    final response = await appServices.services.openInIdx(request);
-    url_launcher.launchUrl(Uri.parse(response.idxUrl));
+    final request = OpenInFirebaseStudioRequest(code: code);
+    final response = await appServices.services.openInFirebaseStudio(request);
+    url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
   }
 }
 
@@ -971,9 +971,9 @@ class OverflowMenu extends StatelessWidget {
 }
 
 class ContinueInMenu extends StatelessWidget {
-  final VoidCallback openInIdx;
+  final VoidCallback openInFirebaseStudio;
 
-  const ContinueInMenu({super.key, required this.openInIdx});
+  const ContinueInMenu({super.key, required this.openInFirebaseStudio});
 
   @override
   Widget build(BuildContext context) {
@@ -988,11 +988,11 @@ class ContinueInMenu extends StatelessWidget {
       menuChildren: [
         ...[
           MenuItemButton(
-            trailingIcon: const Logo(type: 'idx'),
-            onPressed: openInIdx,
+            trailingIcon: const Logo(type: 'firebase_studio'),
+            onPressed: openInFirebaseStudio,
             child: const Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
-              child: Text('IDX'),
+              child: Text('Firebase Studio'),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
