@@ -468,30 +468,30 @@ class AppServices {
 
   bool counter = true;
   Stream<String> generateCode(GenerateCodeRequest request) {
-    counter = !counter;
-    return Stream.fromIterable([
-      '''
-import 'package:flutter/material.dart';
+    // counter = !counter;
+    //     return Stream.fromIterable([
+    //       '''
+    // import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+    // void main() {
+    //   runApp(const MyApp());
+    // }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+    // class MyApp extends StatelessWidget {
+    //   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    throw 'hello';
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Center(child: Text('Hello, World $counter!'))),
-    );
-  }
-}
-''',
-    ]);
-    // return services.generateCode(request);
+    //   @override
+    //   Widget build(BuildContext context) {
+    //     throw 'hello';
+    //     return const MaterialApp(
+    //       debugShowCheckedModeBanner: false,
+    //       home: Scaffold(body: Center(child: Text('Hello, World $counter!'))),
+    //     );
+    //   }
+    // }
+    // ''',
+    //     ]);
+    return services.generateCode(request);
   }
 
   Stream<String> generateUi(GenerateUiRequest request) {
