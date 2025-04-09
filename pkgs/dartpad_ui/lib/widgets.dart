@@ -114,7 +114,9 @@ class ReloadButton extends ActionButton {
           AssetImage('assets/hot-reload.png'),
           color: Colors.black,
         ),
-        tooltip: 'Apply changes and hot reload.',
+        tooltip:
+            'Apply changes with Hot Reload, which updates'
+            ' widgets without losing the state of the app, when possible.',
       );
 }
 
