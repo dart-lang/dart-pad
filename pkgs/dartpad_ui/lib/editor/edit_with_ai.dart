@@ -11,6 +11,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../docs.dart';
 import '../model.dart';
 import '../problems.dart';
+import '../prompt_dialog.dart';
 import '../theme.dart';
 import '../utils.dart';
 import '../widgets.dart';
@@ -66,12 +67,12 @@ class EditorWithButtons extends StatelessWidget {
     appModel.genAiManager.enterStandby();
   }
 
-  void _handleEditUpdateCodePrompt() {
-    // ????
+  void _handleEditUpdateCodePrompt(BuildContext context) async {
     appModel.sourceCodeController.textNoScroll =
         appModel.genAiManager.preGenAiSourceCode.value;
     appServices.performCompileAndReloadOrRun();
     appModel.genAiManager.enterStandby();
+    openCodeGenerationDialog(context, changeLastPrompt: true);
   }
 
   void _handleCancelUpdateCode() {

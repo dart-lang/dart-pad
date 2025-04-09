@@ -8,20 +8,27 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
+import 'enable_gen_ai.dart';
 import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
 
-Future<void> generateNewCode(
-  BuildContext context,
-  AppType appType,
-  bool useGenui,
-) async {
+Future<void> openCodeGenerationDialog(
+  BuildContext context, {
+  AppType? appType,
+  required bool changeLastPrompt,
+}) async {
+  final resolvedAppType =
+      appType ?? LocalStorage.instance.getLastCreateCodeAppType();
   final appModel = Provider.of<AppModel>(context, listen: false);
+
   final appServices = Provider.of<AppServices>(context, listen: false);
   final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+  if (changeLastPrompt) {
+    appModel.genAiManager.newCodePromptController.text = lastPrompt ?? '';
+  }
   final resolvedDialogTitle =
       'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
   final promptResponse = await showDialog<PromptDialogResponse>(
@@ -31,7 +38,7 @@ Future<void> generateNewCode(
           title: resolvedDialogTitle,
           hint:
               'Describe what kind of code, features, and/or UI you want Gemini to create.',
-          initialAppType: appType,
+          initialAppType: resolvedAppType,
           flutterPromptButtons: {
             'to-do app':
                 'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -78,7 +85,7 @@ Future<void> generateNewCode(
       appModel.genAiManager.startStream(
         appServices.generateCode(
           GenerateCodeRequest(
-            appType: appType,
+            appType: resolvedAppType,
             prompt: promptResponse.prompt,
             attachments: promptResponse.attachments,
           ),

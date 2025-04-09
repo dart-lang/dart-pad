@@ -128,7 +128,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
-    final useGenui = state.uri.queryParameters['genui'] == 'true';
+    useGenui = state.uri.queryParameters['genui'] == 'true';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -138,7 +138,6 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
-      useGenui: useGenui,
     );
   }
 
@@ -213,7 +212,6 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -223,7 +221,6 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
-    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -316,9 +313,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       }
     });
 
-    debugPrint(
-      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
-    );
+    debugPrint('initialized: useGenui = $useGenui, channel = $channel.');
   }
 
   @override
@@ -616,16 +611,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   SizedBox(width: spacing),
                   GeminiMenu(
                     generateNewDartCode:
-                        () => generateNewCode(
+                        () => openCodeGenerationDialog(
                           context,
-                          AppType.dart,
-                          widget.useGenui,
+                          appType: AppType.dart,
+                          changeLastPrompt: false,
                         ),
                     generateNewFlutterCode:
-                        () => generateNewCode(
+                        () => openCodeGenerationDialog(
                           context,
-                          AppType.flutter,
-                          widget.useGenui,
+                          appType: AppType.flutter,
+                          changeLastPrompt: false,
                         ),
                     hideLabel: false, // !wideLayout,
                   ),

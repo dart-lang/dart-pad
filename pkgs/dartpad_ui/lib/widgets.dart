@@ -507,7 +507,7 @@ class GeminiCodeEditTool extends StatefulWidget {
   final AppModel appModel;
   final Future<void> Function(BuildContext, PromptDialogResponse) onUpdateCode;
   final VoidCallback onCancelUpdateCode;
-  final VoidCallback onEditUpdateCodePrompt;
+  final void Function(BuildContext context) onEditUpdateCodePrompt;
   final VoidCallback onAcceptUpdateCode;
   final VoidCallback onRejectSuggestedCode;
   final bool enabled;
@@ -681,7 +681,7 @@ class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
                     child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
                   OutlinedButton(
-                    onPressed: widget.onEditUpdateCodePrompt,
+                    onPressed: () => widget.onEditUpdateCodePrompt(context),
                     child: Text('Change Prompt', style: geminiMessageTextTheme),
                   ),
                   FilledButton(
