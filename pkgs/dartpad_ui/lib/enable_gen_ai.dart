@@ -3,19 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Turn on or off gen-ai features in the client.
-const bool genAiEnabled = false;
+const bool genAiEnabled = true;
 
 /*
 
-To use GenUI locally:
+There are two options to use gen AI: Gemini and GenUI. Gemini is the default.
+To run with GenUI, use corresponding VS Code configuration or the command line options:
 
-1. Set genAiEnabled to true above.
+1. With prod backend: add URL parameter `/?genui=true`
 
-2. See go/dartpad-manual-genui for instructions on how to start backend with GENUI_API_KEY.
+2. With local backend:
 
-3. Use this command to run UI:
+    a. See go/dartpad-manual-genui for instructions on how to start backend with
+    GENUI_API_KEY.
 
-flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
-  --web-launch-url="http://localhost:8888/?channel=localhost&genui=true"
+    b. Use this command to run the UI:
+
+        flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
+          --web-launch-url="http://localhost:8888/?channel=localhost&genui=true"
 
 */

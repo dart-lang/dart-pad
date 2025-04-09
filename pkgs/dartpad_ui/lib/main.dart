@@ -24,7 +24,7 @@ import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
 import 'keys.dart' as keys;
-import 'local_storage.dart';
+import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -189,6 +189,11 @@ class _DartPadAppState extends State<DartPadApp> {
             foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
           ),
         ),
+        iconButtonTheme: const IconButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStatePropertyAll(darkLinkButtonColor),
+          ),
+        ),
         scaffoldBackgroundColor: darkScaffoldColor,
         menuButtonTheme: MenuButtonThemeData(
           style: MenuItemButton.styleFrom(
@@ -303,6 +308,14 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         });
     appModel.compilingState.addListener(_handleRunStarted);
 
+    tabController.addListener(() {
+      // Refresh the editor if switching to the code editor tab,
+      // to allow CodeMirror to update its custom rendering.
+      if (tabController.index == 0) {
+        appServices.editorService?.refreshViewAfterWait();
+      }
+    });
+
     debugPrint(
       'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
     );
@@ -314,6 +327,8 @@ class _DartPadMainPageState extends State<DartPadMainPage>
 
     appServices.dispose();
     appModel.dispose();
+
+    tabController.dispose();
 
     super.dispose();
   }
@@ -584,6 +599,8 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final wideLayout = constraints.maxWidth > smallScreenWidth;
+
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
           title: SizedBox(
@@ -599,29 +616,33 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 // Hide new snippet buttons when the screen width is too small.
-                if (constraints.maxWidth > smallScreenWidth) ...[
+                if (wideLayout) ...[
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
-                  NewSnippetWidget(appServices: appServices, smallIcon: true),
+                  NewSnippetWidget(appServices: appServices, hideLabel: true),
                   const SizedBox(width: defaultSpacing),
-                  const ListSamplesWidget(smallIcon: true),
+                  const ListSamplesWidget(hideLabel: true),
                 ],
 
                 if (genAiEnabled) ...[
                   const SizedBox(width: denseSpacing),
                   GeminiMenu(
-                    generateNewCode: () => _generateNewCode(context),
+                    generateNewDartCode:
+                        () => _generateNewCode(context, AppType.dart),
+                    generateNewFlutterCode:
+                        () => _generateNewCode(context, AppType.flutter),
                     updateExistingCode: () => _updateExistingCode(context),
+                    hideLabel: !wideLayout,
                   ),
                 ],
 
                 const SizedBox(width: defaultSpacing),
                 // Hide the snippet title when the screen width is too small.
-                if (constraints.maxWidth > smallScreenWidth)
+                if (wideLayout)
                   Expanded(
                     child: Center(
                       child: ValueListenableBuilder<String>(
@@ -664,7 +685,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
   }
 
-  Future<void> _generateNewCode(BuildContext context) async {
+  Future<void> _generateNewCode(BuildContext context, AppType? appType) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
     final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
@@ -672,9 +693,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Generate New Code',
+            title: 'Generate new code',
             hint: 'Describe the code you want to generate',
-            initialAppType: LocalStorage.instance.getLastCreateCodeAppType(),
+            initialAppType:
+                appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
             flutterPromptButtons: {
               'to-do app':
                   'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -725,7 +747,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder:
             (context) => GeneratingCodeDialog(
               stream: stream,
-              title: 'Generating New Code',
+              title: 'Generating new code',
             ),
       );
 
@@ -752,7 +774,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       builder:
           (context) => PromptDialog(
-            title: 'Update Existing Code',
+            title: 'Update existing code',
             hint: 'Describe the updates you\'d like to make to the code',
             initialAppType: appModel.appType,
             flutterPromptButtons: {
@@ -797,7 +819,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         builder:
             (context) => GeneratingCodeDialog(
               stream: stream,
-              title: 'Updating Existing Code',
+              title: 'Updating existing code',
               existingSource: source,
             ),
       );
@@ -1069,8 +1091,8 @@ class StatusLineWidget extends StatelessWidget {
             ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
           VersionInfoWidget(appModel.runtimeVersions),
-          const SizedBox(width: defaultSpacing),
-          const SizedBox(height: 26, child: SelectChannelWidget()),
+          const SizedBox(width: denseSpacing),
+          SelectChannelWidget(hideLabel: mobileVersion),
         ],
       ),
     );
@@ -1118,7 +1140,7 @@ class SectionWidget extends StatelessWidget {
 
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
-  final bool smallIcon;
+  final bool hideLabel;
 
   static const _menuItems = [
     (label: 'Dart snippet', icon: Logo(type: 'dart'), kind: 'dart'),
@@ -1127,26 +1149,21 @@ class NewSnippetWidget extends StatelessWidget {
 
   const NewSnippetWidget({
     required this.appServices,
-    this.smallIcon = false,
+    this.hideLabel = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
-      builder: (context, MenuController controller, Widget? child) {
-        if (smallIcon) {
-          return IconButton(
+      builder:
+          (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: const Icon(Icons.add_circle),
-            onPressed: () => controller.toggleMenuState(),
-          );
-        }
-        return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
-          icon: const Icon(Icons.add_circle),
-          label: const Text('New'),
-        );
-      },
+            label: const Text('Create'),
+            tooltip: 'Create a new snippet',
+            hideLabel: hideLabel,
+            onToggle: controller.toggleMenuState,
+          ),
       menuChildren: [
         for (final item in _menuItems)
           PointerInterceptor(
@@ -1165,25 +1182,20 @@ class NewSnippetWidget extends StatelessWidget {
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  final bool smallIcon;
-  const ListSamplesWidget({this.smallIcon = false, super.key});
+  final bool hideLabel;
+  const ListSamplesWidget({this.hideLabel = false, super.key});
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
-      builder: (context, MenuController controller, Widget? child) {
-        if (smallIcon) {
-          return IconButton(
+      builder:
+          (_, MenuController controller, _) => CollapsibleIconToggleButton(
             icon: const Icon(Icons.playlist_add_outlined),
-            onPressed: () => controller.toggleMenuState(),
-          );
-        }
-        return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
-          icon: const Icon(Icons.playlist_add_outlined),
-          label: const Text('Samples'),
-        );
-      },
+            label: const Text('Samples'),
+            tooltip: 'Try out a sample',
+            hideLabel: hideLabel,
+            onToggle: controller.toggleMenuState,
+          ),
       menuChildren: _buildMenuItems(context),
     );
   }
@@ -1215,7 +1227,9 @@ class ListSamplesWidget extends StatelessWidget {
 }
 
 class SelectChannelWidget extends StatelessWidget {
-  const SelectChannelWidget({super.key});
+  const SelectChannelWidget({super.key, this.hideLabel = false});
+
+  final bool hideLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1226,13 +1240,15 @@ class SelectChannelWidget extends StatelessWidget {
       valueListenable: appServices.channel,
       builder:
           (context, Channel value, _) => MenuAnchor(
-            builder: (context, MenuController controller, Widget? child) {
-              return TextButton.icon(
-                onPressed: () => controller.toggleMenuState(),
-                icon: const Icon(Icons.tune, size: smallIconSize),
-                label: Text('${value.displayName} channel'),
-              );
-            },
+            builder:
+                (_, controller, _) => CollapsibleIconToggleButton(
+                  icon: const Icon(Icons.tune, size: smallIconSize),
+                  label: Text('${value.displayName} channel'),
+                  tooltip: 'Switch channels',
+                  hideLabel: hideLabel,
+                  compact: true,
+                  onToggle: controller.toggleMenuState,
+                ),
             menuChildren: [
               for (final channel in channels)
                 PointerInterceptor(
@@ -1338,12 +1354,16 @@ class ContinueInMenu extends StatelessWidget {
 
 class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
-    required this.generateNewCode,
+    required this.generateNewDartCode,
+    required this.generateNewFlutterCode,
     required this.updateExistingCode,
+    required this.hideLabel,
     super.key,
   });
 
-  final VoidCallback generateNewCode;
+  final bool hideLabel;
+  final VoidCallback generateNewDartCode;
+  final VoidCallback generateNewFlutterCode;
   final VoidCallback updateExistingCode;
 
   @override
@@ -1354,31 +1374,35 @@ class GeminiMenu extends StatelessWidget {
       height: 24,
     );
 
+    Widget menu(String text) {
+      return Padding(padding: EdgeInsets.only(right: 32), child: Text(text));
+    }
+
     return MenuAnchor(
-      builder: (context, MenuController controller, Widget? child) {
-        return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
-          icon: image,
-          label: const Text('Gemini'),
-        );
-      },
+      builder:
+          (_, MenuController controller, _) => CollapsibleIconToggleButton(
+            icon: image,
+            label: const Text('Gemini'),
+            tooltip: 'Generate code with Gemini',
+            hideLabel: hideLabel,
+            onToggle: controller.toggleMenuState,
+          ),
       menuChildren: [
         ...[
           MenuItemButton(
             leadingIcon: image,
-            onPressed: generateNewCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Generate Code'),
-            ),
+            onPressed: generateNewDartCode,
+            child: menu('Dart Snippet'),
+          ),
+          MenuItemButton(
+            leadingIcon: image,
+            onPressed: generateNewFlutterCode,
+            child: menu('Flutter Snippet'),
           ),
           MenuItemButton(
             leadingIcon: image,
             onPressed: updateExistingCode,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 32),
-              child: Text('Update Code'),
-            ),
+            child: menu('Update code'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],
@@ -1527,7 +1551,7 @@ class _VimModeSwitch extends StatelessWidget {
       builder: (BuildContext context, bool value, Widget? child) {
         return SwitchListTile(
           value: value,
-          title: const Text('Use Vim Key Bindings'),
+          title: const Text('Use Vim key bindings'),
           onChanged: _handleToggle,
         );
       },

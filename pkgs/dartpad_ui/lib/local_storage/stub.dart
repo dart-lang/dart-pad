@@ -4,10 +4,10 @@
 
 import 'package:dartpad_shared/model.dart';
 
-import '../local_storage.dart';
 import '../utils.dart';
+import 'interface.dart';
 
-class LocalStorageImpl extends LocalStorage {
+class LocalStorageImpl extends LocalStorageInterface {
   String? _code;
   String? _keyBinding;
   String? _lastCreateCodePrompt;

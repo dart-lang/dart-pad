@@ -39,6 +39,9 @@ abstract class EditorService {
   void jumpTo(AnalysisIssue issue);
   int get cursorOffset;
   void focus();
+
+  /// Let the editor know to account for any resizing or visibility changes.
+  void refreshViewAfterWait();
 }
 
 class AppModel {
@@ -197,6 +200,7 @@ class AppServices {
   static const Set<Channel> _hotReloadableChannels = {
     Channel.localhost,
     Channel.main,
+    Channel.beta,
   };
 
   AppServices(this.appModel, Channel channel) {

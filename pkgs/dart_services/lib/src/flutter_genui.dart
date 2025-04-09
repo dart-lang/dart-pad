@@ -10,24 +10,63 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('genui');
 
-class GenUi {
-  static const _apiKeyVarName = 'GENUI_API_KEY';
-  late final String _genuiApiKey;
+class _GenuiEnv {
+  late final Uri? apiUrl;
+  final String name;
+  late final String keyHint;
 
-  GenUi() {
-    _genuiApiKey = Platform.environment[_apiKeyVarName] ?? '';
-    if (_genuiApiKey.isEmpty) {
-      _logger.warning('$_apiKeyVarName not set; genui features DISABLED');
+  _GenuiEnv({
+    required this.name,
+    required String apiKeyVarName,
+    required String url,
+  }) {
+    final key = Platform.environment[apiKeyVarName] ?? '';
+    if (key.isEmpty) {
+      _logger.warning(
+        '$apiKeyVarName not set; genui features at $name DISABLED',
+      );
+      apiUrl = null;
     } else {
-      _logger.info('$_apiKeyVarName set; genui features ENABLED');
+      _logger.info('$apiKeyVarName set; genui features at $name ENABLED');
+      apiUrl = Uri.parse('$url?key=$key');
+      keyHint = '${key[0]}..${key[key.length - 1]}';
     }
   }
 
-  Future<String> generateCode({required String prompt}) async {
-    final response = await _requestGenUI(prompt: prompt);
+  /// Request code generation from GenUI.
+  ///
+  /// Returns the generated Flutter code.
+  ///
+  /// If not enabled or fails, logs error and returns null.
+  Future<String?> request({required String prompt}) async {
+    final uri = apiUrl;
+    if (uri == null) {
+      _logger.warning('Genui features at $name are disabled');
+      return null;
+    }
+
+    final response = await http.post(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'userPrompt': prompt,
+        'skipPayload': 'true',
+      }),
+    );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to generate ui: ${response.body}');
+      // Logs take just first line, so no new lines.
+      _logger.warning(
+        'Failed to generate ui with genui, $name: '
+                '${response.statusCode}; '
+                'response-headers: ${response.headers}; '
+                'key: $keyHint; '
+                '${response.body}'
+            .replaceAll('\n', ' '),
+      );
+      return null;
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -35,23 +74,27 @@ class GenUi {
 
     return flutterCode;
   }
+}
 
-  Future<http.Response> _requestGenUI({required String prompt}) async {
-    if (_genuiApiKey.isEmpty) {
-      throw Exception('Missing environment variable: $_apiKeyVarName');
+class GenUi {
+  late final _GenuiEnv _prod;
+
+  GenUi() {
+    _prod = _GenuiEnv(
+      name: 'prod',
+      apiKeyVarName: 'GENUI_API_KEY',
+      url:
+          'https://devgenui.pa.googleapis.com/v1internal/firstparty/generateidecode',
+    );
+  }
+
+  Future<String> generateCode({required String prompt}) async {
+    final result = await _prod.request(prompt: prompt);
+
+    if (result == null) {
+      throw Exception('Failed to generate code from GenUI');
     }
 
-    return http.post(
-      Uri.parse(
-        'https://autopush-devgenui.sandbox.googleapis.com/v1beta1/firstparty/generateidecode?key=$_genuiApiKey',
-      ),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'userPrompt': prompt,
-        'modelUrl': 'genuigemini://models/gemini-2.0-flash',
-      }),
-    );
+    return result;
   }
 }

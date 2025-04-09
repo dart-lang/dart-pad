@@ -1,0 +1,56 @@
+{
+    "configurations": [
+        {
+            "name": "ui",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+            ],
+        },
+        {
+            "name": "ui, local backend",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+                "--web-port",
+                "8888",
+                "--web-launch-url",
+                "http://localhost:8888/?channel=localhost",
+            ],
+        },
+        {
+            "name": "ui+genui",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+                "--web-port",
+                "8888",
+                "--web-launch-url",
+                "http://localhost:8888/?genui=true",
+            ],
+        },
+        {
+            "name": "ui+genui, local backend",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+                "--web-port",
+                "8888",
+                "--web-launch-url",
+                "http://localhost:8888/?genui=true&channel=localhost",
+            ],
+        }
+    ],
+}
