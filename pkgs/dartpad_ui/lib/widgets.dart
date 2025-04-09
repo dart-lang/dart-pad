@@ -107,20 +107,21 @@ class RunButton extends ActionButton {
 }
 
 class ReloadButton extends ActionButton {
-  const ReloadButton({super.key, super.onPressed})
+  ReloadButton({super.key, super.onPressed})
     : super(
         text: 'Reload',
-        icon: const Icon(Icons.flash_on, color: Colors.black, size: 20),
-        tooltip:
-            'Apply the changes with the hot reload mechanism: '
-            'rerender just modified widgets, without losing the state.',
+        icon: ImageIcon(
+          AssetImage('assets/hot-reload.png'),
+          color: Colors.black,
+        ),
+        tooltip: 'Apply changes and hot reload.',
       );
 }
 
 abstract class ActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
-  final Icon icon;
+  final Widget icon;
   final String? tooltip;
 
   const ActionButton({
