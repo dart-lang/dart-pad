@@ -379,9 +379,9 @@ class OpenInFirebaseStudioRequest {
   OpenInFirebaseStudioRequest({required this.code});
 
   factory OpenInFirebaseStudioRequest.fromJson(Map<String, Object?> json) =>
-      _$OpenInIdxRequestFromJson(json);
+      _$OpenInFirebaseStudioRequestFromJson(json);
 
-  Map<String, Object?> toJson() => _$OpenInIdxRequestToJson(this);
+  Map<String, Object?> toJson() => _$OpenInFirebaseStudioRequestToJson(this);
 
   @override
   String toString() => 'OpenInIdxRequest [${code.substring(0, 10)} (...)';
