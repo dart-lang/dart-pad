@@ -52,7 +52,6 @@ flutter:
     - assets/flame_logo_192.png
     - assets/flutter_logo_192.png
     - assets/gemini_sparkle_192.png
-    - assets/idx_192.png
     - assets/prompt_suggestion_icon_darkmode.png
     - assets/prompt_suggestion_icon_lightmode.png
     - assets/firebase_studio_192.png
