@@ -54,8 +54,13 @@ class ServicesClient {
         CompileDDCResponse.fromJson,
       );
 
-  Future<OpenInIdxResponse> openInFirebaseStudio(OpenInFirebaseStudioRequest request) =>
-      _requestPost('openInFirebaseStudio', request.toJson(), OpenInIdxResponse.fromJson);
+  Future<OpenInIdxResponse> openInFirebaseStudio(
+    OpenInFirebaseStudioRequest request,
+  ) => _requestPost(
+    'openInFirebaseStudio',
+    request.toJson(),
+    OpenInIdxResponse.fromJson,
+  );
 
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _requestPostStream('suggestFix', request.toJson());
