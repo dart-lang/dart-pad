@@ -107,29 +107,37 @@ class RunButton extends ActionButton {
 }
 
 class ReloadButton extends ActionButton {
-  const ReloadButton({super.key, super.onPressed})
+  ReloadButton({super.key, super.onPressed})
     : super(
         text: 'Reload',
-        icon: const Icon(Icons.refresh, color: Colors.black, size: 20),
+        icon: ImageIcon(
+          AssetImage('assets/hot-reload.png'),
+          color: Colors.black,
+        ),
+        tooltip:
+            'Apply changes with Hot Reload, which re-renders the modified'
+            ' widgets without losing the state of the app, when possible.',
       );
 }
 
 abstract class ActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
-  final Icon icon;
+  final Widget icon;
+  final String? tooltip;
 
   const ActionButton({
     this.onPressed,
     super.key,
     required this.text,
     required this.icon,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: text,
+      message: tooltip ?? text,
       waitDuration: tooltipDelay,
       child: TextButton(
         style: ButtonStyle(
