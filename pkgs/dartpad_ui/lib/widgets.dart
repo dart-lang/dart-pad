@@ -343,159 +343,6 @@ class _MultiValueListenableBuilderState
   }
 }
 
-class PromptDialog extends StatefulWidget {
-  const PromptDialog({
-    required this.title,
-    required this.hint,
-    required this.flutterPromptButtons,
-    required this.dartPromptButtons,
-    required this.initialAppType,
-    required this.promptTextController,
-    required this.attachments,
-    super.key,
-  });
-
-  final String title;
-  final String hint;
-  final Map<String, String> flutterPromptButtons;
-  final Map<String, String> dartPromptButtons;
-  final AppType initialAppType;
-  final TextEditingController promptTextController;
-  final List<Attachment> attachments;
-
-  @override
-  State<PromptDialog> createState() => _PromptDialogState();
-}
-
-class _PromptDialogState extends State<PromptDialog> {
-  final _focusNode = FocusNode();
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return PointerInterceptor(
-      child: AlertDialog(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: theme.colorScheme.outline),
-        ),
-        title: Text(widget.title),
-        contentTextStyle: theme.textTheme.bodyMedium,
-        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-        content: SizedBox(
-          width: 700,
-          child: CallbackShortcuts(
-            bindings: {
-              SingleActivator(LogicalKeyboardKey.enter): () {
-                if (widget.promptTextController.text.isNotEmpty) _onGenerate();
-              },
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                TextField(
-                  controller: widget.promptTextController,
-                  focusNode: _focusNode,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: widget.hint,
-                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                    labelText: 'Code generation prompt',
-                    alignLabelWithHint: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OverflowBar(
-                        alignment: MainAxisAlignment.center,
-                        spacing: 12,
-                        children: [
-                          for (final entry
-                              in widget.initialAppType == AppType.flutter
-                                  ? widget.flutterPromptButtons.entries
-                                  : widget.dartPromptButtons.entries)
-                            OutlinedButton.icon(
-                              icon: _PromptSuggestionIcon(),
-                              onPressed: () {
-                                widget.promptTextController.text = entry.value;
-                                _focusNode.requestFocus();
-                              },
-                              label: Text(entry.key),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  height: 64,
-                  child: EditableImageList(
-                    attachments: widget.attachments,
-                    onRemove: (int index) {
-                      widget.attachments.removeAt(index);
-                      setState(() {});
-                    },
-                    onAdd: () async {
-                      await addAttachmentWithPicker(widget.attachments);
-                      setState(() {});
-                    },
-                    maxAttachments: 3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ValueListenableBuilder(
-            valueListenable: widget.promptTextController,
-            builder:
-                (context, controller, _) => TextButton(
-                  onPressed: controller.text.isEmpty ? null : _onGenerate,
-                  child: Text(
-                    'Generate',
-                    style: TextStyle(
-                      color:
-                          controller.text.isEmpty ? theme.disabledColor : null,
-                    ),
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onGenerate() {
-    assert(widget.promptTextController.text.isNotEmpty);
-    Navigator.pop(
-      context,
-      PromptDialogResponse(
-        appType: widget.initialAppType,
-        attachments: widget.attachments,
-        prompt: widget.promptTextController.text,
-      ),
-    );
-  }
-}
-
 class EditableImageList extends StatelessWidget {
   final List<Attachment> attachments;
   final void Function(int index) onRemove;
@@ -642,31 +489,6 @@ class _AddImageWidget extends StatelessWidget {
           Text('Add image(s) to support your prompt. (optional)'),
       ],
     );
-  }
-}
-
-class _PromptSuggestionIcon extends StatelessWidget {
-  const _PromptSuggestionIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    const height = 18.0;
-    const width = 18.0;
-
-    return Theme.of(context).brightness == Brightness.light
-        ? Opacity(
-          opacity: 0.75,
-          child: Image.asset(
-            'assets/prompt_suggestion_icon_lightmode.png',
-            height: height,
-            width: width,
-          ),
-        )
-        : Image.asset(
-          'assets/prompt_suggestion_icon_darkmode.png',
-          height: height,
-          width: width,
-        );
   }
 }
 
@@ -1090,13 +912,38 @@ class _GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuItemButton(
-      leadingIcon: _PromptSuggestionIcon(),
+      leadingIcon: PromptSuggestionIcon(),
       onPressed: handlePromptSuggestion,
       child: Padding(
         padding: EdgeInsets.only(right: 32),
         child: Text(displayName),
       ),
     );
+  }
+}
+
+class PromptSuggestionIcon extends StatelessWidget {
+  const PromptSuggestionIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const height = 18.0;
+    const width = 18.0;
+
+    return Theme.of(context).brightness == Brightness.light
+        ? Opacity(
+          opacity: 0.75,
+          child: Image.asset(
+            'assets/prompt_suggestion_icon_lightmode.png',
+            height: height,
+            width: width,
+          ),
+        )
+        : Image.asset(
+          'assets/prompt_suggestion_icon_darkmode.png',
+          height: height,
+          width: width,
+        );
   }
 }
 

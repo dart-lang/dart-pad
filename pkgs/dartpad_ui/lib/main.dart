@@ -25,6 +25,7 @@ import 'extensions.dart';
 import 'keys.dart' as keys;
 import 'local_storage/local_storage.dart';
 import 'model.dart';
+import 'prompt_dialog.dart';
 import 'samples.g.dart';
 import 'theme.dart';
 import 'versions.dart';
@@ -615,9 +616,17 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   SizedBox(width: spacing),
                   GeminiMenu(
                     generateNewDartCode:
-                        () => _generateNewCode(context, AppType.dart),
+                        () => generateNewCode(
+                          context,
+                          AppType.dart,
+                          widget.useGenui,
+                        ),
                     generateNewFlutterCode:
-                        () => _generateNewCode(context, AppType.flutter),
+                        () => generateNewCode(
+                          context,
+                          AppType.flutter,
+                          widget.useGenui,
+                        ),
                     hideLabel: false, // !wideLayout,
                   ),
                 ]
@@ -695,80 +704,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final request = OpenInIdxRequest(code: code);
     final response = await appServices.services.openInIdx(request);
     url_launcher.launchUrl(Uri.parse(response.idxUrl));
-  }
-
-  Future<void> _generateNewCode(BuildContext context, AppType appType) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
-    final resolvedDialogTitle =
-        'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: resolvedDialogTitle,
-            hint:
-                'Describe what kind of code, features, and/or UI you want Gemini to create.',
-            initialAppType: appType,
-            flutterPromptButtons: {
-              'to-do app':
-                  'Generate a Flutter to-do app with add, remove, and complete task functionality',
-              'login screen':
-                  'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-              'tic-tac-toe':
-                  'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'hello, world': 'Generate a Dart hello world program',
-              'fibonacci':
-                  'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
-              'factorial':
-                  'Generate a Dart program that prints the factorial of 5',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            promptTextController: appModel.genAiManager.newCodePromptController,
-            attachments: appModel.genAiManager.newCodeAttachments,
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
-
-    appModel.genAiManager.preGenAiSourceCode.value =
-        appModel.sourceCodeController.text;
-    appModel.genAiManager.enterGeneratingNew();
-
-    try {
-      if (widget.useGenui) {
-        appModel.genAiManager.startStream(
-          appServices.generateUi(
-            GenerateUiRequest(prompt: promptResponse.prompt),
-          ),
-        );
-      } else {
-        appModel.genAiManager.startStream(
-          appServices.generateCode(
-            GenerateCodeRequest(
-              appType: appType,
-              prompt: promptResponse.prompt,
-              attachments: promptResponse.attachments,
-            ),
-          ),
-        );
-      }
-    } catch (error) {
-      appModel.editorStatus.showToast('Error generating code');
-      appModel.appendError('Generating code issue: $error');
-      appModel.genAiManager.enterStandby();
-    }
   }
 }
 
