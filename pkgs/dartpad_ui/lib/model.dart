@@ -482,7 +482,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //throw 'hello';
+    throw 'hello';
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(body: Center(child: Text('Hello, World $counter!'))),
