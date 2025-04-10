@@ -757,6 +757,8 @@ class ConsoleNotifier extends ChangeNotifier {
 
 enum GenAiState { standby, generating, awaitingAcceptReject }
 
+enum GenAiCuj { generateCode, editCode, suggestFix }
+
 class GenAiManager {
   final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
   final ValueNotifier<Stream<String>> stream = ValueNotifier(
@@ -776,7 +778,9 @@ class GenAiManager {
   final List<Attachment> newCodeAttachments = [];
   final List<Attachment> codeEditAttachments = [];
 
-  final ValueNotifier<bool> isGeneratingNewProject = ValueNotifier(true);
+  final ValueNotifier<GenAiCuj> activeCuj = ValueNotifier(
+    GenAiCuj.generateCode,
+  );
   final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
 
   GenAiManager();
@@ -787,22 +791,31 @@ class GenAiManager {
 
   void enterGeneratingNew() {
     state.value = GenAiState.generating;
-    isGeneratingNewProject.value = true;
+    activeCuj.value = GenAiCuj.generateCode;
     activePromptTextController = newCodePromptController;
     activeAttachments = newCodeAttachments;
   }
 
   void enterGeneratingEdit() {
     state.value = GenAiState.generating;
-    isGeneratingNewProject.value = false;
+    activeCuj.value = GenAiCuj.editCode;
     activePromptTextController = codeEditPromptController;
     activeAttachments = codeEditAttachments;
+  }
+
+  void enterSuggestingFix() {
+    state.value = GenAiState.generating;
+    activeCuj.value = GenAiCuj.suggestFix;
+    activePromptTextController = codeEditPromptController;
+    activeAttachments = [];
   }
 
   void enterStandby() {
     state.value = GenAiState.standby;
     streamIsDone.value = true;
     streamBuffer.value.clear();
+    newCodeAttachments.clear();
+    codeEditAttachments.clear();
   }
 
   void enterAwaitingAcceptReject() {

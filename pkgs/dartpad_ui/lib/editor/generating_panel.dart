@@ -98,19 +98,19 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
             MultiValueListenableBuilder(
               listenables: [
                 genAiManager.streamBuffer,
-                widget.appModel.genAiManager.isGeneratingNewProject,
+                widget.appModel.genAiManager.activeCuj,
                 genAiManager.preGenAiSourceCode,
               ],
               builder: (_) {
                 final genAiCodeStreamBuffer =
                     genAiManager.streamBuffer.value.toString();
-                final isGeneratingNewProject =
-                    widget.appModel.genAiManager.isGeneratingNewProject.value;
+
                 return Focus(
                   autofocus: true,
                   focusNode: _focusNode,
                   child:
-                      isGeneratingNewProject
+                      widget.appModel.genAiManager.activeCuj.value ==
+                              GenAiCuj.generateCode
                           ? ReadOnlyCodeWidget(genAiCodeStreamBuffer)
                           : ReadOnlyDiffWidget(
                             existingSource:
