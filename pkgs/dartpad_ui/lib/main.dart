@@ -780,7 +780,7 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
           const SizedBox(width: denseSpacing),
-          Text('b2'),
+          Text('b3'),
         ],
       ),
     );
