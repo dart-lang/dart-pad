@@ -6,12 +6,12 @@ import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  // testWidgets('Initial screen.', (WidgetTester tester) async {
-  //   await tester.pumpWidget(const DartPadApp());
+  testWidgets('Initial screen.', (WidgetTester tester) async {
+    await tester.pumpWidget(const DartPadApp());
 
-  //   await expectLater(
-  //     find.byType(DartPadApp),
-  //     matchesGoldenFile('DartPadApp.png'),
-  //   );
-  // });
+    await expectLater(
+      find.byType(DartPadApp),
+      matchesGoldenFile('DartPadApp.png'),
+    );
+  });
 }
