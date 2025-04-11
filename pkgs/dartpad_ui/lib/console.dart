@@ -11,7 +11,7 @@ import 'model.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
 import 'utils.dart';
-import 'widgets.dart';
+import 'simple_widgets.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;

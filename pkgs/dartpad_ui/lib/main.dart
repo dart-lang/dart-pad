@@ -32,7 +32,7 @@ import 'samples.g.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
-import 'widgets.dart';
+import 'simple_widgets.dart';
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;

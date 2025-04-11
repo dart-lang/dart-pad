@@ -17,7 +17,7 @@ import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'utils.dart';
-import 'widgets.dart';
+import 'simple_widgets.dart';
 
 Future<void> openCodeGenerationDialog(
   BuildContext context,
