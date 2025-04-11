@@ -15,10 +15,9 @@ import '../extensions.dart';
 import '../model.dart';
 import '../problems.dart';
 import '../prompt_dialog.dart';
+import '../simple_widgets.dart';
 import '../theme.dart';
 import '../utils.dart';
-import '../widgets.dart';
-
 import 'editor.dart';
 import 'generating_panel.dart';
 

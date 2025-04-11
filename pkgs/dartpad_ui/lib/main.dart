@@ -27,9 +27,9 @@ import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'prompt_dialog.dart';
 import 'samples.g.dart';
+import 'simple_widgets.dart';
 import 'theme.dart';
 import 'versions.dart';
-import 'widgets.dart';
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;

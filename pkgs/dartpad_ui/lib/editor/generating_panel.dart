@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../model.dart';
+import '../simple_widgets.dart';
 import '../theme.dart';
 import '../utils.dart';
-import '../widgets.dart';
 import 'editor.dart';
 
 class GeneratingCodePanel extends StatefulWidget {
