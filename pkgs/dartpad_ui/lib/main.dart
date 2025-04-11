@@ -140,7 +140,6 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
-      useGenui: useGenUI,
     );
   }
 
@@ -213,7 +212,6 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -223,7 +221,6 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
-    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -316,9 +313,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       }
     });
 
-    debugPrint(
-      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
-    );
+    debugPrint('initialized: useGenui = $useGenUI, channel = $channel.');
   }
 
   @override
