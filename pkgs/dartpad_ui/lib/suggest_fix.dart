@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'model.dart';
-import 'utils.dart';
 import 'simple_widgets.dart';
+import 'utils.dart';
 
 Future<void> suggestFix({
   required BuildContext context,

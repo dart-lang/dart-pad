@@ -29,10 +29,10 @@ import 'model.dart';
 import 'problems.dart';
 import 'prompt_dialog.dart';
 import 'samples.g.dart';
+import 'simple_widgets.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
-import 'simple_widgets.dart';
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;
