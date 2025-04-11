@@ -9,7 +9,7 @@ const bool genAiEnabled = true;
 // This is a temporary flag to test GenUI in production.
 // It will be removed once GenUI is fully integrated.
 // The flag is set based on URL parameter.
-bool useGenui = false;
+bool useGenUI = false;
 
 /*
 

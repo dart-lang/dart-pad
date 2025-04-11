@@ -140,7 +140,7 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
-      useGenui: useGenui,
+      useGenui: useGenUI,
     );
   }
 

@@ -316,9 +316,6 @@ class GeneratingCodeDialog extends StatefulWidget {
   State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
 }
 
-bool get isNonMac => defaultTargetPlatform != TargetPlatform.macOS;
-bool get isMac => defaultTargetPlatform == TargetPlatform.macOS;
-
 class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
   final _generatedCode = StringBuffer();
   final _focusNode = FocusNode();

@@ -65,7 +65,7 @@ Future<void> openCodeGenerationDialog(
 
   try {
     final Stream<String> stream;
-    if (useGenui) {
+    if (useGenUI) {
       stream = appServices.generateUi(
         GenerateUiRequest(prompt: promptResponse.prompt),
       );
