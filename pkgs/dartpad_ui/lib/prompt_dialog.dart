@@ -11,9 +11,9 @@ import 'package:provider/provider.dart';
 import 'enable_gen_ai.dart';
 import 'local_storage/local_storage.dart';
 import 'model.dart';
+import 'simple_widgets.dart';
 import 'theme.dart';
 import 'utils.dart';
-import 'widgets.dart';
 
 Future<void> openCodeGenerationDialog(
   BuildContext context, {
