@@ -27,11 +27,12 @@ import 'keys.dart' as keys;
 import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'problems.dart';
+import 'prompt_dialog.dart';
 import 'samples.g.dart';
+import 'simple_widgets.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
-import 'widgets.dart';
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;
@@ -130,7 +131,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
-    final useGenui = state.uri.queryParameters['genui'] == 'true';
+    useGenUI = state.uri.queryParameters['genui'] == 'true';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -140,7 +141,6 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
-      useGenui: useGenui,
     );
   }
 
@@ -213,7 +213,6 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -223,7 +222,6 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
-    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -316,9 +314,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       }
     });
 
-    debugPrint(
-      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
-    );
+    debugPrint('initialized: useGenui = $useGenUI, channel = $channel.');
   }
 
   @override
@@ -632,9 +628,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: denseSpacing),
                   GeminiMenu(
                     generateNewDartCode:
-                        () => _generateNewCode(context, AppType.dart),
+                        () => openCodeGenerationDialog(context, AppType.dart),
                     generateNewFlutterCode:
-                        () => _generateNewCode(context, AppType.flutter),
+                        () =>
+                            openCodeGenerationDialog(context, AppType.flutter),
                     updateExistingCode: () => _updateExistingCode(context),
                     hideLabel: !wideLayout,
                   ),
@@ -683,87 +680,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final request = OpenInFirebaseStudioRequest(code: code);
     final response = await appServices.services.openInFirebaseStudio(request);
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
-  }
-
-  Future<void> _generateNewCode(BuildContext context, AppType? appType) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: 'Generate new code',
-            hint: 'Describe the code you want to generate',
-            initialAppType:
-                appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
-            flutterPromptButtons: {
-              'to-do app':
-                  'Generate a Flutter to-do app with add, remove, and complete task functionality',
-              'login screen':
-                  'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-              'tic-tac-toe':
-                  'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'hello, world': 'Generate a Dart hello world program',
-              'fibonacci':
-                  'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
-              'factorial':
-                  'Generate a Dart program that prints the factorial of 5',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
-
-    try {
-      final Stream<String> stream;
-      if (widget.useGenui) {
-        stream = appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
-        );
-      } else {
-        stream = appServices.generateCode(
-          GenerateCodeRequest(
-            appType: promptResponse.appType,
-            prompt: promptResponse.prompt,
-            attachments: promptResponse.attachments,
-          ),
-        );
-      }
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Generating new code',
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error generating code');
-      appModel.appendError('Generating code issue: $error');
-    }
   }
 
   Future<void> _updateExistingCode(BuildContext context) async {

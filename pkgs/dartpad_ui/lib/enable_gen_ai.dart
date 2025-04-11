@@ -5,6 +5,12 @@
 // Turn on or off gen-ai features in the client.
 const bool genAiEnabled = true;
 
+// Set to true to use GenUI instead of Gemini.
+// This is a temporary flag to test GenUI in production.
+// It will be removed once GenUI is fully integrated.
+// The flag is set based on URL parameter in main.dart.
+bool useGenUI = false;
+
 /*
 
 There are two options to use gen AI: Gemini and GenUI. Gemini is the default.
