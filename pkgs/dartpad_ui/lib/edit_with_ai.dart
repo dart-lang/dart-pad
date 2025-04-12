@@ -10,16 +10,16 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
-import '../docs.dart';
-import '../extensions.dart';
-import '../model.dart';
-import '../problems.dart';
-import '../prompt_dialog.dart';
-import '../simple_widgets.dart';
-import '../theme.dart';
-import '../utils.dart';
-import 'editor.dart';
-import 'generating_panel.dart';
+import 'docs.dart';
+import 'editor/editor.dart';
+import 'editor/generating_panel.dart';
+import 'extensions.dart';
+import 'model.dart';
+import 'problems.dart';
+import 'prompt_dialog.dart';
+import 'simple_widgets.dart';
+import 'theme.dart';
+import 'utils.dart';
 
 class EditorWithButtons extends StatelessWidget {
   const EditorWithButtons({
