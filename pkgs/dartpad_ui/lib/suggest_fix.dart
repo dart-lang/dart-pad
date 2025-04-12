@@ -36,28 +36,6 @@ Future<void> suggestFix({
         ),
       ),
     );
-
-    // final result = await showDialog<String>(
-    //   context: context,
-    //   builder:
-    //       (context) => GeneratingCodeDialog(
-    //         stream: stream,
-    //         title: 'Generating Fix Suggestion',
-    //         existingSource: existingSource,
-    //       ),
-    // );
-
-    // if (!context.mounted || result == null || result.isEmpty) return;
-
-    // if (result == existingSource) {
-    //   appModel.editorStatus.showToast('No suggested fix');
-    //   appModel.genAiManager.enterStandby();
-    // } else {
-    //   appModel.editorStatus.showToast('Fix suggested');
-    //   appModel.sourceCodeController.textNoScroll = result;
-    //   appServices.editorService!.focus();
-    //   appServices.performCompileAndReloadOrRun();
-    // }
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
     appModel.appendLineToConsole('Suggesting fix issue: $error');
