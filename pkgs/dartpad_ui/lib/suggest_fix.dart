@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'model.dart';
-import 'simple_widgets.dart';
+import 'prompt_dialog.dart';
 import 'utils.dart';
 
 Future<void> suggestFix({
