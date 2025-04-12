@@ -13,6 +13,9 @@ import 'package:mime/mime.dart';
 
 import 'theme.dart';
 
+bool get isNonMac => defaultTargetPlatform != TargetPlatform.macOS;
+bool get isMac => defaultTargetPlatform == TargetPlatform.macOS;
+
 String pluralize(String word, int count) {
   return count == 1 ? word : '${word}s';
 }
