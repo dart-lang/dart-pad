@@ -75,7 +75,7 @@ Future<void> openCodeGenerationDialog(
   appModel.genAiManager.enterGeneratingNew();
 
   try {
-    if (useGenui) {
+    if (useGenUI) {
       appModel.genAiManager.startStream(
         appServices.generateUi(
           GenerateUiRequest(prompt: promptResponse.prompt),

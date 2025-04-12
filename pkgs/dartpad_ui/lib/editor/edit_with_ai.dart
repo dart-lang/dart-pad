@@ -210,7 +210,7 @@ class EditorWithButtons extends StatelessWidget {
                 ),
               ),
             ),
-            GeminiCodeEditTool(
+            _GeminiCodeEditTool(
               appModel: appModel,
               enabled: appModel.genAiManager.state.value == GenAiState.standby,
               onUpdateCode: _requestGeminiCodeUpdate,
@@ -240,7 +240,7 @@ class EditorWithButtons extends StatelessWidget {
     );
   }
 
-  static final RegExp identifierChar = RegExp(r'[\w\d_<=>]');
+  static final RegExp _identifierChar = RegExp(r'[\w\d_<=>]');
 
   void _showDocs(BuildContext context) async {
     try {
@@ -251,7 +251,7 @@ class EditorWithButtons extends StatelessWidget {
       if (offset < 0 || offset >= source.length) {
         valid = false;
       } else {
-        valid = identifierChar.hasMatch(source.substring(offset, offset + 1));
+        valid = _identifierChar.hasMatch(source.substring(offset, offset + 1));
       }
 
       if (!valid) {
@@ -295,9 +295,8 @@ class EditorWithButtons extends StatelessWidget {
   }
 }
 
-class GeminiCodeEditTool extends StatefulWidget {
-  const GeminiCodeEditTool({
-    super.key,
+class _GeminiCodeEditTool extends StatefulWidget {
+  const _GeminiCodeEditTool({
     required this.appModel,
     required this.onUpdateCode,
     required this.onCancelUpdateCode,
@@ -316,10 +315,10 @@ class GeminiCodeEditTool extends StatefulWidget {
   final bool enabled;
 
   @override
-  State<GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
+  State<_GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
 }
 
-class _GeminiCodeEditToolState extends State<GeminiCodeEditTool> {
+class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   bool _textInputIsFocused = false;
   late GenAiManager genAiManager;
 
