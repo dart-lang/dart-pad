@@ -6,12 +6,12 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
-import '../docs.dart';
-import '../model.dart';
-import '../problems.dart';
-import '../simple_widgets.dart';
-import '../theme.dart';
-import 'editor.dart';
+import 'docs.dart';
+import 'model.dart';
+import 'problems.dart';
+import 'simple_widgets.dart';
+import 'theme.dart';
+import 'editor/editor.dart';
 
 class EditorWithButtons extends StatelessWidget {
   const EditorWithButtons({
