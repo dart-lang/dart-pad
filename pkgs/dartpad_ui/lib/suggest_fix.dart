@@ -6,8 +6,8 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'genai_dialogs.dart';
 import 'model.dart';
-import 'prompt_dialog.dart';
 import 'utils.dart';
 
 Future<void> suggestFix({
