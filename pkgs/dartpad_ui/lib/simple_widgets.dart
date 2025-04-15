@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:dartpad_shared/model.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-import 'editor/editor.dart';
 import 'theme.dart';
 import 'utils.dart';
 
@@ -300,152 +295,6 @@ final class Logo extends StatelessWidget {
   }
 }
 
-class GeneratingCodeDialog extends StatefulWidget {
-  const GeneratingCodeDialog({
-    required this.stream,
-    required this.title,
-    this.existingSource,
-    super.key,
-  });
-
-  final Stream<String> stream;
-  final String title;
-  final String? existingSource;
-  @override
-  State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
-}
-
-class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
-  final _generatedCode = StringBuffer();
-  final _focusNode = FocusNode();
-  bool _done = false;
-  StreamSubscription<String>? _subscription;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _subscription = widget.stream.listen(
-      (text) => setState(() => _generatedCode.write(text)),
-      onDone:
-          () => setState(() {
-            final source = _generatedCode.toString().trim();
-            _generatedCode.clear();
-            _generatedCode.write(source);
-            _done = true;
-            _focusNode.requestFocus();
-          }),
-    );
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return PointerInterceptor(
-      child: CallbackShortcuts(
-        bindings: {
-          SingleActivator(
-            LogicalKeyboardKey.enter,
-            meta: isMac,
-            control: isNonMac,
-          ): () {
-            if (_done) _onAcceptAndRun();
-          },
-        },
-        child: AlertDialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: theme.colorScheme.outline),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(widget.title),
-              if (!_done) const CircularProgressIndicator(),
-            ],
-          ),
-          contentTextStyle: theme.textTheme.bodyMedium,
-          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: SizedBox(
-            width: 700,
-            child: Focus(
-              autofocus: true,
-              focusNode: _focusNode,
-              child:
-                  widget.existingSource == null
-                      ? ReadOnlyCodeWidget(_generatedCode.toString())
-                      : ReadOnlyDiffWidget(
-                        existingSource: widget.existingSource!,
-                        newSource: _generatedCode.toString(),
-                      ),
-            ),
-          ),
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: RichText(
-                      text: TextSpan(
-                        text: 'Powered by ',
-                        style: DefaultTextStyle.of(context).style,
-                        children: [
-                          TextSpan(
-                            text: 'Google AI',
-                            style: TextStyle(color: theme.colorScheme.primary),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap = () {
-                                    url_launcher.launchUrl(
-                                      Uri.parse('https://ai.google.dev/'),
-                                    );
-                                  },
-                          ),
-                          TextSpan(
-                            text: ' and the Gemini API',
-                            style: DefaultTextStyle.of(context).style,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: _done ? _onAcceptAndRun : null,
-                  child: Text(
-                    'Accept',
-                    style: TextStyle(
-                      color: !_done ? theme.disabledColor : null,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onAcceptAndRun() {
-    assert(_done);
-    Navigator.pop(context, _generatedCode.toString());
-  }
-}
-
 class EditableImageList extends StatelessWidget {
   final List<Attachment> attachments;
   final void Function(int index) onRemove;
@@ -620,6 +469,45 @@ class CollapsibleIconToggleButton extends StatelessWidget {
                 visualDensity: compact ? VisualDensity.compact : null,
               )
               : TextButton.icon(icon: icon, label: label, onPressed: onToggle),
+    );
+  }
+}
+
+class SectionWidget extends StatelessWidget {
+  final String? title;
+  final Widget? actions;
+  final Widget child;
+
+  const SectionWidget({
+    this.title,
+    this.actions,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var finalChild = child;
+
+    if (title != null || actions != null) {
+      finalChild = Column(
+        children: [
+          Row(
+            children: [
+              if (title != null) Text(title!, style: subtleText),
+              const Expanded(child: SizedBox(width: defaultSpacing)),
+              if (actions != null) actions!,
+            ],
+          ),
+          const Divider(),
+          Expanded(child: child),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(denseSpacing),
+      child: finalChild,
     );
   }
 }

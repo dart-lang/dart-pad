@@ -5,13 +5,16 @@
 import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import 'editor/editor.dart';
 import 'enable_gen_ai.dart';
 import 'local_storage/local_storage.dart';
 import 'model.dart';
@@ -293,5 +296,151 @@ class _PromptDialogState extends State<PromptDialog> {
         ),
       ),
     );
+  }
+}
+
+class GeneratingCodeDialog extends StatefulWidget {
+  const GeneratingCodeDialog({
+    required this.stream,
+    required this.title,
+    this.existingSource,
+    super.key,
+  });
+
+  final Stream<String> stream;
+  final String title;
+  final String? existingSource;
+  @override
+  State<GeneratingCodeDialog> createState() => _GeneratingCodeDialogState();
+}
+
+class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
+  final _generatedCode = StringBuffer();
+  final _focusNode = FocusNode();
+  bool _done = false;
+  StreamSubscription<String>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _subscription = widget.stream.listen(
+      (text) => setState(() => _generatedCode.write(text)),
+      onDone:
+          () => setState(() {
+            final source = _generatedCode.toString().trim();
+            _generatedCode.clear();
+            _generatedCode.write(source);
+            _done = true;
+            _focusNode.requestFocus();
+          }),
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return PointerInterceptor(
+      child: CallbackShortcuts(
+        bindings: {
+          SingleActivator(
+            LogicalKeyboardKey.enter,
+            meta: isMac,
+            control: isNonMac,
+          ): () {
+            if (_done) _onAcceptAndRun();
+          },
+        },
+        child: AlertDialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: theme.colorScheme.outline),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.title),
+              if (!_done) const CircularProgressIndicator(),
+            ],
+          ),
+          contentTextStyle: theme.textTheme.bodyMedium,
+          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+          content: SizedBox(
+            width: 700,
+            child: Focus(
+              autofocus: true,
+              focusNode: _focusNode,
+              child:
+                  widget.existingSource == null
+                      ? ReadOnlyCodeWidget(_generatedCode.toString())
+                      : ReadOnlyDiffWidget(
+                        existingSource: widget.existingSource!,
+                        newSource: _generatedCode.toString(),
+                      ),
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Powered by ',
+                        style: DefaultTextStyle.of(context).style,
+                        children: [
+                          TextSpan(
+                            text: 'Google AI',
+                            style: TextStyle(color: theme.colorScheme.primary),
+                            recognizer:
+                                TapGestureRecognizer()
+                                  ..onTap = () {
+                                    url_launcher.launchUrl(
+                                      Uri.parse('https://ai.google.dev/'),
+                                    );
+                                  },
+                          ),
+                          TextSpan(
+                            text: ' and the Gemini API',
+                            style: DefaultTextStyle.of(context).style,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: _done ? _onAcceptAndRun : null,
+                  child: Text(
+                    'Accept',
+                    style: TextStyle(
+                      color: !_done ? theme.disabledColor : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onAcceptAndRun() {
+    assert(_done);
+    Navigator.pop(context, _generatedCode.toString());
   }
 }
