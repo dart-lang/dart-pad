@@ -17,15 +17,15 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
-import 'edit_with_ai.dart';
 import 'embed.dart';
 import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
+import 'genai_dialogs.dart';
+import 'genai_editing.dart';
 import 'keys.dart' as keys;
 import 'local_storage/local_storage.dart';
 import 'model.dart';
-import 'prompt_dialog.dart';
 import 'samples.g.dart';
 import 'simple_widgets.dart';
 import 'theme.dart';
