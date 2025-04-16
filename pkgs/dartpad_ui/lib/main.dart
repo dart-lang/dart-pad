@@ -17,21 +17,20 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
-import 'docs.dart';
-import 'editor/editor.dart';
 import 'embed.dart';
 import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
+import 'genai_dialogs.dart';
+import 'genai_editing.dart';
 import 'keys.dart' as keys;
 import 'local_storage/local_storage.dart';
 import 'model.dart';
-import 'problems.dart';
 import 'samples.g.dart';
+import 'simple_widgets.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'versions.dart';
-import 'widgets.dart';
 
 const appName = 'DartPad';
 const smallScreenWidth = 720;
@@ -130,7 +129,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
-    final useGenui = state.uri.queryParameters['genui'] == 'true';
+    useGenUI = state.uri.queryParameters['genui'] == 'true';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -140,7 +139,6 @@ class _DartPadAppState extends State<DartPadApp> {
       builtinSampleId: builtinSampleId,
       flutterSampleId: flutterSampleId,
       handleBrightnessChanged: handleBrightnessChanged,
-      useGenui: useGenui,
     );
   }
 
@@ -213,7 +211,6 @@ class DartPadMainPage extends StatefulWidget {
   final String? gistId;
   final String? builtinSampleId;
   final String? flutterSampleId;
-  final bool useGenui;
 
   DartPadMainPage({
     required this.initialChannel,
@@ -223,7 +220,6 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
-    this.useGenui = false,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -316,9 +312,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
       }
     });
 
-    debugPrint(
-      'initialized: useGenui = ${widget.useGenui}, channel = $channel.',
-    );
+    debugPrint('initialized: useGenui = $useGenUI, channel = $channel.');
   }
 
   @override
@@ -632,9 +626,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: denseSpacing),
                   GeminiMenu(
                     generateNewDartCode:
-                        () => _generateNewCode(context, AppType.dart),
+                        () => openCodeGenerationDialog(context, AppType.dart),
                     generateNewFlutterCode:
-                        () => _generateNewCode(context, AppType.flutter),
+                        () =>
+                            openCodeGenerationDialog(context, AppType.flutter),
                     updateExistingCode: () => _updateExistingCode(context),
                     hideLabel: !wideLayout,
                   ),
@@ -683,87 +678,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final request = OpenInFirebaseStudioRequest(code: code);
     final response = await appServices.services.openInFirebaseStudio(request);
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
-  }
-
-  Future<void> _generateNewCode(BuildContext context, AppType? appType) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: 'Generate new code',
-            hint: 'Describe the code you want to generate',
-            initialAppType:
-                appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
-            flutterPromptButtons: {
-              'to-do app':
-                  'Generate a Flutter to-do app with add, remove, and complete task functionality',
-              'login screen':
-                  'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-              'tic-tac-toe':
-                  'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'hello, world': 'Generate a Dart hello world program',
-              'fibonacci':
-                  'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
-              'factorial':
-                  'Generate a Dart program that prints the factorial of 5',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-    LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
-
-    try {
-      final Stream<String> stream;
-      if (widget.useGenui) {
-        stream = appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
-        );
-      } else {
-        stream = appServices.generateCode(
-          GenerateCodeRequest(
-            appType: promptResponse.appType,
-            prompt: promptResponse.prompt,
-            attachments: promptResponse.attachments,
-          ),
-        );
-      }
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Generating new code',
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error generating code');
-      appModel.appendError('Generating code issue: $error');
-    }
   }
 
   Future<void> _updateExistingCode(BuildContext context) async {
@@ -836,182 +750,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     } catch (error) {
       appModel.editorStatus.showToast('Error updating code');
       appModel.appendError('Updating code issue: $error');
-    }
-  }
-}
-
-class EditorWithButtons extends StatelessWidget {
-  const EditorWithButtons({
-    super.key,
-    required this.appModel,
-    required this.appServices,
-    required this.onFormat,
-    required this.onCompileAndRun,
-    required this.onCompileAndReload,
-  });
-
-  final AppModel appModel;
-  final AppServices appServices;
-  final VoidCallback onFormat;
-  final VoidCallback onCompileAndRun;
-  final VoidCallback onCompileAndReload;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SectionWidget(
-            child: Stack(
-              children: [
-                EditorWidget(appModel: appModel, appServices: appServices),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: denseSpacing,
-                    horizontal: defaultSpacing,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    // We use explicit directionality here in order to have the
-                    // format and run buttons on the right hand side of the
-                    // editing area.
-                    textDirection: TextDirection.ltr,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dartdoc help button
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.docHelpBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.help_outline),
-                              tooltip: 'Show docs',
-                              // small: true,
-                              onPressed:
-                                  value ? null : () => _showDocs(context),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: denseSpacing),
-                      // Format action
-                      ValueListenableBuilder<bool>(
-                        valueListenable: appModel.formattingBusy,
-                        builder: (_, bool value, __) {
-                          return PointerInterceptor(
-                            child: MiniIconButton(
-                              icon: const Icon(Icons.format_align_left),
-                              tooltip: 'Format',
-                              small: true,
-                              onPressed: value ? null : onFormat,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder(
-                        valueListenable: appModel.showReload,
-                        builder: (_, bool value, __) {
-                          if (!value) return const SizedBox();
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: appModel.canReload,
-                            builder: (_, bool value, __) {
-                              return PointerInterceptor(
-                                child: ReloadButton(
-                                  onPressed: value ? onCompileAndReload : null,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(width: defaultSpacing),
-                      // Run action
-                      ValueListenableBuilder<CompilingState>(
-                        valueListenable: appModel.compilingState,
-                        builder: (_, compiling, __) {
-                          return PointerInterceptor(
-                            child: RunButton(
-                              onPressed:
-                                  compiling.busy ? null : onCompileAndRun,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.bottomRight,
-                  padding: const EdgeInsets.all(denseSpacing),
-                  child: StatusWidget(status: appModel.editorStatus),
-                ),
-              ],
-            ),
-          ),
-        ),
-        ValueListenableBuilder<List<AnalysisIssue>>(
-          valueListenable: appModel.analysisIssues,
-          builder: (context, issues, _) {
-            return ProblemsTableWidget(problems: issues);
-          },
-        ),
-      ],
-    );
-  }
-
-  static final RegExp identifierChar = RegExp(r'[\w\d_<=>]');
-
-  void _showDocs(BuildContext context) async {
-    try {
-      final source = appModel.sourceCodeController.text;
-      final offset = appServices.editorService?.cursorOffset ?? -1;
-
-      var valid = true;
-      if (offset < 0 || offset >= source.length) {
-        valid = false;
-      } else {
-        valid = identifierChar.hasMatch(source.substring(offset, offset + 1));
-      }
-
-      if (!valid) {
-        appModel.editorStatus.showToast('No docs at location.');
-        return;
-      }
-
-      final result = await appServices.document(
-        SourceRequest(source: source, offset: offset),
-      );
-
-      if (result.elementKind == null) {
-        appModel.editorStatus.showToast('No docs at location.');
-        return;
-      } else if (context.mounted) {
-        // show result
-
-        showDialog<void>(
-          context: context,
-          builder: (context) {
-            const longTitle = 40;
-
-            var title = result.cleanedUpTitle ?? 'Dartdoc';
-            if (title.length > longTitle) {
-              title = '${title.substring(0, longTitle)}…';
-            }
-            return MediumDialog(
-              title: title,
-              child: DocsWidget(appModel: appModel, documentResponse: result),
-            );
-          },
-        );
-      }
-
-      appServices.editorService!.focus();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error retrieving docs');
-      appModel.appendError('$error');
-      return;
     }
   }
 }
@@ -1095,45 +833,6 @@ class StatusLineWidget extends StatelessWidget {
           SelectChannelWidget(hideLabel: mobileVersion),
         ],
       ),
-    );
-  }
-}
-
-class SectionWidget extends StatelessWidget {
-  final String? title;
-  final Widget? actions;
-  final Widget child;
-
-  const SectionWidget({
-    this.title,
-    this.actions,
-    required this.child,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var finalChild = child;
-
-    if (title != null || actions != null) {
-      finalChild = Column(
-        children: [
-          Row(
-            children: [
-              if (title != null) Text(title!, style: subtleText),
-              const Expanded(child: SizedBox(width: defaultSpacing)),
-              if (actions != null) actions!,
-            ],
-          ),
-          const Divider(),
-          Expanded(child: child),
-        ],
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(denseSpacing),
-      child: finalChild,
     );
   }
 }

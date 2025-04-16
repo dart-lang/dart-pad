@@ -6,9 +6,9 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'genai_dialogs.dart';
 import 'model.dart';
 import 'utils.dart';
-import 'widgets.dart';
 
 Future<void> suggestFix({
   required BuildContext context,
