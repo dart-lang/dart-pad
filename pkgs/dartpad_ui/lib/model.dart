@@ -90,6 +90,8 @@ class AppModel {
   final ValueNotifier<bool> useNewDDC = ValueNotifier(false);
   final ValueNotifier<String?> currentDeltaDill = ValueNotifier(null);
 
+  final GenAiManager genAiManager = GenAiManager();
+
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
     void updateCanReload() =>
@@ -464,14 +466,19 @@ class AppServices {
     return services.suggestFix(request);
   }
 
+  bool counter = true;
+
+  /// Generates the code with Gemini.
   Stream<String> generateCode(GenerateCodeRequest request) {
     return services.generateCode(request);
   }
 
+  /// Generates the code with GenUI.
   Stream<String> generateUi(GenerateUiRequest request) {
     return services.generateUi(request);
   }
 
+  /// Updates code with Gemini.
   Stream<String> updateCode(UpdateCodeRequest request) {
     return services.updateCode(request);
   }
@@ -700,4 +707,102 @@ class ConsoleNotifier extends ChangeNotifier {
   bool get isEmpty => _output.isEmpty && _error.isEmpty;
   bool get hasError => _error.isNotEmpty;
   String get valueToDisplay => hasError ? _error : _output;
+}
+
+enum GenAiState { standby, generating, awaitingAcceptReject }
+
+enum GenAiCuj { generateCode, editCode, suggestFix }
+
+class GenAiManager {
+  final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
+  final ValueNotifier<Stream<String>> stream = ValueNotifier(
+    Stream<String>.empty(),
+  );
+  final ValueNotifier<StringBuffer> streamBuffer = ValueNotifier(
+    StringBuffer(),
+  );
+  final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
+  TextEditingController? activePromptTextController;
+
+  final TextEditingController newCodePromptController = TextEditingController();
+  final TextEditingController codeEditPromptController =
+      TextEditingController();
+
+  List<Attachment>? activeAttachments;
+  final List<Attachment> newCodeAttachments = [];
+  final List<Attachment> codeEditAttachments = [];
+
+  final ValueNotifier<GenAiCuj> activeCuj = ValueNotifier(
+    GenAiCuj.generateCode,
+  );
+  final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
+
+  GenAiManager();
+
+  ValueNotifier<GenAiState> get currentState {
+    return state;
+  }
+
+  void enterGeneratingNew() {
+    state.value = GenAiState.generating;
+    activeCuj.value = GenAiCuj.generateCode;
+    activePromptTextController = newCodePromptController;
+    activeAttachments = newCodeAttachments;
+  }
+
+  void enterGeneratingEdit() {
+    state.value = GenAiState.generating;
+    activeCuj.value = GenAiCuj.editCode;
+    activePromptTextController = codeEditPromptController;
+    activeAttachments = codeEditAttachments;
+  }
+
+  void enterSuggestingFix() {
+    state.value = GenAiState.generating;
+    activeCuj.value = GenAiCuj.suggestFix;
+    activePromptTextController = codeEditPromptController;
+    activeAttachments = [];
+  }
+
+  void enterStandby() {
+    state.value = GenAiState.standby;
+    streamIsDone.value = true;
+    streamBuffer.value.clear();
+    newCodeAttachments.clear();
+    codeEditAttachments.clear();
+  }
+
+  void enterAwaitingAcceptReject() {
+    state.value = GenAiState.awaitingAcceptReject;
+  }
+
+  void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
+    stream.value = newStream;
+  }
+
+  void setStreamIsDone(bool which) {
+    streamIsDone.value = which;
+  }
+
+  void resetInputs() {
+    activePromptTextController?.text = '';
+    activeAttachments?.clear();
+  }
+
+  String generatedCode() {
+    return streamBuffer.value.toString();
+  }
+
+  void setEditPromptText(String newPrompt) {
+    codeEditPromptController.text = newPrompt;
+  }
+
+  void writeToStreamBuffer(String text) {
+    streamBuffer.value.write(text);
+  }
+
+  void setStreamBufferValue(String text) {
+    streamBuffer.value.clear();
+    streamBuffer.value.write(text);
+  }
 }
