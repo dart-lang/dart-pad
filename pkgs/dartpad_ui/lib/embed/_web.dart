@@ -6,11 +6,11 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
-import 'model.dart';
+import '../model.dart';
 
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.
-void handleEmbedMessage(AppServices services, {bool runOnInject = false}) {
+void handleEmbedMessageImpl(AppServices services, {bool runOnInject = false}) {
   final parent = web.window.parentCrossOrigin;
   if (parent == null) return;
 
