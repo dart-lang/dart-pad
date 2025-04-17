@@ -36,12 +36,13 @@ class _GenuiEnv {
   /// Request code generation from GenUI.
   ///
   /// Returns the generated Flutter code.
+  ///
+  /// If not enabled or fails, logs error and returns null.
   Future<String> request({required String prompt}) async {
     final uri = apiUrl;
     if (uri == null) {
-      throw Exception(
-        'Cannot generate code because Genui features at $name are disabled',
-      );
+      _logger.severe('Genui features at $name are disabled');
+      return '';
     }
 
     final response = await http.post(
@@ -56,13 +57,16 @@ class _GenuiEnv {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(
+      // Logs take just first line, so no new lines.
+      _logger.severe(
         'Failed to generate ui with genui, $name: '
-        '${response.statusCode}; '
-        'response-headers: ${response.headers}; '
-        'key: $keyHint; '
-        '${response.body}',
+                '${response.statusCode}; '
+                'response-headers: ${response.headers}; '
+                'key: $keyHint; '
+                '${response.body}'
+            .replaceAll('\n', ' '),
       );
+      return '';
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -88,9 +92,8 @@ class GenUi {
     try {
       return await _prod.request(prompt: prompt);
     } catch (e) {
-      // Logs take just first line, so no new lines.
-      _logger.warning('Genui failed: $e'.replaceAll('\n', ' '));
-      rethrow;
+      _logger.severe('Failed to generate code from GenUI: $e');
+      return '';
     }
   }
 }
