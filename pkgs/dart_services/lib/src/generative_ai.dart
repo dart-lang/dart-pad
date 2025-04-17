@@ -16,7 +16,7 @@ final _logger = Logger('gen-ai');
 
 class GenerativeAI {
   static const _apiKeyVarName = 'GEMINI_API_KEY';
-  static const _geminiModel = 'gemini-2.5-pro-preview-03-25';
+  static const _geminiModel = 'gemini-2.0-flash';
   late final String? _geminiApiKey;
 
   GenerativeAI() {
