@@ -17,6 +17,7 @@ import 'package:web/web.dart' as web;
 import '../local_storage/local_storage.dart';
 import '../model.dart';
 import '_codemirror.dart';
+import '_editor_service_impl.dart' show EditorServiceImpl;
 
 // TODO: implement find / find next
 
@@ -89,70 +90,26 @@ class EditorWidget extends StatefulWidget {
   State<EditorWidget> createState() => _EditorWidgetState();
 }
 
-class _EditorWidgetState extends State<EditorWidget> implements EditorService {
+class _EditorWidgetState extends State<EditorWidget> {
   StreamSubscription<void>? listener;
-  CodeMirror? codeMirror;
+  EditorService editorService = EditorServiceImpl();
+
   CompletionType completionType = CompletionType.auto;
 
-  late final FocusNode _focusNode;
-
-  _EditorWidgetState() {
-    _focusNode = FocusNode(
-      onKeyEvent: (node, event) {
-        if (!node.hasFocus) {
-          return KeyEventResult.ignored;
-        }
-
-        // If focused, allow CodeMirror to handle tab.
-        if (event.logicalKey == LogicalKeyboardKey.tab) {
-          return KeyEventResult.skipRemainingHandlers;
-        } else if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.period) {
-          // On a period, auto-invoke code completions.
-
-          // If any modifiers keys are depressed, ignore this event. Note that
-          // directly querying `HardwareKeyboard.instance` could have a race
-          // condition (we'd like to read this information directly from the
-          // event).
-          if (HardwareKeyboard.instance.isAltPressed ||
-              HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed ||
-              HardwareKeyboard.instance.isShiftPressed) {
-            return KeyEventResult.ignored;
-          }
-
-          // We introduce a delay here to allow codemirror to process the key
-          // event.
-          Timer.run(() => showCompletions(autoInvoked: true));
-
-          return KeyEventResult.skipRemainingHandlers;
-        }
-
-        if (event.logicalKey == LogicalKeyboardKey.escape) {
-          if (codeMirror == null) {
-            return KeyEventResult.ignored;
-          }
-
-          CodeMirror.vim.handleEsc(codeMirror!);
-        }
-
-        return KeyEventResult.ignored;
-      },
-    );
-  }
+  _EditorWidgetState() {}
 
   @override
   void showCompletions({required bool autoInvoked}) {
     completionType = autoInvoked ? CompletionType.auto : CompletionType.manual;
 
-    codeMirror?.execCommand('autocomplete');
+    _codeMirror?.execCommand('autocomplete');
   }
 
   @override
   void showQuickFixes() {
     completionType = CompletionType.quickfix;
 
-    codeMirror?.execCommand('autocomplete');
+    _codeMirror?.execCommand('autocomplete');
   }
 
   @override
@@ -161,28 +118,15 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     final column = math.max(issue.location.column - 1, 0);
 
     if (issue.location.line != -1) {
-      codeMirror!.getDoc().setSelection(
+      _codeMirror!.getDoc().setSelection(
         Position(line: line, ch: column),
         Position(line: line, ch: column + issue.location.charLength),
       );
     } else {
-      codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
+      _codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
     }
 
     focus();
-  }
-
-  @override
-  int get cursorOffset {
-    final pos = codeMirror?.getCursor();
-    if (pos == null) return 0;
-
-    return codeMirror?.getDoc().indexFromPos(pos) ?? 0;
-  }
-
-  @override
-  void focus() {
-    _focusNode.requestFocus();
   }
 
   @override
@@ -190,7 +134,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     // Use a longer delay so that the platform view is displayed
     // correctly when compiled to Wasm.
     Future<void>.delayed(const Duration(milliseconds: 80), () {
-      codeMirror?.refresh();
+      _codeMirror?.refresh();
     });
   }
 
@@ -209,40 +153,40 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
-    codeMirror = codeMirrorInstance;
+    _codeMirror = codeMirrorInstance;
 
     final appModel = widget.appModel;
 
     // read only
     final readOnly = !appModel.appReady.value;
     if (readOnly) {
-      codeMirror!.setReadOnly(true);
+      _codeMirror!.setReadOnly(true);
     }
 
     // contents
     final contents = appModel.sourceCodeController.text;
-    codeMirror!.getDoc().setValue(contents);
+    _codeMirror!.getDoc().setValue(contents);
 
     // darkmode
     _updateCodemirrorMode(darkMode);
 
     refreshViewAfterWait();
 
-    codeMirror!.on(
+    _codeMirror!.on(
       'change',
       ([JSAny? _, JSAny? __, JSAny? ___]) {
-        _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
+        _updateModelFromCodemirror(_codeMirror!.getDoc().getValue());
       }.toJS,
     );
 
-    codeMirror!.on(
+    _codeMirror!.on(
       'focus',
       ([JSAny? _, JSAny? __]) {
         _focusNode.requestFocus();
       }.toJS,
     );
 
-    codeMirror!.on(
+    _codeMirror!.on(
       'blur',
       ([JSAny? _, JSAny? __]) {
         _focusNode.unfocus();
@@ -307,9 +251,9 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       onFocusChange: (isFocused) {
         // If focus is entering or leaving, convey this to CodeMirror.
         if (isFocused) {
-          codeMirror?.focus();
+          _codeMirror?.focus();
         } else {
-          codeMirror?.getInputField().blur();
+          _codeMirror?.getInputField().blur();
         }
       },
       // TODO(parlough): Add shortcut for focus traversal to escape editor.
@@ -356,7 +300,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void _updateCodemirrorFromModel() {
     final value = widget.appModel.sourceCodeController.value;
     final cursorOffset = value.selection.baseOffset;
-    final cm = codeMirror!;
+    final cm = _codeMirror!;
     final doc = cm.getDoc();
 
     if (cursorOffset == -1) {
@@ -370,11 +314,11 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateEditableStatus() {
-    codeMirror?.setReadOnly(!widget.appModel.appReady.value);
+    _codeMirror?.setReadOnly(!widget.appModel.appReady.value);
   }
 
   void _updateIssues(List<services.AnalysisIssue> issues) {
-    final doc = codeMirror!.getDoc();
+    final doc = _codeMirror!.getDoc();
 
     for (final marker in doc.getAllMarks().toDart.cast<TextMarker>()) {
       marker.clear();
@@ -396,7 +340,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   void _updateCodemirrorMode(bool darkMode) {
-    codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
+    _codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
   Future<HintResults> _completions() async {
@@ -405,7 +349,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     final appServices = widget.appServices;
 
-    final editor = codeMirror!;
+    final editor = _codeMirror!;
     final doc = editor.getDoc();
     final source = doc.getValue();
     final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
@@ -459,7 +403,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   void _updateCodemirrorKeymap() {
     final enabled = widget.appModel.vimKeymapsEnabled.value;
-    final cm = codeMirror!;
+    final cm = _codeMirror!;
 
     if (enabled) {
       cm.setKeymap('vim');
