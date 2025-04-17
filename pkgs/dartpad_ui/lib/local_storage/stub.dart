@@ -5,45 +5,34 @@
 import 'package:dartpad_shared/model.dart';
 
 import '../utils.dart';
-import 'interface.dart';
 
-class LocalStorageImpl extends LocalStorageInterface {
+class LocalStorageImpl {
   String? _code;
   String? _keyBinding;
   String? _lastCreateCodePrompt;
   String? _lastUpdateCodePrompt;
   AppType _lastCreateCodeAppType = AppType.flutter;
 
-  @override
   void saveUserCode(String code) => _code = code;
 
-  @override
   void saveUserKeybinding(String keybinding) => _keyBinding = keybinding;
 
-  @override
   void saveLastCreateCodePrompt(String prompt) =>
       _lastCreateCodePrompt = prompt;
 
-  @override
   void saveLastUpdateCodePrompt(String prompt) =>
       _lastUpdateCodePrompt = prompt;
 
-  @override
   String? getUserCode() => _code?.nullIfEmpty;
 
-  @override
   String? getUserKeybinding() => _keyBinding?.nullIfEmpty;
 
-  @override
   String? getLastCreateCodePrompt() => _lastCreateCodePrompt?.nullIfEmpty;
 
-  @override
   String? getLastUpdateCodePrompt() => _lastUpdateCodePrompt?.nullIfEmpty;
 
-  @override
   AppType getLastCreateCodeAppType() => _lastCreateCodeAppType;
 
-  @override
   void saveLastCreateCodeAppType(AppType appType) =>
       _lastCreateCodeAppType = appType;
 }

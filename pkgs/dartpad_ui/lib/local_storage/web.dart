@@ -6,7 +6,7 @@ import 'package:dartpad_shared/model.dart';
 import 'package:web/web.dart' as web;
 
 import '../utils.dart';
-import 'interface.dart';
+import 'stub.dart' as stub;
 
 const _userInputKey = 'user_input_';
 const _userKeybindingKey = 'user_keybinding_';
@@ -14,7 +14,7 @@ const _lastCreateCodePromptKey = 'last_create_code_prompt_';
 const _lastUpdateCodePromptKey = 'last_update_code_prompt_';
 const _lastCreateCodeAppTypeKey = 'last_create_code_app_type_';
 
-class LocalStorageImpl extends LocalStorageInterface {
+class LocalStorageImpl implements stub.LocalStorageImpl {
   @override
   void saveUserCode(String code) =>
       web.window.localStorage.setItem(_userInputKey, code);
