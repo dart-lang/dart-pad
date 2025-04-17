@@ -14,7 +14,7 @@ const _lastCreateCodePromptKey = 'last_create_code_prompt_';
 const _lastUpdateCodePromptKey = 'last_update_code_prompt_';
 const _lastCreateCodeAppTypeKey = 'last_create_code_app_type_';
 
-class LocalStorageImpl implements stub.LocalStorageImpl {
+class DartPadLocalStorageImpl implements stub.DartPadLocalStorageImpl {
   @override
   void saveUserCode(String code) =>
       web.window.localStorage.setItem(_userInputKey, code);

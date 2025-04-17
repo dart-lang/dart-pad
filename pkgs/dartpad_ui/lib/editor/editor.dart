@@ -205,7 +205,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   void _autosave([Timer? timer]) {
     final content = widget.appModel.sourceCodeController.text;
     if (content.isEmpty) return;
-    LocalStorage.instance.saveUserCode(content);
+    DartPadLocalStorage.instance.saveUserCode(content);
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {
@@ -463,10 +463,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     if (enabled) {
       cm.setKeymap('vim');
-      LocalStorage.instance.saveUserKeybinding('vim');
+      DartPadLocalStorage.instance.saveUserKeybinding('vim');
     } else {
       cm.setKeymap('default');
-      LocalStorage.instance.saveUserKeybinding('default');
+      DartPadLocalStorage.instance.saveUserKeybinding('default');
     }
   }
 }

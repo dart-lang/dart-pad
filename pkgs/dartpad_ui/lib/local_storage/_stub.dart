@@ -6,7 +6,7 @@ import 'package:dartpad_shared/model.dart';
 
 import '../utils.dart';
 
-class LocalStorageImpl {
+class DartPadLocalStorageImpl {
   String? _code;
   String? _keyBinding;
   String? _lastCreateCodePrompt;
