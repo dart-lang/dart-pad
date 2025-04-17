@@ -79,6 +79,12 @@ Future<void> openCodeGenerationDialog(
       appModel.sourceCodeController.text;
   appModel.genAiManager.enterGeneratingNew();
 
+  if (injectGenUiError) {
+    debugPrint('Injecting GenUI error');
+    appModel.genAiManager.startStream(Stream.fromIterable(['']));
+    return;
+  }
+
   try {
     if (useGenUI) {
       appModel.genAiManager.startStream(

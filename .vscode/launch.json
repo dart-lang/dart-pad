@@ -39,6 +39,20 @@
             ],
         },
         {
+            "name": "ui, genui error",
+            "request": "launch",
+            "type": "dart",
+            "program": "pkgs/dartpad_ui/lib/main.dart",
+            "args": [
+                "--web-browser-flag",
+                "--disable-web-security",
+                "--web-port",
+                "8888",
+                "--web-launch-url",
+                "http://localhost:8888/?injectGenUiError=true",
+            ],
+        },
+        {
             "name": "ui+genui",
             "request": "launch",
             "type": "dart",

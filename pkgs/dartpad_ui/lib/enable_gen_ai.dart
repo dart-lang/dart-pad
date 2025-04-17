@@ -11,6 +11,11 @@ const bool genAiEnabled = true;
 // The flag is set based on URL parameter in main.dart.
 bool useGenUI = false;
 
+// Set to true to make genUI erroring, like with bad internet connection.
+//
+// The flag is set based on URL parameter in main.dart.
+bool injectGenUiError = false;
+
 /*
 
 There are two options to use gen AI: Gemini and GenUI. Gemini is the default.
