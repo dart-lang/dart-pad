@@ -16,7 +16,7 @@ import 'package:web/web.dart' as web;
 
 import '../local_storage/local_storage.dart';
 import '../model.dart';
-import 'codemirror.dart';
+import '_codemirror.dart';
 
 // TODO: implement find / find next
 
