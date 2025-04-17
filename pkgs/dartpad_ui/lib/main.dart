@@ -289,10 +289,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           sampleId: widget.builtinSampleId,
           flutterSampleId: widget.flutterSampleId,
           channel: widget.initialChannel,
-          keybinding: LocalStorage.instance.getUserKeybinding(),
+          keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
           getFallback:
               () =>
-                  LocalStorage.instance.getUserCode() ??
+                  DartPadLocalStorage.instance.getUserCode() ??
                   Samples.defaultSnippet(),
         )
         .then((value) {
@@ -683,7 +683,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _updateExistingCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
+    final lastPrompt = DartPadLocalStorage.instance.getLastUpdateCodePrompt();
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder:
@@ -715,7 +715,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
 
-    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
+    DartPadLocalStorage.instance.saveLastUpdateCodePrompt(
+      promptResponse.prompt,
+    );
 
     try {
       final source = appModel.sourceCodeController.text;

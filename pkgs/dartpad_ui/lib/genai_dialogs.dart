@@ -28,7 +28,7 @@ Future<void> openCodeGenerationDialog(
 ) async {
   final appModel = Provider.of<AppModel>(context, listen: false);
   final appServices = Provider.of<AppServices>(context, listen: false);
-  final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+  final lastPrompt = DartPadLocalStorage.instance.getLastCreateCodePrompt();
   final promptResponse = await showDialog<PromptDialogResponse>(
     context: context,
     builder:
@@ -36,7 +36,8 @@ Future<void> openCodeGenerationDialog(
           title: 'Generate new code',
           hint: 'Describe the code you want to generate',
           initialAppType:
-              appType ?? LocalStorage.instance.getLastCreateCodeAppType(),
+              appType ??
+              DartPadLocalStorage.instance.getLastCreateCodeAppType(),
           flutterPromptButtons: {
             'to-do app':
                 'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -63,8 +64,10 @@ Future<void> openCodeGenerationDialog(
     return;
   }
 
-  LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-  LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
+  DartPadLocalStorage.instance.saveLastCreateCodeAppType(
+    promptResponse.appType,
+  );
+  DartPadLocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
   try {
     final Stream<String> stream;
