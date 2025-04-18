@@ -1,15 +1,11 @@
 {
-  "projects": {
-    "default": "dart-pad"
-  },
   "targets": {
-    "dart-pad": {
+    "dartpad-pr-3260": {
       "hosting": {
         "dartpad": [
           "dartpad-pr-3260"
         ]
       }
     }
-  },
-  "etags": {}
+  }
 }

@@ -44,25 +44,22 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
 1. Make sure your current Flutter channel is set to `stable`.
 
-2. Delete git ignored folder `.firebase`, if it exists.
+1. Delete git ignored folder `.firebase`, if it exists.
 
-2. In [.firebaserc](./.firebaserc) temporarily change project names.
+1. In [.firebaserc](./.firebaserc) temporarily change project names.
 
    ```
    {
-      "projects": {
-         "default": "<your project name>"
-      },
       "targets": {
-         "dartpad": {
+         "<your project name>": {
             "hosting": {
-               "dartpad": [
-                  "<your project name>"
-               ],
-               "preview": [
-                  "<your project name>"
-               ]
-         ...
+            "dartpad": [
+               "<your project name>"
+            ]
+            }
+         }
+      }
+   }
    ```
 
 2. cd pkgs/dartpad_ui
@@ -70,13 +67,22 @@ If you want to collaborate on an intermediate version, you can publish it to you
 3. Run `firebase init`, select `Hosting` (not App Hosting) and choose
 defaults for other questions.
 
-4. Revert all changes, that previous command made in firebase.json.
-
 5. Run the commands:
 
    ```
+   cd pkgs/dartpad_ui
    flutter build web --wasm
-   firebase hosting:channel:deploy <your project name>
+   firebase -P <your project name> init
+   ```
+
+   Select `Hosting` (not App Hosting) and choose defaults for other questions.
+
+4. Revert all changes, that previous command made in firebase.json, and remove
+   item with
+
+
+
+   firebase deploy
    ```
 
 See https://firebase.google.com/docs/hosting.
