@@ -74,6 +74,6 @@ If you want to collaborate on an intermediate version, you can publish it to you
    make sure (temporarily) there is only one item under `hosting`,
    with `"target": "dartpad"`.
 
-1. Run `firebase deploy`
+1. Run `firebase deploy`.
 
 See https://firebase.google.com/docs/hosting.
