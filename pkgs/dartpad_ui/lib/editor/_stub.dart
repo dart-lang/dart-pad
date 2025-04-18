@@ -11,6 +11,8 @@ class ConcreteEditorServiceImpl implements EditorService {
   FocusableActionDetector focusableActionDetector(bool darkMode) =>
       FocusableActionDetector(child: SizedBox());
 
+  ConcreteEditorServiceImpl(AppModel appModel, AppServices appServices);
+
   @override
   int get cursorOffset => 0;
 

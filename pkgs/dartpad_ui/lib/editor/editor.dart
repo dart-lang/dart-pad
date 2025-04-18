@@ -25,11 +25,11 @@ class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
 
-  EditorWidget({
+  const EditorWidget({
     required this.appModel,
     required this.appServices,
     super.key,
-  }) {}
+  });
 
   @override
   State<EditorWidget> createState() => _EditorWidgetState();
@@ -37,11 +37,12 @@ class EditorWidget extends StatefulWidget {
 
 class _EditorWidgetState extends State<EditorWidget> {
   StreamSubscription<void>? _listener;
-  final _editorService = EditorServiceImpl();
+  late final EditorServiceImpl _editorService;
 
   @override
   void initState() {
     super.initState();
+    _editorService = EditorServiceImpl(widget.appModel, widget.appServices);
     _autosaveTimer = Timer.periodic(const Duration(seconds: 5), _autosave);
     widget.appModel.appReady.addListener(_updateEditableStatus);
   }
@@ -76,58 +77,8 @@ class _EditorWidgetState extends State<EditorWidget> {
     super.dispose();
   }
 
-  void _updateModelFromCodemirror(String value) {
-    final model = widget.appModel;
-
-    model.sourceCodeController.removeListener(_updateCodemirrorFromModel);
-    widget.appModel.sourceCodeController.text = value;
-    model.sourceCodeController.addListener(_updateCodemirrorFromModel);
-  }
-
-  void _updateCodemirrorFromModel() {
-    final value = widget.appModel.sourceCodeController.value;
-    final cursorOffset = value.selection.baseOffset;
-    final cm = _codeMirror!;
-    final doc = cm.getDoc();
-
-    if (cursorOffset == -1) {
-      doc.setValue(value.text);
-    } else {
-      final scrollInfo = cm.getScrollInfo();
-      doc.setValue(value.text);
-      doc.setSelection(doc.posFromIndex(cursorOffset));
-      cm.scrollTo(scrollInfo.left, scrollInfo.top);
-    }
-  }
-
   void _updateEditableStatus() {
     _codeMirror?.setReadOnly(!widget.appModel.appReady.value);
-  }
-
-  void _updateIssues(List<services.AnalysisIssue> issues) {
-    final doc = _codeMirror!.getDoc();
-
-    for (final marker in doc.getAllMarks().toDart.cast<TextMarker>()) {
-      marker.clear();
-    }
-
-    for (final issue in issues) {
-      final line = math.max(issue.location.line - 1, 0);
-      final column = math.max(issue.location.column - 1, 0);
-      final isDeprecation =
-          issue.code?.contains('deprecated_member_use') ?? false;
-      final kind = isDeprecation ? 'deprecation' : issue.kind;
-
-      doc.markText(
-        Position(line: line, ch: column),
-        Position(line: line, ch: column + issue.location.charLength),
-        MarkTextOptions(className: 'squiggle-$kind', title: issue.message),
-      );
-    }
-  }
-
-  void _updateCodemirrorMode(bool darkMode) {
-    _codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
   Future<HintResults> _completions() async {
@@ -185,19 +136,6 @@ class _EditorWidgetState extends State<EditorWidget> {
         from: doc.posFromIndex(offset),
         to: doc.posFromIndex(offset + length),
       );
-    }
-  }
-
-  void _updateCodemirrorKeymap() {
-    final enabled = widget.appModel.vimKeymapsEnabled.value;
-    final cm = _codeMirror!;
-
-    if (enabled) {
-      cm.setKeymap('vim');
-      DartPadLocalStorage.instance.saveUserKeybinding('vim');
-    } else {
-      cm.setKeymap('default');
-      DartPadLocalStorage.instance.saveUserKeybinding('default');
     }
   }
 }

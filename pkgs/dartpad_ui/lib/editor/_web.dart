@@ -33,12 +33,15 @@ enum _CompletionType { auto, manual, quickfix }
 bool _viewFactoryInitialized = false;
 
 class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
+  final AppModel appModel;
+  final AppServices appServices;
+
   CodeMirror? _codeMirror;
   late final FocusNode _focusNode;
   _CompletionType _completionType = _CompletionType.auto;
   final Key _elementViewKey = UniqueKey();
 
-  ConcreteEditorServiceImpl() {
+  ConcreteEditorServiceImpl(this.appModel, this.appServices) {
     _initViewFactory();
 
     _focusNode = FocusNode(
@@ -172,8 +175,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
   void _platformViewCreated(int id, {required bool darkMode}) {
     _codeMirror = codeMirrorInstance;
 
-    final appModel = widget.appModel;
-
     // read only
     final readOnly = !appModel.appReady.value;
     if (readOnly) {
@@ -216,7 +217,7 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     );
     appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
 
-    widget.appServices.registerEditorService(this);
+    appServices.registerEditorService(this);
 
     CodeMirror.commands.autocomplete =
         (CodeMirror codeMirror) {
@@ -253,6 +254,69 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     );
 
     observer.observe(web.document.body!);
+  }
+
+  void _updateCodemirrorMode(bool darkMode) {
+    _codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
+  }
+
+  void _updateModelFromCodemirror(String value) {
+    final model = appModel;
+
+    model.sourceCodeController.removeListener(_updateCodemirrorFromModel);
+    appModel.sourceCodeController.text = value;
+    model.sourceCodeController.addListener(_updateCodemirrorFromModel);
+  }
+
+  void _updateCodemirrorFromModel() {
+    final value = appModel.sourceCodeController.value;
+    final cursorOffset = value.selection.baseOffset;
+    final cm = _codeMirror!;
+    final doc = cm.getDoc();
+
+    if (cursorOffset == -1) {
+      doc.setValue(value.text);
+    } else {
+      final scrollInfo = cm.getScrollInfo();
+      doc.setValue(value.text);
+      doc.setSelection(doc.posFromIndex(cursorOffset));
+      cm.scrollTo(scrollInfo.left, scrollInfo.top);
+    }
+  }
+
+  void _updateIssues(List<services.AnalysisIssue> issues) {
+    final doc = _codeMirror!.getDoc();
+
+    for (final marker in doc.getAllMarks().toDart.cast<TextMarker>()) {
+      marker.clear();
+    }
+
+    for (final issue in issues) {
+      final line = math.max(issue.location.line - 1, 0);
+      final column = math.max(issue.location.column - 1, 0);
+      final isDeprecation =
+          issue.code?.contains('deprecated_member_use') ?? false;
+      final kind = isDeprecation ? 'deprecation' : issue.kind;
+
+      doc.markText(
+        Position(line: line, ch: column),
+        Position(line: line, ch: column + issue.location.charLength),
+        MarkTextOptions(className: 'squiggle-$kind', title: issue.message),
+      );
+    }
+  }
+
+  void _updateCodemirrorKeymap() {
+    final enabled = appModel.vimKeymapsEnabled.value;
+    final cm = _codeMirror!;
+
+    if (enabled) {
+      cm.setKeymap('vim');
+      DartPadLocalStorage.instance.saveUserKeybinding('vim');
+    } else {
+      cm.setKeymap('default');
+      DartPadLocalStorage.instance.saveUserKeybinding('default');
+    }
   }
 }
 
