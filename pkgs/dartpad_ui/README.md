@@ -76,4 +76,13 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
 1. Run `firebase deploy`.
 
+
+After configured, redeploy with commands:
+
+```
+cd pkgs/dartpad_ui
+flutter build web --wasm
+firebase deploy
+```
+
 See https://firebase.google.com/docs/hosting.
