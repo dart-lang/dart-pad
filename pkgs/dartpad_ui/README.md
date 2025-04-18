@@ -44,8 +44,6 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
 1. Make sure your current Flutter channel is set to `stable`.
 
-1. Delete git ignored folder `.firebase`, if it exists.
-
 1. In [.firebaserc](./.firebaserc) temporarily change project names.
 
    ```
