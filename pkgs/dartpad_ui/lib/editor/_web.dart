@@ -186,7 +186,7 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     _codeMirror!.getDoc().setValue(contents);
 
     // darkmode
-    _updateCodemirrorMode(darkMode);
+    updateCodemirrorMode(darkMode);
 
     refreshViewAfterWait();
 
@@ -211,11 +211,11 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
       }.toJS,
     );
 
-    appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
+    appModel.sourceCodeController.addListener(updateCodemirrorFromModel);
     appModel.analysisIssues.addListener(
       () => _updateIssues(appModel.analysisIssues.value),
     );
-    appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
+    appModel.vimKeymapsEnabled.addListener(updateCodemirrorKeymap);
 
     appServices.registerEditorService(this);
 
@@ -256,19 +256,21 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     observer.observe(web.document.body!);
   }
 
-  void _updateCodemirrorMode(bool darkMode) {
+  @override
+  void updateCodemirrorMode(bool darkMode) {
     _codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
 
   void _updateModelFromCodemirror(String value) {
     final model = appModel;
 
-    model.sourceCodeController.removeListener(_updateCodemirrorFromModel);
+    model.sourceCodeController.removeListener(updateCodemirrorFromModel);
     appModel.sourceCodeController.text = value;
-    model.sourceCodeController.addListener(_updateCodemirrorFromModel);
+    model.sourceCodeController.addListener(updateCodemirrorFromModel);
   }
 
-  void _updateCodemirrorFromModel() {
+  @override
+  void updateCodemirrorFromModel() {
     final value = appModel.sourceCodeController.value;
     final cursorOffset = value.selection.baseOffset;
     final cm = _codeMirror!;
@@ -306,7 +308,8 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     }
   }
 
-  void _updateCodemirrorKeymap() {
+  @override
+  void updateCodemirrorKeymap() {
     final enabled = appModel.vimKeymapsEnabled.value;
     final cm = _codeMirror!;
 
@@ -317,6 +320,67 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
       cm.setKeymap('default');
       DartPadLocalStorage.instance.saveUserKeybinding('default');
     }
+  }
+
+  Future<HintResults> _completions() async {
+    final operation = _completionType;
+    _completionType = _CompletionType.auto;
+
+    final editor = _codeMirror!;
+    final doc = editor.getDoc();
+    final source = doc.getValue();
+    final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
+
+    if (operation == _CompletionType.quickfix) {
+      final response = await appServices.services
+          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
+          .onError((error, st) => services.FixesResponse.empty);
+
+      if (response.fixes.isEmpty && response.assists.isEmpty) {
+        appModel.editorStatus.showToast('No quick fixes available.');
+      }
+
+      return HintResults(
+        list:
+            [
+              ...response.fixes.map((change) => change.toHintResult(editor)),
+              ...response.assists.map((change) => change.toHintResult(editor)),
+            ].toJS,
+        from: doc.posFromIndex(sourceOffset),
+        to: doc.posFromIndex(0),
+      );
+    } else {
+      final response = await appServices.services
+          .complete(
+            services.SourceRequest(source: source, offset: sourceOffset),
+          )
+          .onError((error, st) => services.CompleteResponse.empty);
+
+      final offset = response.replacementOffset;
+      final length = response.replacementLength;
+      final hints =
+          response.suggestions
+              .map((suggestion) => suggestion.toHintResult())
+              .toList();
+
+      // Remove hints where both the replacement text and the display text are
+      // the same.
+      final memos = <String>{};
+      hints.retainWhere((hint) {
+        return memos.add('${hint.text}:${hint.displayText}');
+      });
+
+      return HintResults(
+        list: hints.toJS,
+        from: doc.posFromIndex(offset),
+        to: doc.posFromIndex(offset + length),
+      );
+    }
+  }
+
+  @override
+  void updateEditableStatus() {
+    _codeMirror?.setReadOnly(!appModel.appReady.value);
   }
 }
 
@@ -439,3 +503,40 @@ const _codeMirrorOptions = {
   'viewportMargin': 100,
   'scrollbarStyle': 'simple',
 };
+
+extension _CompletionSuggestionExtension on services.CompletionSuggestion {
+  HintResult toHintResult() {
+    var altDisplay = completion;
+    if (elementKind == 'FUNCTION' ||
+        elementKind == 'METHOD' ||
+        elementKind == 'CONSTRUCTOR') {
+      altDisplay = '$altDisplay()';
+    }
+
+    return HintResult(
+      text: completion,
+      displayText: displayText ?? altDisplay,
+      className: this.deprecated ? 'deprecated' : null,
+    );
+  }
+}
+
+extension _SourceChangeExtension on services.SourceChange {
+  HintResult toHintResult(CodeMirror codeMirror) {
+    return HintResult(text: message, hint: _applySourceChange(codeMirror));
+  }
+
+  JSFunction _applySourceChange(CodeMirror codeMirror) {
+    return (HintResult hint, Position? from, Position? to) {
+      final doc = codeMirror.getDoc();
+
+      for (final edit in edits) {
+        doc.replaceRange(
+          edit.replacement,
+          doc.posFromIndex(edit.offset),
+          doc.posFromIndex(edit.offset + edit.length),
+        );
+      }
+    }.toJS;
+  }
+}

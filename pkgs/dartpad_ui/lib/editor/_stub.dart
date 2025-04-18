@@ -30,4 +30,12 @@ class ConcreteEditorServiceImpl implements EditorService {
 
   @override
   void showQuickFixes() {}
+
+  void updateCodemirrorMode(bool darkMode) {}
+
+  void updateCodemirrorFromModel() {}
+
+  void updateCodemirrorKeymap() {}
+
+  void updateEditableStatus() {}
 }

@@ -57,7 +57,7 @@ class _EditorWidgetState extends State<EditorWidget> {
   @override
   Widget build(BuildContext context) {
     final darkMode = Theme.of(context).brightness == Brightness.dark;
-    _updateCodemirrorMode(darkMode);
+    _editorService.updateCodemirrorMode(darkMode);
     return _editorService.focusableActionDetector(darkMode);
   }
 
@@ -69,111 +69,18 @@ class _EditorWidgetState extends State<EditorWidget> {
     widget.appServices.registerEditorService(null);
 
     widget.appModel.sourceCodeController.removeListener(
-      _updateCodemirrorFromModel,
+      _editorService.updateCodemirrorFromModel,
     );
     widget.appModel.appReady.removeListener(_updateEditableStatus);
-    widget.appModel.vimKeymapsEnabled.removeListener(_updateCodemirrorKeymap);
+    widget.appModel.vimKeymapsEnabled.removeListener(
+      _editorService.updateCodemirrorKeymap,
+    );
 
     super.dispose();
   }
 
   void _updateEditableStatus() {
-    _codeMirror?.setReadOnly(!widget.appModel.appReady.value);
-  }
-
-  Future<HintResults> _completions() async {
-    final operation = completionType;
-    completionType = CompletionType.auto;
-
-    final appServices = widget.appServices;
-
-    final editor = _codeMirror!;
-    final doc = editor.getDoc();
-    final source = doc.getValue();
-    final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
-
-    if (operation == CompletionType.quickfix) {
-      final response = await appServices.services
-          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
-          .onError((error, st) => services.FixesResponse.empty);
-
-      if (response.fixes.isEmpty && response.assists.isEmpty) {
-        widget.appModel.editorStatus.showToast('No quick fixes available.');
-      }
-
-      return HintResults(
-        list:
-            [
-              ...response.fixes.map((change) => change.toHintResult(editor)),
-              ...response.assists.map((change) => change.toHintResult(editor)),
-            ].toJS,
-        from: doc.posFromIndex(sourceOffset),
-        to: doc.posFromIndex(0),
-      );
-    } else {
-      final response = await appServices.services
-          .complete(
-            services.SourceRequest(source: source, offset: sourceOffset),
-          )
-          .onError((error, st) => services.CompleteResponse.empty);
-
-      final offset = response.replacementOffset;
-      final length = response.replacementLength;
-      final hints =
-          response.suggestions
-              .map((suggestion) => suggestion.toHintResult())
-              .toList();
-
-      // Remove hints where both the replacement text and the display text are
-      // the same.
-      final memos = <String>{};
-      hints.retainWhere((hint) {
-        return memos.add('${hint.text}:${hint.displayText}');
-      });
-
-      return HintResults(
-        list: hints.toJS,
-        from: doc.posFromIndex(offset),
-        to: doc.posFromIndex(offset + length),
-      );
-    }
-  }
-}
-
-extension CompletionSuggestionExtension on services.CompletionSuggestion {
-  HintResult toHintResult() {
-    var altDisplay = completion;
-    if (elementKind == 'FUNCTION' ||
-        elementKind == 'METHOD' ||
-        elementKind == 'CONSTRUCTOR') {
-      altDisplay = '$altDisplay()';
-    }
-
-    return HintResult(
-      text: completion,
-      displayText: displayText ?? altDisplay,
-      className: this.deprecated ? 'deprecated' : null,
-    );
-  }
-}
-
-extension SourceChangeExtension on services.SourceChange {
-  HintResult toHintResult(CodeMirror codeMirror) {
-    return HintResult(text: message, hint: _applySourceChange(codeMirror));
-  }
-
-  JSFunction _applySourceChange(CodeMirror codeMirror) {
-    return (HintResult hint, Position? from, Position? to) {
-      final doc = codeMirror.getDoc();
-
-      for (final edit in edits) {
-        doc.replaceRange(
-          edit.replacement,
-          doc.posFromIndex(edit.offset),
-          doc.posFromIndex(edit.offset + edit.length),
-        );
-      }
-    }.toJS;
+    _editorService.updateEditableStatus();
   }
 }
 
