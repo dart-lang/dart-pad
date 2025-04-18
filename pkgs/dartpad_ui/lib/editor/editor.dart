@@ -3,21 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js_interop';
-import 'dart:math' as math;
-import 'dart:ui_web' as ui_web;
 
-import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
-import 'package:web/web.dart' as web;
 
 import '../local_storage/local_storage.dart';
 import '../model.dart';
 import '_editor_service_impl.dart';
-import '_shared.dart';
 
 // TODO: implement find / find next
 

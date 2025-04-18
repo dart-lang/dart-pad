@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad_shared/model.dart';
-import 'package:flutter/widgets.dart';
-
-import '../model.dart';
-import '_codemirror.dart';
-
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:math' as math;
@@ -16,8 +10,7 @@ import 'dart:ui_web' as ui_web;
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:pretty_diff_text/pretty_diff_text.dart';
+import 'package:flutter/widgets.dart';
 import 'package:web/web.dart' as web;
 
 import '../local_storage/local_storage.dart';
