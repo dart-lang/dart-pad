@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_shared/model.dart';
+import 'package:flutter/widgets.dart';
 
 import '../model.dart';
 
 class ConcreteEditorServiceImpl implements EditorService {
+  FocusableActionDetector focusableActionDetector(bool darkMode) =>
+      FocusableActionDetector(child: SizedBox());
+
   @override
   int get cursorOffset => 0;
 

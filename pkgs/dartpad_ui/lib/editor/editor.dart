@@ -16,127 +16,28 @@ import 'package:web/web.dart' as web;
 
 import '../local_storage/local_storage.dart';
 import '../model.dart';
-import '_codemirror.dart';
-import '_editor_service_impl.dart' show EditorServiceImpl;
+import '_editor_service_impl.dart';
+import '_shared.dart';
 
 // TODO: implement find / find next
-
-const String _viewType = 'dartpad-editor';
-
-bool _viewFactoryInitialized = false;
-CodeMirror? codeMirrorInstance;
-
-final Key _elementViewKey = UniqueKey();
-
-void _initViewFactory() {
-  if (_viewFactoryInitialized) return;
-  _viewFactoryInitialized = true;
-
-  ui_web.platformViewRegistry.registerViewFactory(
-    _viewType,
-    _codeMirrorFactory,
-  );
-}
-
-web.Element _codeMirrorFactory(int viewId) {
-  final div =
-      web.document.createElement('div') as web.HTMLDivElement
-        ..style.width = '100%'
-        ..style.height = '100%';
-
-  codeMirrorInstance = CodeMirror(
-    div,
-    <String, Object?>{
-      'lineNumbers': true,
-      'lineWrapping': true,
-      'mode': 'dart',
-      'theme': 'darkpad',
-      ...codeMirrorOptions,
-    }.jsify(),
-  );
-
-  CodeMirror.commands.goLineLeft =
-      ((JSObject? _) => _handleGoLineLeft(codeMirrorInstance!)).toJS;
-  CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
-      ((JSObject? _) =>
-              _indentIfMultiLineSelectionElseInsertSoftTab(codeMirrorInstance!))
-          .toJS;
-  CodeMirror.commands.weHandleElsewhere =
-      ((JSObject? _) => _weHandleElsewhere(codeMirrorInstance!)).toJS;
-
-  // Prevent the flutter web engine from handling (and preventing default on)
-  // wheel events over CodeMirror's HtmlElementView.
-  //
-  // This is needed so users can scroll code with their mouse wheel.
-  div.addEventListener(
-    'wheel',
-    (web.WheelEvent e) {
-      e.stopPropagation();
-    }.toJS,
-  );
-
-  return div;
-}
 
 class EditorWidget extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
 
-  EditorWidget({required this.appModel, required this.appServices, super.key}) {
-    _initViewFactory();
-  }
+  EditorWidget({
+    required this.appModel,
+    required this.appServices,
+    super.key,
+  }) {}
 
   @override
   State<EditorWidget> createState() => _EditorWidgetState();
 }
 
 class _EditorWidgetState extends State<EditorWidget> {
-  StreamSubscription<void>? listener;
-  EditorService editorService = EditorServiceImpl();
-
-  CompletionType completionType = CompletionType.auto;
-
-  _EditorWidgetState() {}
-
-  @override
-  void showCompletions({required bool autoInvoked}) {
-    completionType = autoInvoked ? CompletionType.auto : CompletionType.manual;
-
-    _codeMirror?.execCommand('autocomplete');
-  }
-
-  @override
-  void showQuickFixes() {
-    completionType = CompletionType.quickfix;
-
-    _codeMirror?.execCommand('autocomplete');
-  }
-
-  @override
-  void jumpTo(services.AnalysisIssue issue) {
-    final line = math.max(issue.location.line - 1, 0);
-    final column = math.max(issue.location.column - 1, 0);
-
-    if (issue.location.line != -1) {
-      _codeMirror!.getDoc().setSelection(
-        Position(line: line, ch: column),
-        Position(line: line, ch: column + issue.location.charLength),
-      );
-    } else {
-      _codeMirror?.getDoc().setSelection(Position(line: 0, ch: 0));
-    }
-
-    focus();
-  }
-
-  @override
-  void refreshViewAfterWait() {
-    // Use a longer delay so that the platform view is displayed
-    // correctly when compiled to Wasm.
-    Future<void>.delayed(const Duration(milliseconds: 80), () {
-      _codeMirror?.refresh();
-    });
-  }
+  StreamSubscription<void>? _listener;
+  final _editorService = EditorServiceImpl();
 
   @override
   void initState() {
@@ -152,130 +53,16 @@ class _EditorWidgetState extends State<EditorWidget> {
     DartPadLocalStorage.instance.saveUserCode(content);
   }
 
-  void _platformViewCreated(int id, {required bool darkMode}) {
-    _codeMirror = codeMirrorInstance;
-
-    final appModel = widget.appModel;
-
-    // read only
-    final readOnly = !appModel.appReady.value;
-    if (readOnly) {
-      _codeMirror!.setReadOnly(true);
-    }
-
-    // contents
-    final contents = appModel.sourceCodeController.text;
-    _codeMirror!.getDoc().setValue(contents);
-
-    // darkmode
-    _updateCodemirrorMode(darkMode);
-
-    refreshViewAfterWait();
-
-    _codeMirror!.on(
-      'change',
-      ([JSAny? _, JSAny? __, JSAny? ___]) {
-        _updateModelFromCodemirror(_codeMirror!.getDoc().getValue());
-      }.toJS,
-    );
-
-    _codeMirror!.on(
-      'focus',
-      ([JSAny? _, JSAny? __]) {
-        _focusNode.requestFocus();
-      }.toJS,
-    );
-
-    _codeMirror!.on(
-      'blur',
-      ([JSAny? _, JSAny? __]) {
-        _focusNode.unfocus();
-      }.toJS,
-    );
-
-    appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
-    appModel.analysisIssues.addListener(
-      () => _updateIssues(appModel.analysisIssues.value),
-    );
-    appModel.vimKeymapsEnabled.addListener(_updateCodemirrorKeymap);
-
-    widget.appServices.registerEditorService(this);
-
-    CodeMirror.commands.autocomplete =
-        (CodeMirror codeMirror) {
-          _completions().then((completions) {
-            codeMirror.showHint(
-              HintOptions(hint: CodeMirror.hint.dart, results: completions),
-            );
-          });
-          return JSObject();
-        }.toJS;
-
-    CodeMirror.registerHelper(
-      'hint',
-      'dart',
-      (CodeMirror editor, [HintOptions? options]) {
-        return options!.results;
-      }.toJS,
-    );
-
-    // Listen for document body to be visible, then force a code mirror refresh.
-    final observer = web.IntersectionObserver(
-      (
-        JSArray<web.IntersectionObserverEntry> entries,
-        web.IntersectionObserver observer,
-      ) {
-        for (final entry in entries.toDart) {
-          if (entry.isIntersecting) {
-            observer.unobserve(web.document.body!);
-
-            refreshViewAfterWait();
-            return;
-          }
-        }
-      }.toJS,
-    );
-
-    observer.observe(web.document.body!);
-  }
-
   @override
   Widget build(BuildContext context) {
     final darkMode = Theme.of(context).brightness == Brightness.dark;
-
     _updateCodemirrorMode(darkMode);
-
-    return FocusableActionDetector(
-      autofocus: true,
-      focusNode: _focusNode,
-      onFocusChange: (isFocused) {
-        // If focus is entering or leaving, convey this to CodeMirror.
-        if (isFocused) {
-          _codeMirror?.focus();
-        } else {
-          _codeMirror?.getInputField().blur();
-        }
-      },
-      // TODO(parlough): Add shortcut for focus traversal to escape editor.
-      // shortcuts: {
-      //   // Add Esc and Shift+Esc as shortcuts for focus to leave editor.
-      //   LogicalKeySet(LogicalKeyboardKey.escape):
-      //       VoidCallbackIntent(_focusNode.nextFocus),
-      //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
-      //       VoidCallbackIntent(_focusNode.previousFocus),
-      // },
-      child: HtmlElementView(
-        key: _elementViewKey,
-        viewType: _viewType,
-        onPlatformViewCreated:
-            (id) => _platformViewCreated(id, darkMode: darkMode),
-      ),
-    );
+    return _editorService.focusableActionDetector(darkMode);
   }
 
   @override
   void dispose() {
-    listener?.cancel();
+    _listener?.cancel();
     _autosaveTimer?.cancel();
 
     widget.appServices.registerEditorService(null);
@@ -414,82 +201,6 @@ class _EditorWidgetState extends State<EditorWidget> {
     }
   }
 }
-
-// codemirror commands
-
-JSAny? _handleGoLineLeft(CodeMirror editor) {
-  // Change the cmd-left behavior to move the cursor to leftmost non-ws char.
-  return editor.execCommand('goLineLeftSmart');
-}
-
-void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
-  // Make it so that we can insertSoftTab when no selection or selection on 1
-  // line but if there is multiline selection we indentMore (this gives us a
-  // more typical coding editor behavior).
-  if (editor.getDoc().somethingSelected()) {
-    final selection = editor.getDoc().getSelection('\n');
-    if (selection != null && selection.contains('\n')) {
-      // Multi-line selection
-      editor.execCommand('indentMore');
-    } else {
-      editor.execCommand('insertSoftTab');
-    }
-  } else {
-    editor.execCommand('insertSoftTab');
-  }
-}
-
-void _weHandleElsewhere(CodeMirror editor) {
-  // DO NOTHING HERE - we bind/handle this at the top level html page, not
-  // within codemorror.
-}
-
-// codemirror options
-
-const codeMirrorOptions = {
-  'autoCloseBrackets': true,
-  'autoCloseTags': {'whenOpening': true, 'whenClosing': true},
-  'autofocus': false,
-  'cursorHeight': 0.85,
-  'continueComments': {'continueLineComment': false},
-  'extraKeys': {
-    'Esc': '...',
-    'Esc Tab': false,
-    'Esc Shift-Tab': false,
-    'Cmd-/': 'toggleComment',
-    'Ctrl-/': 'toggleComment',
-    'Shift-Tab': 'indentLess',
-    'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
-    'Cmd-F': 'weHandleElsewhere',
-    'Cmd-H': 'weHandleElsewhere',
-    'Ctrl-F': 'weHandleElsewhere',
-    'Ctrl-H': 'weHandleElsewhere',
-    'Cmd-G': 'weHandleElsewhere',
-    'Shift-Ctrl-G': 'weHandleElsewhere',
-    'Ctrl-G': 'weHandleElsewhere',
-    'Shift-Cmd-G': 'weHandleElsewhere',
-    'F4': 'weHandleElsewhere',
-    'Shift-F4': 'weHandleElsewhere',
-    'Shift-Ctrl-F': 'weHandleElsewhere',
-    'Shift-Cmd-F': 'weHandleElsewhere',
-    'Cmd-Alt-F': false,
-  },
-  'gutters': ['CodeMirror-linenumbers'],
-  'highlightSelectionMatches': {
-    'style': 'highlight-selection-matches',
-    'showToken': false,
-    'annotateScrollbar': true,
-  },
-  'hintOptions': {'completeSingle': false},
-  'indentUnit': 2,
-  'matchBrackets': true,
-  'matchTags': {'bothTags': true},
-  'tabSize': 2,
-  'viewportMargin': 100,
-  'scrollbarStyle': 'simple',
-};
-
-enum CompletionType { auto, manual, quickfix }
 
 extension CompletionSuggestionExtension on services.CompletionSuggestion {
   HintResult toHintResult() {
