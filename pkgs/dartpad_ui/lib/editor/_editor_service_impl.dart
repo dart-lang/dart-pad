@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '_stub.dart'
-    if (dart.library.js_util) '_web.dart'
+    if (dart.library.js_interop) '_web.dart'
     as impl
     show ConcreteEditorServiceImpl;
 
