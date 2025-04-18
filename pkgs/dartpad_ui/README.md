@@ -42,7 +42,11 @@ There are options to run UI locally:
 
 If you want to collaborate on an intermediate version, you can publish it to your own Firebase project:
 
-1. In .firebaserc temporarily change project names.
+1. Make sure your current Flutter channel is set to `stable`.
+
+2. Delete git ignored folder `.firebase`, if it exists.
+
+2. In [.firebaserc](./.firebaserc) temporarily change project names.
 
    ```
    {
@@ -50,7 +54,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
          "default": "<your project name>"
       },
       "targets": {
-         "<your project name>": {
+         "dartpad": {
             "hosting": {
                "dartpad": [
                   "<your project name>"
@@ -61,14 +65,16 @@ If you want to collaborate on an intermediate version, you can publish it to you
          ...
    ```
 
-2. Run `firebase init`
+2. cd pkgs/dartpad_ui
 
-3. Make sure your current Flutter channel is set to `stable`
+3. Run `firebase init`, select `Hosting` (not App Hosting) and choose
+defaults for other questions.
 
-4. Run the commands:
+4. Revert all changes, that previous command made in firebase.json.
+
+5. Run the commands:
 
    ```
-   cd pkgs/dartpad_ui
    flutter build web --wasm
    firebase hosting:channel:deploy <your project name>
    ```

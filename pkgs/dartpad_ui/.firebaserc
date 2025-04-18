@@ -6,10 +6,7 @@
     "dart-pad": {
       "hosting": {
         "dartpad": [
-          "dart-pad-a3c64"
-        ],
-        "preview": [
-          "sketch-pad-1cebb"
+          "dartpad-pr-3260"
         ]
       }
     }
