@@ -14,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:web/web.dart' as web;
 
+import '../html_view/html_view.dart';
 import '../local_storage/local_storage.dart';
 import '../model.dart';
 import 'codemirror.dart';
@@ -320,7 +321,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       //   LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.escape):
       //       VoidCallbackIntent(_focusNode.previousFocus),
       // },
-      child: HtmlElementView(
+      child: DartPadHtmlView(
         key: _elementViewKey,
         viewType: _viewType,
         onPlatformViewCreated:
