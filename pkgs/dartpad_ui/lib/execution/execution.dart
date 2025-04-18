@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../html_view/html_view.dart';
 import '../model.dart';
 import '../theme.dart';
 
@@ -43,7 +44,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         return Container(
           color: theme.scaffoldBackgroundColor,
           padding: const EdgeInsets.all(denseSpacing),
-          child: HtmlElementView(
+          child: DartPadHtmlView(
             key: _elementViewKey,
             viewType: executionViewType,
             onPlatformViewCreated: (int id) {

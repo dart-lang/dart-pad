@@ -4,7 +4,7 @@
 
 import '../model.dart';
 
-import '_stub.dart' if (dart.library.js_util) '_web.dart';
+import '_stub.dart' if (dart.library.js_interop) '_web.dart';
 
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.
