@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 
-import '../html_view/html_view.dart';
 import '../local_storage/local_storage.dart';
 import '../model.dart';
 import '_editor_service_impl.dart';
