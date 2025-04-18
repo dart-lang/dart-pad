@@ -51,9 +51,9 @@ If you want to collaborate on an intermediate version, you can publish it to you
       "targets": {
          "<your project name>": {
             "hosting": {
-            "dartpad": [
-               "<your project name>"
-            ]
+               "dartpad": [
+                  "<your project name>"
+               ]
             }
          }
       }
