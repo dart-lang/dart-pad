@@ -77,12 +77,9 @@ defaults for other questions.
 
    Select `Hosting` (not App Hosting) and choose defaults for other questions.
 
-4. Revert all changes, that previous command made in firebase.json, and remove
-   item with
+4. Revert all changes, that previous command made in firebase.json, and
+   make sure there is only one item under `hosting`, with `"target": "dartpad"`.
 
-
-
-   firebase deploy
-   ```
+5. Run `firebase deploy`
 
 See https://firebase.google.com/docs/hosting.
