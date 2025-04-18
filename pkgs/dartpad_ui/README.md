@@ -70,7 +70,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
    firebase -P <your project name> init
    ```
 
-   Select `Hosting` (not `App Hosting`s) and choose defaults for other questions.
+   Select `Hosting` (not `App Hosting`) and choose defaults for other questions.
 
 1. Revert all changes, that previous command made in firebase.json, and
    make sure there is only one item under `hosting`, with `"target": "dartpad"`.
