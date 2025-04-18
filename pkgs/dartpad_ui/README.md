@@ -62,12 +62,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
    }
    ```
 
-2. cd pkgs/dartpad_ui
-
-3. Run `firebase init`, select `Hosting` (not App Hosting) and choose
-defaults for other questions.
-
-5. Run the commands:
+1. Run the commands:
 
    ```
    cd pkgs/dartpad_ui
@@ -77,9 +72,9 @@ defaults for other questions.
 
    Select `Hosting` (not App Hosting) and choose defaults for other questions.
 
-4. Revert all changes, that previous command made in firebase.json, and
+1. Revert all changes, that previous command made in firebase.json, and
    make sure there is only one item under `hosting`, with `"target": "dartpad"`.
 
-5. Run `firebase deploy`
+1. Run `firebase deploy`
 
 See https://firebase.google.com/docs/hosting.
