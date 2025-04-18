@@ -65,3 +65,34 @@ window.addEventListener('load', function () {
   window.addEventListener('message', messageHandler, false);
   parent.postMessage({ 'sender': 'frame', 'type': 'ready' }, '*');
 });
+
+window.addEventListener('blur', onBlurHandler);
+
+// Blur listener
+const flutterViewSelector = 'flutter-view';
+function onBlurHandler(event) {
+  console.log('onBlur');
+  const activeElement = document.activeElement;
+  if (!activeElement) {
+    return;
+  }
+  if (!(activeElement instanceof HTMLElement) || typeof activeElement.closest !== 'function') {
+    return;
+  }
+  const inFlutterView = activeElement.closest(flutterViewSelector) !== null;
+  console.log(`JS inFlutterView = ${inFlutterView}`);
+
+  if (inFlutterView) {
+    console.log('JS activeElement = ', activeElement);
+    activeElement.blur();
+  }
+}
+
+function addBlurListener() {
+  window.addEventListener('blur', onBlurHandler);
+  console.log('JS Blur listener added.');
+}
+function removeBlurListener() {
+  window.removeEventListener('blur', onBlurHandler);
+  console.log('JS Blur listener removed.');
+}
