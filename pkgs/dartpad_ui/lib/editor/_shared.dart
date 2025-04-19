@@ -2,8 +2,4 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../model.dart';
-
-ExecutionService? executionServiceInstance;
-
-const String executionViewType = 'dartpad-execution';
+const String editorViewType = 'dartpad-editor';

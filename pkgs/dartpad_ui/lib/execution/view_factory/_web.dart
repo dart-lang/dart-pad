@@ -16,7 +16,10 @@ void initViewFactoryImpl() {
 
   _viewFactoryInitialized = true;
 
-  ui_web.platformViewRegistry.registerViewFactory(viewType, _iFrameFactory);
+  ui_web.platformViewRegistry.registerViewFactory(
+    executionViewType,
+    _iFrameFactory,
+  );
 }
 
 web.Element _iFrameFactory(int viewId) {

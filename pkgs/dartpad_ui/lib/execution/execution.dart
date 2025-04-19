@@ -46,7 +46,7 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
           padding: const EdgeInsets.all(denseSpacing),
           child: DartPadHtmlView(
             key: _elementViewKey,
-            viewType: viewType,
+            viewType: executionViewType,
             onPlatformViewCreated: (int id) {
               widget.appServices.registerExecutionService(
                 executionServiceInstance,
