@@ -231,21 +231,21 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     codeMirror!.on(
       'change',
-      ([JSAny? _, JSAny? __, JSAny? ___]) {
+      ([JSAny? _, JSAny? _, JSAny? _]) {
         _updateModelFromCodemirror(codeMirror!.getDoc().getValue());
       }.toJS,
     );
 
     codeMirror!.on(
       'focus',
-      ([JSAny? _, JSAny? __]) {
+      ([JSAny? _, JSAny? _]) {
         _focusNode.requestFocus();
       }.toJS,
     );
 
     codeMirror!.on(
       'blur',
-      ([JSAny? _, JSAny? __]) {
+      ([JSAny? _, JSAny? _]) {
         _focusNode.unfocus();
       }.toJS,
     );
