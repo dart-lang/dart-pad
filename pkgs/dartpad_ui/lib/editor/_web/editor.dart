@@ -14,21 +14,21 @@ import '_editor_service_impl.dart';
 
 // TODO: implement find / find next
 
-class EditorWidget extends StatefulWidget {
+class EditorWidgetImpl extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
 
-  const EditorWidget({
+  const EditorWidgetImpl({
     required this.appModel,
     required this.appServices,
     super.key,
   });
 
   @override
-  State<EditorWidget> createState() => _EditorWidgetState();
+  State<EditorWidgetImpl> createState() => _EditorWidgetImplState();
 }
 
-class _EditorWidgetState extends State<EditorWidget> {
+class _EditorWidgetImplState extends State<EditorWidgetImpl> {
   StreamSubscription<void>? _listener;
   late final EditorServiceImpl _editorService;
 
