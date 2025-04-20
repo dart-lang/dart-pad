@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../model.dart';
+import '_stub/editor.dart'
+    if (dart.library.js_interop) '_web/editor.dart'
+    show EditorWidgetImpl;
 
 class EditorWidget extends StatelessWidget {
   const EditorWidget({
@@ -14,6 +17,6 @@ class EditorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return EditorWidgetImpl(appModel: appModel, appServices: appServices);
   }
 }
