@@ -33,7 +33,7 @@ import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const smallScreenWidth = 720;
+const smallScreenWidth = 840;
 
 void main() async {
   usePathUrlStrategy();
