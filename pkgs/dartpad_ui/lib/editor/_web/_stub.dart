@@ -5,7 +5,7 @@
 import 'package:dartpad_shared/model.dart';
 import 'package:flutter/widgets.dart';
 
-import '../model.dart';
+import '../../model.dart';
 
 class ConcreteEditorServiceImpl implements EditorService {
   FocusableActionDetector focusableActionDetector(bool darkMode) =>
