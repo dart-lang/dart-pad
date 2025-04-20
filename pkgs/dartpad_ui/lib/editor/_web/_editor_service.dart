@@ -16,8 +16,6 @@ import 'package:web/web.dart' as web;
 import '../../local_storage/local_storage.dart';
 import '../../model.dart';
 import '_codemirror.dart';
-import '_shared.dart';
-import '_stub.dart' as stub;
 
 CodeMirror? codeMirrorInstance;
 
@@ -25,7 +23,9 @@ enum _CompletionType { auto, manual, quickfix }
 
 bool _viewFactoryInitialized = false;
 
-class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
+const String _editorViewType = 'dartpad-editor';
+
+class EditorServiceImpl implements EditorService {
   final AppModel appModel;
   final AppServices appServices;
 
@@ -34,7 +34,7 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
   _CompletionType _completionType = _CompletionType.auto;
   final Key _elementViewKey = UniqueKey();
 
-  ConcreteEditorServiceImpl(this.appModel, this.appServices) {
+  EditorServiceImpl(this.appModel, this.appServices) {
     _initViewFactory();
 
     _focusNode = FocusNode(
@@ -135,7 +135,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     _codeMirror?.execCommand('autocomplete');
   }
 
-  @override
   FocusableActionDetector focusableActionDetector(bool darkMode) {
     return FocusableActionDetector(
       autofocus: true,
@@ -158,7 +157,7 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
       // },
       child: HtmlElementView(
         key: _elementViewKey,
-        viewType: editorViewType,
+        viewType: _editorViewType,
         onPlatformViewCreated:
             (id) => _platformViewCreated(id, darkMode: darkMode),
       ),
@@ -249,7 +248,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     observer.observe(web.document.body!);
   }
 
-  @override
   void updateCodemirrorMode(bool darkMode) {
     _codeMirror?.setTheme(darkMode ? 'darkpad' : 'dartpad');
   }
@@ -262,7 +260,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     model.sourceCodeController.addListener(updateCodemirrorFromModel);
   }
 
-  @override
   void updateCodemirrorFromModel() {
     final value = appModel.sourceCodeController.value;
     final cursorOffset = value.selection.baseOffset;
@@ -301,7 +298,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     }
   }
 
-  @override
   void updateCodemirrorKeymap() {
     final enabled = appModel.vimKeymapsEnabled.value;
     final cm = _codeMirror!;
@@ -371,7 +367,6 @@ class ConcreteEditorServiceImpl implements stub.ConcreteEditorServiceImpl {
     }
   }
 
-  @override
   void updateEditableStatus() {
     _codeMirror?.setReadOnly(!appModel.appReady.value);
   }
@@ -382,7 +377,7 @@ void _initViewFactory() {
   _viewFactoryInitialized = true;
 
   ui_web.platformViewRegistry.registerViewFactory(
-    editorViewType,
+    _editorViewType,
     _codeMirrorFactory,
   );
 }

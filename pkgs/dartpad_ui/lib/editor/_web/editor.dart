@@ -10,7 +10,7 @@ import 'package:pretty_diff_text/pretty_diff_text.dart';
 
 import '../../local_storage/local_storage.dart';
 import '../../model.dart';
-import '_editor_service_impl.dart';
+import '_editor_service.dart';
 
 // TODO: implement find / find next
 
