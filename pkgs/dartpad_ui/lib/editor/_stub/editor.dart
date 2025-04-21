@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../model.dart';
 
-class EditorWidgetImpl extends StatelessWidget {
+class EditorWidgetImpl extends StatefulWidget {
   final AppModel appModel;
   final AppServices appServices;
 
@@ -17,7 +17,31 @@ class EditorWidgetImpl extends StatelessWidget {
   });
 
   @override
+  State<EditorWidgetImpl> createState() => _EditorWidgetImplState();
+}
+
+class _EditorWidgetImplState extends State<EditorWidgetImpl> {
+  String text = 'no code here yet';
+
+  @override
+  void initState() {
+    super.initState();
+    widget.appModel.sourceCodeController.addListener(_handleTextChange);
+    _handleTextChange();
+  }
+
+  void _handleTextChange() {
+    setState(() => text = widget.appModel.sourceCodeController.text);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Text('Editor Widget Implementation for MacOS');
+    return Text(text);
+  }
+
+  @override
+  void dispose() {
+    widget.appModel.sourceCodeController.removeListener(_handleTextChange);
+    super.dispose();
   }
 }
