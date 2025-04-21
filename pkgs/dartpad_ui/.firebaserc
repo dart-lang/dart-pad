@@ -1,11 +1,18 @@
 {
+  "projects": {
+    "default": "dart-pad"
+  },
   "targets": {
-    "dartpad-pr-3260": {
+    "dart-pad": {
       "hosting": {
         "dartpad": [
-          "dartpad-pr-3260"
+          "dart-pad-a3c64"
+        ],
+        "preview": [
+          "sketch-pad-1cebb"
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }

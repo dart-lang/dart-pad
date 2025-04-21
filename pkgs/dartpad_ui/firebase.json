@@ -92,6 +92,99 @@
           ]
         }
       ]
+    },
+    {
+      "target": "preview",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/dart",
+          "destination": "/?sample=dart",
+          "type": 301
+        },
+        {
+          "source": "/flutter",
+          "destination": "/?sample=flutter",
+          "type": 301
+        },
+        {
+          "source": "/embed-dart?(.html)",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-flutter?(.html)",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-flutter_showcase?(.html)",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-html?(.html)",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/embed-inline?(.html)",
+          "destination": "/?embed=true",
+          "type": 301
+        },
+        {
+          "source": "/workshops?(.html)",
+          "destination": "https://github.com/dart-lang/dart-pad/wiki/Workshop-authoring-guide",
+          "type": 301
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/frame/assets/**",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Embedder-Policy",
+              "value": "credentialless"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "cross-origin"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
