@@ -553,7 +553,7 @@ class LoadingOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     return ValueListenableBuilder<CompilingState>(
       valueListenable: appModel.compilingState,
-      builder: (_, compilingState, __) {
+      builder: (_, compilingState, _) {
         final color = theme.colorScheme.surface;
         final compiling = compilingState == CompilingState.restarting;
 
@@ -642,7 +642,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Center(
                       child: ValueListenableBuilder<String>(
                         valueListenable: appModel.title,
-                        builder: (_, String value, __) => Text(value),
+                        builder: (_, String value, _) => Text(value),
                       ),
                     ),
                   ),

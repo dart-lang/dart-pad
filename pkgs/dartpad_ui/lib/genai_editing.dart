@@ -54,7 +54,7 @@ class EditorWithButtons extends StatelessWidget {
                       // Dartdoc help button
                       ValueListenableBuilder<bool>(
                         valueListenable: appModel.docHelpBusy,
-                        builder: (_, bool value, __) {
+                        builder: (_, bool value, _) {
                           return PointerInterceptor(
                             child: MiniIconButton(
                               icon: const Icon(Icons.help_outline),
@@ -70,7 +70,7 @@ class EditorWithButtons extends StatelessWidget {
                       // Format action
                       ValueListenableBuilder<bool>(
                         valueListenable: appModel.formattingBusy,
-                        builder: (_, bool value, __) {
+                        builder: (_, bool value, _) {
                           return PointerInterceptor(
                             child: MiniIconButton(
                               icon: const Icon(Icons.format_align_left),
@@ -85,11 +85,11 @@ class EditorWithButtons extends StatelessWidget {
                       // Run action
                       ValueListenableBuilder(
                         valueListenable: appModel.showReload,
-                        builder: (_, bool value, __) {
+                        builder: (_, bool value, _) {
                           if (!value) return const SizedBox();
                           return ValueListenableBuilder<bool>(
                             valueListenable: appModel.canReload,
-                            builder: (_, bool value, __) {
+                            builder: (_, bool value, _) {
                               return PointerInterceptor(
                                 child: ReloadButton(
                                   onPressed: value ? onCompileAndReload : null,
@@ -103,7 +103,7 @@ class EditorWithButtons extends StatelessWidget {
                       // Run action
                       ValueListenableBuilder<CompilingState>(
                         valueListenable: appModel.compilingState,
-                        builder: (_, compiling, __) {
+                        builder: (_, compiling, _) {
                           return PointerInterceptor(
                             child: RunButton(
                               onPressed:
