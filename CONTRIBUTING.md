@@ -48,3 +48,5 @@ To run the front-end, see the [dartpad_ui readme](pkgs/dartpad_ui/README.md).
 ## Other
 
 See internal details at go/dartpad-manual.
+
+See code style at doc/CODE_STYLE.md

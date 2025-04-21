@@ -17,7 +17,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
-import 'embed.dart';
+import 'embed/embed.dart';
 import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
@@ -32,7 +32,7 @@ import 'theme.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const smallScreenWidth = 720;
+const smallScreenWidth = 840;
 
 void main() async {
   usePathUrlStrategy();
@@ -291,10 +291,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
           sampleId: widget.builtinSampleId,
           flutterSampleId: widget.flutterSampleId,
           channel: widget.initialChannel,
-          keybinding: LocalStorage.instance.getUserKeybinding(),
+          keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
           getFallback:
               () =>
-                  LocalStorage.instance.getUserCode() ??
+                  DartPadLocalStorage.instance.getUserCode() ??
                   Samples.defaultSnippet(),
         )
         .then((value) {

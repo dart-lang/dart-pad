@@ -26,11 +26,11 @@ Future<void> openCodeGenerationDialog(
   required bool changeLastPrompt,
 }) async {
   final resolvedAppType =
-      appType ?? LocalStorage.instance.getLastCreateCodeAppType();
+      appType ?? DartPadLocalStorage.instance.getLastCreateCodeAppType();
   final appModel = Provider.of<AppModel>(context, listen: false);
 
   final appServices = Provider.of<AppServices>(context, listen: false);
-  final lastPrompt = LocalStorage.instance.getLastCreateCodePrompt();
+  final lastPrompt = DartPadLocalStorage.instance.getLastCreateCodePrompt();
   if (changeLastPrompt) {
     appModel.genAiManager.newCodePromptController.text = lastPrompt ?? '';
   }
@@ -72,8 +72,10 @@ Future<void> openCodeGenerationDialog(
     return;
   }
 
-  LocalStorage.instance.saveLastCreateCodeAppType(promptResponse.appType);
-  LocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
+  DartPadLocalStorage.instance.saveLastCreateCodeAppType(
+    promptResponse.appType,
+  );
+  DartPadLocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
   appModel.genAiManager.preGenAiSourceCode.value =
       appModel.sourceCodeController.text;
