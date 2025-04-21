@@ -6,4 +6,4 @@ import '../../model.dart';
 
 ExecutionService? executionServiceInstance;
 
-const String viewType = 'dartpad-execution';
+const String executionViewType = 'dartpad-execution';
