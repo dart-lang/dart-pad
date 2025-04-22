@@ -5,10 +5,14 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
 import 'model.dart';
 
 export 'model.dart';
+
+@visibleForTesting
+int activeHttpRequests = 0;
 
 class ServicesClient {
   final Client client;
@@ -80,7 +84,9 @@ class ServicesClient {
     String action,
     T Function(Map<String, Object?> json) responseFactory,
   ) async {
+    activeHttpRequests++;
     final response = await client.get(Uri.parse('${rootUrl}api/v3/$action'));
+    activeHttpRequests--;
 
     if (response.statusCode != 200) {
       throw ApiRequestError(action, response.body);
@@ -100,11 +106,14 @@ class ServicesClient {
     Map<String, Object?> request,
     T Function(Map<String, Object?> json) responseFactory,
   ) async {
+    activeHttpRequests++;
     final response = await client.post(
       Uri.parse('${rootUrl}api/v3/$action'),
       encoding: utf8,
       body: json.encode(request),
     );
+    activeHttpRequests--;
+
     if (response.statusCode != 200) {
       throw ApiRequestError(action, response.body);
     } else {
@@ -122,11 +131,13 @@ class ServicesClient {
     String action,
     Map<String, Object?> request,
   ) async* {
+    activeHttpRequests++;
     final httpRequest = Request('POST', Uri.parse('${rootUrl}api/v3/$action'));
     httpRequest.encoding = utf8;
     httpRequest.headers['Content-Type'] = 'application/json';
     httpRequest.body = json.encode(request);
     final response = await client.send(httpRequest);
+    activeHttpRequests--;
 
     if (response.statusCode != 200) {
       throw ApiRequestError(

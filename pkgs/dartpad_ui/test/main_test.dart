@@ -2,16 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/services.dart';
 import 'package:dartpad_ui/main.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+import 'test_infra/test_utils.dart';
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Initial screen.', (WidgetTester tester) async {
     await tester.pumpWidget(const DartPadApp());
+    await waitForRequestsToComplete(tester);
 
     await expectLater(
       find.byType(DartPadApp),
-      matchesGoldenFile('goldens/main_DartPadApp.png'),
+      matchesGoldenFile('$goldenPath/main_DartPadApp.png'),
     );
   });
 }
