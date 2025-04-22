@@ -33,7 +33,9 @@ import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const smallScreenWidth = 840;
+
+// Smallest screen width when the screen is considered to be a large screen.
+const minLargeScreenWidth = 866.0;
 
 void main() async {
   usePathUrlStrategy();
@@ -402,7 +404,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final scaffold = LayoutBuilder(
       builder: (context, constraints) {
         // Use the mobile UI layout for small screen widths.
-        if (constraints.maxWidth <= smallScreenWidth) {
+        if (constraints.maxWidth < minLargeScreenWidth) {
           return Scaffold(
             key: _scaffoldKey,
             appBar:
@@ -593,7 +595,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wideLayout = constraints.maxWidth > smallScreenWidth;
+        final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
@@ -653,7 +655,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottom: bottom,
           actions: [
             // Hide the Install SDK button when the screen width is too small.
-            if (constraints.maxWidth > smallScreenWidth)
+            if (constraints.maxWidth >= minLargeScreenWidth)
               ContinueInMenu(openInFirebaseStudio: _openInFirebaseStudio),
             const SizedBox(width: denseSpacing),
             _BrightnessButton(

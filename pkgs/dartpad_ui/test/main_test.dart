@@ -11,6 +11,8 @@ import 'test_infra/test_utils.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('Initial screen.', (WidgetTester tester) async {
+    await setMinLargeScreenWidth(tester);
+
     await tester.pumpWidget(const DartPadApp());
     await waitForRequestsToComplete(tester);
 

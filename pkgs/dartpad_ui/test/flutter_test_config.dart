@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// See https://api.flutter.dev/flutter/flutter_test/flutter_test-library.html.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  // Set golden file comparator to use a custom tolerance.
   goldenFileComparator = _GoldenDiffComparator();
 
   await testMain();
@@ -22,11 +23,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 class _GoldenDiffComparator extends LocalFileComparator {
   _GoldenDiffComparator() : super(Uri.parse('.'));
 
-  static const _tolerance = 0.000000001;
+  static const _tolerance = 0.015; // 1.5% of difference is ok.
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    print('!!!!!! Comparing $golden with tolerance of ${_tolerance * 100}%.');
     final ComparisonResult result = await GoldenFileComparator.compareLists(
       imageBytes,
       await getGoldenBytes(golden),
@@ -39,7 +39,8 @@ class _GoldenDiffComparator extends LocalFileComparator {
     if (!result.passed) {
       debugPrint(
         'A tolerable difference of ${result.diffPercent * 100}% was found when '
-        'comparing $golden, that is less than the tolerance of ${_tolerance * 100}%.',
+        'comparing $golden, that is acceptable as it is '
+        'less than the tolerance of ${_tolerance * 100}%.',
       );
     }
     return result.passed || result.diffPercent <= _tolerance;

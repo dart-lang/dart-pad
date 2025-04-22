@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:dartpad_shared/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const goldenPath = 'test/test_infra/goldens';
@@ -17,39 +17,11 @@ Future<void> waitForRequestsToComplete(WidgetTester tester) async {
   }
 }
 
-Future<void> dartPadMatch(Finder finder, String goldenFile) async {
-  goldenFileComparator = _GoldenDiffComparator(
-    'test_infra/goldens/$goldenFile',
-  );
-
-  await expectLater(finder, goldenFileComparator);
-}
-
-/// Customization of tolerance for golden file comparison.
+/// Sets the window size to be smallest possible for a large screen.
 ///
-/// See https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
-class _GoldenDiffComparator extends LocalFileComparator {
-  _GoldenDiffComparator(String testFile) : super(Uri.parse(testFile));
-
-  static const _tolerance = 0.000000001;
-
-  @override
-  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    final ComparisonResult result = await GoldenFileComparator.compareLists(
-      imageBytes,
-      await getGoldenBytes(golden),
-    );
-
-    if (!result.passed && result.diffPercent > _tolerance) {
-      final String error = await generateFailureOutput(result, golden, basedir);
-      throw FlutterError(error);
-    }
-    if (!result.passed) {
-      debugPrint(
-        'A tolerable difference of ${result.diffPercent * 100}% was found when '
-        'comparing $golden, that is less than the tolerance of ${_tolerance * 100}%.',
-      );
-    }
-    return result.passed || result.diffPercent <= _tolerance;
-  }
+/// Needed to test there is no overflow on almost small screens.
+Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
+  await tester.binding.setSurfaceSize(
+    const Size(minLargeScreenWidth, minLargeScreenWidth * 0.7),
+  );
 }
