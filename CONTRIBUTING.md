@@ -18,7 +18,8 @@ All files in the project must start with the following header.
     // BSD-style license that can be found in the LICENSE file.
 
 ### The small print
-Contributions made by corporations are covered by a different agreement than the one above, the Software Grant and Corporate Contributor License Agreement.
+Contributions made by corporations are covered by a different agreement
+than the one above, the Software Grant and Corporate Contributor License Agreement.
 
 ## How to change and add to Sample Gists
 
@@ -44,6 +45,11 @@ Contributions made by corporations are covered by a different agreement than the
 To run the server, see the [dart_services readme](pkgs/dart_services/README.md).
 
 To run the front-end, see the [dartpad_ui readme](pkgs/dartpad_ui/README.md).
+
+## Update goldens
+
+When your change requires update to [golden images](https://api.flutter.dev/flutter/flutter_test/matchesGoldenFile.html), run the tests
+with flag `--update-goldens`.
 
 ## Other
 

@@ -11,7 +11,7 @@ void main() {
 
     await expectLater(
       find.byType(DartPadApp),
-      matchesGoldenFile('DartPadApp.png'),
+      matchesGoldenFile('goldens/main_DartPadApp.png'),
     );
   });
 }
