@@ -1,40 +1,32 @@
-// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright 2014 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:async';
 
-import 'package:dartpad_shared/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const goldenPath = 'test/test_infra/goldens';
+/// Test configuration for each test library in this directory.
+///
+/// See https://api.flutter.dev/flutter/flutter_test/flutter_test-library.html.
+Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  goldenFileComparator = _GoldenDiffComparator();
 
-/// Waits for all active HTTP requests to complete.
-Future<void> waitForRequestsToComplete(WidgetTester tester) async {
-  while (activeHttpRequests > 0) {
-    await tester.pumpAndSettle();
-  }
-}
-
-Future<void> dartPadMatch(Finder finder, String goldenFile) async {
-  goldenFileComparator = _GoldenDiffComparator(
-    'test_infra/goldens/$goldenFile',
-  );
-
-  await expectLater(finder, goldenFileComparator);
+  await testMain();
 }
 
 /// Customization of tolerance for golden file comparison.
 ///
 /// See https://github.com/flutter/flutter/pull/77014#issuecomment-1048896776
 class _GoldenDiffComparator extends LocalFileComparator {
-  _GoldenDiffComparator(String testFile) : super(Uri.parse(testFile));
+  _GoldenDiffComparator() : super(Uri.parse('.'));
 
   static const _tolerance = 0.000000001;
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    print('!!!!!! Comparing $golden with tolerance of ${_tolerance * 100}%.');
     final ComparisonResult result = await GoldenFileComparator.compareLists(
       imageBytes,
       await getGoldenBytes(golden),
