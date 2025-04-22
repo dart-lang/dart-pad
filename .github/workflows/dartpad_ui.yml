@@ -14,7 +14,7 @@ on:
       - '.github/workflows/dartpad_ui.yml'
       - 'pkgs/dartpad_ui/**'
   schedule:
-    - cron: '0 0 * * 0' # weekly
+    - cron: '0 0 * * *' # daily
 
 jobs:
   validate:
