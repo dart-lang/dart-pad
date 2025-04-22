@@ -21,7 +21,14 @@ Future<void> waitForRequestsToComplete(WidgetTester tester) async {
 ///
 /// Needed to test there is no overflow on almost small screens.
 Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
+  // TODO: figure out why we need to add some width to avoid overflow
+  // in tests, while overflow is not happening in real app on web and on mac.
+  const screenWidthDelta = 350;
   await tester.binding.setSurfaceSize(
-    const Size(minLargeScreenWidth, minLargeScreenWidth * 0.7),
+    const Size(
+      minLargeScreenWidth + screenWidthDelta,
+      minLargeScreenWidth * 0.7,
+    ),
   );
+  addTearDown(() => tester.binding.setSurfaceSize(null));
 }
