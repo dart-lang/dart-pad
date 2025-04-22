@@ -11,6 +11,10 @@ import 'model.dart';
 
 export 'model.dart';
 
+/// The number of active HTTP requests.
+///
+/// This is used in testing to determine when
+/// the app is done with all requests.
 @visibleForTesting
 int activeHttpRequests = 0;
 
