@@ -18,8 +18,7 @@ All files in the project must start with the following header.
     // BSD-style license that can be found in the LICENSE file.
 
 ### The small print
-Contributions made by corporations are covered by a different agreement
-than the one above, the Software Grant and Corporate Contributor License Agreement.
+Contributions made by corporations are covered by a different agreement than the one above, the Software Grant and Corporate Contributor License Agreement.
 
 ## How to change and add to Sample Gists
 
