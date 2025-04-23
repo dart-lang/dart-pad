@@ -44,7 +44,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
 1. Make sure your current Flutter channel is set to `stable` and it is fresh.
 
-1. In [.firebaserc](./.firebaserc) temporarily change project names.
+1. Temporarily update [.firebaserc](./.firebaserc):
 
    ```
    {
