@@ -4,7 +4,7 @@
 
 import 'dart:ui';
 
-import 'package:dartpad_shared/services.dart';
+import 'package:dartpad_shared/http_client.dart';
 import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +12,7 @@ const goldenPath = 'test/test_infra/goldens';
 
 /// Waits for all active HTTP requests to complete.
 Future<void> waitForRequestsToComplete(WidgetTester tester) async {
-  while (activeHttpRequests > 0) {
+  while (!DartPadHttpClient.allRequestsCompleted) {
     await tester.pumpAndSettle();
   }
 }
