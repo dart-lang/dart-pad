@@ -7,7 +7,6 @@ import 'package:dart_services/server.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/http_client.dart';
 import 'package:dartpad_shared/services.dart';
-import 'package:http/http.dart';
 import 'package:test/test.dart';
 
 import 'src/sample_code.dart';
