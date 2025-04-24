@@ -185,7 +185,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final Client _httpClient = Client();
+  late final Client _httpClient;
   late ServicesClient services;
 
   ExecutionService? _executionService;
@@ -203,9 +203,14 @@ class AppServices {
     Channel.beta,
   };
 
-  AppServices(this.appModel, Channel channel) {
-    _channel.value = channel;
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+  AppServices(
+    this.appModel,
+    Channel channel, {
+    ServicesClient? servicesClient,
+  }) {
+    _httpClient = servicesClient?.client ?? Client();
+    services =
+        servicesClient ?? ServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);

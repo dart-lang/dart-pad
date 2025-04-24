@@ -33,7 +33,9 @@ import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const minLargeScreenWidth = 840;
+
+/// This screen width should avoid overflow both on web and macOS.
+const minLargeScreenWidth = 866;
 
 void main() async {
   usePathUrlStrategy();
@@ -45,11 +47,14 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({super.key, this.channel});
+  const DartPadApp({super.key, this.channel, this.services});
 
   /// Channel to use if url parameter is not set.
   @visibleForTesting
   final String? channel;
+
+  @visibleForTesting
+  final ServicesClient? services;
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
@@ -209,6 +214,7 @@ class _DartPadAppState extends State<DartPadApp> {
 
 class DartPadMainPage extends StatefulWidget {
   final String? initialChannel;
+  final ServicesClient? services;
   final bool embedMode;
   final bool runOnLoad;
   final void Function(BuildContext, bool) handleBrightnessChanged;
@@ -224,6 +230,7 @@ class DartPadMainPage extends StatefulWidget {
     this.gistId,
     this.builtinSampleId,
     this.flutterSampleId,
+    this.services,
   }) : super(
          key: ValueKey(
            'sample:$builtinSampleId gist:$gistId flutter:$flutterSampleId',
@@ -284,7 +291,11 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             : null;
 
     appModel = AppModel();
-    appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
+    appServices = AppServices(
+      appModel,
+      channel ?? Channel.defaultChannel,
+      servicesClient: widget.services,
+    );
 
     appServices.populateVersions();
     appServices
