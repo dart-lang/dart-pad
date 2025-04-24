@@ -70,14 +70,14 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
    Select `Hosting` (not `App Hosting`) and choose defaults for other questions.
 
-1. Revert all changes, that previous command made in firebase.json, and
+1. Revert all changes, that previous command made in  [firebase.json](./firebase.json), and
    make sure (temporarily) there is only one item under `hosting`,
    with `"target": "dartpad"`.
 
 1. Run `firebase deploy`.
 
 
-After configured, redeploy with commands:
+After configured, you can redeploy with commands:
 
 ```
 cd pkgs/dartpad_ui
