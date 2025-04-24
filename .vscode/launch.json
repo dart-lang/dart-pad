@@ -79,6 +79,11 @@
                 "--web-launch-url",
                 "http://localhost:8888/?genui=true&channel=localhost",
             ],
-        }
+        },
+        {
+            "name": "current test file",
+            "request": "launch",
+            "type": "dart",
+        },
     ],
 }

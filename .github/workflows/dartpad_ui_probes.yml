@@ -3,18 +3,8 @@ name: package:dartpad_ui
 permissions: read-all
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/dartpad_ui.yml'
-      - 'pkgs/dartpad_ui/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/dartpad_ui.yml'
-      - 'pkgs/dartpad_ui/**'
   schedule:
-    - cron: '0 0 * * 0' # weekly
+    - cron: '0 0 * * *' # daily
 
 jobs:
   validate:
@@ -33,8 +23,4 @@ jobs:
           channel: ${{ matrix.sdk }}
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter analyze
-      - run: dart format --set-exit-if-changed .
-      - run: flutter build web
-      - run: flutter test test/presubmit
-      - run: sh ./tool/check_cycles.sh
+      - run: flutter test test/probes
