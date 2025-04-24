@@ -13,7 +13,7 @@ const goldenPath = 'test/test_infra/goldens';
 ///
 /// Needed to test there is no overflow on almost small screens.
 Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
-  // TODO: figure out why we need to add some width to avoid overflow
+  // We need to add some width to avoid overflow
   // in tests, while overflow is not happening in real app on web and on mac.
   const screenWidthDelta = 350;
   await tester.binding.setSurfaceSize(
