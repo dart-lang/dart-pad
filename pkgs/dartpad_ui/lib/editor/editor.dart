@@ -7,8 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 
 import '../model.dart';
-import '_stub/editor.dart'
-    if (dart.library.js_interop) '_web/editor.dart'
+import 'stub/editor.dart'
+    if (dart.library.js_interop) 'web/editor.dart'
     show EditorWidgetImpl;
 
 class EditorWidget extends StatelessWidget {
