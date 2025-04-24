@@ -6,13 +6,12 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 
-import 'http_client.dart';
 import 'model.dart';
 
 export 'model.dart';
 
 class ServicesClient {
-  final DartPadHttpClient client;
+  final Client client;
   final String rootUrl;
 
   ServicesClient(this.client, {required this.rootUrl});

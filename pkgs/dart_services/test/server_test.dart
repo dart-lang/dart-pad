@@ -5,8 +5,8 @@
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
 import 'package:dart_services/src/sdk.dart';
-import 'package:dartpad_shared/http_client.dart';
 import 'package:dartpad_shared/services.dart';
+import 'package:http/http.dart';
 import 'package:test/test.dart';
 
 import 'src/sample_code.dart';
@@ -17,13 +17,13 @@ void defineTests() {
   group('server', () {
     final sdk = Sdk.fromLocalFlutter();
     late final EndpointsServer server;
-    late final DartPadHttpClient httpClient;
+    late final Client httpClient;
     late final ServicesClient client;
 
     setUpAll(() async {
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
-      httpClient = DartPadHttpClient();
+      httpClient = Client();
       client = ServicesClient(
         httpClient,
         rootUrl: 'http://localhost:${server.port}/',

@@ -4,18 +4,10 @@
 
 import 'dart:ui';
 
-import 'package:dartpad_shared/http_client.dart';
 import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const goldenPath = 'test/test_infra/goldens';
-
-/// Waits for all active HTTP requests to complete.
-Future<void> waitForRequestsToComplete(WidgetTester tester) async {
-  while (!DartPadHttpClient.allRequestsCompleted) {
-    await tester.pumpAndSettle();
-  }
-}
 
 /// Sets the window size to be smallest possible for a large screen.
 ///
