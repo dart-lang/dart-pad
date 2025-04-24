@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 class GistLoader {
-  final Client client = Client();
+  final http.Client client = http.Client();
 
   Future<Gist> load(String gistId) async {
     final response = await client.get(

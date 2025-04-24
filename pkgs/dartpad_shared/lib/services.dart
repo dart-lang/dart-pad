@@ -105,7 +105,6 @@ class ServicesClient {
       encoding: utf8,
       body: json.encode(request),
     );
-
     if (response.statusCode != 200) {
       throw ApiRequestError(action, response.body);
     } else {
