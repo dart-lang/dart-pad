@@ -13,16 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Initial screen.', (WidgetTester tester) async {
-    await setMinLargeScreenWidth(tester);
-
-    await tester.pumpWidget(const DartPadApp());
-
-    final DartPadMainPageState state = tester.state(
-      find.byType(DartPadMainPage),
-    );
-
-    await state.initialized.future;
-    await tester.pumpAndSettle();
+    await initializeMainPage(tester);
     await expectLater(find.byType(EditorWithButtons), findsOneWidget);
   });
 }

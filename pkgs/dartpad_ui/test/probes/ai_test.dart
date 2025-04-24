@@ -13,17 +13,6 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('AI CUJ', (WidgetTester tester) async {
-    await setMinLargeScreenWidth(tester);
-
-    await tester.pumpWidget(const DartPadApp());
-
-    final DartPadMainPageState state = tester.state(
-      find.byType(DartPadMainPage),
-    );
-
-    await state.initialized.future;
-
-    await tester.pumpAndSettle();
-    await expectLater(find.byType(EditorWithButtons), findsOneWidget);
+    final state = await initializeMainPage(tester);
   });
 }
