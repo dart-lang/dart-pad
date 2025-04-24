@@ -229,16 +229,18 @@ class DartPadMainPage extends StatefulWidget {
        );
 
   @override
-  State<DartPadMainPage> createState() => _DartPadMainPageState();
+  State<DartPadMainPage> createState() => DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage>
+@visibleForTesting
+class DartPadMainPageState extends State<DartPadMainPage>
     with SingleTickerProviderStateMixin {
   late final AppModel appModel;
   late final AppServices appServices;
   late final SplitViewController mainSplitter;
   late final SplitViewController consoleSplitter;
   late final TabController tabController;
+  final initialized = Completer<void>();
 
   final GlobalKey _executionWidgetKey = GlobalKey(
     debugLabel: 'execution-widget',
@@ -255,7 +257,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   @override
   void initState() {
     super.initState();
+    _initialize();
+  }
 
+  Future<void> _initialize() async {
     tabController = TabController(length: 2, vsync: this)..addListener(() {
       // Rebuild when the user changes tabs so that the IndexedStack updates
       // its active child view.
@@ -284,26 +289,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     appModel = AppModel();
     appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
 
-    appServices.populateVersions();
-    appServices
-        .performInitialLoad(
-          gistId: widget.gistId,
-          sampleId: widget.builtinSampleId,
-          flutterSampleId: widget.flutterSampleId,
-          channel: widget.initialChannel,
-          keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
-          getFallback:
-              () =>
-                  DartPadLocalStorage.instance.getUserCode() ??
-                  Samples.defaultSnippet(),
-        )
-        .then((value) {
-          // Start listening for inject code messages.
-          handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
-          if (widget.runOnLoad) {
-            appServices.performCompileAndRun();
-          }
-        });
     appModel.compilingState.addListener(_handleRunStarted);
 
     tabController.addListener(() {
@@ -313,6 +298,31 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         appServices.editorService?.refreshViewAfterWait();
       }
     });
+
+    await Future.wait([
+      appServices.populateVersions(),
+      appServices
+          .performInitialLoad(
+            gistId: widget.gistId,
+            sampleId: widget.builtinSampleId,
+            flutterSampleId: widget.flutterSampleId,
+            channel: widget.initialChannel,
+            keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
+            getFallback:
+                () =>
+                    DartPadLocalStorage.instance.getUserCode() ??
+                    Samples.defaultSnippet(),
+          )
+          .then((value) {
+            // Start listening for inject code messages.
+            handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
+            if (widget.runOnLoad) {
+              appServices.performCompileAndRun();
+            }
+          }),
+    ]);
+
+    initialized.complete();
 
     debugPrint('initialized: useGenui = $useGenUI, channel = $channel.');
   }

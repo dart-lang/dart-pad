@@ -15,7 +15,13 @@ void main() {
     await setMinLargeScreenWidth(tester);
 
     await tester.pumpWidget(const DartPadApp());
-    await waitForRequestsToComplete(tester);
+
+    final DartPadMainPageState state = tester.state(
+      find.byType(DartPadMainPage),
+    );
+
+    await state.initialized.future;
+    await tester.pumpAndSettle();
 
     await expectLater(
       find.byType(DartPadApp),
