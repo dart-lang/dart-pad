@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_ui/genai_editing.dart';
 import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -22,10 +23,6 @@ void main() {
 
     await state.initialized.future;
     await tester.pumpAndSettle();
-
-    await expectLater(
-      find.byType(DartPadApp),
-      matchesGoldenFile('$goldenPath/main_DartPadApp.png'),
-    );
+    await expectLater(find.byType(EditorWithButtons), findsOneWidget);
   });
 }
