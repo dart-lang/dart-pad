@@ -3,16 +3,6 @@ name: package:dartpad_ui
 permissions: read-all
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/dartpad_ui.yml'
-      - 'pkgs/dartpad_ui/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/dartpad_ui.yml'
-      - 'pkgs/dartpad_ui/**'
   schedule:
     - cron: '0 0 * * *' # daily
 
