@@ -33,7 +33,7 @@ import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const smallScreenWidth = 840;
+const minLargeScreenWidth = 840;
 
 void main() async {
   usePathUrlStrategy();
@@ -45,7 +45,11 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({super.key});
+  const DartPadApp({super.key, this.channel});
+
+  /// Channel to use if url parameter is not set.
+  @visibleForTesting
+  final String? channel;
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
@@ -126,7 +130,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
-    final channelParam = state.uri.queryParameters['channel'];
+    final channelParam = state.uri.queryParameters['channel'] ?? widget.channel;
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
     useGenUI = state.uri.queryParameters['genui'] == 'true';
@@ -402,7 +406,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final scaffold = LayoutBuilder(
       builder: (context, constraints) {
         // Use the mobile UI layout for small screen widths.
-        if (constraints.maxWidth <= smallScreenWidth) {
+        if (constraints.maxWidth < minLargeScreenWidth) {
           return Scaffold(
             key: _scaffoldKey,
             appBar:
@@ -593,7 +597,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wideLayout = constraints.maxWidth > smallScreenWidth;
+        final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
@@ -653,7 +657,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottom: bottom,
           actions: [
             // Hide the Install SDK button when the screen width is too small.
-            if (constraints.maxWidth > smallScreenWidth)
+            if (constraints.maxWidth >= minLargeScreenWidth)
               ContinueInMenu(openInFirebaseStudio: _openInFirebaseStudio),
             const SizedBox(width: denseSpacing),
             _BrightnessButton(
