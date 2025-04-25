@@ -1,18 +1,11 @@
 {
-  "projects": {
-    "default": "dartpad-polina"
-  },
   "targets": {
     "dartpad-polina": {
       "hosting": {
         "dartpad": [
           "dartpad-polina"
-        ],
-        "preview": [
-          "dartpad-polina"
         ]
       }
     }
-  },
-  "etags": {}
+  }
 }
