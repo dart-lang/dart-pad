@@ -401,8 +401,8 @@ class _ImageAttachmentWidget extends StatelessWidget {
     required this.compactDisplay,
   });
 
-  final double regularThumbnailSize = 64;
-  final double compactThumbnailSize = 32;
+  static const double _regularThumbnailSize = 64;
+  static const double _compactThumbnailSize = 32;
 
   @override
   Widget build(BuildContext context) {
@@ -434,9 +434,10 @@ class _ImageAttachmentWidget extends StatelessWidget {
           },
           child: Container(
             margin: resolvedThumbnailEdgeInsets,
-            width: compactDisplay ? compactThumbnailSize : regularThumbnailSize,
+            width:
+                compactDisplay ? _compactThumbnailSize : _regularThumbnailSize,
             height:
-                compactDisplay ? compactThumbnailSize : regularThumbnailSize,
+                compactDisplay ? _compactThumbnailSize : _regularThumbnailSize,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: MemoryImage(attachment.bytes),
