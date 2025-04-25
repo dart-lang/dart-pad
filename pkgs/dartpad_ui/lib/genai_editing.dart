@@ -308,10 +308,12 @@ class _GeminiCodeEditTool extends StatefulWidget {
 
   final AppModel appModel;
   final Future<void> Function(BuildContext, PromptDialogResponse) onUpdateCode;
-  final VoidCallback onCancelUpdateCode;
+
   final void Function(BuildContext context) onEditUpdateCodePrompt;
-  final VoidCallback onAcceptUpdateCode;
   final VoidCallback onRejectSuggestedCode;
+  final VoidCallback onCancelUpdateCode;
+  final VoidCallback onAcceptUpdateCode;
+
   final bool enabled;
 
   @override
@@ -447,9 +449,50 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
       ),
     );
 
+    return Column(
+      children: [
+        _AcceptRejectBlock(
+          genAiManager,
+          onCancelUpdateCode: widget.onCancelUpdateCode,
+          onAcceptUpdateCode: widget.onAcceptUpdateCode,
+          onEditUpdateCodePrompt: widget.onEditUpdateCodePrompt,
+          onRejectSuggestedCode: widget.onRejectSuggestedCode,
+        ),
+        textInputBlock,
+      ],
+    );
+  }
+}
+
+class _AcceptRejectBlock extends StatelessWidget {
+  const _AcceptRejectBlock(
+    this.genAiManager, {
+    required this.onCancelUpdateCode,
+    required this.onAcceptUpdateCode,
+    required this.onEditUpdateCodePrompt,
+    required this.onRejectSuggestedCode,
+  });
+
+  final GenAiManager genAiManager;
+  final VoidCallback onCancelUpdateCode;
+  final VoidCallback onAcceptUpdateCode;
+  final void Function(BuildContext context) onEditUpdateCodePrompt;
+  final VoidCallback onRejectSuggestedCode;
+
+  static String _statusMessage(BuildContext context, GenAiState genAiState) {
+    final size = MediaQuery.of(context).size;
+    if (size.width < 1150) return '';
+
+    return genAiState == GenAiState.generating
+        ? 'Generating your code'
+        : 'Gemini proposed the above';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context, listen: false);
 
-    final acceptRejectBlock = ValueListenableBuilder<GenAiState>(
+    return ValueListenableBuilder<GenAiState>(
       valueListenable: genAiManager.currentState,
       builder: (BuildContext context, GenAiState genAiState, Widget? child) {
         if (genAiState == GenAiState.standby) {
@@ -463,39 +506,32 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
         final geminiMessageTextTheme = TextStyle(
           color: Color.fromARGB(255, 60, 60, 60),
         );
-        // TODO(alsobrian) 3/11/25: ExpectNever?
-        final resolvedStatusMessage =
-            genAiState == GenAiState.generating
-                ? Text('Generating your code', style: geminiMessageTextTheme)
-                : Text(
-                  'Gemini proposed the above',
-                  style: geminiMessageTextTheme,
-                );
+
         final resolvedButtons =
             genAiState == GenAiState.generating
                 ? [
                   TextButton(
-                    onPressed: widget.onCancelUpdateCode,
+                    onPressed: onCancelUpdateCode,
                     child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
                 ]
                 : [
                   TextButton(
-                    onPressed: widget.onRejectSuggestedCode,
+                    onPressed: onRejectSuggestedCode,
                     child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
 
                   if (appModel.genAiManager.activeCuj.value !=
                       GenAiCuj.suggestFix)
                     OutlinedButton(
-                      onPressed: () => widget.onEditUpdateCodePrompt(context),
+                      onPressed: () => onEditUpdateCodePrompt(context),
                       child: Text(
                         'Change Prompt',
                         style: geminiMessageTextTheme,
                       ),
                     ),
                   FilledButton(
-                    onPressed: widget.onAcceptUpdateCode,
+                    onPressed: onAcceptUpdateCode,
                     style: FilledButton.styleFrom(
                       backgroundColor: Color(0xff2e64de),
                     ),
@@ -505,6 +541,7 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
                     ),
                   ),
                 ];
+
         return Container(
           height: 56,
           decoration: BoxDecoration(
@@ -528,7 +565,10 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
                   children: [
                     geminiIcon,
                     SizedBox(width: 8),
-                    resolvedStatusMessage,
+                    Text(
+                      _statusMessage(context, genAiState),
+                      style: geminiMessageTextTheme,
+                    ),
                   ],
                 ),
                 Expanded(
@@ -547,8 +587,6 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
         );
       },
     );
-
-    return Column(children: [acceptRejectBlock, textInputBlock]);
   }
 }
 

@@ -777,7 +777,7 @@ class GenAiManager {
   }
 
   void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
-    stream.value = newStream;
+    stream.value = newStream.asBroadcastStream();
   }
 
   void setStreamIsDone(bool which) {
