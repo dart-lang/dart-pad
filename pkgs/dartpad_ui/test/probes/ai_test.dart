@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad_ui/genai_editing.dart';
-import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -13,6 +11,19 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('AI CUJ', (WidgetTester tester) async {
-    final state = await initializeMainPage(tester);
+    await initializeMainPage(tester);
+    await tester.tap(find.text('Create with Gemini'));
+    await tester.pump();
+    await tester.tap(find.text('Flutter Snippet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('to-do app'));
+    await tester.pump();
+    await tester.tap(find.text('Generate'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Placeholder for HtmlElementView, available on web only.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Accept'));
   });
 }
