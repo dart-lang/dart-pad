@@ -773,6 +773,8 @@ class GenAiManager {
   }
 
   void enterAwaitingAcceptReject() {
+    // We need broadcast, because sometimes a new widget wants to subscribe,
+    // when state of previous one is not disposed yet.
     state.value = GenAiState.awaitingAcceptReject;
   }
 
