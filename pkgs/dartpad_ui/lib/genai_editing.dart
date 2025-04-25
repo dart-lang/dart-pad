@@ -376,7 +376,11 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
           children: [
             CallbackShortcuts(
               bindings: {
-                SingleActivator(LogicalKeyboardKey.enter): () {
+                SingleActivator(
+                  LogicalKeyboardKey.enter,
+                  meta: isMac,
+                  control: isNonMac,
+                ): () {
                   if (promptController.text.isNotEmpty) {
                     widget.onUpdateCode(
                       context,

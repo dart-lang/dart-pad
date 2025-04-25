@@ -162,7 +162,11 @@ class _PromptDialogState extends State<PromptDialog> {
           width: 700,
           child: CallbackShortcuts(
             bindings: {
-              SingleActivator(LogicalKeyboardKey.enter): () {
+              SingleActivator(
+                LogicalKeyboardKey.enter,
+                meta: isMac,
+                control: isNonMac,
+              ): () {
                 if (widget.promptTextController.text.isNotEmpty) _onGenerate();
               },
             },
