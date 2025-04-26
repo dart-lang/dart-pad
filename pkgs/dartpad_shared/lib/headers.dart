@@ -17,13 +17,10 @@ class DartPadRequestHeaders {
   /// It can be set to false in constructor.
   late final bool loggingOn;
 
-  late final Map<String, String> encoded = () {
-    return {if (!loggingOn) _loggingOnHeaderName: loggingOn.toString()};
-  }();
-
   DartPadRequestHeaders({bool? loggingOn}) {
     if (loggingOn != null) {
       this.loggingOn = loggingOn;
+      return;
     }
 
     var setLoggingOn = true;
@@ -38,4 +35,8 @@ class DartPadRequestHeaders {
     final loggingOnString = json[_loggingOnHeaderName];
     return DartPadRequestHeaders(loggingOn: loggingOnString == true.toString());
   }
+
+  late final Map<String, String> encoded = () {
+    return {if (!loggingOn) _loggingOnHeaderName: loggingOn.toString()};
+  }();
 }
