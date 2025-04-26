@@ -9,7 +9,7 @@ import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
-import 'src/sample_code.dart';
+import 'test_infra/sample_code.dart';
 
 void main() => defineTests();
 

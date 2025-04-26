@@ -15,6 +15,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'context.dart';
 import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'project_templates.dart';
@@ -135,7 +136,7 @@ class CommonServerApi {
     );
 
     final results = await serialize(() {
-      return impl.compiler.compile(sourceRequest.source);
+      return impl.compiler.compile(sourceRequest.source, request.ctx);
     });
 
     if (results.hasOutput) {
@@ -181,7 +182,8 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) => impl.compiler.compileDDC(request.source),
+      (compileRequest) =>
+          impl.compiler.compileDDC(compileRequest.source, request.ctx),
     );
   }
 
@@ -192,7 +194,8 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) => impl.compiler.compileNewDDC(request.source),
+      (compileRequest) =>
+          impl.compiler.compileNewDDC(compileRequest.source, request.ctx),
     );
   }
 
@@ -203,8 +206,11 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) =>
-          impl.compiler.compileNewDDCReload(request.source, request.deltaDill!),
+      (compileRequest) => impl.compiler.compileNewDDCReload(
+        compileRequest.source,
+        compileRequest.deltaDill!,
+        request.ctx,
+      ),
     );
   }
 
