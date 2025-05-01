@@ -45,19 +45,33 @@ String normalizeImports(String text) {
   });
 }
 
-/// Normalizes a file path by removing all occurrences of "..".
+/// Normalizes an absolute file path by removing all occurrences of "..".
 String normalizeFilePath(String filePath) {
   const parent = '..';
   final parts = path.split(filePath);
+  assert(parts[0] == Platform.pathSeparator);
+  parts.removeAt(0);
+  assert(parts[0] != Platform.pathSeparator);
+
+  String? atOrNull(int index) {
+    if (index < 0) return null;
+    return parts.elementAtOrNull(index);
+  }
 
   while (true) {
-    final index = parts.lastIndexOf(parent);
+    var index = parts.lastIndexOf(parent);
+
+    while (atOrNull(index - 1) == parent) {
+      index = index - 1;
+    }
+
     if (index == -1 || index == 0) break;
+
     parts.removeAt(index);
     parts.removeAt(index - 1);
   }
 
-  return path.joinAll(parts);
+  return '${Platform.pathSeparator}${path.joinAll(parts)}';
 }
 
 Future<Process> runWithLogging(

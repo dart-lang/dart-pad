@@ -12,7 +12,7 @@ void defineTests() {
     expect(normalizeImports(input), equals(output));
   }
 
-  group('expectNormalizeFilePaths', () {
+  group('expectNormalizeImports', () {
     test('strips a temporary directory path', () {
       expectNormalizeImports(
         'List is defined in /var/folders/4p/y54w9nqj0_n6ryqwn7lxqz6800m6cw/T/DartAnalysisWrapperintLAw/main.dart',
@@ -95,6 +95,18 @@ void defineTests() {
       expect(lines.columnForOffset(1), 2);
       expect(lines.columnForOffset(2), 3);
       expect(lines.columnForOffset(3), 4);
+    });
+  });
+
+  group('normalizeFilePath', () {
+    test('removes ".." from the path', () {
+      expect(normalizeFilePath('/path/to/../file.dart'), '/path/file.dart');
+      expect(normalizeFilePath('/path/../to/file.dart'), '/to/file.dart');
+      expect(normalizeFilePath('/path/to/../../file.dart'), '/file.dart');
+      expect(normalizeFilePath('/path/../../to/file.dart'), '/../to/file.dart');
+      expect(normalizeFilePath('/path/../to/../../file.dart'), '/../file.dart');
+      expect(normalizeFilePath('/path/../../to/../file.dart'), '/../file.dart');
+      expect(normalizeFilePath('/../path/../to/file.dart'), '/../to/file.dart');
     });
   });
 }
