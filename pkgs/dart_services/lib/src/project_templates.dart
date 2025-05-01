@@ -44,7 +44,7 @@ class ProjectTemplates {
       'dart_services',
       'project_templates',
     );
-    dir = Directory(dir).resolveSymbolicLinksSync();
+    dir = path.absolute(dir);
     return dir;
   }
 }
