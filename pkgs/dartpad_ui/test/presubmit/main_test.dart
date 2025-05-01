@@ -16,12 +16,9 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   final runner = TestServerRunner();
-  late final ServicesClient client;
 
   setUpAll(() async {
     await runner.start();
-    client = runner.client;
-    debugPrint('!!! Client: ${client.rootUrl}');
   });
 
   tearDownAll(() async {
@@ -40,5 +37,10 @@ void main() {
     await state.initialized.future;
     await tester.pumpAndSettle();
     await expectLater(find.byType(EditorWithButtons), findsOneWidget);
+
+    await expectLater(
+      find.byType(DartPadApp),
+      matchesGoldenFile('$goldenPath/main_screen_initial.png'),
+    );
   });
 }
