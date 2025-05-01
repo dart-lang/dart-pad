@@ -21,7 +21,7 @@ import 'package:path/path.dart' as path;
 ///
 /// "Unused import: 'package:flutter/material.dart'" ->
 /// "Unused import: 'package:flutter/material.dart'"
-String normalizeFilePaths(String text) {
+String normalizeImports(String text) {
   return text.replaceAllMapped(_possiblePathPattern, (match) {
     final possiblePath = match.group(0)!;
 
@@ -43,6 +43,21 @@ String normalizeFilePaths(String text) {
 
     return basename;
   });
+}
+
+/// Normalizes a file path by removing all occurrences of "..".
+String normalizeFilePath(String filePath) {
+  const parent = '..';
+  final parts = path.split(filePath);
+
+  while (true) {
+    final index = parts.lastIndexOf(parent);
+    if (index == -1 || index == 0) break;
+    parts.removeAt(index);
+    parts.removeAt(index - 1);
+  }
+
+  return path.joinAll(parts);
 }
 
 Future<Process> runWithLogging(

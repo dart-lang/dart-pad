@@ -8,6 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import 'utils.dart';
+
 /// Sets of project template directory paths.
 class ProjectTemplates {
   ProjectTemplates._({
@@ -38,14 +40,14 @@ class ProjectTemplates {
   static ProjectTemplates projectTemplates = ProjectTemplates();
 
   static String _baseTemplateProject() {
-    var dir = path.join(
+    final dir = path.join(
       Directory.current.path,
       '..',
       'dart_services',
       'project_templates',
     );
-    dir = path.absolute(dir);
-    return dir;
+
+    return normalizeFilePath(dir);
   }
 }
 
