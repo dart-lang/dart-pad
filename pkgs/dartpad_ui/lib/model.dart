@@ -262,7 +262,10 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
+    debugPrint('!!! populating versions');
+
     final version = await services.version();
+    debugPrint('!!! populating versions done');
     appModel.runtimeVersions.value = version;
     return version;
   }

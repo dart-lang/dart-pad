@@ -192,21 +192,23 @@ class TestServerRunner {
   late final EndpointsServer _server;
   final sdk = Sdk.fromLocalFlutter();
 
-  bool started = false;
+  Completer<void>? _started;
 
   Future<ServicesClient> start() async {
-    assert(!started, 'Server already started');
-    _server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
-    started = true;
+    assert(_started == null, 'Server should not be started');
+    _started = Completer<void>();
+    _server = await EndpointsServer.serve(8080, sdk, null, 'nnbd_artifacts');
     client = ServicesClient(
       http.Client(),
       rootUrl: 'http://localhost:${_server.port}/',
     );
+    _started!.complete();
     return client;
   }
 
   Future<void> stop() async {
-    assert(started, 'Server should be started before stopping');
+    assert(_started != null, 'Server should be started before stopping');
+    await _started!.future;
     client.dispose();
     await _server.close();
   }

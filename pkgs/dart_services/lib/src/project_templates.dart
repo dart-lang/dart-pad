@@ -37,8 +37,16 @@ class ProjectTemplates {
 
   static ProjectTemplates projectTemplates = ProjectTemplates();
 
-  static String _baseTemplateProject() =>
-      path.join(Directory.current.path, 'project_templates');
+  static String _baseTemplateProject() {
+    var dir = path.join(
+      Directory.current.path,
+      '..',
+      'dart_services',
+      'project_templates',
+    );
+    dir = Directory(dir).resolveSymbolicLinksSync();
+    return dir;
+  }
 }
 
 /// The set of supported Flutter-oriented packages.
