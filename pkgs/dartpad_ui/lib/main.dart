@@ -47,7 +47,9 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({super.key});
+  const DartPadApp({super.key, this.channel});
+
+  final String? channel;
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
