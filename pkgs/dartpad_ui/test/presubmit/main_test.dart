@@ -10,7 +10,7 @@ import 'package:integration_test/integration_test.dart';
 import '../test_infra/test_utils.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  //IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Initial screen.', (WidgetTester tester) async {
     await setMinLargeScreenWidth(tester);
