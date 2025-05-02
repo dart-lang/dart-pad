@@ -10,7 +10,7 @@ import 'model.dart';
 export 'model.dart';
 
 class ServicesClient {
-  final DartPadBackendClient client;
+  final DartServicesClient client;
   final String rootUrl;
 
   ServicesClient(this.client, {required this.rootUrl});

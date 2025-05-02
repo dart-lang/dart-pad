@@ -185,7 +185,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final _httpClient = DartPadBackendClient();
+  final _httpClient = DartServicesClient();
   late ServicesClient services;
 
   ExecutionService? _executionService;

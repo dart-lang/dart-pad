@@ -9,7 +9,7 @@ import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
-import 'test_infra/sample_code.dart';
+import '../test_infra/sample_code.dart';
 
 void main() => defineTests();
 
@@ -17,13 +17,13 @@ void defineTests() {
   group('server', () {
     final sdk = Sdk.fromLocalFlutter();
     late final EndpointsServer server;
-    late final DartPadBackendClient httpClient;
+    late final DartServicesClient httpClient;
     late final ServicesClient client;
 
     setUpAll(() async {
       server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
 
-      httpClient = DartPadBackendClient();
+      httpClient = DartServicesClient();
       client = ServicesClient(
         httpClient,
         rootUrl: 'http://localhost:${server.port}/',

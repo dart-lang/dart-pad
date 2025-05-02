@@ -6,15 +6,15 @@ import 'package:dartpad_shared/headers.dart';
 import 'package:shelf/shelf.dart';
 
 class RequestContext {
-  final bool loggingOn;
+  final bool enableLogging;
 
-  RequestContext({required this.loggingOn});
+  RequestContext({required this.enableLogging});
 }
 
 extension RequestExtension on Request {
   RequestContext get ctx {
     return RequestContext(
-      loggingOn: DartPadRequestHeaders.fromJson(headers).loggingOn,
+      enableLogging: DartPadRequestHeaders.fromJson(headers).enableLogging,
     );
   }
 }

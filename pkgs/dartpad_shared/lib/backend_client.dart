@@ -8,10 +8,10 @@ import 'package:http/http.dart';
 
 import 'headers.dart';
 
-class DartPadBackendClient {
+class DartServicesClient {
   final Client _client = Client();
 
-  DartPadBackendClient();
+  DartServicesClient();
 
   void dispose() => _client.close();
 

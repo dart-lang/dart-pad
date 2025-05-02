@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const _loggingOnHeaderName = 'X-Logging-On';
+const _loggingOnHeaderName = 'X-Enable-Logging';
 
 /// A class that represents the custom request headers for DartPad.
 ///

@@ -43,13 +43,13 @@ class DartPadLogger {
   }
 
   void fine(String s, RequestContext ctx) {
-    if (ctx.loggingOn) {
+    if (ctx.enableLogging) {
       _logger.fine(s);
     }
   }
 
   void warning(String s, RequestContext ctx) {
-    if (ctx.loggingOn) {
+    if (ctx.enableLogging) {
       _logger.warning(s);
     }
   }
