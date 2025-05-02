@@ -8,16 +8,14 @@ import 'package:shelf/shelf.dart';
 
 class DartPadRequestContext {
   final bool enableLogging;
-  final int requestId;
 
   @visibleForTesting
-  DartPadRequestContext({this.enableLogging = true, this.requestId = 0});
+  DartPadRequestContext({this.enableLogging = true});
 
   factory DartPadRequestContext.fromRequest(Request request) {
     return DartPadRequestContext(
       enableLogging:
           DartPadRequestHeaders.fromJson(request.headers).enableLogging,
-      requestId: identityHashCode(request),
     );
   }
 }
