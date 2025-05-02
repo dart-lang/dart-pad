@@ -522,11 +522,14 @@ Middleware logRequestsToLogger(DartPadLogger log) {
     return (request) {
       final watch = Stopwatch()..start();
 
+      final ctx = DartPadRequestContext.fromRequest(request);
+      log.genericInfo('received request, enableLogging=${ctx.enableLogging}');
+
       return Future.sync(() => innerHandler(request)).then(
         (response) {
           log.info(
             _formatMessage(request, watch.elapsed, response: response),
-            DartPadRequestContext.fromRequest(request),
+            ctx,
           );
 
           return response;
@@ -534,10 +537,7 @@ Middleware logRequestsToLogger(DartPadLogger log) {
         onError: (Object error, StackTrace stackTrace) {
           if (error is HijackException) throw error;
 
-          log.info(
-            _formatMessage(request, watch.elapsed, error: error),
-            DartPadRequestContext.fromRequest(request),
-          );
+          log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
 
           // ignore: only_throw_errors
           throw error;
