@@ -14,7 +14,7 @@ class RequestContext {
   final bool enableLogging;
   final String requestId = _random.nextInt(_maxInt32).toString();
 
-  RequestContext({required this.enableLogging});
+  RequestContext({this.enableLogging = true});
 }
 
 extension RequestExtension on Request {
