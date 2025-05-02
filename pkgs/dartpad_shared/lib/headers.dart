@@ -15,28 +15,18 @@ class DartPadRequestHeaders {
   ///
   /// The value is set to false for clients where debug asserts are enabled.
   /// It can be set to false in constructor.
-  late final bool loggingOn;
+  late final bool enableLogging;
 
-  DartPadRequestHeaders({bool? loggingOn}) {
-    if (loggingOn != null) {
-      this.loggingOn = loggingOn;
-      return;
-    }
-
-    var setLoggingOn = true;
-    assert(() {
-      setLoggingOn = false;
-      return true;
-    }());
-    this.loggingOn = setLoggingOn;
-  }
+  DartPadRequestHeaders({this.enableLogging = true});
 
   factory DartPadRequestHeaders.fromJson(Map<String, String> json) {
     final loggingOnString = json[_loggingOnHeaderName];
-    return DartPadRequestHeaders(loggingOn: loggingOnString == true.toString());
+    return DartPadRequestHeaders(
+      enableLogging: loggingOnString == true.toString(),
+    );
   }
 
   late final Map<String, String> encoded = () {
-    return {if (!loggingOn) _loggingOnHeaderName: loggingOn.toString()};
+    return {if (!enableLogging) _loggingOnHeaderName: enableLogging.toString()};
   }();
 }
