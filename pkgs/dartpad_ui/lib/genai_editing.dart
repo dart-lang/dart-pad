@@ -94,7 +94,11 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     if (activeCuj == GenAiCuj.generateCode) {
       openCodeGenerationDialog(context, changeLastPrompt: true);
     } else {
-      _changePromptFocusNode.requestFocus();
+      final scope = FocusScope.of(context);
+      // See https://stackoverflow.com/questions/56221653/focusnode-why-is-requestfocus-not-working
+      Future.delayed(Duration(milliseconds: 50), () {
+        scope.requestFocus(_changePromptFocusNode);
+      });
     }
   }
 
