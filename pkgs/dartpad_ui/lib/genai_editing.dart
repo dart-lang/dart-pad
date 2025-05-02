@@ -21,7 +21,7 @@ import 'simple_widgets.dart';
 import 'theme.dart';
 import 'utils.dart';
 
-class EditorWithButtons extends StatelessWidget {
+class EditorWithButtons extends StatefulWidget {
   const EditorWithButtons({
     super.key,
     required this.appModel,
@@ -36,18 +36,32 @@ class EditorWithButtons extends StatelessWidget {
   final VoidCallback onFormat;
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
+  @override
+  State<EditorWithButtons> createState() => _EditorWithButtonsState();
+
+  static final RegExp _identifierChar = RegExp(r'[\w\d_<=>]');
+}
+
+class _EditorWithButtonsState extends State<EditorWithButtons> {
+  final _changePromptFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _changePromptFocusNode.dispose();
+    super.dispose();
+  }
 
   Future<void> _requestGeminiCodeUpdate(
     BuildContext context,
     PromptDialogResponse promptInfo,
   ) async {
-    appModel.genAiManager.preGenAiSourceCode.value =
-        appModel.sourceCodeController.text;
-    appModel.genAiManager.enterGeneratingEdit();
+    widget.appModel.genAiManager.preGenAiSourceCode.value =
+        widget.appModel.sourceCodeController.text;
+    widget.appModel.genAiManager.enterGeneratingEdit();
     try {
-      final source = appModel.sourceCodeController.text;
-      appModel.genAiManager.startStream(
-        appServices.updateCode(
+      final source = widget.appModel.sourceCodeController.text;
+      widget.appModel.genAiManager.startStream(
+        widget.appServices.updateCode(
           UpdateCodeRequest(
             appType: promptInfo.appType,
             source: source,
@@ -57,43 +71,50 @@ class EditorWithButtons extends StatelessWidget {
         ),
       );
     } catch (error) {
-      appModel.editorStatus.showToast('Error updating code');
-      appModel.appendError('Updating code issue: $error');
-      appModel.genAiManager.enterStandby();
+      widget.appModel.editorStatus.showToast('Error updating code');
+      widget.appModel.appendError('Updating code issue: $error');
+      widget.appModel.genAiManager.enterStandby();
     }
   }
 
   void _handleAcceptUpdateCode() {
-    assert(appModel.genAiManager.streamIsDone.value);
-    appModel.genAiManager.resetInputs();
-    appModel.genAiManager.enterStandby();
+    assert(widget.appModel.genAiManager.streamIsDone.value);
+    widget.appModel.genAiManager.resetInputs();
+    widget.appModel.genAiManager.enterStandby();
   }
 
   void _handleEditUpdateCodePrompt(BuildContext context) async {
-    appModel.sourceCodeController.textNoScroll =
-        appModel.genAiManager.preGenAiSourceCode.value;
-    appServices.performCompileAndReloadOrRun();
-    appModel.genAiManager.enterStandby();
-    openCodeGenerationDialog(context, changeLastPrompt: true);
+    widget.appModel.sourceCodeController.textNoScroll =
+        widget.appModel.genAiManager.preGenAiSourceCode.value;
+    widget.appServices.performCompileAndReloadOrRun();
+    widget.appModel.genAiManager.enterStandby();
+
+    final activeCuj = widget.appModel.genAiManager.activeCuj.value;
+
+    if (activeCuj == GenAiCuj.generateCode) {
+      openCodeGenerationDialog(context, changeLastPrompt: true);
+    } else {
+      _changePromptFocusNode.requestFocus();
+    }
   }
 
   void _handleCancelUpdateCode() {
-    appModel.genAiManager.resetInputs();
-    appModel.genAiManager.enterStandby();
+    widget.appModel.genAiManager.resetInputs();
+    widget.appModel.genAiManager.enterStandby();
   }
 
   void _handleRejectSuggestedCode() {
-    appModel.genAiManager.resetInputs();
-    appModel.genAiManager.enterStandby();
-    appModel.sourceCodeController.textNoScroll =
-        appModel.genAiManager.preGenAiSourceCode.value;
-    appServices.performCompileAndReloadOrRun();
+    widget.appModel.genAiManager.resetInputs();
+    widget.appModel.genAiManager.enterStandby();
+    widget.appModel.sourceCodeController.textNoScroll =
+        widget.appModel.genAiManager.preGenAiSourceCode.value;
+    widget.appServices.performCompileAndReloadOrRun();
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<GenAiState>(
-      valueListenable: appModel.genAiManager.currentState,
+      valueListenable: widget.appModel.genAiManager.currentState,
       builder: (BuildContext context, GenAiState genAiState, Widget? child) {
         return Column(
           children: [
@@ -103,8 +124,8 @@ class EditorWithButtons extends StatelessWidget {
                   children: [
                     if (genAiState == GenAiState.standby) ...[
                       EditorWidget(
-                        appModel: appModel,
-                        appServices: appServices,
+                        appModel: widget.appModel,
+                        appServices: widget.appServices,
                       ),
                     ],
                     Padding(
@@ -122,7 +143,7 @@ class EditorWithButtons extends StatelessWidget {
                         children: [
                           // Dartdoc help button
                           ValueListenableBuilder<bool>(
-                            valueListenable: appModel.docHelpBusy,
+                            valueListenable: widget.appModel.docHelpBusy,
                             builder: (_, bool value, __) {
                               return PointerInterceptor(
                                 child: MiniIconButton(
@@ -138,14 +159,14 @@ class EditorWithButtons extends StatelessWidget {
                           const SizedBox(width: denseSpacing),
                           // Format action
                           ValueListenableBuilder<bool>(
-                            valueListenable: appModel.formattingBusy,
+                            valueListenable: widget.appModel.formattingBusy,
                             builder: (_, bool value, __) {
                               return PointerInterceptor(
                                 child: MiniIconButton(
                                   icon: const Icon(Icons.format_align_left),
                                   tooltip: 'Format',
                                   small: true,
-                                  onPressed: value ? null : onFormat,
+                                  onPressed: value ? null : widget.onFormat,
                                 ),
                               );
                             },
@@ -153,16 +174,18 @@ class EditorWithButtons extends StatelessWidget {
                           const SizedBox(width: defaultSpacing),
                           // Run action
                           ValueListenableBuilder(
-                            valueListenable: appModel.showReload,
+                            valueListenable: widget.appModel.showReload,
                             builder: (_, bool value, __) {
                               if (!value) return const SizedBox();
                               return ValueListenableBuilder<bool>(
-                                valueListenable: appModel.canReload,
+                                valueListenable: widget.appModel.canReload,
                                 builder: (_, bool value, __) {
                                   return PointerInterceptor(
                                     child: ReloadButton(
                                       onPressed:
-                                          value ? onCompileAndReload : null,
+                                          value
+                                              ? widget.onCompileAndReload
+                                              : null,
                                     ),
                                   );
                                 },
@@ -172,12 +195,14 @@ class EditorWithButtons extends StatelessWidget {
                           const SizedBox(width: defaultSpacing),
                           // Run action
                           ValueListenableBuilder<CompilingState>(
-                            valueListenable: appModel.compilingState,
+                            valueListenable: widget.appModel.compilingState,
                             builder: (_, compiling, __) {
                               return PointerInterceptor(
                                 child: RunButton(
                                   onPressed:
-                                      compiling.busy ? null : onCompileAndRun,
+                                      compiling.busy
+                                          ? null
+                                          : widget.onCompileAndRun,
                                 ),
                               );
                             },
@@ -188,7 +213,7 @@ class EditorWithButtons extends StatelessWidget {
                     Container(
                       alignment: Alignment.bottomRight,
                       padding: const EdgeInsets.all(denseSpacing),
-                      child: StatusWidget(status: appModel.editorStatus),
+                      child: StatusWidget(status: widget.appModel.editorStatus),
                     ),
 
                     if (genAiState == GenAiState.standby) ...[
@@ -201,8 +226,8 @@ class EditorWithButtons extends StatelessWidget {
                         alignment: Alignment.topLeft,
                         padding: const EdgeInsets.all(denseSpacing),
                         child: GeneratingCodePanel(
-                          appModel: appModel,
-                          appServices: appServices,
+                          appModel: widget.appModel,
+                          appServices: widget.appServices,
                         ),
                       ),
                     ],
@@ -211,24 +236,27 @@ class EditorWithButtons extends StatelessWidget {
               ),
             ),
             _GeminiCodeEditTool(
-              appModel: appModel,
-              enabled: appModel.genAiManager.state.value == GenAiState.standby,
+              appModel: widget.appModel,
+              enabled:
+                  widget.appModel.genAiManager.state.value ==
+                  GenAiState.standby,
               onUpdateCode: _requestGeminiCodeUpdate,
               onAcceptUpdateCode: _handleAcceptUpdateCode,
               onCancelUpdateCode: _handleCancelUpdateCode,
               onEditUpdateCodePrompt: _handleEditUpdateCodePrompt,
               onRejectSuggestedCode: _handleRejectSuggestedCode,
+              changePromptFocusNode: _changePromptFocusNode,
             ),
             MultiValueListenableBuilder(
               listenables: [
-                appModel.analysisIssues,
-                appModel.genAiManager.state,
+                widget.appModel.analysisIssues,
+                widget.appModel.genAiManager.state,
               ],
               builder: (_) {
                 if (genAiState != GenAiState.awaitingAcceptReject &&
                     genAiState != GenAiState.generating) {
                   return ProblemsTableWidget(
-                    problems: appModel.analysisIssues.value,
+                    problems: widget.appModel.analysisIssues.value,
                   );
                 }
                 return SizedBox(width: 0, height: 0);
@@ -240,31 +268,31 @@ class EditorWithButtons extends StatelessWidget {
     );
   }
 
-  static final RegExp _identifierChar = RegExp(r'[\w\d_<=>]');
-
   void _showDocs(BuildContext context) async {
     try {
-      final source = appModel.sourceCodeController.text;
-      final offset = appServices.editorService?.cursorOffset ?? -1;
+      final source = widget.appModel.sourceCodeController.text;
+      final offset = widget.appServices.editorService?.cursorOffset ?? -1;
 
       var valid = true;
       if (offset < 0 || offset >= source.length) {
         valid = false;
       } else {
-        valid = _identifierChar.hasMatch(source.substring(offset, offset + 1));
+        valid = EditorWithButtons._identifierChar.hasMatch(
+          source.substring(offset, offset + 1),
+        );
       }
 
       if (!valid) {
-        appModel.editorStatus.showToast('No docs at location.');
+        widget.appModel.editorStatus.showToast('No docs at location.');
         return;
       }
 
-      final result = await appServices.document(
+      final result = await widget.appServices.document(
         SourceRequest(source: source, offset: offset),
       );
 
       if (result.elementKind == null) {
-        appModel.editorStatus.showToast('No docs at location.');
+        widget.appModel.editorStatus.showToast('No docs at location.');
         return;
       } else if (context.mounted) {
         // show result
@@ -280,16 +308,19 @@ class EditorWithButtons extends StatelessWidget {
             }
             return MediumDialog(
               title: title,
-              child: DocsWidget(appModel: appModel, documentResponse: result),
+              child: DocsWidget(
+                appModel: widget.appModel,
+                documentResponse: result,
+              ),
             );
           },
         );
       }
 
-      appServices.editorService!.focus();
+      widget.appServices.editorService!.focus();
     } catch (error) {
-      appModel.editorStatus.showToast('Error retrieving docs');
-      appModel.appendError('$error');
+      widget.appModel.editorStatus.showToast('Error retrieving docs');
+      widget.appModel.appendError('$error');
       return;
     }
   }
@@ -304,6 +335,7 @@ class _GeminiCodeEditTool extends StatefulWidget {
     required this.onEditUpdateCodePrompt,
     required this.onAcceptUpdateCode,
     required this.enabled,
+    required this.changePromptFocusNode,
   });
 
   final AppModel appModel;
@@ -313,6 +345,8 @@ class _GeminiCodeEditTool extends StatefulWidget {
   final VoidCallback onRejectSuggestedCode;
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onAcceptUpdateCode;
+
+  final FocusNode changePromptFocusNode;
 
   final bool enabled;
 
@@ -328,11 +362,6 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   void initState() {
     super.initState();
     genAiManager = widget.appModel.genAiManager;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   AppType analyzedAppTypeFromSource(AppModel appModel) {
@@ -397,6 +426,8 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
               child: TextField(
                 enabled: widget.enabled,
                 controller: promptController,
+                focusNode: widget.changePromptFocusNode,
+                canRequestFocus: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -468,6 +499,10 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   }
 }
 
+const geminiMessageTextTheme = TextStyle(
+  color: Color.fromARGB(255, 60, 60, 60),
+);
+
 class _AcceptRejectBlock extends StatelessWidget {
   const _AcceptRejectBlock(
     this.genAiManager, {
@@ -507,9 +542,8 @@ class _AcceptRejectBlock extends StatelessWidget {
           width: 16,
           height: 16,
         );
-        final geminiMessageTextTheme = TextStyle(
-          color: Color.fromARGB(255, 60, 60, 60),
-        );
+
+        final activeCuj = appModel.genAiManager.activeCuj.value;
 
         final resolvedButtons =
             genAiState == GenAiState.generating
@@ -525,15 +559,9 @@ class _AcceptRejectBlock extends StatelessWidget {
                     child: Text('Cancel', style: geminiMessageTextTheme),
                   ),
 
-                  if (appModel.genAiManager.activeCuj.value !=
-                      GenAiCuj.suggestFix)
-                    OutlinedButton(
-                      onPressed: () => onEditUpdateCodePrompt(context),
-                      child: Text(
-                        'Change Prompt',
-                        style: geminiMessageTextTheme,
-                      ),
-                    ),
+                  if (activeCuj != GenAiCuj.suggestFix)
+                    _ChangePromptBtn(() => onEditUpdateCodePrompt(context)),
+
                   FilledButton(
                     onPressed: onAcceptUpdateCode,
                     style: FilledButton.styleFrom(
@@ -640,6 +668,20 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
         ],
         SizedBox(width: textFieldIsFocused ? 4 : 5),
       ],
+    );
+  }
+}
+
+class _ChangePromptBtn extends StatelessWidget {
+  const _ChangePromptBtn(this.handler);
+
+  final VoidCallback handler;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: handler,
+      child: Text('Change Prompt', style: geminiMessageTextTheme),
     );
   }
 }
