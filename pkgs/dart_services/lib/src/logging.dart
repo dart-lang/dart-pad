@@ -57,4 +57,31 @@ class DartPadLogger {
       _logger.warning(_log(s, ctx));
     }
   }
+
+  void info(String s, RequestContext ctx) {
+    if (ctx.enableLogging) {
+      _logger.info(_log(s, ctx));
+    }
+  }
+
+  /// Logs a generic info message that doesn't relate to a request.
+  void genericInfo(String s) {
+    _logger.info(s);
+  }
+
+  void severe(
+    String s,
+    RequestContext ctx, {
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    if (ctx.enableLogging) {
+      _logger.severe(_log(s, ctx), error, stackTrace);
+    }
+  }
+
+  /// Logs a generic info message that doesn't relate to a request.
+  void genericSevere(String s, {Object? error, StackTrace? stackTrace}) {
+    _logger.severe(s, error, stackTrace);
+  }
 }

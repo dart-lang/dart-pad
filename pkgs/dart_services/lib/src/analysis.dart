@@ -12,13 +12,14 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
+import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 import 'utils.dart' as utils;
 import 'utils.dart';
 
-final Logger _logger = Logger('analysis_server');
+final DartPadLogger _logger = DartPadLogger('analysis_server');
 
 class Analyzer {
   final Sdk sdk;
@@ -33,7 +34,7 @@ class Analyzer {
 
     unawaited(
       analysisServer.onExit.then((int code) {
-        _logger.severe('analysis server exited, code: $code');
+        _logger.genericSevere('analysis server exited, code: $code');
         if (code != 0) {
           exit(code);
         }
@@ -82,7 +83,7 @@ class AnalysisServerWrapper {
 
   Future<void> init() async {
     const serverArgs = <String>['--client-id=DartPad'];
-    _logger.info(
+    _logger.genericInfo(
       'Starting analysis server '
       '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})',
     );
@@ -94,10 +95,10 @@ class AnalysisServerWrapper {
 
     try {
       analysisServer.server.onError.listen((ServerError error) {
-        _logger.severe(
+        _logger.genericSevere(
           'server error${error.isFatal ? ' (fatal)' : ''}',
-          error.message,
-          StackTrace.fromString(error.stackTrace),
+          error: error.message,
+          stackTrace: StackTrace.fromString(error.stackTrace),
         );
       });
       await analysisServer.server.onConnected.first;
@@ -107,7 +108,9 @@ class AnalysisServerWrapper {
 
       await analysisServer.analysis.setAnalysisRoots([projectPath], []);
     } catch (err, st) {
-      _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
+      _logger.genericSevere(
+        'Error starting analysis server ($sdkPath): $err.\n$st',
+      );
       rethrow;
     }
   }

@@ -18,6 +18,7 @@ import 'compiling.dart';
 import 'context.dart';
 import 'flutter_genui.dart';
 import 'generative_ai.dart';
+import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
@@ -505,21 +506,27 @@ Middleware createCustomCorsHeadersMiddleware() {
   );
 }
 
-Middleware logRequestsToLogger(Logger log) {
+Middleware logRequestsToLogger(DartPadLogger log) {
   return (Handler innerHandler) {
     return (request) {
       final watch = Stopwatch()..start();
 
       return Future.sync(() => innerHandler(request)).then(
         (response) {
-          log.info(_formatMessage(request, watch.elapsed, response: response));
+          log.info(
+            _formatMessage(request, watch.elapsed, response: response),
+            request.ctx,
+          );
 
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
           if (error is HijackException) throw error;
 
-          log.info(_formatMessage(request, watch.elapsed, error: error));
+          log.info(
+            _formatMessage(request, watch.elapsed, error: error),
+            request.ctx,
+          );
 
           // ignore: only_throw_errors
           throw error;
