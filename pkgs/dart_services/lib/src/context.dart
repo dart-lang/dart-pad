@@ -2,11 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:dartpad_shared/headers.dart';
 import 'package:shelf/shelf.dart';
 
+final _random = Random();
+const int _maxInt32 = -1 >>> 1;
+
 class RequestContext {
   final bool enableLogging;
+  final String requestId = _random.nextInt(_maxInt32).toString();
 
   RequestContext({required this.enableLogging});
 }

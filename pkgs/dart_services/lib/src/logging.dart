@@ -42,15 +42,19 @@ class DartPadLogger {
     _logger = Logger(name);
   }
 
+  static String _log(String s, RequestContext ctx) =>
+      '$s '
+      '[request:${ctx.requestId}]';
+
   void fine(String s, RequestContext ctx) {
     if (ctx.enableLogging) {
-      _logger.fine(s);
+      _logger.fine(_log(s, ctx));
     }
   }
 
   void warning(String s, RequestContext ctx) {
     if (ctx.enableLogging) {
-      _logger.warning(s);
+      _logger.warning(_log(s, ctx));
     }
   }
 }
