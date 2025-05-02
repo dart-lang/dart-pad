@@ -243,11 +243,7 @@ class CommonServerApi {
     return ok(result.toJson());
   }
 
-  Future<Response> handleFormat(
-    Request request,
-    String apiVersion,
-    RequestContext ctx,
-  ) async {
+  Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final sourceRequest = api.SourceRequest.fromJson(
@@ -258,7 +254,7 @@ class CommonServerApi {
       return impl.analyzer.format(
         sourceRequest.source,
         sourceRequest.offset,
-        ctx,
+        request.ctx,
       );
     });
 
