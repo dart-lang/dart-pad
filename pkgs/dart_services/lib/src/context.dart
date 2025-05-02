@@ -8,11 +8,11 @@ import 'package:dartpad_shared/headers.dart';
 import 'package:shelf/shelf.dart';
 
 final _random = Random();
-const int _maxInt32 = -1 >>> 1;
+const int _maxInt = 4294967296;
 
 class RequestContext {
   final bool enableLogging;
-  final String requestId = _random.nextInt(_maxInt32).toString();
+  final String requestId = _random.nextInt(_maxInt).toString();
 
   RequestContext({this.enableLogging = true});
 }
