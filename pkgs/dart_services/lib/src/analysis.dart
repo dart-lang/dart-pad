@@ -57,7 +57,7 @@ class Analyzer {
   Future<api.FormatResponse> format(
     String source,
     int? offset,
-    RequestContext ctx,
+    DartPadRequestContext ctx,
   ) async {
     return analysisServer.format(source, offset, ctx);
   }
@@ -224,7 +224,7 @@ class AnalysisServerWrapper {
   Future<api.FormatResponse> format(
     String src,
     int? offset,
-    RequestContext ctx,
+    DartPadRequestContext ctx,
   ) {
     return _formatImpl(src, offset)
         .then((FormatResult editResult) {

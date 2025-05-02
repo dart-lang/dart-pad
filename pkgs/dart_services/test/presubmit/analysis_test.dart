@@ -138,7 +138,7 @@ void defineTests() {
       final results = await analysisServer.format(
         badFormatCode,
         0,
-        RequestContext(),
+        DartPadRequestContext(),
       );
       expect(results.source, formattedCode);
     });
@@ -147,7 +147,7 @@ void defineTests() {
       final results = await analysisServer.format(
         formattedCode.replaceAll('\n', ' '),
         0,
-        RequestContext(),
+        DartPadRequestContext(),
       );
       expect(results.source, formattedCode);
     });
@@ -156,7 +156,7 @@ void defineTests() {
       final results = await analysisServer.format(
         formatWithIssues,
         0,
-        RequestContext(),
+        DartPadRequestContext(),
       );
       expect(results.source, formatWithIssues);
     });

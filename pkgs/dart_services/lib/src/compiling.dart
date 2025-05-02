@@ -49,7 +49,7 @@ class Compiler {
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
     String source,
-    RequestContext ctx, {
+    DartPadRequestContext ctx, {
     bool returnSourceMap = false,
   }) async {
     final temp = Directory.systemTemp.createTempSync('dartpad');
@@ -117,7 +117,7 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> _compileDDC(
     String source,
-    RequestContext ctx, {
+    DartPadRequestContext ctx, {
     String? deltaDill,
     required bool useNew,
   }) async {
@@ -237,14 +237,14 @@ class Compiler {
 
   Future<DDCCompilationResults> compileDDC(
     String source,
-    RequestContext ctx,
+    DartPadRequestContext ctx,
   ) async {
     return await _compileDDC(source, ctx, useNew: false);
   }
 
   Future<DDCCompilationResults> compileNewDDC(
     String source,
-    RequestContext ctx,
+    DartPadRequestContext ctx,
   ) async {
     return await _compileDDC(source, ctx, useNew: true);
   }
@@ -252,7 +252,7 @@ class Compiler {
   Future<DDCCompilationResults> compileNewDDCReload(
     String source,
     String deltaDill,
-    RequestContext ctx,
+    DartPadRequestContext ctx,
   ) async {
     return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
   }

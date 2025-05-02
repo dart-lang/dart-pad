@@ -42,23 +42,23 @@ class DartPadLogger {
     _logger = Logger(name);
   }
 
-  static String _log(String s, RequestContext ctx) =>
+  static String _log(String s, DartPadRequestContext ctx) =>
       '$s '
       '[request:${ctx.requestId}]';
 
-  void fine(String s, RequestContext ctx) {
+  void fine(String s, DartPadRequestContext ctx) {
     if (ctx.enableLogging) {
       _logger.fine(_log(s, ctx));
     }
   }
 
-  void warning(String s, RequestContext ctx) {
+  void warning(String s, DartPadRequestContext ctx) {
     if (ctx.enableLogging) {
       _logger.warning(_log(s, ctx));
     }
   }
 
-  void info(String s, RequestContext ctx) {
+  void info(String s, DartPadRequestContext ctx) {
     if (ctx.enableLogging) {
       _logger.info(_log(s, ctx));
     }
@@ -71,7 +71,7 @@ class DartPadLogger {
 
   void severe(
     String s,
-    RequestContext ctx, {
+    DartPadRequestContext ctx, {
     Object? error,
     StackTrace? stackTrace,
   }) {

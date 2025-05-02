@@ -2,25 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:dartpad_shared/headers.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
-final _random = Random();
-const int _maxInt = 4294967296;
-
-class RequestContext {
+class DartPadRequestContext {
   final bool enableLogging;
-  final String requestId = _random.nextInt(_maxInt).toString();
+  final int requestId;
 
-  RequestContext({this.enableLogging = true});
-}
+  @visibleForTesting
+  DartPadRequestContext({this.enableLogging = true, this.requestId = 0});
 
-extension RequestExtension on Request {
-  RequestContext get ctx {
-    return RequestContext(
-      enableLogging: DartPadRequestHeaders.fromJson(headers).enableLogging,
+  factory DartPadRequestContext.fromRequest(Request request) {
+    return DartPadRequestContext(
+      enableLogging:
+          DartPadRequestHeaders.fromJson(request.headers).enableLogging,
+      requestId: identityHashCode(request),
     );
   }
 }
