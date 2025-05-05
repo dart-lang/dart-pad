@@ -15,7 +15,7 @@ const goldenPath = 'test/test_infra/goldens';
 Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
   // We need to add some width to avoid overflow
   // in tests, while overflow is not happening in real app on web and on mac.
-  const screenWidthDelta = 350;
+  const screenWidthDelta = 650;
   await tester.binding.setSurfaceSize(
     const Size(
       minLargeScreenWidth + screenWidthDelta,

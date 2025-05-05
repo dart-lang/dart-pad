@@ -47,7 +47,11 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({super.key});
+  const DartPadApp({super.key, this.channel});
+
+  /// If initialized, will override URL parameter for channel.
+  @visibleForTesting
+  final String? channel;
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
@@ -128,7 +132,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
-    final channelParam = state.uri.queryParameters['channel'];
+    final channelParam = widget.channel ?? state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
     useGenUI = state.uri.queryParameters['genui'] == 'true';

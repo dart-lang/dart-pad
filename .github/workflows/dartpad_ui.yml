@@ -35,6 +35,9 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: dart format --set-exit-if-changed .
+      - name: Create template projects and populate the custom pub cache
+        run: dart run grinder build-project-templates
+        working-directory: pkgs/dart_services/
       - run: flutter build web
       - run: flutter test test/presubmit
       - run: sh ./tool/check_cycles.sh
