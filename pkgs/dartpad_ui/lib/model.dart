@@ -261,7 +261,11 @@ class AppServices {
     });
   }
 
-  Future<VersionResponse> populateVersions() => services.version();
+  Future<VersionResponse> populateVersions() async {
+    final version = await services.version();
+    appModel.runtimeVersions.value = version;
+    return version;
+  }
 
   Future<void> performInitialLoad({
     String? gistId,
@@ -594,7 +598,7 @@ enum Channel {
   beta('Beta', 'https://beta.api.dartpad.dev/'),
   main('Main', 'https://master.api.dartpad.dev/'),
   // This channel is only used for local development.
-  localhost('Localhost', 'http://127.0.0.1:8080/');
+  localhost('Localhost', 'http://localhost:8080/');
 
   final String displayName;
   final String url;

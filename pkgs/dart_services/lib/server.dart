@@ -6,10 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dartpad_shared/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_gzip/shelf_gzip.dart';
@@ -177,39 +174,4 @@ Middleware exceptionResponse() {
       }
     };
   };
-}
-
-@visibleForTesting
-Future<TestServerRunner> startTestServer() async {
-  final runner = TestServerRunner();
-  await runner.start();
-  return runner;
-}
-
-@visibleForTesting
-class TestServerRunner {
-  late final ServicesClient client;
-  late final EndpointsServer _server;
-  final sdk = Sdk.fromLocalFlutter();
-
-  Completer<void>? _started;
-
-  Future<ServicesClient> start() async {
-    assert(_started == null, 'Server should not be started');
-    _started = Completer<void>();
-    _server = await EndpointsServer.serve(8080, sdk, null, 'nnbd_artifacts');
-    client = ServicesClient(
-      http.Client(),
-      rootUrl: 'http://localhost:${_server.port}/',
-    );
-    _started!.complete();
-    return client;
-  }
-
-  Future<void> stop() async {
-    assert(_started != null, 'Server should be started before stopping');
-    await _started!.future;
-    client.dispose();
-    await _server.close();
-  }
 }

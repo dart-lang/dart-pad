@@ -16,12 +16,8 @@ class ServicesClient {
 
   ServicesClient(this.client, {required this.rootUrl});
 
-  Future<VersionResponse> version() async {
-    print('Fetching version from $rootUrl');
-    final result = await _requestGet('version', VersionResponse.fromJson);
-    print('Version: $result');
-    return result;
-  }
+  Future<VersionResponse> version() =>
+      _requestGet('version', VersionResponse.fromJson);
 
   Future<AnalysisResponse> analyze(SourceRequest request) =>
       _requestPost('analyze', request.toJson(), AnalysisResponse.fromJson);

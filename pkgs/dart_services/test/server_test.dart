@@ -4,7 +4,9 @@
 
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
+import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/services.dart';
+import 'package:http/http.dart';
 import 'package:test/test.dart';
 
 import 'src/sample_code.dart';
@@ -13,16 +15,24 @@ void main() => defineTests();
 
 void defineTests() {
   group('server', () {
-    final runner = TestServerRunner();
+    final sdk = Sdk.fromLocalFlutter();
+    late final EndpointsServer server;
+    late final Client httpClient;
     late final ServicesClient client;
 
     setUpAll(() async {
-      await runner.start();
-      client = runner.client;
+      server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
+
+      httpClient = Client();
+      client = ServicesClient(
+        httpClient,
+        rootUrl: 'http://localhost:${server.port}/',
+      );
     });
 
     tearDownAll(() async {
-      await runner.stop();
+      client.dispose();
+      await server.close();
     });
 
     test('version', () async {
@@ -334,7 +344,7 @@ void main() {
       (request) => client.compileDDC(request),
       expectDeltaDill: false,
     );
-    if (runner.sdk.dartMajorVersion >= 3 && runner.sdk.dartMinorVersion >= 8) {
+    if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
       testDDCEndpoint(
         'compileNewDDC',
         (request) => client.compileNewDDC(request),
