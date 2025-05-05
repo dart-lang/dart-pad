@@ -8,8 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
-import 'utils.dart';
-
 /// Sets of project template directory paths.
 class ProjectTemplates {
   ProjectTemplates._({
@@ -39,16 +37,8 @@ class ProjectTemplates {
 
   static ProjectTemplates projectTemplates = ProjectTemplates();
 
-  static String _baseTemplateProject() {
-    final dir = path.join(
-      Directory.current.path,
-      '..',
-      'dart_services',
-      'project_templates',
-    );
-
-    return normalizeFilePath(dir);
-  }
+  static String _baseTemplateProject() =>
+      path.join(Directory.current.path, 'project_templates');
 }
 
 /// The set of supported Flutter-oriented packages.
