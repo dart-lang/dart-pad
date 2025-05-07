@@ -130,7 +130,7 @@ class _DartPadAppState extends State<DartPadApp> {
     final channelParam = state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
-    injectGenUiError = state.uri.queryParameters['injectGenUiError'] == 'true';
+    injectAiError = state.uri.queryParameters['injectAiError'] == 'true';
 
     // Uncomment this line to make genui default option.
     // useGenUI = state.uri.queryParameters['genui'] != 'false';
