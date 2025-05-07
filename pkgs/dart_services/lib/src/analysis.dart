@@ -283,7 +283,7 @@ class AnalysisServerWrapper {
         errors.map((error) {
           final issue = api.AnalysisIssue(
             kind: error.severity.toLowerCase(),
-            message: utils.normalizeFilePaths(error.message),
+            message: utils.normalizeImports(error.message),
             code: error.code.toLowerCase(),
             location: api.Location(
               charStart: error.location.offset,
@@ -294,12 +294,12 @@ class AnalysisServerWrapper {
             correction:
                 error.correction == null
                     ? null
-                    : utils.normalizeFilePaths(error.correction!),
+                    : utils.normalizeImports(error.correction!),
             url: error.url,
             contextMessages:
                 error.contextMessages?.map((m) {
                   return api.DiagnosticMessage(
-                    message: utils.normalizeFilePaths(m.message),
+                    message: utils.normalizeImports(m.message),
                     location: api.Location(
                       charStart: m.location.offset,
                       charLength: m.location.length,
