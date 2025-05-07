@@ -16,7 +16,7 @@ import 'src/common_server.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final Logger _logger = Logger('services');
+final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
@@ -77,7 +77,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.info(
+  _logger.genericInfo(
     '''
 Starting dart-services:
   port: $port
@@ -93,7 +93,7 @@ Starting dart-services:
     storageBucket,
   );
 
-  _logger.info('Listening on port ${server.port}');
+  _logger.genericInfo('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -168,7 +168,11 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        _logger.severe('${request.requestedUri.path} $e', null, st);
+        _logger.genericSevere(
+          '${request.requestedUri.path} $e',
+          error: null,
+          stackTrace: st,
+        );
 
         return Response.badRequest(body: '$e');
       }

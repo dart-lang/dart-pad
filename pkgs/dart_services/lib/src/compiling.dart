@@ -7,15 +7,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
+import 'context.dart';
+import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
 
-final Logger _logger = Logger('compiler');
+final DartPadLogger _logger = DartPadLogger('compiler');
 
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
@@ -47,11 +48,12 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
-    String source, {
+    String source,
+    DartPadRequestContext ctx, {
     bool returnSourceMap = false,
   }) async {
     final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}');
+    _logger.fine('Temp directory created: ${temp.path}', ctx);
 
     try {
       _copyPath(_projectTemplates.dartPath, temp.path);
@@ -77,7 +79,7 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}');
+      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}', ctx);
 
       final result = await Process.run(
         _dartPath,
@@ -104,24 +106,25 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st');
+      _logger.warning('Compiler failed: $e\n$st', ctx);
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}');
+      _logger.fine('temp folder removed: ${temp.path}', ctx);
     }
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> _compileDDC(
-    String source, {
+    String source,
+    DartPadRequestContext ctx, {
     String? deltaDill,
     required bool useNew,
   }) async {
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}');
+    _logger.fine('Temp directory created: ${temp.path}', ctx);
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
@@ -182,7 +185,10 @@ class Compiler {
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
-      _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}"');
+      _logger.fine(
+        'About to exec dartdevc worker: ${arguments.join(' ')}"',
+        ctx,
+      );
 
       final response = await _ddcDriver.doWork(
         WorkRequest(arguments: arguments),
@@ -221,27 +227,34 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st');
+      _logger.warning('Compiler failed: $e\n$st', ctx);
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}');
+      _logger.fine('temp folder removed: ${temp.path}', ctx);
     }
   }
 
-  Future<DDCCompilationResults> compileDDC(String source) async {
-    return await _compileDDC(source, useNew: false);
+  Future<DDCCompilationResults> compileDDC(
+    String source,
+    DartPadRequestContext ctx,
+  ) async {
+    return await _compileDDC(source, ctx, useNew: false);
   }
 
-  Future<DDCCompilationResults> compileNewDDC(String source) async {
-    return await _compileDDC(source, useNew: true);
+  Future<DDCCompilationResults> compileNewDDC(
+    String source,
+    DartPadRequestContext ctx,
+  ) async {
+    return await _compileDDC(source, ctx, useNew: true);
   }
 
   Future<DDCCompilationResults> compileNewDDCReload(
     String source,
     String deltaDill,
+    DartPadRequestContext ctx,
   ) async {
-    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
+    return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {

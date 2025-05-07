@@ -15,8 +15,10 @@ import 'package:shelf_router/shelf_router.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
+import 'context.dart';
 import 'flutter_genui.dart';
 import 'generative_ai.dart';
+import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 import 'sdk.dart';
@@ -129,13 +131,14 @@ class CommonServerApi {
 
   Future<Response> handleCompile(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
+    final ctx = DartPadRequestContext.fromRequest(request);
 
     final sourceRequest = api.SourceRequest.fromJson(
       await request.readAsJson(),
     );
 
     final results = await serialize(() {
-      return impl.compiler.compile(sourceRequest.source);
+      return impl.compiler.compile(sourceRequest.source, ctx);
     });
 
     if (results.hasOutput) {
@@ -178,10 +181,12 @@ class CommonServerApi {
   }
 
   Future<Response> handleCompileDDC(Request request, String apiVersion) async {
+    final ctx = DartPadRequestContext.fromRequest(request);
+
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) => impl.compiler.compileDDC(request.source),
+      (compileRequest) => impl.compiler.compileDDC(compileRequest.source, ctx),
     );
   }
 
@@ -189,10 +194,13 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
+    final ctx = DartPadRequestContext.fromRequest(request);
+
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) => impl.compiler.compileNewDDC(request.source),
+      (compileRequest) =>
+          impl.compiler.compileNewDDC(compileRequest.source, ctx),
     );
   }
 
@@ -200,11 +208,16 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
+    final ctx = DartPadRequestContext.fromRequest(request);
+
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (request) =>
-          impl.compiler.compileNewDDCReload(request.source, request.deltaDill!),
+      (compileRequest) => impl.compiler.compileNewDDCReload(
+        compileRequest.source,
+        compileRequest.deltaDill!,
+        ctx,
+      ),
     );
   }
 
@@ -238,13 +251,18 @@ class CommonServerApi {
 
   Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
+    final ctx = DartPadRequestContext.fromRequest(request);
 
     final sourceRequest = api.SourceRequest.fromJson(
       await request.readAsJson(),
     );
 
     final result = await serialize(() {
-      return impl.analyzer.format(sourceRequest.source, sourceRequest.offset);
+      return impl.analyzer.format(
+        sourceRequest.source,
+        sourceRequest.offset,
+        ctx,
+      );
     });
 
     return ok(result.toJson());
@@ -499,21 +517,27 @@ Middleware createCustomCorsHeadersMiddleware() {
   );
 }
 
-Middleware logRequestsToLogger(Logger log) {
+Middleware logRequestsToLogger(DartPadLogger log) {
   return (Handler innerHandler) {
     return (request) {
       final watch = Stopwatch()..start();
 
+      final ctx = DartPadRequestContext.fromRequest(request);
+      log.genericInfo('received request, enableLogging=${ctx.enableLogging}');
+
       return Future.sync(() => innerHandler(request)).then(
         (response) {
-          log.info(_formatMessage(request, watch.elapsed, response: response));
+          log.info(
+            _formatMessage(request, watch.elapsed, response: response),
+            ctx,
+          );
 
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
           if (error is HijackException) throw error;
 
-          log.info(_formatMessage(request, watch.elapsed, error: error));
+          log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
 
           // ignore: only_throw_errors
           throw error;

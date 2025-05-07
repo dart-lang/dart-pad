@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_services/src/analysis.dart';
+import 'package:dart_services/src/context.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:test/test.dart';
 
-import 'src/sample_code.dart';
+import '../test_infra/sample_code.dart';
 
 void main() => defineTests();
 
@@ -134,7 +135,11 @@ void defineTests() {
     });
 
     test('format simple', () async {
-      final results = await analysisServer.format(badFormatCode, 0);
+      final results = await analysisServer.format(
+        badFormatCode,
+        0,
+        DartPadRequestContext(),
+      );
       expect(results.source, formattedCode);
     });
 
@@ -142,12 +147,17 @@ void defineTests() {
       final results = await analysisServer.format(
         formattedCode.replaceAll('\n', ' '),
         0,
+        DartPadRequestContext(),
       );
       expect(results.source, formattedCode);
     });
 
     test('format with issues', () async {
-      final results = await analysisServer.format(formatWithIssues, 0);
+      final results = await analysisServer.format(
+        formatWithIssues,
+        0,
+        DartPadRequestContext(),
+      );
       expect(results.source, formatWithIssues);
     });
 
