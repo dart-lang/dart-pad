@@ -180,13 +180,6 @@ Middleware exceptionResponse() {
 }
 
 @visibleForTesting
-Future<TestServerRunner> startTestServer() async {
-  final runner = TestServerRunner();
-  await runner.start();
-  return runner;
-}
-
-@visibleForTesting
 class TestServerRunner {
   late final ServicesClient client;
   late final EndpointsServer _server;
