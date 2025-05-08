@@ -21,7 +21,7 @@ import 'package:path/path.dart' as path;
 ///
 /// "Unused import: 'package:flutter/material.dart'" ->
 /// "Unused import: 'package:flutter/material.dart'"
-String normalizeImports(String text) {
+String normalizeFilePaths(String text) {
   return text.replaceAllMapped(_possiblePathPattern, (match) {
     final possiblePath = match.group(0)!;
 
@@ -45,8 +45,8 @@ String normalizeImports(String text) {
   });
 }
 
-/// Normalizes an absolute file path by removing all occurrences of "..".
-String normalizeFilePath(String filePath) {
+/// Normalizes an absolute path by removing all occurrences of "..".
+String normalizeAbsolutePath(String filePath) {
   const parent = '..';
   final parts = path.split(filePath);
   assert(parts[0] == Platform.pathSeparator);

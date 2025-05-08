@@ -9,7 +9,7 @@ void main() => defineTests();
 
 void defineTests() {
   void expectNormalizeImports(String input, String output) {
-    expect(normalizeImports(input), equals(output));
+    expect(normalizeFilePaths(input), equals(output));
   }
 
   group('expectNormalizeImports', () {
@@ -62,13 +62,25 @@ void defineTests() {
 
   group('normalizeFilePath', () {
     test('removes ".." from the path', () {
-      expect(normalizeFilePath('/path/to/../file.dart'), '/path/file.dart');
-      expect(normalizeFilePath('/path/../to/file.dart'), '/to/file.dart');
-      expect(normalizeFilePath('/path/to/../../file.dart'), '/file.dart');
-      expect(normalizeFilePath('/path/../../to/file.dart'), '/../to/file.dart');
-      expect(normalizeFilePath('/path/../to/../../file.dart'), '/../file.dart');
-      expect(normalizeFilePath('/path/../../to/../file.dart'), '/../file.dart');
-      expect(normalizeFilePath('/../path/../to/file.dart'), '/../to/file.dart');
+      expect(normalizeAbsolutePath('/path/to/../file.dart'), '/path/file.dart');
+      expect(normalizeAbsolutePath('/path/../to/file.dart'), '/to/file.dart');
+      expect(normalizeAbsolutePath('/path/to/../../file.dart'), '/file.dart');
+      expect(
+        normalizeAbsolutePath('/path/../../to/file.dart'),
+        '/../to/file.dart',
+      );
+      expect(
+        normalizeAbsolutePath('/path/../to/../../file.dart'),
+        '/../file.dart',
+      );
+      expect(
+        normalizeAbsolutePath('/path/../../to/../file.dart'),
+        '/../file.dart',
+      );
+      expect(
+        normalizeAbsolutePath('/../path/../to/file.dart'),
+        '/../to/file.dart',
+      );
     });
   });
 

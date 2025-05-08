@@ -46,7 +46,7 @@ class ProjectTemplates {
       'project_templates',
     );
 
-    return normalizeFilePath(dir);
+    return normalizeAbsolutePath(dir);
   }
 }
 
