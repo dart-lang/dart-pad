@@ -847,6 +847,9 @@ class StatusLineWidget extends StatelessWidget {
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
+          // TODO: delete
+          const SizedBox(width: denseSpacing),
+          Text('test-1'),
         ],
       ),
     );
