@@ -797,7 +797,7 @@ class StatusLineWidget extends StatelessWidget {
           SelectChannelWidget(hideLabel: mobileVersion),
           // TODO: remove before merge
           const SizedBox(width: denseSpacing),
-          Text('genui-demo-2'),
+          Text('genui-demo-4'),
         ],
       ),
     );
