@@ -58,7 +58,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
           genAiManager.enterAwaitingAcceptReject();
           _focusNode.requestFocus();
           widget.appModel.sourceCodeController.textNoScroll = generatedCode;
-          widget.appServices.performCompileAndReloadOrRun();
+          widget.appServices.performCompileAndRun();
         });
       },
     );
