@@ -8,52 +8,52 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  void expectNormalizeFilePaths(String input, String output) {
+  void expectNormalizeImports(String input, String output) {
     expect(normalizeImports(input), equals(output));
   }
 
-  group('expectNormalizeFilePaths', () {
+  group('expectNormalizeImports', () {
     test('strips a temporary directory path', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         'List is defined in /var/folders/4p/y54w9nqj0_n6ryqwn7lxqz6800m6cw/T/DartAnalysisWrapperintLAw/main.dart',
         'List is defined in main.dart',
       );
     });
 
     test('replaces a SDK path with "dart:core"', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         'List is defined in /path/dart/dart/sdk/lib/core/list.dart',
         'List is defined in dart:core/list.dart',
       );
     });
 
     test('replaces a specific SDK path with "dart:core"', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         "The argument type 'List<int> (where List is defined in /Users/username/sdk/dart/2.10.5/lib/core/list.dart)' can't be assigned to the parameter type 'List<int> (where List is defined in /var/folders/4p/tmp/T/DartAnalysisWrapperintLAw/main.dart)'.",
         "The argument type 'List<int> (where List is defined in dart:core/list.dart)' can't be assigned to the parameter type 'List<int> (where List is defined in main.dart)'.",
       );
     });
 
     test('keeps a "package:" path intact', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         "Unused import: 'package:flutter/material.dart'.",
         "Unused import: 'package:flutter/material.dart'.",
       );
     });
 
     test('keeps a "dart:core" path intact', () {
-      expectNormalizeFilePaths('dart:core/foo.dart', 'dart:core/foo.dart');
+      expectNormalizeImports('dart:core/foo.dart', 'dart:core/foo.dart');
     });
 
     test('keeps a web URL intact', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         'See http://dart.dev/go/non-promo-property',
         'See http://dart.dev/go/non-promo-property',
       );
     });
 
     test('strips a Flutter SDK path', () {
-      expectNormalizeFilePaths(
+      expectNormalizeImports(
         "The argument type 'StatelessWidget (where StatelessWidget is defined in /Users/username/path/to/dart-services/project_templates/flutter_project/main.dart)' can't be assigned to the parameter type 'StatelessWidget (where StatelessWidget is defined in /Users/username/path/to/dart-services/flutter-sdk/packages/flutter/lib/src/widgets/framework.dart)'.",
         "The argument type 'StatelessWidget (where StatelessWidget is defined in main.dart)' can't be assigned to the parameter type 'StatelessWidget (where StatelessWidget is defined in package:flutter/framework.dart)'.",
       );
