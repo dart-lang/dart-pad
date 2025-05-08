@@ -18,7 +18,7 @@ class ProjectTemplates {
     required this.summaryFilePath,
   });
 
-  factory ProjectTemplates() {
+  factory ProjectTemplates._factory() {
     final templatesDirectory = _templatesDirectoryPath();
     return ProjectTemplates._(
       dartPath: path.join(templatesDirectory, 'dart_project'),
@@ -36,7 +36,7 @@ class ProjectTemplates {
   /// The path to summary files.
   final String summaryFilePath;
 
-  static ProjectTemplates projectTemplates = ProjectTemplates();
+  static ProjectTemplates instance = ProjectTemplates._factory();
 
   static String _templatesDirectoryPath() {
     final dir = path.join(
