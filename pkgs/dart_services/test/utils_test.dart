@@ -9,7 +9,7 @@ void main() => defineTests();
 
 void defineTests() {
   void expectNormalizeFilePaths(String input, String output) {
-    expect(normalizeFilePaths(input), equals(output));
+    expect(normalizeImports(input), equals(output));
   }
 
   group('expectNormalizeFilePaths', () {
