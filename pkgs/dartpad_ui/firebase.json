@@ -71,7 +71,7 @@
           "headers": [
             {
               "key": "Cross-Origin-Opener-Policy",
-              "value": "same-origin"
+              "value": "cross-origin"
             },
             {
               "key": "Cross-Origin-Embedder-Policy",
@@ -87,7 +87,7 @@
             },
             {
               "key": "Referrer-Policy",
-              "value": "strict-origin-when-cross-origin"
+              "value": "cross-origin-when-cross-origin"
             }
           ]
         }
