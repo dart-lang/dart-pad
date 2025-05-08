@@ -12,6 +12,22 @@ const goldenPath = 'test/test_infra/goldens';
 /// Sets the window size to be smallest possible for a large screen.
 ///
 /// Needed to test there is no overflow on almost small screens.
+Future<DartPadMainPageState> initializeMainPage(WidgetTester tester) async {
+  await setMinLargeScreenWidth(tester);
+
+  await tester.pumpWidget(const DartPadApp());
+
+  final DartPadMainPageState state = tester.state(find.byType(DartPadMainPage));
+
+  await state.initialized.future;
+  await tester.pumpAndSettle();
+
+  return state;
+}
+
+/// Sets the window size to be smallest possible for a large screen.
+///
+/// Needed to test there is no overflow on almost small screens.
 Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
   // We need to add some width to avoid overflow
   // in tests, while overflow is not happening in real app on web and on mac.

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_ui/genai_editing.dart';
-import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -13,16 +12,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Initial screen.', (WidgetTester tester) async {
-    await setMinLargeScreenWidth(tester);
-
-    await tester.pumpWidget(const DartPadApp());
-
-    final DartPadMainPageState state = tester.state(
-      find.byType(DartPadMainPage),
-    );
-
-    await state.initialized.future;
-    await tester.pumpAndSettle();
+    await initializeMainPage(tester);
     await expectLater(find.byType(EditorWithButtons), findsOneWidget);
   });
 }
