@@ -42,14 +42,9 @@ class ProjectTemplates {
   static const String _dartServicesProject = 'dart_project';
 
   static String _summaryFilePath() {
-    final dir = path.join(
-      Directory.current.path,
-      '..',
-      _dartServicesProject,
-      'artifacts',
-    );
+    final filePath = path.join('artifacts', 'flutter_web.dill');
 
-    return normalizeFilePath(dir);
+    return normalizeFilePath(filePath);
   }
 
   static String _templatesDirectoryPath() {
