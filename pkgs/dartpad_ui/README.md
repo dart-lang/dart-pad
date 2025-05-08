@@ -38,7 +38,7 @@ There are options to run UI locally:
       --web-launch-url=http://localhost:8888/?channel=localhost
     ```
 
-## How to publish
+## How to publish to a custom Firebase Hosting project
 
 If you want to collaborate on an intermediate version, you can publish it to your own Firebase project:
 
