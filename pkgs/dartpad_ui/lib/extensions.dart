@@ -24,7 +24,7 @@ extension GoRouteHelpers on GoRouter {
 }
 
 extension MenuControllerToggleMenu on MenuController {
-  void toggleMenuState() {
+  void toggle() {
     if (isOpen) {
       close();
     } else {

@@ -579,8 +579,8 @@ class LoadingOverlay extends StatelessWidget {
                 compilingState == CompilingState.restarting ||
                 genAiState == GenAiState.generating;
 
-            // If reloading, show a progress spinner. If restarting, also display a
-            // semi-opaque overlay.
+            // If reloading, show a progress spinner. If restarting,
+            // also display a semi-opaque overlay.
             return AnimatedContainer(
               color: color.withValues(alpha: loading ? 0.8 : 0),
               duration: animationDelay,
@@ -828,7 +828,7 @@ class NewSnippetWidget extends StatelessWidget {
             label: const Text('Create'),
             tooltip: 'Create a new snippet',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: [
         for (final item in _menuItems)
@@ -860,7 +860,7 @@ class ListSamplesWidget extends StatelessWidget {
             label: const Text('Samples'),
             tooltip: 'Try out a sample',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: _buildMenuItems(context),
     );
@@ -913,7 +913,7 @@ class SelectChannelWidget extends StatelessWidget {
                   tooltip: 'Switch channels',
                   hideLabel: hideLabel,
                   compact: true,
-                  onToggle: controller.toggleMenuState,
+                  onToggle: controller.toggle,
                 ),
             menuChildren: [
               for (final channel in channels)
@@ -962,7 +962,7 @@ class OverflowMenu extends StatelessWidget {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
         return IconButton(
-          onPressed: () => controller.toggleMenuState(),
+          onPressed: () => controller.toggle(),
           icon: const Icon(Icons.more_vert),
         );
       },
@@ -997,7 +997,7 @@ class ContinueInMenu extends StatelessWidget {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
         return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
+          onPressed: () => controller.toggle(),
           icon: const Icon(Icons.file_download_outlined),
           label: const Text('Open in'),
         );
@@ -1049,7 +1049,7 @@ class GeminiMenu extends StatelessWidget {
             label: const Text('Create with Gemini'),
             tooltip: 'Generate code with Gemini',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: [
         ...[

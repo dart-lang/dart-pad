@@ -780,7 +780,7 @@ class _GeminiCodeEditMenu extends StatelessWidget {
           height: 26,
           width: 26,
           child: IconButton.filledTonal(
-            onPressed: () => menuController.toggleMenuState(),
+            onPressed: () => menuController.toggle(),
             padding: EdgeInsets.all(0.0),
             icon: const Icon(Icons.add),
             iconSize: 16,
