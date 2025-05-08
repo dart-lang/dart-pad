@@ -42,17 +42,11 @@ class ProjectTemplates {
     final dir = path.join(
       Directory.current.path,
       '..',
-      'dart_project',
+      'dart_services',
       'project_templates',
     );
 
-    print('!!!!! ProjectTemplates: $dir');
-
-    final normalized = normalizeAbsolutePath(dir);
-
-    print('!!!!! normalized: $normalized');
-
-    return normalized;
+    return normalizeAbsolutePath(dir);
   }
 }
 
