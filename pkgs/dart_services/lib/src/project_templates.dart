@@ -19,7 +19,7 @@ class ProjectTemplates {
   });
 
   factory ProjectTemplates() {
-    final templatesDirectory = _projectTemplatesDirectoryPath();
+    final templatesDirectory = _templatesDirectoryPath();
     final summaryFilePath = path.join('artifacts', 'flutter_web.dill');
     return ProjectTemplates._(
       dartPath: path.join(templatesDirectory, 'dart_project'),
@@ -39,7 +39,7 @@ class ProjectTemplates {
 
   static ProjectTemplates projectTemplates = ProjectTemplates();
 
-  static String _projectTemplatesDirectoryPath() {
+  static String _templatesDirectoryPath() {
     final dir = path.join(
       Directory.current.path,
       '..',
