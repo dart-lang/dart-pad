@@ -12,7 +12,6 @@ Sample code snippets for DartPad.
 | Defaults | Dart snippet | [default_dart.dart](lib/default_dart.dart) | `dart` |
 | Defaults | Flutter snippet | [default_flutter.dart](lib/default_flutter.dart) | `flutter` |
 | Ecosystem | Flame game | [brick_breaker.dart](lib/brick_breaker.dart) | `flame-game` |
-| Ecosystem | Google AI SDK | [google_ai.dart](lib/google_ai.dart) | `google-ai-sdk` |
 | Flutter | Counter | [main.dart](lib/main.dart) | `counter` |
 | Flutter | Sunflower | [sunflower.dart](lib/sunflower.dart) | `sunflower` |
 <!-- samples -->

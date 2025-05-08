@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -193,7 +194,7 @@ class TestServerRunner {
     _server = await EndpointsServer.serve(8080, sdk, null, 'nnbd_artifacts');
     client = ServicesClient(
       http.Client(),
-      rootUrl: 'http://localhost:${_server.port}/',
+      rootUrl: 'http://$localhostIp:${_server.port}/',
     );
     _started!.complete();
     return client;
