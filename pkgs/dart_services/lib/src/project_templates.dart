@@ -46,7 +46,13 @@ class ProjectTemplates {
       'project_templates',
     );
 
-    return normalizeAbsolutePath(dir);
+    print('!!!!! ProjectTemplates: $dir');
+
+    final normalized = normalizeAbsolutePath(dir);
+
+    print('!!!!! normalized: $normalized');
+
+    return normalized;
   }
 }
 
