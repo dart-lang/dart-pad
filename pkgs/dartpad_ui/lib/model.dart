@@ -466,8 +466,6 @@ class AppServices {
     return services.suggestFix(request);
   }
 
-  bool counter = true;
-
   /// Generates the code with Gemini.
   Stream<String> generateCode(GenerateCodeRequest request) {
     return services.generateCode(request);

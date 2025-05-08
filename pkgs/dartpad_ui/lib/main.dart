@@ -621,7 +621,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
-        List<Widget> resolvedGeminiMenu(double spacing) =>
+        List<Widget> geminiMenuWidgets(double spacing) =>
             genAiEnabled
                 ? [
                   SizedBox(width: spacing),
@@ -661,13 +661,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (wideLayout) ...[
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
-                  ...resolvedGeminiMenu(denseSpacing),
+                  ...geminiMenuWidgets(denseSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, hideLabel: true),
-                  ...resolvedGeminiMenu(defaultSpacing),
+                  ...geminiMenuWidgets(defaultSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(hideLabel: true),
                 ],
@@ -1210,7 +1210,7 @@ class _VimModeSwitch extends StatelessWidget {
       builder: (BuildContext context, bool value, Widget? child) {
         return SwitchListTile(
           value: value,
-          title: const Text('Use Vim Key Bindings'),
+          title: const Text('Use Vim key bindings'),
           onChanged: _handleToggle,
         );
       },
