@@ -1,5 +1,3 @@
-Do not merge
-
 # DartPad UI
 
 The main DartPad web UI implemented using [Flutter Web](https://flutter.dev/multi-platform/web).
