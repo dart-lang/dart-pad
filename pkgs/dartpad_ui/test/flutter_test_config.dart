@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 /// Test configuration for each test library in this directory.
 ///
@@ -13,6 +14,9 @@ import 'package:flutter_test/flutter_test.dart';
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Set golden file comparator to use a custom tolerance.
   goldenFileComparator = _GoldenDiffComparator();
+
+  // Allows real http requests to be made.
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   await testMain();
 }

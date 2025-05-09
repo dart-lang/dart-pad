@@ -8,14 +8,8 @@ import 'package:dartpad_ui/model.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final runner = TestServerRunner();
-
   setUpAll(() async {
-    await runner.start();
-  });
-
-  tearDownAll(() async {
-    await runner.stop();
+    await TestServerRunner().maybeStart();
   });
 
   group('Channel', () {

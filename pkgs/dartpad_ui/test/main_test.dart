@@ -11,16 +11,8 @@ import 'package:integration_test/integration_test.dart';
 import 'test_infra/test_utils.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  final runner = TestServerRunner();
-
   setUpAll(() async {
-    await runner.start();
-  });
-
-  tearDownAll(() async {
-    await runner.stop();
+    await TestServerRunner().maybeStart();
   });
 
   testWidgets('Initial screen.', (WidgetTester tester) async {

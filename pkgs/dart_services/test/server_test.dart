@@ -17,12 +17,8 @@ void defineTests() {
     late final ServicesClient client;
 
     setUpAll(() async {
-      await runner.start();
+      await runner.maybeStart();
       client = runner.client;
-    });
-
-    tearDownAll(() async {
-      await runner.stop();
     });
 
     test('version', () async {
