@@ -18,13 +18,12 @@ class ProjectTemplates {
     required this.summaryFilePath,
   });
 
-  factory ProjectTemplates() {
-    final basePath = _baseTemplateProject();
-    final summaryFilePath = path.join('artifacts', 'flutter_web.dill');
+  factory ProjectTemplates._factory() {
+    final templatesDirectory = _templatesDirectoryPath();
     return ProjectTemplates._(
-      dartPath: path.join(basePath, 'dart_project'),
-      flutterPath: path.join(basePath, 'flutter_project'),
-      summaryFilePath: summaryFilePath,
+      dartPath: path.join(templatesDirectory, 'dart_project'),
+      flutterPath: path.join(templatesDirectory, 'flutter_project'),
+      summaryFilePath: path.join('artifacts', 'flutter_web.dill'),
     );
   }
 
@@ -37,9 +36,9 @@ class ProjectTemplates {
   /// The path to summary files.
   final String summaryFilePath;
 
-  static ProjectTemplates projectTemplates = ProjectTemplates();
+  static ProjectTemplates instance = ProjectTemplates._factory();
 
-  static String _baseTemplateProject() {
+  static String _templatesDirectoryPath() {
     final dir = path.join(
       Directory.current.path,
       '..',
@@ -47,7 +46,7 @@ class ProjectTemplates {
       'project_templates',
     );
 
-    return normalizeFilePath(dir);
+    return normalizeAbsolutePath(dir);
   }
 }
 

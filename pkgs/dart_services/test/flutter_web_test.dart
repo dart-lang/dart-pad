@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  final projectTemplates = ProjectTemplates.projectTemplates;
+  final projectTemplates = ProjectTemplates.instance;
 
   group('FlutterWebManager', () {
     test('initializes', () async {

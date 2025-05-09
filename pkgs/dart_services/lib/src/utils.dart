@@ -45,8 +45,8 @@ String normalizeImports(String text) {
   });
 }
 
-/// Normalizes an absolute file path by removing all occurrences of "..".
-String normalizeFilePath(String filePath) {
+/// Normalizes an absolute path by removing all occurrences of "..".
+String normalizeAbsolutePath(String filePath) {
   const parent = '..';
   final parts = path.split(filePath);
   assert(parts[0] == Platform.pathSeparator);
