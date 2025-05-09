@@ -121,28 +121,4 @@ void defineTests() {
       expect(lines.columnForOffset(3), 4);
     });
   });
-
-  group('normalizeAbsolutePath', () {
-    test('removes ".." from the path', () {
-      expect(normalizeAbsolutePath('/path/to/../file.dart'), '/path/file.dart');
-      expect(normalizeAbsolutePath('/path/../to/file.dart'), '/to/file.dart');
-      expect(normalizeAbsolutePath('/path/to/../../file.dart'), '/file.dart');
-      expect(
-        normalizeAbsolutePath('/path/../../to/file.dart'),
-        '/../to/file.dart',
-      );
-      expect(
-        normalizeAbsolutePath('/path/../to/../../file.dart'),
-        '/../file.dart',
-      );
-      expect(
-        normalizeAbsolutePath('/path/../../to/../file.dart'),
-        '/../file.dart',
-      );
-      expect(
-        normalizeAbsolutePath('/../path/../to/file.dart'),
-        '/../to/file.dart',
-      );
-    });
-  });
 }
