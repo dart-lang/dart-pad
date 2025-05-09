@@ -188,6 +188,9 @@ class TestServerRunner {
 
   Completer<void>? _started;
 
+  /// Starts the server if it is not already running.
+  ///
+  /// If the port is occupied, assumes the server is already started.
   Future<ServicesClient> maybeStart() async {
     if (_started != null) {
       await _started!.future;
