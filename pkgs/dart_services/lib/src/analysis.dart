@@ -75,8 +75,7 @@ class AnalysisServerWrapper {
 
   AnalysisServerWrapper({required this.sdkPath, String? projectPath})
     : // During analysis, we use the Flutter project template.
-      projectPath =
-          projectPath ?? ProjectTemplates.projectTemplates.flutterPath;
+      projectPath = projectPath ?? ProjectTemplates.instance.flutterPath;
 
   String get mainPath => _getPathFromName(kMainDart);
 
