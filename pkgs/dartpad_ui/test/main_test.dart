@@ -6,7 +6,6 @@ import 'package:dart_services/server.dart';
 import 'package:dartpad_ui/genai_editing.dart';
 import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 
 import 'test_infra/test_utils.dart';
 
