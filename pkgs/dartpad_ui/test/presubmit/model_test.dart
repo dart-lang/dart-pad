@@ -2,10 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dart_services/server.dart';
+import 'package:dartpad_shared/model.dart';
 import 'package:dartpad_ui/model.dart';
 import 'package:test/test.dart';
 
 void main() {
+  final runner = TestServerRunner();
+
+  setUpAll(() async {
+    await runner.start();
+  });
+
+  tearDownAll(() async {
+    await runner.stop();
+  });
+
   group('Channel', () {
     test('master is aliased', () {
       final value = Channel.forName('master');
@@ -15,6 +27,17 @@ void main() {
     test('supported channels', () {
       final result = Channel.valuesWithoutLocalhost.map((c) => c.name).toList();
       expect(result, unorderedMatches(['main', 'beta', 'stable']));
+    });
+  });
+
+  group('AppServices', () {
+    test('populateVersions', () async {
+      final appModel = AppModel();
+      final appServices = AppServices(appModel, Channel.localhost);
+
+      expect(appModel.runtimeVersions.value, null);
+      await appServices.populateVersions();
+      expect(appModel.runtimeVersions.value, isA<VersionResponse>());
     });
   });
 }
