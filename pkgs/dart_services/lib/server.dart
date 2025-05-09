@@ -182,28 +182,32 @@ Middleware exceptionResponse() {
 
 @visibleForTesting
 class TestServerRunner {
+  static const _port = 8080;
   late final ServicesClient client;
-  late final EndpointsServer _server;
   final sdk = Sdk.fromLocalFlutter();
 
   Completer<void>? _started;
 
-  Future<ServicesClient> start() async {
-    assert(_started == null, 'Server should not be started');
+  /// Starts the server if it is not already running.
+  ///
+  /// If the port is occupied, assumes the server is already started.
+  Future<ServicesClient> maybeStart() async {
+    if (_started != null) {
+      await _started!.future;
+      return client;
+    }
+
     _started = Completer<void>();
-    _server = await EndpointsServer.serve(8080, sdk, null, 'nnbd_artifacts');
+    try {
+      await EndpointsServer.serve(_port, sdk, null, 'nnbd_artifacts');
+    } on SocketException {
+      // This is expected if the server is already running.
+    }
     client = ServicesClient(
       http.Client(),
-      rootUrl: 'http://$localhostIp:${_server.port}/',
+      rootUrl: 'http://$localhostIp:$_port/',
     );
     _started!.complete();
     return client;
-  }
-
-  Future<void> stop() async {
-    assert(_started != null, 'Server should be started before stopping');
-    await _started!.future;
-    client.dispose();
-    await _server.close();
   }
 }
