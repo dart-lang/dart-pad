@@ -8,6 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import 'utils.dart';
+
 /// Sets of project template directory paths.
 class ProjectTemplates {
   ProjectTemplates._({
@@ -16,13 +18,12 @@ class ProjectTemplates {
     required this.summaryFilePath,
   });
 
-  factory ProjectTemplates() {
-    final basePath = _baseTemplateProject();
-    final summaryFilePath = path.join('artifacts', 'flutter_web.dill');
+  factory ProjectTemplates._factory() {
+    final templatesDirectory = _templatesDirectoryPath();
     return ProjectTemplates._(
-      dartPath: path.join(basePath, 'dart_project'),
-      flutterPath: path.join(basePath, 'flutter_project'),
-      summaryFilePath: summaryFilePath,
+      dartPath: path.join(templatesDirectory, 'dart_project'),
+      flutterPath: path.join(templatesDirectory, 'flutter_project'),
+      summaryFilePath: path.join('artifacts', 'flutter_web.dill'),
     );
   }
 
@@ -35,10 +36,18 @@ class ProjectTemplates {
   /// The path to summary files.
   final String summaryFilePath;
 
-  static ProjectTemplates projectTemplates = ProjectTemplates();
+  static ProjectTemplates instance = ProjectTemplates._factory();
 
-  static String _baseTemplateProject() =>
-      path.join(Directory.current.path, 'project_templates');
+  static String _templatesDirectoryPath() {
+    final dir = path.join(
+      Directory.current.path,
+      '..',
+      'dart_services',
+      'project_templates',
+    );
+
+    return normalizeAbsolutePath(dir);
+  }
 }
 
 /// The set of supported Flutter-oriented packages.

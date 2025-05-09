@@ -72,9 +72,11 @@ If you want to collaborate on an intermediate version, you can publish it to you
 
    Select `Hosting` (not `App Hosting`) and choose defaults for other questions.
 
-1. Revert all changes, that previous command made in firebase.json, and
-   make sure (temporarily) there is only one item under `hosting`,
-   with `"target": "dartpad"`.
+1. Revert all changes, that previous command made in firebase.json,
+   then temporarily update it:
+
+   * delete all items under `hosting`, except one with `"target": "dartpad"`.
+   * replace all occurrences of 'same-origin' with 'cross-origin'
 
 1. Run `firebase deploy`.
 
