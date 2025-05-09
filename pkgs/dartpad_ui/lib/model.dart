@@ -262,7 +262,11 @@ class AppServices {
     });
   }
 
-  Future<VersionResponse> populateVersions() => services.version();
+  Future<VersionResponse> populateVersions() async {
+    final version = await services.version();
+    appModel.runtimeVersions.value = version;
+    return version;
+  }
 
   Future<void> performInitialLoad({
     String? gistId,
