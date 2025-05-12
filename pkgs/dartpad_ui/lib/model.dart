@@ -634,6 +634,8 @@ extension VersionResponseExtension on VersionResponse {
 }
 
 class SplitDragStateManager {
+  // We need broadcast, because sometimes a new widget wants to subscribe,
+  // when state of previous one is not disposed yet.
   final _splitDragStateController =
       StreamController<SplitDragState>.broadcast();
   late final Stream<SplitDragState> onSplitDragUpdated;
@@ -721,7 +723,6 @@ class GenAiManager {
     StringBuffer(),
   );
   final ValueNotifier<bool> streamIsDone = ValueNotifier(true);
-  TextEditingController? activePromptTextController;
 
   final TextEditingController newCodePromptController = TextEditingController();
   final TextEditingController codeEditPromptController =
@@ -742,23 +743,21 @@ class GenAiManager {
   void enterGeneratingNew() {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.generateCode;
-    activePromptTextController = newCodePromptController;
   }
 
   void enterGeneratingEdit() {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.editCode;
-    activePromptTextController = codeEditPromptController;
   }
 
   void enterSuggestingFix() {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.suggestFix;
-    activePromptTextController = codeEditPromptController;
   }
 
-  void reset() {
+  void finishActivity() {
     activity.value = null;
+    activeCuj.value = null;
     streamIsDone.value = true;
     streamBuffer.value.clear();
     newCodeAttachments.clear();
@@ -766,8 +765,6 @@ class GenAiManager {
   }
 
   void enterAwaitingAcceptReject() {
-    // We need broadcast, because sometimes a new widget wants to subscribe,
-    // when state of previous one is not disposed yet.
     activity.value = GenAiActivity.awaitingAcceptReject;
   }
 
@@ -775,12 +772,14 @@ class GenAiManager {
     stream.value = newStream.asBroadcastStream();
   }
 
-  void setStreamIsDone(bool which) {
-    streamIsDone.value = which;
+  void setStreamIsDone(bool isDone) {
+    streamIsDone.value = isDone;
   }
 
-  void resetInputs() {
-    activePromptTextController?.text = '';
+  void resetState() {
+    codeEditPromptController.text = '';
+    newCodePromptController.text = '';
+    finishActivity();
   }
 
   String generatedCode() {

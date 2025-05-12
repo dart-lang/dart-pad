@@ -50,7 +50,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
             widget.appModel.appendError(
               'There was an error generating your code, please try again.',
             );
-            widget.appModel.genAiManager.reset();
+            widget.appModel.genAiManager.finishActivity();
             return;
           }
           genAiManager.setStreamBufferValue(generatedCode);

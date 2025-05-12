@@ -73,21 +73,20 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     } catch (error) {
       widget.appModel.editorStatus.showToast('Error updating code');
       widget.appModel.appendError('Updating code issue: $error');
-      widget.appModel.genAiManager.reset();
+      widget.appModel.genAiManager.finishActivity();
     }
   }
 
   void _handleAcceptUpdateCode() {
     assert(widget.appModel.genAiManager.streamIsDone.value);
-    widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.reset();
+    widget.appModel.genAiManager.resetState();
   }
 
   void _handleEditUpdateCodePrompt(BuildContext context) async {
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();
-    widget.appModel.genAiManager.reset();
+    widget.appModel.genAiManager.finishActivity();
 
     final activeCuj = widget.appModel.genAiManager.activeCuj.value;
 
@@ -102,13 +101,11 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
   }
 
   void _handleCancelUpdateCode() {
-    widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.reset();
+    widget.appModel.genAiManager.resetState();
   }
 
   void _handleRejectSuggestedCode() {
-    widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.reset();
+    widget.appModel.genAiManager.resetState();
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();

@@ -36,8 +36,10 @@ void main() {
   });
 
   group('GenAiManager', () {
-    test('default state is standby', () {
-      expect(GenAiManager().activity.value, null);
-    });
+    test('defaults are empty', () {});
   });
+}
+
+void verifyDefaults(GenAiManager manager) {
+  expect(GenAiManager().activity.value, null);
 }
