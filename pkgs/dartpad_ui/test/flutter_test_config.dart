@@ -19,9 +19,6 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Allows real http requests to be made.
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  // Turn off backend logging for all test requests.
-  DartServicesClient.turnOffBackendLogging();
-
   await testMain();
 }
 
