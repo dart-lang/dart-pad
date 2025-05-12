@@ -9,12 +9,11 @@ import 'package:dartpad_shared/model.dart' as api;
 import 'package:test/test.dart';
 
 import 'test_infra/sample_code.dart';
+import 'test_infra/utils.dart';
 
 void main() => defineTests();
 
 void defineTests() {
-  final ctx = DartPadRequestContext();
-
   group('analysis', () {
     final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
