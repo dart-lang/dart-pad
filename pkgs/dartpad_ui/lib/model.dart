@@ -550,7 +550,7 @@ class AppServices {
   }
 
   void dispose() {
-    _httpClient.dispose();
+    _httpClient.close();
 
     appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }

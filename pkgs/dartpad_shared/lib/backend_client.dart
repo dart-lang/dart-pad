@@ -18,7 +18,7 @@ class DartServicesClient {
     _headers = DartPadRequestHeaders(enableLogging: false).encoded;
   }
 
-  void dispose() => _client.close();
+  void close() => _client.close();
 
   Future<Response> get(String url) async {
     return await _client.get(Uri.parse(url), headers: _headers);

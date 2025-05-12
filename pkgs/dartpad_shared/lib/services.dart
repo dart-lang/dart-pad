@@ -73,7 +73,7 @@ class ServicesClient {
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 
-  void dispose() => client.dispose();
+  void dispose() => client.close();
 
   Future<T> _requestGet<T>(
     String action,
