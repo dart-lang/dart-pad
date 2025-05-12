@@ -727,7 +727,6 @@ class GenAiManager {
   final TextEditingController codeEditPromptController =
       TextEditingController();
 
-  List<Attachment>? activeAttachments;
   final List<Attachment> newCodeAttachments = [];
   final List<Attachment> codeEditAttachments = [];
 
@@ -744,21 +743,18 @@ class GenAiManager {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.generateCode;
     activePromptTextController = newCodePromptController;
-    activeAttachments = newCodeAttachments;
   }
 
   void enterGeneratingEdit() {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.editCode;
     activePromptTextController = codeEditPromptController;
-    activeAttachments = codeEditAttachments;
   }
 
   void enterSuggestingFix() {
     activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.suggestFix;
     activePromptTextController = codeEditPromptController;
-    activeAttachments = [];
   }
 
   void reset() {
@@ -785,7 +781,6 @@ class GenAiManager {
 
   void resetInputs() {
     activePromptTextController?.text = '';
-    activeAttachments?.clear();
   }
 
   String generatedCode() {
