@@ -39,6 +39,6 @@ Future<void> suggestFix({
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
     appModel.appendLineToConsole('Suggesting fix issue: $error');
-    appModel.genAiManager.enterStandby();
+    appModel.genAiManager.reset();
   }
 }

@@ -572,16 +572,20 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<GenAiState>(
-      valueListenable: appModel.genAiManager.state,
-      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+    return ValueListenableBuilder<GenAiActivity?>(
+      valueListenable: appModel.genAiManager.activity,
+      builder: (
+        BuildContext context,
+        GenAiActivity? genAiActivity,
+        Widget? child,
+      ) {
         return ValueListenableBuilder<CompilingState>(
           valueListenable: appModel.compilingState,
           builder: (_, compilingState, __) {
             final color = theme.colorScheme.surface;
             final loading =
                 compilingState == CompilingState.restarting ||
-                genAiState == GenAiState.generating;
+                genAiActivity == GenAiActivity.generating;
 
             // If reloading, show a progress spinner. If restarting,
             // also display a semi-opaque overlay.

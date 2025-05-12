@@ -708,12 +708,12 @@ class ConsoleNotifier extends ChangeNotifier {
   String get valueToDisplay => hasError ? _error : _output;
 }
 
-enum GenAiState { standby, generating, awaitingAcceptReject }
+enum GenAiActivity { generating, awaitingAcceptReject }
 
 enum GenAiCuj { generateCode, editCode, suggestFix }
 
 class GenAiManager {
-  final ValueNotifier<GenAiState> state = ValueNotifier(GenAiState.standby);
+  final ValueNotifier<GenAiActivity?> activity = ValueNotifier(null);
   final ValueNotifier<Stream<String>> stream = ValueNotifier(
     Stream<String>.empty(),
   );
@@ -731,40 +731,38 @@ class GenAiManager {
   final List<Attachment> newCodeAttachments = [];
   final List<Attachment> codeEditAttachments = [];
 
-  final ValueNotifier<GenAiCuj> activeCuj = ValueNotifier(
-    GenAiCuj.generateCode,
-  );
+  final ValueNotifier<GenAiCuj?> activeCuj = ValueNotifier(null);
   final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
 
   GenAiManager();
 
-  ValueNotifier<GenAiState> get currentState {
-    return state;
+  ValueNotifier<GenAiActivity?> get currentActivity {
+    return activity;
   }
 
   void enterGeneratingNew() {
-    state.value = GenAiState.generating;
+    activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.generateCode;
     activePromptTextController = newCodePromptController;
     activeAttachments = newCodeAttachments;
   }
 
   void enterGeneratingEdit() {
-    state.value = GenAiState.generating;
+    activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.editCode;
     activePromptTextController = codeEditPromptController;
     activeAttachments = codeEditAttachments;
   }
 
   void enterSuggestingFix() {
-    state.value = GenAiState.generating;
+    activity.value = GenAiActivity.generating;
     activeCuj.value = GenAiCuj.suggestFix;
     activePromptTextController = codeEditPromptController;
     activeAttachments = [];
   }
 
-  void enterStandby() {
-    state.value = GenAiState.standby;
+  void reset() {
+    activity.value = null;
     streamIsDone.value = true;
     streamBuffer.value.clear();
     newCodeAttachments.clear();
@@ -774,7 +772,7 @@ class GenAiManager {
   void enterAwaitingAcceptReject() {
     // We need broadcast, because sometimes a new widget wants to subscribe,
     // when state of previous one is not disposed yet.
-    state.value = GenAiState.awaitingAcceptReject;
+    activity.value = GenAiActivity.awaitingAcceptReject;
   }
 
   void startStream(Stream<String> newStream, [VoidCallback? onDone]) {

@@ -73,21 +73,21 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     } catch (error) {
       widget.appModel.editorStatus.showToast('Error updating code');
       widget.appModel.appendError('Updating code issue: $error');
-      widget.appModel.genAiManager.enterStandby();
+      widget.appModel.genAiManager.reset();
     }
   }
 
   void _handleAcceptUpdateCode() {
     assert(widget.appModel.genAiManager.streamIsDone.value);
     widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.enterStandby();
+    widget.appModel.genAiManager.reset();
   }
 
   void _handleEditUpdateCodePrompt(BuildContext context) async {
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();
-    widget.appModel.genAiManager.enterStandby();
+    widget.appModel.genAiManager.reset();
 
     final activeCuj = widget.appModel.genAiManager.activeCuj.value;
 
@@ -103,12 +103,12 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
 
   void _handleCancelUpdateCode() {
     widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.enterStandby();
+    widget.appModel.genAiManager.reset();
   }
 
   void _handleRejectSuggestedCode() {
     widget.appModel.genAiManager.resetInputs();
-    widget.appModel.genAiManager.enterStandby();
+    widget.appModel.genAiManager.reset();
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();
@@ -116,16 +116,20 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<GenAiState>(
-      valueListenable: widget.appModel.genAiManager.currentState,
-      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
+    return ValueListenableBuilder<GenAiActivity?>(
+      valueListenable: widget.appModel.genAiManager.currentActivity,
+      builder: (
+        BuildContext context,
+        GenAiActivity? genAiActivity,
+        Widget? child,
+      ) {
         return Column(
           children: [
             Expanded(
               child: SectionWidget(
                 child: Stack(
                   children: [
-                    if (genAiState == GenAiState.standby) ...[
+                    if (genAiActivity == null) ...[
                       EditorWidget(
                         appModel: widget.appModel,
                         appServices: widget.appServices,
@@ -219,7 +223,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                       child: StatusWidget(status: widget.appModel.editorStatus),
                     ),
 
-                    if (genAiState == GenAiState.standby) ...[
+                    if (genAiActivity == null) ...[
                       SizedBox(width: 0, height: 0),
                     ] else ...[
                       Container(
@@ -240,9 +244,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
             ),
             _GeminiCodeEditTool(
               appModel: widget.appModel,
-              enabled:
-                  widget.appModel.genAiManager.state.value ==
-                  GenAiState.standby,
+              enabled: widget.appModel.genAiManager.activity.value == null,
               onUpdateCode: _requestGeminiCodeUpdate,
               onAcceptUpdateCode: _handleAcceptUpdateCode,
               onCancelUpdateCode: _handleCancelUpdateCode,
@@ -253,11 +255,11 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
             MultiValueListenableBuilder(
               listenables: [
                 widget.appModel.analysisIssues,
-                widget.appModel.genAiManager.state,
+                widget.appModel.genAiManager.activity,
               ],
               builder: (_) {
-                if (genAiState != GenAiState.awaitingAcceptReject &&
-                    genAiState != GenAiState.generating) {
+                if (genAiActivity != GenAiActivity.awaitingAcceptReject &&
+                    genAiActivity != GenAiActivity.generating) {
                   return ProblemsTableWidget(
                     problems: widget.appModel.analysisIssues.value,
                   );
@@ -521,11 +523,11 @@ class _AcceptRejectBlock extends StatelessWidget {
   final void Function(BuildContext context) onEditUpdateCodePrompt;
   final VoidCallback onRejectSuggestedCode;
 
-  static String _statusMessage(BuildContext context, GenAiState genAiState) {
+  static String _statusMessage(BuildContext context, GenAiActivity genAiState) {
     final size = MediaQuery.of(context).size;
     if (size.width < 1150) return '';
 
-    return genAiState == GenAiState.generating
+    return genAiState == GenAiActivity.generating
         ? 'Generating your code'
         : 'Gemini proposed the above';
   }
@@ -534,12 +536,15 @@ class _AcceptRejectBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final appModel = Provider.of<AppModel>(context, listen: false);
 
-    return ValueListenableBuilder<GenAiState>(
-      valueListenable: genAiManager.currentState,
-      builder: (BuildContext context, GenAiState genAiState, Widget? child) {
-        if (genAiState == GenAiState.standby) {
-          return SizedBox(width: 0, height: 0);
-        }
+    return ValueListenableBuilder<GenAiActivity?>(
+      valueListenable: genAiManager.currentActivity,
+      builder: (
+        BuildContext context,
+        GenAiActivity? genAiActivity,
+        Widget? child,
+      ) {
+        if (genAiActivity == null) return SizedBox(width: 0, height: 0);
+
         final geminiIcon = Image.asset(
           'assets/gemini_sparkle_192.png',
           width: 16,
@@ -549,7 +554,7 @@ class _AcceptRejectBlock extends StatelessWidget {
         final activeCuj = appModel.genAiManager.activeCuj.value;
 
         final resolvedButtons =
-            genAiState == GenAiState.generating
+            genAiActivity == GenAiActivity.generating
                 ? [
                   TextButton(
                     onPressed: onCancelUpdateCode,
@@ -601,7 +606,7 @@ class _AcceptRejectBlock extends StatelessWidget {
                     geminiIcon,
                     SizedBox(width: 8),
                     Text(
-                      _statusMessage(context, genAiState),
+                      _statusMessage(context, genAiActivity),
                       style: geminiMessageTextTheme,
                     ),
                   ],

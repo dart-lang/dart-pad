@@ -34,4 +34,10 @@ void main() {
       expect(appModel.runtimeVersions.value, isA<VersionResponse>());
     });
   });
+
+  group('GenAiManager', () {
+    test('default state is standby', () {
+      expect(GenAiManager().activity.value, null);
+    });
+  });
 }

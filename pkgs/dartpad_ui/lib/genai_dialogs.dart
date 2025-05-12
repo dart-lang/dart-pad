@@ -108,7 +108,7 @@ Future<void> openCodeGenerationDialog(
   } catch (error) {
     appModel.editorStatus.showToast('Error generating code');
     appModel.appendError('Generating code issue: $error');
-    appModel.genAiManager.enterStandby();
+    appModel.genAiManager.reset();
   }
 }
 
