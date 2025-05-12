@@ -10,16 +10,18 @@ import 'headers.dart';
 
 class DartServicesClient {
   final Client _client = Client();
+  static Map<String, String> _headers =
+      DartPadRequestHeaders(enableLogging: true).encoded;
 
-  DartServicesClient();
+  /// Turns off backend logging for all future requests.
+  static void turnOffBackendLogging() {
+    _headers = DartPadRequestHeaders(enableLogging: false).encoded;
+  }
 
   void dispose() => _client.close();
 
   Future<Response> get(String url) async {
-    return await _client.get(
-      Uri.parse(url),
-      headers: DartPadRequestHeaders.instance.encoded,
-    );
+    return await _client.get(Uri.parse(url), headers: _headers);
   }
 
   Future<Response> post(String url, Map<String, Object?> body) async {
@@ -27,7 +29,7 @@ class DartServicesClient {
       Uri.parse(url),
       encoding: utf8,
       body: json.encode(body),
-      headers: DartPadRequestHeaders.instance.encoded,
+      headers: _headers,
     );
   }
 
@@ -37,7 +39,7 @@ class DartServicesClient {
   ) async {
     final httpRequest = Request('POST', Uri.parse(url));
     httpRequest.encoding = utf8;
-    httpRequest.headers.addAll(DartPadRequestHeaders.instance.encoded);
+    httpRequest.headers.addAll(_headers);
     httpRequest.headers['Content-Type'] = 'application/json';
     httpRequest.body = json.encode(request);
 

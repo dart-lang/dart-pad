@@ -9,20 +9,16 @@ const _loggingOnHeaderName = 'X-Enable-Logging';
 /// Standard serialization is not used, because the header name should have
 /// prefix 'X-'.
 class DartPadRequestHeaders {
-  static final instance = DartPadRequestHeaders();
+  /// If false, the header that turns off server side logging will be passed.
+  final bool enableLogging;
 
-  /// The default value is true.
-  ///
-  /// The value is set to false for clients where debug asserts are enabled.
-  /// It can be set to false in constructor.
-  late final bool enableLogging;
-
-  DartPadRequestHeaders({this.enableLogging = true});
+  DartPadRequestHeaders({required this.enableLogging});
 
   factory DartPadRequestHeaders.fromJson(Map<String, String> json) {
     final loggingOnString = json[_loggingOnHeaderName];
     return DartPadRequestHeaders(
-      enableLogging: loggingOnString == true.toString(),
+      // If the header is not present, we assume logging is on.
+      enableLogging: loggingOnString != false.toString(),
     );
   }
 

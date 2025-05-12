@@ -4,8 +4,6 @@
 
 import 'package:collection/collection.dart';
 import 'package:dart_services/server.dart';
-import 'package:dart_services/src/sdk.dart';
-import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
