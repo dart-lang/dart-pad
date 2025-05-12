@@ -43,7 +43,7 @@ class Compiler {
         ]),
         maxWorkers: 1,
       ),
-      _projectTemplates = ProjectTemplates.projectTemplates;
+      _projectTemplates = ProjectTemplates.instance;
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
