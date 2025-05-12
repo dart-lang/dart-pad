@@ -98,7 +98,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
             MultiValueListenableBuilder(
               listenables: [
                 genAiManager.streamBuffer,
-                widget.appModel.genAiManager.activeCuj,
+                widget.appModel.genAiManager.cuj,
                 genAiManager.preGenAiSourceCode,
               ],
               builder: (_) {
@@ -109,7 +109,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
                   autofocus: true,
                   focusNode: _focusNode,
                   child:
-                      widget.appModel.genAiManager.activeCuj.value ==
+                      widget.appModel.genAiManager.cuj.value ==
                               GenAiCuj.generateCode
                           ? ReadOnlyCodeWidget(genAiCodeStreamBuffer)
                           : ReadOnlyDiffWidget(

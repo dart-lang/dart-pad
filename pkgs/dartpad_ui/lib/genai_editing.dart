@@ -88,7 +88,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     widget.appServices.performCompileAndReloadOrRun();
     widget.appModel.genAiManager.finishActivity();
 
-    final activeCuj = widget.appModel.genAiManager.activeCuj.value;
+    final activeCuj = widget.appModel.genAiManager.cuj.value;
 
     if (activeCuj == GenAiCuj.generateCode) {
       openCodeGenerationDialog(context, changeLastPrompt: true);
@@ -255,7 +255,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                 widget.appModel.genAiManager.activity,
               ],
               builder: (_) {
-                if (genAiActivity != GenAiActivity.awaitingAcceptReject &&
+                if (genAiActivity != GenAiActivity.awaitingAcceptance &&
                     genAiActivity != GenAiActivity.generating) {
                   return ProblemsTableWidget(
                     problems: widget.appModel.analysisIssues.value,
@@ -548,7 +548,7 @@ class _AcceptRejectBlock extends StatelessWidget {
           height: 16,
         );
 
-        final activeCuj = appModel.genAiManager.activeCuj.value;
+        final activeCuj = appModel.genAiManager.cuj.value;
 
         final resolvedButtons =
             genAiActivity == GenAiActivity.generating

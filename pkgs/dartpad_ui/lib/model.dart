@@ -710,7 +710,7 @@ class ConsoleNotifier extends ChangeNotifier {
   String get valueToDisplay => hasError ? _error : _output;
 }
 
-enum GenAiActivity { generating, awaitingAcceptReject }
+enum GenAiActivity { generating, awaitingAcceptance }
 
 enum GenAiCuj { generateCode, editCode, suggestFix }
 
@@ -731,7 +731,7 @@ class GenAiManager {
   final List<Attachment> newCodeAttachments = [];
   final List<Attachment> codeEditAttachments = [];
 
-  final ValueNotifier<GenAiCuj?> activeCuj = ValueNotifier(null);
+  final ValueNotifier<GenAiCuj?> cuj = ValueNotifier(null);
   final ValueNotifier<String> preGenAiSourceCode = ValueNotifier('');
 
   GenAiManager();
@@ -742,22 +742,22 @@ class GenAiManager {
 
   void enterGeneratingNew() {
     activity.value = GenAiActivity.generating;
-    activeCuj.value = GenAiCuj.generateCode;
+    cuj.value = GenAiCuj.generateCode;
   }
 
   void enterGeneratingEdit() {
     activity.value = GenAiActivity.generating;
-    activeCuj.value = GenAiCuj.editCode;
+    cuj.value = GenAiCuj.editCode;
   }
 
   void enterSuggestingFix() {
     activity.value = GenAiActivity.generating;
-    activeCuj.value = GenAiCuj.suggestFix;
+    cuj.value = GenAiCuj.suggestFix;
   }
 
   void finishActivity() {
     activity.value = null;
-    activeCuj.value = null;
+    cuj.value = null;
     streamIsDone.value = true;
     streamBuffer.value.clear();
     newCodeAttachments.clear();
@@ -765,7 +765,7 @@ class GenAiManager {
   }
 
   void enterAwaitingAcceptReject() {
-    activity.value = GenAiActivity.awaitingAcceptReject;
+    activity.value = GenAiActivity.awaitingAcceptance;
   }
 
   void startStream(Stream<String> newStream, [VoidCallback? onDone]) {
