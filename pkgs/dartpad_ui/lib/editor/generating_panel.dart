@@ -55,7 +55,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
           }
           genAiManager.setStreamBufferValue(generatedCode);
           genAiManager.setStreamIsDone(true);
-          genAiManager.enterAwaitingAcceptReject();
+          genAiManager.enterAwaitingAcceptance();
           _focusNode.requestFocus();
           widget.appModel.sourceCodeController.textNoScroll = generatedCode;
           widget.appServices.performCompileAndRun();

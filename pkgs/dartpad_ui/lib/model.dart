@@ -764,7 +764,7 @@ class GenAiManager {
     codeEditAttachments.clear();
   }
 
-  void enterAwaitingAcceptReject() {
+  void enterAwaitingAcceptance() {
     activity.value = GenAiActivity.awaitingAcceptance;
   }
 

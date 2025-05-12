@@ -79,7 +79,7 @@ void main() {
         GenAiCuj.generateCode,
         newAttachments: 1,
       );
-      manager.enterAwaitingAcceptReject();
+      manager.enterAwaitingAcceptance();
       checkState(
         GenAiActivity.awaitingAcceptance,
         GenAiCuj.generateCode,
@@ -97,7 +97,7 @@ void main() {
         GenAiCuj.editCode,
         editAttachments: 1,
       );
-      manager.enterAwaitingAcceptReject();
+      manager.enterAwaitingAcceptance();
       checkState(
         GenAiActivity.awaitingAcceptance,
         GenAiCuj.editCode,
@@ -108,7 +108,7 @@ void main() {
     test('suggest fix code', () {
       manager.enterSuggestingFix();
       checkState(GenAiActivity.generating, GenAiCuj.suggestFix);
-      manager.enterAwaitingAcceptReject();
+      manager.enterAwaitingAcceptance();
       checkState(GenAiActivity.awaitingAcceptance, GenAiCuj.suggestFix);
     });
   });
