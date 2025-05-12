@@ -13,6 +13,8 @@ import 'test_infra/sample_code.dart';
 void main() => defineTests();
 
 void defineTests() {
+  final ctx = DartPadRequestContext();
+
   group('analysis', () {
     final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
@@ -135,11 +137,7 @@ void defineTests() {
     });
 
     test('format simple', () async {
-      final results = await analysisServer.format(
-        badFormatCode,
-        0,
-        DartPadRequestContext(),
-      );
+      final results = await analysisServer.format(badFormatCode, 0, ctx);
       expect(results.source, formattedCode);
     });
 
@@ -147,17 +145,13 @@ void defineTests() {
       final results = await analysisServer.format(
         formattedCode.replaceAll('\n', ' '),
         0,
-        DartPadRequestContext(),
+        ctx,
       );
       expect(results.source, formattedCode);
     });
 
     test('format with issues', () async {
-      final results = await analysisServer.format(
-        formatWithIssues,
-        0,
-        DartPadRequestContext(),
-      );
+      final results = await analysisServer.format(formatWithIssues, 0, ctx);
       expect(results.source, formatWithIssues);
     });
 
