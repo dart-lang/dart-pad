@@ -6,7 +6,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartpad_shared/constants.dart';
+import 'package:dartpad_shared/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_gzip/shelf_gzip.dart';
@@ -178,4 +182,36 @@ Middleware exceptionResponse() {
       }
     };
   };
+}
+
+@visibleForTesting
+class TestServerRunner {
+  static const _port = 8080;
+  late final ServicesClient client;
+  final sdk = Sdk.fromLocalFlutter();
+
+  Completer<void>? _started;
+
+  /// Starts the server if it is not already running.
+  ///
+  /// If the port is occupied, assumes the server is already started.
+  Future<ServicesClient> maybeStart() async {
+    if (_started != null) {
+      await _started!.future;
+      return client;
+    }
+
+    _started = Completer<void>();
+    try {
+      await EndpointsServer.serve(_port, sdk, null, 'nnbd_artifacts');
+    } on SocketException {
+      // This is expected if the server is already running.
+    }
+    client = ServicesClient(
+      http.Client(),
+      rootUrl: 'http://$localhostIp:$_port/',
+    );
+    _started!.complete();
+    return client;
+  }
 }

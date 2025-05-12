@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/backend_client.dart';
+import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -598,7 +599,7 @@ enum Channel {
   beta('Beta', 'https://beta.api.dartpad.dev/'),
   main('Main', 'https://master.api.dartpad.dev/'),
   // This channel is only used for local development.
-  localhost('Localhost', 'http://localhost:8080/');
+  localhost('Localhost', 'http://$localhostIp:8080/');
 
   final String displayName;
   final String url;

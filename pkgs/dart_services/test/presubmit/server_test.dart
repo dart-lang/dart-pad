@@ -15,24 +15,12 @@ void main() => defineTests();
 
 void defineTests() {
   group('server', () {
-    final sdk = Sdk.fromLocalFlutter();
-    late final EndpointsServer server;
-    late final DartServicesClient httpClient;
+    final runner = TestServerRunner();
     late final ServicesClient client;
 
     setUpAll(() async {
-      server = await EndpointsServer.serve(0, sdk, null, 'nnbd_artifacts');
-
-      httpClient = DartServicesClient();
-      client = ServicesClient(
-        httpClient,
-        rootUrl: 'http://localhost:${server.port}/',
-      );
-    });
-
-    tearDownAll(() async {
-      client.dispose();
-      await server.close();
+      await runner.maybeStart();
+      client = runner.client;
     });
 
     test('version', () async {
@@ -344,7 +332,7 @@ void main() {
       (request) => client.compileDDC(request),
       expectDeltaDill: false,
     );
-    if (sdk.dartMajorVersion >= 3 && sdk.dartMinorVersion >= 8) {
+    if (runner.sdk.dartMajorVersion >= 3 && runner.sdk.dartMinorVersion >= 8) {
       testDDCEndpoint(
         'compileNewDDC',
         (request) => client.compileNewDDC(request),

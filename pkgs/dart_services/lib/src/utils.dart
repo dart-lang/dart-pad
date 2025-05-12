@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-/// Normalizes any "paths" from [text], replacing the segments before the last
+/// Normalizes any "paths" from [imports], replacing the segments before the last
 /// separator with either "dart:core" or "package:flutter", or removes them,
 /// according to their content.
 ///
@@ -21,8 +21,8 @@ import 'package:path/path.dart' as path;
 ///
 /// "Unused import: 'package:flutter/material.dart'" ->
 /// "Unused import: 'package:flutter/material.dart'"
-String normalizeFilePaths(String text) {
-  return text.replaceAllMapped(_possiblePathPattern, (match) {
+String normalizeImports(String imports) {
+  return imports.replaceAllMapped(_possiblePathPattern, (match) {
     final possiblePath = match.group(0)!;
 
     final uri = Uri.tryParse(possiblePath);
@@ -43,6 +43,35 @@ String normalizeFilePaths(String text) {
 
     return basename;
   });
+}
+
+/// Normalizes an absolute path by removing all occurrences of "..".
+String normalizeAbsolutePath(String filePath) {
+  const parent = '..';
+  final parts = path.split(filePath);
+  assert(parts[0] == Platform.pathSeparator);
+  parts.removeAt(0);
+  assert(parts[0] != Platform.pathSeparator);
+
+  String? atOrNull(int index) {
+    if (index < 0) return null;
+    return parts.elementAtOrNull(index);
+  }
+
+  while (true) {
+    var index = parts.lastIndexOf(parent);
+
+    while (atOrNull(index - 1) == parent) {
+      index = index - 1;
+    }
+
+    if (index == -1 || index == 0) break;
+
+    parts.removeAt(index);
+    parts.removeAt(index - 1);
+  }
+
+  return '${Platform.pathSeparator}${path.joinAll(parts)}';
 }
 
 Future<Process> runWithLogging(
