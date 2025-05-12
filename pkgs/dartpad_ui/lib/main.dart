@@ -137,8 +137,7 @@ class _DartPadAppState extends State<DartPadApp> {
     injectAiError = state.uri.queryParameters['injectAiError'] == 'true';
 
     // Uncomment this line to make genui default option.
-    // TODO: comment this line before merge.
-    useGenUI = state.uri.queryParameters['genui'] != 'false';
+    // useGenUI = state.uri.queryParameters['genui'] != 'false';
 
     return DartPadMainPage(
       initialChannel: channelParam,
