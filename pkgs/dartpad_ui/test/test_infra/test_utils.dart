@@ -31,7 +31,7 @@ Future<DartPadMainPageState> initializeMainPage(WidgetTester tester) async {
 Future<void> setMinLargeScreenWidth(WidgetTester tester) async {
   // We need to add some width to avoid overflow
   // in tests, while overflow is not happening in real app on web and on mac.
-  const screenWidthDelta = 800;
+  const screenWidthDelta = 900;
   await tester.binding.setSurfaceSize(
     const Size(
       minLargeScreenWidth + screenWidthDelta,
