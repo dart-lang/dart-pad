@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -20,7 +20,7 @@ import 'src/common_server.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final Logger _logger = Logger('services');
+final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
@@ -81,7 +81,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.info(
+  _logger.genericInfo(
     '''
 Starting dart-services:
   port: $port
@@ -97,7 +97,7 @@ Starting dart-services:
     storageBucket,
   );
 
-  _logger.info('Listening on port ${server.port}');
+  _logger.genericInfo('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -172,7 +172,11 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        _logger.severe('${request.requestedUri.path} $e', null, st);
+        _logger.genericSevere(
+          '${request.requestedUri.path} $e',
+          error: null,
+          stackTrace: st,
+        );
 
         return Response.badRequest(body: '$e');
       }
@@ -204,7 +208,7 @@ class TestServerRunner {
       // This is expected if the server is already running.
     }
     client = ServicesClient(
-      http.Client(),
+      DartServicesClient(),
       rootUrl: 'http://$localhostIp:$_port/',
     );
     _started!.complete();

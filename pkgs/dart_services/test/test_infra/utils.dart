@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:dart_services/src/caching.dart';
+import 'package:dart_services/src/context.dart';
 
 class MockCache implements ServerCache {
   final _cache = HashMap<String, String>();
@@ -22,3 +23,5 @@ class MockCache implements ServerCache {
   @override
   Future<void> shutdown() async => _cache.removeWhere((key, value) => true);
 }
+
+final ctx = DartPadRequestContext(enableLogging: false);

@@ -5,11 +5,11 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -186,7 +186,7 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final Client _httpClient = Client();
+  final _httpClient = DartServicesClient();
   late ServicesClient services;
 
   ExecutionService? _executionService;
