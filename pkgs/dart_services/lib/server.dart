@@ -21,7 +21,7 @@ import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final _logger = DartPadLogger('services');
+final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
