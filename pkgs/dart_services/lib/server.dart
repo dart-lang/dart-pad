@@ -17,10 +17,11 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
+import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final DartPadLogger _logger = DartPadLogger('services');
+final _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
@@ -172,11 +173,9 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        _logger.genericSevere(
-          '${request.requestedUri.path} $e',
-          error: null,
-          stackTrace: st,
-        );
+        final ctx = DartPadRequestContext.fromRequest(request);
+
+        _logger.severe('${request.requestedUri.path} $e', ctx, null, st);
 
         return Response.badRequest(body: '$e');
       }

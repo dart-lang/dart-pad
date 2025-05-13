@@ -36,48 +36,61 @@ void emitLogsToStdout() {
 }
 
 class DartPadLogger {
-  late final Logger _logger;
+  final Logger logger;
 
-  DartPadLogger(String name) {
-    _logger = Logger(name);
-  }
+  DartPadLogger(String name) : logger = Logger(name);
 
   void fine(String s, DartPadRequestContext ctx) {
     if (ctx.enableLogging) {
-      _logger.fine(s);
+      logger.fine(s);
     }
   }
 
-  void warning(String s, DartPadRequestContext ctx) {
-    if (ctx.enableLogging) {
-      _logger.warning(s);
-    }
+  /// Logs a generic fine message that doesn't relate to a request.
+  void genericFine(String s) {
+    logger.fine(s);
   }
 
   void info(String s, DartPadRequestContext ctx) {
     if (ctx.enableLogging) {
-      _logger.info(s);
+      logger.info(s);
     }
   }
 
   /// Logs a generic info message that doesn't relate to a request.
   void genericInfo(String s) {
-    _logger.info(s);
+    logger.info(s);
+  }
+
+  void warning(
+    String s,
+    DartPadRequestContext ctx, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
+    if (ctx.enableLogging) {
+      logger.warning(s, error, stackTrace);
+    }
+  }
+
+  /// Logs a generic warning message that doesn't relate to a request.
+  void genericWarning(String s) {
+    logger.warning(s);
   }
 
   void severe(
     String s,
-    DartPadRequestContext ctx, {
+    DartPadRequestContext ctx, [
     Object? error,
     StackTrace? stackTrace,
-  }) {
+  ]) {
     if (ctx.enableLogging) {
-      _logger.severe(s, error, stackTrace);
+      logger.severe(s, error, stackTrace);
     }
   }
 
-  /// Logs a generic info message that doesn't relate to a request.
+  /// Logs a generic severe message that doesn't relate to a request.
   void genericSevere(String s, {Object? error, StackTrace? stackTrace}) {
-    _logger.severe(s, error, stackTrace);
+    logger.severe(s, error, stackTrace);
   }
 }
