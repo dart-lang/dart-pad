@@ -31,7 +31,7 @@ const apiPrefix = '/api/<apiVersion>';
 
 const api3 = 'v3';
 
-final Logger log = Logger('common_server');
+final log = DartPadLogger('common_server');
 
 class CommonServerImpl {
   final Sdk sdk;
@@ -50,7 +50,7 @@ class CommonServerImpl {
   });
 
   Future<void> init() async {
-    log.fine('initializing CommonServerImpl');
+    log.genericFine('initializing CommonServerImpl');
 
     analyzer = Analyzer(sdk);
     await analyzer.init();
@@ -59,7 +59,7 @@ class CommonServerImpl {
   }
 
   Future<void> shutdown() async {
-    log.fine('shutting down CommonServerImpl');
+    log.genericFine('shutting down CommonServerImpl');
 
     await cache.shutdown();
 
@@ -358,6 +358,8 @@ class CommonServerApi {
   }
 
   Future<Response> generateUi(Request request, String apiVersion) async {
+    final ctx = DartPadRequestContext.fromRequest(request);
+
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     final generateUiRequest = api.GenerateUiRequest.fromJson(
@@ -366,6 +368,7 @@ class CommonServerApi {
 
     try {
       final code = await impl.genui.generateCode(
+        ctx,
         prompt: generateUiRequest.prompt,
       );
 
@@ -374,7 +377,8 @@ class CommonServerApi {
       // TODO(polina-c): setup better streaming
       return _streamResponse('generateUi', resultStream);
     } catch (e, stackTrace) {
-      log.warning('generateUi error', e, stackTrace);
+      final ctx = DartPadRequestContext.fromRequest(request);
+      log.warning('generateUi error', ctx, e, stackTrace);
       return Response.internalServerError(body: 'Failed to generate UI: $e');
     }
   }
