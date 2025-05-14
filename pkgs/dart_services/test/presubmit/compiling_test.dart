@@ -6,8 +6,8 @@ import 'package:dart_services/src/compiling.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
-import 'test_infra/sample_code.dart';
-import 'test_infra/utils.dart';
+import '../test_infra/sample_code.dart';
+import '../test_infra/utils.dart';
 
 void main() => defineTests();
 
