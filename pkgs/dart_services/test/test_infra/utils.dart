@@ -6,6 +6,10 @@ import 'dart:collection';
 
 import 'package:dart_services/src/caching.dart';
 import 'package:dart_services/src/context.dart';
+import 'package:dartpad_shared/backend_client.dart';
+import 'package:dartpad_shared/model.dart';
+import 'package:dartpad_shared/services.dart';
+import 'package:grinder/grinder.dart';
 
 class MockCache implements ServerCache {
   final _cache = HashMap<String, String>();
@@ -25,3 +29,7 @@ class MockCache implements ServerCache {
 }
 
 final ctx = DartPadRequestContext(enableLogging: false);
+
+final dartServicesClients = Channel.values.map(
+  (channel) => ServicesClient(DartServicesClient(), rootUrl: channel.url),
+);
