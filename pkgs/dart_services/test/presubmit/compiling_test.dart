@@ -9,9 +9,7 @@ import 'package:test/test.dart';
 import '../test_infra/sample_code.dart';
 import '../test_infra/utils.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('compiling', () {
     late Compiler compiler;
     final sdk = Sdk.fromLocalFlutter();

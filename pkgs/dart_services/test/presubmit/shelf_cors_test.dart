@@ -6,9 +6,7 @@ import 'package:dart_services/src/shelf_cors.dart' as shelf_cors;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   shelf.Response handleAll(shelf.Request request) {
     return shelf.Response.ok('OK');
   }

@@ -7,9 +7,7 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   final sdk = Sdk.fromLocalFlutter();
 
   final languageVersion = sdk.dartVersion;

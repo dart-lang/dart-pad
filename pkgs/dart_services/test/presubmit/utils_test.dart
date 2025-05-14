@@ -5,9 +5,7 @@
 import 'package:dart_services/src/utils.dart';
 import 'package:test/test.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   void expectNormalizeImports(String input, String output) {
     expect(normalizeImports(input), equals(output));
   }
