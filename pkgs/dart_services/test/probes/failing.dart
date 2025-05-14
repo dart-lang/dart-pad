@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 void main() {
+  // TODO(polina-c): remove, when we find how to monitor this.
   test('failing test', () {
     expect(true, isFalse);
   });
