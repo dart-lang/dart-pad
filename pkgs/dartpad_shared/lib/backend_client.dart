@@ -8,7 +8,7 @@ import 'package:http/http.dart';
 
 import 'headers.dart';
 
-class DartServicesClient {
+class DartServicesHttpClient {
   final Client _client = Client();
   static Map<String, String> _headers =
       DartPadRequestHeaders(enableLogging: true).encoded;
