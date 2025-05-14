@@ -18,7 +18,7 @@ void defineTests() {
   // );
   group('server', () {
     final runner = TestServerRunner();
-    late final ServicesClient client;
+    late final DartServicesClient client;
 
     setUpAll(() async {
       await runner.maybeStart();
