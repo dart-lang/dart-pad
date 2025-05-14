@@ -5,14 +5,14 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:logging/logging.dart';
 import 'package:resp_client/resp_client.dart';
 import 'package:resp_client/resp_commands.dart';
 import 'package:resp_client/resp_server.dart';
 
+import 'logging.dart';
 import 'sdk.dart';
 
-final Logger log = Logger('caching');
+final log = DartPadLogger('caching');
 
 abstract class ServerCache {
   Future<String?> get(String key);
@@ -72,7 +72,7 @@ class RedisCache implements ServerCache {
   /// will return null after this.  Future completes when disconnection is complete.
   @override
   Future<void> shutdown() {
-    log.info('$_logPrefix: shutting down...');
+    log.genericInfo('$_logPrefix: shutting down...');
     _isShutdown = true;
     _connection?.close();
     return disconnected;
@@ -102,7 +102,7 @@ class RedisCache implements ServerCache {
     if (_isShutdown) {
       return;
     }
-    log.info('$_logPrefix: reconnecting to $redisUri...');
+    log.genericInfo('$_logPrefix: reconnecting to $redisUri...');
     var nextRetryMs = retryTimeoutMs;
     if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
       // 1 <= (randomSource.nextDouble() + 1) < 2
@@ -112,19 +112,21 @@ class RedisCache implements ServerCache {
             ? connectSocket(redisUri.host, port: redisUri.port)
             : connectSocket(redisUri.host))
         .then((newConnection) {
-          log.info('$_logPrefix: Connected to redis server');
+          log.genericInfo('$_logPrefix: Connected to redis server');
           _setUpConnection(newConnection);
           // If the client disconnects, discard the client and try to connect again.
 
           newConnection.outputSink.done
               .then((_) {
                 _resetConnection();
-                log.warning('$_logPrefix: connection terminated, reconnecting');
+                log.genericWarning(
+                  '$_logPrefix: connection terminated, reconnecting',
+                );
                 _reconnect();
               })
               .catchError((dynamic e) {
                 _resetConnection();
-                log.warning(
+                log.genericWarning(
                   '$_logPrefix: connection terminated with error $e, reconnecting',
                 );
                 _reconnect();
@@ -132,7 +134,7 @@ class RedisCache implements ServerCache {
         })
         .timeout(const Duration(milliseconds: _connectionRetryMaxMs))
         .catchError((_) {
-          log.severe(
+          log.genericSevere(
             '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...',
           );
           Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
@@ -159,7 +161,9 @@ class RedisCache implements ServerCache {
     String? value;
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('$_logPrefix: no cache available when getting key $key');
+      log.genericWarning(
+        '$_logPrefix: no cache available when getting key $key',
+      );
     } else {
       final commands = RespCommandsTier2(redisClient!);
       try {
@@ -168,7 +172,7 @@ class RedisCache implements ServerCache {
             .timeout(
               cacheOperationTimeout,
               onTimeout: () async {
-                log.warning(
+                log.genericWarning(
                   '$_logPrefix: timeout on get operation for key $key',
                 );
                 await _connection?.close();
@@ -176,7 +180,9 @@ class RedisCache implements ServerCache {
               },
             );
       } catch (e) {
-        log.warning('$_logPrefix: error on get operation for key $key: $e');
+        log.genericWarning(
+          '$_logPrefix: error on get operation for key $key: $e',
+        );
       }
     }
     return value;
@@ -186,7 +192,9 @@ class RedisCache implements ServerCache {
   Future<void> remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('$_logPrefix: no cache available when removing key $key');
+      log.genericWarning(
+        '$_logPrefix: no cache available when removing key $key',
+      );
       return;
     }
 
@@ -197,7 +205,7 @@ class RedisCache implements ServerCache {
           .timeout(
             cacheOperationTimeout,
             onTimeout: () async {
-              log.warning(
+              log.genericWarning(
                 '$_logPrefix: timeout on remove operation for key $key',
               );
               await _connection?.close();
@@ -205,7 +213,9 @@ class RedisCache implements ServerCache {
             },
           );
     } catch (e) {
-      log.warning('$_logPrefix: error on remove operation for key $key: $e');
+      log.genericWarning(
+        '$_logPrefix: error on remove operation for key $key: $e',
+      );
     }
   }
 
@@ -213,7 +223,9 @@ class RedisCache implements ServerCache {
   Future<void> set(String key, String value, {Duration? expiration}) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('$_logPrefix: no cache available when setting key $key');
+      log.genericWarning(
+        '$_logPrefix: no cache available when setting key $key',
+      );
       return;
     }
 
@@ -227,12 +239,16 @@ class RedisCache implements ServerCache {
       }).timeout(
         cacheOperationTimeout,
         onTimeout: () {
-          log.warning('$_logPrefix: timeout on set operation for key $key');
+          log.genericWarning(
+            '$_logPrefix: timeout on set operation for key $key',
+          );
           _connection?.close();
         },
       );
     } catch (e) {
-      log.warning('$_logPrefix: error on set operation for key $key: $e');
+      log.genericWarning(
+        '$_logPrefix: error on set operation for key $key: $e',
+      );
     }
   }
 }

@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -17,10 +17,11 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
+import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final Logger _logger = Logger('services');
+final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
@@ -81,7 +82,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.info(
+  _logger.genericInfo(
     '''
 Starting dart-services:
   port: $port
@@ -97,7 +98,7 @@ Starting dart-services:
     storageBucket,
   );
 
-  _logger.info('Listening on port ${server.port}');
+  _logger.genericInfo('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -172,7 +173,9 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        _logger.severe('${request.requestedUri.path} $e', null, st);
+        final ctx = DartPadRequestContext.fromRequest(request);
+
+        _logger.severe('${request.requestedUri.path} $e', ctx, null, st);
 
         return Response.badRequest(body: '$e');
       }
@@ -183,7 +186,7 @@ Middleware exceptionResponse() {
 @visibleForTesting
 class TestServerRunner {
   static const _port = 8080;
-  late final ServicesClient client;
+  late final DartServicesClient client;
   final sdk = Sdk.fromLocalFlutter();
 
   Completer<void>? _started;
@@ -191,7 +194,7 @@ class TestServerRunner {
   /// Starts the server if it is not already running.
   ///
   /// If the port is occupied, assumes the server is already started.
-  Future<ServicesClient> maybeStart() async {
+  Future<DartServicesClient> maybeStart() async {
     if (_started != null) {
       await _started!.future;
       return client;
@@ -203,8 +206,8 @@ class TestServerRunner {
     } on SocketException {
       // This is expected if the server is already running.
     }
-    client = ServicesClient(
-      http.Client(),
+    client = DartServicesClient(
+      DartServicesHttpClient(),
       rootUrl: 'http://$localhostIp:$_port/',
     );
     _started!.complete();

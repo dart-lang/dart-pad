@@ -7,11 +7,10 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:test/test.dart';
 
-import 'src/sample_code.dart';
+import '../test_infra/sample_code.dart';
+import '../test_infra/utils.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('analysis', () {
     final sdk = Sdk.fromLocalFlutter();
     late AnalysisServerWrapper analysisServer;
@@ -134,7 +133,7 @@ void defineTests() {
     });
 
     test('format simple', () async {
-      final results = await analysisServer.format(badFormatCode, 0);
+      final results = await analysisServer.format(badFormatCode, 0, ctx);
       expect(results.source, formattedCode);
     });
 
@@ -142,12 +141,13 @@ void defineTests() {
       final results = await analysisServer.format(
         formattedCode.replaceAll('\n', ' '),
         0,
+        ctx,
       );
       expect(results.source, formattedCode);
     });
 
     test('format with issues', () async {
-      final results = await analysisServer.format(formatWithIssues, 0);
+      final results = await analysisServer.format(formatWithIssues, 0, ctx);
       expect(results.source, formatWithIssues);
     });
 

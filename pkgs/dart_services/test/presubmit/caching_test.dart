@@ -58,7 +58,7 @@ void defineTests(bool hasRedis) {
     setUpAll(() async {
       redisProcess = await startRedisProcessAndDrainIO(9501);
       sdk = Sdk.fromLocalFlutter();
-      log.onRecord.listen((LogRecord rec) {
+      log.logger.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
       });
       redisCache = RedisCache('redis://localhost:9501', sdk, 'aversion');
@@ -75,7 +75,7 @@ void defineTests(bool hasRedis) {
     });
 
     tearDownAll(() async {
-      log.clearListeners();
+      log.logger.clearListeners();
       await Future.wait([redisCache.shutdown(), redisCacheAlt.shutdown()]);
       redisProcess!.kill();
       await redisProcess!.exitCode;

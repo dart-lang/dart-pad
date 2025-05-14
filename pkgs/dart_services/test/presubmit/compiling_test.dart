@@ -6,11 +6,10 @@ import 'package:dart_services/src/compiling.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
-import 'src/sample_code.dart';
+import '../test_infra/sample_code.dart';
+import '../test_infra/utils.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('compiling', () {
     late Compiler compiler;
     final sdk = Sdk.fromLocalFlutter();
@@ -24,7 +23,7 @@ void defineTests() {
     });
 
     test('simple', () async {
-      final result = await compiler.compile(sampleCode);
+      final result = await compiler.compile(sampleCode, ctx);
 
       expect(result.problems, isEmpty);
       expect(result.success, true);
@@ -129,13 +128,20 @@ void defineTests() {
             );
             result = await reloadEndpoint(sampleCodeNoMain, lastAcceptedDill);
           }
-          expect(result.success, false);
-          expect(result.problems.length, 1);
-          expect(
-            result.problems.first.message,
-            contains("Error: Method not found: 'main'"),
-          );
-          expect(result.problems.first.message, startsWith('main.dart:'));
+          if (reloadEndpoint != null) {
+            // Hot reload does not reload the bootstrap script so there is no
+            // new code trying to reference 'main'.
+            expect(result.success, true);
+            expect(result.problems.length, 0);
+          } else {
+            expect(result.success, false);
+            expect(result.problems.length, 1);
+            expect(
+              result.problems.first.message,
+              contains("Error: Method not found: 'main'"),
+            );
+            expect(result.problems.first.message, startsWith('main.dart:'));
+          }
         });
 
         test('with multiple errors', () async {
@@ -169,7 +175,7 @@ void defineTests() {
 
     testDDCEndpoint(
       'compileDDC',
-      restartEndpoint: (source) => compiler.compileDDC(source),
+      restartEndpoint: (source) => compiler.compileDDC(source, ctx),
       expectNewDeltaDill: false,
       compiledIndicator: "define('dartpad_main', [",
     );
@@ -177,23 +183,27 @@ void defineTests() {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint(
         'compileNewDDC',
-        restartEndpoint: (source) => compiler.compileNewDDC(source),
+        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
       testDDCEndpoint(
         'compileNewDDCReload',
-        restartEndpoint: (source) => compiler.compileNewDDC(source),
+        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
         reloadEndpoint:
             (source, deltaDill) =>
-                compiler.compileNewDDCReload(source, deltaDill),
+                compiler.compileNewDDCReload(source, deltaDill, ctx),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
     }
 
     test('sourcemap', () async {
-      final result = await compiler.compile(sampleCode, returnSourceMap: true);
+      final result = await compiler.compile(
+        sampleCode,
+        ctx,
+        returnSourceMap: true,
+      );
       expect(result.success, true);
       expect(result.compiledJS, isNotEmpty);
       expect(result.sourceMap, isNotNull);
@@ -201,23 +211,27 @@ void defineTests() {
     });
 
     test('version', () async {
-      final result = await compiler.compile(sampleCode, returnSourceMap: true);
+      final result = await compiler.compile(
+        sampleCode,
+        ctx,
+        returnSourceMap: true,
+      );
       expect(result.sourceMap, isNotNull);
       expect(result.sourceMap, isNotEmpty);
     });
 
     test('simple web', () async {
-      final result = await compiler.compile(sampleCodeWeb);
+      final result = await compiler.compile(sampleCodeWeb, ctx);
       expect(result.success, true);
     });
 
     test('web async', () async {
-      final result = await compiler.compile(sampleCodeAsync);
+      final result = await compiler.compile(sampleCodeAsync, ctx);
       expect(result.success, true);
     });
 
     test('errors', () async {
-      final result = await compiler.compile(sampleCodeError);
+      final result = await compiler.compile(sampleCodeError, ctx);
       expect(result.success, false);
       expect(result.problems.length, 1);
       expect(result.problems[0].toString(), contains('Error: Expected'));
@@ -233,7 +247,7 @@ void main() {
 }
 
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems.length, 0);
     });
 
@@ -248,7 +262,7 @@ void main() {
 }
 
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems.length, 0);
     });
 
@@ -257,7 +271,7 @@ void main() {
 import 'foo.dart';
 void main() { missingMethod ('foo'); }
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -270,7 +284,7 @@ void main() { missingMethod ('foo'); }
 import 'http://example.com';
 void main() { missingMethod ('foo'); }
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -283,7 +297,7 @@ void main() { missingMethod ('foo'); }
 import 'package:foo';
 import 'package:bar';
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -296,7 +310,7 @@ import 'package:bar';
     });
 
     test('disallow compiler warnings', () async {
-      final result = await compiler.compile(sampleCodeErrors);
+      final result = await compiler.compile(sampleCodeErrors, ctx);
       expect(result.success, false);
     });
 
@@ -305,7 +319,7 @@ import 'package:bar';
 import 'dart:foo';
 void main() { print ('foo'); }
 ''';
-      final result = await compiler.compile(code);
+      final result = await compiler.compile(code, ctx);
       expect(result.problems.length, 1);
     });
   });

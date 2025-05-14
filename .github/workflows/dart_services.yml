@@ -49,4 +49,4 @@ jobs:
         run: dart run grinder build-storage-artifacts
 
       - name: Run tests
-        run: dart test
+        run: dart test test/presubmit

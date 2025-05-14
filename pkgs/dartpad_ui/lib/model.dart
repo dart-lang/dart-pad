@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
-import 'package:dartpad_shared/constants.dart';
+import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -188,8 +186,8 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final Client _httpClient = Client();
-  late ServicesClient services;
+  final _httpClient = DartServicesHttpClient();
+  late DartServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -208,7 +206,7 @@ class AppServices {
 
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
@@ -229,7 +227,7 @@ class AppServices {
   ValueListenable<Channel> get channel => _channel;
 
   Future<VersionResponse> setChannel(Channel channel) async {
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;
@@ -596,36 +594,6 @@ class AppServices {
         progress.updateText(message);
       }
     }
-  }
-}
-
-enum Channel {
-  stable('Stable', 'https://stable.api.dartpad.dev/'),
-  beta('Beta', 'https://beta.api.dartpad.dev/'),
-  main('Main', 'https://master.api.dartpad.dev/'),
-  // This channel is only used for local development.
-  localhost('Localhost', 'http://$localhostIp:8080/');
-
-  final String displayName;
-  final String url;
-
-  const Channel(this.displayName, this.url);
-
-  static const defaultChannel = Channel.stable;
-
-  static List<Channel> get valuesWithoutLocalhost {
-    return values.whereNot((channel) => channel == localhost).toList();
-  }
-
-  static Channel? forName(String name) {
-    name = name.trim().toLowerCase();
-
-    // Alias 'master' to 'main'.
-    if (name == 'master') {
-      name = 'main';
-    }
-
-    return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
 }
 

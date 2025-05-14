@@ -9,9 +9,7 @@ import 'package:dart_services/src/project_templates.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   final projectTemplates = ProjectTemplates.instance;
 
   group('FlutterWebManager', () {

@@ -4,17 +4,16 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart';
-
+import 'backend_client.dart';
 import 'model.dart';
 
 export 'model.dart';
 
-class ServicesClient {
-  final Client client;
+class DartServicesClient {
+  final DartServicesHttpClient client;
   final String rootUrl;
 
-  ServicesClient(this.client, {required this.rootUrl});
+  DartServicesClient(this.client, {required this.rootUrl});
 
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
@@ -80,7 +79,7 @@ class ServicesClient {
     String action,
     T Function(Map<String, Object?> json) responseFactory,
   ) async {
-    final response = await client.get(Uri.parse('${rootUrl}api/v3/$action'));
+    final response = await client.get('${rootUrl}api/v3/$action');
 
     if (response.statusCode != 200) {
       throw ApiRequestError(action, response.body);
@@ -100,11 +99,7 @@ class ServicesClient {
     Map<String, Object?> request,
     T Function(Map<String, Object?> json) responseFactory,
   ) async {
-    final response = await client.post(
-      Uri.parse('${rootUrl}api/v3/$action'),
-      encoding: utf8,
-      body: json.encode(request),
-    );
+    final response = await client.post('${rootUrl}api/v3/$action', request);
     if (response.statusCode != 200) {
       throw ApiRequestError(action, response.body);
     } else {
@@ -122,11 +117,7 @@ class ServicesClient {
     String action,
     Map<String, Object?> request,
   ) async* {
-    final httpRequest = Request('POST', Uri.parse('${rootUrl}api/v3/$action'));
-    httpRequest.encoding = utf8;
-    httpRequest.headers['Content-Type'] = 'application/json';
-    httpRequest.body = json.encode(request);
-    final response = await client.send(httpRequest);
+    final response = await client.sendJson('${rootUrl}api/v3/$action', request);
 
     if (response.statusCode != 200) {
       throw ApiRequestError(

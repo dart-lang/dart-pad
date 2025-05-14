@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
 
-final _logger = Logger('genui');
+import 'context.dart';
+import 'logging.dart';
+
+final _logger = DartPadLogger('genui');
 
 class _GenuiEnv {
   late final Uri? apiUrl;
@@ -22,12 +24,14 @@ class _GenuiEnv {
   }) {
     final key = Platform.environment[apiKeyVarName] ?? '';
     if (key.isEmpty) {
-      _logger.warning(
+      _logger.genericWarning(
         '$apiKeyVarName not set; genui features at $name DISABLED',
       );
       apiUrl = null;
     } else {
-      _logger.info('$apiKeyVarName set; genui features at $name ENABLED');
+      _logger.genericInfo(
+        '$apiKeyVarName set; genui features at $name ENABLED',
+      );
       apiUrl = Uri.parse('$url?key=$key');
       keyHint = '${key[0]}..${key[key.length - 1]}';
     }
@@ -38,10 +42,13 @@ class _GenuiEnv {
   /// Returns the generated Flutter code.
   ///
   /// If not enabled or fails, logs error and returns null.
-  Future<String> request({required String prompt}) async {
+  Future<String> request(
+    DartPadRequestContext ctx, {
+    required String prompt,
+  }) async {
     final uri = apiUrl;
     if (uri == null) {
-      _logger.severe('Genui features at $name are disabled');
+      _logger.severe('Genui features at $name are disabled', ctx);
       return '';
     }
 
@@ -65,6 +72,7 @@ class _GenuiEnv {
                 'key: $keyHint; '
                 '${response.body}'
             .replaceAll('\n', ' '),
+        ctx,
       );
       return '';
     }
@@ -88,11 +96,14 @@ class GenUi {
     );
   }
 
-  Future<String> generateCode({required String prompt}) async {
+  Future<String> generateCode(
+    DartPadRequestContext ctx, {
+    required String prompt,
+  }) async {
     try {
-      return await _prod.request(prompt: prompt);
+      return await _prod.request(ctx, prompt: prompt);
     } catch (e) {
-      _logger.severe('Failed to generate code from GenUI: $e');
+      _logger.severe('Failed to generate code from GenUI: $e', ctx);
       return '';
     }
   }
