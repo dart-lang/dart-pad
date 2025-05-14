@@ -136,12 +136,23 @@ class Compiler {
 
       Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
 
-      final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
-      final bootstrapContents =
-          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+      final mainPath = path.join(temp.path, 'lib', kMainDart);
+      File(mainPath).writeAsStringSync(source);
 
-      File(bootstrapPath).writeAsStringSync(bootstrapContents);
-      File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
+      String compilePath;
+      if (useNew && deltaDill != null) {
+        // Hot reloads should not recompile the bootstrap library.
+        compilePath = mainPath;
+      } else {
+        // All hot restart (or initial compile) requests should include the
+        // bootstrap library.
+        final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
+        final bootstrapContents =
+            usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+
+        File(bootstrapPath).writeAsStringSync(bootstrapContents);
+        compilePath = bootstrapPath;
+      }
       final newDeltaKernelPath = path.join(temp.path, 'new_kernel.dill');
       String? oldDillPath;
       if (deltaDill != null) {
@@ -181,7 +192,7 @@ class Compiler {
         '--enable-asserts',
         if (_sdk.experiments.isNotEmpty)
           '--enable-experiment=${_sdk.experiments.join(",")}',
-        bootstrapPath,
+        compilePath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
