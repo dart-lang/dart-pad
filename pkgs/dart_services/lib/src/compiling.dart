@@ -115,6 +115,11 @@ class Compiler {
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
+  ///
+  /// [useNew] determines whether or not to use the hot reload enabled module
+  /// system for DDC. When [useNew] is true, a null [deltaDill] will result in
+  /// a hot restart and a non-null [deltaDill] will result in a hot reload. If
+  /// [useNew] is false, the result will always be a hot restart.
   Future<DDCCompilationResults> _compileDDC(
     String source,
     DartPadRequestContext ctx, {
