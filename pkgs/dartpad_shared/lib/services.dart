@@ -9,11 +9,11 @@ import 'model.dart';
 
 export 'model.dart';
 
-class ServicesClient {
-  final DartServicesClient client;
+class DartServicesClient {
+  final DartServicesHttpClient client;
   final String rootUrl;
 
-  ServicesClient(this.client, {required this.rootUrl});
+  DartServicesClient(this.client, {required this.rootUrl});
 
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
