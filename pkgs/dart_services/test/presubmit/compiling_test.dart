@@ -9,9 +9,7 @@ import 'package:test/test.dart';
 import '../test_infra/sample_code.dart';
 import '../test_infra/utils.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('compiling', () {
     late Compiler compiler;
     final sdk = Sdk.fromLocalFlutter();
@@ -130,13 +128,20 @@ void defineTests() {
             );
             result = await reloadEndpoint(sampleCodeNoMain, lastAcceptedDill);
           }
-          expect(result.success, false);
-          expect(result.problems.length, 1);
-          expect(
-            result.problems.first.message,
-            contains("Error: Method not found: 'main'"),
-          );
-          expect(result.problems.first.message, startsWith('main.dart:'));
+          if (reloadEndpoint != null) {
+            // Hot reload does not reload the bootstrap script so there is no
+            // new code trying to reference 'main'.
+            expect(result.success, true);
+            expect(result.problems.length, 0);
+          } else {
+            expect(result.success, false);
+            expect(result.problems.length, 1);
+            expect(
+              result.problems.first.message,
+              contains("Error: Method not found: 'main'"),
+            );
+            expect(result.problems.first.message, startsWith('main.dart:'));
+          }
         });
 
         test('with multiple errors', () async {

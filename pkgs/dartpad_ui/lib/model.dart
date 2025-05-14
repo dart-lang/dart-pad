@@ -184,8 +184,8 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final _httpClient = DartServicesClient();
-  late ServicesClient services;
+  final _httpClient = DartServicesHttpClient();
+  late DartServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -204,7 +204,7 @@ class AppServices {
 
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
@@ -225,7 +225,7 @@ class AppServices {
   ValueListenable<Channel> get channel => _channel;
 
   Future<VersionResponse> setChannel(Channel channel) async {
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;

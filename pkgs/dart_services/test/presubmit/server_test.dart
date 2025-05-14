@@ -9,12 +9,10 @@ import 'package:test/test.dart';
 
 import '../test_infra/sample_code.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('server', () {
     final runner = TestServerRunner();
-    late final ServicesClient client;
+    late final DartServicesClient client;
 
     setUpAll(() async {
       await runner.maybeStart();
