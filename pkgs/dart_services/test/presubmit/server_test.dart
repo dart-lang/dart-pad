@@ -9,16 +9,12 @@ import 'package:test/test.dart';
 import '../probes_and_presubmit/reload_testing.dart';
 import '../probes_and_presubmit/server_testing.dart';
 
-void main() {
+void main() async {
+  final runner = TestServerRunner();
+  await runner.maybeStart();
+  final client = runner.client;
+
   group('server', () {
-    final runner = TestServerRunner();
-    late final DartServicesClient client;
-
-    setUpAll(() async {
-      await runner.maybeStart();
-      client = runner.client;
-    });
-
     testServer(client);
 
     if (runner.sdk.dartMajorVersion >= 3 && runner.sdk.dartMinorVersion >= 8) {
