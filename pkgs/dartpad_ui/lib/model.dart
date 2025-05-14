@@ -4,9 +4,7 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:dartpad_shared/backend_client.dart';
-import 'package:dartpad_shared/constants.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -591,36 +589,6 @@ class AppServices {
         progress.updateText(message);
       }
     }
-  }
-}
-
-enum Channel {
-  stable('Stable', 'https://stable.api.dartpad.dev/'),
-  beta('Beta', 'https://beta.api.dartpad.dev/'),
-  main('Main', 'https://master.api.dartpad.dev/'),
-  // This channel is only used for local development.
-  localhost('Localhost', 'http://$localhostIp:8080/');
-
-  final String displayName;
-  final String url;
-
-  const Channel(this.displayName, this.url);
-
-  static const defaultChannel = Channel.stable;
-
-  static List<Channel> get valuesWithoutLocalhost {
-    return values.whereNot((channel) => channel == localhost).toList();
-  }
-
-  static Channel? forName(String name) {
-    name = name.trim().toLowerCase();
-
-    // Alias 'master' to 'main'.
-    if (name == 'master') {
-      name = 'main';
-    }
-
-    return Channel.values.firstWhereOrNull((c) => c.name == name);
   }
 }
 
