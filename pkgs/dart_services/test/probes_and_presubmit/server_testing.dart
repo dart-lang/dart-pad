@@ -6,8 +6,16 @@ import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
+import 'ddc_testing.dart';
+
 void testServer(DartServicesClient client) {
   group('server at ${client.rootUrl}', () {
+    testDDCEndpoint(
+      'compileDDC',
+      (request) => client.compileDDC(request),
+      expectDeltaDill: false,
+    );
+
     test('version', () async {
       final result = await client.version();
       expect(result.dartVersion, startsWith('3.'));
