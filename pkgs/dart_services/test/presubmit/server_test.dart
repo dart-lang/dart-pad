@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_services/server.dart';
-import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
 import '../probes_and_presubmit/reload_testing.dart';
