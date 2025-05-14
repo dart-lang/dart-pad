@@ -7,8 +7,8 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:test/test.dart';
 
-import 'test_infra/sample_code.dart';
-import 'test_infra/utils.dart';
+import '../test_infra/sample_code.dart';
+import '../test_infra/utils.dart';
 
 void main() => defineTests();
 
