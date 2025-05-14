@@ -5,9 +5,7 @@
 import 'package:dart_services/src/pub.dart';
 import 'package:test/test.dart';
 
-void main() => defineTests();
-
-void defineTests() {
+void main() {
   group('pub', () {
     group('getAllImportsFor', () {
       test('empty', () {
