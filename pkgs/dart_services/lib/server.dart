@@ -186,7 +186,7 @@ Middleware exceptionResponse() {
 @visibleForTesting
 class TestServerRunner {
   static const _port = 8080;
-  late final ServicesClient client;
+  late final DartServicesClient client;
   final sdk = Sdk.fromLocalFlutter();
 
   Completer<void>? _started;
@@ -194,7 +194,7 @@ class TestServerRunner {
   /// Starts the server if it is not already running.
   ///
   /// If the port is occupied, assumes the server is already started.
-  Future<ServicesClient> maybeStart() async {
+  Future<DartServicesClient> maybeStart() async {
     if (_started != null) {
       await _started!.future;
       return client;
@@ -206,8 +206,8 @@ class TestServerRunner {
     } on SocketException {
       // This is expected if the server is already running.
     }
-    client = ServicesClient(
-      DartServicesClient(),
+    client = DartServicesClient(
+      DartServicesHttpClient(),
       rootUrl: 'http://$localhostIp:$_port/',
     );
     _started!.complete();
