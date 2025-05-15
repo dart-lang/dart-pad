@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'enable_gen_ai.dart';
 import 'model.dart';
@@ -118,6 +119,35 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                   ],
                 ),
               ),
+              if (widget.output.hasError)
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    child: Text('File an issue'),
+                    onPressed: () {
+                      final issueBody =
+                          '''DartPad displayed an unexpected error in the console:
+
+```
+${widget.output.error}
+```
+''';
+                      const labels = 'type-bug';
+                      final encodedIssueTitle = Uri.encodeComponent(
+                        'Console error',
+                      );
+                      final encodedIssueBody = Uri.encodeComponent(issueBody);
+                      final encodedLabels = Uri.encodeComponent(labels);
+
+                      final String githubIssueUrl =
+                          'https://github.com/dart-lang/dart-pad/issues/new?'
+                          'title=$encodedIssueTitle'
+                          '&body=$encodedIssueBody'
+                          '&labels=$encodedLabels';
+                      launchUrl(Uri.parse(githubIssueUrl));
+                    },
+                  ),
+                ),
             ],
           );
         },
