@@ -120,8 +120,8 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 ),
               ),
               // If there is a JS error, and the app type is Flutter, show a
-              // "File an issue" button. JS errors are normal when executing
-              // Dart (non-Flutter) code.
+              // "File an issue" button. Uncaught exceptions are normal when
+              // executing Dart (non-Flutter) code in JavaScript.
               if (widget.output.hasError &&
                   widget.output.hasJavascriptError &&
                   appModel.appIsFlutter.value == true)
@@ -131,7 +131,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
-                        'Oops! Something went wrong.',
+                        'Oops! Something went wrong in the Dart toolchain.',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.tertiary,
                         ),
@@ -186,16 +186,19 @@ class FileIssueButton extends StatelessWidget {
       onPressed: () {
         final issueBody = _createGithubIssue(errorMessage);
         const labels = 'type-bug';
-        final encodedIssueTitle = Uri.encodeComponent('Console error');
-        final encodedIssueBody = Uri.encodeComponent(issueBody);
-        final encodedLabels = Uri.encodeComponent(labels);
 
-        final String githubIssueUrl =
-            'https://github.com/dart-lang/dart-pad/issues/new?'
-            'title=$encodedIssueTitle'
-            '&body=$encodedIssueBody'
-            '&labels=$encodedLabels';
-        launchUrl(Uri.parse(githubIssueUrl));
+        launchUrl(
+          Uri(
+            scheme: 'https',
+            host: 'github.com',
+            path: 'dart-lang/dart-pad/issues/new',
+            queryParameters: {
+              'title':
+                  '[console error] unexpected javascript error from running app',
+              'body': issueBody,
+            },
+          ),
+        );
       },
     );
   }
