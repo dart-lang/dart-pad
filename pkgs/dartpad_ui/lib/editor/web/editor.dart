@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../local_storage/local_storage.dart';
 import '../../model.dart';
-import '_editor_service.dart';
+import 'editor_service.dart';
 
 // TODO: implement find / find next
 
