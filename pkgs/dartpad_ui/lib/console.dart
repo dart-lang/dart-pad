@@ -137,40 +137,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                         ),
                       ),
                       SizedBox(width: 12),
-                      TextButton(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(switch (theme
-                              .brightness) {
-                            Brightness.light =>
-                              theme.colorScheme.surface.darker,
-                            _ => theme.colorScheme.surface.lighter,
-                          }),
-                          foregroundColor: WidgetStateProperty.all(
-                            theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                        child: Text('File an issue'),
-                        onPressed: () {
-                          final issueBody = _createGithubIssue(
-                            widget.output.error,
-                          );
-                          const labels = 'type-bug';
-                          final encodedIssueTitle = Uri.encodeComponent(
-                            'Console error',
-                          );
-                          final encodedIssueBody = Uri.encodeComponent(
-                            issueBody,
-                          );
-                          final encodedLabels = Uri.encodeComponent(labels);
-
-                          final String githubIssueUrl =
-                              'https://github.com/dart-lang/dart-pad/issues/new?'
-                              'title=$encodedIssueTitle'
-                              '&body=$encodedIssueBody'
-                              '&labels=$encodedLabels';
-                          launchUrl(Uri.parse(githubIssueUrl));
-                        },
-                      ),
+                      FileIssueButton(errorMessage: widget.output.error),
                     ],
                   ),
                 ),
@@ -196,6 +163,41 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
         curve: animationCurve,
       );
     });
+  }
+}
+
+class FileIssueButton extends StatelessWidget {
+  final String errorMessage;
+  const FileIssueButton({super.key, required this.errorMessage});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return TextButton(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(switch (theme.brightness) {
+          Brightness.light => theme.colorScheme.surface.darker,
+          _ => theme.colorScheme.surface.lighter,
+        }),
+        foregroundColor: WidgetStateProperty.all(theme.colorScheme.onPrimary),
+      ),
+      child: Text('File an issue'),
+      onPressed: () {
+        final issueBody = _createGithubIssue(errorMessage);
+        const labels = 'type-bug';
+        final encodedIssueTitle = Uri.encodeComponent('Console error');
+        final encodedIssueBody = Uri.encodeComponent(issueBody);
+        final encodedLabels = Uri.encodeComponent(labels);
+
+        final String githubIssueUrl =
+            'https://github.com/dart-lang/dart-pad/issues/new?'
+            'title=$encodedIssueTitle'
+            '&body=$encodedIssueBody'
+            '&labels=$encodedLabels';
+        launchUrl(Uri.parse(githubIssueUrl));
+      },
+    );
   }
 
   String _createGithubIssue(String stackTrace) {
