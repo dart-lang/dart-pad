@@ -28,9 +28,13 @@ class MockCache implements ServerCache {
 
 final ctx = DartPadRequestContext(enableLogging: false);
 
-final dartServicesProdClients = Channel.values
-    .where((c) => c != Channel.localhost)
-    .map(
-      (channel) =>
-          DartServicesClient(DartServicesHttpClient(), rootUrl: channel.url),
-    );
+final dartServicesProdProbingClients = () {
+  DartServicesHttpClient.turnOffBackendLogging();
+
+  return Channel.values
+      .where((c) => c != Channel.localhost)
+      .map(
+        (channel) =>
+            DartServicesClient(DartServicesHttpClient(), rootUrl: channel.url),
+      );
+}();
