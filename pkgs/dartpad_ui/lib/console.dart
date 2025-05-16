@@ -119,7 +119,12 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                   ],
                 ),
               ),
-              if (widget.output.hasError && widget.output.hasJavascriptError)
+              // If there is a JS error, and the app type is Flutter, show a
+              // "File an issue" button. JS errors are normal when executing
+              // Dart (non-Flutter) code.
+              if (widget.output.hasError &&
+                  widget.output.hasJavascriptError &&
+                  appModel.appIsFlutter.value == true)
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Row(
