@@ -202,7 +202,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     return '''DartPad displayed an unexpected error in the console:
 
 ```
-${stackTrace}
+$stackTrace
 ```
 ''';
   }
