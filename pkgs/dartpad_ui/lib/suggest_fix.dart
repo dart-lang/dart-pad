@@ -56,6 +56,6 @@ Future<void> suggestFix({
     }
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
-    appModel.appendLineToConsole('Suggesting fix issue: $error');
+    appModel.appendError('Suggesting fix issue: $error');
   }
 }

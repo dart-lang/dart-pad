@@ -16,6 +16,8 @@ class ExecutionServiceImpl implements ExecutionService {
       StreamController<String>.broadcast();
   final StreamController<String> _stderrController =
       StreamController<String>.broadcast();
+  final StreamController<String> _jserrController =
+      StreamController<String>.broadcast();
 
   web.HTMLIFrameElement _frame;
   late String _frameSrc;
@@ -57,6 +59,9 @@ class ExecutionServiceImpl implements ExecutionService {
 
   @override
   Stream<String> get onStderr => _stderrController.stream;
+
+  @override
+  Stream<String> get onJavascriptError => _jserrController.stream;
 
   @override
   set ignorePointer(bool ignorePointer) {
@@ -102,7 +107,7 @@ window.onerror = function(message, url, line, column, error) {
   var errorMessage = error == null ? '' : ', error: ' + error;
   parent.postMessage({
     'sender': 'frame',
-    'type': 'stderr',
+    'type': 'jserr',
     'message': message + errorMessage
   }, '*');
 };
@@ -260,6 +265,10 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         // initialization.
         if (_readyCompleter.isCompleted) {
           _stderrController.add(data['message'] as String);
+        }
+      } else if (type == 'jserr') {
+        if (_readyCompleter.isCompleted) {
+          _jserrController.add(data['message'] as String);
         }
       } else if (type == 'ready' && !_readyCompleter.isCompleted) {
         _readyCompleter.complete();

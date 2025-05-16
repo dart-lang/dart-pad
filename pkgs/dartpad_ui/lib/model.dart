@@ -27,6 +27,7 @@ abstract class ExecutionService {
   });
   Stream<String> get onStdout;
   Stream<String> get onStderr;
+  Stream<String> get onJavascriptError;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -121,14 +122,21 @@ class AppModel {
 
   void appendLineToConsole(String str) {
     consoleNotifier.output += '$str\n';
+    consoleNotifier.hasJavascriptError = false;
   }
 
-  void appendError(String str) {
+  void appendError(String str, {bool isJavascript = false}) {
     consoleNotifier.error += '$str\n';
+    if (isJavascript) {
+      consoleNotifier.hasJavascriptError = true;
+    } else {
+      consoleNotifier.hasJavascriptError = false;
+    }
   }
 
   void clearConsole() {
     consoleNotifier.clear();
+    consoleNotifier.hasJavascriptError = false;
   }
 
   void dispose() {
@@ -192,6 +200,7 @@ class AppServices {
 
   StreamSubscription<String>? stdoutSub;
   StreamSubscription<String>? stderrSub;
+  StreamSubscription<String>? javascriptErrorSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
@@ -520,6 +529,9 @@ class AppServices {
       stderrSub = _executionService!.onStderr.listen(
         (msg) => appModel.appendError(msg),
       );
+      javascriptErrorSub = _executionService!.onJavascriptError.listen(
+        (msg) => appModel.appendError(msg, isJavascript: true),
+      );
     }
   }
 
@@ -644,6 +656,7 @@ class PromptDialogResponse {
 class ConsoleNotifier extends ChangeNotifier {
   String _output;
   String _error;
+  bool _hasJavascriptError = false;
 
   ConsoleNotifier(this._output, this._error);
 
@@ -657,6 +670,12 @@ class ConsoleNotifier extends ChangeNotifier {
   String get error => _error;
   set error(String value) {
     _error = value;
+    notifyListeners();
+  }
+
+  bool get hasJavascriptError => _hasJavascriptError;
+  set hasJavascriptError(bool value) {
+    _hasJavascriptError = value;
     notifyListeners();
   }
 

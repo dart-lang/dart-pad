@@ -119,33 +119,54 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                   ],
                 ),
               ),
-              if (widget.output.hasError)
+              if (widget.output.hasError && widget.output.hasJavascriptError)
                 Align(
                   alignment: Alignment.bottomRight,
-                  child: TextButton(
-                    child: Text('File an issue'),
-                    onPressed: () {
-                      final issueBody =
-                          '''DartPad displayed an unexpected error in the console:
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Oops! Something went wrong.',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      TextButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(switch (theme
+                              .brightness) {
+                            Brightness.light =>
+                              theme.colorScheme.surface.darker,
+                            _ => theme.colorScheme.surface.lighter,
+                          }),
+                          foregroundColor: WidgetStateProperty.all(
+                            theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                        child: Text('File an issue'),
+                        onPressed: () {
+                          final issueBody = _createGithubIssue(
+                            widget.output.error,
+                          );
+                          const labels = 'type-bug';
+                          final encodedIssueTitle = Uri.encodeComponent(
+                            'Console error',
+                          );
+                          final encodedIssueBody = Uri.encodeComponent(
+                            issueBody,
+                          );
+                          final encodedLabels = Uri.encodeComponent(labels);
 
-```
-${widget.output.error}
-```
-''';
-                      const labels = 'type-bug';
-                      final encodedIssueTitle = Uri.encodeComponent(
-                        'Console error',
-                      );
-                      final encodedIssueBody = Uri.encodeComponent(issueBody);
-                      final encodedLabels = Uri.encodeComponent(labels);
-
-                      final String githubIssueUrl =
-                          'https://github.com/dart-lang/dart-pad/issues/new?'
-                          'title=$encodedIssueTitle'
-                          '&body=$encodedIssueBody'
-                          '&labels=$encodedLabels';
-                      launchUrl(Uri.parse(githubIssueUrl));
-                    },
+                          final String githubIssueUrl =
+                              'https://github.com/dart-lang/dart-pad/issues/new?'
+                              'title=$encodedIssueTitle'
+                              '&body=$encodedIssueBody'
+                              '&labels=$encodedLabels';
+                          launchUrl(Uri.parse(githubIssueUrl));
+                        },
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -170,5 +191,14 @@ ${widget.output.error}
         curve: animationCurve,
       );
     });
+  }
+
+  String _createGithubIssue(String stackTrace) {
+    return '''DartPad displayed an unexpected error in the console:
+
+```
+${stackTrace}
+```
+''';
   }
 }
