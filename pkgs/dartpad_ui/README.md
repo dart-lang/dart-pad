@@ -38,13 +38,13 @@ There are options to run UI locally:
       --web-launch-url=http://localhost:8888/?channel=localhost
     ```
 
-## How to publish
+## How to publish to a custom Firebase Hosting project
 
 If you want to collaborate on an intermediate version, you can publish it to your own Firebase project:
 
 1. Make sure your current Flutter channel is set to `stable` and it is fresh.
 
-1. In [.firebaserc](./.firebaserc) temporarily change project names.
+1. Temporarily update [.firebaserc](./.firebaserc):
 
    ```
    {
@@ -79,7 +79,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
 1. Run `firebase deploy`.
 
 
-After configured, redeploy with commands:
+After configured, you can redeploy with commands:
 
 ```
 cd pkgs/dartpad_ui

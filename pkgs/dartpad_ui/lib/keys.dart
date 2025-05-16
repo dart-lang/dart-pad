@@ -2,43 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'theme.dart';
-
-bool get _mac => defaultTargetPlatform == TargetPlatform.macOS;
-bool get _nonMac => defaultTargetPlatform != TargetPlatform.macOS;
+import 'utils.dart';
 
 // ## Key activators
 
 final ShortcutActivator runKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.keyR,
-  meta: _mac,
-  control: _nonMac,
+  meta: isMac,
+  control: isNonMac,
 );
 final ShortcutActivator runKeyActivator2 = SingleActivator(
   LogicalKeyboardKey.enter,
-  meta: _mac,
-  control: _nonMac,
+  meta: isMac,
+  control: isNonMac,
 );
-
-// final ShortcutActivator findKeyActivator = SingleActivator(
-//   LogicalKeyboardKey.keyF,
-//   meta: _mac,
-//   control: _nonMac,
-// );
-// final ShortcutActivator findNextKeyActivator = SingleActivator(
-//   LogicalKeyboardKey.keyG,
-//   meta: _mac,
-//   control: _nonMac,
-// );
 
 final ShortcutActivator formatKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.keyS,
-  meta: _mac,
-  control: _nonMac,
+  meta: isMac,
+  control: isNonMac,
 );
 const ShortcutActivator formatKeyActivator2 = SingleActivator(
   LogicalKeyboardKey.keyF,
@@ -53,8 +39,8 @@ const ShortcutActivator codeCompletionKeyActivator = SingleActivator(
 
 final ShortcutActivator quickFixKeyActivator1 = SingleActivator(
   LogicalKeyboardKey.period,
-  meta: _mac,
-  control: _nonMac,
+  meta: isMac,
+  control: isNonMac,
 );
 const ShortcutActivator quickFixKeyActivator2 = SingleActivator(
   LogicalKeyboardKey.enter,
@@ -94,7 +80,7 @@ extension SingleActivatorExtension on SingleActivator {
             const Icon(Icons.arrow_upward, size: 16, color: subtleColor),
           if (alt)
             Icon(
-              _mac ? Icons.keyboard_option_key : Icons.keyboard_alt,
+              isMac ? Icons.keyboard_option_key : Icons.keyboard_alt,
               size: 16,
               color: subtleColor,
             ),
