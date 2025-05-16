@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../test_infra/utils.dart';
 
 void main() {
-  for (final client in dartServicesProdClients) {
+  for (final client in dartServicesProdProbingClients) {
     group('server at ${client.rootUrl}', () {
       setUpAll(() async {});
 
