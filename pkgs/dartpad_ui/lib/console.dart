@@ -185,7 +185,6 @@ class FileIssueButton extends StatelessWidget {
       child: Text('File an issue'),
       onPressed: () {
         final issueBody = _createGithubIssue(errorMessage);
-        const labels = 'type-bug';
 
         launchUrl(
           Uri(
