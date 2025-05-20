@@ -206,9 +206,10 @@ class AppServices {
   Timer? reanalysisDebouncer;
 
   static const Set<Channel> _hotReloadableChannels = {
-    Channel.localhost,
-    Channel.main,
+    Channel.stable,
     Channel.beta,
+    Channel.main,
+    Channel.localhost,
   };
 
   AppServices(this.appModel, Channel channel) {
