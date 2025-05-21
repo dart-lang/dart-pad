@@ -6,7 +6,7 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:web/web.dart' as web;
 
-import '_frame.dart';
+import 'frame.dart';
 import 'globals.dart';
 
 bool _viewFactoryInitialized = false;
