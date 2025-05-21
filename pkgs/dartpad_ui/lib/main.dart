@@ -627,27 +627,27 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
-        List<Widget> geminiMenuWidgets(double spacing) =>
-            genAiEnabled
-                ? [
-                  SizedBox(width: spacing),
-                  GeminiMenu(
-                    generateNewDartCode:
-                        () => openCodeGenerationDialog(
-                          context,
-                          appType: AppType.dart,
-                          reuseLastPrompt: false,
-                        ),
-                    generateNewFlutterCode:
-                        () => openCodeGenerationDialog(
-                          context,
-                          appType: AppType.flutter,
-                          reuseLastPrompt: false,
-                        ),
-                    hideLabel: false, // !wideLayout,
+        List<Widget> geminiMenuWidgets(double spacing) {
+          if (!genAiEnabled) return <Widget>[];
+          return [
+            SizedBox(width: spacing),
+            GeminiMenu(
+              generateNewDartCode:
+                  () => openCodeGenerationDialog(
+                    context,
+                    appType: AppType.dart,
+                    reuseLastPrompt: false,
                   ),
-                ]
-                : <Widget>[];
+              generateNewFlutterCode:
+                  () => openCodeGenerationDialog(
+                    context,
+                    appType: AppType.flutter,
+                    reuseLastPrompt: false,
+                  ),
+              hideLabel: false, // !wideLayout,
+            ),
+          ];
+        }
 
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
@@ -801,9 +801,6 @@ class StatusLineWidget extends StatelessWidget {
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
-          // TODO: remove before merge
-          const SizedBox(width: denseSpacing),
-          Text('genui-demo-6'),
         ],
       ),
     );
