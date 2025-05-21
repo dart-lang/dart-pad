@@ -91,7 +91,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     final activeCuj = widget.appModel.genAiManager.cuj.value;
 
     if (activeCuj == GenAiCuj.generateCode) {
-      openCodeGenerationDialog(context, changeLastPrompt: true);
+      openCodeGenerationDialog(context, reuseLastPrompt: true);
     } else {
       // See https://stackoverflow.com/questions/56221653/focusnode-why-is-requestfocus-not-working
       Future.delayed(Duration(milliseconds: 50), () {

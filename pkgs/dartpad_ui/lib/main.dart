@@ -636,13 +636,13 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                         () => openCodeGenerationDialog(
                           context,
                           appType: AppType.dart,
-                          changeLastPrompt: false,
+                          reuseLastPrompt: false,
                         ),
                     generateNewFlutterCode:
                         () => openCodeGenerationDialog(
                           context,
                           appType: AppType.flutter,
-                          changeLastPrompt: false,
+                          reuseLastPrompt: false,
                         ),
                     hideLabel: false, // !wideLayout,
                   ),

@@ -23,7 +23,7 @@ import 'utils.dart';
 Future<void> openCodeGenerationDialog(
   BuildContext context, {
   AppType? appType,
-  required bool changeLastPrompt,
+  required bool reuseLastPrompt,
 }) async {
   final resolvedAppType =
       appType ?? DartPadLocalStorage.instance.getLastCreateCodeAppType();
@@ -31,7 +31,7 @@ Future<void> openCodeGenerationDialog(
 
   final appServices = Provider.of<AppServices>(context, listen: false);
   final lastPrompt = DartPadLocalStorage.instance.getLastCreateCodePrompt();
-  if (changeLastPrompt) {
+  if (reuseLastPrompt) {
     appModel.genAiManager.newCodePromptController.text = lastPrompt ?? '';
   }
   final resolvedDialogTitle =
@@ -161,7 +161,9 @@ class _PromptDialogState extends State<PromptDialog> {
                 meta: isMac,
                 control: isNonMac,
               ): () {
-                if (widget.promptTextController.text.isNotEmpty) _onGenerate();
+                if (widget.promptTextController.text.isNotEmpty) {
+                  _onGenerate();
+                }
               },
             },
             child: Column(

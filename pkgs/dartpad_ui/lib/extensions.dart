@@ -23,7 +23,7 @@ extension GoRouteHelpers on GoRouter {
   }
 }
 
-extension MenuControllerToggleMenu on MenuController {
+extension MenuControllerExtension on MenuController {
   void toggle() {
     if (isOpen) {
       close();
