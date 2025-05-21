@@ -203,6 +203,9 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   }
 
   AppType analyzedAppTypeFromSource(AppModel appModel) {
+    // TODO: make detection of app type more consistent.
+    // See:
+    // https://github.com/dart-lang/dart-pad/pull/3235#discussion_r2093742606
     if (appModel.sourceCodeController.text.contains(
       """import 'package:flutter""",
     )) {
@@ -305,7 +308,7 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
             ),
             if (attachments.isNotEmpty)
               SizedBox(
-                height: 32,
+                height: attachmentsBoxHeight,
                 child: EditableImageList(
                   compactDisplay: true,
                   attachments: attachments,
@@ -337,7 +340,7 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   }
 }
 
-const geminiMessageTextTheme = TextStyle(
+const TextStyle geminiMessageTextTheme = TextStyle(
   color: Color.fromARGB(255, 60, 60, 60),
 );
 
@@ -380,8 +383,8 @@ class _AcceptRejectBlock extends StatelessWidget {
 
         final geminiIcon = Image.asset(
           'assets/gemini_sparkle_192.png',
-          width: 16,
-          height: 16,
+          width: geminiSparkleSizeSmall,
+          height: geminiSparkleSizeSmall,
         );
 
         final activeCuj = appModel.genAiManager.cuj.value;
@@ -423,12 +426,9 @@ class _AcceptRejectBlock extends StatelessWidget {
                 Color(0xFFD7E6FF),
                 Color(0xFFC7E4FF),
                 Color(0xFFDCE2FF),
-                // Color(0xFF2E64De),
-                // Color(0xFF3C8FE3),
-                // Color(0xFF987BE9),
               ],
             ),
-          ), //Color.fromRGBO(200, 230, 255, 1.0)),
+          ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
             child: Row(
@@ -492,7 +492,7 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
               onAddImage: onAddImage,
             )
             : SizedBox(
-              width: 29,
+              width: geminiEditIconSize,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Opacity(
@@ -500,8 +500,8 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
                   child: Image.asset(
                     'assets/gemini_sparkle_192.png',
                     fit: BoxFit.contain,
-                    height: 24,
-                    width: 24,
+                    height: geminiSparkleSizeLarge,
+                    width: geminiSparkleSizeLarge,
                   ),
                 ),
               ),
@@ -538,14 +538,12 @@ class _GeminiEditSuffixIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 30,
+      width: geminiEditIconSize,
       child:
           textFieldIsFocused
               ? Align(
                 alignment: Alignment.centerLeft,
                 child: SizedBox(
-                  width: 26,
-                  height: 26,
                   child: IconButton(
                     padding: EdgeInsets.all(0),
                     onPressed: onGenerate,
@@ -700,7 +698,6 @@ class _EditingArea extends StatelessWidget {
                       child: MiniIconButton(
                         icon: const Icon(Icons.help_outline),
                         tooltip: 'Show docs',
-                        // small: true,
                         onPressed: value ? null : () => _showDocs(context),
                       ),
                     );

@@ -1037,8 +1037,8 @@ class GeminiMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = Image.asset(
       'assets/gemini_sparkle_192.png',
-      width: 24,
-      height: 24,
+      width: geminiSparkleSizeLarge,
+      height: geminiSparkleSizeLarge,
     );
 
     Widget menu(String text) {

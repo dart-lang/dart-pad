@@ -97,8 +97,8 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                       MiniIconButton(
                         icon: Image.asset(
                           'assets/gemini_sparkle_192.png',
-                          width: 16,
-                          height: 16,
+                          width: geminiSparkleSizeSmall,
+                          height: geminiSparkleSizeSmall,
                         ),
                         tooltip: 'Suggest fix',
                         onPressed:
