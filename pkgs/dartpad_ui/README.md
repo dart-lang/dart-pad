@@ -82,7 +82,16 @@ If you want to collaborate on an intermediate version, you can publish it to you
    {
       "projects": {
          "default": "<your project name>"
-      }
+      },
+      "targets": {
+         "<your project name>": {
+            "hosting": {
+               "dartpad": [
+                  "<your project name>"
+               ]
+            }
+         }
+      },
    }
    ```
 
