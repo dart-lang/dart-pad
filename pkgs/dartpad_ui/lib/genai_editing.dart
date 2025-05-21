@@ -123,118 +123,12 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
         return Column(
           children: [
             Expanded(
-              child: SectionWidget(
-                child: Stack(
-                  children: [
-                    if (genAiActivity == null)
-                      EditorWidget(
-                        appModel: widget.appModel,
-                        appServices: widget.appServices,
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: denseSpacing,
-                        horizontal: defaultSpacing,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        // We use explicit directionality here in order to have the
-                        // format and run buttons on the right hand side of the
-                        // editing area.
-                        textDirection: TextDirection.ltr,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Dartdoc help button
-                          ValueListenableBuilder<bool>(
-                            valueListenable: widget.appModel.docHelpBusy,
-                            builder: (_, bool value, __) {
-                              return PointerInterceptor(
-                                child: MiniIconButton(
-                                  icon: const Icon(Icons.help_outline),
-                                  tooltip: 'Show docs',
-                                  // small: true,
-                                  onPressed:
-                                      value ? null : () => _showDocs(context),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: denseSpacing),
-                          // Format action
-                          ValueListenableBuilder<bool>(
-                            valueListenable: widget.appModel.formattingBusy,
-                            builder: (_, bool value, __) {
-                              return PointerInterceptor(
-                                child: MiniIconButton(
-                                  icon: const Icon(Icons.format_align_left),
-                                  tooltip: 'Format',
-                                  small: true,
-                                  onPressed: value ? null : widget.onFormat,
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: defaultSpacing),
-                          // Run action
-                          ValueListenableBuilder(
-                            valueListenable: widget.appModel.showReload,
-                            builder: (_, bool value, __) {
-                              if (!value) return const SizedBox();
-                              return ValueListenableBuilder<bool>(
-                                valueListenable: widget.appModel.canReload,
-                                builder: (_, bool value, __) {
-                                  return PointerInterceptor(
-                                    child: ReloadButton(
-                                      onPressed:
-                                          value
-                                              ? widget.onCompileAndReload
-                                              : null,
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(width: defaultSpacing),
-                          // Run action
-                          ValueListenableBuilder<CompilingState>(
-                            valueListenable: widget.appModel.compilingState,
-                            builder: (_, compiling, __) {
-                              return PointerInterceptor(
-                                child: RunButton(
-                                  onPressed:
-                                      compiling.busy
-                                          ? null
-                                          : widget.onCompileAndRun,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.all(denseSpacing),
-                      child: StatusWidget(status: widget.appModel.editorStatus),
-                    ),
-
-                    if (genAiActivity == null)
-                      SizedBox(width: 0, height: 0)
-                    else
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                        ),
-                        alignment: Alignment.topLeft,
-                        padding: const EdgeInsets.all(denseSpacing),
-                        child: GeneratingCodePanel(
-                          appModel: widget.appModel,
-                          appServices: widget.appServices,
-                        ),
-                      ),
-                  ],
-                ),
+              child: _EditingArea(
+                widget.appModel,
+                widget.appServices,
+                onFormat: widget.onFormat,
+                onCompileAndReload: widget.onCompileAndReload,
+                onCompileAndRun: widget.onCompileAndRun,
               ),
             ),
             _GeminiCodeEditTool(
@@ -266,63 +160,6 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
         );
       },
     );
-  }
-
-  void _showDocs(BuildContext context) async {
-    try {
-      final source = widget.appModel.sourceCodeController.text;
-      final offset = widget.appServices.editorService?.cursorOffset ?? -1;
-
-      var valid = true;
-      if (offset < 0 || offset >= source.length) {
-        valid = false;
-      } else {
-        valid = EditorWithButtons._identifierChar.hasMatch(
-          source.substring(offset, offset + 1),
-        );
-      }
-
-      if (!valid) {
-        widget.appModel.editorStatus.showToast('No docs at location.');
-        return;
-      }
-
-      final result = await widget.appServices.document(
-        SourceRequest(source: source, offset: offset),
-      );
-
-      if (result.elementKind == null) {
-        widget.appModel.editorStatus.showToast('No docs at location.');
-        return;
-      } else if (context.mounted) {
-        // show result
-
-        showDialog<void>(
-          context: context,
-          builder: (context) {
-            const longTitle = 40;
-
-            var title = result.cleanedUpTitle ?? 'Dartdoc';
-            if (title.length > longTitle) {
-              title = '${title.substring(0, longTitle)}…';
-            }
-            return MediumDialog(
-              title: title,
-              child: DocsWidget(
-                appModel: widget.appModel,
-                documentResponse: result,
-              ),
-            );
-          },
-        );
-      }
-
-      widget.appServices.editorService!.focus();
-    } catch (error) {
-      widget.appModel.editorStatus.showToast('Error retrieving docs');
-      widget.appModel.appendError('$error');
-      return;
-    }
   }
 }
 
@@ -815,5 +652,183 @@ class _GeminiCodeEditMenuPromptSuggestion extends StatelessWidget {
         child: Text(displayName),
       ),
     );
+  }
+}
+
+class _EditingArea extends StatelessWidget {
+  const _EditingArea(
+    this.appModel,
+    this.appServices, {
+    required this.onFormat,
+    required this.onCompileAndReload,
+    required this.onCompileAndRun,
+  });
+
+  final AppModel appModel;
+  final AppServices appServices;
+  final VoidCallback onFormat;
+  final VoidCallback onCompileAndReload;
+  final VoidCallback onCompileAndRun;
+
+  @override
+  Widget build(BuildContext context) {
+    final genAiActivity = appModel.genAiManager.currentActivity.value;
+    return SectionWidget(
+      child: Stack(
+        children: [
+          if (genAiActivity == null)
+            EditorWidget(appModel: appModel, appServices: appServices),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: denseSpacing,
+              horizontal: defaultSpacing,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              // We use explicit directionality here in order to have the
+              // format and run buttons on the right hand side of the
+              // editing area.
+              textDirection: TextDirection.ltr,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Dartdoc help button
+                ValueListenableBuilder<bool>(
+                  valueListenable: appModel.docHelpBusy,
+                  builder: (_, bool value, __) {
+                    return PointerInterceptor(
+                      child: MiniIconButton(
+                        icon: const Icon(Icons.help_outline),
+                        tooltip: 'Show docs',
+                        // small: true,
+                        onPressed: value ? null : () => _showDocs(context),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: denseSpacing),
+                // Format action
+                ValueListenableBuilder<bool>(
+                  valueListenable: appModel.formattingBusy,
+                  builder: (_, bool value, __) {
+                    return PointerInterceptor(
+                      child: MiniIconButton(
+                        icon: const Icon(Icons.format_align_left),
+                        tooltip: 'Format',
+                        small: true,
+                        onPressed: value ? null : onFormat,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: defaultSpacing),
+                // Run action
+                ValueListenableBuilder(
+                  valueListenable: appModel.showReload,
+                  builder: (_, bool value, __) {
+                    if (!value) return const SizedBox();
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: appModel.canReload,
+                      builder: (_, bool value, __) {
+                        return PointerInterceptor(
+                          child: ReloadButton(
+                            onPressed: value ? onCompileAndReload : null,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(width: defaultSpacing),
+                // Run action
+                ValueListenableBuilder<CompilingState>(
+                  valueListenable: appModel.compilingState,
+                  builder: (_, compiling, __) {
+                    return PointerInterceptor(
+                      child: RunButton(
+                        onPressed: compiling.busy ? null : onCompileAndRun,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Container(
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.all(denseSpacing),
+            child: StatusWidget(status: appModel.editorStatus),
+          ),
+
+          if (genAiActivity == null)
+            SizedBox(width: 0, height: 0)
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+              ),
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(denseSpacing),
+              child: GeneratingCodePanel(
+                appModel: appModel,
+                appServices: appServices,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDocs(BuildContext context) async {
+    try {
+      final source = appModel.sourceCodeController.text;
+      final offset = appServices.editorService?.cursorOffset ?? -1;
+
+      var valid = true;
+      if (offset < 0 || offset >= source.length) {
+        valid = false;
+      } else {
+        valid = EditorWithButtons._identifierChar.hasMatch(
+          source.substring(offset, offset + 1),
+        );
+      }
+
+      if (!valid) {
+        appModel.editorStatus.showToast('No docs at location.');
+        return;
+      }
+
+      final result = await appServices.document(
+        SourceRequest(source: source, offset: offset),
+      );
+
+      if (result.elementKind == null) {
+        appModel.editorStatus.showToast('No docs at location.');
+        return;
+      } else if (context.mounted) {
+        // show result
+
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            const longTitle = 40;
+
+            var title = result.cleanedUpTitle ?? 'Dartdoc';
+            if (title.length > longTitle) {
+              title = '${title.substring(0, longTitle)}…';
+            }
+            return MediumDialog(
+              title: title,
+              child: DocsWidget(appModel: appModel, documentResponse: result),
+            );
+          },
+        );
+      }
+
+      appServices.editorService!.focus();
+    } catch (error) {
+      appModel.editorStatus.showToast('Error retrieving docs');
+      appModel.appendError('$error');
+      return;
+    }
   }
 }
