@@ -702,6 +702,7 @@ enum GenAiActivity { generating, awaitingAcceptance }
 
 enum GenAiCuj { generateCode, editCode, suggestFix }
 
+/// GenAI related state for the application.
 class GenAiManager {
   final ValueNotifier<GenAiActivity?> activity = ValueNotifier(null);
   final ValueNotifier<Stream<String>> stream = ValueNotifier(
