@@ -646,29 +646,28 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(width: textFieldIsFocused ? 12 : 8),
-        ...[
-          textFieldIsFocused
-              ? _GeminiCodeEditMenu(
-                currentAppType: appType,
-                handlePromptSuggestion: handlePromptSuggestion,
-                onAddImage: onAddImage,
-              )
-              : SizedBox(
-                width: 29,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Opacity(
-                    opacity: enabled ? 1 : 0.45,
-                    child: Image.asset(
-                      'assets/gemini_sparkle_192.png',
-                      fit: BoxFit.contain,
-                      height: 24,
-                      width: 24,
-                    ),
+
+        textFieldIsFocused
+            ? _GeminiCodeEditMenu(
+              currentAppType: appType,
+              handlePromptSuggestion: handlePromptSuggestion,
+              onAddImage: onAddImage,
+            )
+            : SizedBox(
+              width: 29,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Opacity(
+                  opacity: enabled ? 1 : 0.45,
+                  child: Image.asset(
+                    'assets/gemini_sparkle_192.png',
+                    fit: BoxFit.contain,
+                    height: 24,
+                    width: 24,
                   ),
                 ),
               ),
-        ],
+            ),
         SizedBox(width: textFieldIsFocused ? 4 : 5),
       ],
     );

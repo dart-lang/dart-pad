@@ -1006,8 +1006,8 @@ class ContinueInMenu extends StatelessWidget {
         );
       },
       menuChildren: [
-        ...[
-          MenuItemButton(
+        PointerInterceptor(
+          child: MenuItemButton(
             trailingIcon: const Logo(type: 'firebase_studio'),
             onPressed: openInFirebaseStudio,
             child: const Padding(
@@ -1015,7 +1015,7 @@ class ContinueInMenu extends StatelessWidget {
               child: Text('Firebase Studio'),
             ),
           ),
-        ].map((widget) => PointerInterceptor(child: widget)),
+        ),
       ],
     );
   }
