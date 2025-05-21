@@ -76,6 +76,17 @@ If you want to collaborate on an intermediate version, you can publish it to you
    * delete all items under `hosting`, except one with `"target": "dartpad"`.
    * replace all occurrences of 'same-origin' with 'cross-origin'
 
+1. Update your .firebaserc to be:
+
+   ```
+   {
+      "projects": {
+         "default": "<your project name>"
+      }
+   }
+   ```
+
+
 1. Run `firebase deploy`.
 
 
