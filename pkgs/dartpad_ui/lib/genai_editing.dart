@@ -163,6 +163,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
   }
 }
 
+/// A box where user can type how to change the code.
 class _GeminiCodeEditTool extends StatefulWidget {
   const _GeminiCodeEditTool({
     required this.appModel,
