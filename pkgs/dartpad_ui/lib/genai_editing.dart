@@ -82,13 +82,14 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     widget.appModel.genAiManager.resetState();
   }
 
-  void _handleEditUpdateCodePrompt(BuildContext context) async {
+  void _handleUpdateCodePrompt(BuildContext context) async {
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();
     widget.appModel.genAiManager.finishActivity();
 
     final activeCuj = widget.appModel.genAiManager.cuj.value;
+    assert([GenAiCuj.generateCode, GenAiCuj.editCode].contains(activeCuj));
 
     if (activeCuj == GenAiCuj.generateCode) {
       openCodeGenerationDialog(context, reuseLastPrompt: true);
@@ -137,7 +138,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
               onUpdateCode: _requestGeminiCodeUpdate,
               onAcceptUpdateCode: _handleAcceptUpdateCode,
               onCancelUpdateCode: _handleCancelUpdateCode,
-              onEditUpdateCodePrompt: _handleEditUpdateCodePrompt,
+              onUpdateCodePrompt: _handleUpdateCodePrompt,
               onRejectSuggestedCode: _handleRejectSuggestedCode,
               changePromptFocusNode: _changePromptFocusNode,
             ),
@@ -170,7 +171,7 @@ class _GeminiCodeEditTool extends StatefulWidget {
     required this.onUpdateCode,
     required this.onCancelUpdateCode,
     required this.onRejectSuggestedCode,
-    required this.onEditUpdateCodePrompt,
+    required this.onUpdateCodePrompt,
     required this.onAcceptUpdateCode,
     required this.enabled,
     required this.changePromptFocusNode,
@@ -179,7 +180,7 @@ class _GeminiCodeEditTool extends StatefulWidget {
   final AppModel appModel;
   final Future<void> Function(BuildContext, PromptDialogResponse) onUpdateCode;
 
-  final void Function(BuildContext context) onEditUpdateCodePrompt;
+  final void Function(BuildContext context) onUpdateCodePrompt;
   final VoidCallback onRejectSuggestedCode;
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onAcceptUpdateCode;
@@ -331,7 +332,7 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
           genAiManager,
           onCancelUpdateCode: widget.onCancelUpdateCode,
           onAcceptUpdateCode: widget.onAcceptUpdateCode,
-          onEditUpdateCodePrompt: widget.onEditUpdateCodePrompt,
+          onUpdateCodePrompt: widget.onUpdateCodePrompt,
           onRejectSuggestedCode: widget.onRejectSuggestedCode,
         ),
         textInputBlock,
@@ -349,14 +350,14 @@ class _AcceptRejectBlock extends StatelessWidget {
     this.genAiManager, {
     required this.onCancelUpdateCode,
     required this.onAcceptUpdateCode,
-    required this.onEditUpdateCodePrompt,
+    required this.onUpdateCodePrompt,
     required this.onRejectSuggestedCode,
   });
 
   final GenAiManager genAiManager;
   final VoidCallback onCancelUpdateCode;
   final VoidCallback onAcceptUpdateCode;
-  final void Function(BuildContext context) onEditUpdateCodePrompt;
+  final void Function(BuildContext context) onUpdateCodePrompt;
   final VoidCallback onRejectSuggestedCode;
 
   static String _statusMessage(BuildContext context, GenAiActivity genAiState) {
@@ -404,7 +405,7 @@ class _AcceptRejectBlock extends StatelessWidget {
                   ),
 
                   if (activeCuj != GenAiCuj.suggestFix)
-                    _ChangePromptBtn(() => onEditUpdateCodePrompt(context)),
+                    _ChangePromptBtn(() => onUpdateCodePrompt(context)),
 
                   FilledButton(
                     onPressed: onAcceptUpdateCode,

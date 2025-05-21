@@ -746,7 +746,6 @@ class GenAiManager {
 
   void finishActivity() {
     activity.value = null;
-    cuj.value = null;
     streamIsDone.value = true;
     streamBuffer.value.clear();
     newCodeAttachments.clear();
@@ -769,6 +768,7 @@ class GenAiManager {
     codeEditPromptController.text = '';
     newCodePromptController.text = '';
     finishActivity();
+    cuj.value = null;
   }
 
   String generatedCode() {
