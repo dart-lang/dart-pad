@@ -126,12 +126,11 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
               child: SectionWidget(
                 child: Stack(
                   children: [
-                    if (genAiActivity == null) ...[
+                    if (genAiActivity == null)
                       EditorWidget(
                         appModel: widget.appModel,
                         appServices: widget.appServices,
                       ),
-                    ],
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         vertical: denseSpacing,
@@ -220,9 +219,9 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                       child: StatusWidget(status: widget.appModel.editorStatus),
                     ),
 
-                    if (genAiActivity == null) ...[
-                      SizedBox(width: 0, height: 0),
-                    ] else ...[
+                    if (genAiActivity == null)
+                      SizedBox(width: 0, height: 0)
+                    else
                       Container(
                         decoration: BoxDecoration(
                           color: Theme.of(context).scaffoldBackgroundColor,
@@ -234,7 +233,6 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                           appServices: widget.appServices,
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),
