@@ -69,11 +69,7 @@ class _ReadOnlyCodeWidgetState extends State<ReadOnlyCodeWidget> {
         controller: _textController,
         readOnly: true,
         maxLines: null,
-        style: GoogleFonts.robotoMono(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          color: Theme.of(context).textTheme.bodyMedium?.color,
-        ),
+        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
         decoration: const InputDecoration(border: InputBorder.none),
       ),
     );
@@ -101,9 +97,7 @@ class ReadOnlyDiffWidget extends StatelessWidget {
         child: PrettyDiffText(
           oldText: existingSource,
           newText: newSource,
-          defaultTextStyle: GoogleFonts.robotoMono(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
+          defaultTextStyle: TextStyle(
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
           addedTextStyle: const TextStyle(

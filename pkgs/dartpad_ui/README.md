@@ -79,7 +79,7 @@ If you want to collaborate on an intermediate version, you can publish it to you
 1. Run `firebase deploy`.
 
 
-After configured, you can redeploy with commands:
+After the above configuration, you can redeploy with the commands:
 
 ```
 cd pkgs/dartpad_ui
