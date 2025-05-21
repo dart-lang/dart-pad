@@ -763,7 +763,7 @@ class StatusLineWidget extends StatelessWidget {
               child: Icon(
                 Icons.keyboard,
                 color: Theme.of(context).colorScheme.onPrimary,
-                size: 20,
+                size: iconSizeMedium,
               ),
             ),
           ),
@@ -778,7 +778,7 @@ class StatusLineWidget extends StatelessWidget {
                 children: [
                   Text('Privacy notice'),
                   SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 16),
+                  Icon(Icons.launch, size: iconSizeSmall),
                 ],
               ),
             ),
@@ -793,7 +793,7 @@ class StatusLineWidget extends StatelessWidget {
                 children: [
                   Text('Feedback'),
                   SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 16),
+                  Icon(Icons.launch, size: iconSizeSmall),
                 ],
               ),
             ),
@@ -801,6 +801,8 @@ class StatusLineWidget extends StatelessWidget {
           VersionInfoWidget(appModel.runtimeVersions),
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
+          const SizedBox(width: defaultSpacing),
+          Text('demo-v9'),
         ],
       ),
     );
@@ -1037,8 +1039,8 @@ class GeminiMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = Image.asset(
       'assets/gemini_sparkle_192.png',
-      width: geminiSparkleSizeLarge,
-      height: geminiSparkleSizeLarge,
+      width: iconSizeLarge,
+      height: iconSizeLarge,
     );
 
     Widget menu(String text) {

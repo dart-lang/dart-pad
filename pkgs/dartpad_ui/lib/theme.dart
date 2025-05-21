@@ -23,8 +23,9 @@ const double attachmentsBoxHeight = 32.0;
 
 const double geminiEditIconSize = 30.0;
 
-const double geminiSparkleSizeLarge = 24.0;
-const double geminiSparkleSizeSmall = 16.0;
+const double iconSizeLarge = 24.0;
+const double iconSizeMedium = 20.0;
+const double iconSizeSmall = 16.0;
 
 const double toolbarItemHeight = 40.0;
 

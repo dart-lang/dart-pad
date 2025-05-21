@@ -384,8 +384,8 @@ class _AcceptRejectBlock extends StatelessWidget {
 
         final geminiIcon = Image.asset(
           'assets/gemini_sparkle_192.png',
-          width: geminiSparkleSizeSmall,
-          height: geminiSparkleSizeSmall,
+          width: iconSizeSmall,
+          height: iconSizeSmall,
         );
 
         final activeCuj = appModel.genAiManager.cuj.value;
@@ -501,8 +501,8 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
                   child: Image.asset(
                     'assets/gemini_sparkle_192.png',
                     fit: BoxFit.contain,
-                    height: geminiSparkleSizeLarge,
-                    width: geminiSparkleSizeLarge,
+                    height: iconSizeLarge,
+                    width: iconSizeLarge,
                   ),
                 ),
               ),
