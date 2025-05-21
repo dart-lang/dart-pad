@@ -706,7 +706,7 @@ class _EditingArea extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: denseSpacing),
-                // Format action
+                // Format button
                 ValueListenableBuilder<bool>(
                   valueListenable: appModel.formattingBusy,
                   builder: (_, bool value, __) {
@@ -721,6 +721,7 @@ class _EditingArea extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: defaultSpacing),
+                // Reload button
                 MultiValueListenableBuilder(
                   listenables: [appModel.showReload, appModel.canReload],
                   builder: (_) {
@@ -736,7 +737,7 @@ class _EditingArea extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: defaultSpacing),
-                // Run action
+                // Run button
                 ValueListenableBuilder<CompilingState>(
                   valueListenable: appModel.compilingState,
                   builder: (_, compiling, __) {
