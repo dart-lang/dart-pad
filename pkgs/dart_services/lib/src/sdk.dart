@@ -181,7 +181,9 @@ final class Sdk {
 
   // Currently we only allow using the new DDC module systme on the main or
   // local channels.
-  bool get _channelSupportsNewDdcSdk => !stableChannel;
+  // TODO(devoncarew): Clean up these flags once we no longer want to be able to
+  // toggle hot reload on or off.
+  bool get _channelSupportsNewDdcSdk => true;
 
   bool get useNewDdcSdk =>
       dartMajorVersion >= 3 &&

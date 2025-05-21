@@ -15,7 +15,7 @@ import 'package:web/web.dart' as web;
 
 import '../../local_storage/local_storage.dart';
 import '../../model.dart';
-import '_codemirror.dart';
+import 'codemirror.dart';
 
 CodeMirror? codeMirrorInstance;
 

@@ -24,24 +24,6 @@ String titleCase(String phrase) {
   return phrase.substring(0, 1).toUpperCase() + phrase.substring(1);
 }
 
-RelativeRect calculatePopupMenuPosition(
-  BuildContext context, {
-  bool growUpwards = false,
-}) {
-  final render = context.findRenderObject() as RenderBox;
-  final size = render.size;
-  final offset = render.localToGlobal(
-    Offset(0, growUpwards ? -size.height : size.height),
-  );
-
-  return RelativeRect.fromLTRB(
-    offset.dx,
-    offset.dy,
-    offset.dx + size.width,
-    offset.dy + size.height,
-  );
-}
-
 bool hasFlutterImports(List<String> imports) {
   return imports.any((import) => import.startsWith('package:flutter/'));
 }
