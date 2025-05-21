@@ -12,6 +12,9 @@ import '../theme.dart';
 import '../utils.dart';
 import 'editor.dart';
 
+/// A panel that shows the code generation by AI.
+///
+/// It shows the code dynamically, as it is streamed from backend.
 class GeneratingCodePanel extends StatefulWidget {
   const GeneratingCodePanel({
     required this.appModel,
