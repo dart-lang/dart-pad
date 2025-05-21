@@ -183,13 +183,13 @@ class _PromptDialogState extends State<PromptDialog> {
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: defaultSpacing),
                 Row(
                   children: [
                     Expanded(
                       child: OverflowBar(
                         alignment: MainAxisAlignment.center,
-                        spacing: 12,
+                        spacing: semiDenseSpacing,
                         children: [
                           for (final entry
                               in widget.initialAppType == AppType.flutter

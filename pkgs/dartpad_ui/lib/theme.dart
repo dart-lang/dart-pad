@@ -15,6 +15,7 @@ const double defaultSplashRadius = defaultIconSize;
 const double smallIconSize = 20.0;
 
 const double defaultSpacing = 16.0;
+const double semiDenseSpacing = 12.0;
 const double denseSpacing = 8.0;
 
 const double toolbarHeight = 32.0;
