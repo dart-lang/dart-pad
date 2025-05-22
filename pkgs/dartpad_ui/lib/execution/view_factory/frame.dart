@@ -135,14 +135,17 @@ function contextLoaded() {
   dartDevEmbedder.runMain('package:dartpad_sample/bootstrap.dart', {});
 }''');
       if (isFlutter) {
-        script.writeln(
-          'require(["dart_sdk_new", "flutter_web_new", "ddc_module_loader"], contextLoaded);',
-        );
+        script.writeln('''
+function moduleLoaderLoaded() {
+  require(["dart_sdk_new", "flutter_web_new"], contextLoaded);
+}''');
       } else {
-        script.writeln(
-          'require(["dart_sdk_new", "ddc_module_loader"], contextLoaded);',
-        );
+        script.writeln('''
+function moduleLoaderLoaded() {
+  require(["dart_sdk_new"], contextLoaded);
+}''');
       }
+      script.writeln('require(["ddc_module_loader"], moduleLoaderLoaded);');
     } else {
       // Redirect print messages to the host.
       script.writeln('''
