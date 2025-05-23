@@ -5,8 +5,11 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:dartpad_shared/model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 import 'theme.dart';
 
@@ -170,4 +173,23 @@ extension TextEditingControllerExtensions on TextEditingController {
       selection: const TextSelection.collapsed(offset: 0),
     );
   }
+}
+
+/// Show a dialog to select an attachment and add it to the list.
+///
+/// As the dialog is modal, it will block the UI until the user selects an image.
+/// The caller should assume the list is changed after this function returns.
+Future<void> addAttachmentWithPicker(List<Attachment> attachments) async {
+  final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+  if (pic == null) return;
+
+  final bytes = await pic.readAsBytes();
+  attachments.add(
+    Attachment.fromBytes(
+      name: pic.name,
+      bytes: bytes,
+      mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
+    ),
+  );
 }
