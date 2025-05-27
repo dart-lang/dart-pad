@@ -18,7 +18,7 @@ import 'package:vtable/vtable.dart';
 
 import 'blur.dart';
 import 'console.dart';
-import 'embed.dart';
+import 'embed/embed.dart';
 import 'enable_gen_ai.dart';
 import 'execution/execution.dart';
 import 'extensions.dart';
@@ -34,7 +34,9 @@ import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
-const smallScreenWidth = 720;
+
+// Smallest screen width when the screen is considered to be a large screen.
+const minLargeScreenWidth = 866.0;
 
 void main() async {
   usePathUrlStrategy();
@@ -46,7 +48,11 @@ void main() async {
 }
 
 class DartPadApp extends StatefulWidget {
-  const DartPadApp({super.key});
+  const DartPadApp({super.key, this.channel});
+
+  /// If initialized, will override URL parameter for channel.
+  @visibleForTesting
+  final String? channel;
 
   @override
   State<DartPadApp> createState() => _DartPadAppState();
@@ -127,10 +133,12 @@ class _DartPadAppState extends State<DartPadApp> {
     final gistId = gist ?? state.uri.queryParameters['id'];
     final builtinSampleId = state.uri.queryParameters['sample'];
     final flutterSampleId = state.uri.queryParameters['sample_id'];
-    final channelParam = state.uri.queryParameters['channel'];
+    final channelParam = widget.channel ?? state.uri.queryParameters['channel'];
     final embedMode = state.uri.queryParameters['embed'] == 'true';
     final runOnLoad = state.uri.queryParameters['run'] == 'true';
-    useGenUI = state.uri.queryParameters['genui'] == 'true';
+
+    // Uncomment this line to make genui default option.
+    // useGenUI = state.uri.queryParameters['genui'] != 'false';
 
     return DartPadMainPage(
       initialChannel: channelParam,
@@ -228,16 +236,18 @@ class DartPadMainPage extends StatefulWidget {
        );
 
   @override
-  State<DartPadMainPage> createState() => _DartPadMainPageState();
+  State<DartPadMainPage> createState() => DartPadMainPageState();
 }
 
-class _DartPadMainPageState extends State<DartPadMainPage>
+@visibleForTesting
+class DartPadMainPageState extends State<DartPadMainPage>
     with SingleTickerProviderStateMixin {
   late final AppModel appModel;
   late final AppServices appServices;
   late final SplitViewController mainSplitter;
   late final SplitViewController consoleSplitter;
   late final TabController tabController;
+  final initialized = Completer<void>();
 
   final GlobalKey _executionWidgetKey = GlobalKey(
     debugLabel: 'execution-widget',
@@ -254,7 +264,10 @@ class _DartPadMainPageState extends State<DartPadMainPage>
   @override
   void initState() {
     super.initState();
+    _initialize();
+  }
 
+  Future<void> _initialize() async {
     tabController = TabController(length: 2, vsync: this)..addListener(() {
       // Rebuild when the user changes tabs so that the IndexedStack updates
       // its active child view.
@@ -283,29 +296,6 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     appModel = AppModel();
     appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
 
-    appServices.populateVersions();
-    appServices
-        .performInitialLoad(
-          gistId: widget.gistId,
-          sampleId: widget.builtinSampleId,
-          flutterSampleId: widget.flutterSampleId,
-          channel: widget.initialChannel,
-          keybinding: LocalStorage.instance.getUserKeybinding(),
-          getFallback:
-              () =>
-                  LocalStorage.instance.getUserCode() ??
-                  Samples.defaultSnippet(),
-        )
-        .then((value) {
-          // Start listening for inject code messages.
-          handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
-          if (widget.runOnLoad) {
-            appServices.performCompileAndRun();
-          }
-        })
-        .then((_) {
-          addBlurListener();
-        });
     appModel.compilingState.addListener(_handleRunStarted);
 
     tabController.addListener(() {
@@ -315,6 +305,33 @@ class _DartPadMainPageState extends State<DartPadMainPage>
         appServices.editorService?.refreshViewAfterWait();
       }
     });
+
+    await Future.wait([
+      appServices.populateVersions(),
+      appServices
+          .performInitialLoad(
+            gistId: widget.gistId,
+            sampleId: widget.builtinSampleId,
+            flutterSampleId: widget.flutterSampleId,
+            channel: widget.initialChannel,
+            keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
+            getFallback:
+                () =>
+                    DartPadLocalStorage.instance.getUserCode() ??
+                    Samples.defaultSnippet(),
+          )
+          .then((value) {
+            // Start listening for inject code messages.
+            handleEmbedMessage(appServices, runOnInject: widget.runOnLoad);
+            if (widget.runOnLoad) {
+              appServices.performCompileAndRun();
+            }
+          }).then((_) {
+            addBlurListener();
+      }),
+    ]);
+
+    initialized.complete();
 
     debugPrint('initialized: useGenui = $useGenUI, channel = $channel.');
   }
@@ -406,7 +423,7 @@ class _DartPadMainPageState extends State<DartPadMainPage>
     final scaffold = LayoutBuilder(
       builder: (context, constraints) {
         // Use the mobile UI layout for small screen widths.
-        if (constraints.maxWidth <= smallScreenWidth) {
+        if (constraints.maxWidth < minLargeScreenWidth) {
           return Scaffold(
             key: _scaffoldKey,
             appBar:
@@ -597,7 +614,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wideLayout = constraints.maxWidth > smallScreenWidth;
+        final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
@@ -657,7 +674,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottom: bottom,
           actions: [
             // Hide the Install SDK button when the screen width is too small.
-            if (constraints.maxWidth > smallScreenWidth)
+            if (constraints.maxWidth >= minLargeScreenWidth)
               ContinueInMenu(openInFirebaseStudio: _openInFirebaseStudio),
             const SizedBox(width: denseSpacing),
             _BrightnessButton(
@@ -687,7 +704,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _updateExistingCode(BuildContext context) async {
     final appModel = Provider.of<AppModel>(context, listen: false);
     final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = LocalStorage.instance.getLastUpdateCodePrompt();
+    final lastPrompt = DartPadLocalStorage.instance.getLastUpdateCodePrompt();
     final promptResponse = await showDialog<PromptDialogResponse>(
       context: context,
       builder:
@@ -719,7 +736,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
 
-    LocalStorage.instance.saveLastUpdateCodePrompt(promptResponse.prompt);
+    DartPadLocalStorage.instance.saveLastUpdateCodePrompt(
+      promptResponse.prompt,
+    );
 
     try {
       final source = appModel.sourceCodeController.text;

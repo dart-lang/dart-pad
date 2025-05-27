@@ -14,7 +14,9 @@ bool useGenUI = false;
 /*
 
 There are two options to use gen AI: Gemini and GenUI. Gemini is the default.
-To run with GenUI, use corresponding VS Code configuration or the command line options:
+To run with GenUI, first uncomment the line in main.dart that sets useGenUI to true.
+
+Then use corresponding VS Code configuration or the command line options:
 
 1. With prod backend: add URL parameter `/?genui=true`
 

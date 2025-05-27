@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
+import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 
 import 'flutter_samples.dart';
 import 'gists.dart';
@@ -28,6 +27,7 @@ abstract class ExecutionService {
   });
   Stream<String> get onStdout;
   Stream<String> get onStderr;
+  Stream<String> get onJavascriptError;
   Future<void> reset();
   Future<void> tearDown();
   set ignorePointer(bool ignorePointer);
@@ -122,14 +122,21 @@ class AppModel {
 
   void appendLineToConsole(String str) {
     consoleNotifier.output += '$str\n';
+    consoleNotifier.hasJavascriptError = false;
   }
 
-  void appendError(String str) {
+  void appendError(String str, {bool isJavascript = false}) {
     consoleNotifier.error += '$str\n';
+    if (isJavascript) {
+      consoleNotifier.hasJavascriptError = true;
+    } else {
+      consoleNotifier.hasJavascriptError = false;
+    }
   }
 
   void clearConsole() {
     consoleNotifier.clear();
+    consoleNotifier.hasJavascriptError = false;
   }
 
   void dispose() {
@@ -185,27 +192,29 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final Client _httpClient = Client();
-  late ServicesClient services;
+  final _httpClient = DartServicesHttpClient();
+  late DartServicesClient services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
   StreamSubscription<String>? stderrSub;
+  StreamSubscription<String>? javascriptErrorSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
   static const Set<Channel> _hotReloadableChannels = {
-    Channel.localhost,
-    Channel.main,
+    Channel.stable,
     Channel.beta,
+    Channel.main,
+    Channel.localhost,
   };
 
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
@@ -226,7 +235,7 @@ class AppServices {
   ValueListenable<Channel> get channel => _channel;
 
   Future<VersionResponse> setChannel(Channel channel) async {
-    services = ServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(_httpClient, rootUrl: channel.url);
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;
@@ -521,6 +530,9 @@ class AppServices {
       stderrSub = _executionService!.onStderr.listen(
         (msg) => appModel.appendError(msg),
       );
+      javascriptErrorSub = _executionService!.onJavascriptError.listen(
+        (msg) => appModel.appendError(msg, isJavascript: true),
+      );
     }
   }
 
@@ -593,36 +605,6 @@ class AppServices {
   }
 }
 
-enum Channel {
-  stable('Stable', 'https://stable.api.dartpad.dev/'),
-  beta('Beta', 'https://beta.api.dartpad.dev/'),
-  main('Main', 'https://master.api.dartpad.dev/'),
-  // This channel is only used for local development.
-  localhost('Localhost', 'http://localhost:8080/');
-
-  final String displayName;
-  final String url;
-
-  const Channel(this.displayName, this.url);
-
-  static const defaultChannel = Channel.stable;
-
-  static List<Channel> get valuesWithoutLocalhost {
-    return values.whereNot((channel) => channel == localhost).toList();
-  }
-
-  static Channel? forName(String name) {
-    name = name.trim().toLowerCase();
-
-    // Alias 'master' to 'main'.
-    if (name == 'master') {
-      name = 'main';
-    }
-
-    return Channel.values.firstWhereOrNull((c) => c.name == name);
-  }
-}
-
 extension VersionResponseExtension on VersionResponse {
   String get label => 'Dart $dartVersion • Flutter $flutterVersion';
 }
@@ -675,6 +657,7 @@ class PromptDialogResponse {
 class ConsoleNotifier extends ChangeNotifier {
   String _output;
   String _error;
+  bool _hasJavascriptError = false;
 
   ConsoleNotifier(this._output, this._error);
 
@@ -688,6 +671,12 @@ class ConsoleNotifier extends ChangeNotifier {
   String get error => _error;
   set error(String value) {
     _error = value;
+    notifyListeners();
+  }
+
+  bool get hasJavascriptError => _hasJavascriptError;
+  set hasJavascriptError(bool value) {
+    _hasJavascriptError = value;
     notifyListeners();
   }
 

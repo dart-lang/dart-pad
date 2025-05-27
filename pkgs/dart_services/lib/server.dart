@@ -6,17 +6,22 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dartpad_shared/backend_client.dart';
+import 'package:dartpad_shared/constants.dart';
+import 'package:dartpad_shared/services.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
+import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
-final Logger _logger = Logger('services');
+final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
   final parser =
@@ -77,7 +82,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.info(
+  _logger.genericInfo(
     '''
 Starting dart-services:
   port: $port
@@ -93,7 +98,7 @@ Starting dart-services:
     storageBucket,
   );
 
-  _logger.info('Listening on port ${server.port}');
+  _logger.genericInfo('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -168,10 +173,44 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        _logger.severe('${request.requestedUri.path} $e', null, st);
+        final ctx = DartPadRequestContext.fromRequest(request);
+
+        _logger.severe('${request.requestedUri.path} $e', ctx, null, st);
 
         return Response.badRequest(body: '$e');
       }
     };
   };
+}
+
+@visibleForTesting
+class TestServerRunner {
+  static const _port = 8080;
+  late final DartServicesClient client;
+  final sdk = Sdk.fromLocalFlutter();
+
+  Completer<void>? _started;
+
+  /// Starts the server if it is not already running.
+  ///
+  /// If the port is occupied, assumes the server is already started.
+  Future<DartServicesClient> maybeStart() async {
+    if (_started != null) {
+      await _started!.future;
+      return client;
+    }
+
+    _started = Completer<void>();
+    try {
+      await EndpointsServer.serve(_port, sdk, null, 'nnbd_artifacts');
+    } on SocketException {
+      // This is expected if the server is already running.
+    }
+    client = DartServicesClient(
+      DartServicesHttpClient(),
+      rootUrl: 'http://$localhostIp:$_port/',
+    );
+    _started!.complete();
+    return client;
+  }
 }

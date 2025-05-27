@@ -45,6 +45,13 @@ To run the server, see the [dart_services readme](pkgs/dart_services/README.md).
 
 To run the front-end, see the [dartpad_ui readme](pkgs/dartpad_ui/README.md).
 
+## Update goldens
+
+When your change requires update to [golden images](https://api.flutter.dev/flutter/flutter_test/matchesGoldenFile.html), run the tests
+with flag `--update-goldens`.
+
 ## Other
 
 See internal details at go/dartpad-manual.
+
+See code style at doc/CODE_STYLE.md

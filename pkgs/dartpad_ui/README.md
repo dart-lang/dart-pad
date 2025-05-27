@@ -42,35 +42,49 @@ There are options to run UI locally:
 
 If you want to collaborate on an intermediate version, you can publish it to your own Firebase project:
 
-1. In .firebaserc temporarily change project names.
+1. Make sure your current Flutter channel is set to `stable` and it is fresh.
+
+1. In [.firebaserc](./.firebaserc) temporarily change project names.
 
    ```
    {
-      "projects": {
-         "default": "<your project name>"
-      },
       "targets": {
          "<your project name>": {
             "hosting": {
                "dartpad": [
                   "<your project name>"
-               ],
-               "preview": [
-                  "<your project name>"
                ]
-         ...
+            }
+         }
+      }
+   }
    ```
 
-2. Run `firebase init`
-
-3. Make sure your current Flutter channel is set to `stable`
-
-4. Run the commands:
+1. Run the commands:
 
    ```
    cd pkgs/dartpad_ui
    flutter build web --wasm
-   firebase hosting:channel:deploy <your project name>
+   firebase -P <your project name> init
    ```
+
+   Select `Hosting` (not `App Hosting`) and choose defaults for other questions.
+
+1. Revert all changes, that previous command made in firebase.json,
+   then temporarily update it:
+
+   * delete all items under `hosting`, except one with `"target": "dartpad"`.
+   * replace all occurrences of 'same-origin' with 'cross-origin'
+
+1. Run `firebase deploy`.
+
+
+After configured, redeploy with commands:
+
+```
+cd pkgs/dartpad_ui
+flutter build web --wasm
+firebase deploy
+```
 
 See https://firebase.google.com/docs/hosting.

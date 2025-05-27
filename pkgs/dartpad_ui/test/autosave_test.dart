@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_shared/model.dart';
 import 'package:dartpad_ui/local_storage/local_storage.dart';
 import 'package:dartpad_ui/model.dart';
 import 'package:dartpad_ui/samples.g.dart';
@@ -9,7 +10,7 @@ import 'package:dartpad_ui/utils.dart';
 import 'package:test/test.dart';
 
 String getFallback() =>
-    LocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
+    DartPadLocalStorage.instance.getUserCode() ?? Samples.defaultSnippet();
 
 Never throwingFallback() =>
     throw StateError('DartPad tried to load the fallback');
@@ -20,18 +21,18 @@ void main() {
     test('empty content is treated as null', () {
       expect(''.nullIfEmpty, isNull);
 
-      LocalStorage.instance.saveUserCode('non-empty');
-      expect(LocalStorage.instance.getUserCode(), isNotNull);
+      DartPadLocalStorage.instance.saveUserCode('non-empty');
+      expect(DartPadLocalStorage.instance.getUserCode(), isNotNull);
 
-      LocalStorage.instance.saveUserCode('');
-      expect(LocalStorage.instance.getUserCode(), isNull);
+      DartPadLocalStorage.instance.saveUserCode('');
+      expect(DartPadLocalStorage.instance.getUserCode(), isNull);
     });
 
     test('null content means sample snippet is shown', () async {
       final model = AppModel();
       final services = AppServices(model, channel);
-      LocalStorage.instance.saveUserCode('');
-      expect(LocalStorage.instance.getUserCode(), isNull);
+      DartPadLocalStorage.instance.saveUserCode('');
+      expect(DartPadLocalStorage.instance.getUserCode(), isNull);
 
       await services.performInitialLoad(getFallback: getFallback);
       expect(model.sourceCodeController.text, equals(Samples.defaultSnippet()));
@@ -39,12 +40,12 @@ void main() {
 
     group('non-null content is shown with', () {
       const sample = 'Hello, World!';
-      setUp(() => LocalStorage.instance.saveUserCode(sample));
+      setUp(() => DartPadLocalStorage.instance.saveUserCode(sample));
 
       test('only fallback', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(getFallback: getFallback);
         expect(model.sourceCodeController.text, equals(sample));
@@ -53,7 +54,7 @@ void main() {
       test('invalid sample ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(
           getFallback: getFallback,
@@ -65,7 +66,7 @@ void main() {
       test('invalid Flutter sample ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(
           getFallback: getFallback,
@@ -77,7 +78,7 @@ void main() {
       test('invalid Gist ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         const gistId = 'This is hopefully not a valid Gist ID';
         await services.performInitialLoad(
@@ -90,13 +91,13 @@ void main() {
 
     group('content is not shown with', () {
       const sample = 'Hello, World!';
-      setUp(() => LocalStorage.instance.saveUserCode(sample));
+      setUp(() => DartPadLocalStorage.instance.saveUserCode(sample));
       // Not testing flutterSampleId to avoid breaking when the Flutter docs change
 
       test('Gist', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         // From gists_tests.dart
         const gistId = 'd3bd83918d21b6d5f778bdc69c3d36d6';
@@ -110,7 +111,7 @@ void main() {
       test('sample', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
-        expect(LocalStorage.instance.getUserCode(), equals(sample));
+        expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(
           getFallback: throwingFallback,

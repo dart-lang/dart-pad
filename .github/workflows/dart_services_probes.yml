@@ -1,0 +1,33 @@
+name: package:dart_services
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dart_services.yml'
+      - 'pkgs/dart_services/**'
+  schedule:
+    - cron: '0 * * * *' # hourly
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/dart_services/
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [stable, beta, main]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046
+        with:
+            channel: ${{ matrix.sdk }}
+      - run: flutter --version
+
+      - name: Install dart dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: dart test test/probes

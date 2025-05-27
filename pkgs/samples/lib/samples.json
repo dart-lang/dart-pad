@@ -39,12 +39,6 @@
   },
   {
     "category": "Ecosystem",
-    "icon": "gemini",
-    "name": "Google AI SDK",
-    "path": "lib/google_ai.dart"
-  },
-  {
-    "category": "Ecosystem",
     "icon": "flame",
     "name": "Flame game",
     "path": "lib/brick_breaker.dart"

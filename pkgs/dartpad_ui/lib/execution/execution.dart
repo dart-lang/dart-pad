@@ -2,47 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ui_web' as ui_web;
-
 import 'package:flutter/material.dart';
-import 'package:web/web.dart' as web;
 
+import '../html_view/html_view.dart';
 import '../model.dart';
 import '../theme.dart';
-import 'frame.dart';
 
-const String _viewType = 'dartpad-execution';
-
-bool _viewFactoryInitialized = false;
-ExecutionService? executionServiceInstance;
+import 'view_factory/globals.dart';
+import 'view_factory/view_factory.dart';
 
 final Key _elementViewKey = UniqueKey();
-
-void _initViewFactory() {
-  if (_viewFactoryInitialized) return;
-
-  _viewFactoryInitialized = true;
-
-  ui_web.platformViewRegistry.registerViewFactory(_viewType, _iFrameFactory);
-}
-
-web.Element _iFrameFactory(int viewId) {
-  // 'allow-popups' allows plugins like url_launcher to open popups.
-  final frame =
-      web.document.createElement('iframe') as web.HTMLIFrameElement
-        ..sandbox.add('allow-scripts')
-        ..sandbox.add('allow-popups')
-        ..sandbox.add('allow-popups-to-escape-sandbox')
-        ..allow += 'clipboard-write; '
-        ..src = 'frame.html'
-        ..style.border = 'none'
-        ..style.width = '100%'
-        ..style.height = '100%';
-
-  executionServiceInstance = ExecutionServiceImpl(frame);
-
-  return frame;
-}
 
 class ExecutionWidget extends StatefulWidget {
   final AppServices appServices;
@@ -54,7 +23,7 @@ class ExecutionWidget extends StatefulWidget {
     required this.appModel,
     super.key,
   }) {
-    _initViewFactory();
+    initViewFactory();
   }
 
   @override
@@ -75,9 +44,9 @@ class _ExecutionWidgetState extends State<ExecutionWidget> {
         return Container(
           color: theme.scaffoldBackgroundColor,
           padding: const EdgeInsets.all(denseSpacing),
-          child: HtmlElementView(
+          child: DartPadHtmlView(
             key: _elementViewKey,
-            viewType: _viewType,
+            viewType: executionViewType,
             onPlatformViewCreated: (int id) {
               widget.appServices.registerExecutionService(
                 executionServiceInstance,

@@ -19,7 +19,7 @@ dependencies:
   flutter_markdown: ^0.7.2
   flutter_web_plugins:
     sdk: flutter
-  go_router: ^14.1.4
+  go_router: ^15.0.0
   google_fonts: ^6.2.1
   http: ^1.3.0
   image_picker: ^1.1.2
@@ -34,10 +34,14 @@ dependencies:
   web: ^1.1.0
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
   test: ^1.25.7
+  dart_services:
+    path: ../dart_services
 
 flutter:
   uses-material-design: true
