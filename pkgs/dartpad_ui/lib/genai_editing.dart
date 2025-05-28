@@ -284,7 +284,8 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
                     handlePromptSuggestion: handlePromptSuggestion,
                     appType: appType,
                     onAddImage: () async {
-                      await addAttachmentWithPicker(attachments);
+                      final att = await pickAttachment();
+                      if (att != null) attachments.add(att);
                       setState(() {});
                     },
                   ),

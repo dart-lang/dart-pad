@@ -218,7 +218,8 @@ class _PromptDialogState extends State<PromptDialog> {
                       setState(() {});
                     },
                     onAdd: () async {
-                      await addAttachmentWithPicker(widget.attachments);
+                      final att = await pickAttachment();
+                      if (att != null) widget.attachments.add(att);
                       setState(() {});
                     },
                     maxAttachments: 3,

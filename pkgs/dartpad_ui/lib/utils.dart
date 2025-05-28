@@ -175,21 +175,19 @@ extension TextEditingControllerExtensions on TextEditingController {
   }
 }
 
-/// Show a dialog to select an attachment and add it to the list.
+/// Show a dialog to select an attachment.
 ///
-/// As the dialog is modal, it will block the UI until the user selects an image.
-/// The caller should assume the list is changed after this function returns.
-Future<void> addAttachmentWithPicker(List<Attachment> attachments) async {
+/// As the dialog is modal, it will block the UI until the user selects
+/// an image or cancel.
+Future<Attachment?> pickAttachment() async {
   final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
 
-  if (pic == null) return;
+  if (pic == null) return null;
 
   final bytes = await pic.readAsBytes();
-  attachments.add(
-    Attachment.fromBytes(
-      name: pic.name,
-      bytes: bytes,
-      mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
-    ),
+  return Attachment.fromBytes(
+    name: pic.name,
+    bytes: bytes,
+    mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
   );
 }
