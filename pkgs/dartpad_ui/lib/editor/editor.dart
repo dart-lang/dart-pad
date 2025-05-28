@@ -48,20 +48,23 @@ class ReadOnlyDiffWidget extends StatelessWidget {
       autofocus: true,
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: PrettyDiffText(
-          oldText: existingSource,
-          newText: newSource,
-          defaultTextStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          addedTextStyle: const TextStyle(
-            color: Colors.black,
-            backgroundColor: Color.fromARGB(255, 201, 255, 201),
-          ),
-          deletedTextStyle: const TextStyle(
-            color: Colors.black,
-            backgroundColor: Color.fromARGB(255, 249, 199, 199),
-            decoration: TextDecoration.lineThrough,
+        child: SizedBox(
+          width: double.infinity,
+          child: PrettyDiffText(
+            oldText: existingSource,
+            newText: newSource,
+            defaultTextStyle: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+            addedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 201, 255, 201),
+            ),
+            deletedTextStyle: const TextStyle(
+              color: Colors.black,
+              backgroundColor: Color.fromARGB(255, 249, 199, 199),
+              decoration: TextDecoration.lineThrough,
+            ),
           ),
         ),
       ),

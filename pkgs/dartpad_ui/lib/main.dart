@@ -802,7 +802,7 @@ class StatusLineWidget extends StatelessWidget {
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
           const SizedBox(width: defaultSpacing),
-          Text('demo-v10'),
+          Text('demo-v12'),
         ],
       ),
     );

@@ -340,20 +340,18 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           ),
           contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: Expanded(
-            child: Focus(
-              autofocus: true,
-              focusNode: _focusNode,
-              child:
-                  widget.existingSource == null
-                      ? ReadOnlyDiffWidget.noDiff(
-                        source: _generatedCode.toString(),
-                      )
-                      : ReadOnlyDiffWidget(
-                        existingSource: widget.existingSource!,
-                        newSource: _generatedCode.toString(),
-                      ),
-            ),
+          content: Focus(
+            autofocus: true,
+            focusNode: _focusNode,
+            child:
+                widget.existingSource == null
+                    ? ReadOnlyDiffWidget.noDiff(
+                      source: _generatedCode.toString(),
+                    )
+                    : ReadOnlyDiffWidget(
+                      existingSource: widget.existingSource!,
+                      newSource: _generatedCode.toString(),
+                    ),
           ),
           actions: [
             Row(
