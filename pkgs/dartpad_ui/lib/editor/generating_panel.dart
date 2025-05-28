@@ -115,7 +115,9 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
                   child:
                       widget.appModel.genAiManager.cuj.value ==
                               GenAiCuj.generateCode
-                          ? ReadOnlyCodeWidget(genAiCodeStreamBuffer)
+                          ? ReadOnlyDiffWidget.noDiff(
+                            source: genAiCodeStreamBuffer,
+                          )
                           : ReadOnlyDiffWidget(
                             existingSource:
                                 genAiManager.preGenAiSourceCode.value,

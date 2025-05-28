@@ -26,61 +26,16 @@ class EditorWidget extends StatelessWidget {
   }
 }
 
-class ReadOnlyCodeWidget extends StatefulWidget {
-  const ReadOnlyCodeWidget(this.source, {super.key});
-  final String source;
-
-  @override
-  State<ReadOnlyCodeWidget> createState() => _ReadOnlyCodeWidgetState();
-}
-
-class _ReadOnlyCodeWidgetState extends State<ReadOnlyCodeWidget> {
-  final _textController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _textController.text = widget.source;
-  }
-
-  @override
-  void didUpdateWidget(covariant ReadOnlyCodeWidget oldWidget) {
-    if (widget.source != oldWidget.source) {
-      setState(() {
-        _textController.text = widget.source;
-      });
-    }
-
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Focus(
-      autofocus: true,
-      child: TextField(
-        controller: _textController,
-        readOnly: true,
-        maxLines: null,
-        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-        decoration: const InputDecoration(border: InputBorder.none),
-      ),
-    );
-  }
-}
-
 class ReadOnlyDiffWidget extends StatelessWidget {
   const ReadOnlyDiffWidget({
     required this.existingSource,
     required this.newSource,
     super.key,
   });
+
+  const ReadOnlyDiffWidget.noDiff({required String source, super.key})
+    : existingSource = source,
+      newSource = source;
 
   final String existingSource;
   final String newSource;
