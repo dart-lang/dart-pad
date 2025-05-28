@@ -62,7 +62,11 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
           genAiManager.enterAwaitingAcceptance();
           _focusNode.requestFocus();
           widget.appModel.sourceCodeController.textNoScroll = generatedCode;
-          widget.appServices.performCompileAndRun();
+          if (genAiManager.cuj.value == GenAiCuj.generateCode) {
+            widget.appServices.performCompileAndRun();
+          } else {
+            widget.appServices.performCompileAndReload();
+          }
         });
       },
     );
