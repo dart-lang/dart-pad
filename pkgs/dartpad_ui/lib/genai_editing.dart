@@ -208,7 +208,7 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
     // See:
     // https://github.com/dart-lang/dart-pad/pull/3235#discussion_r2093742606
     if (appModel.sourceCodeController.text.contains(
-      """import 'package:flutter""",
+      "import 'package:flutter",
     )) {
       return AppType.flutter;
     }
