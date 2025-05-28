@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 
 import '../model.dart';
+import '../theme.dart';
 import 'stub/editor.dart'
     if (dart.library.js_interop) 'web/editor.dart'
     show EditorWidgetImpl;
@@ -55,15 +56,18 @@ class ReadOnlyDiffWidget extends StatelessWidget {
             newText: newSource,
             defaultTextStyle: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontFamily: monospaceFontFamily,
             ),
             addedTextStyle: const TextStyle(
               color: Colors.black,
               backgroundColor: Color.fromARGB(255, 201, 255, 201),
+              fontFamily: monospaceFontFamily,
             ),
             deletedTextStyle: const TextStyle(
               color: Colors.black,
               backgroundColor: Color.fromARGB(255, 249, 199, 199),
               decoration: TextDecoration.lineThrough,
+              fontFamily: monospaceFontFamily,
             ),
           ),
         ),

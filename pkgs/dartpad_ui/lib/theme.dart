@@ -65,3 +65,5 @@ extension ColorSchemeExtension on ColorScheme {
 
   Color get backgroundColor => darkMode ? surface : primary;
 }
+
+const monospaceFontFamily = 'RobotoMono';
