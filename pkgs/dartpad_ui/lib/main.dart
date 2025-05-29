@@ -29,7 +29,6 @@ import 'model.dart';
 import 'samples.g.dart';
 import 'simple_widgets.dart';
 import 'theme.dart';
-import 'utils.dart';
 import 'versions.dart';
 
 const appName = 'DartPad';
@@ -175,6 +174,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.black.withAlpha(128),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
@@ -206,6 +206,7 @@ class _DartPadAppState extends State<DartPadApp> {
             minimumSize: const Size.fromHeight(56),
           ),
         ),
+        hintColor: Colors.white.withAlpha(128),
       ),
     );
   }
@@ -569,22 +570,35 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ValueListenableBuilder<CompilingState>(
-      valueListenable: appModel.compilingState,
-      builder: (_, compilingState, __) {
-        final color = theme.colorScheme.surface;
-        final compiling = compilingState == CompilingState.restarting;
+    return ValueListenableBuilder<GenAiActivity?>(
+      valueListenable: appModel.genAiManager.activity,
+      builder: (
+        BuildContext context,
+        GenAiActivity? genAiActivity,
+        Widget? child,
+      ) {
+        return ValueListenableBuilder<CompilingState>(
+          valueListenable: appModel.compilingState,
+          builder: (_, compilingState, __) {
+            final color = theme.colorScheme.surface;
+            final loading =
+                compilingState == CompilingState.restarting ||
+                genAiActivity == GenAiActivity.generating;
 
-        // If reloading, show a progress spinner. If restarting, also display a
-        // semi-opaque overlay.
-        return AnimatedContainer(
-          color: color.withValues(alpha: compiling ? 0.8 : 0),
-          duration: animationDelay,
-          curve: animationCurve,
-          child:
-              compiling
-                  ? const GoldenRatioCenter(child: CircularProgressIndicator())
-                  : const SizedBox(width: 1),
+            // If reloading, show a progress spinner. If restarting,
+            // also display a semi-opaque overlay.
+            return AnimatedContainer(
+              color: color.withValues(alpha: loading ? 0.8 : 0),
+              duration: animationDelay,
+              curve: animationCurve,
+              child:
+                  loading
+                      ? const GoldenRatioCenter(
+                        child: CircularProgressIndicator(),
+                      )
+                      : const SizedBox(width: 1),
+            );
+          },
         );
       },
     );
@@ -613,6 +627,31 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, constraints) {
         final wideLayout = constraints.maxWidth >= minLargeScreenWidth;
 
+        List<Widget> geminiMenuWidgets(
+          double spacing, {
+          bool hideLabel = false,
+        }) {
+          if (!genAiEnabled) return <Widget>[];
+          return [
+            SizedBox(width: spacing),
+            GeminiMenu(
+              generateNewDartCode:
+                  () => openCodeGenerationDialog(
+                    context,
+                    appType: AppType.dart,
+                    reuseLastPrompt: false,
+                  ),
+              generateNewFlutterCode:
+                  () => openCodeGenerationDialog(
+                    context,
+                    appType: AppType.flutter,
+                    reuseLastPrompt: false,
+                  ),
+              hideLabel: hideLabel, // !wideLayout,
+            ),
+          ];
+        }
+
         return AppBar(
           backgroundColor: theme.colorScheme.surface,
           title: SizedBox(
@@ -631,26 +670,15 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (wideLayout) ...[
                   const SizedBox(width: defaultSpacing * 4),
                   NewSnippetWidget(appServices: appServices),
+                  ...geminiMenuWidgets(denseSpacing),
                   const SizedBox(width: denseSpacing),
                   const ListSamplesWidget(),
                 ] else ...[
                   const SizedBox(width: defaultSpacing),
                   NewSnippetWidget(appServices: appServices, hideLabel: true),
-                  const SizedBox(width: defaultSpacing),
-                  const ListSamplesWidget(hideLabel: true),
-                ],
-
-                if (genAiEnabled) ...[
+                  ...geminiMenuWidgets(defaultSpacing, hideLabel: true),
                   const SizedBox(width: denseSpacing),
-                  GeminiMenu(
-                    generateNewDartCode:
-                        () => openCodeGenerationDialog(context, AppType.dart),
-                    generateNewFlutterCode:
-                        () =>
-                            openCodeGenerationDialog(context, AppType.flutter),
-                    updateExistingCode: () => _updateExistingCode(context),
-                    hideLabel: !wideLayout,
-                  ),
+                  const ListSamplesWidget(hideLabel: true),
                 ],
 
                 const SizedBox(width: defaultSpacing),
@@ -697,81 +725,6 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final response = await appServices.services.openInFirebaseStudio(request);
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
   }
-
-  Future<void> _updateExistingCode(BuildContext context) async {
-    final appModel = Provider.of<AppModel>(context, listen: false);
-    final appServices = Provider.of<AppServices>(context, listen: false);
-    final lastPrompt = DartPadLocalStorage.instance.getLastUpdateCodePrompt();
-    final promptResponse = await showDialog<PromptDialogResponse>(
-      context: context,
-      builder:
-          (context) => PromptDialog(
-            title: 'Update existing code',
-            hint: 'Describe the updates you\'d like to make to the code',
-            initialAppType: appModel.appType,
-            flutterPromptButtons: {
-              'pretty':
-                  'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-              'fancy':
-                  'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
-              'emoji':
-                  'Make the app use emojis by adding appropriate emoji icons and text',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-            dartPromptButtons: {
-              'pretty': 'Make the app pretty',
-              'fancy': 'Make the app fancy',
-              'emoji': 'Make the app use emojis',
-              if (lastPrompt != null) 'your last prompt': lastPrompt,
-            },
-          ),
-    );
-
-    if (!context.mounted ||
-        promptResponse == null ||
-        promptResponse.prompt.isEmpty) {
-      return;
-    }
-
-    DartPadLocalStorage.instance.saveLastUpdateCodePrompt(
-      promptResponse.prompt,
-    );
-
-    try {
-      final source = appModel.sourceCodeController.text;
-      final stream = appServices.updateCode(
-        UpdateCodeRequest(
-          appType: promptResponse.appType,
-          source: source,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
-      );
-
-      final generateResponse = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => GeneratingCodeDialog(
-              stream: stream,
-              title: 'Updating existing code',
-              existingSource: source,
-            ),
-      );
-
-      if (!context.mounted ||
-          generateResponse == null ||
-          generateResponse.isEmpty) {
-        return;
-      }
-
-      appModel.sourceCodeController.textNoScroll = generateResponse;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    } catch (error) {
-      appModel.editorStatus.showToast('Error updating code');
-      appModel.appendError('Updating code issue: $error');
-    }
-  }
 }
 
 class StatusLineWidget extends StatelessWidget {
@@ -813,7 +766,7 @@ class StatusLineWidget extends StatelessWidget {
               child: Icon(
                 Icons.keyboard,
                 color: Theme.of(context).colorScheme.onPrimary,
-                size: 20,
+                size: iconSizeMedium,
               ),
             ),
           ),
@@ -828,7 +781,7 @@ class StatusLineWidget extends StatelessWidget {
                 children: [
                   Text('Privacy notice'),
                   SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 16),
+                  Icon(Icons.launch, size: iconSizeSmall),
                 ],
               ),
             ),
@@ -843,7 +796,7 @@ class StatusLineWidget extends StatelessWidget {
                 children: [
                   Text('Feedback'),
                   SizedBox(width: denseSpacing),
-                  Icon(Icons.launch, size: 16),
+                  Icon(Icons.launch, size: iconSizeSmall),
                 ],
               ),
             ),
@@ -881,7 +834,7 @@ class NewSnippetWidget extends StatelessWidget {
             label: const Text('Create'),
             tooltip: 'Create a new snippet',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: [
         for (final item in _menuItems)
@@ -913,7 +866,7 @@ class ListSamplesWidget extends StatelessWidget {
             label: const Text('Samples'),
             tooltip: 'Try out a sample',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: _buildMenuItems(context),
     );
@@ -966,7 +919,7 @@ class SelectChannelWidget extends StatelessWidget {
                   tooltip: 'Switch channels',
                   hideLabel: hideLabel,
                   compact: true,
-                  onToggle: controller.toggleMenuState,
+                  onToggle: controller.toggle,
                 ),
             menuChildren: [
               for (final channel in channels)
@@ -1015,7 +968,7 @@ class OverflowMenu extends StatelessWidget {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
         return IconButton(
-          onPressed: () => controller.toggleMenuState(),
+          onPressed: () => controller.toggle(),
           icon: const Icon(Icons.more_vert),
         );
       },
@@ -1050,14 +1003,14 @@ class ContinueInMenu extends StatelessWidget {
     return MenuAnchor(
       builder: (context, MenuController controller, Widget? child) {
         return TextButton.icon(
-          onPressed: () => controller.toggleMenuState(),
+          onPressed: () => controller.toggle(),
           icon: const Icon(Icons.file_download_outlined),
           label: const Text('Open in'),
         );
       },
       menuChildren: [
-        ...[
-          MenuItemButton(
+        PointerInterceptor(
+          child: MenuItemButton(
             trailingIcon: const Logo(type: 'firebase_studio'),
             onPressed: openInFirebaseStudio,
             child: const Padding(
@@ -1065,7 +1018,7 @@ class ContinueInMenu extends StatelessWidget {
               child: Text('Firebase Studio'),
             ),
           ),
-        ].map((widget) => PointerInterceptor(child: widget)),
+        ),
       ],
     );
   }
@@ -1075,7 +1028,6 @@ class GeminiMenu extends StatelessWidget {
   const GeminiMenu({
     required this.generateNewDartCode,
     required this.generateNewFlutterCode,
-    required this.updateExistingCode,
     required this.hideLabel,
     super.key,
   });
@@ -1083,14 +1035,13 @@ class GeminiMenu extends StatelessWidget {
   final bool hideLabel;
   final VoidCallback generateNewDartCode;
   final VoidCallback generateNewFlutterCode;
-  final VoidCallback updateExistingCode;
 
   @override
   Widget build(BuildContext context) {
     final image = Image.asset(
       'assets/gemini_sparkle_192.png',
-      width: 24,
-      height: 24,
+      width: iconSizeLarge,
+      height: iconSizeLarge,
     );
 
     Widget menu(String text) {
@@ -1104,7 +1055,7 @@ class GeminiMenu extends StatelessWidget {
             label: const Text('Create with Gemini'),
             tooltip: 'Generate code with Gemini',
             hideLabel: hideLabel,
-            onToggle: controller.toggleMenuState,
+            onToggle: controller.toggle,
           ),
       menuChildren: [
         ...[
@@ -1117,11 +1068,6 @@ class GeminiMenu extends StatelessWidget {
             leadingIcon: image,
             onPressed: generateNewFlutterCode,
             child: menu('Flutter Snippet'),
-          ),
-          MenuItemButton(
-            leadingIcon: image,
-            onPressed: updateExistingCode,
-            child: menu('Update code'),
           ),
         ].map((widget) => PointerInterceptor(child: widget)),
       ],
@@ -1279,15 +1225,5 @@ class _VimModeSwitch extends StatelessWidget {
 
   void _handleToggle(bool value) {
     appModel.vimKeymapsEnabled.value = value;
-  }
-}
-
-extension MenuControllerToggleMenu on MenuController {
-  void toggleMenuState() {
-    if (isOpen) {
-      close();
-    } else {
-      open();
-    }
   }
 }

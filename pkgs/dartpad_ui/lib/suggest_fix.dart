@@ -6,9 +6,7 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'genai_dialogs.dart';
 import 'model.dart';
-import 'utils.dart';
 
 Future<void> suggestFix({
   required BuildContext context,
@@ -23,39 +21,24 @@ Future<void> suggestFix({
   final appServices = Provider.of<AppServices>(context, listen: false);
   final existingSource = appModel.sourceCodeController.text;
 
+  appModel.genAiManager.enterSuggestingFix();
+  appModel.genAiManager.preGenAiSourceCode.value = existingSource;
+
   try {
-    final stream = appServices.suggestFix(
-      SuggestFixRequest(
-        appType: appType,
-        errorMessage: errorMessage,
-        line: line,
-        column: column,
-        source: existingSource,
+    appModel.genAiManager.startStream(
+      appServices.suggestFix(
+        SuggestFixRequest(
+          appType: appType,
+          errorMessage: errorMessage,
+          line: line,
+          column: column,
+          source: existingSource,
+        ),
       ),
     );
-
-    final result = await showDialog<String>(
-      context: context,
-      builder:
-          (context) => GeneratingCodeDialog(
-            stream: stream,
-            title: 'Generating fix suggestion',
-            existingSource: existingSource,
-          ),
-    );
-
-    if (!context.mounted || result == null || result.isEmpty) return;
-
-    if (result == existingSource) {
-      appModel.editorStatus.showToast('No suggested fix');
-    } else {
-      appModel.editorStatus.showToast('Fix suggested');
-      appModel.sourceCodeController.textNoScroll = result;
-      appServices.editorService!.focus();
-      appServices.performCompileAndReloadOrRun();
-    }
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
-    appModel.appendError('Suggesting fix issue: $error');
+    appModel.appendLineToConsole('Suggesting fix issue: $error');
+    appModel.genAiManager.finishActivity();
   }
 }
