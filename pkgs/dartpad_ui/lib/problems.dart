@@ -103,7 +103,7 @@ class ProblemWidget extends StatelessWidget {
                 tooltip: 'Quick fixes',
                 icon: const Icon(Icons.lightbulb_outline),
               ),
-              if (genAiEnabled) ...[
+              if (genAiEnabled)
                 IconButton(
                   onPressed:
                       () => suggestFix(
@@ -116,12 +116,11 @@ class ProblemWidget extends StatelessWidget {
                   tooltip: 'Suggest fix',
                   icon: Image.asset(
                     'assets/gemini_sparkle_192.png',
-                    width: 16,
-                    height: 16,
+                    width: iconSizeSmall,
+                    height: iconSizeSmall,
                   ),
                 ),
-                const SizedBox(width: denseSpacing),
-              ],
+              const SizedBox(width: denseSpacing),
             ],
           ),
           if (issue.correction case final correction?) ...[

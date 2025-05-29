@@ -8,8 +8,6 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -23,21 +21,29 @@ import 'theme.dart';
 import 'utils.dart';
 
 Future<void> openCodeGenerationDialog(
-  BuildContext context,
+  BuildContext context, {
   AppType? appType,
-) async {
+  required bool reuseLastPrompt,
+}) async {
+  final resolvedAppType =
+      appType ?? DartPadLocalStorage.instance.getLastCreateCodeAppType();
   final appModel = Provider.of<AppModel>(context, listen: false);
+
   final appServices = Provider.of<AppServices>(context, listen: false);
   final lastPrompt = DartPadLocalStorage.instance.getLastCreateCodePrompt();
+  if (reuseLastPrompt) {
+    appModel.genAiManager.newCodePromptController.text = lastPrompt ?? '';
+  }
+  final resolvedDialogTitle =
+      'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
   final promptResponse = await showDialog<PromptDialogResponse>(
     context: context,
     builder:
         (context) => PromptDialog(
-          title: 'Generate new code',
-          hint: 'Describe the code you want to generate',
-          initialAppType:
-              appType ??
-              DartPadLocalStorage.instance.getLastCreateCodeAppType(),
+          title: resolvedDialogTitle,
+          hint:
+              'Describe what kind of code, features, and/or UI you want Gemini to create.',
+          initialAppType: resolvedAppType,
           flutterPromptButtons: {
             'to-do app':
                 'Generate a Flutter to-do app with add, remove, and complete task functionality',
@@ -55,6 +61,8 @@ Future<void> openCodeGenerationDialog(
                 'Generate a Dart program that prints the factorial of 5',
             if (lastPrompt != null) 'your last prompt': lastPrompt,
           },
+          promptTextController: appModel.genAiManager.newCodePromptController,
+          attachments: appModel.genAiManager.newCodeAttachments,
         ),
   );
 
@@ -69,43 +77,32 @@ Future<void> openCodeGenerationDialog(
   );
   DartPadLocalStorage.instance.saveLastCreateCodePrompt(promptResponse.prompt);
 
+  appModel.genAiManager.preGenAiSourceCode.value =
+      appModel.sourceCodeController.text;
+  appModel.genAiManager.enterGeneratingNew();
+
   try {
-    final Stream<String> stream;
     if (useGenUI) {
-      stream = appServices.generateUi(
-        GenerateUiRequest(prompt: promptResponse.prompt),
+      appModel.genAiManager.startStream(
+        appServices.generateUi(
+          GenerateUiRequest(prompt: promptResponse.prompt),
+        ),
       );
     } else {
-      stream = appServices.generateCode(
-        GenerateCodeRequest(
-          appType: promptResponse.appType,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
+      appModel.genAiManager.startStream(
+        appServices.generateCode(
+          GenerateCodeRequest(
+            appType: resolvedAppType,
+            prompt: promptResponse.prompt,
+            attachments: promptResponse.attachments,
+          ),
         ),
       );
     }
-
-    final generateResponse = await showDialog<String>(
-      context: context,
-      builder:
-          (context) => GeneratingCodeDialog(
-            stream: stream,
-            title: 'Generating new code',
-          ),
-    );
-
-    if (!context.mounted ||
-        generateResponse == null ||
-        generateResponse.isEmpty) {
-      return;
-    }
-
-    appModel.sourceCodeController.textNoScroll = generateResponse;
-    appServices.editorService!.focus();
-    appServices.performCompileAndReloadOrRun();
   } catch (error) {
     appModel.editorStatus.showToast('Error generating code');
     appModel.appendError('Generating code issue: $error');
+    appModel.genAiManager.finishActivity();
   }
 }
 
@@ -116,6 +113,8 @@ class PromptDialog extends StatefulWidget {
     required this.flutterPromptButtons,
     required this.dartPromptButtons,
     required this.initialAppType,
+    required this.promptTextController,
+    required this.attachments,
     super.key,
   });
 
@@ -124,26 +123,18 @@ class PromptDialog extends StatefulWidget {
   final Map<String, String> flutterPromptButtons;
   final Map<String, String> dartPromptButtons;
   final AppType initialAppType;
+  final TextEditingController promptTextController;
+  final List<Attachment> attachments;
 
   @override
   State<PromptDialog> createState() => _PromptDialogState();
 }
 
 class _PromptDialogState extends State<PromptDialog> {
-  final _controller = TextEditingController();
-  final _attachments = List<Attachment>.empty(growable: true);
   final _focusNode = FocusNode();
-  late AppType _appType;
-
-  @override
-  void initState() {
-    super.initState();
-    _appType = widget.initialAppType;
-  }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -170,74 +161,67 @@ class _PromptDialogState extends State<PromptDialog> {
                 meta: isMac,
                 control: isNonMac,
               ): () {
-                if (_controller.text.isNotEmpty) _onGenerate();
+                if (widget.promptTextController.text.isNotEmpty) {
+                  _onGenerate();
+                }
               },
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OverflowBar(
-                        spacing: 8,
-                        alignment: MainAxisAlignment.start,
-                        children: [
-                          for (final entry
-                              in _appType == AppType.flutter
-                                  ? widget.flutterPromptButtons.entries
-                                  : widget.dartPromptButtons.entries)
-                            TextButton(
-                              onPressed: () {
-                                _controller.text = entry.value;
-                                _focusNode.requestFocus();
-                              },
-                              child: Text(entry.key),
-                            ),
-                        ],
-                      ),
-                    ),
-                    SegmentedButton<AppType>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment<AppType>(
-                          value: AppType.dart,
-                          label: Text('Dart'),
-                          tooltip: 'Generate Dart code',
-                        ),
-                        ButtonSegment<AppType>(
-                          value: AppType.flutter,
-                          label: Text('Flutter'),
-                          tooltip: 'Generate Flutter code',
-                        ),
-                      ],
-                      selected: {_appType},
-                      onSelectionChanged: (selected) {
-                        setState(() => _appType = selected.first);
-                        _focusNode.requestFocus();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 TextField(
-                  controller: _controller,
+                  controller: widget.promptTextController,
                   focusNode: _focusNode,
                   autofocus: true,
                   decoration: InputDecoration(
-                    labelText: widget.hint,
+                    hintText: widget.hint,
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    labelText: 'Code generation prompt',
                     alignLabelWithHint: true,
                     border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: defaultSpacing),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OverflowBar(
+                        alignment: MainAxisAlignment.center,
+                        spacing: semiDenseSpacing,
+                        children: [
+                          for (final entry
+                              in widget.initialAppType == AppType.flutter
+                                  ? widget.flutterPromptButtons.entries
+                                  : widget.dartPromptButtons.entries)
+                            OutlinedButton.icon(
+                              icon: PromptSuggestionIcon(),
+                              onPressed: () {
+                                widget.promptTextController.text = entry.value;
+                                _focusNode.requestFocus();
+                              },
+                              label: Text(entry.key),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
                 SizedBox(
-                  height: 128,
+                  height: 64,
                   child: EditableImageList(
-                    attachments: _attachments,
-                    onRemove: _removeAttachment,
-                    onAdd: _addAttachment,
+                    attachments: widget.attachments,
+                    onRemove: (int index) {
+                      widget.attachments.removeAt(index);
+                      setState(() {});
+                    },
+                    onAdd: () async {
+                      final att = await pickAttachment();
+                      if (att != null) widget.attachments.add(att);
+                      setState(() {});
+                    },
                     maxAttachments: 3,
                   ),
                 ),
@@ -251,7 +235,7 @@ class _PromptDialogState extends State<PromptDialog> {
             child: const Text('Cancel'),
           ),
           ValueListenableBuilder(
-            valueListenable: _controller,
+            valueListenable: widget.promptTextController,
             builder:
                 (context, controller, _) => TextButton(
                   onPressed: controller.text.isEmpty ? null : _onGenerate,
@@ -270,33 +254,13 @@ class _PromptDialogState extends State<PromptDialog> {
   }
 
   void _onGenerate() {
-    assert(_controller.text.isNotEmpty);
+    assert(widget.promptTextController.text.isNotEmpty);
     Navigator.pop(
       context,
       PromptDialogResponse(
-        appType: _appType,
-        prompt: _controller.text,
-        attachments: _attachments,
-      ),
-    );
-  }
-
-  void _removeAttachment(int index) =>
-      setState(() => _attachments.removeAt(index));
-
-  Future<void> _addAttachment() async {
-    final pic = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    if (pic == null) return;
-
-    final bytes = await pic.readAsBytes();
-    setState(
-      () => _attachments.add(
-        Attachment.fromBytes(
-          name: pic.name,
-          bytes: bytes,
-          mimeType: pic.mimeType ?? lookupMimeType(pic.name) ?? 'image',
-        ),
+        appType: widget.initialAppType,
+        attachments: widget.attachments,
+        prompt: widget.promptTextController.text,
       ),
     );
   }
@@ -376,19 +340,18 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           ),
           contentTextStyle: theme.textTheme.bodyMedium,
           contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: SizedBox(
-            width: 700,
-            child: Focus(
-              autofocus: true,
-              focusNode: _focusNode,
-              child:
-                  widget.existingSource == null
-                      ? ReadOnlyCodeWidget(_generatedCode.toString())
-                      : ReadOnlyDiffWidget(
-                        existingSource: widget.existingSource!,
-                        newSource: _generatedCode.toString(),
-                      ),
-            ),
+          content: Focus(
+            autofocus: true,
+            focusNode: _focusNode,
+            child:
+                widget.existingSource == null
+                    ? ReadOnlyDiffWidget.noDiff(
+                      source: _generatedCode.toString(),
+                    )
+                    : ReadOnlyDiffWidget(
+                      existingSource: widget.existingSource!,
+                      newSource: _generatedCode.toString(),
+                    ),
           ),
           actions: [
             Row(
