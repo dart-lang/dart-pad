@@ -16,6 +16,7 @@ import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
+import 'blur.dart';
 import 'console.dart';
 import 'embed/embed.dart';
 import 'enable_gen_ai.dart';
@@ -326,7 +327,9 @@ class DartPadMainPageState extends State<DartPadMainPage>
             if (widget.runOnLoad) {
               appServices.performCompileAndRun();
             }
-          }),
+          }).then((_) {
+            addBlurListener();
+      }),
     ]);
 
     initialized.complete();
