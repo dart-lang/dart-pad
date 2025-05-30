@@ -67,9 +67,6 @@ class DartServicesClient {
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _requestPostStream('generateCode', request.toJson());
 
-  Stream<String> generateUi(GenerateUiRequest request) =>
-      _requestPostStream('generateUi', request.toJson());
-
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 

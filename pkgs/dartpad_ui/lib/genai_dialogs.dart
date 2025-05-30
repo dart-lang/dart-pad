@@ -82,23 +82,15 @@ Future<void> openCodeGenerationDialog(
   appModel.genAiManager.enterGeneratingNew();
 
   try {
-    if (useGenUI) {
-      appModel.genAiManager.startStream(
-        appServices.generateUi(
-          GenerateUiRequest(prompt: promptResponse.prompt),
+    appModel.genAiManager.startStream(
+      appServices.generateCode(
+        GenerateCodeRequest(
+          appType: resolvedAppType,
+          prompt: promptResponse.prompt,
+          attachments: promptResponse.attachments,
         ),
-      );
-    } else {
-      appModel.genAiManager.startStream(
-        appServices.generateCode(
-          GenerateCodeRequest(
-            appType: resolvedAppType,
-            prompt: promptResponse.prompt,
-            attachments: promptResponse.attachments,
-          ),
-        ),
-      );
-    }
+      ),
+    );
   } catch (error) {
     appModel.editorStatus.showToast('Error generating code');
     appModel.appendError('Generating code issue: $error');
