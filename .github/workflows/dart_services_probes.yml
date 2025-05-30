@@ -10,7 +10,7 @@ on:
     - cron: '0 * * * *' # hourly
 
 jobs:
-  verify:
+  probe:
     runs-on: ubuntu-latest
     defaults:
       run:
