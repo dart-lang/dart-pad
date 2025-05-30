@@ -29,5 +29,9 @@ jobs:
       - name: Install dart dependencies
         run: flutter pub get
 
+      - name: Create template projects and populate the custom pub cache
+        run: dart run grinder build-project-templates
+        working-directory: pkgs/dart_services/
+
       - name: Run tests
         run: dart test test/probes
