@@ -3,6 +3,10 @@
 Tests in this folder do not run on presubmit, but run on schedule
 to verify prod instances of the service.
 
+## Where to see failures
+
+Check scheduled actions: https://github.com/dart-lang/dart-pad/actions?query=event%3Aschedule
+
 ## How to get alerted on failures
 
 It turned out to be challenging to configure alerting for failed probes: [SO Question](https://stackoverflow.com/questions/79622510/how-to-find-out-why-i-am-not-getting-notifications-about-failed-workflow).
