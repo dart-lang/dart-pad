@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/dart_services.yml'
+      - '.github/workflows/dart_services_probes.yml'
       - 'pkgs/dart_services/**'
   schedule:
     - cron: '0 * * * *' # hourly
