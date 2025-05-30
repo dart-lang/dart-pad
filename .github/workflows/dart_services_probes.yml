@@ -36,5 +36,8 @@ jobs:
       - name: Create template projects and populate the custom pub cache
         run: dart run grinder build-project-templates
 
+      - name: Build web artifacts
+        run: dart run grinder build-storage-artifacts
+
       - name: Run probes
         run: dart test test/probes
