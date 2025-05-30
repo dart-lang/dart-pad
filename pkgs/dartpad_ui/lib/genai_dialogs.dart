@@ -13,7 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'editor/editor.dart';
-import 'enable_gen_ai.dart';
 import 'local_storage/local_storage.dart';
 import 'model.dart';
 import 'simple_widgets.dart';
