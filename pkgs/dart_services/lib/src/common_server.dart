@@ -97,7 +97,6 @@ class CommonServerApi {
       handleOpenInFirebaseStudio,
     );
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
-    router.post(r'/api/<apiVersion>/generateUi', generateUi);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
     return router;
@@ -355,32 +354,6 @@ class CommonServerApi {
         attachments: generateCodeRequest.attachments,
       ),
     );
-  }
-
-  Future<Response> generateUi(Request request, String apiVersion) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-
-    final generateUiRequest = api.GenerateUiRequest.fromJson(
-      await request.readAsJson(),
-    );
-
-    try {
-      final code = await impl.genui.generateCode(
-        ctx,
-        prompt: generateUiRequest.prompt,
-      );
-
-      final resultStream = Stream.fromIterable([code]);
-
-      // TODO(polina-c): setup better streaming
-      return _streamResponse('generateUi', resultStream);
-    } catch (e, stackTrace) {
-      final ctx = DartPadRequestContext.fromRequest(request);
-      log.warning('generateUi error', ctx, e, stackTrace);
-      return Response.internalServerError(body: 'Failed to generate UI: $e');
-    }
   }
 
   Future<Response> updateCode(Request request, String apiVersion) async {

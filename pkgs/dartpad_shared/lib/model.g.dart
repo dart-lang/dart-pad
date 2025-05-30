@@ -369,12 +369,6 @@ Map<String, dynamic> _$GenerateCodeRequestToJson(
   'attachments': instance.attachments,
 };
 
-GenerateUiRequest _$GenerateUiRequestFromJson(Map<String, dynamic> json) =>
-    GenerateUiRequest(prompt: json['prompt'] as String);
-
-Map<String, dynamic> _$GenerateUiRequestToJson(GenerateUiRequest instance) =>
-    <String, dynamic>{'prompt': instance.prompt};
-
 UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
     UpdateCodeRequest(
       appType: $enumDecode(_$AppTypeEnumMap, json['appType']),

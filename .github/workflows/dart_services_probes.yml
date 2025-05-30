@@ -4,13 +4,17 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/dart_services.yml'
+      - '.github/workflows/dart_services_probes.yml'
       - 'pkgs/dart_services/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dart_services_probes.yml'
   schedule:
     - cron: '0 * * * *' # hourly
 
 jobs:
-  verify:
+  probe:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,5 +33,5 @@ jobs:
       - name: Install dart dependencies
         run: flutter pub get
 
-      - name: Run tests
+      - name: Run probes
         run: dart test test/probes

@@ -480,11 +480,6 @@ class AppServices {
     return services.generateCode(request);
   }
 
-  /// Generates the code with GenUI.
-  Stream<String> generateUi(GenerateUiRequest request) {
-    return services.generateUi(request);
-  }
-
   /// Updates code with Gemini.
   Stream<String> updateCode(UpdateCodeRequest request) {
     return services.updateCode(request);
