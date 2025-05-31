@@ -550,14 +550,33 @@ class AppServices {
   }) {
     appModel._recalcLayout();
 
-    _executionService?.execute(
-      javaScript,
-      modulesBaseUrl: modulesBaseUrl,
-      engineVersion: engineVersion,
-      reload: reload,
-      isNewDDC: isNewDDC,
-      isFlutter: appModel.appIsFlutter.value ?? false,
-    );
+    void execute() {
+      _executionService?.execute(
+        javaScript,
+        modulesBaseUrl: modulesBaseUrl,
+        engineVersion: engineVersion,
+        reload: reload,
+        isNewDDC: isNewDDC,
+        isFlutter: appModel.appIsFlutter.value ?? false,
+      );
+    }
+
+    if (appModel.appIsFlutter.value == null) {
+      final completer = Completer<void>();
+      void listener() {
+        completer.complete();
+      }
+
+      final callback = listener;
+
+      appModel.appIsFlutter.addListener(callback);
+      completer.future.then((_) {
+        appModel.appIsFlutter.removeListener(callback);
+        execute();
+      });
+    } else {
+      execute();
+    }
   }
 
   void dispose() {
