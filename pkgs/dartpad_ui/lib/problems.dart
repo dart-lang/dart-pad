@@ -105,14 +105,13 @@ class ProblemWidget extends StatelessWidget {
               ),
               if (genAiEnabled)
                 IconButton(
-                  onPressed:
-                      () => suggestFix(
-                        context: context,
-                        appType: appModel.appType,
-                        errorMessage: issue.message,
-                        line: issue.location.line,
-                        column: issue.location.column,
-                      ),
+                  onPressed: () => suggestFix(
+                    context: context,
+                    appType: appModel.appType,
+                    errorMessage: issue.message,
+                    line: issue.location.line,
+                    column: issue.location.column,
+                  ),
                   tooltip: 'Suggest fix',
                   icon: Image.asset(
                     'assets/gemini_sparkle_192.png',

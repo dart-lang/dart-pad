@@ -94,11 +94,10 @@ class AppModel {
 
   AppModel() {
     consoleNotifier.addListener(_recalcLayout);
-    void updateCanReload() =>
-        canReload.value =
-            hasRun.value &&
-            !compilingState.value.busy &&
-            currentDeltaDill.value != null;
+    void updateCanReload() => canReload.value =
+        hasRun.value &&
+        !compilingState.value.busy &&
+        currentDeltaDill.value != null;
     hasRun.addListener(updateCanReload);
     compilingState.addListener(updateCanReload);
     currentDeltaDill.addListener(updateCanReload);
@@ -338,8 +337,9 @@ class AppServices {
         progress.close();
 
         final title = gist.description ?? '';
-        appModel.title.value =
-            title.length > 40 ? '${title.substring(0, 40)}…' : title;
+        appModel.title.value = title.length > 40
+            ? '${title.substring(0, 40)}…'
+            : title;
 
         final source = gist.mainDartSource;
         if (source == null) {

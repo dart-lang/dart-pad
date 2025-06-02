@@ -181,10 +181,9 @@ class StatusWidget extends StatelessWidget {
       builder: (context, MessageStatus status, _) {
         return AnimatedOpacity(
           opacity: status.state == MessageState.closing ? 0.0 : 1.0,
-          duration:
-              status.state == MessageState.showing
-                  ? Duration.zero
-                  : animationDelay,
+          duration: status.state == MessageState.showing
+              ? Duration.zero
+              : animationDelay,
           curve: animationCurve,
           child: Material(
             shape: const StadiumBorder(),
@@ -406,8 +405,9 @@ class _ImageAttachmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedThumbnailEdgeInsets =
-        compactDisplay ? EdgeInsets.fromLTRB(0, 4, 4, 0) : EdgeInsets.all(8);
+    final resolvedThumbnailEdgeInsets = compactDisplay
+        ? EdgeInsets.fromLTRB(0, 4, 4, 0)
+        : EdgeInsets.all(8);
     return Stack(
       children: [
         GestureDetector(
@@ -434,10 +434,12 @@ class _ImageAttachmentWidget extends StatelessWidget {
           },
           child: Container(
             margin: resolvedThumbnailEdgeInsets,
-            width:
-                compactDisplay ? _compactThumbnailSize : _regularThumbnailSize,
-            height:
-                compactDisplay ? _compactThumbnailSize : _regularThumbnailSize,
+            width: compactDisplay
+                ? _compactThumbnailSize
+                : _regularThumbnailSize,
+            height: compactDisplay
+                ? _compactThumbnailSize
+                : _regularThumbnailSize,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: MemoryImage(attachment.bytes),
@@ -519,14 +521,13 @@ class CollapsibleIconToggleButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       waitDuration: tooltipDelay,
-      child:
-          hideLabel
-              ? IconButton(
-                icon: icon,
-                onPressed: onToggle,
-                visualDensity: compact ? VisualDensity.compact : null,
-              )
-              : TextButton.icon(icon: icon, label: label, onPressed: onToggle),
+      child: hideLabel
+          ? IconButton(
+              icon: icon,
+              onPressed: onToggle,
+              visualDensity: compact ? VisualDensity.compact : null,
+            )
+          : TextButton.icon(icon: icon, label: label, onPressed: onToggle),
     );
   }
 }
@@ -580,17 +581,17 @@ class PromptSuggestionIcon extends StatelessWidget {
 
     return Theme.of(context).brightness == Brightness.light
         ? Opacity(
-          opacity: 0.75,
-          child: Image.asset(
-            'assets/prompt_suggestion_icon_lightmode.png',
+            opacity: 0.75,
+            child: Image.asset(
+              'assets/prompt_suggestion_icon_lightmode.png',
+              height: height,
+              width: width,
+            ),
+          )
+        : Image.asset(
+            'assets/prompt_suggestion_icon_darkmode.png',
             height: height,
             width: width,
-          ),
-        )
-        : Image.asset(
-          'assets/prompt_suggestion_icon_darkmode.png',
-          height: height,
-          width: width,
-        );
+          );
   }
 }

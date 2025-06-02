@@ -664,13 +664,15 @@ class _VariousDiscsState extends State<VariousDiscs> {
 ''';
 
 /// Create 2 files for multi file testing using imports.
-const sampleCode2PartImportMain = '''
+const sampleCode2PartImportMain =
+    '''
 $sampleCode3PartFlutterImplicitAnimationsImports
 import 'various.dart';
 $sampleCode3PartFlutterImplicitAnimationsMain
 ''';
 
-const sampleCode2PartImportVarious = '''
+const sampleCode2PartImportVarious =
+    '''
 $sampleCode3PartFlutterImplicitAnimationsImports
 $sampleCode3PartFlutterImplicitAnimationsDiscData
 $sampleCode3PartFlutterImplicitAnimationsVarious
@@ -679,33 +681,38 @@ $sampleCode3PartFlutterImplicitAnimationsVarious
 /// Create 3 separate files for multi file testing using imports.
 /// Here main.dart will be importing 'various.dart' and 'discdata.dart',
 /// and 'various.dart' importing 'discdata.dart'.
-const sampleCode3PartImportMain = '''
+const sampleCode3PartImportMain =
+    '''
 $sampleCode3PartFlutterImplicitAnimationsImports
 import 'various.dart';
 import 'discdata.dart';
 $sampleCode3PartFlutterImplicitAnimationsMain
 ''';
 
-const sampleCode3PartImportDiscData = '''
+const sampleCode3PartImportDiscData =
+    '''
 $sampleCode3PartFlutterImplicitAnimationsImports
 $sampleCode3PartFlutterImplicitAnimationsDiscData
 ''';
 
-const sampleCode3PartImportVarious = '''
+const sampleCode3PartImportVarious =
+    '''
 $sampleCode3PartFlutterImplicitAnimationsImports
 import 'discdata.dart';
 $sampleCode3PartFlutterImplicitAnimationsVarious
 ''';
 
 /// Create 2 file test using "part 'various.dart'" to bring in second file.
-const sampleCode2PartLibraryMain = '''
+const sampleCode2PartLibraryMain =
+    '''
 library testanim;
 $sampleCode3PartFlutterImplicitAnimationsImports
 part 'various.dart';
 $sampleCode3PartFlutterImplicitAnimationsMain
 ''';
 
-const sampleCode2PartVariousAndDiscDataPartOfTestAnim = '''
+const sampleCode2PartVariousAndDiscDataPartOfTestAnim =
+    '''
 part of testanim;
 $sampleCode3PartFlutterImplicitAnimationsDiscData
 $sampleCode3PartFlutterImplicitAnimationsVarious
@@ -713,7 +720,8 @@ $sampleCode3PartFlutterImplicitAnimationsVarious
 
 /// Create 3 file test using "part 'various.dart'" and "part 'discdata.dart'"
 /// to bring in second and third files.
-const sampleCode3PartLibraryMain = '''
+const sampleCode3PartLibraryMain =
+    '''
 library testanim;
 $sampleCode3PartFlutterImplicitAnimationsImports
 part 'discdata.dart';
@@ -721,12 +729,14 @@ part 'various.dart';
 $sampleCode3PartFlutterImplicitAnimationsMain
 ''';
 
-const sampleCode3PartDiscDataPartOfTestAnim = '''
+const sampleCode3PartDiscDataPartOfTestAnim =
+    '''
 part of testanim;
 $sampleCode3PartFlutterImplicitAnimationsDiscData
 ''';
 
-const sampleCode3PartVariousPartOfTestAnim = '''
+const sampleCode3PartVariousPartOfTestAnim =
+    '''
 part of testanim;
 $sampleCode3PartFlutterImplicitAnimationsVarious
 ''';

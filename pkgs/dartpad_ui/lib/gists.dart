@@ -80,11 +80,10 @@ class Gist {
       id: json['id'] as String,
       description: json['description'] as String?,
       owner: owner['login'] as String?,
-      files:
-          files.values
-              .cast<Map<String, Object?>>()
-              .map(GistFile.fromJson)
-              .toList(),
+      files: files.values
+          .cast<Map<String, Object?>>()
+          .map(GistFile.fromJson)
+          .toList(),
     );
   }
 

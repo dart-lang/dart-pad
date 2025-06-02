@@ -14,8 +14,9 @@ class DartPadRequestContext {
 
   factory DartPadRequestContext.fromRequest(Request request) {
     return DartPadRequestContext(
-      enableLogging:
-          DartPadRequestHeaders.fromJson(request.headers).enableLogging,
+      enableLogging: DartPadRequestHeaders.fromJson(
+        request.headers,
+      ).enableLogging,
     );
   }
 }

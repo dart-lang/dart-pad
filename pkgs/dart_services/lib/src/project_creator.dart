@@ -113,7 +113,8 @@ class ProjectCreator {
 include: package:lints/core.yaml
 ''';
     if (_sdk.experiments.isNotEmpty) {
-      contents += '''
+      contents +=
+          '''
 
 analyzer:
   enable-experiment:
@@ -146,7 +147,8 @@ String createPubspec({
   required String dartLanguageVersion,
   Map<String, String> dependencies = const {},
 }) {
-  var content = '''
+  var content =
+      '''
 name: dartpad_sample
 environment:
   sdk: ^$dartLanguageVersion

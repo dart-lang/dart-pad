@@ -54,16 +54,15 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        border:
-            widget.showDivider
-                ? Border(
-                  top: Divider.createBorderSide(
-                    context,
-                    width: 8.0,
-                    color: theme.colorScheme.surface,
-                  ),
-                )
-                : null,
+        border: widget.showDivider
+            ? Border(
+                top: Divider.createBorderSide(
+                  context,
+                  width: 8.0,
+                  color: theme.colorScheme.surface,
+                ),
+              )
+            : null,
       ),
       padding: const EdgeInsets.all(denseSpacing),
       child: ListenableBuilder(
@@ -101,20 +100,18 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                           height: iconSizeSmall,
                         ),
                         tooltip: 'Suggest fix',
-                        onPressed:
-                            () => suggestFix(
-                              context: context,
-                              appType: appModel.appType,
-                              errorMessage: widget.output.error,
-                            ),
+                        onPressed: () => suggestFix(
+                          context: context,
+                          appType: appModel.appType,
+                          errorMessage: widget.output.error,
+                        ),
                       ),
                     MiniIconButton(
                       icon: const Icon(Icons.playlist_remove),
                       tooltip: 'Clear console',
-                      onPressed:
-                          widget.output.isEmpty
-                              ? null
-                              : () => widget.output.clear(),
+                      onPressed: widget.output.isEmpty
+                          ? null
+                          : () => widget.output.clear(),
                     ),
                   ],
                 ),

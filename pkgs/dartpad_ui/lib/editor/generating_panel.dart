@@ -83,56 +83,58 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
     final genAiManager = widget.appModel.genAiManager;
     return ValueListenableBuilder(
       valueListenable: genAiManager.streamIsDone,
-      builder: (
-        BuildContext context,
-        bool genAiCodeStreamIsDone,
-        Widget? child,
-      ) {
-        final resolvedSpinner =
-            genAiCodeStreamIsDone
+      builder:
+          (
+            BuildContext context,
+            bool genAiCodeStreamIsDone,
+            Widget? child,
+          ) {
+            final resolvedSpinner = genAiCodeStreamIsDone
                 ? SizedBox(width: 0, height: 0)
                 : Positioned(
-                  top: 10,
-                  right: 10,
-                  child: AnimatedContainer(
-                    duration: animationDelay,
-                    curve: animationCurve,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-        return Stack(
-          children: [
-            resolvedSpinner,
-            MultiValueListenableBuilder(
-              listenables: [
-                genAiManager.streamBuffer,
-                widget.appModel.genAiManager.cuj,
-                genAiManager.preGenAiSourceCode,
-              ],
-              builder: (_) {
-                final genAiCodeStreamBuffer =
-                    genAiManager.streamBuffer.value.toString();
+                    top: 10,
+                    right: 10,
+                    child: AnimatedContainer(
+                      duration: animationDelay,
+                      curve: animationCurve,
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+            return Stack(
+              children: [
+                resolvedSpinner,
+                MultiValueListenableBuilder(
+                  listenables: [
+                    genAiManager.streamBuffer,
+                    widget.appModel.genAiManager.cuj,
+                    genAiManager.preGenAiSourceCode,
+                  ],
+                  builder: (_) {
+                    final genAiCodeStreamBuffer = genAiManager
+                        .streamBuffer
+                        .value
+                        .toString();
 
-                return Focus(
-                  autofocus: true,
-                  focusNode: _focusNode,
-                  child:
-                      widget.appModel.genAiManager.cuj.value ==
+                    return Focus(
+                      autofocus: true,
+                      focusNode: _focusNode,
+                      child:
+                          widget.appModel.genAiManager.cuj.value ==
                               GenAiCuj.generateCode
                           ? ReadOnlyDiffWidget.noDiff(
-                            source: genAiCodeStreamBuffer,
-                          )
+                              source: genAiCodeStreamBuffer,
+                            )
                           : ReadOnlyDiffWidget(
-                            existingSource:
-                                genAiManager.preGenAiSourceCode.value,
-                            newSource: genAiCodeStreamBuffer,
-                          ),
-                );
-              },
-            ),
-          ],
-        );
-      },
+                              existingSource:
+                                  genAiManager.preGenAiSourceCode.value,
+                              newSource: genAiCodeStreamBuffer,
+                            ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
     );
   }
 }
