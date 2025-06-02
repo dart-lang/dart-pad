@@ -330,9 +330,7 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
             autofocus: true,
             focusNode: _focusNode,
             child: widget.existingSource == null
-                ? ReadOnlyDiffWidget.noDiff(
-                    source: _generatedCode.toString(),
-                  )
+                ? ReadOnlyDiffWidget.noDiff(source: _generatedCode.toString())
                 : ReadOnlyDiffWidget(
                     existingSource: widget.existingSource!,
                     newSource: _generatedCode.toString(),

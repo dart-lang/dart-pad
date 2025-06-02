@@ -37,9 +37,7 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       correction: json['correction'] as String?,
       url: json['url'] as String?,
       contextMessages: (json['contextMessages'] as List<dynamic>?)
-          ?.map(
-            (e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>),
-          )
+          ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
           .toList(),
       hasFix: json['hasFix'] as bool?,
     );
@@ -175,9 +173,7 @@ LinkedEditGroup _$LinkedEditGroupFromJson(Map<String, dynamic> json) =>
           .toList(),
       length: (json['length'] as num).toInt(),
       suggestions: (json['suggestions'] as List<dynamic>)
-          .map(
-            (e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>),
-          )
+          .map((e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -224,9 +220,7 @@ CompleteResponse _$CompleteResponseFromJson(Map<String, dynamic> json) =>
       replacementOffset: (json['replacementOffset'] as num).toInt(),
       replacementLength: (json['replacementLength'] as num).toInt(),
       suggestions: (json['suggestions'] as List<dynamic>)
-          .map(
-            (e) => CompletionSuggestion.fromJson(e as Map<String, dynamic>),
-          )
+          .map((e) => CompletionSuggestion.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

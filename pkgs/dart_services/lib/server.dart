@@ -26,11 +26,7 @@ final DartPadLogger _logger = DartPadLogger('services');
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
-    ..addOption(
-      'redis-url',
-      valueHelp: 'url',
-      help: 'The redis server url.',
-    )
+    ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
     ..addOption(
       'storage-bucket',
       valueHelp: 'name',

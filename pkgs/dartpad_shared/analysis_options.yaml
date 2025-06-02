@@ -15,6 +15,3 @@ linter:
     - avoid_dynamic_calls
     - prefer_final_in_for_each
     - prefer_final_locals
-
-formatter:
-  trailing_commas: preserve

@@ -498,10 +498,7 @@ extension SourceChangeExtension on SourceChange {
           offsets: editGroup.positions.map((pos) => pos.offset).toList(),
           length: editGroup.length,
           suggestions: editGroup.suggestions.map((sug) {
-            return api.LinkedEditSuggestion(
-              value: sug.value,
-              kind: sug.kind,
-            );
+            return api.LinkedEditSuggestion(value: sug.value, kind: sug.kind);
           }).toList(),
         );
       }).toList(),

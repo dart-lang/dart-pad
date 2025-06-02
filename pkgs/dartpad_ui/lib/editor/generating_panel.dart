@@ -84,11 +84,7 @@ class _GeneratingCodePanelState extends State<GeneratingCodePanel> {
     return ValueListenableBuilder(
       valueListenable: genAiManager.streamIsDone,
       builder:
-          (
-            BuildContext context,
-            bool genAiCodeStreamIsDone,
-            Widget? child,
-          ) {
+          (BuildContext context, bool genAiCodeStreamIsDone, Widget? child) {
             final resolvedSpinner = genAiCodeStreamIsDone
                 ? SizedBox(width: 0, height: 0)
                 : Positioned(

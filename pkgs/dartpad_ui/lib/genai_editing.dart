@@ -117,11 +117,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: widget.appModel.genAiManager.currentActivity,
       builder:
-          (
-            BuildContext context,
-            GenAiActivity? genAiActivity,
-            Widget? child,
-          ) {
+          (BuildContext context, GenAiActivity? genAiActivity, Widget? child) {
             return Column(
               children: [
                 Expanded(
@@ -376,11 +372,7 @@ class _AcceptRejectBlock extends StatelessWidget {
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: genAiManager.currentActivity,
       builder:
-          (
-            BuildContext context,
-            GenAiActivity? genAiActivity,
-            Widget? child,
-          ) {
+          (BuildContext context, GenAiActivity? genAiActivity, Widget? child) {
             if (genAiActivity == null) return SizedBox(width: 0, height: 0);
 
             final geminiIcon = Image.asset(

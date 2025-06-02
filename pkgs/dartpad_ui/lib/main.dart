@@ -273,11 +273,10 @@ class DartPadMainPageState extends State<DartPadMainPage>
 
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
     mainSplitter =
-        SplitViewController(
-          weights: [leftPanelSize, 1.0 - leftPanelSize],
-        )..addListener(() {
-          appModel.splitDragStateManager.handleSplitChanged();
-        });
+        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
+          ..addListener(() {
+            appModel.splitDragStateManager.handleSplitChanged();
+          });
 
     consoleSplitter =
         SplitViewController(
@@ -569,11 +568,7 @@ class LoadingOverlay extends StatelessWidget {
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: appModel.genAiManager.activity,
       builder:
-          (
-            BuildContext context,
-            GenAiActivity? genAiActivity,
-            Widget? child,
-          ) {
+          (BuildContext context, GenAiActivity? genAiActivity, Widget? child) {
             return ValueListenableBuilder<CompilingState>(
               valueListenable: appModel.compilingState,
               builder: (_, compilingState, _) {
