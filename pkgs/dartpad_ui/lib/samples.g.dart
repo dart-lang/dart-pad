@@ -234,12 +234,10 @@ class BrickBreaker extends FlameGame
         difficultyModifier: difficultyModifier,
         radius: ballRadius,
         position: size / 2,
-        velocity:
-            Vector2(
-                (rand.nextDouble() - 0.5) * width,
-                height * 0.3,
-              ).normalized()
-              ..scale(height / 4),
+        velocity: Vector2(
+          (rand.nextDouble() - 0.5) * width,
+          height * 0.3,
+        ).normalized()..scale(height / 4),
       ),
     );
 
@@ -298,10 +296,9 @@ class Ball extends CircleComponent
   }) : super(
          radius: radius,
          anchor: Anchor.center,
-         paint:
-             Paint()
-               ..color = const Color(0xff1e6091)
-               ..style = PaintingStyle.fill,
+         paint: Paint()
+           ..color = const Color(0xff1e6091)
+           ..style = PaintingStyle.fill,
          children: [CircleHitbox()],
        );
 
@@ -367,10 +364,9 @@ class Paddle extends PositionComponent
 
   final Radius cornerRadius;
 
-  final _paint =
-      Paint()
-        ..color = const Color(0xff1e6091)
-        ..style = PaintingStyle.fill;
+  final _paint = Paint()
+    ..color = const Color(0xff1e6091)
+    ..style = PaintingStyle.fill;
 
   @override
   void update(double dt) {
@@ -419,10 +415,9 @@ class Brick extends RectangleComponent
         position: position,
         size: Vector2(brickWidth, brickHeight),
         anchor: Anchor.center,
-        paint:
-            Paint()
-              ..color = color
-              ..style = PaintingStyle.fill,
+        paint: Paint()
+          ..color = color
+          ..style = PaintingStyle.fill,
         children: [RectangleHitbox()],
       );
 

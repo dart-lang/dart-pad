@@ -168,21 +168,20 @@ class AnalysisServerWrapper {
     return api.CompleteResponse(
       replacementOffset: results.replacementOffset,
       replacementLength: results.replacementLength,
-      suggestions:
-          suggestions.map((suggestion) {
-            return api.CompletionSuggestion(
-              kind: suggestion.kind,
-              relevance: suggestion.relevance,
-              completion: suggestion.completion,
-              deprecated: suggestion.isDeprecated,
-              selectionOffset: suggestion.selectionOffset,
-              displayText: suggestion.displayText,
-              parameterNames: suggestion.parameterNames,
-              returnType: suggestion.returnType,
-              elementKind: suggestion.element?.kind,
-              elementParameters: suggestion.element?.parameters,
-            );
-          }).toList(),
+      suggestions: suggestions.map((suggestion) {
+        return api.CompletionSuggestion(
+          kind: suggestion.kind,
+          relevance: suggestion.relevance,
+          completion: suggestion.completion,
+          deprecated: suggestion.isDeprecated,
+          selectionOffset: suggestion.selectionOffset,
+          displayText: suggestion.displayText,
+          parameterNames: suggestion.parameterNames,
+          returnType: suggestion.returnType,
+          elementKind: suggestion.element?.kind,
+          elementParameters: suggestion.element?.parameters,
+        );
+      }).toList(),
     );
   }
 
@@ -206,14 +205,12 @@ class AnalysisServerWrapper {
     );
 
     return api.FixesResponse(
-      fixes:
-          fixChanges.map((change) {
-            return change.toApiSourceChange();
-          }).toList(),
-      assists:
-          assistsChanges.map((change) {
-            return change.toApiSourceChange();
-          }).toList(),
+      fixes: fixChanges.map((change) {
+        return change.toApiSourceChange();
+      }).toList(),
+      assists: assistsChanges.map((change) {
+        return change.toApiSourceChange();
+      }).toList(),
     );
   }
 
@@ -289,40 +286,37 @@ class AnalysisServerWrapper {
       );
     }
 
-    final issues =
-        errors.map((error) {
-          final issue = api.AnalysisIssue(
-            kind: error.severity.toLowerCase(),
-            message: utils.normalizeImports(error.message),
-            code: error.code.toLowerCase(),
+    final issues = errors.map((error) {
+      final issue = api.AnalysisIssue(
+        kind: error.severity.toLowerCase(),
+        message: utils.normalizeImports(error.message),
+        code: error.code.toLowerCase(),
+        location: api.Location(
+          charStart: error.location.offset,
+          charLength: error.location.length,
+          line: error.location.startLine,
+          column: error.location.startColumn,
+        ),
+        correction: error.correction == null
+            ? null
+            : utils.normalizeImports(error.correction!),
+        url: error.url,
+        contextMessages: error.contextMessages?.map((m) {
+          return api.DiagnosticMessage(
+            message: utils.normalizeImports(m.message),
             location: api.Location(
-              charStart: error.location.offset,
-              charLength: error.location.length,
-              line: error.location.startLine,
-              column: error.location.startColumn,
+              charStart: m.location.offset,
+              charLength: m.location.length,
+              line: m.location.startLine,
+              column: m.location.startColumn,
             ),
-            correction:
-                error.correction == null
-                    ? null
-                    : utils.normalizeImports(error.correction!),
-            url: error.url,
-            contextMessages:
-                error.contextMessages?.map((m) {
-                  return api.DiagnosticMessage(
-                    message: utils.normalizeImports(m.message),
-                    location: api.Location(
-                      charStart: m.location.offset,
-                      charLength: m.location.length,
-                      line: m.location.startLine,
-                      column: m.location.startColumn,
-                    ),
-                  );
-                }).toList(),
-            hasFix: error.hasFix,
           );
+        }).toList(),
+        hasFix: error.hasFix,
+      );
 
-          return issue;
-        }).toList();
+      return issue;
+    }).toList();
 
     issues.sort((api.AnalysisIssue a, api.AnalysisIssue b) {
       // Order issues by severity.
@@ -394,11 +388,10 @@ class AnalysisServerWrapper {
         );
       }
     }
-    final reportedImports =
-        imports
-            .where((import) => import.packageImport || import.dartImport)
-            .map((import) => import.uri.stringValue!)
-            .toList();
+    final reportedImports = imports
+        .where((import) => import.packageImport || import.dartImport)
+        .map((import) => import.uri.stringValue!)
+        .toList();
 
     return api.AnalysisResponse(
       issues: [...importIssues, ...issues],
@@ -490,31 +483,25 @@ extension SourceChangeExtension on SourceChange {
   api.SourceChange toApiSourceChange() {
     return api.SourceChange(
       message: message,
-      edits:
-          edits
-              .expand((fileEdit) => fileEdit.edits)
-              .map(
-                (edit) => api.SourceEdit(
-                  offset: edit.offset,
-                  length: edit.length,
-                  replacement: edit.replacement,
-                ),
-              )
-              .toList(),
-      linkedEditGroups:
-          linkedEditGroups.map((editGroup) {
-            return api.LinkedEditGroup(
-              offsets: editGroup.positions.map((pos) => pos.offset).toList(),
-              length: editGroup.length,
-              suggestions:
-                  editGroup.suggestions.map((sug) {
-                    return api.LinkedEditSuggestion(
-                      value: sug.value,
-                      kind: sug.kind,
-                    );
-                  }).toList(),
-            );
+      edits: edits
+          .expand((fileEdit) => fileEdit.edits)
+          .map(
+            (edit) => api.SourceEdit(
+              offset: edit.offset,
+              length: edit.length,
+              replacement: edit.replacement,
+            ),
+          )
+          .toList(),
+      linkedEditGroups: linkedEditGroups.map((editGroup) {
+        return api.LinkedEditGroup(
+          offsets: editGroup.positions.map((pos) => pos.offset).toList(),
+          length: editGroup.length,
+          suggestions: editGroup.suggestions.map((sug) {
+            return api.LinkedEditSuggestion(value: sug.value, kind: sug.kind);
           }).toList(),
+        );
+      }).toList(),
       selectionOffset: selection?.offset,
     );
   }

@@ -24,27 +24,21 @@ import 'src/sdk.dart';
 final DartPadLogger _logger = DartPadLogger('services');
 
 Future<void> main(List<String> args) async {
-  final parser =
-      ArgParser()
-        ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
-        ..addOption(
-          'redis-url',
-          valueHelp: 'url',
-          help: 'The redis server url.',
-        )
-        ..addOption(
-          'storage-bucket',
-          valueHelp: 'name',
-          help:
-              'The name of the Cloud Storage bucket for compilation artifacts.',
-          defaultsTo: 'nnbd_artifacts',
-        )
-        ..addFlag(
-          'help',
-          abbr: 'h',
-          negatable: false,
-          help: 'Show this usage information.',
-        );
+  final parser = ArgParser()
+    ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
+    ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
+    ..addOption(
+      'storage-bucket',
+      valueHelp: 'name',
+      help: 'The name of the Cloud Storage bucket for compilation artifacts.',
+      defaultsTo: 'nnbd_artifacts',
+    )
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Show this usage information.',
+    );
 
   final results = parser.parse(args);
   if (results['help'] as bool) {
@@ -88,7 +82,8 @@ Starting dart-services:
   port: $port
   sdkPath: ${sdk.dartSdkPath}
   redisServerUri: $redisServerUri
-  Cloud Run Environment variables: $cloudRunEnvVars'''.trim(),
+  Cloud Run Environment variables: $cloudRunEnvVars'''
+        .trim(),
   );
 
   final server = await EndpointsServer.serve(
@@ -135,10 +130,9 @@ class EndpointsServer {
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
 
-    final cache =
-        redisServerUri == null
-            ? NoopCache()
-            : RedisCache(redisServerUri, sdk, serverVersion);
+    final cache = redisServerUri == null
+        ? NoopCache()
+        : RedisCache(redisServerUri, sdk, serverVersion);
 
     commonServer = CommonServerApi(
       CommonServerImpl(sdk, cache, storageBucket: storageBucket),

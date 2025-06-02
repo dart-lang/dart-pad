@@ -285,10 +285,9 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
-    final code =
-        api.OpenInFirebaseStudioRequest.fromJson(
-          await request.readAsJson(),
-        ).code;
+    final code = api.OpenInFirebaseStudioRequest.fromJson(
+      await request.readAsJson(),
+    ).code;
     final idxUrl = Uri.parse('https://studio.firebase.google.com/run.api');
 
     final data = {

@@ -10,8 +10,9 @@ import 'headers.dart';
 
 class DartServicesHttpClient {
   final Client _client = Client();
-  static Map<String, String> _headers =
-      DartPadRequestHeaders(enableLogging: true).encoded;
+  static Map<String, String> _headers = DartPadRequestHeaders(
+    enableLogging: true,
+  ).encoded;
 
   /// Turns off backend logging for all future requests.
   static void turnOffBackendLogging() {

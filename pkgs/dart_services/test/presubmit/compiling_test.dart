@@ -190,9 +190,8 @@ void main() {
       testDDCEndpoint(
         'compileNewDDCReload',
         restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
-        reloadEndpoint:
-            (source, deltaDill) =>
-                compiler.compileNewDDCReload(source, deltaDill, ctx),
+        reloadEndpoint: (source, deltaDill) =>
+            compiler.compileNewDDCReload(source, deltaDill, ctx),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );

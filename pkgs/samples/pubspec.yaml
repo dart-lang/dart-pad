@@ -7,8 +7,9 @@ description: Sample code snippets for DartPad.
 publish_to: none
 
 resolution: workspace
+
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.8.0
 
 dependencies:
   flame: ^1.28.1
@@ -20,7 +21,7 @@ dependencies:
 
 dev_dependencies:
   args: ^2.5.0
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   path: ^1.9.0
 
 flutter:

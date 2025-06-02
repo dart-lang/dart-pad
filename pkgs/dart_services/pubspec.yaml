@@ -3,8 +3,9 @@ description: The backend service for DartPad.
 publish_to: none
 
 resolution: workspace
+
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.8.0
 
 dependencies:
   analysis_server_lib: ^0.2.5

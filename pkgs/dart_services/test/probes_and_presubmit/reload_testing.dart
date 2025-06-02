@@ -16,10 +16,7 @@ void testReload(DartServicesClient client) {
     'compileNewDDCReload',
     (request) => client.compileNewDDCReload(request),
     expectDeltaDill: true,
-    generateLastAcceptedDill:
-        (source) async =>
-            (await client.compileNewDDC(
-              CompileRequest(source: source),
-            )).deltaDill!,
+    generateLastAcceptedDill: (source) async =>
+        (await client.compileNewDDC(CompileRequest(source: source))).deltaDill!,
   );
 }

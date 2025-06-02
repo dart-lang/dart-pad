@@ -9,19 +9,18 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) {
-  final argParser =
-      ArgParser()
-        ..addFlag(
-          'verify',
-          negatable: false,
-          help: 'Verify the generated samples files.',
-        )
-        ..addFlag(
-          'help',
-          abbr: 'h',
-          negatable: false,
-          help: 'Display this help output.',
-        );
+  final argParser = ArgParser()
+    ..addFlag(
+      'verify',
+      negatable: false,
+      help: 'Verify the generated samples files.',
+    )
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Display this help output.',
+    );
 
   final argResults = argParser.parse(args);
 

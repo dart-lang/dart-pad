@@ -152,8 +152,9 @@ class Compiler {
         // All hot restart (or initial compile) requests should include the
         // bootstrap library.
         final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
-        final bootstrapContents =
-            usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+        final bootstrapContents = usingFlutter
+            ? kBootstrapFlutterCode
+            : kBootstrapDartCode;
 
         File(bootstrapPath).writeAsStringSync(bootstrapContents);
         compilePath = bootstrapPath;
@@ -234,8 +235,9 @@ class Compiler {
 
         final results = DDCCompilationResults(
           compiledJS: compiledJs,
-          deltaDill:
-              useNew ? base64Encode(newDeltaDill.readAsBytesSync()) : null,
+          deltaDill: useNew
+              ? base64Encode(newDeltaDill.readAsBytesSync())
+              : null,
           modulesBaseUrl:
               'https://storage.googleapis.com/$_storageBucket'
               '/${_sdk.dartVersion}/',
@@ -296,10 +298,9 @@ class CompilationResults {
   bool get success => problems.isEmpty;
 
   @override
-  String toString() =>
-      success
-          ? 'CompilationResults: Success'
-          : 'Compilation errors: ${problems.join('\n')}';
+  String toString() => success
+      ? 'CompilationResults: Success'
+      : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// The result of a DDC compile.
@@ -323,10 +324,9 @@ class DDCCompilationResults {
   bool get success => problems.isEmpty;
 
   @override
-  String toString() =>
-      success
-          ? 'CompilationResults: Success'
-          : 'Compilation errors: ${problems.join('\n')}';
+  String toString() => success
+      ? 'CompilationResults: Success'
+      : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// An issue associated with [CompilationResults].

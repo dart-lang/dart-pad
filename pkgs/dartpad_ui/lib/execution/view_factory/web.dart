@@ -24,16 +24,15 @@ void initViewFactoryImpl() {
 
 web.Element _iFrameFactory(int viewId) {
   // 'allow-popups' allows plugins like url_launcher to open popups.
-  final frame =
-      web.document.createElement('iframe') as web.HTMLIFrameElement
-        ..sandbox.add('allow-scripts')
-        ..sandbox.add('allow-popups')
-        ..sandbox.add('allow-popups-to-escape-sandbox')
-        ..allow += 'clipboard-write; '
-        ..src = 'frame.html'
-        ..style.border = 'none'
-        ..style.width = '100%'
-        ..style.height = '100%';
+  final frame = web.document.createElement('iframe') as web.HTMLIFrameElement
+    ..sandbox.add('allow-scripts')
+    ..sandbox.add('allow-popups')
+    ..sandbox.add('allow-popups-to-escape-sandbox')
+    ..allow += 'clipboard-write; '
+    ..src = 'frame.html'
+    ..style.border = 'none'
+    ..style.width = '100%'
+    ..style.height = '100%';
 
   executionServiceInstance = ExecutionServiceImpl(frame);
 

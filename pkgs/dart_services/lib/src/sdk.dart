@@ -168,14 +168,16 @@ final class Sdk {
   static final _dartVersionMatch = RegExp(r'([0-9]+).([0-9]+)');
 
   int get dartMajorVersion {
-    final dartVersionString =
-        _dartVersionMatch.firstMatch(dartVersion)!.group(1)!;
+    final dartVersionString = _dartVersionMatch
+        .firstMatch(dartVersion)!
+        .group(1)!;
     return int.parse(dartVersionString);
   }
 
   int get dartMinorVersion {
-    final dartVersionString =
-        _dartVersionMatch.firstMatch(dartVersion)!.group(2)!;
+    final dartVersionString = _dartVersionMatch
+        .firstMatch(dartVersion)!
+        .group(2)!;
     return int.parse(dartVersionString);
   }
 

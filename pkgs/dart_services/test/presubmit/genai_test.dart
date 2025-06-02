@@ -12,7 +12,8 @@ void main() {
   print("hello, world");
 }
 ''';
-    final wrappedCode = '''
+    final wrappedCode =
+        '''
 ```dart
 $code
 ```

@@ -17,12 +17,12 @@ Map<String, dynamic> _$SourceRequestToJson(SourceRequest instance) =>
 
 AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
     AnalysisResponse(
-      issues:
-          (json['issues'] as List<dynamic>)
-              .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      imports:
-          (json['imports'] as List<dynamic>).map((e) => e as String).toList(),
+      issues: (json['issues'] as List<dynamic>)
+          .map((e) => AnalysisIssue.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      imports: (json['imports'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$AnalysisResponseToJson(AnalysisResponse instance) =>
@@ -36,12 +36,9 @@ AnalysisIssue _$AnalysisIssueFromJson(Map<String, dynamic> json) =>
       code: json['code'] as String?,
       correction: json['correction'] as String?,
       url: json['url'] as String?,
-      contextMessages:
-          (json['contextMessages'] as List<dynamic>?)
-              ?.map(
-                (e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>),
-              )
-              .toList(),
+      contextMessages: (json['contextMessages'] as List<dynamic>?)
+          ?.map((e) => DiagnosticMessage.fromJson(e as Map<String, dynamic>))
+          .toList(),
       hasFix: json['hasFix'] as bool?,
     );
 
@@ -126,14 +123,12 @@ Map<String, dynamic> _$FormatResponseToJson(FormatResponse instance) =>
 
 FixesResponse _$FixesResponseFromJson(Map<String, dynamic> json) =>
     FixesResponse(
-      fixes:
-          (json['fixes'] as List<dynamic>)
-              .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      assists:
-          (json['assists'] as List<dynamic>)
-              .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      fixes: (json['fixes'] as List<dynamic>)
+          .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      assists: (json['assists'] as List<dynamic>)
+          .map((e) => SourceChange.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$FixesResponseToJson(FixesResponse instance) =>
@@ -141,14 +136,12 @@ Map<String, dynamic> _$FixesResponseToJson(FixesResponse instance) =>
 
 SourceChange _$SourceChangeFromJson(Map<String, dynamic> json) => SourceChange(
   message: json['message'] as String,
-  edits:
-      (json['edits'] as List<dynamic>)
-          .map((e) => SourceEdit.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  linkedEditGroups:
-      (json['linkedEditGroups'] as List<dynamic>)
-          .map((e) => LinkedEditGroup.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  edits: (json['edits'] as List<dynamic>)
+      .map((e) => SourceEdit.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  linkedEditGroups: (json['linkedEditGroups'] as List<dynamic>)
+      .map((e) => LinkedEditGroup.fromJson(e as Map<String, dynamic>))
+      .toList(),
   selectionOffset: (json['selectionOffset'] as num?)?.toInt(),
 );
 
@@ -175,17 +168,13 @@ Map<String, dynamic> _$SourceEditToJson(SourceEdit instance) =>
 
 LinkedEditGroup _$LinkedEditGroupFromJson(Map<String, dynamic> json) =>
     LinkedEditGroup(
-      offsets:
-          (json['offsets'] as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      offsets: (json['offsets'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
       length: (json['length'] as num).toInt(),
-      suggestions:
-          (json['suggestions'] as List<dynamic>)
-              .map(
-                (e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>),
-              )
-              .toList(),
+      suggestions: (json['suggestions'] as List<dynamic>)
+          .map((e) => LinkedEditSuggestion.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$LinkedEditGroupToJson(LinkedEditGroup instance) =>
@@ -230,12 +219,9 @@ CompleteResponse _$CompleteResponseFromJson(Map<String, dynamic> json) =>
     CompleteResponse(
       replacementOffset: (json['replacementOffset'] as num).toInt(),
       replacementLength: (json['replacementLength'] as num).toInt(),
-      suggestions:
-          (json['suggestions'] as List<dynamic>)
-              .map(
-                (e) => CompletionSuggestion.fromJson(e as Map<String, dynamic>),
-              )
-              .toList(),
+      suggestions: (json['suggestions'] as List<dynamic>)
+          .map((e) => CompletionSuggestion.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$CompleteResponseToJson(CompleteResponse instance) =>
@@ -254,10 +240,9 @@ CompletionSuggestion _$CompletionSuggestionFromJson(
   deprecated: json['deprecated'] as bool,
   selectionOffset: (json['selectionOffset'] as num).toInt(),
   displayText: json['displayText'] as String?,
-  parameterNames:
-      (json['parameterNames'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+  parameterNames: (json['parameterNames'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   returnType: json['returnType'] as String?,
   elementKind: json['elementKind'] as String?,
   elementParameters: json['elementParameters'] as String?,
@@ -284,14 +269,12 @@ VersionResponse _$VersionResponseFromJson(Map<String, dynamic> json) =>
       flutterVersion: json['flutterVersion'] as String,
       engineVersion: json['engineVersion'] as String,
       serverRevision: json['serverRevision'] as String?,
-      experiments:
-          (json['experiments'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
-      packages:
-          (json['packages'] as List<dynamic>)
-              .map((e) => PackageInfo.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      experiments: (json['experiments'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      packages: (json['packages'] as List<dynamic>)
+          .map((e) => PackageInfo.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
@@ -355,10 +338,9 @@ GenerateCodeRequest _$GenerateCodeRequestFromJson(Map<String, dynamic> json) =>
     GenerateCodeRequest(
       appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       prompt: json['prompt'] as String,
-      attachments:
-          (json['attachments'] as List<dynamic>)
-              .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      attachments: (json['attachments'] as List<dynamic>)
+          .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$GenerateCodeRequestToJson(
@@ -374,10 +356,9 @@ UpdateCodeRequest _$UpdateCodeRequestFromJson(Map<String, dynamic> json) =>
       appType: $enumDecode(_$AppTypeEnumMap, json['appType']),
       prompt: json['prompt'] as String,
       source: json['source'] as String,
-      attachments:
-          (json['attachments'] as List<dynamic>)
-              .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      attachments: (json['attachments'] as List<dynamic>)
+          .map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$UpdateCodeRequestToJson(UpdateCodeRequest instance) =>

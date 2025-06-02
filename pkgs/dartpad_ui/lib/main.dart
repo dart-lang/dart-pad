@@ -63,12 +63,11 @@ class _DartPadAppState extends State<DartPadApp> {
       GoRoute(path: '/', builder: _homePageBuilder),
       GoRoute(
         path: '/:gistId',
-        builder:
-            (context, state) => _homePageBuilder(
-              context,
-              state,
-              gist: state.pathParameters['gistId'],
-            ),
+        builder: (context, state) => _homePageBuilder(
+          context,
+          state,
+          gist: state.pathParameters['gistId'],
+        ),
       ),
     ],
   );
@@ -265,30 +264,31 @@ class DartPadMainPageState extends State<DartPadMainPage>
   }
 
   Future<void> _initialize() async {
-    tabController = TabController(length: 2, vsync: this)..addListener(() {
-      // Rebuild when the user changes tabs so that the IndexedStack updates
-      // its active child view.
-      setState(() {});
-    });
+    tabController = TabController(length: 2, vsync: this)
+      ..addListener(() {
+        // Rebuild when the user changes tabs so that the IndexedStack updates
+        // its active child view.
+        setState(() {});
+      });
 
     final leftPanelSize = widget.embedMode ? 0.62 : 0.50;
-    mainSplitter = SplitViewController(
-      weights: [leftPanelSize, 1.0 - leftPanelSize],
-    )..addListener(() {
-      appModel.splitDragStateManager.handleSplitChanged();
-    });
+    mainSplitter =
+        SplitViewController(weights: [leftPanelSize, 1.0 - leftPanelSize])
+          ..addListener(() {
+            appModel.splitDragStateManager.handleSplitChanged();
+          });
 
-    consoleSplitter = SplitViewController(
-      weights: [0.7, 0.3],
-      limits: [WeightLimit(max: 0.9), WeightLimit(min: 0.1)],
-    )..addListener(() {
-      appModel.splitDragStateManager.handleSplitChanged();
-    });
+    consoleSplitter =
+        SplitViewController(
+          weights: [0.7, 0.3],
+          limits: [WeightLimit(max: 0.9), WeightLimit(min: 0.1)],
+        )..addListener(() {
+          appModel.splitDragStateManager.handleSplitChanged();
+        });
 
-    final channel =
-        widget.initialChannel != null
-            ? Channel.forName(widget.initialChannel!)
-            : null;
+    final channel = widget.initialChannel != null
+        ? Channel.forName(widget.initialChannel!)
+        : null;
 
     appModel = AppModel();
     appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
@@ -312,10 +312,9 @@ class DartPadMainPageState extends State<DartPadMainPage>
             flutterSampleId: widget.flutterSampleId,
             channel: widget.initialChannel,
             keybinding: DartPadLocalStorage.instance.getUserKeybinding(),
-            getFallback:
-                () =>
-                    DartPadLocalStorage.instance.getUserCode() ??
-                    Samples.defaultSnippet(),
+            getFallback: () =>
+                DartPadLocalStorage.instance.getUserCode() ??
+                Samples.defaultSnippet(),
           )
           .then((value) {
             // Start listening for inject code messages.
@@ -367,7 +366,10 @@ class DartPadMainPageState extends State<DartPadMainPage>
 
     final tabBar = TabBar(
       controller: tabController,
-      tabs: const [Tab(text: 'Code'), Tab(text: 'Output')],
+      tabs: const [
+        Tab(text: 'Code'),
+        Tab(text: 'Output'),
+      ],
       // Remove the divider line at the bottom of the tab bar.
       dividerHeight: 0,
       key: _tabBarKey,
@@ -419,16 +421,15 @@ class DartPadMainPageState extends State<DartPadMainPage>
         if (constraints.maxWidth < minLargeScreenWidth) {
           return Scaffold(
             key: _scaffoldKey,
-            appBar:
-                widget.embedMode
-                    ? tabBar
-                    : DartPadAppBar(
-                      theme: theme,
-                      appServices: appServices,
-                      appModel: appModel,
-                      widget: widget,
-                      bottom: tabBar,
-                    ),
+            appBar: widget.embedMode
+                ? tabBar
+                : DartPadAppBar(
+                    theme: theme,
+                    appServices: appServices,
+                    appModel: appModel,
+                    widget: widget,
+                    bottom: tabBar,
+                  ),
             body: Column(
               children: [
                 Expanded(
@@ -446,15 +447,14 @@ class DartPadMainPageState extends State<DartPadMainPage>
           // Return the desktop UI.
           return Scaffold(
             key: _scaffoldKey,
-            appBar:
-                widget.embedMode
-                    ? null
-                    : DartPadAppBar(
-                      theme: theme,
-                      appServices: appServices,
-                      appModel: appModel,
-                      widget: widget,
-                    ),
+            appBar: widget.embedMode
+                ? null
+                : DartPadAppBar(
+                    theme: theme,
+                    appServices: appServices,
+                    appModel: appModel,
+                    widget: widget,
+                  ),
             body: Column(
               children: [
                 Expanded(
@@ -567,35 +567,31 @@ class LoadingOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: appModel.genAiManager.activity,
-      builder: (
-        BuildContext context,
-        GenAiActivity? genAiActivity,
-        Widget? child,
-      ) {
-        return ValueListenableBuilder<CompilingState>(
-          valueListenable: appModel.compilingState,
-          builder: (_, compilingState, __) {
-            final color = theme.colorScheme.surface;
-            final loading =
-                compilingState == CompilingState.restarting ||
-                genAiActivity == GenAiActivity.generating;
+      builder:
+          (BuildContext context, GenAiActivity? genAiActivity, Widget? child) {
+            return ValueListenableBuilder<CompilingState>(
+              valueListenable: appModel.compilingState,
+              builder: (_, compilingState, _) {
+                final color = theme.colorScheme.surface;
+                final loading =
+                    compilingState == CompilingState.restarting ||
+                    genAiActivity == GenAiActivity.generating;
 
-            // If reloading, show a progress spinner. If restarting,
-            // also display a semi-opaque overlay.
-            return AnimatedContainer(
-              color: color.withValues(alpha: loading ? 0.8 : 0),
-              duration: animationDelay,
-              curve: animationCurve,
-              child:
-                  loading
+                // If reloading, show a progress spinner. If restarting,
+                // also display a semi-opaque overlay.
+                return AnimatedContainer(
+                  color: color.withValues(alpha: loading ? 0.8 : 0),
+                  duration: animationDelay,
+                  curve: animationCurve,
+                  child: loading
                       ? const GoldenRatioCenter(
-                        child: CircularProgressIndicator(),
-                      )
+                          child: CircularProgressIndicator(),
+                        )
                       : const SizedBox(width: 1),
+                );
+              },
             );
           },
-        );
-      },
     );
   }
 }
@@ -630,18 +626,16 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
           return [
             SizedBox(width: spacing),
             GeminiMenu(
-              generateNewDartCode:
-                  () => openCodeGenerationDialog(
-                    context,
-                    appType: AppType.dart,
-                    reuseLastPrompt: false,
-                  ),
-              generateNewFlutterCode:
-                  () => openCodeGenerationDialog(
-                    context,
-                    appType: AppType.flutter,
-                    reuseLastPrompt: false,
-                  ),
+              generateNewDartCode: () => openCodeGenerationDialog(
+                context,
+                appType: AppType.dart,
+                reuseLastPrompt: false,
+              ),
+              generateNewFlutterCode: () => openCodeGenerationDialog(
+                context,
+                appType: AppType.flutter,
+                reuseLastPrompt: false,
+              ),
               hideLabel: hideLabel, // !wideLayout,
             ),
           ];
@@ -683,7 +677,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Center(
                       child: ValueListenableBuilder<String>(
                         valueListenable: appModel.title,
-                        builder: (_, String value, __) => Text(value),
+                        builder: (_, String value, _) => Text(value),
                       ),
                     ),
                   ),
@@ -709,10 +703,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   // kToolbarHeight is set to 56.0 in the framework.
-  Size get preferredSize =>
-      bottom == null
-          ? const Size(double.infinity, 56.0)
-          : const Size(double.infinity, 112.0);
+  Size get preferredSize => bottom == null
+      ? const Size(double.infinity, 56.0)
+      : const Size(double.infinity, 112.0);
 
   Future<void> _openInFirebaseStudio() async {
     final code = appModel.sourceCodeController.text;
@@ -745,19 +738,17 @@ class StatusLineWidget extends StatelessWidget {
             message: 'Keyboard shortcuts',
             waitDuration: tooltipDelay,
             child: TextButton(
-              onPressed:
-                  () => showDialog<void>(
-                    context: context,
-                    builder:
-                        (context) => MediumDialog(
-                          title: 'Keyboard shortcuts',
-                          smaller: true,
-                          child: KeyBindingsTable(
-                            bindings: keys.keyBindings,
-                            appModel: appModel,
-                          ),
-                        ),
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (context) => MediumDialog(
+                  title: 'Keyboard shortcuts',
+                  smaller: true,
+                  child: KeyBindingsTable(
+                    bindings: keys.keyBindings,
+                    appModel: appModel,
                   ),
+                ),
+              ),
               child: Icon(
                 Icons.keyboard,
                 color: Theme.of(context).colorScheme.onPrimary,
@@ -823,14 +814,13 @@ class NewSnippetWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
-      builder:
-          (_, MenuController controller, _) => CollapsibleIconToggleButton(
-            icon: const Icon(Icons.add_circle),
-            label: const Text('Create'),
-            tooltip: 'Create a new snippet',
-            hideLabel: hideLabel,
-            onToggle: controller.toggle,
-          ),
+      builder: (_, MenuController controller, _) => CollapsibleIconToggleButton(
+        icon: const Icon(Icons.add_circle),
+        label: const Text('Create'),
+        tooltip: 'Create a new snippet',
+        hideLabel: hideLabel,
+        onToggle: controller.toggle,
+      ),
       menuChildren: [
         for (final item in _menuItems)
           PointerInterceptor(
@@ -855,14 +845,13 @@ class ListSamplesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
-      builder:
-          (_, MenuController controller, _) => CollapsibleIconToggleButton(
-            icon: const Icon(Icons.playlist_add_outlined),
-            label: const Text('Samples'),
-            tooltip: 'Try out a sample',
-            hideLabel: hideLabel,
-            onToggle: controller.toggle,
-          ),
+      builder: (_, MenuController controller, _) => CollapsibleIconToggleButton(
+        icon: const Icon(Icons.playlist_add_outlined),
+        label: const Text('Samples'),
+        tooltip: 'Try out a sample',
+        hideLabel: hideLabel,
+        onToggle: controller.toggle,
+      ),
       menuChildren: _buildMenuItems(context),
     );
   }
@@ -878,9 +867,8 @@ class ListSamplesWidget extends StatelessWidget {
         for (final sample in samples)
           MenuItemButton(
             leadingIcon: Logo(type: sample.icon),
-            onPressed:
-                () =>
-                    GoRouter.of(context).replaceQueryParam('sample', sample.id),
+            onPressed: () =>
+                GoRouter.of(context).replaceQueryParam('sample', sample.id),
             child: Padding(
               padding: const EdgeInsets.only(right: 32),
               child: Text(sample.name),
@@ -905,30 +893,28 @@ class SelectChannelWidget extends StatelessWidget {
 
     return ValueListenableBuilder<Channel>(
       valueListenable: appServices.channel,
-      builder:
-          (context, Channel value, _) => MenuAnchor(
-            builder:
-                (_, controller, _) => CollapsibleIconToggleButton(
-                  icon: const Icon(Icons.tune, size: smallIconSize),
-                  label: Text('${value.displayName} channel'),
-                  tooltip: 'Switch channels',
-                  hideLabel: hideLabel,
-                  compact: true,
-                  onToggle: controller.toggle,
+      builder: (context, Channel value, _) => MenuAnchor(
+        builder: (_, controller, _) => CollapsibleIconToggleButton(
+          icon: const Icon(Icons.tune, size: smallIconSize),
+          label: Text('${value.displayName} channel'),
+          tooltip: 'Switch channels',
+          hideLabel: hideLabel,
+          compact: true,
+          onToggle: controller.toggle,
+        ),
+        menuChildren: [
+          for (final channel in channels)
+            PointerInterceptor(
+              child: MenuItemButton(
+                onPressed: () => _onTap(context, channel),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
+                  child: Text('${channel.displayName} channel'),
                 ),
-            menuChildren: [
-              for (final channel in channels)
-                PointerInterceptor(
-                  child: MenuItemButton(
-                    onPressed: () => _onTap(context, channel),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
-                      child: Text('${channel.displayName} channel'),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1044,14 +1030,13 @@ class GeminiMenu extends StatelessWidget {
     }
 
     return MenuAnchor(
-      builder:
-          (_, MenuController controller, _) => CollapsibleIconToggleButton(
-            icon: image,
-            label: const Text('Create with Gemini'),
-            tooltip: 'Generate code with Gemini',
-            hideLabel: hideLabel,
-            onToggle: controller.toggle,
-          ),
+      builder: (_, MenuController controller, _) => CollapsibleIconToggleButton(
+        icon: image,
+        label: const Text('Create with Gemini'),
+        tooltip: 'Generate code with Gemini',
+        hideLabel: hideLabel,
+        onToggle: controller.toggle,
+      ),
       menuChildren: [
         ...[
           MenuItemButton(
@@ -1187,10 +1172,9 @@ class _BrightnessButton extends StatelessWidget {
       preferBelow: true,
       message: 'Toggle brightness',
       child: IconButton(
-        icon:
-            Theme.of(context).brightness == Brightness.light
-                ? const Icon(Icons.dark_mode_outlined)
-                : const Icon(Icons.light_mode_outlined),
+        icon: Theme.of(context).brightness == Brightness.light
+            ? const Icon(Icons.dark_mode_outlined)
+            : const Icon(Icons.light_mode_outlined),
         onPressed: () {
           handleBrightnessChange(context, !isBright);
         },

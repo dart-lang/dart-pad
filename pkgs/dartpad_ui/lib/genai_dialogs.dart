@@ -37,32 +37,30 @@ Future<void> openCodeGenerationDialog(
       'New ${appType == AppType.dart ? 'Dart' : 'Flutter'} Project via Gemini';
   final promptResponse = await showDialog<PromptDialogResponse>(
     context: context,
-    builder:
-        (context) => PromptDialog(
-          title: resolvedDialogTitle,
-          hint:
-              'Describe what kind of code, features, and/or UI you want Gemini to create.',
-          initialAppType: resolvedAppType,
-          flutterPromptButtons: {
-            'to-do app':
-                'Generate a Flutter to-do app with add, remove, and complete task functionality',
-            'login screen':
-                'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-            'tic-tac-toe':
-                'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-            if (lastPrompt != null) 'your last prompt': lastPrompt,
-          },
-          dartPromptButtons: {
-            'hello, world': 'Generate a Dart hello world program',
-            'fibonacci':
-                'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
-            'factorial':
-                'Generate a Dart program that prints the factorial of 5',
-            if (lastPrompt != null) 'your last prompt': lastPrompt,
-          },
-          promptTextController: appModel.genAiManager.newCodePromptController,
-          attachments: appModel.genAiManager.newCodeAttachments,
-        ),
+    builder: (context) => PromptDialog(
+      title: resolvedDialogTitle,
+      hint:
+          'Describe what kind of code, features, and/or UI you want Gemini to create.',
+      initialAppType: resolvedAppType,
+      flutterPromptButtons: {
+        'to-do app':
+            'Generate a Flutter to-do app with add, remove, and complete task functionality',
+        'login screen':
+            'Generate a Flutter login screen with email and password fields, validation, and a submit button',
+        'tic-tac-toe':
+            'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+        if (lastPrompt != null) 'your last prompt': lastPrompt,
+      },
+      dartPromptButtons: {
+        'hello, world': 'Generate a Dart hello world program',
+        'fibonacci':
+            'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
+        'factorial': 'Generate a Dart program that prints the factorial of 5',
+        if (lastPrompt != null) 'your last prompt': lastPrompt,
+      },
+      promptTextController: appModel.genAiManager.newCodePromptController,
+      attachments: appModel.genAiManager.newCodeAttachments,
+    ),
   );
 
   if (!context.mounted ||
@@ -227,17 +225,15 @@ class _PromptDialogState extends State<PromptDialog> {
           ),
           ValueListenableBuilder(
             valueListenable: widget.promptTextController,
-            builder:
-                (context, controller, _) => TextButton(
-                  onPressed: controller.text.isEmpty ? null : _onGenerate,
-                  child: Text(
-                    'Generate',
-                    style: TextStyle(
-                      color:
-                          controller.text.isEmpty ? theme.disabledColor : null,
-                    ),
-                  ),
+            builder: (context, controller, _) => TextButton(
+              onPressed: controller.text.isEmpty ? null : _onGenerate,
+              child: Text(
+                'Generate',
+                style: TextStyle(
+                  color: controller.text.isEmpty ? theme.disabledColor : null,
                 ),
+              ),
+            ),
           ),
         ],
       ),
@@ -284,14 +280,13 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
 
     _subscription = widget.stream.listen(
       (text) => setState(() => _generatedCode.write(text)),
-      onDone:
-          () => setState(() {
-            final source = _generatedCode.toString().trim();
-            _generatedCode.clear();
-            _generatedCode.write(source);
-            _done = true;
-            _focusNode.requestFocus();
-          }),
+      onDone: () => setState(() {
+        final source = _generatedCode.toString().trim();
+        _generatedCode.clear();
+        _generatedCode.write(source);
+        _done = true;
+        _focusNode.requestFocus();
+      }),
     );
   }
 
@@ -334,15 +329,12 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
           content: Focus(
             autofocus: true,
             focusNode: _focusNode,
-            child:
-                widget.existingSource == null
-                    ? ReadOnlyDiffWidget.noDiff(
-                      source: _generatedCode.toString(),
-                    )
-                    : ReadOnlyDiffWidget(
-                      existingSource: widget.existingSource!,
-                      newSource: _generatedCode.toString(),
-                    ),
+            child: widget.existingSource == null
+                ? ReadOnlyDiffWidget.noDiff(source: _generatedCode.toString())
+                : ReadOnlyDiffWidget(
+                    existingSource: widget.existingSource!,
+                    newSource: _generatedCode.toString(),
+                  ),
           ),
           actions: [
             Row(
@@ -358,13 +350,12 @@ class _GeneratingCodeDialogState extends State<GeneratingCodeDialog> {
                           TextSpan(
                             text: 'Google AI',
                             style: TextStyle(color: theme.colorScheme.primary),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap = () {
-                                    url_launcher.launchUrl(
-                                      Uri.parse('https://ai.google.dev/'),
-                                    );
-                                  },
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                url_launcher.launchUrl(
+                                  Uri.parse('https://ai.google.dev/'),
+                                );
+                              },
                           ),
                           TextSpan(
                             text: ' and the Gemini API',
