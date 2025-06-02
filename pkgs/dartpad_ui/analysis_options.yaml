@@ -18,3 +18,6 @@ linter:
     - prefer_final_locals
     - prefer_relative_imports
     - prefer_single_quotes
+
+formatter:
+  trailing_commas: preserve

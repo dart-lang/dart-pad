@@ -122,8 +122,9 @@ class EditorServiceImpl implements EditorService {
 
   @override
   void showCompletions({required bool autoInvoked}) {
-    _completionType =
-        autoInvoked ? _CompletionType.auto : _CompletionType.manual;
+    _completionType = autoInvoked
+        ? _CompletionType.auto
+        : _CompletionType.manual;
 
     _codeMirror?.execCommand('autocomplete');
   }
@@ -158,8 +159,8 @@ class EditorServiceImpl implements EditorService {
       child: HtmlElementView(
         key: _elementViewKey,
         viewType: _editorViewType,
-        onPlatformViewCreated:
-            (id) => _platformViewCreated(id, darkMode: darkMode),
+        onPlatformViewCreated: (id) =>
+            _platformViewCreated(id, darkMode: darkMode),
       ),
     );
   }
@@ -184,21 +185,21 @@ class EditorServiceImpl implements EditorService {
 
     _codeMirror!.on(
       'change',
-      ([JSAny? _, JSAny? __, JSAny? ___]) {
+      ([JSAny? _, JSAny? _, JSAny? _]) {
         _updateModelFromCodemirror(_codeMirror!.getDoc().getValue());
       }.toJS,
     );
 
     _codeMirror!.on(
       'focus',
-      ([JSAny? _, JSAny? __]) {
+      ([JSAny? _, JSAny? _]) {
         _focusNode.requestFocus();
       }.toJS,
     );
 
     _codeMirror!.on(
       'blur',
-      ([JSAny? _, JSAny? __]) {
+      ([JSAny? _, JSAny? _]) {
         _focusNode.unfocus();
       }.toJS,
     );
@@ -211,15 +212,14 @@ class EditorServiceImpl implements EditorService {
 
     appServices.registerEditorService(this);
 
-    CodeMirror.commands.autocomplete =
-        (CodeMirror codeMirror) {
-          _completions().then((completions) {
-            codeMirror.showHint(
-              HintOptions(hint: CodeMirror.hint.dart, results: completions),
-            );
-          });
-          return JSObject();
-        }.toJS;
+    CodeMirror.commands.autocomplete = (CodeMirror codeMirror) {
+      _completions().then((completions) {
+        codeMirror.showHint(
+          HintOptions(hint: CodeMirror.hint.dart, results: completions),
+        );
+      });
+      return JSObject();
+    }.toJS;
 
     CodeMirror.registerHelper(
       'hint',
@@ -232,17 +232,18 @@ class EditorServiceImpl implements EditorService {
     // Listen for document body to be visible, then force a code mirror refresh.
     final observer = web.IntersectionObserver(
       (
-        JSArray<web.IntersectionObserverEntry> entries,
-        web.IntersectionObserver observer,
-      ) {
-        for (final entry in entries.toDart) {
-          if (entry.isIntersecting) {
-            observer.unobserve(web.document.body!);
-            refreshViewAfterWait();
-            return;
+            JSArray<web.IntersectionObserverEntry> entries,
+            web.IntersectionObserver observer,
+          ) {
+            for (final entry in entries.toDart) {
+              if (entry.isIntersecting) {
+                observer.unobserve(web.document.body!);
+                refreshViewAfterWait();
+                return;
+              }
+            }
           }
-        }
-      }.toJS,
+          .toJS,
     );
 
     observer.observe(web.document.body!);
@@ -330,11 +331,10 @@ class EditorServiceImpl implements EditorService {
       }
 
       return HintResults(
-        list:
-            [
-              ...response.fixes.map((change) => change.toHintResult(editor)),
-              ...response.assists.map((change) => change.toHintResult(editor)),
-            ].toJS,
+        list: [
+          ...response.fixes.map((change) => change.toHintResult(editor)),
+          ...response.assists.map((change) => change.toHintResult(editor)),
+        ].toJS,
         from: doc.posFromIndex(sourceOffset),
         to: doc.posFromIndex(0),
       );
@@ -347,10 +347,9 @@ class EditorServiceImpl implements EditorService {
 
       final offset = response.replacementOffset;
       final length = response.replacementLength;
-      final hints =
-          response.suggestions
-              .map((suggestion) => suggestion.toHintResult())
-              .toList();
+      final hints = response.suggestions
+          .map((suggestion) => suggestion.toHintResult())
+          .toList();
 
       // Remove hints where both the replacement text and the display text are
       // the same.
@@ -383,10 +382,9 @@ void _initViewFactory() {
 }
 
 web.Element _codeMirrorFactory(int viewId) {
-  final div =
-      web.document.createElement('div') as web.HTMLDivElement
-        ..style.width = '100%'
-        ..style.height = '100%';
+  final div = web.document.createElement('div') as web.HTMLDivElement
+    ..style.width = '100%'
+    ..style.height = '100%';
 
   codeMirrorInstance = CodeMirror(
     div,
@@ -399,14 +397,16 @@ web.Element _codeMirrorFactory(int viewId) {
     }.jsify(),
   );
 
-  CodeMirror.commands.goLineLeft =
-      ((JSObject? _) => _handleGoLineLeft(codeMirrorInstance!)).toJS;
+  CodeMirror.commands.goLineLeft = ((JSObject? _) => _handleGoLineLeft(
+    codeMirrorInstance!,
+  )).toJS;
   CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
-      ((JSObject? _) =>
-              _indentIfMultiLineSelectionElseInsertSoftTab(codeMirrorInstance!))
-          .toJS;
-  CodeMirror.commands.weHandleElsewhere =
-      ((JSObject? _) => _weHandleElsewhere(codeMirrorInstance!)).toJS;
+      ((JSObject? _) => _indentIfMultiLineSelectionElseInsertSoftTab(
+        codeMirrorInstance!,
+      )).toJS;
+  CodeMirror.commands.weHandleElsewhere = ((JSObject? _) => _weHandleElsewhere(
+    codeMirrorInstance!,
+  )).toJS;
 
   // Prevent the flutter web engine from handling (and preventing default on)
   // wheel events over CodeMirror's HtmlElementView.

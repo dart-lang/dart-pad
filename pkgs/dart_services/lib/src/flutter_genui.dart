@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'context.dart';
 import 'logging.dart';
 
-final _logger = DartPadLogger('genui');
+final DartPadLogger _logger = DartPadLogger('genui');
 
 class _GenuiEnv {
   late final Uri? apiUrl;

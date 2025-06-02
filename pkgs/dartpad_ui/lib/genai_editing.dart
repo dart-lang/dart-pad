@@ -116,50 +116,51 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: widget.appModel.genAiManager.currentActivity,
-      builder: (
-        BuildContext context,
-        GenAiActivity? genAiActivity,
-        Widget? child,
-      ) {
-        return Column(
-          children: [
-            Expanded(
-              child: _EditingArea(
-                widget.appModel,
-                widget.appServices,
-                onFormat: widget.onFormat,
-                onCompileAndReload: widget.onCompileAndReload,
-                onCompileAndRun: widget.onCompileAndRun,
-              ),
-            ),
-            _GeminiCodeEditTool(
-              appModel: widget.appModel,
-              enabled: widget.appModel.genAiManager.activity.value == null,
-              onUpdateCode: _requestGeminiCodeUpdate,
-              onAcceptUpdateCode: _handleAcceptUpdateCode,
-              onCancelUpdateCode: _handleCancelUpdateCode,
-              onUpdateCodePrompt: _handleUpdateCodePrompt,
-              onRejectSuggestedCode: _handleRejectSuggestedCode,
-              changePromptFocusNode: _changePromptFocusNode,
-            ),
-            MultiValueListenableBuilder(
-              listenables: [
-                widget.appModel.analysisIssues,
-                widget.appModel.genAiManager.activity,
+      builder:
+          (
+            BuildContext context,
+            GenAiActivity? genAiActivity,
+            Widget? child,
+          ) {
+            return Column(
+              children: [
+                Expanded(
+                  child: _EditingArea(
+                    widget.appModel,
+                    widget.appServices,
+                    onFormat: widget.onFormat,
+                    onCompileAndReload: widget.onCompileAndReload,
+                    onCompileAndRun: widget.onCompileAndRun,
+                  ),
+                ),
+                _GeminiCodeEditTool(
+                  appModel: widget.appModel,
+                  enabled: widget.appModel.genAiManager.activity.value == null,
+                  onUpdateCode: _requestGeminiCodeUpdate,
+                  onAcceptUpdateCode: _handleAcceptUpdateCode,
+                  onCancelUpdateCode: _handleCancelUpdateCode,
+                  onUpdateCodePrompt: _handleUpdateCodePrompt,
+                  onRejectSuggestedCode: _handleRejectSuggestedCode,
+                  changePromptFocusNode: _changePromptFocusNode,
+                ),
+                MultiValueListenableBuilder(
+                  listenables: [
+                    widget.appModel.analysisIssues,
+                    widget.appModel.genAiManager.activity,
+                  ],
+                  builder: (_) {
+                    if (genAiActivity != GenAiActivity.awaitingAcceptance &&
+                        genAiActivity != GenAiActivity.generating) {
+                      return ProblemsTableWidget(
+                        problems: widget.appModel.analysisIssues.value,
+                      );
+                    }
+                    return SizedBox(width: 0, height: 0);
+                  },
+                ),
               ],
-              builder: (_) {
-                if (genAiActivity != GenAiActivity.awaitingAcceptance &&
-                    genAiActivity != GenAiActivity.generating) {
-                  return ProblemsTableWidget(
-                    problems: widget.appModel.analysisIssues.value,
-                  );
-                }
-                return SizedBox(width: 0, height: 0);
-              },
-            ),
-          ],
-        );
-      },
+            );
+          },
     );
   }
 }
@@ -239,10 +240,9 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
       ),
       padding: const EdgeInsets.all(denseSpacing),
       child: Focus(
-        onFocusChange:
-            (value) => setState(() {
-              _textInputIsFocused = value;
-            }),
+        onFocusChange: (value) => setState(() {
+          _textInputIsFocused = value;
+        }),
         child: Column(
           children: [
             CallbackShortcuts(
@@ -273,10 +273,9 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  hintText:
-                      widget.enabled
-                          ? 'Ask Gemini to change your code or app!'
-                          : '',
+                  hintText: widget.enabled
+                      ? 'Ask Gemini to change your code or app!'
+                      : '',
                   hintStyle: TextStyle(color: Theme.of(context).hintColor),
                   prefixIcon: _GeminiEditPrefixIcon(
                     enabled: widget.enabled,
@@ -376,91 +375,91 @@ class _AcceptRejectBlock extends StatelessWidget {
 
     return ValueListenableBuilder<GenAiActivity?>(
       valueListenable: genAiManager.currentActivity,
-      builder: (
-        BuildContext context,
-        GenAiActivity? genAiActivity,
-        Widget? child,
-      ) {
-        if (genAiActivity == null) return SizedBox(width: 0, height: 0);
+      builder:
+          (
+            BuildContext context,
+            GenAiActivity? genAiActivity,
+            Widget? child,
+          ) {
+            if (genAiActivity == null) return SizedBox(width: 0, height: 0);
 
-        final geminiIcon = Image.asset(
-          'assets/gemini_sparkle_192.png',
-          width: iconSizeSmall,
-          height: iconSizeSmall,
-        );
+            final geminiIcon = Image.asset(
+              'assets/gemini_sparkle_192.png',
+              width: iconSizeSmall,
+              height: iconSizeSmall,
+            );
 
-        final activeCuj = appModel.genAiManager.cuj.value;
+            final activeCuj = appModel.genAiManager.cuj.value;
 
-        final resolvedButtons =
-            genAiActivity == GenAiActivity.generating
+            final resolvedButtons = genAiActivity == GenAiActivity.generating
                 ? [
-                  TextButton(
-                    onPressed: onCancelUpdateCode,
-                    child: Text('Cancel', style: geminiMessageTextTheme),
-                  ),
-                ]
+                    TextButton(
+                      onPressed: onCancelUpdateCode,
+                      child: Text('Cancel', style: geminiMessageTextTheme),
+                    ),
+                  ]
                 : [
-                  TextButton(
-                    onPressed: onRejectSuggestedCode,
-                    child: Text('Cancel', style: geminiMessageTextTheme),
-                  ),
-
-                  if (activeCuj != GenAiCuj.suggestFix)
-                    _ChangePromptBtn(() => onUpdateCodePrompt(context)),
-
-                  FilledButton(
-                    onPressed: onAcceptUpdateCode,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Color(0xff2e64de),
+                    TextButton(
+                      onPressed: onRejectSuggestedCode,
+                      child: Text('Cancel', style: geminiMessageTextTheme),
                     ),
-                    child: Text(
-                      'Accept',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ];
 
-        return Container(
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: <Color>[
-                Color(0xFFD7E6FF),
-                Color(0xFFC7E4FF),
-                Color(0xFFDCE2FF),
-              ],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+                    if (activeCuj != GenAiCuj.suggestFix)
+                      _ChangePromptBtn(() => onUpdateCodePrompt(context)),
+
+                    FilledButton(
+                      onPressed: onAcceptUpdateCode,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Color(0xff2e64de),
+                      ),
+                      child: Text(
+                        'Accept',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ];
+
+            return Container(
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: <Color>[
+                    Color(0xFFD7E6FF),
+                    Color(0xFFC7E4FF),
+                    Color(0xFFDCE2FF),
+                  ],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    geminiIcon,
-                    SizedBox(width: 8),
-                    Text(
-                      _statusMessage(context, genAiActivity),
-                      style: geminiMessageTextTheme,
+                    Row(
+                      children: [
+                        geminiIcon,
+                        SizedBox(width: 8),
+                        Text(
+                          _statusMessage(context, genAiActivity),
+                          style: geminiMessageTextTheme,
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          spacing: 12,
+                          children: resolvedButtons,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      spacing: 12,
-                      children: resolvedButtons,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+            );
+          },
     );
   }
 }
@@ -489,25 +488,25 @@ class _GeminiEditPrefixIcon extends StatelessWidget {
 
         textFieldIsFocused
             ? _GeminiCodeEditMenu(
-              currentAppType: appType,
-              handlePromptSuggestion: handlePromptSuggestion,
-              onAddImage: onAddImage,
-            )
+                currentAppType: appType,
+                handlePromptSuggestion: handlePromptSuggestion,
+                onAddImage: onAddImage,
+              )
             : SizedBox(
-              width: geminiEditIconSize,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Opacity(
-                  opacity: enabled ? 1 : 0.45,
-                  child: Image.asset(
-                    'assets/gemini_sparkle_192.png',
-                    fit: BoxFit.contain,
-                    height: iconSizeLarge,
-                    width: iconSizeLarge,
+                width: geminiEditIconSize,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Opacity(
+                    opacity: enabled ? 1 : 0.45,
+                    child: Image.asset(
+                      'assets/gemini_sparkle_192.png',
+                      fit: BoxFit.contain,
+                      height: iconSizeLarge,
+                      width: iconSizeLarge,
+                    ),
                   ),
                 ),
               ),
-            ),
         SizedBox(width: textFieldIsFocused ? 4 : 5),
       ],
     );
@@ -541,20 +540,19 @@ class _GeminiEditSuffixIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: geminiEditIconSize,
-      child:
-          textFieldIsFocused
-              ? Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  child: IconButton(
-                    padding: EdgeInsets.all(0),
-                    onPressed: onGenerate,
-                    icon: const Icon(Icons.send),
-                    iconSize: 14,
-                  ),
+      child: textFieldIsFocused
+          ? Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                child: IconButton(
+                  padding: EdgeInsets.all(0),
+                  onPressed: onGenerate,
+                  icon: const Icon(Icons.send),
+                  iconSize: 14,
                 ),
-              )
-              : null,
+              ),
+            )
+          : null,
     );
   }
 }
@@ -695,7 +693,7 @@ class _EditingArea extends StatelessWidget {
                 // Dartdoc help button
                 ValueListenableBuilder<bool>(
                   valueListenable: appModel.docHelpBusy,
-                  builder: (_, bool value, __) {
+                  builder: (_, bool value, _) {
                     return PointerInterceptor(
                       child: MiniIconButton(
                         icon: const Icon(Icons.help_outline),
@@ -709,7 +707,7 @@ class _EditingArea extends StatelessWidget {
                 // Format button
                 ValueListenableBuilder<bool>(
                   valueListenable: appModel.formattingBusy,
-                  builder: (_, bool value, __) {
+                  builder: (_, bool value, _) {
                     return PointerInterceptor(
                       child: MiniIconButton(
                         icon: const Icon(Icons.format_align_left),
@@ -728,10 +726,9 @@ class _EditingArea extends StatelessWidget {
                     if (!appModel.showReload.value) return const SizedBox();
                     return PointerInterceptor(
                       child: ReloadButton(
-                        onPressed:
-                            appModel.canReload.value
-                                ? onCompileAndReload
-                                : null,
+                        onPressed: appModel.canReload.value
+                            ? onCompileAndReload
+                            : null,
                       ),
                     );
                   },
@@ -740,7 +737,7 @@ class _EditingArea extends StatelessWidget {
                 // Run button
                 ValueListenableBuilder<CompilingState>(
                   valueListenable: appModel.compilingState,
-                  builder: (_, compiling, __) {
+                  builder: (_, compiling, _) {
                     return PointerInterceptor(
                       child: RunButton(
                         onPressed: compiling.busy ? null : onCompileAndRun,

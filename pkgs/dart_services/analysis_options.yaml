@@ -22,3 +22,6 @@ linter:
     - prefer_final_in_for_each
     - prefer_final_locals
     - sort_pub_dependencies
+
+formatter:
+  trailing_commas: preserve

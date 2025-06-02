@@ -7,8 +7,9 @@ description: Shared code between the DartPad frontend and backend.
 publish_to: none
 
 resolution: workspace
+
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.8.0
 
 dependencies:
   collection: ^1.19.1
