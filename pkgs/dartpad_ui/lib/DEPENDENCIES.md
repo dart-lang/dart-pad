@@ -10,12 +10,11 @@ app-->primitives;
 main.dart-->app;
 main.dart-->model;
 main.dart-->primitives;
-model--!-->app;
 model-->primitives;
 ```
 
 ### Inversions
-In this folder: 1
+In this folder: 0
 
-Including sub-folders: 1
+Including sub-folders: 0
 

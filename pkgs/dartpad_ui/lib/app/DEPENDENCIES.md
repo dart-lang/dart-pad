@@ -13,7 +13,9 @@ genai_dialogs.dart-->simple_widgets.dart;
 genai_editing.dart-->docs.dart;
 genai_editing.dart-->editor;
 genai_editing.dart-->genai_dialogs.dart;
+genai_editing.dart-->problems.dart;
 genai_editing.dart-->simple_widgets.dart;
+problems.dart-->suggest_fix.dart;
 ```
 
 ### Inversions
