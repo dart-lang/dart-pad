@@ -19,7 +19,7 @@ import '../model/model.dart';
 import '../model/problems.dart';
 import 'simple_widgets.dart';
 import '../primitives/theme.dart';
-import '../model/utils.dart';
+import '../primitives/utils.dart';
 
 class EditorWithButtons extends StatefulWidget {
   const EditorWithButtons({

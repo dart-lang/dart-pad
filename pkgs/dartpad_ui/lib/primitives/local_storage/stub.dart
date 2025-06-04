@@ -4,7 +4,7 @@
 
 import 'package:dartpad_shared/model.dart';
 
-import '../../model/utils.dart';
+import '../utils.dart';
 
 class DartPadLocalStorageImpl {
   String? _code;

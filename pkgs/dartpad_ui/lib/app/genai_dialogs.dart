@@ -17,7 +17,7 @@ import '../primitives/local_storage/local_storage.dart';
 import '../model/model.dart';
 import 'simple_widgets.dart';
 import '../primitives/theme.dart';
-import '../model/utils.dart';
+import '../primitives/utils.dart';
 
 Future<void> openCodeGenerationDialog(
   BuildContext context, {

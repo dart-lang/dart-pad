@@ -12,7 +12,7 @@ import '../model/model.dart';
 import 'simple_widgets.dart';
 import 'suggest_fix.dart';
 import '../primitives/theme.dart';
-import '../model/utils.dart';
+import '../primitives/utils.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;
