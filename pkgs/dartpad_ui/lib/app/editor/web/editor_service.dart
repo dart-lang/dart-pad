@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:web/web.dart' as web;
 
-import '../../../local_storage/local_storage.dart';
+import '../../../primitives/local_storage/local_storage.dart';
 import '../../../model/model.dart';
 import 'codemirror.dart';
 

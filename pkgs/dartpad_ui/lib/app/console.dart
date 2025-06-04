@@ -7,12 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'enable_gen_ai.dart';
-import 'model/model.dart';
-import 'simple_widgets.dart';
-import 'suggest_fix.dart';
-import 'theme.dart';
-import 'utils.dart';
+import '../model/enable_gen_ai.dart';
+import '../model/model.dart';
+import '../simple_widgets.dart';
+import '../suggest_fix.dart';
+import '../theme.dart';
+import '../utils.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;

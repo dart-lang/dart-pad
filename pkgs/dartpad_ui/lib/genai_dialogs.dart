@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'app/editor/editor.dart';
-import 'local_storage/local_storage.dart';
+import 'primitives/local_storage/local_storage.dart';
 import 'model/model.dart';
 import 'simple_widgets.dart';
 import 'theme.dart';

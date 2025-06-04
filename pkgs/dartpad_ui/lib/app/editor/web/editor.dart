@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../local_storage/local_storage.dart';
+import '../../../primitives/local_storage/local_storage.dart';
 import '../../../model/model.dart';
 import 'editor_service.dart';
 

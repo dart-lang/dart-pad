@@ -16,15 +16,15 @@ import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
-import 'console.dart';
+import 'app/console.dart';
 import 'app/embed/embed.dart';
-import 'enable_gen_ai.dart';
+import 'model/enable_gen_ai.dart';
 import 'app/execution/execution.dart';
 import 'extensions.dart';
 import 'genai_dialogs.dart';
 import 'genai_editing.dart';
 import 'keys.dart' as keys;
-import 'local_storage/local_storage.dart';
+import 'primitives/local_storage/local_storage.dart';
 import 'model/model.dart';
 import 'samples.g.dart';
 import 'simple_widgets.dart';

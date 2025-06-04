@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
-import 'docs.dart';
+import 'app/docs.dart';
 import 'app/editor/editor.dart';
 import 'app/editor/generating_panel.dart';
 import 'extensions.dart';
