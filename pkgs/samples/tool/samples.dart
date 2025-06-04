@@ -43,6 +43,8 @@ const Set<String> categories = {'Defaults', 'Dart', 'Flutter', 'Ecosystem'};
 class Samples {
   late final List<Sample> samples;
 
+  static const _samplesPath = '../dartpad_ui/lib/primitives/samples.g.dart';
+
   void parse() {
     // read the samples
     final json = jsonDecode(
@@ -95,7 +97,7 @@ class Samples {
     print('Wrote ${readme.path}');
 
     // samples.g.dart
-    final codeFile = File('../dartpad_ui/lib/samples.g.dart');
+    final codeFile = File(_samplesPath);
     final contents = _generateSourceContent();
     codeFile.writeAsStringSync(contents);
     print('Wrote ${codeFile.path}');
@@ -110,7 +112,7 @@ class Samples {
     final readmeUpToDate =
         readme.readAsStringSync() == _generateReadmeContent();
 
-    final codeFile = File('../dartpad_ui/lib/samples.g.dart');
+    final codeFile = File(_samplesPath);
     final codeFileUpToDate =
         codeFile.readAsStringSync() == _generateSourceContent();
 
