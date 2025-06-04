@@ -5,72 +5,18 @@ Dependencies that create loops (inversions) are marked with `!`.
 
 ```mermaid
 flowchart TD;
-console.dart-->enable_gen_ai.dart;
-console.dart-->model.dart;
-console.dart-->simple_widgets.dart;
-console.dart-->suggest_fix.dart;
-console.dart-->theme.dart;
-console.dart-->utils.dart;
-docs.dart-->model.dart;
-docs.dart-->theme.dart;
-editor-->local_storage;
-editor-->model.dart;
-editor-->simple_widgets.dart;
-editor-->theme.dart;
-editor-->utils.dart;
-embed-->model.dart;
-execution-->html_view;
-execution-->model.dart;
-execution-->theme.dart;
-genai_dialogs.dart-->editor;
-genai_dialogs.dart-->local_storage;
-genai_dialogs.dart-->model.dart;
-genai_dialogs.dart-->simple_widgets.dart;
-genai_dialogs.dart-->theme.dart;
-genai_dialogs.dart-->utils.dart;
-genai_editing.dart-->docs.dart;
-genai_editing.dart-->editor;
-genai_editing.dart-->extensions.dart;
-genai_editing.dart-->genai_dialogs.dart;
-genai_editing.dart-->model.dart;
-genai_editing.dart-->problems.dart;
-genai_editing.dart-->simple_widgets.dart;
-genai_editing.dart-->theme.dart;
-genai_editing.dart-->utils.dart;
-keys.dart-->theme.dart;
-keys.dart-->utils.dart;
-local_storage-->utils.dart;
-main.dart-->console.dart;
-main.dart-->embed;
-main.dart-->enable_gen_ai.dart;
-main.dart-->execution;
-main.dart-->extensions.dart;
-main.dart-->genai_dialogs.dart;
-main.dart-->genai_editing.dart;
-main.dart-->keys.dart;
-main.dart-->local_storage;
-main.dart-->model.dart;
-main.dart-->samples.g.dart;
-main.dart-->simple_widgets.dart;
-main.dart-->theme.dart;
-main.dart-->versions.dart;
-model.dart-->flutter_samples.dart;
-model.dart-->gists.dart;
-model.dart-->samples.g.dart;
-model.dart-->utils.dart;
-problems.dart-->enable_gen_ai.dart;
-problems.dart-->model.dart;
-problems.dart-->suggest_fix.dart;
-problems.dart-->theme.dart;
-simple_widgets.dart-->theme.dart;
-simple_widgets.dart-->utils.dart;
-suggest_fix.dart-->model.dart;
-utils.dart-->theme.dart;
-versions.dart-->theme.dart;
+app-->model;
+app-->primitives;
+main.dart-->app;
+main.dart-->model;
+main.dart-->primitives;
+model--!-->app;
+model-->primitives;
+primitives--!-->model;
 ```
 
 ### Inversions
-In this folder: 0
+In this folder: 2
 
-Including sub-folders: 0
+Including sub-folders: 2
 
