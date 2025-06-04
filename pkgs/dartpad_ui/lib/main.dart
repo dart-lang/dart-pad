@@ -18,18 +18,18 @@ import 'package:vtable/vtable.dart';
 
 import 'app/console.dart';
 import 'app/embed/embed.dart';
-import 'primitives/enable_gen_ai.dart';
 import 'app/execution/execution.dart';
-import 'primitives/extensions.dart';
 import 'app/genai_dialogs.dart';
 import 'app/genai_editing.dart';
-import 'model/keys.dart' as keys;
-import 'primitives/local_storage/local_storage.dart';
-import 'model/model.dart';
-import 'primitives/samples.g.dart';
 import 'app/simple_widgets.dart';
-import 'primitives/theme.dart';
 import 'app/versions.dart';
+import 'model/keys.dart' as keys;
+import 'model/model.dart';
+import 'primitives/enable_gen_ai.dart';
+import 'primitives/extensions.dart';
+import 'primitives/local_storage/local_storage.dart';
+import 'primitives/samples.g.dart';
+import 'primitives/theme.dart';
 
 const appName = 'DartPad';
 
