@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
-import 'primitives/theme.dart';
+import '../primitives/theme.dart';
 
 bool get isNonMac => defaultTargetPlatform != TargetPlatform.macOS;
 bool get isMac => defaultTargetPlatform == TargetPlatform.macOS;

@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-import 'primitives/theme.dart';
-import 'utils.dart';
+import '../primitives/theme.dart';
+import '../model/utils.dart';
 
 class Hyperlink extends StatefulWidget {
   final String url;

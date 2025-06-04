@@ -15,9 +15,9 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'editor/editor.dart';
 import '../primitives/local_storage/local_storage.dart';
 import '../model/model.dart';
-import '../simple_widgets.dart';
+import 'simple_widgets.dart';
 import '../primitives/theme.dart';
-import '../utils.dart';
+import '../model/utils.dart';
 
 Future<void> openCodeGenerationDialog(
   BuildContext context, {

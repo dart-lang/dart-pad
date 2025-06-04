@@ -9,10 +9,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../primitives/enable_gen_ai.dart';
 import '../model/model.dart';
-import '../simple_widgets.dart';
-import '../suggest_fix.dart';
+import 'simple_widgets.dart';
+import 'suggest_fix.dart';
 import '../primitives/theme.dart';
-import '../utils.dart';
+import '../model/utils.dart';
 
 class ConsoleWidget extends StatefulWidget {
   final bool showDivider;

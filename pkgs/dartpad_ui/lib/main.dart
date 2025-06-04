@@ -27,9 +27,9 @@ import 'model/keys.dart' as keys;
 import 'primitives/local_storage/local_storage.dart';
 import 'model/model.dart';
 import 'primitives/samples.g.dart';
-import 'simple_widgets.dart';
+import 'app/simple_widgets.dart';
 import 'primitives/theme.dart';
-import 'versions.dart';
+import 'app/versions.dart';
 
 const appName = 'DartPad';
 

@@ -5,7 +5,7 @@
 import 'package:dartpad_shared/model.dart';
 import 'package:web/web.dart' as web;
 
-import '../../utils.dart';
+import '../../model/utils.dart';
 import 'stub.dart' as stub;
 
 const _userInputKey = 'user_input_';

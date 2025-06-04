@@ -17,9 +17,9 @@ import '../primitives/extensions.dart';
 import 'genai_dialogs.dart';
 import '../model/model.dart';
 import '../model/problems.dart';
-import '../simple_widgets.dart';
+import 'simple_widgets.dart';
 import '../primitives/theme.dart';
-import '../utils.dart';
+import '../model/utils.dart';
 
 class EditorWithButtons extends StatefulWidget {
   const EditorWithButtons({

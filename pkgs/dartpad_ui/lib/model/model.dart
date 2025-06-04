@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import '../primitives/flutter_samples.dart';
 import '../primitives/gists.dart';
 import '../primitives/samples.g.dart';
-import '../utils.dart';
+import 'utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 
