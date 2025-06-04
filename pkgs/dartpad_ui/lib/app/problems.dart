@@ -12,8 +12,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import '../primitives/enable_gen_ai.dart';
-import 'model.dart';
-import '../app/suggest_fix.dart';
+import '../model/model.dart';
+import 'suggest_fix.dart';
 import '../primitives/theme.dart';
 
 const _rowPadding = 2.0;
