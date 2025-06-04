@@ -11,5 +11,6 @@ set -ex
 # The directory that this script is located in.
 TOOL_DIR=`dirname "$0"`
 
+# See https://pub.dev/packages/layerlens
 dart pub global activate layerlens
-layerlens --path $TOOL_DIR/.. --fail-on-cycles
+layerlens --path $TOOL_DIR/.. --fail-on-cycles --fail-if-changed
