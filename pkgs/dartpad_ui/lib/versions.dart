@@ -6,7 +6,7 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/material.dart';
 import 'package:vtable/vtable.dart';
 
-import 'theme.dart';
+import 'primitives/theme.dart';
 
 class VersionTable extends StatelessWidget {
   final VersionResponse version;

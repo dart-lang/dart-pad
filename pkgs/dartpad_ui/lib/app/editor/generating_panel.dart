@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../model/model.dart';
 import '../../simple_widgets.dart';
-import '../../theme.dart';
+import '../../primitives/theme.dart';
 import '../../utils.dart';
 import 'editor.dart';
 
