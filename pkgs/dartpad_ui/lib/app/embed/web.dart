@@ -6,7 +6,7 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
-import '../model.dart';
+import '../../model/model.dart';
 
 /// Listen to frame messages if embedded as an iFrame
 /// to accept injected snippets.

@@ -9,10 +9,10 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'flutter_samples.dart';
-import 'gists.dart';
-import 'samples.g.dart';
-import 'utils.dart';
+import '../flutter_samples.dart';
+import '../gists.dart';
+import '../samples.g.dart';
+import '../utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
 

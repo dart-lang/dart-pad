@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 
-import '../model.dart';
-import '../theme.dart';
+import '../../model/model.dart';
+import '../../theme.dart';
 import 'stub/editor.dart'
     if (dart.library.js_interop) 'web/editor.dart'
     show EditorWidgetImpl;

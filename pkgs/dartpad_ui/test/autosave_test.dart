@@ -4,7 +4,7 @@
 
 import 'package:dartpad_shared/model.dart';
 import 'package:dartpad_ui/local_storage/local_storage.dart';
-import 'package:dartpad_ui/model.dart';
+import 'package:dartpad_ui/model/model.dart';
 import 'package:dartpad_ui/samples.g.dart';
 import 'package:dartpad_ui/utils.dart';
 import 'package:test/test.dart';

@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'enable_gen_ai.dart';
-import 'model.dart';
+import 'model/model.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
 

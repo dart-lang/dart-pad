@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'enable_gen_ai.dart';
-import 'model.dart';
+import 'model/model.dart';
 import 'simple_widgets.dart';
 import 'suggest_fix.dart';
 import 'theme.dart';
