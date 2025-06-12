@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_services/server.dart';
-import 'package:dartpad_ui/genai_editing.dart';
+import 'package:dartpad_ui/app/genai_editing.dart';
 import 'package:dartpad_ui/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 

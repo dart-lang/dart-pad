@@ -18,9 +18,6 @@ pubspec.lock
 # IDE configuration
 .idea/
 
-# Diagrams created by https://pub.dev/packages/layerlens
-**/DEPENDENCIES.md
-
 # Artifacts of failed golden testing
 **/*_masterImage.png
 **/*_testImage.png
