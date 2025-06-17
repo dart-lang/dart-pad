@@ -160,21 +160,6 @@ bool isFlutterWebImport(String? importString) {
       _packagesIndicatingFlutter.contains(packageName);
 }
 
-/// The core set of Firebase packages.
-const Set<String> firebasePackages = {
-  'cloud_firestore',
-  'firebase_auth',
-  'firebase_core',
-};
-
-bool isFirebasePackage(String packageName) {
-  if (firebasePackages.contains(packageName)) return true;
-
-  if (packageName.startsWith('firebase_')) return true;
-
-  return false;
-}
-
 /// If [uriString] represents a 'package:' URI, then returns the package name;
 /// otherwise `null`.
 String? _packageNameFromPackageUri(String uriString) {

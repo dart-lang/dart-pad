@@ -347,17 +347,7 @@ class AnalysisServerWrapper {
       } else if (import.packageImport) {
         final packageName = import.packageName;
 
-        if (isFirebasePackage(packageName)) {
-          importIssues.add(
-            api.AnalysisIssue(
-              kind: 'warning',
-              message: 'Firebase is no longer supported by DartPad.',
-              url:
-                  'https://github.com/dart-lang/dart-pad/wiki/Package-and-plugin-support#deprecated-firebase-packages',
-              location: import.getLocation(source),
-            ),
-          );
-        } else if (isDeprecatedPackage(packageName)) {
+        if (isDeprecatedPackage(packageName)) {
           importIssues.add(
             api.AnalysisIssue(
               kind: 'warning',
@@ -374,6 +364,9 @@ class AnalysisServerWrapper {
             api.AnalysisIssue(
               kind: 'warning',
               message: "Unsupported package: 'package:$packageName'.",
+              url:
+                  'https://github.com/dart-lang/dart-pad/wiki/'
+                  'Package-and-plugin-support#currently-supported-packages',
               location: import.getLocation(source),
             ),
           );

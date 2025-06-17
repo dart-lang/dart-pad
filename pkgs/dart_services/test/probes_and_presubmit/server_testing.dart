@@ -130,10 +130,7 @@ void main() => print('hello world');
 
       final issue = result.issues.first;
       expect(issue.kind, 'warning');
-      expect(
-        issue.message,
-        contains('Firebase is no longer supported by DartPad.'),
-      );
+      expect(issue.message, contains('Unsupported package:'));
       expect(issue.location.line, 1);
     });
 
