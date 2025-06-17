@@ -84,7 +84,7 @@ void main() {
 
       expect(results.issues, hasLength(1));
       final issue = results.issues.first;
-      expect(issue.message, contains('Unsupported library on the web'));
+      expect(issue.message, contains('is not supported by DartPad'));
     });
 
     test('import_dart_core_test', () async {

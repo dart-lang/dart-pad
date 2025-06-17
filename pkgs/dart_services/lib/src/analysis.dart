@@ -338,7 +338,7 @@ class AnalysisServerWrapper {
           importIssues.add(
             api.AnalysisIssue(
               kind: 'error',
-              message: "Unsupported library on the web: 'dart:$libraryName'.",
+              message: "'dart:$libraryName' is not supported by DartPad.",
               correction: 'Try removing the import and usages of the library.',
               location: import.getLocation(source),
             ),
