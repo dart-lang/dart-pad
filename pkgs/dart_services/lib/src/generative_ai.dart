@@ -12,11 +12,13 @@ import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
 
-final _logger = DartPadLogger('gen-ai');
+final DartPadLogger _logger = DartPadLogger('gen-ai');
 
 class GenerativeAI {
-  static const _apiKeyVarName = 'GEMINI_API_KEY';
-  static const _geminiModel = 'gemini-2.0-flash';
+  // Valid values here are 'gemini-2.0-flash' and 'gemini-2.5-flash'.
+  static const String _geminiModel = 'gemini-2.5-flash';
+  static const String _apiKeyVarName = 'GEMINI_API_KEY';
+
   late final String? _geminiApiKey;
 
   GenerativeAI() {
@@ -33,7 +35,7 @@ class GenerativeAI {
 
   bool get _canGenAI => _geminiApiKey != null;
 
-  late final _flutterFixModel = _canGenAI
+  late final GenerativeModel? _flutterFixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -46,7 +48,7 @@ with the error fixed.
         )
       : null;
 
-  late final _dartFixModel = _canGenAI
+  late final GenerativeModel? _dartFixModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -87,7 +89,7 @@ $source
     yield* cleanCode(_textOnly(stream));
   }
 
-  late final _newFlutterCodeModel = _canGenAI
+  late final GenerativeModel? _newFlutterCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
@@ -97,7 +99,7 @@ Generate a Flutter program that satisfies the provided description.
         )
       : null;
 
-  late final _newDartCodeModel = _canGenAI
+  late final GenerativeModel? _newDartCodeModel = _canGenAI
       ? GenerativeModel(
           apiKey: _geminiApiKey!,
           model: _geminiModel,
