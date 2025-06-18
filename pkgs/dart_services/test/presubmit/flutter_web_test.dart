@@ -44,8 +44,8 @@ void main() {
       expect(isSupportedCoreLibrary('io'), isFalse);
     });
 
-    test('isSupportedCoreLibrary does not allow superseded web libraries', () {
-      expect(isSupportedCoreLibrary('web_gl'), isFalse);
+    test('isSupportedCoreLibrary allows deprecated web libraries for now', () {
+      expect(isSupportedCoreLibrary('html'), isTrue);
     });
 
     test('isSupportedPackage allows package:flutter', () {

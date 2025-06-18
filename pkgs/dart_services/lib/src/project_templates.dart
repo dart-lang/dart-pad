@@ -125,6 +125,20 @@ const Set<String> supportedBasicDartPackages = {
 /// The set of all packages whose support in DartPad is deprecated.
 const Set<String> _deprecatedPackages = {};
 
+/// The deprecated set of `dart:` libraries for web and JS.
+///
+/// To avoid duplicate diagnostics now that they are marked as deprecated,
+/// importing them is temporarily allowed (but still discouraged).
+const Set<String> _deprecatedCoreWebLibraries = {
+  'html',
+  'indexed_db',
+  'js',
+  'js_util',
+  'svg',
+  'web_audio',
+  'web_gl',
+};
+
 /// A set of all allowed `dart:` libraries, includes
 /// all libraries from "Core", some from "Web", and none from "VM".
 const Set<String> _allowedCoreLibraries = {
@@ -138,6 +152,7 @@ const Set<String> _allowedCoreLibraries = {
   'js_interop',
   'js_interop_unsafe',
   'ui',
+  ..._deprecatedCoreWebLibraries,
 };
 
 /// Whether [libraryName] is the name of a supported `dart:` core library.
