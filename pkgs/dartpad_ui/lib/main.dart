@@ -26,7 +26,7 @@ import 'genai_editing.dart';
 import 'keys.dart' as keys;
 import 'local_storage/local_storage.dart';
 import 'model.dart';
-import 'samples.g.dart';
+import 'primitives/samples.g.dart';
 import 'simple_widgets.dart';
 import 'theme.dart';
 import 'versions.dart';
