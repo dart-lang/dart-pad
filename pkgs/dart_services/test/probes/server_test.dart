@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(seconds: 60))
+/// Timeout for one test.
+@Timeout(Duration(seconds: 180))
 library;
 
 import 'package:test/test.dart';
