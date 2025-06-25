@@ -50,3 +50,5 @@ jobs:
 
       - name: Run tests
         run: dart test test/presubmit
+
+      - run: sh ./tool/check_cycles.sh

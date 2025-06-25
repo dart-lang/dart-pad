@@ -36,3 +36,5 @@ jobs:
 
       - name: Analyze project source
         run: dart analyze --fatal-infos
+
+      - run: sh ./tool/check_cycles.sh
