@@ -11,8 +11,8 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
 import 'docs.dart';
-import 'editor/editor.dart';
-import 'editor/generating_panel.dart';
+import 'app/editor/editor.dart';
+import 'app/editor/generating_panel.dart';
 import 'extensions.dart';
 import 'genai_dialogs.dart';
 import 'model.dart';

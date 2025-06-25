@@ -17,9 +17,9 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
 import 'console.dart';
-import 'embed/embed.dart';
+import 'app/embed/embed.dart';
 import 'enable_gen_ai.dart';
-import 'execution/execution.dart';
+import 'app/execution/execution.dart';
 import 'extensions.dart';
 import 'genai_dialogs.dart';
 import 'genai_editing.dart';
