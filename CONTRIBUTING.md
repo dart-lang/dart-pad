@@ -57,7 +57,7 @@ dependencies because of other reasons, this is how you can
 generate dependency diagrams:
 
 ```
-cd pkgs/dartpad_ui
+cd pkgs/<the package>
 dart pub global activate layerlens
 layerlens
 ```
