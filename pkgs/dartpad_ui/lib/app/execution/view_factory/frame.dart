@@ -9,7 +9,7 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
-import '../../../model.dart';
+import '../../../model/model.dart';
 
 class ExecutionServiceImpl implements ExecutionService {
   final StreamController<String> _stdoutController =

@@ -6,7 +6,7 @@ import 'package:dartpad_shared/model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'model.dart';
+import '../model/model.dart';
 
 Future<void> suggestFix({
   required BuildContext context,

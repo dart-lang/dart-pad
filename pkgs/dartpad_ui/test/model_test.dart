@@ -4,7 +4,7 @@
 
 import 'package:dart_services/server.dart';
 import 'package:dartpad_shared/model.dart';
-import 'package:dartpad_ui/model.dart';
+import 'package:dartpad_ui/model/model.dart';
 import 'package:test/test.dart';
 
 void main() {

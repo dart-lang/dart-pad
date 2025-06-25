@@ -4,9 +4,9 @@
 
 import 'package:flutter/material.dart';
 
-import '../../html_view/html_view.dart';
-import '../../model.dart';
-import '../../theme.dart';
+import '../../primitives/html_view/html_view.dart';
+import '../../model/model.dart';
+import '../../primitives/theme.dart';
 
 import 'view_factory/globals.dart';
 import 'view_factory/view_factory.dart';

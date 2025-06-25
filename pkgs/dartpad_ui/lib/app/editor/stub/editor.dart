@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../model.dart';
+import '../../../model/model.dart';
 
 class EditorWidgetImpl extends StatefulWidget {
   final AppModel appModel;
