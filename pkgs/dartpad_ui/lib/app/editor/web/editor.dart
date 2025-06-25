@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../primitives/local_storage/local_storage.dart';
 import '../../../model/model.dart';
+import '../../../primitives/local_storage/local_storage.dart';
 import 'editor_service.dart';
 
 // TODO: implement find / find next

@@ -10,16 +10,16 @@ import 'package:flutter/services.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
+import '../model/model.dart';
+import '../primitives/extensions.dart';
+import '../primitives/theme.dart';
+import '../primitives/utils.dart';
 import 'docs.dart';
 import 'editor/editor.dart';
 import 'editor/generating_panel.dart';
-import '../primitives/extensions.dart';
 import 'genai_dialogs.dart';
-import '../model/model.dart';
 import 'problems.dart';
 import 'simple_widgets.dart';
-import '../primitives/theme.dart';
-import '../primitives/utils.dart';
 
 class EditorWithButtons extends StatefulWidget {
   const EditorWithButtons({

@@ -11,10 +11,10 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
-import '../primitives/enable_gen_ai.dart';
 import '../model/model.dart';
-import 'suggest_fix.dart';
+import '../primitives/enable_gen_ai.dart';
 import '../primitives/theme.dart';
+import 'suggest_fix.dart';
 
 const _rowPadding = 2.0;
 

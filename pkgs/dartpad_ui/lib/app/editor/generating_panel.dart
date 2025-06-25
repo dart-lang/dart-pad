@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../model/model.dart';
-import '../simple_widgets.dart';
 import '../../primitives/theme.dart';
 import '../../primitives/utils.dart';
+import '../simple_widgets.dart';
 import 'editor.dart';
 
 /// A panel that shows the code generation by AI.
