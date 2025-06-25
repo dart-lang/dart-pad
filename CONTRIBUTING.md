@@ -50,6 +50,20 @@ To run the front-end, see the [dartpad_ui readme](pkgs/dartpad_ui/README.md).
 When your change requires update to [golden images](https://api.flutter.dev/flutter/flutter_test/matchesGoldenFile.html), run the tests
 with flag `--update-goldens`.
 
+## Generate diagrams
+
+If you are getting alerts about cycle references or want to see
+dependencies because of other reasons, this is how you can
+generate dependency diagrams:
+
+```
+cd pkgs/dartpad_ui
+dart pub global activate layerlens
+layerlens
+```
+
+See https://pub.dev/packages/layerlens
+
 ## Other
 
 See internal details at go/dartpad-manual.
