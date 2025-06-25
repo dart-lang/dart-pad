@@ -16,20 +16,20 @@ import 'package:split_view/split_view.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:vtable/vtable.dart';
 
-import 'console.dart';
-import 'embed/embed.dart';
-import 'enable_gen_ai.dart';
-import 'execution/execution.dart';
-import 'extensions.dart';
-import 'genai_dialogs.dart';
-import 'genai_editing.dart';
-import 'keys.dart' as keys;
-import 'local_storage/local_storage.dart';
-import 'model.dart';
+import 'app/console.dart';
+import 'app/embed/embed.dart';
+import 'app/execution/execution.dart';
+import 'app/genai_dialogs.dart';
+import 'app/genai_editing.dart';
+import 'app/simple_widgets.dart';
+import 'model/keys.dart' as keys;
+import 'model/model.dart';
+import 'primitives/enable_gen_ai.dart';
+import 'primitives/extensions.dart';
+import 'primitives/local_storage/local_storage.dart';
 import 'primitives/samples.g.dart';
-import 'simple_widgets.dart';
-import 'theme.dart';
-import 'versions.dart';
+import 'primitives/theme.dart';
+import 'primitives/versions.dart';
 
 const appName = 'DartPad';
 

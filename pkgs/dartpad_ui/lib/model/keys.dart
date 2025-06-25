@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'theme.dart';
-import 'utils.dart';
+import '../primitives/theme.dart';
+import '../primitives/utils.dart';
 
 // ## Key activators
 

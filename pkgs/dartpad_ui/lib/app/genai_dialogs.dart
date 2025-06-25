@@ -12,12 +12,12 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import '../model/model.dart';
+import '../primitives/local_storage/local_storage.dart';
+import '../primitives/theme.dart';
+import '../primitives/utils.dart';
 import 'editor/editor.dart';
-import 'local_storage/local_storage.dart';
-import 'model.dart';
 import 'simple_widgets.dart';
-import 'theme.dart';
-import 'utils.dart';
 
 Future<void> openCodeGenerationDialog(
   BuildContext context, {
