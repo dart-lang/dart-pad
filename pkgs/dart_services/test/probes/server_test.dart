@@ -14,7 +14,7 @@ import '../test_infra/utils.dart';
 void main() async {
   group('server', () {
     for (final client in dartServicesProdProbingClients) {
-      testServer(client);
+      testServer(client, retry: 3);
     }
   });
 }
