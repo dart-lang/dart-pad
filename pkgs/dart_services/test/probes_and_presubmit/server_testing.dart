@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'ddc_testing.dart';
 
-void testServer(DartServicesClient client) {
+void testServer(DartServicesClient client, {int? retry}) {
   group('server at ${client.rootUrl}', () {
     testDDCEndpoint(
       'compileDDC',
@@ -350,5 +350,5 @@ void main() => print('hello world');
       expect(assist.selectionOffset, greaterThan(0));
       expect(assist.edits.first.replacement, isNotEmpty);
     });
-  });
+  }, retry: retry);
 }
