@@ -362,6 +362,7 @@ class DartPadMainPageState extends State<DartPadMainPage>
       onCompileAndRun: appServices.performCompileAndRun,
       onCompileAndReload: appServices.performCompileAndReload,
       key: _editorKey,
+      showCodeEditTool: !widget.embedMode,
     );
 
     final tabBar = TabBar(
