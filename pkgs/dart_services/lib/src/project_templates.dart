@@ -52,6 +52,7 @@ class ProjectTemplates {
 
 /// The set of supported Flutter-oriented packages.
 const Set<String> supportedFlutterPackages = {
+  'animated_to',
   'animations',
   'creator',
   'flame',
