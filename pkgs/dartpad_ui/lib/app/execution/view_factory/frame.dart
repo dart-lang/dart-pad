@@ -125,6 +125,11 @@ require.config({
 ''');
       }
 
+      // Add a block to scope the __ddcInitCode variable to this blob in case
+      // multiple blobs are loaded into the frame (as can happen in embedded
+      // frames).
+      script.writeln('{');
+
       // The code depends on ddc_module_loader already being loaded in the page.
       // Wrap in a function that we'll call after the module loader is loaded.
       script.writeln('let __ddcInitCode = function() {$javaScript}');
@@ -146,6 +151,9 @@ function moduleLoaderLoaded() {
 }''');
       }
       script.writeln('require(["ddc_module_loader"], moduleLoaderLoaded);');
+
+      // Close scope block.
+      script.writeln('}');
     } else {
       // Redirect print messages to the host.
       script.writeln('''
