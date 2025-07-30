@@ -169,6 +169,12 @@ void main() {
         completionLargeNamespaces,
         61,
       );
+
+      print('${results.suggestions.length} results');
+      for (final suggestion in results.suggestions) {
+        print('[${suggestion.completion}]');
+      }
+
       expect(completionsContains(results, 'A'), true);
       expect(completionsContains(results, 'AB'), true);
       expect(completionsContains(results, 'ABC'), true);
