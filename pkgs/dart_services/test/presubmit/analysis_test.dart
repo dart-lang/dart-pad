@@ -174,7 +174,7 @@ void main() {
       expect(completionsContains(results, 'ABC'), true);
       expect(completionsContains(results, 'a'), true);
       expect(completionsContains(results, 'ZZ'), false);
-    });
+    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3371');
 
     test('analyze working Dart code', () async {
       final results = await analysisServer.analyze(sampleCode);
