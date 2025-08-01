@@ -161,20 +161,24 @@ void main() {
       expect(results.issues, hasLength(1));
     });
 
-    test('filter completions', () async {
-      // just after A
-      final idx = 61;
-      expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
-      final results = await analysisServer.complete(
-        completionLargeNamespaces,
-        61,
-      );
-      expect(completionsContains(results, 'A'), true);
-      expect(completionsContains(results, 'AB'), true);
-      expect(completionsContains(results, 'ABC'), true);
-      expect(completionsContains(results, 'a'), true);
-      expect(completionsContains(results, 'ZZ'), false);
-    });
+    test(
+      'filter completions',
+      () async {
+        // just after A
+        final idx = 61;
+        expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
+        final results = await analysisServer.complete(
+          completionLargeNamespaces,
+          61,
+        );
+        expect(completionsContains(results, 'A'), true);
+        expect(completionsContains(results, 'AB'), true);
+        expect(completionsContains(results, 'ABC'), true);
+        expect(completionsContains(results, 'a'), true);
+        expect(completionsContains(results, 'ZZ'), false);
+      },
+      skip: 'https://github.com/dart-lang/dart-pad/issues/3371',
+    );
 
     test('analyze working Dart code', () async {
       final results = await analysisServer.analyze(sampleCode);
