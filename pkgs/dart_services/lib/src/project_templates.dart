@@ -60,6 +60,7 @@ const Set<String> supportedFlutterPackages = {
   'flame_forge2d',
   'flame_splash_screen',
   'flame_tiled',
+  'fl_chart',
   'flutter_adaptive_scaffold',
   'flutter_bloc',
   'flutter_hooks',
