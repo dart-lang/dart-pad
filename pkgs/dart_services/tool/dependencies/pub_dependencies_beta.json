@@ -46,7 +46,7 @@
   "frontend_server_client": "4.0.0",
   "glob": "2.1.3",
   "go_router": "16.0.0",
-  "google_fonts": "6.2.1",
+  "google_fonts": "6.3.0",
   "google_generative_ai": "0.4.7",
   "hooks_riverpod": "2.6.1",
   "html": "0.15.6",
