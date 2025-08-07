@@ -24,6 +24,7 @@ import 'simple_widgets.dart';
 class EditorWithButtons extends StatefulWidget {
   const EditorWithButtons({
     super.key,
+    this.showCodeEditTool = true,
     required this.appModel,
     required this.appServices,
     required this.onFormat,
@@ -31,11 +32,13 @@ class EditorWithButtons extends StatefulWidget {
     required this.onCompileAndReload,
   });
 
+  final bool showCodeEditTool;
   final AppModel appModel;
   final AppServices appServices;
   final VoidCallback onFormat;
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
+
   @override
   State<EditorWithButtons> createState() => _EditorWithButtonsState();
 
@@ -132,6 +135,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                 _GeminiCodeEditTool(
                   appModel: widget.appModel,
                   enabled: widget.appModel.genAiManager.activity.value == null,
+                  showCodeEditTool: widget.showCodeEditTool,
                   onUpdateCode: _requestGeminiCodeUpdate,
                   onAcceptUpdateCode: _handleAcceptUpdateCode,
                   onCancelUpdateCode: _handleCancelUpdateCode,
@@ -171,6 +175,7 @@ class _GeminiCodeEditTool extends StatefulWidget {
     required this.onUpdateCodePrompt,
     required this.onAcceptUpdateCode,
     required this.enabled,
+    required this.showCodeEditTool,
     required this.changePromptFocusNode,
   });
 
@@ -185,6 +190,7 @@ class _GeminiCodeEditTool extends StatefulWidget {
   final FocusNode changePromptFocusNode;
 
   final bool enabled;
+  final bool showCodeEditTool;
 
   @override
   State<_GeminiCodeEditTool> createState() => _GeminiCodeEditToolState();
@@ -223,104 +229,106 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
     final promptController = genAiManager.codeEditPromptController;
     final attachments = genAiManager.codeEditAttachments;
 
-    final textInputBlock = Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(
-          top: Divider.createBorderSide(
-            context,
-            width: 8.0,
-            color: theme.colorScheme.surface,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.all(denseSpacing),
-      child: Focus(
-        onFocusChange: (value) => setState(() {
-          _textInputIsFocused = value;
-        }),
-        child: Column(
-          children: [
-            CallbackShortcuts(
-              bindings: {
-                SingleActivator(
-                  LogicalKeyboardKey.enter,
-                  meta: isMac,
-                  control: isNonMac,
-                ): () {
-                  if (promptController.text.isNotEmpty) {
-                    widget.onUpdateCode(
-                      context,
-                      PromptDialogResponse(
-                        appType: appType,
-                        attachments: attachments,
-                        prompt: promptController.text,
-                      ),
-                    );
-                    setState(() {});
-                  }
-                },
-              },
-              child: TextField(
-                enabled: widget.enabled,
-                controller: promptController,
-                focusNode: widget.changePromptFocusNode,
-                canRequestFocus: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  hintText: widget.enabled
-                      ? 'Ask Gemini to change your code or app!'
-                      : '',
-                  hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                  prefixIcon: _GeminiEditPrefixIcon(
-                    enabled: widget.enabled,
-                    textFieldIsFocused: _textInputIsFocused,
-                    handlePromptSuggestion: handlePromptSuggestion,
-                    appType: appType,
-                    onAddImage: () async {
-                      final att = await pickAttachment();
-                      if (att != null) attachments.add(att);
-                      setState(() {});
-                    },
-                  ),
-                  suffixIcon: _GeminiEditSuffixIcon(
-                    textFieldIsFocused: _textInputIsFocused,
-                    onGenerate: () {
-                      widget.onUpdateCode(
-                        context,
-                        PromptDialogResponse(
-                          appType: appType,
-                          attachments: attachments,
-                          prompt: promptController.text,
-                        ),
-                      );
-                      setState(() {});
-                    },
-                  ),
+    final textInputBlock = widget.showCodeEditTool
+        ? Container(
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              border: Border(
+                top: Divider.createBorderSide(
+                  context,
+                  width: 8.0,
+                  color: theme.colorScheme.surface,
                 ),
-                maxLines: 8,
-                minLines: 1,
               ),
             ),
-            if (attachments.isNotEmpty)
-              SizedBox(
-                height: attachmentsBoxHeight,
-                child: EditableImageList(
-                  compactDisplay: true,
-                  attachments: attachments,
-                  onRemove: (int index) {
-                    attachments.removeAt(index);
-                    setState(() {});
-                  },
-                  onAdd: () => {}, // the Add button isn't shown here
-                  maxAttachments: 3,
-                ),
+            padding: const EdgeInsets.all(denseSpacing),
+            child: Focus(
+              onFocusChange: (value) => setState(() {
+                _textInputIsFocused = value;
+              }),
+              child: Column(
+                children: [
+                  CallbackShortcuts(
+                    bindings: {
+                      SingleActivator(
+                        LogicalKeyboardKey.enter,
+                        meta: isMac,
+                        control: isNonMac,
+                      ): () {
+                        if (promptController.text.isNotEmpty) {
+                          widget.onUpdateCode(
+                            context,
+                            PromptDialogResponse(
+                              appType: appType,
+                              attachments: attachments,
+                              prompt: promptController.text,
+                            ),
+                          );
+                          setState(() {});
+                        }
+                      },
+                    },
+                    child: TextField(
+                      enabled: widget.enabled,
+                      controller: promptController,
+                      focusNode: widget.changePromptFocusNode,
+                      canRequestFocus: true,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                        hintText: widget.enabled
+                            ? 'Ask Gemini to change your code or app!'
+                            : '',
+                        hintStyle: TextStyle(color: theme.hintColor),
+                        prefixIcon: _GeminiEditPrefixIcon(
+                          enabled: widget.enabled,
+                          textFieldIsFocused: _textInputIsFocused,
+                          handlePromptSuggestion: handlePromptSuggestion,
+                          appType: appType,
+                          onAddImage: () async {
+                            final att = await pickAttachment();
+                            if (att != null) attachments.add(att);
+                            setState(() {});
+                          },
+                        ),
+                        suffixIcon: _GeminiEditSuffixIcon(
+                          textFieldIsFocused: _textInputIsFocused,
+                          onGenerate: () {
+                            widget.onUpdateCode(
+                              context,
+                              PromptDialogResponse(
+                                appType: appType,
+                                attachments: attachments,
+                                prompt: promptController.text,
+                              ),
+                            );
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                      maxLines: 8,
+                      minLines: 1,
+                    ),
+                  ),
+                  if (attachments.isNotEmpty)
+                    SizedBox(
+                      height: attachmentsBoxHeight,
+                      child: EditableImageList(
+                        compactDisplay: true,
+                        attachments: attachments,
+                        onRemove: (int index) {
+                          attachments.removeAt(index);
+                          setState(() {});
+                        },
+                        onAdd: () => {}, // the Add button isn't shown here
+                        maxAttachments: 3,
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
-    );
+            ),
+          )
+        : null;
 
     return Column(
       children: [
@@ -331,13 +339,13 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
           onUpdateCodePrompt: widget.onUpdateCodePrompt,
           onRejectSuggestedCode: widget.onRejectSuggestedCode,
         ),
-        textInputBlock,
+        ?textInputBlock,
       ],
     );
   }
 }
 
-const TextStyle geminiMessageTextTheme = TextStyle(
+const TextStyle _geminiMessageTextTheme = TextStyle(
   color: Color.fromARGB(255, 60, 60, 60),
 );
 
@@ -387,13 +395,13 @@ class _AcceptRejectBlock extends StatelessWidget {
                 ? [
                     TextButton(
                       onPressed: onCancelUpdateCode,
-                      child: Text('Cancel', style: geminiMessageTextTheme),
+                      child: Text('Cancel', style: _geminiMessageTextTheme),
                     ),
                   ]
                 : [
                     TextButton(
                       onPressed: onRejectSuggestedCode,
-                      child: Text('Cancel', style: geminiMessageTextTheme),
+                      child: Text('Cancel', style: _geminiMessageTextTheme),
                     ),
 
                     if (activeCuj != GenAiCuj.suggestFix)
@@ -433,7 +441,7 @@ class _AcceptRejectBlock extends StatelessWidget {
                         SizedBox(width: 8),
                         Text(
                           _statusMessage(context, genAiActivity),
-                          style: geminiMessageTextTheme,
+                          style: _geminiMessageTextTheme,
                         ),
                       ],
                     ),
@@ -514,7 +522,7 @@ class _ChangePromptBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: handler,
-      child: Text('Change Prompt', style: geminiMessageTextTheme),
+      child: Text('Change Prompt', style: _geminiMessageTextTheme),
     );
   }
 }
