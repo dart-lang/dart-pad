@@ -28,17 +28,6 @@ steps:
       - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
     dir: pkgs/dart_services
 
-  # Build storage artifacts
-  - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
-    id: Build storage artifacts
-    entrypoint: dart
-    args:
-      - tool/grind.dart
-      - build-storage-artifacts
-    env:
-      - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
-    dir: pkgs/dart_services
-
   # Save flutter version to a file
   - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
     id: Save flutter version
