@@ -102,14 +102,12 @@ CompileDDCResponse _$CompileDDCResponseFromJson(Map<String, dynamic> json) =>
     CompileDDCResponse(
       result: json['result'] as String,
       deltaDill: json['deltaDill'] as String?,
-      modulesBaseUrl: json['modulesBaseUrl'] as String?,
     );
 
 Map<String, dynamic> _$CompileDDCResponseToJson(CompileDDCResponse instance) =>
     <String, dynamic>{
       'result': instance.result,
       'deltaDill': instance.deltaDill,
-      'modulesBaseUrl': instance.modulesBaseUrl,
     };
 
 FormatResponse _$FormatResponseFromJson(Map<String, dynamic> json) =>

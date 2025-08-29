@@ -14,12 +14,10 @@ import '../primitives/gists.dart';
 import '../primitives/samples.g.dart';
 import '../primitives/utils.dart';
 
-// TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
-
 abstract class ExecutionService {
   Future<void> execute(
+    Channel usingChannel,
     String javaScript, {
-    String? modulesBaseUrl,
     String? engineVersion,
     required bool isNewDDC,
     required bool reload,
@@ -409,7 +407,6 @@ class AppServices {
       }
       _executeJavaScript(
         response.result,
-        modulesBaseUrl: response.modulesBaseUrl,
         engineVersion: appModel.runtimeVersions.value?.engineVersion,
         dartSource: source,
         isNewDDC: appModel.useNewDDC.value,
@@ -543,7 +540,6 @@ class AppServices {
   void _executeJavaScript(
     String javaScript, {
     required String dartSource,
-    String? modulesBaseUrl,
     String? engineVersion,
     required bool isNewDDC,
     required bool reload,
@@ -552,8 +548,8 @@ class AppServices {
 
     void execute() {
       _executionService?.execute(
+        channel.value,
         javaScript,
-        modulesBaseUrl: modulesBaseUrl,
         engineVersion: engineVersion,
         reload: reload,
         isNewDDC: isNewDDC,

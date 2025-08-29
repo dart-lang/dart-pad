@@ -27,12 +27,6 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('port', valueHelp: 'port', help: 'The port to listen on.')
     ..addOption('redis-url', valueHelp: 'url', help: 'The redis server url.')
-    ..addOption(
-      'storage-bucket',
-      valueHelp: 'name',
-      help: 'The name of the Cloud Storage bucket for compilation artifacts.',
-      defaultsTo: 'nnbd_artifacts',
-    )
     ..addFlag(
       'help',
       abbr: 'h',
@@ -68,8 +62,6 @@ Future<void> main(List<String> args) async {
   emitLogsToStdout();
 
   final redisServerUri = results['redis-url'] as String?;
-  final storageBucket =
-      results['storage-bucket'] as String? ?? 'nnbd_artifacts';
 
   final cloudRunEnvVars = Platform.environment.entries
       .where((entry) => entry.key.startsWith('K_'))
@@ -89,8 +81,7 @@ Starting dart-services:
   final server = await EndpointsServer.serve(
     port,
     sdk,
-    redisServerUri,
-    storageBucket,
+    redisServerUri: redisServerUri,
   );
 
   _logger.genericInfo('Listening on port ${server.port}');
@@ -99,15 +90,10 @@ Starting dart-services:
 class EndpointsServer {
   static Future<EndpointsServer> serve(
     int port,
-    Sdk sdk,
-    String? redisServerUri,
-    String storageBucket,
-  ) async {
-    final endpointsServer = EndpointsServer._(
-      sdk,
-      redisServerUri,
-      storageBucket,
-    );
+    Sdk sdk, {
+    required String? redisServerUri,
+  }) async {
+    final endpointsServer = EndpointsServer._(sdk, redisServerUri);
     await endpointsServer._init();
 
     endpointsServer.server = await shelf.serve(
@@ -125,7 +111,7 @@ class EndpointsServer {
 
   late final CommonServerApi commonServer;
 
-  EndpointsServer._(Sdk sdk, String? redisServerUri, String storageBucket) {
+  EndpointsServer._(Sdk sdk, String? redisServerUri) {
     // The name of the Cloud Run revision being run, for more detail please see:
     // https://cloud.google.com/run/docs/reference/container-contract#env-vars
     final serverVersion = Platform.environment['K_REVISION'];
@@ -134,9 +120,7 @@ class EndpointsServer {
         ? NoopCache()
         : RedisCache(redisServerUri, sdk, serverVersion);
 
-    commonServer = CommonServerApi(
-      CommonServerImpl(sdk, cache, storageBucket: storageBucket),
-    );
+    commonServer = CommonServerApi(CommonServerImpl(sdk, cache));
 
     final pipeline = const Pipeline()
         .addMiddleware(logRequestsToLogger(_logger))
@@ -196,7 +180,7 @@ class TestServerRunner {
 
     _started = Completer<void>();
     try {
-      await EndpointsServer.serve(_port, sdk, null, 'nnbd_artifacts');
+      await EndpointsServer.serve(_port, sdk, redisServerUri: null);
     } on SocketException {
       // This is expected if the server is already running.
     }

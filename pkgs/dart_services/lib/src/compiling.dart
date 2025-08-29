@@ -24,14 +24,12 @@ class Compiler {
   final Sdk _sdk;
   final String _dartPath;
   final BazelWorkerDriver _ddcDriver;
-  final String _storageBucket;
 
   final ProjectTemplates _projectTemplates;
 
-  Compiler(Sdk sdk, {required String storageBucket})
-    : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'), storageBucket);
+  Compiler(Sdk sdk) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'));
 
-  Compiler._(this._sdk, this._dartPath, this._storageBucket)
+  Compiler._(this._sdk, this._dartPath)
     : _ddcDriver = BazelWorkerDriver(
         () => Process.start(_dartPath, [
           path.join(
@@ -238,9 +236,6 @@ class Compiler {
           deltaDill: useNew
               ? base64Encode(newDeltaDill.readAsBytesSync())
               : null,
-          modulesBaseUrl:
-              'https://storage.googleapis.com/$_storageBucket'
-              '/${_sdk.dartVersion}/',
         );
         return results;
       }
@@ -307,16 +302,14 @@ class CompilationResults {
 class DDCCompilationResults {
   final String? compiledJS;
   final String? deltaDill;
-  final String? modulesBaseUrl;
   final List<CompilationProblem> problems;
 
-  DDCCompilationResults({this.compiledJS, this.deltaDill, this.modulesBaseUrl})
+  DDCCompilationResults({this.compiledJS, this.deltaDill})
     : problems = const <CompilationProblem>[];
 
   const DDCCompilationResults.failed(this.problems)
     : compiledJS = null,
-      deltaDill = null,
-      modulesBaseUrl = null;
+      deltaDill = null;
 
   bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
 

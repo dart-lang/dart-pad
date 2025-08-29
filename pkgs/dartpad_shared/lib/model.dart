@@ -148,13 +148,8 @@ class CompileResponse {
 class CompileDDCResponse {
   final String result;
   final String? deltaDill;
-  final String? modulesBaseUrl;
 
-  CompileDDCResponse({
-    required this.result,
-    required this.deltaDill,
-    required this.modulesBaseUrl,
-  });
+  CompileDDCResponse({required this.result, required this.deltaDill});
 
   factory CompileDDCResponse.fromJson(Map<String, Object?> json) =>
       _$CompileDDCResponseFromJson(json);

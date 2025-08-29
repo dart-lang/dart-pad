@@ -34,8 +34,7 @@ There are options to run UI locally:
    passing parameter `channel=localhost` to the UI, for example, with this command:
 
     ```
-    flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" \
-      --web-launch-url=http://localhost:8888/?channel=localhost
+    flutter run -d chrome --web-port 8888 --web-browser-flag "--disable-web-security" --web-launch-url "http://localhost:8888/?channel=localhost"
     ```
 
 ## How to publish to a custom Firebase Hosting project

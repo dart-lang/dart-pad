@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:dartpad_shared/model.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../model/model.dart';
@@ -30,11 +31,11 @@ class ExecutionServiceImpl implements ExecutionService {
 
   @override
   Future<void> execute(
+    Channel usingChannel,
     String javaScript, {
-    String? modulesBaseUrl,
     String? engineVersion,
-    required bool reload,
     required bool isNewDDC,
+    required bool reload,
     required bool isFlutter,
   }) async {
     if (!reload) {
@@ -43,8 +44,8 @@ class ExecutionServiceImpl implements ExecutionService {
 
     return _send(reload ? 'executeReload' : 'execute', {
       'js': _decorateJavaScript(
+        usingChannel,
         javaScript,
-        modulesBaseUrl: modulesBaseUrl,
         isNewDDC: isNewDDC,
         reload: reload,
         isFlutter: isFlutter,
@@ -75,8 +76,8 @@ class ExecutionServiceImpl implements ExecutionService {
   Future<void> tearDown() => _reset();
 
   String _decorateJavaScript(
+    Channel usingChannel,
     String javaScript, {
-    String? modulesBaseUrl,
     required bool isNewDDC,
     required bool reload,
     required bool isFlutter,
@@ -84,6 +85,9 @@ class ExecutionServiceImpl implements ExecutionService {
     if (reload) return javaScript;
 
     final script = StringBuffer();
+
+    // https://stable.api.dartpad.dev/artifacts/
+    final artifactsUrl = '${usingChannel.url}artifacts/';
 
     if (isNewDDC) {
       // Redirect print messages to the host.
@@ -115,15 +119,13 @@ window.onerror = function(message, url, line, column, error) {
 
       // Set the crossorigin: anonymous attribute on require.js scripts.
       // For example, dart_sdk.js or flutter_web.js.
-      if (modulesBaseUrl != null) {
-        script.writeln('''
+      script.writeln('''
 require.config({
-  "baseUrl": "$modulesBaseUrl",
+  "baseUrl": "$artifactsUrl",
   "waitSeconds": 60,
   "onNodeCreated": function(node, config, id, url) { node.setAttribute('crossorigin', 'anonymous'); }
 });
 ''');
-      }
 
       // Add a block to scope the __ddcInitCode variable to this blob in case
       // multiple blobs are loaded into the frame (as can happen in embedded
@@ -189,15 +191,13 @@ window.onerror = function(message, url, line, column, error) {
 
       // Set the crossorigin: anonymous attribute on require.js scripts.
       // For example, dart_sdk.js or flutter_web.js.
-      if (modulesBaseUrl != null) {
-        script.writeln('''
+      script.writeln('''
 require.config({
-  "baseUrl": "$modulesBaseUrl",
+  "baseUrl": "$artifactsUrl",
   "waitSeconds": 60,
   "onNodeCreated": function(node, config, id, url) { node.setAttribute('crossorigin', 'anonymous'); }
 });
 ''');
-      }
 
       script.writeln(javaScript);
 

@@ -27,7 +27,6 @@ void main() {
       );
       expect(result.result, isNotEmpty);
       expect(result.result.length, greaterThanOrEqualTo(512));
-      expect(result.modulesBaseUrl, isNotEmpty);
       expect(result.deltaDill, expectDeltaDill ? isNotEmpty : isNull);
     });
 
@@ -57,7 +56,6 @@ class MyApp extends StatelessWidget {
       );
       expect(result.result, isNotEmpty);
       expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
-      expect(result.modulesBaseUrl, isNotEmpty);
     });
 
     test('compile with error', () async {

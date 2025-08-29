@@ -30,4 +30,4 @@ jobs:
       - run: dart format --set-exit-if-changed .
       - run: dart tool/samples.dart --verify
       - run: flutter build web
-      - run: sh ./tool/check_cycles.sh
+      - run: tool/check_cycles.sh

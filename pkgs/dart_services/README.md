@@ -29,7 +29,6 @@ dart bin/server.dart
 The server will run from port 8080 and export several JSON APIs, like
 `/api/v3/analyze` and `/api/v3/compile`.
 
-
 ### Enabling code generation
 
 To test code generation features locally:
@@ -62,12 +61,6 @@ are uploaded to Cloud Storage automatically. These files are located in the
 If you need to re-generate these files, run the following command.
 
 ```
-grind build-storage-artifacts
-```
-
-Or, if you don't have `grind` on your PATH:
-
-```
 dart tool/grind.dart build-storage-artifacts
 ```
 
@@ -82,18 +75,13 @@ that the dependencies resolve and update the pinned versions specified in the
    whitelisted list of packages.
 2. Create the Dart and Flutter projects in the `project_templates/` directory:
 
-    ```bash
-    grind build-project-templates
-    ```
 
-    Or, if you don't have `grind` on your PATH:
-
-   ```
+   ```bash
    dart tool/grind.dart build-project-templates
    ```
 
 4. Run `pub upgrade` in the Dart or Flutter project in `project_templates/`
-5. Run `grind update-pub-dependencies` to overwrite the
+5. Run `dart tool/grind.dart update-pub-dependencies` to overwrite the
    `tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file for your current
    channel. Or, if you don't have `grind` on your PATH, `dart tool/grind.dart update-pub-dependencies`
 6. Repeat the above steps for the latest version of each Flutter channel
