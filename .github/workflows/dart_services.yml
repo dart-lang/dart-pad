@@ -42,11 +42,11 @@ jobs:
         run: dart format --set-exit-if-changed bin lib test tool
 
       - name: Create template projects and populate the custom pub cache
-        run: dart tool/grinder.dart build-project-templates
+        run: dart tool/grind.dart build-project-templates
 
       # Build the web artifacts on the bots to ensure they don't regress.
       - name: Build web artifacts
-        run: dart tool/grinder.dart build-storage-artifacts
+        run: dart tool/grind.dart build-storage-artifacts
 
       - name: Run tests
         run: dart test test/presubmit
