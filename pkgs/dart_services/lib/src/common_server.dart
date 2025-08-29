@@ -37,18 +37,13 @@ final log = DartPadLogger('common_server');
 class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
-  final String storageBucket;
 
   late Analyzer analyzer;
   late Compiler compiler;
   final ai = GenerativeAI();
   final GenUi genui = GenUi();
 
-  CommonServerImpl(
-    this.sdk,
-    this.cache, {
-    this.storageBucket = 'nnbd_artifacts',
-  });
+  CommonServerImpl(this.sdk, this.cache);
 
   Future<void> init() async {
     log.genericFine('initializing CommonServerImpl');
@@ -56,7 +51,7 @@ class CommonServerImpl {
     analyzer = Analyzer(sdk);
     await analyzer.init();
 
-    compiler = Compiler(sdk, storageBucket: storageBucket);
+    compiler = Compiler(sdk);
   }
 
   Future<void> shutdown() async {
@@ -81,7 +76,10 @@ class CommonServerApi {
     router.get(r'/api/<apiVersion>/version', handleVersion);
 
     // serve the compiled artifacts
-    router.mount('/artifacts/', createStaticHandler('artifacts'));
+    final artifactsDir = Directory('artifacts');
+    if (artifactsDir.existsSync()) {
+      router.mount('/artifacts/', createStaticHandler(artifactsDir.path));
+    }
 
     // general requests (POST)
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
@@ -103,6 +101,7 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
+
     return router;
   }();
 

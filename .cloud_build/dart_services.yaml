@@ -51,30 +51,6 @@ steps:
       - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
     dir: pkgs/dart_services
 
-  # Upload storage artifacts
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    id: Upload storage artifacts
-    entrypoint: bash
-    args:
-      - -c
-      - |
-          echo "Uploading storage artifact for version $(cat /workspace/dart_version.txt)" && gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js artifacts/*.js* gs://${_STORAGE_BUCKET}/$(cat /workspace/dart_version.txt)/
-    env:
-      - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
-    dir: pkgs/dart_services
-
-  # Validate storage artifacts
-  - name: gcr.io/$PROJECT_ID/flutter:${_FLUTTER_CHANNEL}
-    id: Validate storage artifacts
-    entrypoint: dart
-    args:
-      - tool/grind.dart
-      - validate-storage-artifacts
-      - --bucket=${_STORAGE_BUCKET}
-    env:
-      - FLUTTER_CHANNEL=${_FLUTTER_CHANNEL}
-    dir: pkgs/dart_services
-
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args:
@@ -118,7 +94,7 @@ steps:
       - --cpu-boost
       - --max-instances=1000
       - --command=bin/server
-      - --args=--redis-url=redis://${_REDIS_ADDR},--storage-bucket=${_STORAGE_BUCKET}
+      - --args=--redis-url=redis://${_REDIS_ADDR}
     dir: pkgs/dart_services
 timeout: 1200s
 images:

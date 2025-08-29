@@ -15,7 +15,7 @@ void main() {
     final sdk = Sdk.fromLocalFlutter();
 
     setUpAll(() async {
-      compiler = Compiler(sdk, storageBucket: 'nnbd_artifacts');
+      compiler = Compiler(sdk);
     });
 
     tearDownAll(() async {
