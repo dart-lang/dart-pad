@@ -14,7 +14,6 @@ import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/utils.dart';
 import 'package:grinder/grinder.dart';
-import 'package:http/http.dart' as http;
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 
@@ -30,46 +29,10 @@ final List<String> compilationArtifactsNew = [
   'ddc_module_loader.js',
 ];
 
-@Task(
-  'validate that we have the correct compilation artifacts available in '
-  'google storage',
-)
-void validateStorageArtifacts() async {
-  final args = context.invocation.arguments;
-  final sdk = Sdk.fromLocalFlutter();
-  final version = sdk.dartVersion;
-  final bucket = switch (args.hasOption('bucket')) {
-    true => args.getOption('bucket'),
-    false => 'nnbd_artifacts',
-  };
-
-  print(
-    'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket',
-  );
-
-  final urlBase = 'https://storage.googleapis.com/$bucket/';
-  for (final artifact
-      in sdk.useNewDdcSdk ? compilationArtifactsNew : compilationArtifacts) {
-    await _validateExists(Uri.parse('$urlBase$version/$artifact'));
-  }
-}
-
-Future<void> _validateExists(Uri url) async {
-  log('checking $url...');
-
-  final response = await http.head(url);
-  if (response.statusCode != 200) {
-    fail(
-      'compilation artifact not found: $url '
-      '(${response.statusCode} ${response.reasonPhrase})',
-    );
-  }
-}
-
 /// Builds the two project templates:
 ///
-/// * the Dart project template,
-/// * the Flutter project template,
+/// * the Dart project template
+/// * the Flutter project template
 @Task('build the project templates')
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
@@ -92,7 +55,6 @@ void buildProjectTemplates() async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-@Depends(updatePubDependencies)
 void buildStorageArtifacts() async {
   final sdk = Sdk.fromLocalFlutter();
   delete(getDir('artifacts'));
@@ -313,7 +275,7 @@ Future<String> _buildStorageArtifacts(
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(buildProjectTemplates, validateStorageArtifacts)
+@Depends(buildProjectTemplates)
 void deploy() {
   log('Deploy via Google Cloud Console');
 }

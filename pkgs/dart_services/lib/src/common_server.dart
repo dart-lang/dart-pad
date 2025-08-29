@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
 
 import 'analysis.dart';
 import 'caching.dart';
@@ -78,6 +79,9 @@ class CommonServerApi {
 
     // general requests (GET)
     router.get(r'/api/<apiVersion>/version', handleVersion);
+
+    // serve the compiled artifacts
+    router.mount('/artifacts/', createStaticHandler('artifacts'));
 
     // general requests (POST)
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
@@ -163,15 +167,10 @@ class CommonServerApi {
     });
 
     if (results.hasOutput) {
-      var modulesBaseUrl = results.modulesBaseUrl;
-      if (modulesBaseUrl != null && modulesBaseUrl.isEmpty) {
-        modulesBaseUrl = null;
-      }
       return ok(
         api.CompileDDCResponse(
           result: results.compiledJS!,
           deltaDill: results.deltaDill,
-          modulesBaseUrl: modulesBaseUrl,
         ).toJson(),
       );
     } else {

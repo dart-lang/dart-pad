@@ -68,7 +68,6 @@ void main() {
             expect(result.success, true);
             expect(result.compiledJS, isNotEmpty);
             expect(result.deltaDill, expectNewDeltaDill ? isNotEmpty : isNull);
-            expect(result.modulesBaseUrl, isNotEmpty);
 
             expect(result.compiledJS, contains(compiledIndicator));
           };
