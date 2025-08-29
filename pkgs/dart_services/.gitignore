@@ -19,7 +19,9 @@ pubspec.lock
 dump.rdb
 
 # compilation artifacts
-artifacts/
+artifacts/*.dill
+artifacts/*.js
+artifacts/*.map
 project_templates/
 flutter-sdks/
 local_pub_cache/

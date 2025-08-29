@@ -35,12 +35,15 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: dart format --set-exit-if-changed .
+
       - name: Create template projects
         run: dart run grinder build-project-templates
         working-directory: pkgs/dart_services/
       - name: Build the sdk compilation artifacts
         run: dart run grinder build-storage-artifacts
         working-directory: pkgs/dart_services/
+
       - run: flutter build web
-      - run: flutter test test
-      - run: sh ./tool/check_cycles.sh
+      - run: flutter test
+
+      - run: tool/check_cycles.sh
