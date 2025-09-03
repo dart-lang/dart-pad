@@ -78,7 +78,7 @@ class CommonServerApi {
     // serve the compiled artifacts
     final artifactsDir = Directory('artifacts');
     if (artifactsDir.existsSync()) {
-      router.mount('/artifacts/', createStaticHandler(artifactsDir.path));
+      router.mount('/artifacts/', _serveCachedArtifacts(artifactsDir.path));
     }
 
     // general requests (POST)
@@ -453,6 +453,23 @@ class CommonServerApi {
       packages: packages,
     );
   }
+}
+
+Handler _serveCachedArtifacts(String artifactsPath) {
+  final artifactsHandler = createStaticHandler(artifactsPath);
+
+  return (Request request) async {
+    var response = await artifactsHandler(request);
+    if (response.statusCode == 200) {
+      response = response.change(
+        headers: {
+          // Allow Caching for one hour.
+          'Cache-Control': 'public, max-age=max-age=3600',
+        },
+      );
+    }
+    return response;
+  };
 }
 
 class BadRequest implements Exception {
