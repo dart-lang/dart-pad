@@ -12,8 +12,8 @@ WORKDIR /pkgs/dart_services
 RUN dart pub get
 RUN dart compile exe bin/server.dart -o bin/server
 
-RUN dart tools/grind.dart build-project-templates
-RUN dart tools/grind.dart build-storage-artifacts
+RUN dart tool/grind.dart build-project-templates
+RUN dart tool/grind.dart build-storage-artifacts
 
 ENV BUILD_SHA=$BUILD_SHA
 
