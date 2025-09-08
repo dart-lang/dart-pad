@@ -464,7 +464,7 @@ Handler _serveCachedArtifacts(String artifactsPath) {
       response = response.change(
         headers: {
           // Allow Caching for one hour.
-          'Cache-Control': 'public, max-age=max-age=3600',
+          'Cache-Control': 'max-age=3600, public',
         },
       );
     }
