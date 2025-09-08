@@ -14,7 +14,6 @@ import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/utils.dart';
 import 'package:grinder/grinder.dart';
-import 'package:http/http.dart' as http;
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 
@@ -30,46 +29,10 @@ final List<String> compilationArtifactsNew = [
   'ddc_module_loader.js',
 ];
 
-@Task(
-  'validate that we have the correct compilation artifacts available in '
-  'google storage',
-)
-void validateStorageArtifacts() async {
-  final args = context.invocation.arguments;
-  final sdk = Sdk.fromLocalFlutter();
-  final version = sdk.dartVersion;
-  final bucket = switch (args.hasOption('bucket')) {
-    true => args.getOption('bucket'),
-    false => 'nnbd_artifacts',
-  };
-
-  print(
-    'validate-storage-artifacts version: ${sdk.dartVersion} bucket: $bucket',
-  );
-
-  final urlBase = 'https://storage.googleapis.com/$bucket/';
-  for (final artifact
-      in sdk.useNewDdcSdk ? compilationArtifactsNew : compilationArtifacts) {
-    await _validateExists(Uri.parse('$urlBase$version/$artifact'));
-  }
-}
-
-Future<void> _validateExists(Uri url) async {
-  log('checking $url...');
-
-  final response = await http.head(url);
-  if (response.statusCode != 200) {
-    fail(
-      'compilation artifact not found: $url '
-      '(${response.statusCode} ${response.reasonPhrase})',
-    );
-  }
-}
-
 /// Builds the two project templates:
 ///
-/// * the Dart project template,
-/// * the Flutter project template,
+/// * the Dart project template
+/// * the Flutter project template
 @Task('build the project templates')
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
@@ -92,27 +55,18 @@ void buildProjectTemplates() async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-@Depends(updatePubDependencies)
 void buildStorageArtifacts() async {
   final sdk = Sdk.fromLocalFlutter();
   delete(getDir('artifacts'));
-  final instructions = <String>[];
 
-  // build and copy ddc_module_loader.js, dart_sdk.js, flutter_web.js, and
-  // flutter_web.dill
+  // Build and copy ddc_module_loader.js, dart_sdk.js, flutter_web.js, and
+  // flutter_web.dill.
   final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
-    instructions.add(
-      await _buildStorageArtifacts(temp, sdk, channel: sdk.channel),
-    );
+    await _buildStorageArtifacts(temp, sdk, channel: sdk.channel);
   } finally {
     temp.deleteSync(recursive: true);
-  }
-
-  log('\nFrom the dart-services project root dir, run:');
-  for (final instruction in instructions) {
-    log(instruction);
   }
 }
 
@@ -130,7 +84,7 @@ const _flutterPackages = {
   'web',
 };
 
-Future<String> _buildStorageArtifacts(
+Future<void> _buildStorageArtifacts(
   Directory dir,
   Sdk sdk, {
   required String channel,
@@ -298,25 +252,11 @@ Future<String> _buildStorageArtifacts(
     copy(joinFile(dir, ['flutter_web_new.js']), artifactsDir);
     copy(joinFile(dir, ['flutter_web_new.js.map']), artifactsDir);
   }
-
-  final args = context.invocation.arguments;
-  final bucket = switch (args.hasOption('bucket')) {
-    true => args.getOption('bucket'),
-    false => 'nnbd_artifacts',
-  };
-
-  // Emit some good Google Storage upload instructions.
-  final version = sdk.dartVersion;
-  return '  gsutil -h "Cache-Control: public, max-age=604800, immutable" '
-      'cp -z js ${artifactsDir.path}/*.js* '
-      'gs://$bucket/$version/';
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(buildProjectTemplates, validateStorageArtifacts)
-void deploy() {
-  log('Deploy via Google Cloud Console');
-}
+@Depends(buildProjectTemplates)
+void deploy() {}
 
 Future<void> _run(
   String executable, {
