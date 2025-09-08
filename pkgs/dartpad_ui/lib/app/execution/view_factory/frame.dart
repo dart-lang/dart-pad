@@ -21,6 +21,7 @@ class ExecutionServiceImpl implements ExecutionService {
 
   web.HTMLIFrameElement _frame;
   late String _frameSrc;
+  Completer<void>? _activeExecuteCompleter;
   Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceImpl(this._frame) {
@@ -37,21 +38,35 @@ class ExecutionServiceImpl implements ExecutionService {
     required bool isNewDDC,
     required bool isFlutter,
   }) async {
-    if (!reload) {
-      await _reset();
+    if (_activeExecuteCompleter != null) {
+      await _activeExecuteCompleter!.future.timeout(
+        Duration(seconds: 5),
+        onTimeout: () {
+          _activeExecuteCompleter?.complete();
+        },
+      );
     }
+    _activeExecuteCompleter = Completer();
+    try {
+      if (!reload) {
+        await _reset();
+      }
 
-    return _send(reload ? 'executeReload' : 'execute', {
-      'js': _decorateJavaScript(
-        javaScript,
-        modulesBaseUrl: modulesBaseUrl,
-        isNewDDC: isNewDDC,
-        reload: reload,
-        isFlutter: isFlutter,
-      ),
-      if (engineVersion != null)
-        'canvasKitBaseUrl': _canvasKitUrl(engineVersion),
-    });
+      await _send(reload ? 'executeReload' : 'execute', {
+        'js': _decorateJavaScript(
+          javaScript,
+          modulesBaseUrl: modulesBaseUrl,
+          isNewDDC: isNewDDC,
+          reload: reload,
+          isFlutter: isFlutter,
+        ),
+        if (engineVersion != null)
+          'canvasKitBaseUrl': _canvasKitUrl(engineVersion),
+      });
+    } finally {
+      _activeExecuteCompleter?.complete();
+      _activeExecuteCompleter = null;
+    }
   }
 
   @override
