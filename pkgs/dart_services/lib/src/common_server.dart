@@ -17,7 +17,6 @@ import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
 import 'context.dart';
-import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'logging.dart';
 import 'project_templates.dart';
@@ -41,7 +40,6 @@ class CommonServerImpl {
   late Analyzer analyzer;
   late Compiler compiler;
   final ai = GenerativeAI();
-  final GenUi genui = GenUi();
 
   CommonServerImpl(this.sdk, this.cache);
 

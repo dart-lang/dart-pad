@@ -36,13 +36,11 @@ To test code generation features locally:
 1. Get needed API keys:
 
    * Get a GEMINI_API_KEY key from [Google AI Studio](https://aistudio.google.com)
-   * See how to get a GENUI_API_KEY in the internal go/dartpad-manual.
 
 2. Set the needed environment variables before running:
 
    ```
    export GEMINI_API_KEY=<YOUR_GEMINI_API_KEY>
-   export GENUI_API_KEY=<YOUR_GENUI_API_KEY>
    dart bin/server.dart
    ```
 
