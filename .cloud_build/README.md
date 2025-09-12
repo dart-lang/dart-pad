@@ -35,7 +35,6 @@ gcloud builds submit \
 
 The substitutions are a comma separated list of `SUBSITUTION=value`:
 - `_FLUTTER_CHANNEL` - The Flutter channel to use. (`stable`, `beta`, or `main`)
-- `_STORAGE_BUCKET` - The name of the Cloud Storage bucket to use (nnbd_artifacts)
 - `_SERVICE_NAME` - The name of the Cloud Run service (dart-services-cloud-run, flutter-beta-channel, or flutter-master-channel)
 - `_DEPLOY_REGION` - The region to deploy the Cloud Run service to (us-central1)
 - `_REDIS_ADDR` - the IP address of the Redis bucket (10.0.0.4:6379)

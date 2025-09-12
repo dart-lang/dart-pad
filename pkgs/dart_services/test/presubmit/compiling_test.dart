@@ -15,7 +15,7 @@ void main() {
     final sdk = Sdk.fromLocalFlutter();
 
     setUpAll(() async {
-      compiler = Compiler(sdk, storageBucket: 'nnbd_artifacts');
+      compiler = Compiler(sdk);
     });
 
     tearDownAll(() async {
@@ -68,7 +68,6 @@ void main() {
             expect(result.success, true);
             expect(result.compiledJS, isNotEmpty);
             expect(result.deltaDill, expectNewDeltaDill ? isNotEmpty : isNull);
-            expect(result.modulesBaseUrl, isNotEmpty);
 
             expect(result.compiledJS, contains(compiledIndicator));
           };

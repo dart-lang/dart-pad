@@ -11,12 +11,12 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
 
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
 import 'context.dart';
-import 'flutter_genui.dart';
 import 'generative_ai.dart';
 import 'logging.dart';
 import 'project_templates.dart';
@@ -36,18 +36,12 @@ final log = DartPadLogger('common_server');
 class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
-  final String storageBucket;
 
   late Analyzer analyzer;
   late Compiler compiler;
   final ai = GenerativeAI();
-  final GenUi genui = GenUi();
 
-  CommonServerImpl(
-    this.sdk,
-    this.cache, {
-    this.storageBucket = 'nnbd_artifacts',
-  });
+  CommonServerImpl(this.sdk, this.cache);
 
   Future<void> init() async {
     log.genericFine('initializing CommonServerImpl');
@@ -55,7 +49,7 @@ class CommonServerImpl {
     analyzer = Analyzer(sdk);
     await analyzer.init();
 
-    compiler = Compiler(sdk, storageBucket: storageBucket);
+    compiler = Compiler(sdk);
   }
 
   Future<void> shutdown() async {
@@ -79,6 +73,12 @@ class CommonServerApi {
     // general requests (GET)
     router.get(r'/api/<apiVersion>/version', handleVersion);
 
+    // serve the compiled artifacts
+    final artifactsDir = Directory('artifacts');
+    if (artifactsDir.existsSync()) {
+      router.mount('/artifacts/', _serveCachedArtifacts(artifactsDir.path));
+    }
+
     // general requests (POST)
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
     router.post(r'/api/<apiVersion>/compile', handleCompile);
@@ -99,6 +99,7 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
+
     return router;
   }();
 
@@ -163,15 +164,10 @@ class CommonServerApi {
     });
 
     if (results.hasOutput) {
-      var modulesBaseUrl = results.modulesBaseUrl;
-      if (modulesBaseUrl != null && modulesBaseUrl.isEmpty) {
-        modulesBaseUrl = null;
-      }
       return ok(
         api.CompileDDCResponse(
           result: results.compiledJS!,
           deltaDill: results.deltaDill,
-          modulesBaseUrl: modulesBaseUrl,
         ).toJson(),
       );
     } else {
@@ -455,6 +451,23 @@ class CommonServerApi {
       packages: packages,
     );
   }
+}
+
+Handler _serveCachedArtifacts(String artifactsPath) {
+  final artifactsHandler = createStaticHandler(artifactsPath);
+
+  return (Request request) async {
+    var response = await artifactsHandler(request);
+    if (response.statusCode == 200) {
+      response = response.change(
+        headers: {
+          // Allow Caching for one hour.
+          'Cache-Control': 'max-age=3600, public',
+        },
+      );
+    }
+    return response;
+  };
 }
 
 class BadRequest implements Exception {
