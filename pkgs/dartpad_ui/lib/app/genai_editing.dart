@@ -724,16 +724,20 @@ class _EditingArea extends StatelessWidget {
                   listenables: [appModel.showReload, appModel.canReload],
                   builder: (_) {
                     if (!appModel.showReload.value) return const SizedBox();
-                    return PointerInterceptor(
-                      child: ReloadButton(
-                        onPressed: appModel.canReload.value
-                            ? onCompileAndReload
-                            : null,
-                      ),
+                    return Row(
+                      children: [
+                        PointerInterceptor(
+                          child: ReloadButton(
+                            onPressed: appModel.canReload.value
+                                ? onCompileAndReload
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: defaultSpacing),
+                      ],
                     );
                   },
                 ),
-                const SizedBox(width: defaultSpacing),
                 // Run button
                 ValueListenableBuilder<CompilingState>(
                   valueListenable: appModel.compilingState,
