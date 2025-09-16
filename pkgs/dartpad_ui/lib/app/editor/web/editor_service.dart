@@ -117,6 +117,7 @@ class EditorServiceImpl implements EditorService {
     // correctly when compiled to Wasm.
     Future<void>.delayed(const Duration(milliseconds: 80), () {
       _codeMirror?.refresh();
+      focus();
     });
   }
 
@@ -452,7 +453,7 @@ void _weHandleElsewhere(CodeMirror editor) {
 const _codeMirrorOptions = {
   'autoCloseBrackets': true,
   'autoCloseTags': {'whenOpening': true, 'whenClosing': true},
-  'autofocus': false,
+  'autofocus': true,
   'cursorHeight': 0.85,
   'continueComments': {'continueLineComment': false},
   'extraKeys': {
