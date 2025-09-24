@@ -78,6 +78,7 @@
   "nested": "1.0.0",
   "node_preamble": "2.0.2",
   "ordered_set": "8.0.0",
+  "oref": "2.2.0",
   "package_config": "2.2.0",
   "path": "1.9.1",
   "path_parsing": "1.1.0",
