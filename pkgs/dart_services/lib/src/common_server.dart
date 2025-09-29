@@ -12,6 +12,8 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_static/shelf_static.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'analysis.dart';
 import 'caching.dart';
@@ -73,6 +75,9 @@ class CommonServerApi {
     // general requests (GET)
     router.get(r'/api/<apiVersion>/version', handleVersion);
 
+    // websocket requests
+    router.get(r'/ws', webSocketHandler(handleWebSocket));
+
     // serve the compiled artifacts
     final artifactsDir = Directory('artifacts');
     if (artifactsDir.existsSync()) {
@@ -113,6 +118,32 @@ class CommonServerApi {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     return ok(version().toJson());
+  }
+
+  void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
+    webSocket.stream.listen(
+      (message) {
+        // Handle incoming WebSocket messages
+        print('  => $message');
+
+        final response = '** $message **';
+        webSocket.sink.add(response);
+        print('  <= $response');
+      },
+      onDone: () {
+        // TODO: log this
+        // [info]    23ms    0k null GET /ws
+
+        // todo:
+        print('WebSocket disconnected');
+      },
+      onError: (Object error) {
+        // TODO: log this
+
+        // todo:
+        print('WebSocket error: $error');
+      },
+    );
   }
 
   Future<Response> handleAnalyze(Request request, String apiVersion) async {
@@ -512,7 +543,6 @@ Middleware logRequestsToLogger(DartPadLogger log) {
       final watch = Stopwatch()..start();
 
       final ctx = DartPadRequestContext.fromRequest(request);
-      log.genericInfo('received request, enableLogging=${ctx.enableLogging}');
 
       return Future.sync(() => innerHandler(request)).then(
         (response) {
@@ -524,7 +554,11 @@ Middleware logRequestsToLogger(DartPadLogger log) {
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
-          if (error is HijackException) throw error;
+          if (error is HijackException) {
+            log.info(_formatMessage(request, watch.elapsed), ctx);
+
+            throw error;
+          }
 
           log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
 

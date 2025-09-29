@@ -146,6 +146,10 @@ Middleware exceptionResponse() {
     return (Request request) async {
       try {
         return await handler(request);
+      } on HijackException {
+        // We ignore hijack exceptions as they are not error conditions; they're
+        // used used for control flow when upgrading websocket connections.
+        rethrow;
       } catch (e, st) {
         if (e is BadRequest) {
           return Response.badRequest(body: e.message);

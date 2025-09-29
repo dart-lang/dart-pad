@@ -8,6 +8,7 @@ import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:web_socket/web_socket.dart';
 
 import '../primitives/flutter_samples.dart';
 import '../primitives/gists.dart';
@@ -270,6 +271,36 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
+    // perform a test websocket connection
+    {
+      final url = Uri.parse(services.rootUrl);
+      final wsUrl = url.replace(
+        scheme: url.scheme == 'https' ? 'wss' : 'ws',
+        path: 'ws',
+      );
+      final socket = await WebSocket.connect(wsUrl);
+
+      socket.events.listen((e) async {
+        switch (e) {
+          case TextDataReceived(text: final text):
+            print('received: $text');
+            // await socket.close();
+            break;
+          case BinaryDataReceived(data: final data):
+            print('Received Binary: $data');
+            break;
+          case CloseReceived(code: final code, reason: final reason):
+            print('Connection to server closed: $code [$reason]');
+            break;
+        }
+      });
+
+      socket.sendText('Hello 1');
+      socket.sendText('Hello 2');
+      socket.sendText('Hello 3 🎉');
+    }
+    // perform a test websocket connection
+
     final version = await services.version();
     appModel.runtimeVersions.value = version;
     return version;
