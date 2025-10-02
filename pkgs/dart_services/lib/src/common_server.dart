@@ -123,8 +123,8 @@ class CommonServerApi {
 
   /// Handle a new websocket connection request.
   ///
-  /// Handle new websocket requests, convert them to commands here and dispatch
-  /// then appropriately. The commands and responses mirror the existing REST
+  /// Handle incoming requests, convert them to exising commands and dispatch
+  /// them appropriately. The commands and responses mirror the existing REST
   /// protocol.
   ///
   /// This will be a long-running conneciton to the client.
