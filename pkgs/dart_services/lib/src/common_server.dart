@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
+import 'package:dartpad_shared/ws.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
@@ -39,9 +40,9 @@ class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
 
-  late Analyzer analyzer;
-  late Compiler compiler;
-  final ai = GenerativeAI();
+  late final Analyzer analyzer;
+  late final Compiler compiler;
+  final GenerativeAI ai = GenerativeAI();
 
   CommonServerImpl(this.sdk, this.cache);
 
@@ -120,28 +121,48 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
+  /// Handle a new websocket connection request.
+  ///
+  /// Handle new websocket requests, convert them to commands here and dispatch
+  /// then appropriately. The commands and responses mirror the existing REST
+  /// protocol.
+  ///
+  /// This will be a long-running conneciton to the client.
   void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
     webSocket.stream.listen(
       (message) {
-        // Handle incoming WebSocket messages
-        print('  => $message');
+        try {
+          // Handle incoming WebSocket messages
+          final request = JsonRpcRequest.fromJson(message as String);
+          log.genericInfo('ws request: ${request.method}');
+          JsonRpcResponse? response;
 
-        final response = '** $message **';
-        webSocket.sink.add(response);
-        print('  <= $response');
+          switch (request.method) {
+            case 'version':
+              final v = version();
+              response = request.createResultResponse(v.toJson());
+              break;
+            default:
+              response = request.createErrorResponse(
+                'unknown command: ${request.method}',
+              );
+              break;
+          }
+
+          webSocket.sink.add(jsonEncode(response.toJson()));
+          log.genericInfo(
+            'ws response: '
+            '${request.method} ${response.error != null ? '500' : '200'}',
+          );
+        } catch (e) {
+          log.genericSevere('error handling websocket request', error: e);
+        }
       },
       onDone: () {
-        // TODO: log this
-        // [info]    23ms    0k null GET /ws
-
-        // todo:
-        print('WebSocket disconnected');
+        // Nothing to clean up here.
       },
       onError: (Object error) {
-        // TODO: log this
-
-        // todo:
-        print('WebSocket error: $error');
+        log.genericSevere('error from websocket connection', error: error);
       },
     );
   }
