@@ -1,0 +1,69 @@
+name: Report an issue
+description: Report a general issue with DartPad.
+labels: ["type-bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for using DartPad!
+
+        If you haven't already, please check our troubleshooting guide for info
+        on resolving common problems people may run into when using DartPad:
+        
+        https://dart.dev/tools/dartpad/troubleshoot
+    
+        If you're still having an issue, we'd like to help.
+        By providing as much information as possible about your
+        browser, machine, and experience, you can help us
+        identify problems as quickly as possible.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant console output or errors
+      description: |
+        Please provide any relevant console output or errors,
+        from both DartPad or the browser console.
+      render: shell
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How did this error happen?
+      description: |
+        Please provide a description of how you encountered this error and
+        reproduction steps if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: dart-code
+    attributes:
+      label: Relevant Dart code
+      description: |
+        If relevant, share the Dart code you had in the editor
+        when the bug or error ocurred.
+      placeholder: Paste your Dart code here.
+  - id: os
+    attributes:
+      label: What OS did this error occur on?
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - ChromeOS
+        - Other
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browser(s) did you experience this issue on?
+      multiple: true
+      options:
+        - Chromium based (Chrome, Edge)
+        - Gecko based (Firefox)
+        - WebKit based (Safari, iOS Chrome)
+  - type: input
+    id: extensions
+    attributes:
+      label: What browser extensions did you have enabled?
+      description: |
+        If you have any browser extensions installed, please list them here.
+      placeholder: List any relevant browser extensions here.
