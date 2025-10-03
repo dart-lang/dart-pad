@@ -61,10 +61,12 @@ body:
         - Chromium based (Chrome, Edge)
         - Gecko based (Firefox)
         - WebKit based (Safari, iOS Chrome)
-  - type: input
-    id: extensions
+  - type: textarea
+    id: extra
     attributes:
-      label: What browser extensions did you have enabled?
+      label: Do you have any additional information?
       description: |
-        If you have any browser extensions installed, please list them here.
-      placeholder: List any relevant browser extensions here.
+        If you think any other information might be relevant to the issue,
+        such as browser extensions, version information, UI screenshots,
+        or similar, include it here.
+      placeholder: Provide additional context here.
