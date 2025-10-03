@@ -1,0 +1,61 @@
+name: Report a console error
+description: Report an unexpected error in the DartPad or browser console.
+labels: ["type-bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this issue!
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant console output
+      description: |
+        Please copy and paste any relevant console output that
+        occurred alongside the error.
+      render: shell
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: When did the error happen?
+      description: |
+        Describe what you were doing in DartPad when the error occurred.
+    validations:
+      required: true
+  - type: textarea
+    id: dart-code
+    attributes:
+      label: Your Dart code
+      description: |
+        If possible, share the Dart code you were running when
+        you experienced the error.
+      placeholder: Paste your Dart code here.
+  - type: dropdown
+    id: os
+    attributes:
+      label: What OS did this error occur on?
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - ChromeOS
+        - Other
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browser(s) did this error occur on?
+      multiple: true
+      options:
+        - Chromium based (Chrome, Edge)
+        - Gecko based (Firefox)
+        - WebKit based (Safari, iOS Chrome)
+  - type: textarea
+    id: extra
+    attributes:
+      label: Do you have any additional information?
+      description: |
+        If you think any other information might be relevant to the issue,
+        such as browser extensions, version information, UI screenshots,
+        or similar, include it here.
+      placeholder: Provide additional context here.
