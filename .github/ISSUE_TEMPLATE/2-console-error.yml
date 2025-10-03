@@ -30,7 +30,8 @@ body:
         If possible, share the Dart code you were running when
         you experienced the error.
       placeholder: Paste your Dart code here.
-  - id: os
+  - type: dropdown
+    id: os
     attributes:
       label: What OS did this error occur on?
       multiple: true

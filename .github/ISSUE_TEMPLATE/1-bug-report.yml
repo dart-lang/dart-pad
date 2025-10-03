@@ -39,9 +39,10 @@ body:
       label: Relevant Dart code
       description: |
         If relevant, share the Dart code you had in the editor
-        when the bug or error ocurred.
+        when the bug or error occurred.
       placeholder: Paste your Dart code here.
-  - id: os
+  - type: dropdown
+    id: os
     attributes:
       label: What OS did this error occur on?
       multiple: true
