@@ -1,0 +1,27 @@
+name: Suggest an enhancement
+description: Suggest a new feature or improvement to DartPad.
+labels: ["type-enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest an enhancement to DartPad!
+  - type: dropdown
+    id: area
+    attributes:
+      label: How would you categorize your suggested enhancement?
+      multiple: true
+      options:
+        - User interface
+        - New sample
+        - Package support
+        - Editor functionality
+        - Embedding or sharing
+        - Other
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggestion
+      description: |
+        Please describe the feature or change you would like to see in DartPad.
+      render: Write your suggestion here.
