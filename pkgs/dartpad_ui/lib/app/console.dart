@@ -181,25 +181,21 @@ class FileIssueButton extends StatelessWidget {
       ),
       child: Text('File an issue'),
       onPressed: () {
-        final issueBody = _createGithubIssue(errorMessage);
+        final issueBody = _createGitHubIssue(errorMessage);
 
         launchUrl(
-          Uri(
-            scheme: 'https',
-            host: 'github.com',
-            path: 'dart-lang/dart-pad/issues/new',
-            queryParameters: {
-              'title':
-                  '[console error] unexpected javascript error from running app',
-              'body': issueBody,
-            },
-          ),
+          Uri.https('github.com', 'dart-lang/dart-pad/issues/new', {
+            'template': '2-console-error.yml',
+            'title':
+                '[console error] Unexpected javascript error from running app',
+            'logs': issueBody,
+          }),
         );
       },
     );
   }
 
-  String _createGithubIssue(String stackTrace) {
+  String _createGitHubIssue(String stackTrace) {
     return '''DartPad displayed an unexpected error in the console:
 
 ```

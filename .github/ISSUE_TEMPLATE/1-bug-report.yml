@@ -40,7 +40,10 @@ body:
       description: |
         If relevant, share the Dart code you had in the editor
         when the bug or error occurred.
-      placeholder: Paste your Dart code here.
+        This block be automatically formatted as Dart code,
+        so no need for backticks.
+      placeholder: Paste relevant Dart code here.
+      render: dart
   - type: dropdown
     id: os
     attributes:
