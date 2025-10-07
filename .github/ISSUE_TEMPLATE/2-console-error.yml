@@ -29,7 +29,7 @@ body:
       description: |
         If possible, share the Dart code you were running when
         you experienced the error.
-        This block be automatically formatted as Dart code,
+        This block will be automatically formatted as Dart code,
         so no need for backticks.
       placeholder: Paste your Dart code here.
       render: dart

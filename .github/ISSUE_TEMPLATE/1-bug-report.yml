@@ -40,7 +40,7 @@ body:
       description: |
         If relevant, share the Dart code you had in the editor
         when the bug or error occurred.
-        This block be automatically formatted as Dart code,
+        This block will be automatically formatted as Dart code,
         so no need for backticks.
       placeholder: Paste relevant Dart code here.
       render: dart
