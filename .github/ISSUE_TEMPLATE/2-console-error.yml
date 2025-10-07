@@ -1,6 +1,6 @@
 name: Report a console error
 description: Report an unexpected error in the DartPad or browser console.
-labels: ["type-bug"]
+labels: ["area-execution", "type-bug"]
 body:
   - type: markdown
     attributes:
@@ -29,7 +29,10 @@ body:
       description: |
         If possible, share the Dart code you were running when
         you experienced the error.
+        This block will be automatically formatted as Dart code,
+        so no need for backticks.
       placeholder: Paste your Dart code here.
+      render: dart
   - type: dropdown
     id: os
     attributes:
