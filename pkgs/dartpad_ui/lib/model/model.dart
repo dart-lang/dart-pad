@@ -14,6 +14,12 @@ import '../primitives/gists.dart';
 import '../primitives/samples.g.dart';
 import '../primitives/utils.dart';
 
+/// A compile-time flag to control making requests over websockets.
+///
+/// Do not check this in `true`; this will create a long-lived connection to the
+/// backend and we don't yet know how well that will scale.
+const useWebsockets = false;
+
 abstract class ExecutionService {
   Future<void> execute(
     Channel usingChannel,
@@ -191,8 +197,8 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final _httpClient = DartServicesHttpClient();
   late DartServicesClient services;
+  WebsocketServicesClient? webSocketServices;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -213,7 +219,10 @@ class AppServices {
 
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
-    services = DartServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(
+      DartServicesHttpClient(),
+      rootUrl: channel.url,
+    );
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
@@ -234,7 +243,15 @@ class AppServices {
   ValueListenable<Channel> get channel => _channel;
 
   Future<VersionResponse> setChannel(Channel channel) async {
-    services = DartServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(services.client, rootUrl: channel.url);
+
+    // Tear this down if using websockets; this will be recreated automatically
+    // as necessary.
+    if (useWebsockets) {
+      webSocketServices?.dispose();
+      webSocketServices = null;
+    }
+
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;
@@ -270,7 +287,20 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
-    final version = await services.version();
+    VersionResponse version;
+
+    if (useWebsockets) {
+      // Since using websockets is a compile-time config option, and it's only
+      // used for the version call, we create it here on demand.
+      webSocketServices ??= await WebsocketServicesClient.connect(
+        services.rootUrl,
+      );
+
+      version = await webSocketServices!.version();
+    } else {
+      version = await services.version();
+    }
+
     appModel.runtimeVersions.value = version;
     return version;
   }
@@ -576,7 +606,7 @@ class AppServices {
   }
 
   void dispose() {
-    _httpClient.close();
+    services.dispose();
 
     appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
