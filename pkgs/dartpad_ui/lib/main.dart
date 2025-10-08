@@ -788,7 +788,7 @@ class StatusLineWidget extends StatelessWidget {
               ),
             ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
-          VersionInfoWidget(appModel.runtimeVersions),
+          VersionInfoWidget(appModel.runtimeVersions, hideLabel: mobileVersion),
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
         ],
@@ -1123,38 +1123,47 @@ class KeyBindingsTable extends StatelessWidget {
 
 class VersionInfoWidget extends StatefulWidget {
   final ValueListenable<VersionResponse?> versions;
+  final bool hideLabel;
 
-  const VersionInfoWidget(this.versions, {super.key});
+  const VersionInfoWidget(this.versions, {super.key, this.hideLabel = false});
 
   @override
   State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
 }
 
 class _VersionInfoWidgetState extends State<VersionInfoWidget> {
-  bool hovered = false;
+  void _showVersionDialog(VersionResponse versions) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => MediumDialog(
+        title: 'Runtime versions',
+        child: VersionTable(version: versions),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<VersionResponse?>(
       valueListenable: widget.versions,
-      builder: (content, versions, _) {
-        if (versions == null) {
-          return const SizedBox();
-        }
+      builder: (_, versions, _) {
+        if (versions == null) return const SizedBox();
 
-        return TextButton(
-          onPressed: () {
-            showDialog<void>(
-              context: context,
-              builder: (context) {
-                return MediumDialog(
-                  title: 'Runtime versions',
-                  child: VersionTable(version: versions),
-                );
-              },
-            );
-          },
-          child: Text(versions.label),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: widget.hideLabel
+              ? IconButton(
+                  key: const ValueKey('info_icon'),
+                  icon: const Icon(Icons.info_outline),
+                  tooltip: 'Runtime versions',
+                  onPressed: () => _showVersionDialog(versions),
+                )
+              : TextButton.icon(
+                  key: const ValueKey('info_button'),
+                  icon: const Icon(Icons.info_outline, size: 18),
+                  label: Text(versions.label),
+                  onPressed: () => _showVersionDialog(versions),
+                ),
         );
       },
     );
