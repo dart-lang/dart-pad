@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:google_cloud_ai_generativelanguage_v1/generativelanguage.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 
 import 'logging.dart';
 import 'project_templates.dart';
@@ -15,11 +16,12 @@ import 'pub.dart';
 final DartPadLogger _logger = DartPadLogger('gen-ai');
 
 class GenerativeAI {
-  // Valid values here are 'gemini-2.0-flash' and 'gemini-2.5-flash'.
-  static const String _geminiModel = 'gemini-2.5-flash';
+  // Valid values here are 'models/gemini-2.0-flash' and
+  // 'models/gemini-2.5-flash'.
+  static const String _geminiModel = 'models/gemini-2.5-flash';
   static const String _apiKeyVarName = 'GEMINI_API_KEY';
 
-  late final String? _geminiApiKey;
+  GenerativeService? gemini;
 
   GenerativeAI() {
     final geminiApiKey = Platform.environment[_apiKeyVarName];
@@ -29,37 +31,59 @@ class GenerativeAI {
       );
     } else {
       _logger.genericInfo('$_apiKeyVarName set; gen-ai features ENABLED');
-      _geminiApiKey = geminiApiKey;
+
+      final client = auth.clientViaApiKey(geminiApiKey);
+      gemini = GenerativeService(client: client);
     }
   }
 
-  bool get _canGenAI => _geminiApiKey != null;
+  bool get _canGenAI => gemini != null;
 
-  late final GenerativeModel? _flutterFixModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.flutter, '''
+  final Part _flutterFixInstructions = Part(
+    text: '''
 You will be given an error message in provided Flutter source code along with an
 optional line and column number where the error appears. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
 with the error fixed.
-'''),
-        )
-      : null;
+''',
+  );
 
-  late final GenerativeModel? _dartFixModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.dart, '''
+  final Part _dartFixInstructions = Part(
+    text: '''
 You will be given an error message in provided Dart source code along with an
 optional line and column number where the error appears. Please fix the code and
 return it in it's entirety. The response should be the same program as the input
 with the error fixed.
+''',
+  );
+
+  final Part _newFlutterCodeInstructions = Part(
+    text: '''
+Generate a Flutter program that satisfies the provided description.
+''',
+  );
+
+  final Part _newDartCodeInstructions = Part(
+    text: '''
+Generate a Dart program that satisfies the provided description.
+''',
+  );
+
+  late final Part _updateFlutterCodeInstructions = Part(
+    text: _systemInstructions(AppType.flutter, '''
+You will be given an existing Flutter program and a description of a change to
+be made to it. Generate an updated Flutter program that satisfies the
+description.
 '''),
-        )
-      : null;
+  );
+
+  late final Part _updateDartCodeInstructions = Part(
+    text: _systemInstructions(AppType.dart, '''
+You will be given an existing Dart program and a description of a change to
+be made to it. Generate an updated Dart program that satisfies the
+description.
+'''),
+  );
 
   Stream<String> suggestFix({
     required AppType appType,
@@ -69,13 +93,10 @@ with the error fixed.
     required String source,
   }) async* {
     _checkCanAI();
-    assert(_flutterFixModel != null);
-    assert(_dartFixModel != null);
 
-    final model = switch (appType) {
-      AppType.flutter => _flutterFixModel!,
-      AppType.dart => _dartFixModel!,
-    };
+    final systemInstructions = appType == AppType.dart
+        ? _dartFixInstructions
+        : _flutterFixInstructions;
 
     final prompt =
         '''
@@ -85,29 +106,19 @@ ${column != null ? 'COLUMN: $column\n' : ''}
 SOURCE CODE:
 $source
 ''';
-    final stream = model.generateContentStream([Content.text(prompt)]);
+    final content = Content(
+      parts: [
+        systemInstructions,
+        Part(text: prompt),
+      ],
+    );
+
+    final stream = gemini!.streamGenerateContent(
+      GenerateContentRequest(model: _geminiModel, contents: [content]),
+    );
+
     yield* cleanCode(_textOnly(stream));
   }
-
-  late final GenerativeModel? _newFlutterCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.flutter, '''
-Generate a Flutter program that satisfies the provided description.
-'''),
-        )
-      : null;
-
-  late final GenerativeModel? _newDartCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.dart, '''
-Generate a Dart program that satisfies the provided description.
-'''),
-        )
-      : null;
 
   Stream<String> generateCode({
     required AppType appType,
@@ -115,45 +126,29 @@ Generate a Dart program that satisfies the provided description.
     required List<Attachment> attachments,
   }) async* {
     _checkCanAI();
-    assert(_newFlutterCodeModel != null);
-    assert(_newDartCodeModel != null);
 
-    final model = switch (appType) {
-      AppType.flutter => _newFlutterCodeModel!,
-      AppType.dart => _newDartCodeModel!,
-    };
+    final systemInstructions = appType == AppType.dart
+        ? _newDartCodeInstructions
+        : _newFlutterCodeInstructions;
 
-    final stream = model.generateContentStream([
-      Content.text(prompt),
-      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
-    ]);
+    final content = Content(
+      parts: [
+        systemInstructions,
+        Part(text: prompt),
+        ...attachments.map(
+          (a) => Part(
+            inlineData: Blob(mimeType: a.mimeType, data: a.bytes),
+          ),
+        ),
+      ],
+    );
+
+    final stream = gemini!.streamGenerateContent(
+      GenerateContentRequest(model: _geminiModel, contents: [content]),
+    );
 
     yield* cleanCode(_textOnly(stream));
   }
-
-  late final _updateFlutterCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.flutter, '''
-You will be given an existing Flutter program and a description of a change to
-be made to it. Generate an updated Flutter program that satisfies the
-description.
-'''),
-        )
-      : null;
-
-  late final _updateDartCodeModel = _canGenAI
-      ? GenerativeModel(
-          apiKey: _geminiApiKey!,
-          model: _geminiModel,
-          systemInstruction: _systemInstructions(AppType.dart, '''
-You will be given an existing Dart program and a description of a change to
-be made to it. Generate an updated Dart program that satisfies the
-description.
-'''),
-        )
-      : null;
 
   Stream<String> updateCode({
     required AppType appType,
@@ -162,13 +157,10 @@ description.
     required List<Attachment> attachments,
   }) async* {
     _checkCanAI();
-    assert(_updateFlutterCodeModel != null);
-    assert(_updateDartCodeModel != null);
 
-    final model = switch (appType) {
-      AppType.flutter => _updateFlutterCodeModel!,
-      AppType.dart => _updateDartCodeModel!,
-    };
+    final systemInstructions = appType == AppType.dart
+        ? _updateDartCodeInstructions
+        : _updateFlutterCodeInstructions;
 
     final completePrompt =
         '''
@@ -179,22 +171,40 @@ CHANGE DESCRIPTION:
 $prompt
 ''';
 
-    final stream = model.generateContentStream([
-      Content.text(completePrompt),
-      ...attachments.map((a) => Content.data(a.mimeType, a.bytes)),
-    ]);
+    final content = Content(
+      parts: [
+        systemInstructions,
+        Part(text: completePrompt),
+        ...attachments.map(
+          (a) => Part(
+            inlineData: Blob(mimeType: a.mimeType, data: a.bytes),
+          ),
+        ),
+      ],
+    );
+
+    final stream = gemini!.streamGenerateContent(
+      GenerateContentRequest(model: _geminiModel, contents: [content]),
+    );
 
     yield* cleanCode(_textOnly(stream));
   }
 
   void _checkCanAI() {
-    if (!_canGenAI) throw Exception('Gemini API key not set');
+    if (!_canGenAI) {
+      throw Exception('Gemini API key not set');
+    }
   }
 
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) =>
-      stream
-          .map((response) => response.text ?? '')
-          .where((text) => text.isNotEmpty);
+      stream.map((response) {
+        final parts = response.candidates!.first.content!.parts!;
+        // todo: should we join with ''? '\n'?
+        return parts
+            .where((part) => part.text != null)
+            .map((p) => p.text)
+            .join(' ');
+      });
 
   static const startCodeBlock = '```dart\n';
   static const endCodeBlock = '\n```';
@@ -238,14 +248,16 @@ $prompt
       final endIndex = str.indexOf(endMarker);
       foundEnd = endIndex != -1;
 
-      // Only extract up to the end marker if found, otherwise yield the entire buffer
-      // This handles partial code blocks that may be completed in future chunks
+      // Only extract up to the end marker if found, otherwise yield the entire
+      // buffer. This handles partial code blocks that may be completed in
+      // future chunks.
       final output = foundEnd ? str.substring(0, endIndex) : str;
       yield output;
       buffer.clear();
     }
 
-    // Note: If stream ends without an end marker, we've already yielded all content
+    // Note: If stream ends without an end marker, we've already yielded all
+    // content.
   }
 
   final _cachedAllowedPackages = <AppType, List<String>>{
@@ -269,7 +281,7 @@ $prompt
     return cachedList;
   }
 
-  Content _systemInstructions(
+  String _systemInstructions(
     AppType appType,
     String modelSpecificInstructions,
   ) {
@@ -290,7 +302,7 @@ Only output the Dart code for the program. Output the code wrapped in a
 Markdown ```dart``` tag.
 ''';
 
-    return Content.text('$instructions\n\n$footer');
+    return '$instructions\n\n$footer';
   }
 
   static const Map<AppType, String> _appInstructions = {

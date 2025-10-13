@@ -15,7 +15,9 @@ dependencies:
   dartpad_shared:
     path: ../dartpad_shared
   encrypt: ^5.0.3
-  google_generative_ai: ^0.4.6
+  google_cloud_ai_generativelanguage_v1: ^0.1.0
+  # google_generative_ai: ^0.4.6
+  googleapis_auth: any
   http: ^1.3.0
   json_annotation: ^4.9.0
   logging: ^1.2.0
@@ -37,3 +39,25 @@ dev_dependencies:
   synchronized: ^3.3.1
   test: ^1.25.9
   test_descriptor: ^2.0.1
+
+dependency_overrides:
+  google_cloud_ai_generativelanguage_v1:
+    git:
+      url: https://github.com/googleapis/google-cloud-dart.git
+      path: generated/google_cloud_ai_generativelanguage_v1
+  google_cloud_gax:
+    git:
+      url: https://github.com/googleapis/google-cloud-dart.git
+      path: packages/google_cloud_gax
+  google_cloud_longrunning:
+    git:
+      url: https://github.com/googleapis/google-cloud-dart.git
+      path: generated/google_cloud_longrunning
+  google_cloud_protobuf:
+    git:
+      url: https://github.com/googleapis/google-cloud-dart.git
+      path: generated/google_cloud_protobuf
+  google_cloud_rpc:
+    git:
+      url: https://github.com/googleapis/google-cloud-dart.git
+      path: generated/google_cloud_rpc
