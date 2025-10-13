@@ -1149,21 +1149,14 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
       builder: (_, versions, _) {
         if (versions == null) return const SizedBox();
 
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: widget.hideLabel
-              ? IconButton(
-                  key: const ValueKey('info_icon'),
-                  icon: const Icon(Icons.info_outline),
-                  tooltip: 'Runtime versions',
-                  onPressed: () => _showVersionDialog(versions),
-                )
-              : TextButton.icon(
-                  key: const ValueKey('info_button'),
-                  icon: const Icon(Icons.info_outline, size: 18),
-                  label: Text(versions.label),
-                  onPressed: () => _showVersionDialog(versions),
-                ),
+        return CollapsibleIconToggleButton(
+          onToggle: () => _showVersionDialog(versions),
+          icon: const Icon(Icons.info_outline, size: smallIconSize),
+          label: Text(versions.label),
+          tooltip: 'Runtime versions',
+          compact: true,
+          hideLabel: widget.hideLabel,
+        );
         );
       },
     );
