@@ -1157,7 +1157,6 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
           compact: true,
           hideLabel: widget.hideLabel,
         );
-        );
       },
     );
   }
