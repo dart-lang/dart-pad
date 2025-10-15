@@ -11,13 +11,14 @@ import '../probes_and_presubmit/server_testing.dart';
 void main() async {
   final runner = TestServerRunner();
   await runner.maybeStart();
-  final client = runner.client;
 
   group('server', () {
-    testServer(client);
+    testServer(runner.client);
 
     if (runner.sdk.dartMajorVersion >= 3 && runner.sdk.dartMinorVersion >= 8) {
-      testReload(client);
+      testReload(runner.client);
     }
+
+    testServerWebsocket(runner.websocketClient);
   });
 }

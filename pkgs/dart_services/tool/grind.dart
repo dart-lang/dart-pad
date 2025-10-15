@@ -33,7 +33,7 @@ final List<String> compilationArtifactsNew = [
 ///
 /// * the Dart project template
 /// * the Flutter project template
-@Task('build the project templates')
+@Task('Build the project templates')
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
   final templatesDirectory = Directory(templatesPath);
@@ -54,7 +54,7 @@ void buildProjectTemplates() async {
   await projectCreator.buildFlutterProjectTemplate();
 }
 
-@Task('build the sdk compilation artifacts for upload to google storage')
+@DefaultTask('Build the sdk compilation artifacts')
 void buildStorageArtifacts() async {
   final sdk = Sdk.fromLocalFlutter();
   delete(getDir('artifacts'));

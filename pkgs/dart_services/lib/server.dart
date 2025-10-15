@@ -168,8 +168,11 @@ Middleware exceptionResponse() {
 @visibleForTesting
 class TestServerRunner {
   static const _port = 8080;
+
   late final DartServicesClient client;
-  final sdk = Sdk.fromLocalFlutter();
+  late final WebsocketServicesClient websocketClient;
+
+  final Sdk sdk = Sdk.fromLocalFlutter();
 
   Completer<void>? _started;
 
@@ -188,10 +191,15 @@ class TestServerRunner {
     } on SocketException {
       // This is expected if the server is already running.
     }
-    client = DartServicesClient(
-      DartServicesHttpClient(),
-      rootUrl: 'http://$localhostIp:$_port/',
-    );
+
+    final rootUrl = 'http://$localhostIp:$_port/';
+
+    // connect the regular client
+    client = DartServicesClient(DartServicesHttpClient(), rootUrl: rootUrl);
+
+    // connect the websocket client
+    websocketClient = await WebsocketServicesClient.connect(rootUrl);
+
     _started!.complete();
     return client;
   }
