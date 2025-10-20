@@ -28,6 +28,7 @@ void main() {
     test('populateVersions', () async {
       final appModel = AppModel();
       final appServices = AppServices(appModel, Channel.localhost);
+      await appServices.init();
 
       expect(appModel.runtimeVersions.value, null);
       await appServices.populateVersions();

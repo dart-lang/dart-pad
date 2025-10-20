@@ -7,11 +7,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
+import 'package:dartpad_shared/ws.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_static/shelf_static.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'analysis.dart';
 import 'caching.dart';
@@ -37,9 +40,9 @@ class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
 
-  late Analyzer analyzer;
-  late Compiler compiler;
-  final ai = GenerativeAI();
+  late final Analyzer analyzer;
+  late final Compiler compiler;
+  final GenerativeAI ai = GenerativeAI();
 
   CommonServerImpl(this.sdk, this.cache);
 
@@ -72,6 +75,9 @@ class CommonServerApi {
 
     // general requests (GET)
     router.get(r'/api/<apiVersion>/version', handleVersion);
+
+    // websocket requests
+    router.get(r'/ws', webSocketHandler(handleWebSocket));
 
     // serve the compiled artifacts
     final artifactsDir = Directory('artifacts');
@@ -113,6 +119,56 @@ class CommonServerApi {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
     return ok(version().toJson());
+  }
+
+  /// Handle a new websocket connection request.
+  ///
+  /// Handle incoming requests, convert them to exising commands and dispatch
+  /// them appropriately. The commands and responses mirror the existing REST
+  /// protocol.
+  ///
+  /// This will be a long-running conneciton to the client.
+  void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
+    StreamSubscription<dynamic>? subscription;
+
+    subscription = webSocket.stream.listen(
+      (message) {
+        try {
+          // Handle incoming WebSocket messages
+          final request = JsonRpcRequest.fromJson(message as String);
+          log.genericInfo('ws request: ${request.method}');
+          JsonRpcResponse? response;
+
+          switch (request.method) {
+            case 'version':
+              final v = version();
+              response = request.createResultResponse(v.toJson());
+              break;
+            default:
+              response = request.createErrorResponse(
+                'unknown command: ${request.method}',
+              );
+              break;
+          }
+
+          webSocket.sink.add(jsonEncode(response.toJson()));
+          log.genericInfo(
+            'ws response: '
+            '${request.method} ${response.error != null ? '500' : '200'}',
+          );
+        } catch (e) {
+          log.genericSevere('error handling websocket request', error: e);
+        }
+      },
+      onDone: () {
+        // Clean up any stream subscription.
+        subscription?.cancel();
+        subscription = null;
+      },
+      onError: (Object error) {
+        log.genericSevere('error from websocket connection', error: error);
+      },
+    );
   }
 
   Future<Response> handleAnalyze(Request request, String apiVersion) async {
@@ -512,7 +568,6 @@ Middleware logRequestsToLogger(DartPadLogger log) {
       final watch = Stopwatch()..start();
 
       final ctx = DartPadRequestContext.fromRequest(request);
-      log.genericInfo('received request, enableLogging=${ctx.enableLogging}');
 
       return Future.sync(() => innerHandler(request)).then(
         (response) {
@@ -524,7 +579,11 @@ Middleware logRequestsToLogger(DartPadLogger log) {
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
-          if (error is HijackException) throw error;
+          if (error is HijackException) {
+            log.info(_formatMessage(request, watch.elapsed), ctx);
+
+            throw error;
+          }
 
           log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
 

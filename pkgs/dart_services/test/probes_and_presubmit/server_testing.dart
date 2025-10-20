@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'ddc_testing.dart';
 
 void testServer(DartServicesClient client, {int? retry}) {
-  group('server at ${client.rootUrl}', () {
+  group('DartServicesClient', () {
     testDDCEndpoint(
       'compileDDC',
       (request) => client.compileDDC(request),
@@ -349,6 +349,18 @@ void main() => print('hello world');
       expect(assist.linkedEditGroups, isEmpty);
       expect(assist.selectionOffset, greaterThan(0));
       expect(assist.edits.first.replacement, isNotEmpty);
+    });
+  }, retry: retry);
+}
+
+void testServerWebsocket(WebsocketServicesClient client, {int? retry}) {
+  group('WebsocketServicesClient', () {
+    test('version', () async {
+      final result = await client.version();
+      expect(result.dartVersion, startsWith('3.'));
+      expect(result.flutterVersion, startsWith('3.'));
+      expect(result.engineVersion, isNotEmpty);
+      expect(result.packages, isNotEmpty);
     });
   }, retry: retry);
 }

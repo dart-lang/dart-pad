@@ -9,7 +9,6 @@ import 'package:http/http.dart';
 import 'headers.dart';
 
 class DartServicesHttpClient {
-  final Client _client = Client();
   static Map<String, String> _headers = DartPadRequestHeaders(
     enableLogging: true,
   ).encoded;
@@ -19,7 +18,7 @@ class DartServicesHttpClient {
     _headers = DartPadRequestHeaders(enableLogging: false).encoded;
   }
 
-  void close() => _client.close();
+  final Client _client = Client();
 
   Future<Response> get(String url) async {
     return await _client.get(Uri.parse(url), headers: _headers);
@@ -46,4 +45,6 @@ class DartServicesHttpClient {
 
     return await _client.send(httpRequest);
   }
+
+  void close() => _client.close();
 }
