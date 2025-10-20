@@ -129,7 +129,9 @@ class CommonServerApi {
   ///
   /// This will be a long-running conneciton to the client.
   void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
-    webSocket.stream.listen(
+    StreamSubscription<dynamic>? subscription;
+
+    subscription = webSocket.stream.listen(
       (message) {
         try {
           // Handle incoming WebSocket messages
@@ -159,7 +161,9 @@ class CommonServerApi {
         }
       },
       onDone: () {
-        // Nothing to clean up here.
+        // Clean up any stream subscription.
+        subscription?.cancel();
+        subscription = null;
       },
       onError: (Object error) {
         log.genericSevere('error from websocket connection', error: error);

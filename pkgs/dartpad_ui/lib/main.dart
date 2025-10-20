@@ -291,7 +291,9 @@ class DartPadMainPageState extends State<DartPadMainPage>
         : null;
 
     appModel = AppModel();
+
     appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
+    await appServices.init();
 
     appModel.compilingState.addListener(_handleRunStarted);
 

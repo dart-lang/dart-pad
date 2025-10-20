@@ -9,16 +9,11 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../primitives/enable_websockets.dart';
 import '../primitives/flutter_samples.dart';
 import '../primitives/gists.dart';
 import '../primitives/samples.g.dart';
 import '../primitives/utils.dart';
-
-/// A compile-time flag to control making requests over websockets.
-///
-/// Do not check this in `true`; this will create a long-lived connection to the
-/// backend and we don't yet know how well that will scale.
-const useWebsockets = false;
 
 abstract class ExecutionService {
   Future<void> execute(
@@ -217,8 +212,13 @@ class AppServices {
     Channel.localhost,
   };
 
+  /// Create a new instance of [AppServices].
+  ///
+  /// Note that after object creation, [init] must still be called in order to
+  /// finish initialization.
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
+
     services = DartServicesClient(
       DartServicesHttpClient(),
       rootUrl: channel.url,
@@ -237,6 +237,15 @@ class AppServices {
     _channel.addListener(updateUseNewDDC);
   }
 
+  /// Initialize async elements of the service connection.
+  Future<void> init() async {
+    if (useWebsockets) {
+      webSocketServices = await WebsocketServicesClient.connect(
+        services.rootUrl,
+      );
+    }
+  }
+
   EditorService? get editorService => _editorService;
   ExecutionService? get executionService => _executionService;
 
@@ -245,11 +254,10 @@ class AppServices {
   Future<VersionResponse> setChannel(Channel channel) async {
     services = DartServicesClient(services.client, rootUrl: channel.url);
 
-    // Tear this down if using websockets; this will be recreated automatically
-    // as necessary.
     if (useWebsockets) {
-      webSocketServices?.dispose();
-      webSocketServices = null;
+      webSocketServices = await WebsocketServicesClient.connect(
+        services.rootUrl,
+      );
     }
 
     final versionResponse = await populateVersions();
@@ -287,22 +295,17 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
-    VersionResponse version;
-
     if (useWebsockets) {
-      // Since using websockets is a compile-time config option, and it's only
-      // used for the version call, we create it here on demand.
-      webSocketServices ??= await WebsocketServicesClient.connect(
-        services.rootUrl,
-      );
-
+      VersionResponse version;
       version = await webSocketServices!.version();
+      appModel.runtimeVersions.value = version;
+      return version;
     } else {
+      VersionResponse version;
       version = await services.version();
+      appModel.runtimeVersions.value = version;
+      return version;
     }
-
-    appModel.runtimeVersions.value = version;
-    return version;
   }
 
   Future<void> performInitialLoad({
