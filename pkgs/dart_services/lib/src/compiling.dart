@@ -206,29 +206,6 @@ class Compiler {
   }
 }
 
-/// The result of a dart2js compile.
-class CompilationResults {
-  final String? compiledJS;
-  final String? sourceMap;
-  final List<CompilationProblem> problems;
-
-  CompilationResults({
-    this.compiledJS,
-    this.problems = const <CompilationProblem>[],
-    this.sourceMap,
-  });
-
-  bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
-
-  /// This is true if there were no errors.
-  bool get success => problems.isEmpty;
-
-  @override
-  String toString() => success
-      ? 'CompilationResults: Success'
-      : 'Compilation errors: ${problems.join('\n')}';
-}
-
 /// The result of a DDC compile.
 class DDCCompilationResults {
   final String? compiledJS;
@@ -253,7 +230,7 @@ class DDCCompilationResults {
       : 'Compilation errors: ${problems.join('\n')}';
 }
 
-/// An issue associated with [CompilationResults].
+/// An issue associated with [DDCCompilationResults].
 class CompilationProblem implements Comparable<CompilationProblem> {
   final String message;
 
