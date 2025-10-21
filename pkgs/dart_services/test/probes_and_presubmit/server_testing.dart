@@ -213,37 +213,6 @@ void main() {
       expect(result.offset, 17);
     });
 
-    test('compile', () async {
-      final result = await client.compile(
-        CompileRequest(
-          source: '''
-void main() {
-  print('hello world');
-}
-''',
-        ),
-      );
-      expect(result.result, isNotEmpty);
-      expect(result.result.length, greaterThanOrEqualTo(10 * 1024));
-    });
-
-    test('compile with error', () async {
-      try {
-        await client.compile(
-          CompileRequest(
-            source: '''
-void main() {
-  print('hello world')
-}
-''',
-          ),
-        );
-        fail('compile error expected');
-      } on ApiRequestError catch (e) {
-        expect(e.body, contains("Expected ';' after this."));
-      }
-    });
-
     test('document', () async {
       final result = await client.document(
         SourceRequest(

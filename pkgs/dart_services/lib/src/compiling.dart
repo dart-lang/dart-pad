@@ -18,20 +18,19 @@ import 'sdk.dart';
 
 final DartPadLogger _logger = DartPadLogger('compiler');
 
-/// An interface to the dart2js compiler. A compiler object can process one
+/// An interface to the Dart web compilers. A compiler object can process one
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
-  final String _dartPath;
   final BazelWorkerDriver _ddcDriver;
 
   final ProjectTemplates _projectTemplates;
 
   Compiler(Sdk sdk) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'));
 
-  Compiler._(this._sdk, this._dartPath)
+  Compiler._(this._sdk, String dartPath)
     : _ddcDriver = BazelWorkerDriver(
-        () => Process.start(_dartPath, [
+        () => Process.start(dartPath, [
           path.join(
             _sdk.dartSdkPath,
             'bin',
@@ -43,74 +42,6 @@ class Compiler {
         maxWorkers: 1,
       ),
       _projectTemplates = ProjectTemplates.instance;
-
-  /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compile(
-    String source,
-    DartPadRequestContext ctx, {
-    bool returnSourceMap = false,
-  }) async {
-    final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}', ctx);
-
-    try {
-      _copyPath(_projectTemplates.dartPath, temp.path);
-      Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
-
-      final arguments = <String>[
-        'compile',
-        'js',
-        '--suppress-hints',
-        '--terse',
-        if (!returnSourceMap) '--no-source-maps',
-        '--packages=${path.join('.dart_tool', 'package_config.json')}',
-        '--enable-asserts',
-        if (_sdk.experiments.isNotEmpty)
-          '--enable-experiment=${_sdk.experiments.join(",")}',
-        '-o',
-        '$kMainDart.js',
-        path.join('lib', kMainDart),
-      ];
-
-      File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
-
-      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
-      final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
-
-      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}', ctx);
-
-      final result = await Process.run(
-        _dartPath,
-        arguments,
-        workingDirectory: temp.path,
-      );
-
-      if (result.exitCode != 0) {
-        final results = CompilationResults(
-          problems: <CompilationProblem>[
-            CompilationProblem._(result.stdout as String),
-          ],
-        );
-        return results;
-      } else {
-        String? sourceMap;
-        if (returnSourceMap && mainSourceMap.existsSync()) {
-          sourceMap = mainSourceMap.readAsStringSync();
-        }
-        final results = CompilationResults(
-          compiledJS: mainJs.readAsStringSync(),
-          sourceMap: sourceMap,
-        );
-        return results;
-      }
-    } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st', ctx);
-      rethrow;
-    } finally {
-      temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}', ctx);
-    }
-  }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
   ///
