@@ -4,7 +4,6 @@
 
 import 'package:logging/logging.dart';
 
-
 final _wsRegex = RegExp(r' \s+');
 
 void emitLogsToStdout() {

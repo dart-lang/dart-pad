@@ -198,9 +198,7 @@ class Compiler {
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
-      _logger.fine(
-        'About to exec dartdevc worker: ${arguments.join(' ')}',
-      );
+      _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}');
 
       final response = await _ddcDriver.doWork(
         WorkRequest(arguments: arguments),
@@ -245,15 +243,11 @@ class Compiler {
     }
   }
 
-  Future<DDCCompilationResults> compileDDC(
-    String source,
-  ) async {
+  Future<DDCCompilationResults> compileDDC(String source) async {
     return await _compileDDC(source, useNew: false);
   }
 
-  Future<DDCCompilationResults> compileNewDDC(
-    String source,
-  ) async {
+  Future<DDCCompilationResults> compileNewDDC(String source) async {
     return await _compileDDC(source, useNew: true);
   }
 

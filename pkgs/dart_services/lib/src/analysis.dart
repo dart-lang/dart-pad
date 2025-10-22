@@ -54,10 +54,7 @@ class Analyzer {
     return analysisServer.fixes(source, offset);
   }
 
-  Future<api.FormatResponse> format(
-    String source,
-    int? offset,
-  ) async {
+  Future<api.FormatResponse> format(String source, int? offset) async {
     return analysisServer.format(source, offset);
   }
 
@@ -110,9 +107,7 @@ class AnalysisServerWrapper {
 
       await analysisServer.analysis.setAnalysisRoots([projectPath], []);
     } catch (err, st) {
-      _logger.severe(
-        'Error starting analysis server ($sdkPath): $err.\n$st',
-      );
+      _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
       rethrow;
     }
   }
@@ -216,10 +211,7 @@ class AnalysisServerWrapper {
   /// Format the source [src] of the single passed in file. The [offset] is the
   /// current cursor location and a modified offset is returned if necessary to
   /// maintain the cursors original position in the formatted code.
-  Future<api.FormatResponse> format(
-    String src,
-    int? offset,
-  ) {
+  Future<api.FormatResponse> format(String src, int? offset) {
     return _formatImpl(src, offset)
         .then((FormatResult editResult) {
           final edits = editResult.edits;

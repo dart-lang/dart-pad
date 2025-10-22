@@ -119,9 +119,7 @@ class RedisCache implements ServerCache {
           newConnection.outputSink.done
               .then((_) {
                 _resetConnection();
-                log.warning(
-                  '$_logPrefix: connection terminated, reconnecting',
-                );
+                log.warning('$_logPrefix: connection terminated, reconnecting');
                 _reconnect();
               })
               .catchError((dynamic e) {
@@ -161,9 +159,7 @@ class RedisCache implements ServerCache {
     String? value;
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning(
-        '$_logPrefix: no cache available when getting key $key',
-      );
+      log.warning('$_logPrefix: no cache available when getting key $key');
     } else {
       final commands = RespCommandsTier2(redisClient!);
       try {
@@ -180,9 +176,7 @@ class RedisCache implements ServerCache {
               },
             );
       } catch (e) {
-        log.warning(
-          '$_logPrefix: error on get operation for key $key: $e',
-        );
+        log.warning('$_logPrefix: error on get operation for key $key: $e');
       }
     }
     return value;
@@ -192,9 +186,7 @@ class RedisCache implements ServerCache {
   Future<void> remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning(
-        '$_logPrefix: no cache available when removing key $key',
-      );
+      log.warning('$_logPrefix: no cache available when removing key $key');
       return;
     }
 
@@ -213,9 +205,7 @@ class RedisCache implements ServerCache {
             },
           );
     } catch (e) {
-      log.warning(
-        '$_logPrefix: error on remove operation for key $key: $e',
-      );
+      log.warning('$_logPrefix: error on remove operation for key $key: $e');
     }
   }
 
@@ -223,9 +213,7 @@ class RedisCache implements ServerCache {
   Future<void> set(String key, String value, {Duration? expiration}) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning(
-        '$_logPrefix: no cache available when setting key $key',
-      );
+      log.warning('$_logPrefix: no cache available when setting key $key');
       return;
     }
 
@@ -239,16 +227,12 @@ class RedisCache implements ServerCache {
       }).timeout(
         cacheOperationTimeout,
         onTimeout: () {
-          log.warning(
-            '$_logPrefix: timeout on set operation for key $key',
-          );
+          log.warning('$_logPrefix: timeout on set operation for key $key');
           _connection?.close();
         },
       );
     } catch (e) {
-      log.warning(
-        '$_logPrefix: error on set operation for key $key: $e',
-      );
+      log.warning('$_logPrefix: error on set operation for key $key: $e');
     }
   }
 }

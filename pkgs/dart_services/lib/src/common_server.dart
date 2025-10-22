@@ -244,7 +244,7 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) =>impl.compiler.compileNewDDC(compileRequest.source),
+      (compileRequest) => impl.compiler.compileNewDDC(compileRequest.source),
     );
   }
 
@@ -297,10 +297,7 @@ class CommonServerApi {
     );
 
     final result = await serialize(() {
-      return impl.analyzer.format(
-        sourceRequest.source,
-        sourceRequest.offset,
-      );
+      return impl.analyzer.format(sourceRequest.source, sourceRequest.offset);
     });
 
     return ok(result.toJson());
@@ -556,9 +553,7 @@ Middleware logRequestsToLogger(DartPadLogger log) {
 
       return Future.sync(() => innerHandler(request)).then(
         (response) {
-          log.info(
-            _formatMessage(request, watch.elapsed, response: response),
-          );
+          log.info(_formatMessage(request, watch.elapsed, response: response));
 
           return response;
         },
@@ -568,7 +563,6 @@ Middleware logRequestsToLogger(DartPadLogger log) {
 
             throw error;
           }
-
 
           // ignore: only_throw_errors
           throw error;

@@ -196,10 +196,7 @@ void main() {
     }
 
     test('sourcemap', () async {
-      final result = await compiler.compile(
-        sampleCode,
-        returnSourceMap: true,
-      );
+      final result = await compiler.compile(sampleCode, returnSourceMap: true);
       expect(result.success, true);
       expect(result.compiledJS, isNotEmpty);
       expect(result.sourceMap, isNotNull);
@@ -207,10 +204,7 @@ void main() {
     });
 
     test('version', () async {
-      final result = await compiler.compile(
-        sampleCode,
-        returnSourceMap: true,
-      );
+      final result = await compiler.compile(sampleCode, returnSourceMap: true);
       expect(result.sourceMap, isNotNull);
       expect(result.sourceMap, isNotEmpty);
     });

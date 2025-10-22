@@ -26,8 +26,6 @@ class MockCache implements ServerCache {
   Future<void> shutdown() async => _cache.removeWhere((key, value) => true);
 }
 
-
-
 final dartServicesProdProbingClients = () {
   DartServicesHttpClient.turnOffBackendLogging();
 
