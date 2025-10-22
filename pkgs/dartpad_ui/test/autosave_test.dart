@@ -31,6 +31,8 @@ void main() {
     test('null content means sample snippet is shown', () async {
       final model = AppModel();
       final services = AppServices(model, channel);
+      await services.init();
+
       DartPadLocalStorage.instance.saveUserCode('');
       expect(DartPadLocalStorage.instance.getUserCode(), isNull);
 
@@ -45,6 +47,8 @@ void main() {
       test('only fallback', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(getFallback: getFallback);
@@ -54,6 +58,8 @@ void main() {
       test('invalid sample ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(
@@ -66,6 +72,8 @@ void main() {
       test('invalid Flutter sample ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(
@@ -78,6 +86,8 @@ void main() {
       test('invalid Gist ID', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         const gistId = 'This is hopefully not a valid Gist ID';
@@ -97,6 +107,8 @@ void main() {
       test('Gist', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         // From gists_tests.dart
@@ -111,6 +123,8 @@ void main() {
       test('sample', () async {
         final model = AppModel();
         final services = AppServices(model, channel);
+        await services.init();
+
         expect(DartPadLocalStorage.instance.getUserCode(), equals(sample));
 
         await services.performInitialLoad(

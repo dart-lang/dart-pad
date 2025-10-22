@@ -9,6 +9,7 @@ import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../primitives/enable_websockets.dart';
 import '../primitives/flutter_samples.dart';
 import '../primitives/gists.dart';
 import '../primitives/samples.g.dart';
@@ -191,8 +192,8 @@ class AppServices {
   final AppModel appModel;
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
-  final _httpClient = DartServicesHttpClient();
   late DartServicesClient services;
+  WebsocketServicesClient? webSocketServices;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -211,9 +212,17 @@ class AppServices {
     Channel.localhost,
   };
 
+  /// Create a new instance of [AppServices].
+  ///
+  /// Note that after object creation, [init] must still be called in order to
+  /// finish initialization.
   AppServices(this.appModel, Channel channel) {
     _channel.value = channel;
-    services = DartServicesClient(_httpClient, rootUrl: channel.url);
+
+    services = DartServicesClient(
+      DartServicesHttpClient(),
+      rootUrl: channel.url,
+    );
 
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
@@ -228,13 +237,29 @@ class AppServices {
     _channel.addListener(updateUseNewDDC);
   }
 
+  /// Initialize async elements of the service connection.
+  Future<void> init() async {
+    if (useWebsockets) {
+      webSocketServices = await WebsocketServicesClient.connect(
+        services.rootUrl,
+      );
+    }
+  }
+
   EditorService? get editorService => _editorService;
   ExecutionService? get executionService => _executionService;
 
   ValueListenable<Channel> get channel => _channel;
 
   Future<VersionResponse> setChannel(Channel channel) async {
-    services = DartServicesClient(_httpClient, rootUrl: channel.url);
+    services = DartServicesClient(services.client, rootUrl: channel.url);
+
+    if (useWebsockets) {
+      webSocketServices = await WebsocketServicesClient.connect(
+        services.rootUrl,
+      );
+    }
+
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;
@@ -270,9 +295,17 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
-    final version = await services.version();
-    appModel.runtimeVersions.value = version;
-    return version;
+    if (useWebsockets) {
+      VersionResponse version;
+      version = await webSocketServices!.version();
+      appModel.runtimeVersions.value = version;
+      return version;
+    } else {
+      VersionResponse version;
+      version = await services.version();
+      appModel.runtimeVersions.value = version;
+      return version;
+    }
   }
 
   Future<void> performInitialLoad({
@@ -576,7 +609,7 @@ class AppServices {
   }
 
   void dispose() {
-    _httpClient.close();
+    services.dispose();
 
     appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }

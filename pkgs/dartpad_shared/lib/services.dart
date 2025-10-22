@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
+
+import 'package:web_socket/web_socket.dart';
 
 import 'backend_client.dart';
 import 'model.dart';
+import 'ws.dart';
 
 export 'model.dart';
 
@@ -127,6 +131,81 @@ class DartServicesClient {
       yield* response.stream.transform(utf8.decoder);
     } on FormatException catch (e) {
       throw ApiRequestError('$action: $e', '');
+    }
+  }
+}
+
+/// A websocket analog to [DartServicesClient].
+class WebsocketServicesClient {
+  final Uri wsUrl;
+  final WebSocket socket;
+  final IDFactory idFactory = IDFactory();
+
+  final Map<int, Completer<Object>> responseCompleters = {};
+  final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
+
+  final Completer<void> _closedCompleter = Completer();
+
+  WebsocketServicesClient._(this.wsUrl, this.socket);
+
+  static Future<WebsocketServicesClient> connect(String rootUrl) async {
+    final url = Uri.parse(rootUrl);
+    final wsUrl = url.replace(
+      scheme: url.scheme == 'https' ? 'wss' : 'ws',
+      path: 'ws',
+    );
+    final socket = await WebSocket.connect(wsUrl);
+    final client = WebsocketServicesClient._(wsUrl, socket);
+    client._init();
+    return client;
+  }
+
+  void _init() {
+    socket.events.listen((e) async {
+      switch (e) {
+        case TextDataReceived(text: final text):
+          _dispatch(JsonRpcResponse.fromJson(text));
+          break;
+        case BinaryDataReceived(data: final _):
+          // Ignore - binary data is unsupported.
+          break;
+        case CloseReceived(code: final _, reason: final _):
+          // Notify that the server connection has closed.
+          _closedCompleter.complete();
+          break;
+      }
+    });
+  }
+
+  Future<void> get onClosed => _closedCompleter.future;
+
+  Future<VersionResponse> version() {
+    final requestId = idFactory.generateNextId();
+    final completer = Completer<VersionResponse>();
+
+    responseCompleters[requestId] = completer;
+    responseDecoders[requestId] = VersionResponse.fromJson;
+
+    socket.sendText(
+      jsonEncode(JsonRpcRequest(method: 'version', id: requestId).toJson()),
+    );
+
+    return completer.future;
+  }
+
+  Future<void> dispose() => socket.close();
+
+  void _dispatch(JsonRpcResponse response) {
+    final id = response.id;
+
+    final completer = responseCompleters[id]!;
+    final decoder = responseDecoders[id]!;
+
+    if (response.error != null) {
+      completer.completeError(response.error!);
+    } else {
+      final result = decoder((response.result! as Map).cast());
+      completer.complete(result);
     }
   }
 }
