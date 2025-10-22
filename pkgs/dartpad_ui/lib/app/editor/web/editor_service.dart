@@ -14,6 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../model/model.dart';
+import '../../../primitives/enable_websockets.dart';
 import '../../../primitives/local_storage/local_storage.dart';
 import 'codemirror.dart';
 
@@ -323,9 +324,22 @@ class EditorServiceImpl implements EditorService {
     final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
 
     if (operation == _CompletionType.quickfix) {
-      final response = await appServices.services
-          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
-          .onError((error, st) => services.FixesResponse.empty);
+      final request = services.SourceRequest(
+        source: source,
+        offset: sourceOffset,
+      );
+      final services.FixesResponse response;
+
+      if (useWebsockets) {
+        response = await appServices.webSocketServices!
+            .fixes(request)
+            .onError((error, st) => services.FixesResponse.empty);
+      } else {
+        response = await appServices.services
+            // ignore: deprecated_member_use
+            .fixes(request)
+            .onError((error, st) => services.FixesResponse.empty);
+      }
 
       if (response.fixes.isEmpty && response.assists.isEmpty) {
         appModel.editorStatus.showToast('No quick fixes available.');
@@ -340,11 +354,22 @@ class EditorServiceImpl implements EditorService {
         to: doc.posFromIndex(0),
       );
     } else {
-      final response = await appServices.services
-          .complete(
-            services.SourceRequest(source: source, offset: sourceOffset),
-          )
-          .onError((error, st) => services.CompleteResponse.empty);
+      final request = services.SourceRequest(
+        source: source,
+        offset: sourceOffset,
+      );
+      final services.CompleteResponse response;
+
+      if (useWebsockets) {
+        response = await appServices.webSocketServices!
+            .complete(request)
+            .onError((error, st) => services.CompleteResponse.empty);
+      } else {
+        response = await appServices.services
+            // ignore: deprecated_member_use
+            .complete(request)
+            .onError((error, st) => services.CompleteResponse.empty);
+      }
 
       final offset = response.replacementOffset;
       final length = response.replacementLength;

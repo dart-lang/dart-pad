@@ -43,6 +43,28 @@ class Compiler {
       ),
       _projectTemplates = ProjectTemplates.instance;
 
+  Future<DDCCompilationResults> compileDDC(
+    String source,
+    DartPadRequestContext ctx,
+  ) async {
+    return await _compileDDC(source, ctx, useNew: false);
+  }
+
+  Future<DDCCompilationResults> compileNewDDC(
+    String source,
+    DartPadRequestContext ctx,
+  ) async {
+    return await _compileDDC(source, ctx, useNew: true);
+  }
+
+  Future<DDCCompilationResults> compileNewDDCReload(
+    String source,
+    String deltaDill,
+    DartPadRequestContext ctx,
+  ) async {
+    return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
+  }
+
   /// Compile the given string and return the resulting [DDCCompilationResults].
   ///
   /// [useNew] determines whether or not to use the hot reload enabled module
@@ -177,28 +199,6 @@ class Compiler {
       temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}', ctx);
     }
-  }
-
-  Future<DDCCompilationResults> compileDDC(
-    String source,
-    DartPadRequestContext ctx,
-  ) async {
-    return await _compileDDC(source, ctx, useNew: false);
-  }
-
-  Future<DDCCompilationResults> compileNewDDC(
-    String source,
-    DartPadRequestContext ctx,
-  ) async {
-    return await _compileDDC(source, ctx, useNew: true);
-  }
-
-  Future<DDCCompilationResults> compileNewDDCReload(
-    String source,
-    String deltaDill,
-    DartPadRequestContext ctx,
-  ) async {
-    return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {

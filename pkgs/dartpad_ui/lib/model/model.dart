@@ -295,17 +295,16 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
+    VersionResponse version;
     if (useWebsockets) {
-      VersionResponse version;
       version = await webSocketServices!.version();
       appModel.runtimeVersions.value = version;
-      return version;
     } else {
-      VersionResponse version;
+      // ignore: deprecated_member_use
       version = await services.version();
       appModel.runtimeVersions.value = version;
-      return version;
     }
+    return version;
   }
 
   Future<void> performInitialLoad({
@@ -482,14 +481,24 @@ class AppServices {
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
-      return await services.format(request);
+      if (useWebsockets) {
+        return await webSocketServices!.format(request);
+      } else {
+        // ignore: deprecated_member_use
+        return await services.format(request);
+      }
     } finally {
       appModel.formattingBusy.value = false;
     }
   }
 
   Future<DocumentResponse> document(SourceRequest request) async {
-    return await services.document(request);
+    if (useWebsockets) {
+      return await webSocketServices!.document(request);
+    } else {
+      // ignore: deprecated_member_use
+      return await services.document(request);
+    }
   }
 
   Stream<String> suggestFix(SuggestFixRequest request) {
@@ -509,7 +518,12 @@ class AppServices {
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      return await services.compileDDC(request);
+      if (useWebsockets) {
+        return await webSocketServices!.compileDDC(request);
+      } else {
+        // ignore: deprecated_member_use
+        return await services.compileDDC(request);
+      }
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -518,7 +532,12 @@ class AppServices {
   Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      return await services.compileNewDDC(request);
+      if (useWebsockets) {
+        return await webSocketServices!.compileNewDDC(request);
+      } else {
+        // ignore: deprecated_member_use
+        return await services.compileNewDDC(request);
+      }
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -529,7 +548,12 @@ class AppServices {
   ) async {
     try {
       appModel.compilingState.value = CompilingState.reloading;
-      return await services.compileNewDDCReload(request);
+      if (useWebsockets) {
+        return await webSocketServices!.compileNewDDCReload(request);
+      } else {
+        // ignore: deprecated_member_use
+        return await services.compileNewDDCReload(request);
+      }
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -607,9 +631,18 @@ class AppServices {
 
   Future<void> _reAnalyze() async {
     try {
-      final results = await services.analyze(
-        SourceRequest(source: appModel.sourceCodeController.text),
-      );
+      final AnalysisResponse results;
+      if (useWebsockets) {
+        results = await webSocketServices!.analyze(
+          SourceRequest(source: appModel.sourceCodeController.text),
+        );
+      } else {
+        // ignore: deprecated_member_use
+        results = await services.analyze(
+          SourceRequest(source: appModel.sourceCodeController.text),
+        );
+      }
+
       appModel.analysisIssues.value = results.issues;
       appModel.importUrls.value = results.imports;
     } catch (error) {

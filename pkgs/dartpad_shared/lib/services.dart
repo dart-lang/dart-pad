@@ -19,27 +19,35 @@ class DartServicesClient {
 
   DartServicesClient(this.client, {required this.rootUrl});
 
+  @Deprecated('prefer the websocket version')
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<AnalysisResponse> analyze(SourceRequest request) =>
       _requestPost('analyze', request.toJson(), AnalysisResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<DocumentResponse> document(SourceRequest request) =>
       _requestPost('document', request.toJson(), DocumentResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<FixesResponse> fixes(SourceRequest request) =>
       _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
+  @Deprecated('prefer the websocket version')
   Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
       _requestPost(
         'compileNewDDC',
@@ -47,6 +55,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
+  @Deprecated('prefer the websocket version')
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
       _requestPost(
         'compileNewDDCReload',
@@ -54,6 +63,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
+  @Deprecated('prefer the websocket version')
   Future<OpenInIdxResponse> openInFirebaseStudio(
     OpenInFirebaseStudioRequest request,
   ) => _requestPost(
@@ -138,7 +148,7 @@ class WebsocketServicesClient {
   final WebSocket socket;
   final IDFactory idFactory = IDFactory();
 
-  final Map<int, Completer<Object>> responseCompleters = {};
+  final Map<int, Completer<dynamic>> responseCompleters = {};
   final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
 
   final Completer<void> _closedCompleter = Completer();
@@ -176,16 +186,76 @@ class WebsocketServicesClient {
 
   Future<void> get onClosed => _closedCompleter.future;
 
-  Future<VersionResponse> version() {
-    final requestId = idFactory.generateNextId();
-    final completer = Completer<VersionResponse>();
+  Future<VersionResponse> version() =>
+      _sendRequest('version', VersionResponse.fromJson);
 
-    responseCompleters[requestId] = completer;
-    responseDecoders[requestId] = VersionResponse.fromJson;
+  Future<AnalysisResponse> analyze(SourceRequest request) =>
+      _sendRequest('analyze', AnalysisResponse.fromJson, request.toJson());
 
-    socket.sendText(
-      jsonEncode(JsonRpcRequest(method: 'version', id: requestId).toJson()),
-    );
+  Future<CompleteResponse> complete(SourceRequest request) =>
+      _sendRequest('complete', CompleteResponse.fromJson, request.toJson());
+
+  Future<DocumentResponse> document(SourceRequest request) =>
+      _sendRequest('document', DocumentResponse.fromJson, request.toJson());
+
+  Future<FixesResponse> fixes(SourceRequest request) =>
+      _sendRequest('fixes', FixesResponse.fromJson, request.toJson());
+
+  Future<FormatResponse> format(SourceRequest request) =>
+      _sendRequest('format', FormatResponse.fromJson, request.toJson());
+
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
+      _sendRequest('compileDDC', CompileDDCResponse.fromJson, request.toJson());
+
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
+      _sendRequest(
+        'compileNewDDC',
+        CompileDDCResponse.fromJson,
+        request.toJson(),
+      );
+
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
+      _sendRequest(
+        'compileNewDDCReload',
+        CompileDDCResponse.fromJson,
+        request.toJson(),
+      );
+
+  Future<OpenInIdxResponse> openInFirebaseStudio(
+    OpenInFirebaseStudioRequest request,
+  ) => _sendRequest(
+    'openInFirebaseStudio',
+    OpenInIdxResponse.fromJson,
+    request.toJson(),
+  );
+
+  // todo: support streaming responses over websockets
+
+  // // todo:
+  // Stream<String> suggestFix(SuggestFixRequest request) =>
+  //     _requestPostStream('suggestFix', request.toJson());
+
+  // // todo:
+  // Stream<String> generateCode(GenerateCodeRequest request) =>
+  //     _requestPostStream('generateCode', request.toJson());
+
+  // // todo:
+  // Stream<String> updateCode(UpdateCodeRequest request) =>
+  //     _requestPostStream('updateCode', request.toJson());
+
+  Future<T> _sendRequest<T>(
+    String method,
+    Object Function(Map<String, Object?>) decoder, [
+    Map<String, Object?>? params,
+  ]) {
+    final id = idFactory.generateNextId();
+    final completer = Completer<T>();
+
+    responseCompleters[id] = completer;
+    responseDecoders[id] = decoder;
+
+    final request = JsonRpcRequest(method: method, id: id, params: params);
+    socket.sendText(jsonEncode(request.toJson()));
 
     return completer.future;
   }
