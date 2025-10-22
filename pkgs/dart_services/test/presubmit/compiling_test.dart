@@ -7,7 +7,6 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
 import '../test_infra/sample_code.dart';
-import '../test_infra/utils.dart';
 
 void main() {
   group('compiling', () {
@@ -165,7 +164,7 @@ void main() {
 
     testDDCEndpoint(
       'compileDDC',
-      restartEndpoint: (source) => compiler.compileDDC(source, ctx),
+      restartEndpoint: (source) => compiler.compileDDC(source),
       expectNewDeltaDill: false,
       compiledIndicator: "define('dartpad_main', [",
     );
@@ -173,15 +172,15 @@ void main() {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint(
         'compileNewDDC',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
       testDDCEndpoint(
         'compileNewDDCReload',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         reloadEndpoint: (source, deltaDill) =>
-            compiler.compileNewDDCReload(source, deltaDill, ctx),
+            compiler.compileNewDDCReload(source, deltaDill),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );

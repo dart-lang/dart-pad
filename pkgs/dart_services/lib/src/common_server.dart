@@ -19,7 +19,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
-import 'context.dart';
+
 import 'generative_ai.dart';
 import 'logging.dart';
 import 'project_templates.dart';
@@ -47,7 +47,7 @@ class CommonServerImpl {
   CommonServerImpl(this.sdk, this.cache);
 
   Future<void> init() async {
-    log.genericFine('initializing CommonServerImpl');
+    log.fine('initializing CommonServerImpl');
 
     analyzer = Analyzer(sdk);
     await analyzer.init();
@@ -56,7 +56,7 @@ class CommonServerImpl {
   }
 
   Future<void> shutdown() async {
-    log.genericFine('shutting down CommonServerImpl');
+    log.fine('shutting down CommonServerImpl');
 
     await cache.shutdown();
 
@@ -135,7 +135,7 @@ class CommonServerApi {
         try {
           // Handle incoming WebSocket messages
           final request = JsonRpcRequest.fromJson(message as String);
-          log.genericInfo('ws request: ${request.method}');
+          log.info('ws request: ${request.method}');
           JsonRpcResponse? response;
 
           switch (request.method) {
@@ -151,12 +151,12 @@ class CommonServerApi {
           }
 
           webSocket.sink.add(jsonEncode(response.toJson()));
-          log.genericInfo(
+          log.info(
             'ws response: '
             '${request.method} ${response.error != null ? '500' : '200'}',
           );
         } catch (e) {
-          log.genericSevere('error handling websocket request', error: e);
+          log.severe('error handling websocket request', error: e);
         }
       },
       onDone: () {
@@ -165,7 +165,7 @@ class CommonServerApi {
         subscription = null;
       },
       onError: (Object error) {
-        log.genericSevere('error from websocket connection', error: error);
+        log.severe('error from websocket connection', error: error);
       },
     );
   }
@@ -212,12 +212,10 @@ class CommonServerApi {
   }
 
   Future<Response> handleCompileDDC(Request request, String apiVersion) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) => impl.compiler.compileDDC(compileRequest.source, ctx),
+      (compileRequest) => impl.compiler.compileDDC(compileRequest.source),
     );
   }
 
@@ -225,13 +223,10 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) =>
-          impl.compiler.compileNewDDC(compileRequest.source, ctx),
+      (compileRequest) => impl.compiler.compileNewDDC(compileRequest.source),
     );
   }
 
@@ -239,15 +234,12 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
       (compileRequest) => impl.compiler.compileNewDDCReload(
         compileRequest.source,
         compileRequest.deltaDill!,
-        ctx,
       ),
     );
   }
@@ -282,18 +274,12 @@ class CommonServerApi {
 
   Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     final sourceRequest = api.SourceRequest.fromJson(
       await request.readAsJson(),
     );
 
     final result = await serialize(() {
-      return impl.analyzer.format(
-        sourceRequest.source,
-        sourceRequest.offset,
-        ctx,
-      );
+      return impl.analyzer.format(sourceRequest.source, sourceRequest.offset);
     });
 
     return ok(result.toJson());
@@ -547,25 +533,18 @@ Middleware logRequestsToLogger(DartPadLogger log) {
     return (request) {
       final watch = Stopwatch()..start();
 
-      final ctx = DartPadRequestContext.fromRequest(request);
-
       return Future.sync(() => innerHandler(request)).then(
         (response) {
-          log.info(
-            _formatMessage(request, watch.elapsed, response: response),
-            ctx,
-          );
+          log.info(_formatMessage(request, watch.elapsed, response: response));
 
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
           if (error is HijackException) {
-            log.info(_formatMessage(request, watch.elapsed), ctx);
+            log.info(_formatMessage(request, watch.elapsed));
 
             throw error;
           }
-
-          log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
 
           // ignore: only_throw_errors
           throw error;
