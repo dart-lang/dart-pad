@@ -136,7 +136,7 @@ class CommonServerApi {
         try {
           // Handle incoming WebSocket messages
           final request = JsonRpcRequest.fromJson(message as String);
-          log.genericInfo('ws request: ${request.method}');
+          log.info('ws request: ${request.method}');
           JsonRpcResponse? response;
 
           switch (request.method) {
@@ -152,12 +152,12 @@ class CommonServerApi {
           }
 
           webSocket.sink.add(jsonEncode(response.toJson()));
-          log.genericInfo(
+          log.info(
             'ws response: '
             '${request.method} ${response.error != null ? '500' : '200'}',
           );
         } catch (e) {
-          log.genericSevere('error handling websocket request', error: e);
+          log.severe('error handling websocket request', error: e);
         }
       },
       onDone: () {
@@ -166,7 +166,7 @@ class CommonServerApi {
         subscription = null;
       },
       onError: (Object error) {
-        log.genericSevere('error from websocket connection', error: error);
+        log.severe('error from websocket connection', error: error);
       },
     );
   }
