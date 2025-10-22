@@ -133,18 +133,6 @@ class CompileRequest {
 }
 
 @JsonSerializable()
-class CompileResponse {
-  final String result;
-
-  CompileResponse({required this.result});
-
-  factory CompileResponse.fromJson(Map<String, Object?> json) =>
-      _$CompileResponseFromJson(json);
-
-  Map<String, Object?> toJson() => _$CompileResponseToJson(this);
-}
-
-@JsonSerializable()
 class CompileDDCResponse {
   final String result;
   final String? deltaDill;

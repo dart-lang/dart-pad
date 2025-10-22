@@ -37,9 +37,6 @@ class DartServicesClient {
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
-  Future<CompileResponse> compile(CompileRequest request) =>
-      _requestPost('compile', request.toJson(), CompileResponse.fromJson);
-
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 

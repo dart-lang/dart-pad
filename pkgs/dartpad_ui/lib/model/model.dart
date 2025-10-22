@@ -492,15 +492,6 @@ class AppServices {
     return await services.document(request);
   }
 
-  Future<CompileResponse> compile(CompileRequest request) async {
-    try {
-      appModel.compilingState.value = CompilingState.restarting;
-      return await services.compile(request);
-    } finally {
-      appModel.compilingState.value = CompilingState.none;
-    }
-  }
-
   Stream<String> suggestFix(SuggestFixRequest request) {
     return services.suggestFix(request);
   }

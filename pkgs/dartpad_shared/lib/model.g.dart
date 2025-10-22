@@ -92,12 +92,6 @@ Map<String, dynamic> _$CompileRequestToJson(CompileRequest instance) =>
       'deltaDill': instance.deltaDill,
     };
 
-CompileResponse _$CompileResponseFromJson(Map<String, dynamic> json) =>
-    CompileResponse(result: json['result'] as String);
-
-Map<String, dynamic> _$CompileResponseToJson(CompileResponse instance) =>
-    <String, dynamic>{'result': instance.result};
-
 CompileDDCResponse _$CompileDDCResponseFromJson(Map<String, dynamic> json) =>
     CompileDDCResponse(
       result: json['result'] as String,
