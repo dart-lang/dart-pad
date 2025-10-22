@@ -17,7 +17,6 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
-import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
@@ -68,7 +67,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.genericInfo(
+  _logger.info(
     '''
 Starting dart-services:
   port: $port
@@ -84,7 +83,7 @@ Starting dart-services:
     redisServerUri: redisServerUri,
   );
 
-  _logger.genericInfo('Listening on port ${server.port}');
+  _logger.info('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -155,9 +154,7 @@ Middleware exceptionResponse() {
           return Response.badRequest(body: e.message);
         }
 
-        final ctx = DartPadRequestContext.fromRequest(request);
-
-        _logger.severe('${request.requestedUri.path} $e', ctx, null, st);
+        _logger.severe(request.requestedUri.path, error: e, stackTrace: st);
 
         return Response.badRequest(body: '$e');
       }
