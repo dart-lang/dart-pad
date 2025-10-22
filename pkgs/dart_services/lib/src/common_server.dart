@@ -87,7 +87,6 @@ class CommonServerApi {
 
     // general requests (POST)
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
-    router.post(r'/api/<apiVersion>/compile', handleCompile);
     router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
     router.post(r'/api/<apiVersion>/compileNewDDC', handleCompileNewDDC);
     router.post(
@@ -183,23 +182,6 @@ class CommonServerApi {
     });
 
     return ok(result.toJson());
-  }
-
-  Future<Response> handleCompile(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-    final sourceRequest = api.SourceRequest.fromJson(
-      await request.readAsJson(),
-    );
-
-    final results = await serialize(() {
-      return impl.compiler.compile(sourceRequest.source);
-    });
-
-    if (results.hasOutput) {
-      return ok(api.CompileResponse(result: results.compiledJS!).toJson());
-    } else {
-      return failure(results.problems.map((p) => p.message).join('\n'));
-    }
   }
 
   Future<Response> _handleCompileDDC(
