@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:dart_services/src/caching.dart';
-import 'package:dart_services/src/context.dart';
+
 import 'package:dartpad_shared/backend_client.dart';
 import 'package:dartpad_shared/services.dart';
 
@@ -26,7 +26,7 @@ class MockCache implements ServerCache {
   Future<void> shutdown() async => _cache.removeWhere((key, value) => true);
 }
 
-final ctx = DartPadRequestContext(enableLogging: false);
+
 
 final dartServicesProdProbingClients = () {
   DartServicesHttpClient.turnOffBackendLogging();

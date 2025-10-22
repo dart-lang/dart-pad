@@ -10,7 +10,7 @@ import 'package:bazel_worker/driver.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'context.dart';
+
 import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -46,12 +46,11 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
-    String source,
-    DartPadRequestContext ctx, {
+    String source, {
     bool returnSourceMap = false,
   }) async {
     final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}', ctx);
+    _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       _copyPath(_projectTemplates.dartPath, temp.path);
@@ -77,7 +76,7 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}', ctx);
+      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}');
 
       final result = await Process.run(
         _dartPath,
@@ -104,11 +103,11 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st', ctx);
+      _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}', ctx);
+      _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 
@@ -119,15 +118,14 @@ class Compiler {
   /// a hot restart and a non-null [deltaDill] will result in a hot reload. If
   /// [useNew] is false, the result will always be a hot restart.
   Future<DDCCompilationResults> _compileDDC(
-    String source,
-    DartPadRequestContext ctx, {
+    String source, {
     String? deltaDill,
     required bool useNew,
   }) async {
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}', ctx);
+    _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
@@ -201,8 +199,7 @@ class Compiler {
       ];
 
       _logger.fine(
-        'About to exec dartdevc worker: ${arguments.join(' ')}"',
-        ctx,
+        'About to exec dartdevc worker: ${arguments.join(' ')}',
       );
 
       final response = await _ddcDriver.doWork(
@@ -240,34 +237,31 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st', ctx);
+      _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}', ctx);
+      _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 
   Future<DDCCompilationResults> compileDDC(
     String source,
-    DartPadRequestContext ctx,
   ) async {
-    return await _compileDDC(source, ctx, useNew: false);
+    return await _compileDDC(source, useNew: false);
   }
 
   Future<DDCCompilationResults> compileNewDDC(
     String source,
-    DartPadRequestContext ctx,
   ) async {
-    return await _compileDDC(source, ctx, useNew: true);
+    return await _compileDDC(source, useNew: true);
   }
 
   Future<DDCCompilationResults> compileNewDDCReload(
     String source,
     String deltaDill,
-    DartPadRequestContext ctx,
   ) async {
-    return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
+    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {

@@ -7,7 +7,6 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
 import '../test_infra/sample_code.dart';
-import '../test_infra/utils.dart';
 
 void main() {
   group('compiling', () {
@@ -23,7 +22,7 @@ void main() {
     });
 
     test('simple', () async {
-      final result = await compiler.compile(sampleCode, ctx);
+      final result = await compiler.compile(sampleCode);
 
       expect(result.problems, isEmpty);
       expect(result.success, true);
@@ -174,7 +173,7 @@ void main() {
 
     testDDCEndpoint(
       'compileDDC',
-      restartEndpoint: (source) => compiler.compileDDC(source, ctx),
+      restartEndpoint: (source) => compiler.compileDDC(source),
       expectNewDeltaDill: false,
       compiledIndicator: "define('dartpad_main', [",
     );
@@ -182,15 +181,15 @@ void main() {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint(
         'compileNewDDC',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
       testDDCEndpoint(
         'compileNewDDCReload',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         reloadEndpoint: (source, deltaDill) =>
-            compiler.compileNewDDCReload(source, deltaDill, ctx),
+            compiler.compileNewDDCReload(source, deltaDill),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
@@ -199,7 +198,6 @@ void main() {
     test('sourcemap', () async {
       final result = await compiler.compile(
         sampleCode,
-        ctx,
         returnSourceMap: true,
       );
       expect(result.success, true);
@@ -211,7 +209,6 @@ void main() {
     test('version', () async {
       final result = await compiler.compile(
         sampleCode,
-        ctx,
         returnSourceMap: true,
       );
       expect(result.sourceMap, isNotNull);
@@ -219,17 +216,17 @@ void main() {
     });
 
     test('simple web', () async {
-      final result = await compiler.compile(sampleCodeWeb, ctx);
+      final result = await compiler.compile(sampleCodeWeb);
       expect(result.success, true);
     });
 
     test('web async', () async {
-      final result = await compiler.compile(sampleCodeAsync, ctx);
+      final result = await compiler.compile(sampleCodeAsync);
       expect(result.success, true);
     });
 
     test('errors', () async {
-      final result = await compiler.compile(sampleCodeError, ctx);
+      final result = await compiler.compile(sampleCodeError);
       expect(result.success, false);
       expect(result.problems.length, 1);
       expect(result.problems[0].toString(), contains('Error: Expected'));
@@ -245,7 +242,7 @@ void main() {
 }
 
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems.length, 0);
     });
 
@@ -260,7 +257,7 @@ void main() {
 }
 
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems.length, 0);
     });
 
@@ -269,7 +266,7 @@ void main() {
 import 'foo.dart';
 void main() { missingMethod ('foo'); }
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -282,7 +279,7 @@ void main() { missingMethod ('foo'); }
 import 'http://example.com';
 void main() { missingMethod ('foo'); }
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -295,7 +292,7 @@ void main() { missingMethod ('foo'); }
 import 'package:foo';
 import 'package:bar';
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems, hasLength(1));
       expect(
         result.problems.single.message,
@@ -308,7 +305,7 @@ import 'package:bar';
     });
 
     test('disallow compiler warnings', () async {
-      final result = await compiler.compile(sampleCodeErrors, ctx);
+      final result = await compiler.compile(sampleCodeErrors);
       expect(result.success, false);
     });
 
@@ -317,7 +314,7 @@ import 'package:bar';
 import 'dart:foo';
 void main() { print ('foo'); }
 ''';
-      final result = await compiler.compile(code, ctx);
+      final result = await compiler.compile(code);
       expect(result.problems.length, 1);
     });
   });
