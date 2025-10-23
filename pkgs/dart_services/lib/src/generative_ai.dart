@@ -104,15 +104,14 @@ ${column != null ? 'COLUMN: $column\n' : ''}
 SOURCE CODE:
 $source
 ''';
-    final content = Content(
-      parts: [
-        systemInstructions,
-        Part(text: prompt),
-      ],
-    );
+    final content = Content(parts: [Part(text: prompt)]);
 
     final stream = gemini!.streamGenerateContent(
-      GenerateContentRequest(model: _geminiModel, contents: [content]),
+      GenerateContentRequest(
+        model: _geminiModel,
+        systemInstruction: Content(parts: [systemInstructions]),
+        contents: [content],
+      ),
     );
 
     yield* cleanCode(_textOnly(stream));
@@ -131,7 +130,6 @@ $source
 
     final content = Content(
       parts: [
-        systemInstructions,
         Part(text: prompt),
         ...attachments.map(
           (a) => Part(
@@ -142,7 +140,11 @@ $source
     );
 
     final stream = gemini!.streamGenerateContent(
-      GenerateContentRequest(model: _geminiModel, contents: [content]),
+      GenerateContentRequest(
+        model: _geminiModel,
+        systemInstruction: Content(parts: [systemInstructions]),
+        contents: [content],
+      ),
     );
 
     yield* cleanCode(_textOnly(stream));
@@ -171,7 +173,6 @@ $prompt
 
     final content = Content(
       parts: [
-        systemInstructions,
         Part(text: completePrompt),
         ...attachments.map(
           (a) => Part(
@@ -182,7 +183,11 @@ $prompt
     );
 
     final stream = gemini!.streamGenerateContent(
-      GenerateContentRequest(model: _geminiModel, contents: [content]),
+      GenerateContentRequest(
+        model: _geminiModel,
+        systemInstruction: Content(parts: [systemInstructions]),
+        contents: [content],
+      ),
     );
 
     yield* cleanCode(_textOnly(stream));
