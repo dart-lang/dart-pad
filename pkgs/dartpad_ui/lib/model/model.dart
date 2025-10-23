@@ -502,17 +502,32 @@ class AppServices {
   }
 
   Stream<String> suggestFix(SuggestFixRequest request) {
-    return services.suggestFix(request);
+    if (useWebsockets) {
+      return webSocketServices!.suggestFix(request);
+    } else {
+      // ignore: deprecated_member_use
+      return services.suggestFix(request);
+    }
   }
 
   /// Generates the code with Gemini.
   Stream<String> generateCode(GenerateCodeRequest request) {
-    return services.generateCode(request);
+    if (useWebsockets) {
+      return webSocketServices!.generateCode(request);
+    } else {
+      // ignore: deprecated_member_use
+      return services.generateCode(request);
+    }
   }
 
   /// Updates code with Gemini.
   Stream<String> updateCode(UpdateCodeRequest request) {
-    return services.updateCode(request);
+    if (useWebsockets) {
+      return webSocketServices!.updateCode(request);
+    } else {
+      // ignore: deprecated_member_use
+      return services.updateCode(request);
+    }
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {

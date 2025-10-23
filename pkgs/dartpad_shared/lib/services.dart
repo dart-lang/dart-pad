@@ -72,12 +72,15 @@ class DartServicesClient {
     OpenInIdxResponse.fromJson,
   );
 
+  @Deprecated('prefer the websocket version')
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _requestPostStream('suggestFix', request.toJson());
 
+  @Deprecated('prefer the websocket version')
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _requestPostStream('generateCode', request.toJson());
 
+  @Deprecated('prefer the websocket version')
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 
@@ -150,6 +153,7 @@ class WebsocketServicesClient {
 
   final Map<int, Completer<dynamic>> responseCompleters = {};
   final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
+  final Map<int, StreamController<String>> responseStreamControllers = {};
 
   final Completer<void> _closedCompleter = Completer();
 
@@ -229,19 +233,16 @@ class WebsocketServicesClient {
     request.toJson(),
   );
 
-  // todo: support streaming responses over websockets
+  // todo: server websocket tests
 
-  // // todo:
-  // Stream<String> suggestFix(SuggestFixRequest request) =>
-  //     _requestPostStream('suggestFix', request.toJson());
+  Stream<String> suggestFix(SuggestFixRequest request) =>
+      _sendRequestStream('suggestFix', request.toJson());
 
-  // // todo:
-  // Stream<String> generateCode(GenerateCodeRequest request) =>
-  //     _requestPostStream('generateCode', request.toJson());
+  Stream<String> generateCode(GenerateCodeRequest request) =>
+      _sendRequestStream('generateCode', request.toJson());
 
-  // // todo:
-  // Stream<String> updateCode(UpdateCodeRequest request) =>
-  //     _requestPostStream('updateCode', request.toJson());
+  Stream<String> updateCode(UpdateCodeRequest request) =>
+      _sendRequestStream('updateCode', request.toJson());
 
   Future<T> _sendRequest<T>(
     String method,
@@ -260,19 +261,47 @@ class WebsocketServicesClient {
     return completer.future;
   }
 
+  Stream<String> _sendRequestStream(
+    String method,
+    Map<String, Object?>? params,
+  ) {
+    final id = idFactory.generateNextId();
+    final streamController = StreamController<String>();
+
+    responseStreamControllers[id] = streamController;
+
+    final request = JsonRpcRequest(method: method, id: id, params: params);
+    socket.sendText(jsonEncode(request.toJson()));
+
+    return streamController.stream;
+  }
+
   Future<void> dispose() => socket.close();
 
   void _dispatch(JsonRpcResponse response) {
     final id = response.id;
 
-    final completer = responseCompleters[id]!;
-    final decoder = responseDecoders[id]!;
+    if (responseCompleters.containsKey(id)) {
+      final completer = responseCompleters.remove(id)!;
+      final decoder = responseDecoders.remove(id)!;
 
-    if (response.error != null) {
-      completer.completeError(response.error!);
-    } else {
-      final result = decoder((response.result! as Map).cast());
-      completer.complete(result);
+      if (response.error != null) {
+        completer.completeError(response.error!);
+      } else {
+        final result = decoder((response.result! as Map).cast());
+        completer.complete(result);
+      }
+    } else if (responseStreamControllers.containsKey(id)) {
+      final streamController = responseStreamControllers[id]!;
+      final data = response.result as String?;
+
+      if (data == null) {
+        // Close the stream.
+        streamController.close();
+        responseStreamControllers.remove(id);
+      } else {
+        streamController.add(data);
+      }
     }
   }
 }

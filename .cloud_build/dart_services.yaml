@@ -78,8 +78,10 @@ steps:
       - --min-instances=5
       - --quiet
       - --cpu=2
-      - --memory=4Gi
-      - --concurrency=2
+      - --memory=8Gi
+      # Set conservatively to 3 simultaneous connections. Each websocket client
+      # may use approx. 2GB.
+      - --concurrency=3
       - --cpu-boost
       - --max-instances=1000
       - --command=bin/server

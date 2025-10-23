@@ -147,7 +147,7 @@ Middleware exceptionResponse() {
         return await handler(request);
       } on HijackException {
         // We ignore hijack exceptions as they are not error conditions; they're
-        // used used for control flow when upgrading websocket connections.
+        // used for control flow when upgrading websocket connections.
         rethrow;
       } catch (e, st) {
         if (e is BadRequest) {

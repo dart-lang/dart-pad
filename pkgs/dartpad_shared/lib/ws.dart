@@ -29,7 +29,7 @@ class JsonRpcRequest {
     );
   }
 
-  JsonRpcResponse createResultResponse(Map<String, Object?> result) =>
+  JsonRpcResponse createResultResponse(Object? result) =>
       JsonRpcResponse(id: id!, result: result);
 
   JsonRpcResponse createErrorResponse(Object error) =>

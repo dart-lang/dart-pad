@@ -126,23 +126,203 @@ class CommonServerApi {
   /// them appropriately. The commands and responses mirror the existing REST
   /// protocol.
   ///
-  /// This will be a long-running conneciton to the client.
+  /// This will be a long-running connection to the client.
   void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
     StreamSubscription<dynamic>? subscription;
 
     subscription = webSocket.stream.listen(
-      (message) {
+      (message) async {
         try {
           // Handle incoming WebSocket messages
           final request = JsonRpcRequest.fromJson(message as String);
-          log.info('ws request: ${request.method}');
+          final timer = Stopwatch()..start();
           JsonRpcResponse? response;
 
           switch (request.method) {
             case 'version':
-              final v = version();
-              response = request.createResultResponse(v.toJson());
+              response = request.createResultResponse(version().toJson());
               break;
+            case 'analyze':
+              final sourceRequest = api.SourceRequest.fromJson(request.params!);
+              final result = await serialize(() {
+                return impl.analyzer.analyze(sourceRequest.source);
+              });
+              response = request.createResultResponse(result.toJson());
+              break;
+            case 'complete':
+              final sourceRequest = api.SourceRequest.fromJson(request.params!);
+              final result = await serialize(
+                () => impl.analyzer.complete(
+                  sourceRequest.source,
+                  sourceRequest.offset!,
+                ),
+              );
+              response = request.createResultResponse(result.toJson());
+              break;
+            case 'document':
+              final sourceRequest = api.SourceRequest.fromJson(request.params!);
+              final result = await serialize(() {
+                return impl.analyzer.dartdoc(
+                  sourceRequest.source,
+                  sourceRequest.offset!,
+                );
+              });
+              response = request.createResultResponse(result.toJson());
+              break;
+            case 'fixes':
+              final sourceRequest = api.SourceRequest.fromJson(request.params!);
+              final result = await serialize(
+                () => impl.analyzer.fixes(
+                  sourceRequest.source,
+                  sourceRequest.offset!,
+                ),
+              );
+              response = request.createResultResponse(result.toJson());
+              break;
+            case 'format':
+              final sourceRequest = api.SourceRequest.fromJson(request.params!);
+              final result = await serialize(() {
+                return impl.analyzer.format(
+                  sourceRequest.source,
+                  sourceRequest.offset,
+                );
+              });
+              response = request.createResultResponse(result.toJson());
+              break;
+            case 'compileDDC':
+              final compileRequest = api.CompileRequest.fromJson(
+                request.params!,
+              );
+              final results = await serialize(() {
+                return impl.compiler.compileDDC(compileRequest.source);
+              });
+              if (results.hasOutput) {
+                response = request.createResultResponse(
+                  api.CompileDDCResponse(
+                    result: results.compiledJS!,
+                    deltaDill: results.deltaDill,
+                  ).toJson(),
+                );
+              } else {
+                response = request.createErrorResponse(
+                  results.problems.map((p) => p.message).join('\n'),
+                );
+              }
+              break;
+            case 'compileNewDDC':
+              final compileRequest = api.CompileRequest.fromJson(
+                request.params!,
+              );
+              final results = await serialize(() {
+                return impl.compiler.compileNewDDC(compileRequest.source);
+              });
+              if (results.hasOutput) {
+                response = request.createResultResponse(
+                  api.CompileDDCResponse(
+                    result: results.compiledJS!,
+                    deltaDill: results.deltaDill,
+                  ).toJson(),
+                );
+              } else {
+                response = request.createErrorResponse(
+                  results.problems.map((p) => p.message).join('\n'),
+                );
+              }
+              break;
+            case 'compileNewDDCReload':
+              final compileRequest = api.CompileRequest.fromJson(
+                request.params!,
+              );
+              final results = await serialize(() {
+                return impl.compiler.compileNewDDCReload(
+                  compileRequest.source,
+                  compileRequest.deltaDill!,
+                );
+              });
+              if (results.hasOutput) {
+                response = request.createResultResponse(
+                  api.CompileDDCResponse(
+                    result: results.compiledJS!,
+                    deltaDill: results.deltaDill,
+                  ).toJson(),
+                );
+              } else {
+                response = request.createErrorResponse(
+                  results.problems.map((p) => p.message).join('\n'),
+                );
+              }
+              break;
+            case 'openInFirebaseStudio':
+              final openRequest = api.OpenInFirebaseStudioRequest.fromJson(
+                request.params!,
+              );
+
+              try {
+                final idxResponse = await http.post(
+                  Uri.parse('https://studio.firebase.google.com/run.api'),
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: {
+                    'project[files][lib/main.dart]': openRequest.code,
+                    'project[settings]': '{"baselineEnvironment": "flutter"}',
+                  },
+                );
+
+                if (idxResponse.statusCode == 302) {
+                  final url = idxResponse.headers['location']!;
+                  response = request.createResultResponse(
+                    api.OpenInIdxResponse(firebaseStudioUrl: url).toJson(),
+                  );
+                } else {
+                  response = request.createErrorResponse(
+                    'Failed to read response from IDX server: $response',
+                  );
+                }
+              } catch (error) {
+                response = request.createErrorResponse(
+                  'Failed to read response from IDX server: $response',
+                );
+              }
+              break;
+
+            case 'generateCode':
+              final generateCodeRequest = api.GenerateCodeRequest.fromJson(
+                request.params!,
+              );
+              final stream = impl.ai.generateCode(
+                appType: generateCodeRequest.appType,
+                prompt: generateCodeRequest.prompt,
+                attachments: generateCodeRequest.attachments,
+              );
+              _streamWebsocketResponse(webSocket, request, stream);
+              break;
+            case 'updateCode':
+              final updateCodeRequest = api.UpdateCodeRequest.fromJson(
+                request.params!,
+              );
+              final stream = impl.ai.updateCode(
+                appType: updateCodeRequest.appType,
+                prompt: updateCodeRequest.prompt,
+                source: updateCodeRequest.source,
+                attachments: updateCodeRequest.attachments,
+              );
+              _streamWebsocketResponse(webSocket, request, stream);
+              break;
+            case 'suggestFix':
+              final suggestFixRequest = api.SuggestFixRequest.fromJson(
+                request.params!,
+              );
+              final stream = impl.ai.suggestFix(
+                appType: suggestFixRequest.appType,
+                message: suggestFixRequest.errorMessage,
+                line: suggestFixRequest.line,
+                column: suggestFixRequest.column,
+                source: suggestFixRequest.source,
+              );
+              _streamWebsocketResponse(webSocket, request, stream);
+              break;
+
             default:
               response = request.createErrorResponse(
                 'unknown command: ${request.method}',
@@ -150,11 +330,15 @@ class CommonServerApi {
               break;
           }
 
-          webSocket.sink.add(jsonEncode(response.toJson()));
-          log.info(
-            'ws response: '
-            '${request.method} ${response.error != null ? '500' : '200'}',
-          );
+          // If response is null, that means we got a streaming request.
+          if (response != null) {
+            final content = jsonEncode(response.toJson());
+            webSocket.sink.add(content);
+
+            final time = timer.elapsed;
+            final logMsg = _formatLog(request, time, response, content);
+            log.info('[ws] $logMsg');
+          }
         } catch (e) {
           log.severe('error handling websocket request', error: e);
         }
@@ -274,6 +458,7 @@ class CommonServerApi {
 
   Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
+
     final sourceRequest = api.SourceRequest.fromJson(
       await request.readAsJson(),
     );
@@ -427,6 +612,31 @@ class CommonServerApi {
     }
   }
 
+  void _streamWebsocketResponse(
+    WebSocketChannel webSocket,
+    JsonRpcRequest request,
+    Stream<String> stream,
+  ) {
+    final timer = Stopwatch()..start();
+    stream.listen(
+      (data) {
+        // Send the stream item as a websocket json-rpc response.
+        final response = request.createResultResponse(data);
+        final content = jsonEncode(response.toJson());
+        webSocket.sink.add(content);
+
+        final time = timer.elapsed;
+        final logMsg = _formatLog(request, time, response, content);
+        log.info('[ws] $logMsg ...');
+      },
+      onDone: () {
+        // Send a final response with null for the data field.
+        final response = request.createResultResponse(null);
+        webSocket.sink.add(jsonEncode(response.toJson()));
+      },
+    );
+  }
+
   Response ok(Map<String, dynamic> json) {
     return Response.ok(
       _jsonEncoder.convert(json),
@@ -575,6 +785,26 @@ String _formatMessage(
   if (error != null) {
     message = '$message [$error]';
   }
+
+  return message;
+}
+
+String _formatLog(
+  JsonRpcRequest request,
+  Duration elapsedTime,
+  JsonRpcResponse response,
+  String? responseContent,
+) {
+  final method = request.method;
+  final statusCode = response.error != null ? 400 : 200;
+  final bytes = responseContent?.length;
+  final size = ((bytes ?? 0) + 1023) ~/ 1024;
+
+  final ms = elapsedTime.inMilliseconds;
+
+  final message =
+      '${ms.toString().padLeft(5)}ms ${size.toString().padLeft(4)}k '
+      '$statusCode $method';
 
   return message;
 }
