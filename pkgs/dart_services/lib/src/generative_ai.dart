@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dartpad_shared/model.dart';
 import 'package:google_cloud_ai_generativelanguage_v1beta/generativelanguage.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 
 import 'logging.dart';
 import 'project_templates.dart';
@@ -24,14 +22,13 @@ class GenerativeAI {
   GenerativeService? gemini;
 
   GenerativeAI() {
-    final geminiApiKey = Platform.environment[_apiKeyVarName];
-    if (geminiApiKey == null || geminiApiKey.isEmpty) {
-      _logger.warning('$_apiKeyVarName not set; gen-ai features DISABLED');
-    } else {
-      _logger.info('$_apiKeyVarName set; gen-ai features ENABLED');
+    try {
+      gemini = GenerativeService.fromApiKey();
 
-      final client = auth.clientViaApiKey(geminiApiKey);
-      gemini = GenerativeService(client: client);
+      _logger.info('$_apiKeyVarName set; gen-ai features ENABLED');
+      // ignore: avoid_catching_errors
+    } on ArgumentError {
+      _logger.warning('$_apiKeyVarName not set; gen-ai features DISABLED');
     }
   }
 
@@ -199,14 +196,12 @@ $prompt
     }
   }
 
-  static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) =>
-      stream.map((response) {
-        final parts = response.candidates!.first.content!.parts!;
-        return parts
-            .where((part) => part.text != null)
-            .map((p) => p.text)
-            .join();
-      });
+  static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) {
+    return stream.map((response) {
+      final parts = response.candidates!.first.content!.parts!;
+      return parts.where((part) => part.text != null).map((p) => p.text).join();
+    });
+  }
 
   static const startCodeBlock = '```dart\n';
   static const endCodeBlock = '\n```';
