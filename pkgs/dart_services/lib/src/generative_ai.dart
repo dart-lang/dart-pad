@@ -198,7 +198,7 @@ $prompt
 
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) {
     return stream.map((response) {
-      final parts = response.candidates!.first.content!.parts!;
+      final parts = response.candidates?.firstOrNull?.content?.parts ?? [];
       return parts.where((part) => part.text != null).map((p) => p.text).join();
     });
   }
