@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart';
-import 'package:google_cloud_ai_generativelanguage_v1/generativelanguage.dart';
+import 'package:google_cloud_ai_generativelanguage_v1beta/generativelanguage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 
 import 'logging.dart';
