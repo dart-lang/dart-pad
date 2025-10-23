@@ -4,8 +4,6 @@
 
 // todo: front-end reconnects as necessary
 
-// todo: change call timeout (60 mins)
-
 // todo: remove non-websocket REST api?
 
 // todo: new backend services spun up per-websocket
@@ -13,8 +11,6 @@
 // Note that we're now serving websocket clients and precompiled resources from
 // the same backends. In the future, we may want to investigate specialized
 // backends.
-
-// ---
 
 /// A compile-time flag to control making requests over websockets.
 ///

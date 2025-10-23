@@ -233,8 +233,6 @@ class WebsocketServicesClient {
     request.toJson(),
   );
 
-  // todo: server websocket tests
-
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _sendRequestStream('suggestFix', request.toJson());
 
