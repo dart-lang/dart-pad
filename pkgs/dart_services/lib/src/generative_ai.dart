@@ -197,11 +197,10 @@ $prompt
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) =>
       stream.map((response) {
         final parts = response.candidates!.first.content!.parts!;
-        // todo: should we join with ''? '\n'?
         return parts
             .where((part) => part.text != null)
             .map((p) => p.text)
-            .join(' ');
+            .join();
       });
 
   static const startCodeBlock = '```dart\n';
