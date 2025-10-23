@@ -10,7 +10,7 @@ import 'package:bazel_worker/driver.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'context.dart';
+
 import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -18,20 +18,19 @@ import 'sdk.dart';
 
 final DartPadLogger _logger = DartPadLogger('compiler');
 
-/// An interface to the dart2js compiler. A compiler object can process one
+/// An interface to the Dart web compilers. A compiler object can process one
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
-  final String _dartPath;
   final BazelWorkerDriver _ddcDriver;
 
   final ProjectTemplates _projectTemplates;
 
   Compiler(Sdk sdk) : this._(sdk, path.join(sdk.dartSdkPath, 'bin', 'dart'));
 
-  Compiler._(this._sdk, this._dartPath)
+  Compiler._(this._sdk, String dartPath)
     : _ddcDriver = BazelWorkerDriver(
-        () => Process.start(_dartPath, [
+        () => Process.start(dartPath, [
           path.join(
             _sdk.dartSdkPath,
             'bin',
@@ -44,74 +43,6 @@ class Compiler {
       ),
       _projectTemplates = ProjectTemplates.instance;
 
-  /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compile(
-    String source,
-    DartPadRequestContext ctx, {
-    bool returnSourceMap = false,
-  }) async {
-    final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}', ctx);
-
-    try {
-      _copyPath(_projectTemplates.dartPath, temp.path);
-      Directory(path.join(temp.path, 'lib')).createSync(recursive: true);
-
-      final arguments = <String>[
-        'compile',
-        'js',
-        '--suppress-hints',
-        '--terse',
-        if (!returnSourceMap) '--no-source-maps',
-        '--packages=${path.join('.dart_tool', 'package_config.json')}',
-        '--enable-asserts',
-        if (_sdk.experiments.isNotEmpty)
-          '--enable-experiment=${_sdk.experiments.join(",")}',
-        '-o',
-        '$kMainDart.js',
-        path.join('lib', kMainDart),
-      ];
-
-      File(path.join(temp.path, 'lib', kMainDart)).writeAsStringSync(source);
-
-      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
-      final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
-
-      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}', ctx);
-
-      final result = await Process.run(
-        _dartPath,
-        arguments,
-        workingDirectory: temp.path,
-      );
-
-      if (result.exitCode != 0) {
-        final results = CompilationResults(
-          problems: <CompilationProblem>[
-            CompilationProblem._(result.stdout as String),
-          ],
-        );
-        return results;
-      } else {
-        String? sourceMap;
-        if (returnSourceMap && mainSourceMap.existsSync()) {
-          sourceMap = mainSourceMap.readAsStringSync();
-        }
-        final results = CompilationResults(
-          compiledJS: mainJs.readAsStringSync(),
-          sourceMap: sourceMap,
-        );
-        return results;
-      }
-    } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st', ctx);
-      rethrow;
-    } finally {
-      temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}', ctx);
-    }
-  }
-
   /// Compile the given string and return the resulting [DDCCompilationResults].
   ///
   /// [useNew] determines whether or not to use the hot reload enabled module
@@ -119,15 +50,14 @@ class Compiler {
   /// a hot restart and a non-null [deltaDill] will result in a hot reload. If
   /// [useNew] is false, the result will always be a hot restart.
   Future<DDCCompilationResults> _compileDDC(
-    String source,
-    DartPadRequestContext ctx, {
+    String source, {
     String? deltaDill,
     required bool useNew,
   }) async {
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
-    _logger.fine('Temp directory created: ${temp.path}', ctx);
+    _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
@@ -200,10 +130,7 @@ class Compiler {
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
-      _logger.fine(
-        'About to exec dartdevc worker: ${arguments.join(' ')}"',
-        ctx,
-      );
+      _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}');
 
       final response = await _ddcDriver.doWork(
         WorkRequest(arguments: arguments),
@@ -240,62 +167,32 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning('Compiler failed: $e\n$st', ctx);
+      _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.fine('temp folder removed: ${temp.path}', ctx);
+      _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 
-  Future<DDCCompilationResults> compileDDC(
-    String source,
-    DartPadRequestContext ctx,
-  ) async {
-    return await _compileDDC(source, ctx, useNew: false);
+  Future<DDCCompilationResults> compileDDC(String source) async {
+    return await _compileDDC(source, useNew: false);
   }
 
-  Future<DDCCompilationResults> compileNewDDC(
-    String source,
-    DartPadRequestContext ctx,
-  ) async {
-    return await _compileDDC(source, ctx, useNew: true);
+  Future<DDCCompilationResults> compileNewDDC(String source) async {
+    return await _compileDDC(source, useNew: true);
   }
 
   Future<DDCCompilationResults> compileNewDDCReload(
     String source,
     String deltaDill,
-    DartPadRequestContext ctx,
   ) async {
-    return await _compileDDC(source, ctx, deltaDill: deltaDill, useNew: true);
+    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {
     return _ddcDriver.terminateWorkers();
   }
-}
-
-/// The result of a dart2js compile.
-class CompilationResults {
-  final String? compiledJS;
-  final String? sourceMap;
-  final List<CompilationProblem> problems;
-
-  CompilationResults({
-    this.compiledJS,
-    this.problems = const <CompilationProblem>[],
-    this.sourceMap,
-  });
-
-  bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
-
-  /// This is true if there were no errors.
-  bool get success => problems.isEmpty;
-
-  @override
-  String toString() => success
-      ? 'CompilationResults: Success'
-      : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// The result of a DDC compile.
@@ -322,7 +219,7 @@ class DDCCompilationResults {
       : 'Compilation errors: ${problems.join('\n')}';
 }
 
-/// An issue associated with [CompilationResults].
+/// An issue associated with [DDCCompilationResults].
 class CompilationProblem implements Comparable<CompilationProblem> {
   final String message;
 

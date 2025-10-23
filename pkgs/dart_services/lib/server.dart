@@ -17,7 +17,6 @@ import 'package:shelf_gzip/shelf_gzip.dart';
 
 import 'src/caching.dart';
 import 'src/common_server.dart';
-import 'src/context.dart';
 import 'src/logging.dart';
 import 'src/sdk.dart';
 
@@ -68,7 +67,7 @@ Future<void> main(List<String> args) async {
       .map((entry) => '${entry.key}:${entry.value}')
       .join(',');
 
-  _logger.genericInfo(
+  _logger.info(
     '''
 Starting dart-services:
   port: $port
@@ -84,7 +83,7 @@ Starting dart-services:
     redisServerUri: redisServerUri,
   );
 
-  _logger.genericInfo('Listening on port ${server.port}');
+  _logger.info('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
@@ -146,14 +145,16 @@ Middleware exceptionResponse() {
     return (Request request) async {
       try {
         return await handler(request);
+      } on HijackException {
+        // We ignore hijack exceptions as they are not error conditions; they're
+        // used used for control flow when upgrading websocket connections.
+        rethrow;
       } catch (e, st) {
         if (e is BadRequest) {
           return Response.badRequest(body: e.message);
         }
 
-        final ctx = DartPadRequestContext.fromRequest(request);
-
-        _logger.severe('${request.requestedUri.path} $e', ctx, null, st);
+        _logger.severe(request.requestedUri.path, error: e, stackTrace: st);
 
         return Response.badRequest(body: '$e');
       }
@@ -164,8 +165,11 @@ Middleware exceptionResponse() {
 @visibleForTesting
 class TestServerRunner {
   static const _port = 8080;
+
   late final DartServicesClient client;
-  final sdk = Sdk.fromLocalFlutter();
+  late final WebsocketServicesClient websocketClient;
+
+  final Sdk sdk = Sdk.fromLocalFlutter();
 
   Completer<void>? _started;
 
@@ -184,10 +188,15 @@ class TestServerRunner {
     } on SocketException {
       // This is expected if the server is already running.
     }
-    client = DartServicesClient(
-      DartServicesHttpClient(),
-      rootUrl: 'http://$localhostIp:$_port/',
-    );
+
+    final rootUrl = 'http://$localhostIp:$_port/';
+
+    // connect the regular client
+    client = DartServicesClient(DartServicesHttpClient(), rootUrl: rootUrl);
+
+    // connect the websocket client
+    websocketClient = await WebsocketServicesClient.connect(rootUrl);
+
     _started!.complete();
     return client;
   }

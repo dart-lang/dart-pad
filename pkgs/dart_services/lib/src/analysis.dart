@@ -11,7 +11,7 @@ import 'package:dartpad_shared/model.dart' as api;
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'context.dart';
+
 import 'logging.dart';
 import 'project_templates.dart';
 import 'pub.dart';
@@ -34,7 +34,7 @@ class Analyzer {
 
     unawaited(
       analysisServer.onExit.then((int code) {
-        _logger.genericSevere('analysis server exited, code: $code');
+        _logger.severe('analysis server exited, code: $code');
         if (code != 0) {
           exit(code);
         }
@@ -54,12 +54,8 @@ class Analyzer {
     return analysisServer.fixes(source, offset);
   }
 
-  Future<api.FormatResponse> format(
-    String source,
-    int? offset,
-    DartPadRequestContext ctx,
-  ) async {
-    return analysisServer.format(source, offset, ctx);
+  Future<api.FormatResponse> format(String source, int? offset) async {
+    return analysisServer.format(source, offset);
   }
 
   Future<api.DocumentResponse> dartdoc(String source, int offset) async {
@@ -86,7 +82,7 @@ class AnalysisServerWrapper {
 
   Future<void> init() async {
     const serverArgs = <String>['--client-id=DartPad'];
-    _logger.genericInfo(
+    _logger.info(
       'Starting analysis server '
       '(sdk: ${path.relative(sdkPath)}, args: ${serverArgs.join(' ')})',
     );
@@ -98,7 +94,7 @@ class AnalysisServerWrapper {
 
     try {
       analysisServer.server.onError.listen((ServerError error) {
-        _logger.genericSevere(
+        _logger.severe(
           'server error${error.isFatal ? ' (fatal)' : ''}',
           error: error.message,
           stackTrace: StackTrace.fromString(error.stackTrace),
@@ -111,9 +107,7 @@ class AnalysisServerWrapper {
 
       await analysisServer.analysis.setAnalysisRoots([projectPath], []);
     } catch (err, st) {
-      _logger.genericSevere(
-        'Error starting analysis server ($sdkPath): $err.\n$st',
-      );
+      _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
       rethrow;
     }
   }
@@ -217,11 +211,7 @@ class AnalysisServerWrapper {
   /// Format the source [src] of the single passed in file. The [offset] is the
   /// current cursor location and a modified offset is returned if necessary to
   /// maintain the cursors original position in the formatted code.
-  Future<api.FormatResponse> format(
-    String src,
-    int? offset,
-    DartPadRequestContext ctx,
-  ) {
+  Future<api.FormatResponse> format(String src, int? offset) {
     return _formatImpl(src, offset)
         .then((FormatResult editResult) {
           final edits = editResult.edits;
@@ -245,7 +235,7 @@ class AnalysisServerWrapper {
           );
         })
         .catchError((dynamic error) {
-          _logger.fine('format error: $error', ctx);
+          _logger.fine('format error: $error');
           return api.FormatResponse(source: src, offset: offset);
         });
   }

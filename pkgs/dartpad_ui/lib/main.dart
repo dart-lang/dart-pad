@@ -291,7 +291,9 @@ class DartPadMainPageState extends State<DartPadMainPage>
         : null;
 
     appModel = AppModel();
+
     appServices = AppServices(appModel, channel ?? Channel.defaultChannel);
+    await appServices.init();
 
     appModel.compilingState.addListener(_handleRunStarted);
 
@@ -788,7 +790,7 @@ class StatusLineWidget extends StatelessWidget {
               ),
             ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
-          VersionInfoWidget(appModel.runtimeVersions),
+          VersionInfoWidget(appModel.runtimeVersions, hideLabel: mobileVersion),
           const SizedBox(width: denseSpacing),
           SelectChannelWidget(hideLabel: mobileVersion),
         ],
@@ -1123,38 +1125,39 @@ class KeyBindingsTable extends StatelessWidget {
 
 class VersionInfoWidget extends StatefulWidget {
   final ValueListenable<VersionResponse?> versions;
+  final bool hideLabel;
 
-  const VersionInfoWidget(this.versions, {super.key});
+  const VersionInfoWidget(this.versions, {super.key, this.hideLabel = false});
 
   @override
   State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
 }
 
 class _VersionInfoWidgetState extends State<VersionInfoWidget> {
-  bool hovered = false;
+  void _showVersionDialog(VersionResponse versions) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => MediumDialog(
+        title: 'Runtime versions',
+        child: VersionTable(version: versions),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<VersionResponse?>(
       valueListenable: widget.versions,
-      builder: (content, versions, _) {
-        if (versions == null) {
-          return const SizedBox();
-        }
+      builder: (_, versions, _) {
+        if (versions == null) return const SizedBox();
 
-        return TextButton(
-          onPressed: () {
-            showDialog<void>(
-              context: context,
-              builder: (context) {
-                return MediumDialog(
-                  title: 'Runtime versions',
-                  child: VersionTable(version: versions),
-                );
-              },
-            );
-          },
-          child: Text(versions.label),
+        return CollapsibleIconToggleButton(
+          onToggle: () => _showVersionDialog(versions),
+          icon: const Icon(Icons.info_outline, size: smallIconSize),
+          label: Text(versions.label),
+          tooltip: 'Runtime versions',
+          compact: true,
+          hideLabel: widget.hideLabel,
         );
       },
     );

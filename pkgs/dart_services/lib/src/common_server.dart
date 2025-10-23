@@ -7,16 +7,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
+import 'package:dartpad_shared/ws.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_static/shelf_static.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'analysis.dart';
 import 'caching.dart';
 import 'compiling.dart';
-import 'context.dart';
+
 import 'generative_ai.dart';
 import 'logging.dart';
 import 'project_templates.dart';
@@ -37,14 +40,14 @@ class CommonServerImpl {
   final Sdk sdk;
   final ServerCache cache;
 
-  late Analyzer analyzer;
-  late Compiler compiler;
-  final ai = GenerativeAI();
+  late final Analyzer analyzer;
+  late final Compiler compiler;
+  final GenerativeAI ai = GenerativeAI();
 
   CommonServerImpl(this.sdk, this.cache);
 
   Future<void> init() async {
-    log.genericFine('initializing CommonServerImpl');
+    log.fine('initializing CommonServerImpl');
 
     analyzer = Analyzer(sdk);
     await analyzer.init();
@@ -53,7 +56,7 @@ class CommonServerImpl {
   }
 
   Future<void> shutdown() async {
-    log.genericFine('shutting down CommonServerImpl');
+    log.fine('shutting down CommonServerImpl');
 
     await cache.shutdown();
 
@@ -73,6 +76,9 @@ class CommonServerApi {
     // general requests (GET)
     router.get(r'/api/<apiVersion>/version', handleVersion);
 
+    // websocket requests
+    router.get(r'/ws', webSocketHandler(handleWebSocket));
+
     // serve the compiled artifacts
     final artifactsDir = Directory('artifacts');
     if (artifactsDir.existsSync()) {
@@ -81,7 +87,6 @@ class CommonServerApi {
 
     // general requests (POST)
     router.post(r'/api/<apiVersion>/analyze', handleAnalyze);
-    router.post(r'/api/<apiVersion>/compile', handleCompile);
     router.post(r'/api/<apiVersion>/compileDDC', handleCompileDDC);
     router.post(r'/api/<apiVersion>/compileNewDDC', handleCompileNewDDC);
     router.post(
@@ -115,6 +120,56 @@ class CommonServerApi {
     return ok(version().toJson());
   }
 
+  /// Handle a new websocket connection request.
+  ///
+  /// Handle incoming requests, convert them to exising commands and dispatch
+  /// them appropriately. The commands and responses mirror the existing REST
+  /// protocol.
+  ///
+  /// This will be a long-running conneciton to the client.
+  void handleWebSocket(WebSocketChannel webSocket, String? subprotocol) {
+    StreamSubscription<dynamic>? subscription;
+
+    subscription = webSocket.stream.listen(
+      (message) {
+        try {
+          // Handle incoming WebSocket messages
+          final request = JsonRpcRequest.fromJson(message as String);
+          log.info('ws request: ${request.method}');
+          JsonRpcResponse? response;
+
+          switch (request.method) {
+            case 'version':
+              final v = version();
+              response = request.createResultResponse(v.toJson());
+              break;
+            default:
+              response = request.createErrorResponse(
+                'unknown command: ${request.method}',
+              );
+              break;
+          }
+
+          webSocket.sink.add(jsonEncode(response.toJson()));
+          log.info(
+            'ws response: '
+            '${request.method} ${response.error != null ? '500' : '200'}',
+          );
+        } catch (e) {
+          log.severe('error handling websocket request', error: e);
+        }
+      },
+      onDone: () {
+        // Clean up any stream subscription.
+        subscription?.cancel();
+        subscription = null;
+      },
+      onError: (Object error) {
+        log.severe('error from websocket connection', error: error);
+      },
+    );
+  }
+
   Future<Response> handleAnalyze(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
 
@@ -127,25 +182,6 @@ class CommonServerApi {
     });
 
     return ok(result.toJson());
-  }
-
-  Future<Response> handleCompile(Request request, String apiVersion) async {
-    if (apiVersion != api3) return unhandledVersion(apiVersion);
-    final ctx = DartPadRequestContext.fromRequest(request);
-
-    final sourceRequest = api.SourceRequest.fromJson(
-      await request.readAsJson(),
-    );
-
-    final results = await serialize(() {
-      return impl.compiler.compile(sourceRequest.source, ctx);
-    });
-
-    if (results.hasOutput) {
-      return ok(api.CompileResponse(result: results.compiledJS!).toJson());
-    } else {
-      return failure(results.problems.map((p) => p.message).join('\n'));
-    }
   }
 
   Future<Response> _handleCompileDDC(
@@ -176,12 +212,10 @@ class CommonServerApi {
   }
 
   Future<Response> handleCompileDDC(Request request, String apiVersion) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) => impl.compiler.compileDDC(compileRequest.source, ctx),
+      (compileRequest) => impl.compiler.compileDDC(compileRequest.source),
     );
   }
 
@@ -189,13 +223,10 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) =>
-          impl.compiler.compileNewDDC(compileRequest.source, ctx),
+      (compileRequest) => impl.compiler.compileNewDDC(compileRequest.source),
     );
   }
 
@@ -203,15 +234,12 @@ class CommonServerApi {
     Request request,
     String apiVersion,
   ) async {
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     return await _handleCompileDDC(
       request,
       apiVersion,
       (compileRequest) => impl.compiler.compileNewDDCReload(
         compileRequest.source,
         compileRequest.deltaDill!,
-        ctx,
       ),
     );
   }
@@ -246,18 +274,12 @@ class CommonServerApi {
 
   Future<Response> handleFormat(Request request, String apiVersion) async {
     if (apiVersion != api3) return unhandledVersion(apiVersion);
-    final ctx = DartPadRequestContext.fromRequest(request);
-
     final sourceRequest = api.SourceRequest.fromJson(
       await request.readAsJson(),
     );
 
     final result = await serialize(() {
-      return impl.analyzer.format(
-        sourceRequest.source,
-        sourceRequest.offset,
-        ctx,
-      );
+      return impl.analyzer.format(sourceRequest.source, sourceRequest.offset);
     });
 
     return ok(result.toJson());
@@ -511,22 +533,18 @@ Middleware logRequestsToLogger(DartPadLogger log) {
     return (request) {
       final watch = Stopwatch()..start();
 
-      final ctx = DartPadRequestContext.fromRequest(request);
-      log.genericInfo('received request, enableLogging=${ctx.enableLogging}');
-
       return Future.sync(() => innerHandler(request)).then(
         (response) {
-          log.info(
-            _formatMessage(request, watch.elapsed, response: response),
-            ctx,
-          );
+          log.info(_formatMessage(request, watch.elapsed, response: response));
 
           return response;
         },
         onError: (Object error, StackTrace stackTrace) {
-          if (error is HijackException) throw error;
+          if (error is HijackException) {
+            log.info(_formatMessage(request, watch.elapsed));
 
-          log.info(_formatMessage(request, watch.elapsed, error: error), ctx);
+            throw error;
+          }
 
           // ignore: only_throw_errors
           throw error;

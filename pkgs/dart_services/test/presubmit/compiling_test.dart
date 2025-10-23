@@ -7,7 +7,6 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
 import '../test_infra/sample_code.dart';
-import '../test_infra/utils.dart';
 
 void main() {
   group('compiling', () {
@@ -20,15 +19,6 @@ void main() {
 
     tearDownAll(() async {
       await compiler.dispose();
-    });
-
-    test('simple', () async {
-      final result = await compiler.compile(sampleCode, ctx);
-
-      expect(result.problems, isEmpty);
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.sourceMap, isNull);
     });
 
     void testDDCEndpoint(
@@ -174,7 +164,7 @@ void main() {
 
     testDDCEndpoint(
       'compileDDC',
-      restartEndpoint: (source) => compiler.compileDDC(source, ctx),
+      restartEndpoint: (source) => compiler.compileDDC(source),
       expectNewDeltaDill: false,
       compiledIndicator: "define('dartpad_main', [",
     );
@@ -182,143 +172,18 @@ void main() {
       // DDC only supports these at version 3.8 and higher.
       testDDCEndpoint(
         'compileNewDDC',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
       testDDCEndpoint(
         'compileNewDDCReload',
-        restartEndpoint: (source) => compiler.compileNewDDC(source, ctx),
+        restartEndpoint: (source) => compiler.compileNewDDC(source),
         reloadEndpoint: (source, deltaDill) =>
-            compiler.compileNewDDCReload(source, deltaDill, ctx),
+            compiler.compileNewDDCReload(source, deltaDill),
         expectNewDeltaDill: true,
         compiledIndicator: 'defineLibrary("package:dartpad_sample/main.dart"',
       );
     }
-
-    test('sourcemap', () async {
-      final result = await compiler.compile(
-        sampleCode,
-        ctx,
-        returnSourceMap: true,
-      );
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.sourceMap, isNotNull);
-      expect(result.sourceMap, isNotEmpty);
-    });
-
-    test('version', () async {
-      final result = await compiler.compile(
-        sampleCode,
-        ctx,
-        returnSourceMap: true,
-      );
-      expect(result.sourceMap, isNotNull);
-      expect(result.sourceMap, isNotEmpty);
-    });
-
-    test('simple web', () async {
-      final result = await compiler.compile(sampleCodeWeb, ctx);
-      expect(result.success, true);
-    });
-
-    test('web async', () async {
-      final result = await compiler.compile(sampleCodeAsync, ctx);
-      expect(result.success, true);
-    });
-
-    test('errors', () async {
-      final result = await compiler.compile(sampleCodeError, ctx);
-      expect(result.success, false);
-      expect(result.problems.length, 1);
-      expect(result.problems[0].toString(), contains('Error: Expected'));
-    });
-
-    test('good import', () async {
-      const code = '''
-import 'dart:html';
-
-void main() {
-  var count = querySelector('#count');
-  print('hello');
-}
-
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems.length, 0);
-    });
-
-    test('good import - empty', () async {
-      const code = '''
-import '' as foo;
-
-int bar = 2;
-
-void main() {
-  print(foo.bar);
-}
-
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems.length, 0);
-    });
-
-    test('bad import - local', () async {
-      const code = '''
-import 'foo.dart';
-void main() { missingMethod ('foo'); }
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems, hasLength(1));
-      expect(
-        result.problems.single.message,
-        contains("Error when reading 'lib/foo.dart'"),
-      );
-    });
-
-    test('bad import - http', () async {
-      const code = '''
-import 'http://example.com';
-void main() { missingMethod ('foo'); }
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems, hasLength(1));
-      expect(
-        result.problems.single.message,
-        contains("Error when reading 'http://example.com'"),
-      );
-    });
-
-    test('multiple bad imports', () async {
-      const code = '''
-import 'package:foo';
-import 'package:bar';
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems, hasLength(1));
-      expect(
-        result.problems.single.message,
-        contains("Invalid package URI 'package:foo'"),
-      );
-      expect(
-        result.problems.single.message,
-        contains("Invalid package URI 'package:bar'"),
-      );
-    });
-
-    test('disallow compiler warnings', () async {
-      final result = await compiler.compile(sampleCodeErrors, ctx);
-      expect(result.success, false);
-    });
-
-    test('transitive errors', () async {
-      const code = '''
-import 'dart:foo';
-void main() { print ('foo'); }
-''';
-      final result = await compiler.compile(code, ctx);
-      expect(result.problems.length, 1);
-    });
   });
 }

@@ -26,11 +26,9 @@ class GenerativeAI {
   GenerativeAI() {
     final geminiApiKey = Platform.environment[_apiKeyVarName];
     if (geminiApiKey == null || geminiApiKey.isEmpty) {
-      _logger.genericWarning(
-        '$_apiKeyVarName not set; gen-ai features DISABLED',
-      );
+      _logger.warning('$_apiKeyVarName not set; gen-ai features DISABLED');
     } else {
-      _logger.genericInfo('$_apiKeyVarName set; gen-ai features ENABLED');
+      _logger.info('$_apiKeyVarName set; gen-ai features ENABLED');
 
       final client = auth.clientViaApiKey(geminiApiKey);
       gemini = GenerativeService(client: client);
