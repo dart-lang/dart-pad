@@ -151,6 +151,7 @@ class WebsocketServicesClient {
   final WebSocket socket;
   final IDFactory idFactory = IDFactory();
 
+  final Map<int, String> responseMethods = {};
   final Map<int, Completer<dynamic>> responseCompleters = {};
   final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
   final Map<int, StreamController<String>> responseStreamControllers = {};
@@ -250,6 +251,7 @@ class WebsocketServicesClient {
     final id = idFactory.generateNextId();
     final completer = Completer<T>();
 
+    responseMethods[id] = method;
     responseCompleters[id] = completer;
     responseDecoders[id] = decoder;
 
@@ -280,16 +282,20 @@ class WebsocketServicesClient {
     final id = response.id;
 
     if (responseCompleters.containsKey(id)) {
+      final command = responseMethods.remove(id);
       final completer = responseCompleters.remove(id)!;
       final decoder = responseDecoders.remove(id)!;
 
       if (response.error != null) {
-        completer.completeError(response.error!);
+        final error = ApiRequestError(command!, '${response.error}');
+        completer.completeError(error);
       } else {
         final result = decoder((response.result! as Map).cast());
         completer.complete(result);
       }
     } else if (responseStreamControllers.containsKey(id)) {
+      // ignore: unused_local_variable
+      final command = responseMethods.remove(id);
       final streamController = responseStreamControllers[id]!;
       final data = response.result as String?;
 
@@ -305,10 +311,10 @@ class WebsocketServicesClient {
 }
 
 class ApiRequestError implements Exception {
-  ApiRequestError(this.message, this.body);
-
   final String message;
   final String body;
+
+  ApiRequestError(this.message, this.body);
 
   @override
   String toString() => '$message: $body';

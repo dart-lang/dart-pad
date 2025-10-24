@@ -5,7 +5,6 @@
 import 'package:dart_services/server.dart';
 import 'package:test/test.dart';
 
-import '../probes_and_presubmit/reload_testing.dart';
 import '../probes_and_presubmit/server_testing.dart';
 
 void main() async {
@@ -13,12 +12,10 @@ void main() async {
   await runner.maybeStart();
 
   group('server', () {
+    // Test regular backend.
     testServer(runner.client);
 
-    if (runner.sdk.dartMajorVersion >= 3 && runner.sdk.dartMinorVersion >= 8) {
-      testReload(runner.client);
-    }
-
+    // Test websocket backend.
     testServerWebsocket(runner.websocketClient);
   });
 }

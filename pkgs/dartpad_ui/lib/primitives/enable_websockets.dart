@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// todo: front-end reconnects as necessary
+// TODO: have the front-end reconnect as necessary
 
-// todo: remove non-websocket REST api?
+// TODO: remove the non-websocket REST API?
 
-// todo: new backend services spun up per-websocket
-
-// Note that we're now serving websocket clients and precompiled resources from
-// the same backends. In the future, we may want to investigate specialized
-// backends.
+// TODO: have backend services allocated per-websocket client
 
 /// A compile-time flag to control making requests over websockets.
 ///
