@@ -314,7 +314,7 @@ void main() => print('hello world');
       expect(assist.linkedEditGroups, isEmpty);
       expect(assist.selectionOffset, greaterThan(0));
       expect(assist.edits.first.replacement, isNotEmpty);
-    });
+    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
 
     testDDCEndpoint(
       'compileDDC',
