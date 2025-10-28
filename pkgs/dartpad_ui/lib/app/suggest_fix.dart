@@ -25,17 +25,16 @@ Future<void> suggestFix({
   appModel.genAiManager.preGenAiSourceCode.value = existingSource;
 
   try {
-    appModel.genAiManager.startStream(
-      appServices.suggestFix(
-        SuggestFixRequest(
-          appType: appType,
-          errorMessage: errorMessage,
-          line: line,
-          column: column,
-          source: existingSource,
-        ),
+    final fixStream = await appServices.suggestFix(
+      SuggestFixRequest(
+        appType: appType,
+        errorMessage: errorMessage,
+        line: line,
+        column: column,
+        source: existingSource,
       ),
     );
+    appModel.genAiManager.startStream(fixStream);
   } catch (error) {
     appModel.editorStatus.showToast('Error suggesting fix');
     appModel.appendLineToConsole('Suggesting fix issue: $error');

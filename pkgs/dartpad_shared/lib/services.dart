@@ -149,6 +149,8 @@ class DartServicesClient {
 class WebsocketServicesClient {
   final Uri wsUrl;
   final WebSocket socket;
+  final void Function(WebsocketServicesClient)? onClosed;
+
   final IDFactory idFactory = IDFactory();
 
   final Map<int, String> responseMethods = {};
@@ -156,18 +158,19 @@ class WebsocketServicesClient {
   final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
   final Map<int, StreamController<String>> responseStreamControllers = {};
 
-  final Completer<void> _closedCompleter = Completer();
+  WebsocketServicesClient._(this.wsUrl, this.socket, this.onClosed);
 
-  WebsocketServicesClient._(this.wsUrl, this.socket);
-
-  static Future<WebsocketServicesClient> connect(String rootUrl) async {
+  static Future<WebsocketServicesClient> connect(
+    String rootUrl, {
+    void Function(WebsocketServicesClient)? onClosed,
+  }) async {
     final url = Uri.parse(rootUrl);
     final wsUrl = url.replace(
       scheme: url.scheme == 'https' ? 'wss' : 'ws',
       path: 'ws',
     );
     final socket = await WebSocket.connect(wsUrl);
-    final client = WebsocketServicesClient._(wsUrl, socket);
+    final client = WebsocketServicesClient._(wsUrl, socket, onClosed);
     client._init();
     return client;
   }
@@ -183,13 +186,13 @@ class WebsocketServicesClient {
           break;
         case CloseReceived(code: final _, reason: final _):
           // Notify that the server connection has closed.
-          _closedCompleter.complete();
+          if (onClosed != null) {
+            onClosed!(this);
+          }
           break;
       }
     });
   }
-
-  Future<void> get onClosed => _closedCompleter.future;
 
   Future<VersionResponse> version() =>
       _sendRequest('version', VersionResponse.fromJson);

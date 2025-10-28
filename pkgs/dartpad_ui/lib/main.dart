@@ -718,7 +718,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
     final OpenInIdxResponse response;
 
     if (useWebsockets) {
-      response = await appServices.webSocketServices!.openInFirebaseStudio(
+      response = await (await appServices.wsClient()).openInFirebaseStudio(
         request,
       );
     } else {
