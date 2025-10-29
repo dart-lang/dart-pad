@@ -15,7 +15,8 @@ dependencies:
   dartpad_shared:
     path: ../dartpad_shared
   encrypt: ^5.0.3
-  google_cloud_ai_generativelanguage_v1beta: ^0.1.0
+  google_cloud_ai_generativelanguage_v1beta: ^0.1.2
+  google_cloud_gax: ^0.1.2
   http: ^1.3.0
   json_annotation: ^4.9.0
   logging: ^1.2.0
