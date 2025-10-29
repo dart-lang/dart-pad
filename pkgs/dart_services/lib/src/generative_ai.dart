@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
 import 'package:google_cloud_ai_generativelanguage_v1beta/generativelanguage.dart';
+import 'package:google_cloud_gax/gax.dart';
 
 import 'logging.dart';
 import 'project_templates.dart';
@@ -26,8 +27,7 @@ class GenerativeAI {
       gemini = GenerativeService.fromApiKey();
 
       _logger.info('$_apiKeyVarName set; gen-ai features ENABLED');
-      // ignore: avoid_catching_errors
-    } on ArgumentError {
+    } on ConfigurationException {
       _logger.warning('$_apiKeyVarName not set; gen-ai features DISABLED');
     }
   }
