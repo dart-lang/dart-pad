@@ -25,7 +25,6 @@ import 'app/simple_widgets.dart';
 import 'model/keys.dart' as keys;
 import 'model/model.dart';
 import 'primitives/enable_gen_ai.dart';
-import 'primitives/enable_websockets.dart';
 import 'primitives/extensions.dart';
 import 'primitives/local_storage/local_storage.dart';
 import 'primitives/samples.g.dart';
@@ -715,16 +714,9 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _openInFirebaseStudio() async {
     final code = appModel.sourceCodeController.text;
     final request = OpenInFirebaseStudioRequest(code: code);
-    final OpenInIdxResponse response;
-
-    if (useWebsockets) {
-      response = await (await appServices.wsClient()).openInFirebaseStudio(
-        request,
-      );
-    } else {
-      // ignore: deprecated_member_use
-      response = await appServices.services.openInFirebaseStudio(request);
-    }
+    final response = await (await appServices.service()).openInFirebaseStudio(
+      request,
+    );
 
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
   }

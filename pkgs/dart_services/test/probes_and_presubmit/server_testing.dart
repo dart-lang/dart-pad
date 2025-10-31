@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: deprecated_member_use
-
 import 'package:collection/collection.dart';
 import 'package:dartpad_shared/services.dart';
 import 'package:test/test.dart';
 
 import 'ddc_testing.dart';
 
-void testServer(DartServicesClient client, {int? retry}) {
+void testServer(DartPadService client, {int? retry}) {
   group('DartServicesClient', () {
     test('version', () async {
       final result = await client.version();

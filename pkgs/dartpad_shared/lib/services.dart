@@ -13,41 +13,78 @@ import 'ws.dart';
 
 export 'model.dart';
 
-class DartServicesClient {
+/// An abstract connection to the Dartpad backend.
+///
+/// Concrete implementations of this will typically either use a RESTful
+/// connection or a websocket based connection.
+abstract class DartPadService {
+  Future<VersionResponse> version();
+
+  Future<AnalysisResponse> analyze(SourceRequest request);
+
+  Future<CompleteResponse> complete(SourceRequest request);
+
+  Future<DocumentResponse> document(SourceRequest request);
+
+  Future<FixesResponse> fixes(SourceRequest request);
+
+  Future<FormatResponse> format(SourceRequest request);
+
+  Future<CompileDDCResponse> compileDDC(CompileRequest request);
+
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request);
+
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request);
+
+  Future<OpenInIdxResponse> openInFirebaseStudio(
+    OpenInFirebaseStudioRequest request,
+  );
+
+  Stream<String> suggestFix(SuggestFixRequest request);
+
+  Stream<String> generateCode(GenerateCodeRequest request);
+
+  Stream<String> updateCode(UpdateCodeRequest request);
+
+  Future<void> dispose();
+}
+
+/// A RESTful client to the Dartpad backend.
+class DartServicesClient implements DartPadService {
   final DartServicesHttpClient client;
   final String rootUrl;
 
   DartServicesClient(this.client, {required this.rootUrl});
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<AnalysisResponse> analyze(SourceRequest request) =>
       _requestPost('analyze', request.toJson(), AnalysisResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<DocumentResponse> document(SourceRequest request) =>
       _requestPost('document', request.toJson(), DocumentResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<FixesResponse> fixes(SourceRequest request) =>
       _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
       _requestPost(
         'compileNewDDC',
@@ -55,7 +92,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
       _requestPost(
         'compileNewDDCReload',
@@ -63,7 +100,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
-  @Deprecated('prefer the websocket version')
+  @override
   Future<OpenInIdxResponse> openInFirebaseStudio(
     OpenInFirebaseStudioRequest request,
   ) => _requestPost(
@@ -72,19 +109,20 @@ class DartServicesClient {
     OpenInIdxResponse.fromJson,
   );
 
-  @Deprecated('prefer the websocket version')
+  @override
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _requestPostStream('suggestFix', request.toJson());
 
-  @Deprecated('prefer the websocket version')
+  @override
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _requestPostStream('generateCode', request.toJson());
 
-  @Deprecated('prefer the websocket version')
+  @override
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 
-  void dispose() => client.close();
+  @override
+  Future<void> dispose() async => client.close();
 
   Future<T> _requestGet<T>(
     String action,
@@ -145,8 +183,8 @@ class DartServicesClient {
   }
 }
 
-/// A websocket analog to [DartServicesClient].
-class WebsocketServicesClient {
+/// A websocket client to the Dartpad backend.
+class WebsocketServicesClient implements DartPadService {
   final Uri wsUrl;
   final WebSocket socket;
   final void Function(WebsocketServicesClient)? onClosed;
@@ -194,27 +232,35 @@ class WebsocketServicesClient {
     });
   }
 
+  @override
   Future<VersionResponse> version() =>
       _sendRequest('version', VersionResponse.fromJson);
 
+  @override
   Future<AnalysisResponse> analyze(SourceRequest request) =>
       _sendRequest('analyze', AnalysisResponse.fromJson, request.toJson());
 
+  @override
   Future<CompleteResponse> complete(SourceRequest request) =>
       _sendRequest('complete', CompleteResponse.fromJson, request.toJson());
 
+  @override
   Future<DocumentResponse> document(SourceRequest request) =>
       _sendRequest('document', DocumentResponse.fromJson, request.toJson());
 
+  @override
   Future<FixesResponse> fixes(SourceRequest request) =>
       _sendRequest('fixes', FixesResponse.fromJson, request.toJson());
 
+  @override
   Future<FormatResponse> format(SourceRequest request) =>
       _sendRequest('format', FormatResponse.fromJson, request.toJson());
 
+  @override
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _sendRequest('compileDDC', CompileDDCResponse.fromJson, request.toJson());
 
+  @override
   Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
       _sendRequest(
         'compileNewDDC',
@@ -222,6 +268,7 @@ class WebsocketServicesClient {
         request.toJson(),
       );
 
+  @override
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
       _sendRequest(
         'compileNewDDCReload',
@@ -229,6 +276,7 @@ class WebsocketServicesClient {
         request.toJson(),
       );
 
+  @override
   Future<OpenInIdxResponse> openInFirebaseStudio(
     OpenInFirebaseStudioRequest request,
   ) => _sendRequest(
@@ -237,12 +285,15 @@ class WebsocketServicesClient {
     request.toJson(),
   );
 
+  @override
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _sendRequestStream('suggestFix', request.toJson());
 
+  @override
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _sendRequestStream('generateCode', request.toJson());
 
+  @override
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _sendRequestStream('updateCode', request.toJson());
 
@@ -279,6 +330,7 @@ class WebsocketServicesClient {
     return streamController.stream;
   }
 
+  @override
   Future<void> dispose() => socket.close();
 
   void _dispatch(JsonRpcResponse response) {

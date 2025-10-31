@@ -257,9 +257,10 @@ class AppServices {
 
     if (useWebsockets) {
       await _wsClient?.dispose();
+      _wsClient = null;
 
       // Reconnect.
-      await wsClient();
+      await service();
     }
 
     final versionResponse = await populateVersions();
@@ -269,21 +270,26 @@ class AppServices {
 
   /// Return a websocket connection to a dart services backend.
   ///
-  /// If already connected, this will return immediately. If not connected, this
-  /// will either create (and return) a connection, or will throw.
+  /// As part of a compile-time flag, this method will select between the
+  /// RESTful connection or the websocket based connection.
   ///
-  /// This method can be used to auto-heal connections if a websocket times out.
-  Future<WebsocketServicesClient> wsClient() async {
-    if (_wsClient != null) {
+  /// For the websocket connection, this method will also auto-heal broken
+  /// connections. If already connected, this will return immediately. If not
+  /// connected, this will either create (and return) a connection or will
+  /// throw.
+  Future<DartPadService> service() async {
+    if (useWebsockets) {
+      if (_wsClient != null) return _wsClient!;
+
+      _wsClient = await WebsocketServicesClient.connect(
+        services.rootUrl,
+        onClosed: _handleWebsocketClosed,
+      );
+
       return _wsClient!;
+    } else {
+      return services;
     }
-
-    _wsClient = await WebsocketServicesClient.connect(
-      services.rootUrl,
-      onClosed: _handleWebsocketClosed,
-    );
-
-    return _wsClient!;
   }
 
   void _handleWebsocketClosed(WebsocketServicesClient client) {
@@ -322,15 +328,8 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
-    VersionResponse version;
-    if (useWebsockets) {
-      version = await (await wsClient()).version();
-      appModel.runtimeVersions.value = version;
-    } else {
-      // ignore: deprecated_member_use
-      version = await services.version();
-      appModel.runtimeVersions.value = version;
-    }
+    final version = await (await service()).version();
+    appModel.runtimeVersions.value = version;
     return version;
   }
 
@@ -508,82 +507,42 @@ class AppServices {
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
-      if (useWebsockets) {
-        return await (await wsClient()).format(request);
-      } else {
-        // ignore: deprecated_member_use
-        return await services.format(request);
-      }
+      return await (await service()).format(request);
     } finally {
       appModel.formattingBusy.value = false;
     }
   }
 
   Future<DocumentResponse> document(SourceRequest request) async {
-    if (useWebsockets) {
-      return await (await wsClient()).document(request);
-    } else {
-      // ignore: deprecated_member_use
-      return await services.document(request);
-    }
+    return await (await service()).document(request);
   }
 
   Future<CompleteResponse> complete(SourceRequest request) async {
-    if (useWebsockets) {
-      return await (await wsClient()).complete(request);
-    } else {
-      // ignore: deprecated_member_use
-      return await services.complete(request);
-    }
+    return await (await service()).complete(request);
   }
 
   Future<FixesResponse> fixes(SourceRequest request) async {
-    if (useWebsockets) {
-      return await (await wsClient()).fixes(request);
-    } else {
-      // ignore: deprecated_member_use
-      return await services.fixes(request);
-    }
+    return await (await service()).fixes(request);
   }
 
   Future<Stream<String>> suggestFix(SuggestFixRequest request) async {
-    if (useWebsockets) {
-      return (await wsClient()).suggestFix(request);
-    } else {
-      // ignore: deprecated_member_use
-      return services.suggestFix(request);
-    }
+    return (await service()).suggestFix(request);
   }
 
   /// Generates the code with Gemini.
   Future<Stream<String>> generateCode(GenerateCodeRequest request) async {
-    if (useWebsockets) {
-      return (await wsClient()).generateCode(request);
-    } else {
-      // ignore: deprecated_member_use
-      return services.generateCode(request);
-    }
+    return (await service()).generateCode(request);
   }
 
   /// Updates code with Gemini.
   Future<Stream<String>> updateCode(UpdateCodeRequest request) async {
-    if (useWebsockets) {
-      return (await wsClient()).updateCode(request);
-    } else {
-      // ignore: deprecated_member_use
-      return services.updateCode(request);
-    }
+    return (await service()).updateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      if (useWebsockets) {
-        return await (await wsClient()).compileDDC(request);
-      } else {
-        // ignore: deprecated_member_use
-        return await services.compileDDC(request);
-      }
+      return await (await service()).compileDDC(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -592,12 +551,7 @@ class AppServices {
   Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      if (useWebsockets) {
-        return await (await wsClient()).compileNewDDC(request);
-      } else {
-        // ignore: deprecated_member_use
-        return await services.compileNewDDC(request);
-      }
+      return await (await service()).compileNewDDC(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -608,12 +562,7 @@ class AppServices {
   ) async {
     try {
       appModel.compilingState.value = CompilingState.reloading;
-      if (useWebsockets) {
-        return await (await wsClient()).compileNewDDCReload(request);
-      } else {
-        // ignore: deprecated_member_use
-        return await services.compileNewDDCReload(request);
-      }
+      return await (await service()).compileNewDDCReload(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -691,18 +640,9 @@ class AppServices {
 
   Future<void> _reAnalyze() async {
     try {
-      final AnalysisResponse results;
-      if (useWebsockets) {
-        results = await (await wsClient()).analyze(
-          SourceRequest(source: appModel.sourceCodeController.text),
-        );
-      } else {
-        // ignore: deprecated_member_use
-        results = await services.analyze(
-          SourceRequest(source: appModel.sourceCodeController.text),
-        );
-      }
-
+      final results = await (await service()).analyze(
+        SourceRequest(source: appModel.sourceCodeController.text),
+      );
       appModel.analysisIssues.value = results.issues;
       appModel.importUrls.value = results.imports;
     } catch (error) {
