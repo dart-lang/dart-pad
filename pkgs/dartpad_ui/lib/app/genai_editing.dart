@@ -27,6 +27,7 @@ class EditorWithButtons extends StatefulWidget {
     this.showCodeEditTool = true,
     required this.appModel,
     required this.appServices,
+    required this.onCopy,
     required this.onFormat,
     required this.onCompileAndRun,
     required this.onCompileAndReload,
@@ -35,6 +36,7 @@ class EditorWithButtons extends StatefulWidget {
   final bool showCodeEditTool;
   final AppModel appModel;
   final AppServices appServices;
+  final VoidCallback onCopy;
   final VoidCallback onFormat;
   final VoidCallback onCompileAndRun;
   final VoidCallback onCompileAndReload;
@@ -126,6 +128,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
                   child: _EditingArea(
                     widget.appModel,
                     widget.appServices,
+                    onCopy: widget.onCopy,
                     onFormat: widget.onFormat,
                     onCompileAndReload: widget.onCompileAndReload,
                     onCompileAndRun: widget.onCompileAndRun,
@@ -657,6 +660,7 @@ class _EditingArea extends StatelessWidget {
   const _EditingArea(
     this.appModel,
     this.appServices, {
+    required this.onCopy,
     required this.onFormat,
     required this.onCompileAndReload,
     required this.onCompileAndRun,
@@ -664,6 +668,7 @@ class _EditingArea extends StatelessWidget {
 
   final AppModel appModel;
   final AppServices appServices;
+  final VoidCallback onCopy;
   final VoidCallback onFormat;
   final VoidCallback onCompileAndReload;
   final VoidCallback onCompileAndRun;
@@ -701,6 +706,16 @@ class _EditingArea extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+                const SizedBox(width: denseSpacing),
+                // Copy button
+                PointerInterceptor(
+                  child: MiniIconButton(
+                    icon: const Icon(Icons.content_copy),
+                    tooltip: 'Copy code to clipboard',
+                    small: true,
+                    onPressed: onCopy,
+                  ),
                 ),
                 const SizedBox(width: denseSpacing),
                 // Format button

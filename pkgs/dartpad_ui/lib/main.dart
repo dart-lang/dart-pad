@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:dartpad_shared/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/url_strategy.dart' show usePathUrlStrategy;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -361,6 +362,7 @@ class DartPadMainPageState extends State<DartPadMainPage>
     final editor = EditorWithButtons(
       appModel: appModel,
       appServices: appServices,
+      onCopy: _handleCopy,
       onFormat: _handleFormatting,
       onCompileAndRun: appServices.performCompileAndRun,
       onCompileAndReload: appServices.performCompileAndReload,
@@ -523,6 +525,18 @@ class DartPadMainPageState extends State<DartPadMainPage>
         ),
       ),
     );
+  }
+
+  // TODO: Check if platform permission specific error needs to be handled.
+  Future<void> _handleCopy() async {
+    try {
+      final source = appModel.sourceCodeController.text;
+      await Clipboard.setData(ClipboardData(text: source));
+      appModel.editorStatus.showToast('Code copied to clipboard');
+    } catch (error) {
+      appModel.editorStatus.showToast('Error copying code');
+      appModel.appendError('Copy issue: $error');
+    }
   }
 
   Future<void> _handleFormatting() async {
