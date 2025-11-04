@@ -193,7 +193,7 @@ class AppServices {
   final ValueNotifier<Channel> _channel = ValueNotifier(Channel.defaultChannel);
 
   late DartServicesClient services;
-  WebsocketServicesClient? webSocketServices;
+  WebsocketServicesClient? _wsClient;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
@@ -240,8 +240,9 @@ class AppServices {
   /// Initialize async elements of the service connection.
   Future<void> init() async {
     if (useWebsockets) {
-      webSocketServices = await WebsocketServicesClient.connect(
+      _wsClient = await WebsocketServicesClient.connect(
         services.rootUrl,
+        onClosed: _handleWebsocketClosed,
       );
     }
   }
@@ -255,14 +256,46 @@ class AppServices {
     services = DartServicesClient(services.client, rootUrl: channel.url);
 
     if (useWebsockets) {
-      webSocketServices = await WebsocketServicesClient.connect(
-        services.rootUrl,
-      );
+      await _wsClient?.dispose();
+      _wsClient = null;
+
+      // Reconnect.
+      await service();
     }
 
     final versionResponse = await populateVersions();
     _channel.value = channel;
     return versionResponse;
+  }
+
+  /// Return a websocket connection to a dart services backend.
+  ///
+  /// As part of a compile-time flag, this method will select between the
+  /// RESTful connection or the websocket based connection.
+  ///
+  /// For the websocket connection, this method will also auto-heal broken
+  /// connections. If already connected, this will return immediately. If not
+  /// connected, this will either create (and return) a connection or will
+  /// throw.
+  Future<DartPadService> service() async {
+    if (useWebsockets) {
+      if (_wsClient != null) return _wsClient!;
+
+      _wsClient = await WebsocketServicesClient.connect(
+        services.rootUrl,
+        onClosed: _handleWebsocketClosed,
+      );
+
+      return _wsClient!;
+    } else {
+      return services;
+    }
+  }
+
+  void _handleWebsocketClosed(WebsocketServicesClient client) {
+    if (_wsClient == client) {
+      _wsClient = null;
+    }
   }
 
   void resetTo({String? type}) {
@@ -295,17 +328,9 @@ class AppServices {
   }
 
   Future<VersionResponse> populateVersions() async {
-    if (useWebsockets) {
-      VersionResponse version;
-      version = await webSocketServices!.version();
-      appModel.runtimeVersions.value = version;
-      return version;
-    } else {
-      VersionResponse version;
-      version = await services.version();
-      appModel.runtimeVersions.value = version;
-      return version;
-    }
+    final version = await (await service()).version();
+    appModel.runtimeVersions.value = version;
+    return version;
   }
 
   Future<void> performInitialLoad({
@@ -482,34 +507,42 @@ class AppServices {
   Future<FormatResponse> format(SourceRequest request) async {
     try {
       appModel.formattingBusy.value = true;
-      return await services.format(request);
+      return await (await service()).format(request);
     } finally {
       appModel.formattingBusy.value = false;
     }
   }
 
   Future<DocumentResponse> document(SourceRequest request) async {
-    return await services.document(request);
+    return await (await service()).document(request);
   }
 
-  Stream<String> suggestFix(SuggestFixRequest request) {
-    return services.suggestFix(request);
+  Future<CompleteResponse> complete(SourceRequest request) async {
+    return await (await service()).complete(request);
+  }
+
+  Future<FixesResponse> fixes(SourceRequest request) async {
+    return await (await service()).fixes(request);
+  }
+
+  Future<Stream<String>> suggestFix(SuggestFixRequest request) async {
+    return (await service()).suggestFix(request);
   }
 
   /// Generates the code with Gemini.
-  Stream<String> generateCode(GenerateCodeRequest request) {
-    return services.generateCode(request);
+  Future<Stream<String>> generateCode(GenerateCodeRequest request) async {
+    return (await service()).generateCode(request);
   }
 
   /// Updates code with Gemini.
-  Stream<String> updateCode(UpdateCodeRequest request) {
-    return services.updateCode(request);
+  Future<Stream<String>> updateCode(UpdateCodeRequest request) async {
+    return (await service()).updateCode(request);
   }
 
   Future<CompileDDCResponse> _compileDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      return await services.compileDDC(request);
+      return await (await service()).compileDDC(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -518,7 +551,7 @@ class AppServices {
   Future<CompileDDCResponse> _compileNewDDC(CompileRequest request) async {
     try {
       appModel.compilingState.value = CompilingState.restarting;
-      return await services.compileNewDDC(request);
+      return await (await service()).compileNewDDC(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -529,7 +562,7 @@ class AppServices {
   ) async {
     try {
       appModel.compilingState.value = CompilingState.reloading;
-      return await services.compileNewDDCReload(request);
+      return await (await service()).compileNewDDCReload(request);
     } finally {
       appModel.compilingState.value = CompilingState.none;
     }
@@ -607,7 +640,7 @@ class AppServices {
 
   Future<void> _reAnalyze() async {
     try {
-      final results = await services.analyze(
+      final results = await (await service()).analyze(
         SourceRequest(source: appModel.sourceCodeController.text),
       );
       appModel.analysisIssues.value = results.issues;

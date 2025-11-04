@@ -79,15 +79,14 @@ Future<void> openCodeGenerationDialog(
   appModel.genAiManager.enterGeneratingNew();
 
   try {
-    appModel.genAiManager.startStream(
-      appServices.generateCode(
-        GenerateCodeRequest(
-          appType: resolvedAppType,
-          prompt: promptResponse.prompt,
-          attachments: promptResponse.attachments,
-        ),
+    final codeStream = await appServices.generateCode(
+      GenerateCodeRequest(
+        appType: resolvedAppType,
+        prompt: promptResponse.prompt,
+        attachments: promptResponse.attachments,
       ),
     );
+    appModel.genAiManager.startStream(codeStream);
   } catch (error) {
     appModel.editorStatus.showToast('Error generating code');
     appModel.appendError('Generating code issue: $error');

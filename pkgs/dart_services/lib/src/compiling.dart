@@ -43,6 +43,21 @@ class Compiler {
       ),
       _projectTemplates = ProjectTemplates.instance;
 
+  Future<DDCCompilationResults> compileDDC(String source) async {
+    return await _compileDDC(source, useNew: false);
+  }
+
+  Future<DDCCompilationResults> compileNewDDC(String source) async {
+    return await _compileDDC(source, useNew: true);
+  }
+
+  Future<DDCCompilationResults> compileNewDDCReload(
+    String source,
+    String deltaDill,
+  ) async {
+    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
+  }
+
   /// Compile the given string and return the resulting [DDCCompilationResults].
   ///
   /// [useNew] determines whether or not to use the hot reload enabled module
@@ -173,21 +188,6 @@ class Compiler {
       temp.deleteSync(recursive: true);
       _logger.fine('temp folder removed: ${temp.path}');
     }
-  }
-
-  Future<DDCCompilationResults> compileDDC(String source) async {
-    return await _compileDDC(source, useNew: false);
-  }
-
-  Future<DDCCompilationResults> compileNewDDC(String source) async {
-    return await _compileDDC(source, useNew: true);
-  }
-
-  Future<DDCCompilationResults> compileNewDDCReload(
-    String source,
-    String deltaDill,
-  ) async {
-    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
   }
 
   Future<void> dispose() async {

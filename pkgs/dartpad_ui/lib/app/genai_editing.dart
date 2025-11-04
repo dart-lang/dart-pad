@@ -63,16 +63,15 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     widget.appModel.genAiManager.enterGeneratingEdit();
     try {
       final source = widget.appModel.sourceCodeController.text;
-      widget.appModel.genAiManager.startStream(
-        widget.appServices.updateCode(
-          UpdateCodeRequest(
-            appType: promptInfo.appType,
-            source: source,
-            prompt: promptInfo.prompt,
-            attachments: promptInfo.attachments,
-          ),
+      final codeStream = await widget.appServices.updateCode(
+        UpdateCodeRequest(
+          appType: promptInfo.appType,
+          source: source,
+          prompt: promptInfo.prompt,
+          attachments: promptInfo.attachments,
         ),
       );
+      widget.appModel.genAiManager.startStream(codeStream);
     } catch (error) {
       widget.appModel.editorStatus.showToast('Error updating code');
       widget.appModel.appendError('Updating code issue: $error');

@@ -6,7 +6,7 @@ import 'package:dartpad_shared/services.dart';
 
 import 'ddc_testing.dart';
 
-void testReload(DartServicesClient client) {
+void testReload(DartPadService client) {
   testDDCEndpoint(
     'compileNewDDC',
     (request) => client.compileNewDDC(request),

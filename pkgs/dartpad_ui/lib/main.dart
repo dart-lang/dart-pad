@@ -260,6 +260,7 @@ class DartPadMainPageState extends State<DartPadMainPage>
   @override
   void initState() {
     super.initState();
+
     _initialize();
   }
 
@@ -713,7 +714,10 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _openInFirebaseStudio() async {
     final code = appModel.sourceCodeController.text;
     final request = OpenInFirebaseStudioRequest(code: code);
-    final response = await appServices.services.openInFirebaseStudio(request);
+    final response = await (await appServices.service()).openInFirebaseStudio(
+      request,
+    );
+
     url_launcher.launchUrl(Uri.parse(response.firebaseStudioUrl));
   }
 }

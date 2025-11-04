@@ -323,8 +323,12 @@ class EditorServiceImpl implements EditorService {
     final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
 
     if (operation == _CompletionType.quickfix) {
-      final response = await appServices.services
-          .fixes(services.SourceRequest(source: source, offset: sourceOffset))
+      final request = services.SourceRequest(
+        source: source,
+        offset: sourceOffset,
+      );
+      final response = await appServices
+          .fixes(request)
           .onError((error, st) => services.FixesResponse.empty);
 
       if (response.fixes.isEmpty && response.assists.isEmpty) {
@@ -340,10 +344,12 @@ class EditorServiceImpl implements EditorService {
         to: doc.posFromIndex(0),
       );
     } else {
-      final response = await appServices.services
-          .complete(
-            services.SourceRequest(source: source, offset: sourceOffset),
-          )
+      final request = services.SourceRequest(
+        source: source,
+        offset: sourceOffset,
+      );
+      final response = await appServices
+          .complete(request)
           .onError((error, st) => services.CompleteResponse.empty);
 
       final offset = response.replacementOffset;

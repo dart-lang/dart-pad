@@ -13,33 +13,78 @@ import 'ws.dart';
 
 export 'model.dart';
 
-class DartServicesClient {
+/// An abstract connection to the Dartpad backend.
+///
+/// Concrete implementations of this will typically either use a RESTful
+/// connection or a websocket based connection.
+abstract class DartPadService {
+  Future<VersionResponse> version();
+
+  Future<AnalysisResponse> analyze(SourceRequest request);
+
+  Future<CompleteResponse> complete(SourceRequest request);
+
+  Future<DocumentResponse> document(SourceRequest request);
+
+  Future<FixesResponse> fixes(SourceRequest request);
+
+  Future<FormatResponse> format(SourceRequest request);
+
+  Future<CompileDDCResponse> compileDDC(CompileRequest request);
+
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request);
+
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request);
+
+  Future<OpenInIdxResponse> openInFirebaseStudio(
+    OpenInFirebaseStudioRequest request,
+  );
+
+  Stream<String> suggestFix(SuggestFixRequest request);
+
+  Stream<String> generateCode(GenerateCodeRequest request);
+
+  Stream<String> updateCode(UpdateCodeRequest request);
+
+  Future<void> dispose();
+}
+
+/// A RESTful client to the Dartpad backend.
+class DartServicesClient implements DartPadService {
   final DartServicesHttpClient client;
   final String rootUrl;
 
   DartServicesClient(this.client, {required this.rootUrl});
 
+  @override
   Future<VersionResponse> version() =>
       _requestGet('version', VersionResponse.fromJson);
 
+  @override
   Future<AnalysisResponse> analyze(SourceRequest request) =>
       _requestPost('analyze', request.toJson(), AnalysisResponse.fromJson);
 
+  @override
   Future<CompleteResponse> complete(SourceRequest request) =>
       _requestPost('complete', request.toJson(), CompleteResponse.fromJson);
 
+  @override
   Future<DocumentResponse> document(SourceRequest request) =>
       _requestPost('document', request.toJson(), DocumentResponse.fromJson);
 
+  @override
   Future<FixesResponse> fixes(SourceRequest request) =>
       _requestPost('fixes', request.toJson(), FixesResponse.fromJson);
 
+  @override
   Future<FormatResponse> format(SourceRequest request) =>
       _requestPost('format', request.toJson(), FormatResponse.fromJson);
 
+  @override
   Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
       _requestPost('compileDDC', request.toJson(), CompileDDCResponse.fromJson);
 
+  @override
   Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
       _requestPost(
         'compileNewDDC',
@@ -47,6 +92,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
+  @override
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
       _requestPost(
         'compileNewDDCReload',
@@ -54,6 +100,7 @@ class DartServicesClient {
         CompileDDCResponse.fromJson,
       );
 
+  @override
   Future<OpenInIdxResponse> openInFirebaseStudio(
     OpenInFirebaseStudioRequest request,
   ) => _requestPost(
@@ -62,16 +109,20 @@ class DartServicesClient {
     OpenInIdxResponse.fromJson,
   );
 
+  @override
   Stream<String> suggestFix(SuggestFixRequest request) =>
       _requestPostStream('suggestFix', request.toJson());
 
+  @override
   Stream<String> generateCode(GenerateCodeRequest request) =>
       _requestPostStream('generateCode', request.toJson());
 
+  @override
   Stream<String> updateCode(UpdateCodeRequest request) =>
       _requestPostStream('updateCode', request.toJson());
 
-  void dispose() => client.close();
+  @override
+  Future<void> dispose() async => client.close();
 
   Future<T> _requestGet<T>(
     String action,
@@ -132,27 +183,32 @@ class DartServicesClient {
   }
 }
 
-/// A websocket analog to [DartServicesClient].
-class WebsocketServicesClient {
+/// A websocket client to the Dartpad backend.
+class WebsocketServicesClient implements DartPadService {
   final Uri wsUrl;
   final WebSocket socket;
+  final void Function(WebsocketServicesClient)? onClosed;
+
   final IDFactory idFactory = IDFactory();
 
-  final Map<int, Completer<Object>> responseCompleters = {};
+  final Map<int, String> responseMethods = {};
+  final Map<int, Completer<dynamic>> responseCompleters = {};
   final Map<int, Object Function(Map<String, Object?>)> responseDecoders = {};
+  final Map<int, StreamController<String>> responseStreamControllers = {};
 
-  final Completer<void> _closedCompleter = Completer();
+  WebsocketServicesClient._(this.wsUrl, this.socket, this.onClosed);
 
-  WebsocketServicesClient._(this.wsUrl, this.socket);
-
-  static Future<WebsocketServicesClient> connect(String rootUrl) async {
+  static Future<WebsocketServicesClient> connect(
+    String rootUrl, {
+    void Function(WebsocketServicesClient)? onClosed,
+  }) async {
     final url = Uri.parse(rootUrl);
     final wsUrl = url.replace(
       scheme: url.scheme == 'https' ? 'wss' : 'ws',
       path: 'ws',
     );
     final socket = await WebSocket.connect(wsUrl);
-    final client = WebsocketServicesClient._(wsUrl, socket);
+    final client = WebsocketServicesClient._(wsUrl, socket, onClosed);
     client._init();
     return client;
   }
@@ -168,50 +224,152 @@ class WebsocketServicesClient {
           break;
         case CloseReceived(code: final _, reason: final _):
           // Notify that the server connection has closed.
-          _closedCompleter.complete();
+          if (onClosed != null) {
+            onClosed!(this);
+          }
           break;
       }
     });
   }
 
-  Future<void> get onClosed => _closedCompleter.future;
+  @override
+  Future<VersionResponse> version() =>
+      _sendRequest('version', VersionResponse.fromJson);
 
-  Future<VersionResponse> version() {
-    final requestId = idFactory.generateNextId();
-    final completer = Completer<VersionResponse>();
+  @override
+  Future<AnalysisResponse> analyze(SourceRequest request) =>
+      _sendRequest('analyze', AnalysisResponse.fromJson, request.toJson());
 
-    responseCompleters[requestId] = completer;
-    responseDecoders[requestId] = VersionResponse.fromJson;
+  @override
+  Future<CompleteResponse> complete(SourceRequest request) =>
+      _sendRequest('complete', CompleteResponse.fromJson, request.toJson());
 
-    socket.sendText(
-      jsonEncode(JsonRpcRequest(method: 'version', id: requestId).toJson()),
-    );
+  @override
+  Future<DocumentResponse> document(SourceRequest request) =>
+      _sendRequest('document', DocumentResponse.fromJson, request.toJson());
+
+  @override
+  Future<FixesResponse> fixes(SourceRequest request) =>
+      _sendRequest('fixes', FixesResponse.fromJson, request.toJson());
+
+  @override
+  Future<FormatResponse> format(SourceRequest request) =>
+      _sendRequest('format', FormatResponse.fromJson, request.toJson());
+
+  @override
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) =>
+      _sendRequest('compileDDC', CompileDDCResponse.fromJson, request.toJson());
+
+  @override
+  Future<CompileDDCResponse> compileNewDDC(CompileRequest request) =>
+      _sendRequest(
+        'compileNewDDC',
+        CompileDDCResponse.fromJson,
+        request.toJson(),
+      );
+
+  @override
+  Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request) =>
+      _sendRequest(
+        'compileNewDDCReload',
+        CompileDDCResponse.fromJson,
+        request.toJson(),
+      );
+
+  @override
+  Future<OpenInIdxResponse> openInFirebaseStudio(
+    OpenInFirebaseStudioRequest request,
+  ) => _sendRequest(
+    'openInFirebaseStudio',
+    OpenInIdxResponse.fromJson,
+    request.toJson(),
+  );
+
+  @override
+  Stream<String> suggestFix(SuggestFixRequest request) =>
+      _sendRequestStream('suggestFix', request.toJson());
+
+  @override
+  Stream<String> generateCode(GenerateCodeRequest request) =>
+      _sendRequestStream('generateCode', request.toJson());
+
+  @override
+  Stream<String> updateCode(UpdateCodeRequest request) =>
+      _sendRequestStream('updateCode', request.toJson());
+
+  Future<T> _sendRequest<T>(
+    String method,
+    Object Function(Map<String, Object?>) decoder, [
+    Map<String, Object?>? params,
+  ]) {
+    final id = idFactory.generateNextId();
+    final completer = Completer<T>();
+
+    responseMethods[id] = method;
+    responseCompleters[id] = completer;
+    responseDecoders[id] = decoder;
+
+    final request = JsonRpcRequest(method: method, id: id, params: params);
+    socket.sendText(jsonEncode(request.toJson()));
 
     return completer.future;
   }
 
+  Stream<String> _sendRequestStream(
+    String method,
+    Map<String, Object?>? params,
+  ) {
+    final id = idFactory.generateNextId();
+    final streamController = StreamController<String>();
+
+    responseStreamControllers[id] = streamController;
+
+    final request = JsonRpcRequest(method: method, id: id, params: params);
+    socket.sendText(jsonEncode(request.toJson()));
+
+    return streamController.stream;
+  }
+
+  @override
   Future<void> dispose() => socket.close();
 
   void _dispatch(JsonRpcResponse response) {
     final id = response.id;
 
-    final completer = responseCompleters[id]!;
-    final decoder = responseDecoders[id]!;
+    if (responseCompleters.containsKey(id)) {
+      final command = responseMethods.remove(id);
+      final completer = responseCompleters.remove(id)!;
+      final decoder = responseDecoders.remove(id)!;
 
-    if (response.error != null) {
-      completer.completeError(response.error!);
-    } else {
-      final result = decoder((response.result! as Map).cast());
-      completer.complete(result);
+      if (response.error != null) {
+        final error = ApiRequestError(command!, '${response.error}');
+        completer.completeError(error);
+      } else {
+        final result = decoder((response.result! as Map).cast());
+        completer.complete(result);
+      }
+    } else if (responseStreamControllers.containsKey(id)) {
+      // ignore: unused_local_variable
+      final command = responseMethods.remove(id);
+      final streamController = responseStreamControllers[id]!;
+      final data = response.result as String?;
+
+      if (data == null) {
+        // Close the stream.
+        streamController.close();
+        responseStreamControllers.remove(id);
+      } else {
+        streamController.add(data);
+      }
     }
   }
 }
 
 class ApiRequestError implements Exception {
-  ApiRequestError(this.message, this.body);
-
   final String message;
   final String body;
+
+  ApiRequestError(this.message, this.body);
 
   @override
   String toString() => '$message: $body';
