@@ -6,4 +6,4 @@
 ///
 /// Do not check this in `true`; this will create a long-lived connection to the
 /// backend and we don't yet know how well that will scale.
-const bool useWebsockets = true;
+const bool useWebsockets = false;
