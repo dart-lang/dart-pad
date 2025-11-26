@@ -553,9 +553,9 @@ class SectionWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (title != null) Text(title!, style: subtleText),
+              if (title case final title?) Text(title, style: subtleText),
               const Expanded(child: SizedBox(width: defaultSpacing)),
-              if (actions != null) actions!,
+              ?actions,
             ],
           ),
           const Divider(),
