@@ -12,4 +12,4 @@ workspace:
   - pkgs/samples
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.10.0

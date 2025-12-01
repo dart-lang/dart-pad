@@ -49,14 +49,14 @@ Future<void> openCodeGenerationDialog(
             'Generate a Flutter login screen with email and password fields, validation, and a submit button',
         'tic-tac-toe':
             'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
-        if (lastPrompt != null) 'your last prompt': lastPrompt,
+        'your last prompt': ?lastPrompt,
       },
       dartPromptButtons: {
         'hello, world': 'Generate a Dart hello world program',
         'fibonacci':
             'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
         'factorial': 'Generate a Dart program that prints the factorial of 5',
-        if (lastPrompt != null) 'your last prompt': lastPrompt,
+        'your last prompt': ?lastPrompt,
       },
       promptTextController: appModel.genAiManager.newCodePromptController,
       attachments: appModel.genAiManager.newCodeAttachments,

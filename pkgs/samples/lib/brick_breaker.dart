@@ -88,7 +88,7 @@ class BrickBreaker extends FlameGame
   double get height => size.y;
 
   @override
-  FutureOr<void> onLoad() async {
+  void onLoad() {
     super.onLoad();
     camera.viewfinder.anchor = Anchor.topLeft;
     world.add(PlayArea());

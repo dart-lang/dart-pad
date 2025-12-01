@@ -214,7 +214,7 @@ class WebsocketServicesClient implements DartPadService {
   }
 
   void _init() {
-    socket.events.listen((e) async {
+    socket.events.listen((e) {
       switch (e) {
         case TextDataReceived(text: final text):
           _dispatch(JsonRpcResponse.fromJson(text));
@@ -224,9 +224,7 @@ class WebsocketServicesClient implements DartPadService {
           break;
         case CloseReceived(code: final _, reason: final _):
           // Notify that the server connection has closed.
-          if (onClosed != null) {
-            onClosed!(this);
-          }
+          onClosed?.call(this);
           break;
       }
     });

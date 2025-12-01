@@ -86,7 +86,7 @@ class _EditorWithButtonsState extends State<EditorWithButtons> {
     widget.appModel.genAiManager.resetState();
   }
 
-  void _handleUpdateCodePrompt(BuildContext context) async {
+  void _handleUpdateCodePrompt(BuildContext context) {
     widget.appModel.sourceCodeController.textNoScroll =
         widget.appModel.genAiManager.preGenAiSourceCode.value;
     widget.appServices.performCompileAndReloadOrRun();
