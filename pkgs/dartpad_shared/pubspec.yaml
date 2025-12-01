@@ -19,6 +19,6 @@ dependencies:
   web_socket: ^1.0.1
 
 dev_dependencies:
-  build_runner: ^2.10.3
+  build_runner: ^2.10.4
   dart_flutter_team_lints: ^3.5.2
   json_serializable: ^6.11.2
