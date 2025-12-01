@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   analysis_server_lib: ^0.2.5
-  analyzer: ^7.7.1
+  analyzer: ^8.4.1
   args: ^2.7.0
   bazel_worker: ^1.1.4
   dartpad_shared:
