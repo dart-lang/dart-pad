@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad_shared/model.dart';
 import 'package:google_cloud_ai_generativelanguage_v1beta/generativelanguage.dart';
-import 'package:google_cloud_gax/gax.dart';
+import 'package:google_cloud_rpc/service_client.dart';
 
 import 'logging.dart';
 import 'project_templates.dart';
@@ -198,7 +198,7 @@ $prompt
 
   static Stream<String> _textOnly(Stream<GenerateContentResponse> stream) {
     return stream.map((response) {
-      final parts = response.candidates?.firstOrNull?.content?.parts ?? [];
+      final parts = response.candidates.firstOrNull?.content?.parts ?? [];
       return parts.where((part) => part.text != null).map((p) => p.text).join();
     });
   }
