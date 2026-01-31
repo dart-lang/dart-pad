@@ -209,14 +209,29 @@ class _GeminiCodeEditToolState extends State<_GeminiCodeEditTool> {
   }
 
   AppType analyzedAppTypeFromSource(AppModel appModel) {
-    // TODO: make detection of app type more consistent.
-    // See:
-    // https://github.com/dart-lang/dart-pad/pull/3235#discussion_r2093742606
-    if (appModel.sourceCodeController.text.contains(
-      "import 'package:flutter",
-    )) {
+    final source = appModel.sourceCodeController.text;
+    if (source.contains("import 'package:flutter") ||
+        source.contains('import "package:flutter')) {
       return AppType.flutter;
     }
+
+    final prompt = genAiManager.codeEditPromptController.text.toLowerCase();
+
+    bool mentionsFlutter(String p) {
+      return p.contains('flutter') ||
+          p.contains('ui') ||
+          p.contains('app') ||
+          p.contains('custompainter') ||
+          p.contains('widget') ||
+          p.contains('scaffold') ||
+          p.contains('materialapp') ||
+          p.contains('cupertinoapp');
+    }
+
+    if (mentionsFlutter(prompt)) {
+      return AppType.flutter;
+    }
+
     return AppType.dart;
   }
 
