@@ -64,26 +64,32 @@ dart tool/grind.dart build-storage-artifacts
 
 ### Modifying supported packages
 
-Package dependencies are pinned using the `pub_dependencies_<CHANNEL>.yaml`
+Package dependencies are pinned using the `tool/dependencies/pub_dependencies_<CHANNEL>.yaml`
 files. To make changes to the list of supported packages, you need to verify
-that the dependencies resolve and update the pinned versions specified in the
-`tool/dependencies` directory.
+that the dependencies resolve and update these pinned versions.
 
-1. Edit the `lib/src/project_templates.dart` file to include changes to the
+Complete the following steps using each Flutter channel (`main`, `beta` and `stable`):
+
+1. Switch to the desired Flutter channel: 
+	
+	```
+	flutter channel <CHANNEL>
+	```
+
+2. (Optional) If you are adding or removing a package, first edit the `lib/src/project_templates.dart` file, which contains the
    whitelisted list of packages.
-2. Create the Dart and Flutter projects in the `project_templates/` directory:
-
+3. Create the Dart and Flutter projects in the `project_templates/` directory/.
 
    ```bash
    dart tool/grind.dart build-project-templates
    ```
 
-4. Run `pub upgrade` in the Dart or Flutter project in `project_templates/`
-5. Run `dart tool/grind.dart update-pub-dependencies` to overwrite the
-   `tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file for your current
-   channel. Or, if you don't have `grind` on your PATH, `dart tool/grind.dart update-pub-dependencies`
-6. Repeat the above steps for the latest version of each Flutter channel
-   (`main`, `beta` and `stable`)
+   If this command fails because it can't resolve packages, read the package failure, and edit the `tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file to use the correct package version.
+
+5. Once the `project_templates/dart_project` and `project_templates/flutter_project` directories are created, run `pub upgrade` in each directory.
+6. Run `dart tool/grind.dart update-pub-dependencies` to overwrite the 
+`tool/dependencies/pub_dependencies_<CHANNEL>.yaml` file for your current 
+channel. This will ensure all packages are pinned to the correct version.
 
 ## Redis
 
