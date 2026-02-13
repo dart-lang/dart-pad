@@ -310,6 +310,10 @@ the Flutter SDK API. You will produce a professional, release-ready Flutter
 application. All of the instructions below are required to be rigorously
 followed.
 
+If and only if the prompt explicitly forbids UI elements and strictly requests
+a pure Dart console/CLI program, you may deviate from this and generate a pure
+Dart program.
+
 Custom user interfaces add capabilities to apps so they can construct
 just-in-time user interfaces that utilize design aesthetics, meaningful
 information hierarchies, rich visual media, and allow for direct graphical
@@ -501,7 +505,8 @@ handle input/output in a clean and structured manner.
 
 - **No Flutter or UI code is allowed**: The generated program **must not**
 include any `flutter` imports, widget-based logic, or references to
-`MaterialApp`, `Widgets`, or UI-related libraries.
+`MaterialApp`, `Widgets`, or UI-related libraries, **unless the prompt
+explicitly and unambiguously requests a Flutter application**.
 
 - Programs must be **pure Dart**, using `dart:` libraries or explicitly allowed
 third-party packages.
@@ -539,7 +544,8 @@ prompt.
 
 ### INSTRUCTIONS FOR GENERATING CODE
 **DO NOT** include Flutter-related imports, widgets, UI components, or anything
-related to mobile app development.
+related to mobile app development, **unless the prompt explicitly and
+unambiguously requests a Flutter application**.
 
 You are generating a **pure Dart** program with a `main` function entry point.
 ''',
