@@ -55,7 +55,7 @@ class _GameAppState extends State<GameApp> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const .all(16),
               child: Center(
                 child: FittedBox(
                   child: SizedBox(
@@ -90,7 +90,7 @@ class BrickBreaker extends FlameGame
   @override
   void onLoad() {
     super.onLoad();
-    camera.viewfinder.anchor = Anchor.topLeft;
+    camera.viewfinder.anchor = .topLeft;
     world.add(PlayArea());
     startGame();
   }
@@ -115,7 +115,7 @@ class BrickBreaker extends FlameGame
     world.add(
       Paddle(
         size: Vector2(paddleWidth, paddleHeight),
-        cornerRadius: const Radius.circular(ballRadius / 2),
+        cornerRadius: const .circular(ballRadius / 2),
         position: Vector2(width / 2, height * 0.95),
       ),
     );
@@ -146,8 +146,8 @@ class BrickBreaker extends FlameGame
   ) {
     super.onKeyEvent(event, keysPressed);
     switch (event.logicalKey) {
-      case LogicalKeyboardKey.space:
-      case LogicalKeyboardKey.enter:
+      case .space:
+      case .enter:
         startGame();
     }
     return KeyEventResult.handled;
@@ -166,10 +166,10 @@ class Ball extends CircleComponent
     required this.difficultyModifier,
   }) : super(
          radius: radius,
-         anchor: Anchor.center,
+         anchor: .center,
          paint: Paint()
            ..color = const Color(0xff1e6091)
-           ..style = PaintingStyle.fill,
+           ..style = .fill,
          children: [CircleHitbox()],
        );
 
@@ -231,7 +231,7 @@ class Paddle extends PositionComponent
     required this.cornerRadius,
     required super.position,
     required super.size,
-  }) : super(anchor: Anchor.center, children: [RectangleHitbox()]);
+  }) : super(anchor: .center, children: [RectangleHitbox()]);
 
   final Radius cornerRadius;
 
@@ -285,10 +285,10 @@ class Brick extends RectangleComponent
     : super(
         position: position,
         size: Vector2(brickWidth, brickHeight),
-        anchor: Anchor.center,
+        anchor: .center,
         paint: Paint()
           ..color = color
-          ..style = PaintingStyle.fill,
+          ..style = .fill,
         children: [RectangleHitbox()],
       );
 
