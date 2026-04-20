@@ -28,7 +28,7 @@ class _SunflowerState extends State<Sunflower> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        brightness: Brightness.dark,
+        brightness: .dark,
         appBarTheme: const AppBarTheme(elevation: 2),
       ),
       debugShowCheckedModeBanner: false,
@@ -36,7 +36,7 @@ class _SunflowerState extends State<Sunflower> {
         appBar: AppBar(title: const Text('Sunflower')),
         body: Center(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: .center,
             children: [
               Expanded(child: SunflowerWidget(seeds)),
               const SizedBox(height: 20),
@@ -107,7 +107,7 @@ class SunflowerWidget extends StatelessWidget {
     }
 
     return FittedBox(
-      fit: BoxFit.contain,
+      fit: .contain,
       child: SizedBox(
         height: size,
         width: size,
@@ -130,7 +130,7 @@ class Dot extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: lit ? Colors.orange : Colors.grey.shade700,
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: .circular(radius),
       ),
       child: const SizedBox(height: size, width: size),
     );
