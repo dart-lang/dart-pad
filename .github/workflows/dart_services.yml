@@ -27,7 +27,7 @@ jobs:
         sdk: [stable, beta, main]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
             channel: ${{ matrix.sdk }}
       - run: flutter --version
