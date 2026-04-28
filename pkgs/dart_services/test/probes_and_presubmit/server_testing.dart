@@ -404,7 +404,7 @@ void main() => print('hello world');
       );
 
       expect(result.assists, isNotEmpty);
-    });
+    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
 
     test('format', () async {
       final result = await client.format(
