@@ -6,15 +6,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:path/path.dart' as path;
 
+import 'analyzer.dart';
 import 'common.dart';
-
 import 'logging.dart';
 import 'project_templates.dart';
-import 'pub.dart';
 import 'sdk.dart';
 import 'utils.dart' as utils;
 import 'utils.dart';
@@ -490,7 +489,7 @@ extension SourceChangeExtension on SourceChange {
   }
 }
 
-extension AnnotatedNodeExtension on AnnotatedNode {
+extension AnnotatedNodeExtension on ImportDirective {
   api.Location getLocation(String source) {
     final lines = Lines(source);
     final start = firstTokenAfterCommentAndMetadata;

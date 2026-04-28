@@ -4,10 +4,10 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import 'analyzer.dart';
 import 'utils.dart';
 
 /// Sets of project template directory paths.
