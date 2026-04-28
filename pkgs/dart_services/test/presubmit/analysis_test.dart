@@ -129,7 +129,7 @@ void main() {
         changes.map((e) => e.edits.first.replacement),
         contains(equals(';')),
       );
-    });
+    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3608');
 
     test('format simple', () async {
       final results = await analysisServer.format(badFormatCode, 0);
