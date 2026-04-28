@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../model/model.dart';
 import '../primitives/enable_gen_ai.dart';
@@ -116,28 +115,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                   ],
                 ),
               ),
-              // If there is a JS error, and the app type is Flutter, show a
-              // "File an issue" button. Uncaught exceptions are normal when
-              // executing Dart (non-Flutter) code in JavaScript.
-              if (widget.output.hasError &&
-                  widget.output.hasJavascriptError &&
-                  appModel.appIsFlutter.value == true)
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Oops! Something went wrong in the Dart toolchain.',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.tertiary,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      FileIssueButton(errorMessage: widget.output.error),
-                    ],
-                  ),
-                ),
             ],
           );
         },
@@ -160,36 +137,5 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
         curve: animationCurve,
       );
     });
-  }
-}
-
-class FileIssueButton extends StatelessWidget {
-  final String errorMessage;
-  const FileIssueButton({super.key, required this.errorMessage});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return TextButton(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all(switch (theme.brightness) {
-          Brightness.light => theme.colorScheme.surface.darker,
-          _ => theme.colorScheme.surface.lighter,
-        }),
-        foregroundColor: WidgetStateProperty.all(theme.colorScheme.onPrimary),
-      ),
-      child: Text('File an issue'),
-      onPressed: () {
-        launchUrl(
-          Uri.https('github.com', 'dart-lang/dart-pad/issues/new', {
-            'template': '2-console-error.yml',
-            'title':
-                '[console error] Unexpected javascript error from running app',
-            'logs': errorMessage,
-          }),
-        );
-      },
-    );
   }
 }

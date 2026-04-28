@@ -122,21 +122,14 @@ class AppModel {
 
   void appendLineToConsole(String str) {
     consoleNotifier.output += '$str\n';
-    consoleNotifier.hasJavascriptError = false;
   }
 
-  void appendError(String str, {bool isJavascript = false}) {
+  void appendError(String str) {
     consoleNotifier.error += '$str\n';
-    if (isJavascript) {
-      consoleNotifier.hasJavascriptError = true;
-    } else {
-      consoleNotifier.hasJavascriptError = false;
-    }
   }
 
   void clearConsole() {
     consoleNotifier.clear();
-    consoleNotifier.hasJavascriptError = false;
   }
 
   void dispose() {
@@ -585,7 +578,7 @@ class AppServices {
         (msg) => appModel.appendError(msg),
       );
       javascriptErrorSub = _executionService!.onJavascriptError.listen(
-        (msg) => appModel.appendError(msg, isJavascript: true),
+        (msg) => appModel.appendError(msg),
       );
     }
   }
@@ -731,7 +724,6 @@ class PromptDialogResponse {
 class ConsoleNotifier extends ChangeNotifier {
   String _output;
   String _error;
-  bool _hasJavascriptError = false;
 
   ConsoleNotifier(this._output, this._error);
 
@@ -745,12 +737,6 @@ class ConsoleNotifier extends ChangeNotifier {
   String get error => _error;
   set error(String value) {
     _error = value;
-    notifyListeners();
-  }
-
-  bool get hasJavascriptError => _hasJavascriptError;
-  set hasJavascriptError(bool value) {
-    _hasJavascriptError = value;
     notifyListeners();
   }
 
