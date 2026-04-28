@@ -391,7 +391,7 @@ void main() {
       );
 
       expect(result.fixes, anyOf(hasLength(3), hasLength(4)));
-    });
+    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
 
     test('assists', () async {
       final result = await client.fixes(
