@@ -9,11 +9,10 @@ import 'dart:io';
 import 'package:bazel_worker/driver.dart';
 import 'package:path/path.dart' as path;
 
+import 'analyzer.dart';
 import 'common.dart';
-
 import 'logging.dart';
 import 'project_templates.dart';
-import 'pub.dart';
 import 'sdk.dart';
 
 final DartPadLogger _logger = DartPadLogger('compiler');
