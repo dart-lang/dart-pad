@@ -40,6 +40,7 @@ dart tool/grind.dart build-project-templates
 
 > [!NOTE]
 > If this fails due to resolution errors:
+>
 > 1. Read the error message to identify the conflict.
 > 2. Edit `tool/dependencies/pub_dependencies_<CHANNEL>.json` to fix the version.
 > 3. Retry the build command.
@@ -60,3 +61,13 @@ Overwrite the `pub_dependencies_<CHANNEL>.json` file with the resolved versions:
 ```bash
 dart tool/grind.dart update-pub-dependencies
 ```
+
+## Step 5: Verify and Cleanup
+
+After all channels are updated:
+
+1. **Verify changes**: Check `git status` and `git diff`.
+2. **Switch back**: Ensure you are back on the stable channel:
+   ```bash
+   flutter channel stable
+   ```
