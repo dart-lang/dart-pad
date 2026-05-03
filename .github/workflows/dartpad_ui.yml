@@ -34,7 +34,9 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
+
       - run: dart format --set-exit-if-changed .
+        if: matrix.sdk == 'stable'
 
       - name: Create template projects
         run: dart tool/grind.dart build-project-templates
