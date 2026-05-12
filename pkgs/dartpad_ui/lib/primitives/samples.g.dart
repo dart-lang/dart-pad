@@ -32,17 +32,18 @@ class Sample {
 abstract final class Samples {
   static const List<Sample> all = [
     _fibonacci,
-    _helloWorld,
+    _helloDart,
     _dart,
     _flutter,
     _flameGame,
     _counter,
+    _helloFlutter,
     _sunflower,
   ];
 
   static const Map<String, List<Sample>> categories = {
-    'Dart': [_fibonacci, _helloWorld],
-    'Flutter': [_counter, _sunflower],
+    'Dart': [_fibonacci, _helloDart],
+    'Flutter': [_counter, _helloFlutter, _sunflower],
     'Ecosystem': [_flameGame],
   };
 
@@ -71,11 +72,11 @@ int fibonacci(int n) {
 ''',
 );
 
-const _helloWorld = Sample(
+const _helloDart = Sample(
   category: 'Dart',
   icon: 'dart',
   name: 'Hello world',
-  id: 'hello-world',
+  id: 'hello-world-dart',
   source: r'''
 void main() {
   for (var i = 0; i < 10; i++) {
@@ -534,6 +535,33 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+''',
+);
+
+const _helloFlutter = Sample(
+  category: 'Flutter',
+  icon: 'flutter',
+  name: 'Hello world',
+  id: 'hello-world-flutter',
+  source: r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text('Hello World')),
       ),
     );
   }
