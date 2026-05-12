@@ -15,9 +15,8 @@ import 'pub.dart';
 final DartPadLogger _logger = DartPadLogger('gen-ai');
 
 class GenerativeAI {
-  // Valid values here are 'models/gemini-2.0-flash' and
-  // 'models/gemini-2.5-flash'.
-  static const String _geminiModel = 'models/gemini-2.5-flash';
+  // Valid values are from https://ai.google.dev/gemini-api/docs/models.
+  static const String _geminiModel = 'models/gemini-3.1-flash-lite';
   static const String _apiKeyVarName = 'GEMINI_API_KEY';
 
   GenerativeService? gemini;
