@@ -219,7 +219,7 @@ class RedisCache implements ServerCache {
 
     final commands = RespCommandsTier2(redisClient!);
     try {
-      return Future<void>.sync(() async {
+      return await Future<void>.sync(() async {
         await commands.set(key, value);
         if (expiration != null) {
           await commands.pexpire(key, expiration);
