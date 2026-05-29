@@ -10,10 +10,17 @@ SourceRequest _$SourceRequestFromJson(Map<String, dynamic> json) =>
     SourceRequest(
       source: json['source'] as String,
       offset: (json['offset'] as num?)?.toInt(),
+      experiments: (json['experiments'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$SourceRequestToJson(SourceRequest instance) =>
-    <String, dynamic>{'source': instance.source, 'offset': instance.offset};
+    <String, dynamic>{
+      'source': instance.source,
+      'offset': instance.offset,
+      'experiments': instance.experiments,
+    };
 
 AnalysisResponse _$AnalysisResponseFromJson(Map<String, dynamic> json) =>
     AnalysisResponse(
@@ -84,12 +91,16 @@ CompileRequest _$CompileRequestFromJson(Map<String, dynamic> json) =>
     CompileRequest(
       source: json['source'] as String,
       deltaDill: json['deltaDill'] as String?,
+      experiments: (json['experiments'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$CompileRequestToJson(CompileRequest instance) =>
     <String, dynamic>{
       'source': instance.source,
       'deltaDill': instance.deltaDill,
+      'experiments': instance.experiments,
     };
 
 CompileDDCResponse _$CompileDDCResponseFromJson(Map<String, dynamic> json) =>

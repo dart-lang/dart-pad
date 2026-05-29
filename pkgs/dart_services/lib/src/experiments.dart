@@ -4,3 +4,8 @@
 
 /// The experiments to use on the main and beta channels.
 const List<String> enabledExperiments = [];
+
+/// Experiments that users may opt into via the DartPad UI.
+const List<String> availableExperiments = [
+  'primary-constructors',
+];

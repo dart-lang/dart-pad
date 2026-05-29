@@ -712,7 +712,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
             _BrightnessButton(
               handleBrightnessChange: widget.handleBrightnessChanged,
             ),
-            const OverflowMenu(),
+            OverflowMenu(appModel: appModel),
           ],
         );
       },
@@ -955,9 +955,11 @@ class SelectChannelWidget extends StatelessWidget {
 }
 
 class OverflowMenu extends StatelessWidget {
-  const OverflowMenu({super.key});
+  const OverflowMenu({super.key, required this.appModel});
 
-  static const _menuItems = [
+  final AppModel appModel;
+
+  static const _linkItems = [
     (label: 'Install SDK', uri: 'https://flutter.dev/get-started'),
     (
       label: 'Sharing guide',
@@ -975,11 +977,23 @@ class OverflowMenu extends StatelessWidget {
         );
       },
       menuChildren: [
-        for (final item in _menuItems)
+        PointerInterceptor(
+          child: MenuItemButton(
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (context) => ExperimentsDialog(appModel: appModel),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+              child: Text('Experiments'),
+            ),
+          ),
+        ),
+        for (final item in _linkItems)
           PointerInterceptor(
             child: MenuItemButton(
               trailingIcon: const Icon(Icons.launch),
-              onPressed: () => _onSelected(context, item.uri),
+              onPressed: () => url_launcher.launchUrl(Uri.parse(item.uri)),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
                 child: Text(item.label),
@@ -989,9 +1003,68 @@ class OverflowMenu extends StatelessWidget {
       ],
     );
   }
+}
 
-  void _onSelected(BuildContext context, String uri) {
-    url_launcher.launchUrl(Uri.parse(uri));
+const List<(String name, String description)> availableExperiments = [
+  ('primary-constructors', 'Primary constructors (inline constructor params)'),
+];
+
+class ExperimentsDialog extends StatefulWidget {
+  const ExperimentsDialog({super.key, required this.appModel});
+
+  final AppModel appModel;
+
+  @override
+  State<ExperimentsDialog> createState() => _ExperimentsDialogState();
+}
+
+class _ExperimentsDialogState extends State<ExperimentsDialog> {
+  late List<String> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = List.of(widget.appModel.enabledExperiments.value);
+  }
+
+  void _toggle(String name, bool enabled) {
+    setState(() {
+      if (enabled) {
+        _selected.add(name);
+      } else {
+        _selected.remove(name);
+      }
+    });
+    widget.appModel.enabledExperiments.value = List.of(_selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MediumDialog(
+      title: 'Experimental features',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Divider(),
+          for (final (name, description) in availableExperiments)
+            CheckboxListTile(
+              title: Text(name),
+              subtitle: Text(description),
+              value: _selected.contains(name),
+              onChanged: (value) => _toggle(name, value ?? false),
+            ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.only(top: defaultSpacing),
+            child: Text(
+              'Note: selected experiments affect compilation only. '
+              'The code editor may still show errors for experimental syntax.',
+              style: subtleText,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

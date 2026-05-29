@@ -16,8 +16,9 @@ part 'model.g.dart';
 class SourceRequest {
   final String source;
   final int? offset;
+  final List<String>? experiments;
 
-  SourceRequest({required this.source, this.offset});
+  SourceRequest({required this.source, this.offset, this.experiments});
 
   factory SourceRequest.fromJson(Map<String, Object?> json) =>
       _$SourceRequestFromJson(json);
@@ -123,8 +124,9 @@ class DiagnosticMessage {
 class CompileRequest {
   final String source;
   final String? deltaDill;
+  final List<String>? experiments;
 
-  CompileRequest({required this.source, this.deltaDill});
+  CompileRequest({required this.source, this.deltaDill, this.experiments});
 
   factory CompileRequest.fromJson(Map<String, Object?> json) =>
       _$CompileRequestFromJson(json);
