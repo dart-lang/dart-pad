@@ -27,12 +27,10 @@ class ProjectCreator {
   ProjectCreator(
     this._sdk,
     this._templatesPath, {
-    required String dartLanguageVersion,
-    required File dependenciesFile,
-    required LogFunction log,
-  }) : _dartLanguageVersion = dartLanguageVersion,
-       _dependenciesFile = dependenciesFile,
-       _log = log;
+    required this._dartLanguageVersion,
+    required this._dependenciesFile,
+    required this._log,
+  });
 
   /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
   /// and `analysis_options.yaml`.
