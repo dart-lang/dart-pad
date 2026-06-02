@@ -273,7 +273,7 @@ void main() {
         fix.edits.first.replacement,
         contains('// ignore: unused_local_variable'),
       );
-    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
+    });
 
     test('fixes empty', () async {
       final result = await client.fixes(
@@ -312,7 +312,7 @@ void main() => print('hello world');
       expect(assist.linkedEditGroups, isEmpty);
       expect(assist.selectionOffset, greaterThan(0));
       expect(assist.edits.first.replacement, isNotEmpty);
-    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
+    });
 
     testDDCEndpoint(
       'compileDDC',
@@ -390,8 +390,8 @@ void main() {
         ),
       );
 
-      expect(result.fixes, anyOf(hasLength(3), hasLength(4)));
-    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
+      expect(result.fixes, hasLength(4));
+    });
 
     test('assists', () async {
       final result = await client.fixes(
@@ -404,7 +404,7 @@ void main() => print('hello world');
       );
 
       expect(result.assists, isNotEmpty);
-    }, skip: 'https://github.com/dart-lang/dart-pad/issues/3484');
+    });
 
     test('format', () async {
       final result = await client.format(

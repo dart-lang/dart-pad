@@ -183,6 +183,14 @@ class AnalysisServerWrapper {
 
     await _loadSources({mainFile: src});
 
+    // Wait for analysis of the freshly-loaded overlay
+    // to complete before requesting fixes.
+    // Unlike `analysis.getErrors`, `edit.getFixes` doesn't
+    // delay its response until analysis results are up to date.
+    // Without this, it can compute fixes against a
+    // not yet fully analyzed view of the file, resulting in no fixes.
+    await analysisServer.analysis.getErrors(mainFile);
+
     final fixes = await analysisServer.edit.getFixes(mainFile, offset);
     final assists = await analysisServer.edit.getAssists(mainFile, offset, 1);
 
