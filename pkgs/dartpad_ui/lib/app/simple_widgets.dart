@@ -279,8 +279,7 @@ final class Logo extends StatelessWidget {
   final String? _type;
   final double width;
 
-  const Logo({super.key, this.width = defaultIconSize, String? type})
-    : _type = type;
+  const Logo({super.key, this.width = defaultIconSize, this._type});
 
   @override
   Widget build(BuildContext context) {

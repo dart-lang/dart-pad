@@ -53,12 +53,12 @@ final class Sdk {
     required this.channel,
     required this.dartSdkPath,
     required this.dartVersion,
-    required String flutterBinPath,
+    required this._flutterBinPath,
     required this.flutterToolPath,
     required this.flutterSdkPath,
     required this.flutterVersion,
     required this.engineVersion,
-  }) : _flutterBinPath = flutterBinPath;
+  });
 
   /// Create an [Sdk] to track the location and version information
   /// of the Flutter SDK used to run `dart_services`, or if not valid,
