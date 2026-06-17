@@ -354,8 +354,9 @@ class EditorServiceImpl implements EditorService {
 
       final offset = response.replacementOffset;
       final length = response.replacementLength;
+
       final hints = response.suggestions
-          .map((suggestion) => suggestion.toHintResult())
+          .map((suggestion) => suggestion.toHintResult(editor, offset, length))
           .toList();
 
       // Remove hints where both the replacement text and the display text are
@@ -365,10 +366,14 @@ class EditorServiceImpl implements EditorService {
         return memos.add('${hint.text}:${hint.displayText}');
       });
 
+      // Use live cursor position to avoid stale replacement bounds.
+      final cursorIndex = doc.indexFromPos(editor.getCursor()) ?? offset;
+      final replacementEnd = math.max(offset + length, cursorIndex);
+
       return HintResults(
         list: hints.toJS,
         from: doc.posFromIndex(offset),
-        to: doc.posFromIndex(offset + length),
+        to: doc.posFromIndex(replacementEnd),
       );
     }
   }
@@ -500,7 +505,11 @@ const _codeMirrorOptions = {
 };
 
 extension _CompletionSuggestionExtension on services.CompletionSuggestion {
-  HintResult toHintResult() {
+  HintResult toHintResult(
+    CodeMirror codeMirror,
+    int replacementOffset,
+    int replacementLength,
+  ) {
     var altDisplay = completion;
     if (elementKind == 'FUNCTION' ||
         elementKind == 'METHOD' ||
@@ -512,7 +521,35 @@ extension _CompletionSuggestionExtension on services.CompletionSuggestion {
       text: completion,
       displayText: displayText ?? altDisplay,
       className: this.deprecated ? 'deprecated' : null,
+      // Apply completion using live cursor bounds.
+      hint: _applyCompletion(
+        codeMirror,
+        replacementOffset,
+        replacementLength,
+        completion,
+      ),
     );
+  }
+
+  JSFunction _applyCompletion(
+    CodeMirror cm,
+    int startOffset,
+    int serverLength,
+    String text,
+  ) {
+    return (HintResult hint, Position? from, Position? to) {
+      final doc = cm.getDoc();
+      // Intentionally ignore `from`/`to`: they reflect menu-open state and can
+      // be stale if the user keeps typing before selection (Issue #3562).
+      final cursorIndex = doc.indexFromPos(cm.getCursor()) ?? startOffset;
+      final serverEnd = startOffset + serverLength;
+      final effectiveEnd = math.max(cursorIndex, serverEnd);
+      doc.replaceRange(
+        text,
+        doc.posFromIndex(startOffset),
+        doc.posFromIndex(effectiveEnd),
+      );
+    }.toJS;
   }
 }
 
