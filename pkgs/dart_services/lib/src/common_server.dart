@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:dartpad_shared/ws.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -97,10 +96,6 @@ class CommonServerApi {
     router.post(r'/api/<apiVersion>/fixes', handleFixes);
     router.post(r'/api/<apiVersion>/format', handleFormat);
     router.post(r'/api/<apiVersion>/document', handleDocument);
-    router.post(
-      r'/api/<apiVersion>/openInFirebaseStudio',
-      handleOpenInFirebaseStudio,
-    );
     router.post(r'/api/<apiVersion>/generateCode', generateCode);
     router.post(r'/api/<apiVersion>/updateCode', updateCode);
     router.post(r'/api/<apiVersion>/suggestFix', suggestFix);
@@ -252,40 +247,6 @@ class CommonServerApi {
                 );
               }
               break;
-            case 'openInFirebaseStudio':
-              final openRequest = api.OpenInFirebaseStudioRequest.fromJson(
-                request.params!,
-              );
-
-              try {
-                final idxResponse = await http.post(
-                  Uri.parse('https://studio.firebase.google.com/run.api'),
-                  headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                  },
-                  body: {
-                    'project[files][lib/main.dart]': openRequest.code,
-                    'project[settings]': '{"baselineEnvironment": "flutter"}',
-                  },
-                );
-
-                if (idxResponse.statusCode == 302) {
-                  final url = idxResponse.headers['location']!;
-                  response = request.createResultResponse(
-                    api.OpenInIdxResponse(firebaseStudioUrl: url).toJson(),
-                  );
-                } else {
-                  response = request.createErrorResponse(
-                    'Failed to read response from IDX server: $response',
-                  );
-                }
-              } catch (error) {
-                response = request.createErrorResponse(
-                  'Failed to read response from IDX server: $response',
-                );
-              }
-              break;
-
             case 'generateCode':
               final generateCodeRequest = api.GenerateCodeRequest.fromJson(
                 request.params!,
@@ -482,44 +443,6 @@ class CommonServerApi {
     });
 
     return ok(result.toJson());
-  }
-
-  Future<Response> handleOpenInFirebaseStudio(
-    Request request,
-    String apiVersion,
-  ) async {
-    final code = api.OpenInFirebaseStudioRequest.fromJson(
-      await request.readAsJson(),
-    ).code;
-    final idxUrl = Uri.parse('https://studio.firebase.google.com/run.api');
-
-    final data = {
-      'project[files][lib/main.dart]': code,
-      'project[settings]': '{"baselineEnvironment": "flutter"}',
-    };
-    try {
-      final response = await http.post(
-        idxUrl,
-        body: data,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      );
-
-      if (response.statusCode == 302) {
-        return ok(
-          api.OpenInIdxResponse(
-            firebaseStudioUrl: response.headers['location']!,
-          ).toJson(),
-        );
-      } else {
-        return Response.internalServerError(
-          body: 'Failed to read response from IDX server. Response: $response',
-        );
-      }
-    } catch (error) {
-      return Response.internalServerError(
-        body: 'Failed to read response from IDX server. Error: $error',
-      );
-    }
   }
 
   Future<Response> suggestFix(Request request, String apiVersion) async {

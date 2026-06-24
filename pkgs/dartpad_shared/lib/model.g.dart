@@ -279,20 +279,6 @@ Map<String, dynamic> _$VersionResponseToJson(VersionResponse instance) =>
       'packages': instance.packages,
     };
 
-OpenInFirebaseStudioRequest _$OpenInFirebaseStudioRequestFromJson(
-  Map<String, dynamic> json,
-) => OpenInFirebaseStudioRequest(code: json['code'] as String);
-
-Map<String, dynamic> _$OpenInFirebaseStudioRequestToJson(
-  OpenInFirebaseStudioRequest instance,
-) => <String, dynamic>{'code': instance.code};
-
-OpenInIdxResponse _$OpenInIdxResponseFromJson(Map<String, dynamic> json) =>
-    OpenInIdxResponse(firebaseStudioUrl: json['firebaseStudioUrl'] as String);
-
-Map<String, dynamic> _$OpenInIdxResponseToJson(OpenInIdxResponse instance) =>
-    <String, dynamic>{'firebaseStudioUrl': instance.firebaseStudioUrl};
-
 PackageInfo _$PackageInfoFromJson(Map<String, dynamic> json) => PackageInfo(
   name: json['name'] as String,
   version: json['version'] as String,
