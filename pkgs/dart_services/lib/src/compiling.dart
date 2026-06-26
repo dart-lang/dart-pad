@@ -42,19 +42,31 @@ class Compiler {
       ),
       _projectTemplates = ProjectTemplates.instance;
 
-  Future<DDCCompilationResults> compileDDC(String source) async {
-    return await _compileDDC(source, useNew: false);
+  Future<DDCCompilationResults> compileDDC(
+    String source, {
+    List<String>? experiments,
+  }) async {
+    return await _compileDDC(source, useNew: false, experiments: experiments);
   }
 
-  Future<DDCCompilationResults> compileNewDDC(String source) async {
-    return await _compileDDC(source, useNew: true);
+  Future<DDCCompilationResults> compileNewDDC(
+    String source, {
+    List<String>? experiments,
+  }) async {
+    return await _compileDDC(source, useNew: true, experiments: experiments);
   }
 
   Future<DDCCompilationResults> compileNewDDCReload(
     String source,
-    String deltaDill,
-  ) async {
-    return await _compileDDC(source, deltaDill: deltaDill, useNew: true);
+    String deltaDill, {
+    List<String>? experiments,
+  }) async {
+    return await _compileDDC(
+      source,
+      deltaDill: deltaDill,
+      useNew: true,
+      experiments: experiments,
+    );
   }
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
@@ -67,6 +79,7 @@ class Compiler {
     String source, {
     String? deltaDill,
     required bool useNew,
+    List<String>? experiments,
   }) async {
     final imports = getAllImportsFor(source);
 
@@ -138,8 +151,9 @@ class Compiler {
         ],
         ...['-o', mainJsPath],
         '--enable-asserts',
-        if (_sdk.experiments.isNotEmpty)
-          '--enable-experiment=${_sdk.experiments.join(",")}',
+        if ({..._sdk.experiments, ...?experiments} case final merged
+            when merged.isNotEmpty)
+          '--enable-experiment=${merged.join(",")}',
         compilePath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];

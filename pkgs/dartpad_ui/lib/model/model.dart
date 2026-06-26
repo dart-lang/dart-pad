@@ -83,6 +83,8 @@ class AppModel {
 
   final ValueNotifier<bool> vimKeymapsEnabled = ValueNotifier(false);
 
+  final ValueNotifier<List<String>> enabledExperiments = ValueNotifier([]);
+
   bool get consoleShowingError => consoleNotifier.error.isNotEmpty;
 
   final ValueNotifier<bool> showReload = ValueNotifier(false);
@@ -440,18 +442,26 @@ class AppServices {
     );
 
     try {
+      final requestExperiments = appModel.enabledExperiments.value.isEmpty
+          ? null
+          : appModel.enabledExperiments.value;
       CompileDDCResponse response;
       if (!appModel.useNewDDC.value) {
-        response = await _compileDDC(CompileRequest(source: source));
+        response = await _compileDDC(
+          CompileRequest(source: source, experiments: requestExperiments),
+        );
       } else if (reload) {
         response = await _compileNewDDCReload(
           CompileRequest(
             source: source,
             deltaDill: appModel.currentDeltaDill.value!,
+            experiments: requestExperiments,
           ),
         );
       } else {
-        response = await _compileNewDDC(CompileRequest(source: source));
+        response = await _compileNewDDC(
+          CompileRequest(source: source, experiments: requestExperiments),
+        );
       }
       if (!reload || appModel.consoleShowingError) {
         appModel.clearConsole();
@@ -634,7 +644,12 @@ class AppServices {
   Future<void> _reAnalyze() async {
     try {
       final results = await (await service()).analyze(
-        SourceRequest(source: appModel.sourceCodeController.text),
+        SourceRequest(
+          source: appModel.sourceCodeController.text,
+          experiments: appModel.enabledExperiments.value.isEmpty
+              ? null
+              : appModel.enabledExperiments.value,
+        ),
       );
       appModel.analysisIssues.value = results.issues;
       appModel.importUrls.value = results.imports;

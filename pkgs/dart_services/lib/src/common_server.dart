@@ -145,7 +145,10 @@ class CommonServerApi {
             case 'analyze':
               final sourceRequest = api.SourceRequest.fromJson(request.params!);
               final result = await serialize(() {
-                return impl.analyzer.analyze(sourceRequest.source);
+                return impl.analyzer.analyze(
+                  sourceRequest.source,
+                  experiments: sourceRequest.experiments,
+                );
               });
               response = request.createResultResponse(result.toJson());
               break;
@@ -362,7 +365,10 @@ class CommonServerApi {
     );
 
     final result = await serialize(() {
-      return impl.analyzer.analyze(sourceRequest.source);
+      return impl.analyzer.analyze(
+        sourceRequest.source,
+        experiments: sourceRequest.experiments,
+      );
     });
 
     return ok(result.toJson());
@@ -399,7 +405,10 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) => impl.compiler.compileDDC(compileRequest.source),
+      (compileRequest) => impl.compiler.compileDDC(
+        compileRequest.source,
+        experiments: compileRequest.experiments,
+      ),
     );
   }
 
@@ -410,7 +419,10 @@ class CommonServerApi {
     return await _handleCompileDDC(
       request,
       apiVersion,
-      (compileRequest) => impl.compiler.compileNewDDC(compileRequest.source),
+      (compileRequest) => impl.compiler.compileNewDDC(
+        compileRequest.source,
+        experiments: compileRequest.experiments,
+      ),
     );
   }
 
@@ -424,6 +436,7 @@ class CommonServerApi {
       (compileRequest) => impl.compiler.compileNewDDCReload(
         compileRequest.source,
         compileRequest.deltaDill!,
+        experiments: compileRequest.experiments,
       ),
     );
   }

@@ -41,8 +41,11 @@ class Analyzer {
     );
   }
 
-  Future<api.AnalysisResponse> analyze(String source) async {
-    return analysisServer.analyze(source);
+  Future<api.AnalysisResponse> analyze(
+    String source, {
+    List<String>? experiments,
+  }) async {
+    return analysisServer.analyze(source, experiments: experiments);
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
@@ -270,7 +273,10 @@ class AnalysisServerWrapper {
     );
   }
 
-  Future<api.AnalysisResponse> analyze(String source) async {
+  Future<api.AnalysisResponse> analyze(
+    String source, {
+    List<String>? experiments,
+  }) async {
     final sources = _getOverlayMapWithPaths({kMainDart: source});
     await _loadSources(sources);
 
@@ -283,7 +289,21 @@ class AnalysisServerWrapper {
       );
     }
 
-    final issues = errors.map((error) {
+    // The analysis server is a persistent process that can't take per-request
+    // experiment flags. Filter out experiment_not_enabled errors for any
+    // experiments the user has explicitly opted into.
+    final enabledExperiments = experiments ?? [];
+    final filteredErrors = enabledExperiments.isEmpty
+        ? errors
+        : errors.where((e) {
+            if (e.code == 'experiment_not_enabled' ||
+                e.code == 'experiment_not_enabled_off_by_default') {
+              return false;
+            }
+            return true;
+          }).toList();
+
+    final issues = filteredErrors.map((error) {
       final issue = api.AnalysisIssue(
         kind: error.severity.toLowerCase(),
         message: utils.normalizeImports(error.message),
