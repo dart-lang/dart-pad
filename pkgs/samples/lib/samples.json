@@ -16,8 +16,9 @@
   {
     "category": "Dart",
     "icon": "dart",
+    "id": "hello-world-dart",
     "name": "Hello world",
-    "path": "lib/hello_world.dart"
+    "path": "lib/hello_world_dart.dart"
   },
   {
     "category": "Dart",
@@ -36,6 +37,13 @@
     "icon": "flutter",
     "name": "Sunflower",
     "path": "lib/sunflower.dart"
+  },
+  {
+    "category": "Flutter",
+    "icon": "flutter",
+    "id": "hello-world-flutter",
+    "name": "Hello world",
+    "path": "lib/hello_world_flutter.dart"
   },
   {
     "category": "Ecosystem",
