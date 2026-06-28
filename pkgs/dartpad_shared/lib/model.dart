@@ -359,36 +359,6 @@ class VersionResponse {
 }
 
 @JsonSerializable()
-class OpenInFirebaseStudioRequest {
-  final String code;
-
-  OpenInFirebaseStudioRequest({required this.code});
-
-  factory OpenInFirebaseStudioRequest.fromJson(Map<String, Object?> json) =>
-      _$OpenInFirebaseStudioRequestFromJson(json);
-
-  Map<String, Object?> toJson() => _$OpenInFirebaseStudioRequestToJson(this);
-
-  @override
-  String toString() => 'OpenInIdxRequest [${code.substring(0, 10)} (...)';
-}
-
-@JsonSerializable()
-class OpenInIdxResponse {
-  final String firebaseStudioUrl;
-
-  OpenInIdxResponse({required this.firebaseStudioUrl});
-
-  factory OpenInIdxResponse.fromJson(Map<String, Object?> json) =>
-      _$OpenInIdxResponseFromJson(json);
-
-  Map<String, Object?> toJson() => _$OpenInIdxResponseToJson(this);
-
-  @override
-  String toString() => 'OpenInIdxResponse [$firebaseStudioUrl]';
-}
-
-@JsonSerializable()
 class PackageInfo {
   final String name;
   final String version;
