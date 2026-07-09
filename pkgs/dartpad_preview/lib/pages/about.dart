@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -23,7 +27,8 @@ class About extends StatelessComponent {
         li([
           h3([.text('📦 Ecosystem')]),
           .text(
-              'Get official packages and integrations for your project like jaspr_router, jaspr_tailwind or jaspr_riverpod. Find packages built for Jaspr on pub.dev using the '),
+            'Get official packages and integrations for your project like jaspr_router, jaspr_tailwind or jaspr_riverpod. Find packages built for Jaspr on pub.dev using the ',
+          ),
           a(href: 'https://pub.dev/packages?q=topic%3Ajaspr', [.text('#jaspr')]),
           .text(' topic, or publish your own.'),
         ]),

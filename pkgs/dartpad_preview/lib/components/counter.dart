@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -40,18 +44,20 @@ class CounterState extends State<Counter> {
       css('&').styles(
         display: .flex,
         padding: .symmetric(vertical: 10.px),
-        border: .symmetric(vertical: .solid(color: primaryColor, width: 2.px)),
+        border: .symmetric(
+          vertical: .solid(color: primaryColor, width: 2.px),
+        ),
         alignItems: .center,
       ),
       css('button', [
         css('&').styles(
           display: .flex,
           width: 2.em,
-          height: 2.em, 
-          border: .unset, 
+          height: 2.em,
+          border: .unset,
           radius: .all(.circular(2.em)),
           cursor: .pointer,
-          justifyContent: .center, 
+          justifyContent: .center,
           alignItems: .center,
           fontSize: 2.rem,
           backgroundColor: Colors.transparent,
@@ -63,8 +69,8 @@ class CounterState extends State<Counter> {
       css('span').styles(
         minWidth: 2.5.em,
         padding: .symmetric(horizontal: 2.rem),
-        boxSizing: .borderBox, 
-        color: primaryColor, 
+        boxSizing: .borderBox,
+        color: primaryColor,
         textAlign: .center,
         fontSize: 4.rem,
       ),

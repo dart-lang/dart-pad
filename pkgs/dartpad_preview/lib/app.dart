@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
@@ -13,21 +17,23 @@ class App extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     // This method is rerun every time the component is rebuilt.
-    
+
     // Renders a <div class="main"> html element with children.
     return div(classes: 'main', [
-      Router(routes: [
-        ShellRoute(
-          builder: (context, state, child) => .fragment([
-            const Header(),
-            child,
-          ]),
-          routes: [
-            Route(path: '/', title: 'Home', builder: (context, state) => const Home()),
-            Route(path: '/about', title: 'About', builder: (context, state) => const About()),
-          ],
-        ),
-      ]),
+      Router(
+        routes: [
+          ShellRoute(
+            builder: (context, state, child) => .fragment([
+              const Header(),
+              child,
+            ]),
+            routes: [
+              Route(path: '/', title: 'Home', builder: (context, state) => const Home()),
+              Route(path: '/about', title: 'About', builder: (context, state) => const About()),
+            ],
+          ),
+        ],
+      ),
     ]);
   }
 
