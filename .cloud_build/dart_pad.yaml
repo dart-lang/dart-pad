@@ -3,9 +3,30 @@
 # BSD-style license that can be found in the LICENSE file.
 
 steps:
+  # Build dartpad_ui
   - name: gcr.io/$PROJECT_ID/flutter:main
     args: ['build', 'web', '--wasm']
     dir: pkgs/dartpad_ui
+
+  # Deploy dartpad_ui to Firebase Hosting (site: dart-pad-a3c64)
   - name: gcr.io/$PROJECT_ID/firebase
     args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:dartpad']
     dir: pkgs/dartpad_ui
+
+  # Build dartpad_preview
+  - name: gcr.io/$PROJECT_ID/flutter:main
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        export PATH="/opt/flutter/bin:$PATH"
+        export PATH="$PATH":"$HOME/.pub-cache/bin"
+        dart pub global activate jaspr_cli
+        dart pub get
+        dart pub global run jaspr_cli:jaspr build
+    dir: pkgs/dartpad_preview
+
+  # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)
+  - name: gcr.io/$PROJECT_ID/firebase
+    args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:preview']
+    dir: pkgs/dartpad_preview
