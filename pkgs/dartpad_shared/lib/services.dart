@@ -36,10 +36,6 @@ abstract class DartPadService {
 
   Future<CompileDDCResponse> compileNewDDCReload(CompileRequest request);
 
-  Future<OpenInIdxResponse> openInFirebaseStudio(
-    OpenInFirebaseStudioRequest request,
-  );
-
   Stream<String> suggestFix(SuggestFixRequest request);
 
   Stream<String> generateCode(GenerateCodeRequest request);
@@ -99,15 +95,6 @@ class DartServicesClient implements DartPadService {
         request.toJson(),
         CompileDDCResponse.fromJson,
       );
-
-  @override
-  Future<OpenInIdxResponse> openInFirebaseStudio(
-    OpenInFirebaseStudioRequest request,
-  ) => _requestPost(
-    'openInFirebaseStudio',
-    request.toJson(),
-    OpenInIdxResponse.fromJson,
-  );
 
   @override
   Stream<String> suggestFix(SuggestFixRequest request) =>
@@ -273,15 +260,6 @@ class WebsocketServicesClient implements DartPadService {
         CompileDDCResponse.fromJson,
         request.toJson(),
       );
-
-  @override
-  Future<OpenInIdxResponse> openInFirebaseStudio(
-    OpenInFirebaseStudioRequest request,
-  ) => _sendRequest(
-    'openInFirebaseStudio',
-    OpenInIdxResponse.fromJson,
-    request.toJson(),
-  );
 
   @override
   Stream<String> suggestFix(SuggestFixRequest request) =>
