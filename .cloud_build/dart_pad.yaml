@@ -19,8 +19,8 @@ steps:
     args:
       - -c
       - |
-        export PATH="/opt/flutter/bin:$PATH"
-        export PATH="$PATH":"$HOME/.pub-cache/bin"
+        export PATH="/opt/flutter/bin:$$PATH"
+        export PATH="$$PATH":"$$HOME/.pub-cache/bin"
         dart pub global activate jaspr_cli
         dart pub get
         dart pub global run jaspr_cli:jaspr build
