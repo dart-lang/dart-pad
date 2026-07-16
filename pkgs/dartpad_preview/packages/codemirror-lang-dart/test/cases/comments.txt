@@ -1,0 +1,32 @@
+# Single-line comment
+// this is a comment
+==>
+Program(Program(Comment))
+
+# Single-line doc comment
+/// this is a doc comment
+==>
+Program(Program(Comment))
+
+# Block comment
+/* block comment */
+==>
+Program(Program(Comment))
+
+# Documentation block comment
+/** doc block comment */
+==>
+Program(Program(Comment))
+
+# Nested block comment
+/* outer /* inner */ outer */
+==>
+Program(Program(Comment))
+
+# Empty source file
+
+
+
+==>
+
+Program(Program)

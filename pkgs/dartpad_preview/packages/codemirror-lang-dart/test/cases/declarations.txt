@@ -1,0 +1,220 @@
+# Simple class
+class Foo {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Class with extends and implements
+class Dog extends Animal implements Barker {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Keyword, Identifier, Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Class with mixins
+class Cat extends Animal with Walker, Purrer {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Keyword, Identifier, Keyword, Identifier, Punctuation, Identifier, Block(Punctuation, Punctuation))))
+
+# Sealed class
+sealed class Shape {}
+==>
+Program(Program(TopLevel(Keyword, Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Abstract base class
+abstract base class Vehicle {}
+==>
+Program(Program(TopLevel(Keyword, Keyword, Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Interface class
+interface class Drawable {}
+==>
+Program(Program(TopLevel(Keyword, Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Mixin declaration
+mixin Flyable on Animal {
+void fly() {}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Keyword, Identifier, Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation), Punctuation))))
+
+# Extension declaration
+extension StringExt on String {
+bool get isBlank => isEmpty;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Keyword, Identifier, Block(Punctuation, Identifier, Keyword, Identifier, Operator, Identifier, Punctuation, Punctuation))))
+
+# Extension type
+extension type Meters(double value) implements double {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Identifier, ArgumentList(Punctuation, Identifier, Identifier, Punctuation), Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Enum declaration
+enum Color { red, green, blue }
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Identifier, Punctuation, Identifier, Punctuation, Identifier, Punctuation))))
+
+# Enhanced enum
+enum Planet {
+mercury(3.7),
+earth(9.8);
+
+final double gravity;
+const Planet(this.gravity);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Identifier, ArgumentList(Punctuation, Number, Punctuation), Punctuation, Identifier, ArgumentList(Punctuation, Number, Punctuation), Punctuation, Keyword, Identifier, Identifier, Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Keyword, Punctuation, Identifier, Punctuation), Punctuation, Punctuation))))
+
+# Typedef
+typedef IntList = List<int>;
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, Identifier, Operator, Identifier, Operator, Punctuation)))
+
+# Top-level variable declarations
+final x = 42;
+var y = 'hello';
+const pi = 3.14;
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, Number, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Punctuation), TopLevel(Keyword, Identifier, Operator, Number, Punctuation)))
+
+# Import declarations
+import 'dart:core';
+import 'package:foo/foo.dart' as foo;
+import 'bar.dart' show Baz, Qux;
+==>
+Program(Program(TopLevel(Keyword, String, Punctuation), TopLevel(Keyword, String, Keyword, Identifier, Punctuation), TopLevel(Keyword, String, Keyword, Identifier, Punctuation, Identifier, Punctuation)))
+
+# Export declaration
+export 'src/foo.dart';
+==>
+Program(Program(TopLevel(Keyword, String, Punctuation)))
+
+# Part directive
+part 'src/detail.dart';
+==>
+Program(Program(TopLevel(Keyword, String, Punctuation)))
+
+# Library name
+library my.app;
+==>
+Program(Program(TopLevel(Keyword, Identifier, Punctuation, Identifier, Punctuation)))
+
+# Built-in identifiers as field names
+class Foo {
+int type = 0;
+String get = '';
+bool set = true;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Identifier, Identifier, Operator, Number, Punctuation, Identifier, Keyword, Operator, String, Punctuation, Identifier, Keyword, Operator, Keyword, Punctuation, Punctuation))))
+
+# Chained assignment in constructor initializer
+class Foo {
+Foo() : a = b.c = d();
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# Record return type with annotation
+class Foo {
+@override
+(int, int?)? get range { return null; }
+
+@override
+(String, int) get pair => ('text', 42);
+
+@JsonKey(name: 'foo')
+(String, int) get annotatedPair => ('text', 42);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Operator, Punctuation), Operator, Keyword, Identifier, Block(Punctuation, Keyword, Keyword, Punctuation, Punctuation), Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Punctuation), Keyword, Identifier, Operator, ArgumentList(Punctuation, String, Punctuation, Number, Punctuation), Punctuation, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, String, Punctuation), ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Punctuation), Keyword, Identifier, Operator, ArgumentList(Punctuation, String, Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# Extension type with primary constructor
+extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray) implements JSObject {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Identifier, Operator, Identifier, Keyword, Identifier, Operator, Operator, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Identifier, Punctuation), Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Annotations with generic type arguments and .new
+@GenericClass<int, String>.new()
+class Foo {}
+
+@GenericClass<int>.named()
+class Bar {}
+==>
+Program(Program(TopLevel(Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Punctuation, Keyword, ArgumentList(Punctuation, Punctuation), Keyword, Identifier, Block(Punctuation, Punctuation)), TopLevel(Punctuation, Identifier, Operator, Identifier, Operator, Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Extension type with annotated representation
+extension type ExtensionType(@annotation int id) implements int {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Identifier, ArgumentList(Punctuation, Punctuation, Identifier, Identifier, Identifier, Punctuation), Keyword, Identifier, Block(Punctuation, Punctuation))))
+
+# Type variance modifiers
+class Covariant<out T> {}
+class Contravariant<in T> {}
+class Invariant<inout K, inout V> {}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, Keyword, Identifier, Operator, Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, Operator, Keyword, Identifier, Operator, Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, Operator, Keyword, Identifier, Punctuation, Keyword, Identifier, Operator, Block(Punctuation, Punctuation))))
+
+# Augmentation library and augment declarations
+library augment 'main.dart';
+
+augment class A with M {
+augment String get name => '$augmented!';
+}
+
+augment mixin M {
+augment String get mixinX => '${augmented}b';
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, String, Punctuation), TopLevel(Identifier, Keyword, Identifier, Keyword, Identifier, Block(Punctuation, Identifier, Identifier, Keyword, Identifier, Operator, String, Punctuation, Identifier, String, Punctuation, Punctuation)), TopLevel(Identifier, Keyword, Identifier, Block(Punctuation, Identifier, Identifier, Keyword, Identifier, Operator, String, Block(Punctuation, Identifier, Punctuation), String, Punctuation, Punctuation))))
+
+# Native method body
+class Foo {
+int get length native;
+String bar() native;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Identifier, Keyword, Identifier, Keyword, Punctuation, Identifier, Identifier, ArgumentList(Punctuation, Punctuation), Keyword, Punctuation, Punctuation))))
+
+# External final declaration
+external final int x;
+==>
+Program(Program(TopLevel(Keyword, Keyword, Identifier, Identifier, Punctuation)))
+
+# Non-null assertion
+void f() {
+var x = y!;
+w!.foo();
+x.._parent!.foo();
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Identifier, Operator, Punctuation, Identifier, Operator, Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Identifier, Operator, Identifier, Operator, Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# External static field declarations
+class JsInterop {
+external static dynamic TYPES;
+external static final int DEBUG;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Keyword, Keyword, Keyword, Identifier, Punctuation, Keyword, Keyword, Keyword, Identifier, Identifier, Punctuation, Punctuation))))
+
+# External covariant field declarations
+class C {
+external covariant num field;
+external covariant var field2;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Keyword, Keyword, Identifier, Identifier, Punctuation, Keyword, Keyword, Keyword, Identifier, Punctuation, Punctuation))))
+
+# Mixin class declaration
+mixin class M {}
+
+base mixin class BM {}
+
+abstract mixin class AM {}
+
+abstract base mixin class ABM {}
+
+mixin class MC = Object with M1;
+
+abstract base mixin class AMC = Object with M1 implements I;
+==>
+Program(Program(TopLevel(Keyword, Keyword, Identifier, Block(Punctuation, Punctuation)), TopLevel(Keyword, Keyword, Keyword, Identifier, Block(Punctuation, Punctuation)), TopLevel(Keyword, Keyword, Keyword, Identifier, Block(Punctuation, Punctuation)), TopLevel(Keyword, Keyword, Keyword, Keyword, Identifier, Block(Punctuation, Punctuation)), TopLevel(Keyword, Keyword, Identifier, Operator, Identifier, Keyword, Identifier, Punctuation), TopLevel(Keyword, Keyword, Keyword, Keyword, Identifier, Operator, Identifier, Keyword, Identifier, Keyword, Identifier, Punctuation)))
