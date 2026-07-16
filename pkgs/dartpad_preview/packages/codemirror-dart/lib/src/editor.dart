@@ -76,6 +76,7 @@ extension type KeyBinding._(JSObject _) implements JSObject {
   external factory KeyBinding({
     JSString key,
     JSFunction run,
+    bool? preventDefault,
   });
 }
 
@@ -247,6 +248,9 @@ extension type CMDiagnostic(JSObject _) implements JSObject {
 
 @JS()
 external JSFunction get toggleLineComment;
+
+@JS()
+external JSFunction get formatDocument;
 
 extension type Facet._(JSObject _) implements JSObject {
   external JSAny of(JSAny value);
