@@ -19,7 +19,7 @@ import {
   HighlightStyle,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
-import { LSPPlugin } from "@codemirror/lsp-client";
+import { LSPPlugin, formatDocument } from "@codemirror/lsp-client";
 import { createLspClient } from "./lspClient";
 import { gotoDefinitionOnClick } from "./gotoDefinition";
 import { selectionAction } from "./selectionAction";
@@ -43,6 +43,7 @@ declare global {
       lintGutter: () => Extension;
       linter: (source: any, config?: any) => Extension;
       LSPPlugin: typeof LSPPlugin;
+      formatDocument: typeof formatDocument;
       oneDark: Extension;
       showPanel: typeof showPanel;
       syntaxHighlighting: (style: any, options?: any) => Extension;
@@ -86,6 +87,7 @@ window._codemirror = {
   lintGutter,
   linter,
   LSPPlugin,
+  formatDocument,
   oneDark,
   showPanel,
   syntaxHighlighting,

@@ -40005,6 +40005,7 @@ ${text}</tr>
         lintGutter,
         linter,
         LSPPlugin,
+        formatDocument,
         oneDark,
         showPanel,
         syntaxHighlighting,
