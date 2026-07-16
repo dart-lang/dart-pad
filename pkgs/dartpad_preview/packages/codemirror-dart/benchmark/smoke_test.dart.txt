@@ -1,0 +1,301 @@
+// Single line comment
+/*
+  Multi-line comment
+  Testing comment blocks
+*/
+/// Documentation comment testing
+/// [Class] references and **Markdown**.
+
+library smoke_test;
+
+import 'dart:math' as math;
+import 'dart:async' show Future, Stream;
+import 'dart:core' hide String;
+
+part '../../../non_existent_part.dart';
+
+// --- Variables & Literals ---
+const int hexValue = 0xDEADBEEF;
+final double piValue = 3.14159;
+var decimalValue = 100;
+late String deferredString;
+
+String basicString = "Hello, Dart!";
+String interpolated = "Value: $decimalValue, Math: ${(hexValue + 2) / piValue}";
+String rawString = r'Raw string \n no escape';
+String multiLine =
+    '''
+  Line 1
+  Line 2
+  Interpolation: $interpolated
+''';
+
+bool isTrue = true;
+dynamic dynamicValue = null;
+Symbol symbolLit = #customSymbol;
+
+// --- Collections ---
+List<int> numbers = [
+  1,
+  2,
+  3,
+  ...[4, 5],
+];
+Set<String> uniqueNames = {'Alice', 'Bob', if (isTrue) 'Charlie'};
+Map<String, dynamic> dataMap = {
+  'key1': 'value1',
+  'key2': 2,
+  ...{'key3': true},
+};
+
+// --- Records (Dart 3) ---
+(int, int) recordPair = (1, 2);
+({String name, int age}) namedRecord = (name: 'Alice', age: 25);
+void destructure() {
+  var (x, y) = recordPair; // Destructuring
+}
+
+// --- Typedefs ---
+typedef Int2Int = int Function(int);
+typedef JsonMap = Map<String, dynamic>;
+
+// --- Functions ---
+void basicFunction() {}
+
+int arrowFunction(int x) => x * 2;
+
+Future<void> asyncFunction() async {
+  await Future.delayed(const Duration(seconds: 1));
+}
+
+Stream<int> generatorFunction() async* {
+  yield 1;
+  yield* Stream.fromIterable([2, 3]);
+}
+
+Iterable<int> syncGenerator() sync* {
+  yield 0;
+}
+
+// --- Metadata Annotations ---
+class Route {
+  final String path;
+  const Route(this.path);
+}
+
+@Route('/api/v1')
+@Deprecated('Use something else instead')
+void annotatedTopLevelFunction() {}
+
+// --- Classes, Interfaces & Generics ---
+abstract class Animal {
+  void speak();
+}
+
+class Box<T extends Animal> {
+  final T contents;
+  Box(this.contents);
+
+  U map<U>(U Function(T) mapper) => mapper(contents);
+}
+
+mixin Swimmer {
+  bool canSwim = true;
+  void swim() => print('Swimming!');
+}
+
+class Dog extends Animal with Swimmer implements Comparable<Dog> {
+  final String breed;
+  int _age;
+
+  // Constructors
+  Dog(this.breed, this._age);
+  Dog.puppy(this.breed) : _age = 0;
+
+  // Factory constructor
+  factory Dog.fromMap(Map<String, dynamic> map) {
+    return Dog(map['breed'], map['age']);
+  }
+
+  // Getters & Setters
+  int get age => _age;
+  set age(int value) {
+    if (value >= 0) _age = value;
+  }
+
+  @override
+  void speak() {
+    print('Woof!');
+    super.canSwim;
+  }
+
+  @override
+  int compareTo(Dog other) => _age.compareTo(other._age);
+}
+
+// --- Enums ---
+enum Status {
+  pending(0),
+  active(1),
+  completed(2)
+  ;
+
+  final int code;
+  const Status(this.code);
+
+  bool get isActive => this == Status.active;
+}
+
+// --- Extension Methods ---
+extension StringExt on String {
+  String get capitalize => '${this[0].toUpperCase()}${substring(1)}';
+}
+
+// --- Extension Types (Dart 3.3) ---
+extension type IdNumber(int id) {
+  bool get isValid => id > 0;
+}
+
+// --- Control Flow & Pattern Matching (Dart 3) ---
+void controlFlowSyntax(Object obj) {
+  // If / Else
+  if (obj is int) {
+    print('Integer');
+  } else if (obj is String) {
+    print('String');
+  } else {
+    print('Unknown');
+  }
+
+  // For loops
+  for (int i = 0; i < 10; i++) {
+    if (i == 5) continue;
+    if (i == 8) break;
+  }
+
+  for (final item in numbers) {
+    print(item);
+  }
+
+  // While / Do-While
+  int counter = 0;
+  while (counter < 5) {
+    counter++;
+  }
+
+  do {
+    counter--;
+  } while (counter > 0);
+
+  // Switch statement with Pattern Matching
+  switch (obj) {
+    case int n when n > 0:
+      print('Positive Int');
+    case String s:
+      print('String of length ${s.length}');
+    case [int a, int b]:
+      print('List of two ints: $a, $b');
+    case {'name': String name}:
+      print('Map with name: $name');
+    case Dog(breed: 'Poodle', age: var a):
+      print('Poodle of age $a');
+    case _:
+      print('Default case');
+  }
+
+  // Try / Catch / Finally
+  try {
+    throw Exception('Error!');
+  } on Exception catch (e, stackTrace) {
+    print('Caught: $e');
+  } catch (e) {
+    rethrow;
+  } finally {
+    print('Cleanup');
+  }
+}
+
+// --- Switch Expressions (Dart 3) ---
+String describeStatus(Status status) => switch (status) {
+  Status.pending => 'Waiting',
+  Status.active => 'Running',
+  Status.completed => 'Done',
+};
+
+// --- Advanced Pattern Matching & Destructuring ---
+void advancedPatterns(dynamic data) {
+  // Pattern in variable declaration
+  var {'user': [String name, int age]} = {
+    'user': ['Bob', 30],
+  };
+
+  // Relational and Logical Patterns
+  var numericVal = 50;
+  var rangeStr = switch (numericVal) {
+    >= 0 && < 10 => 'Single digit',
+    >= 10 && <= 99 => 'Double digit',
+    _ => 'Other',
+  };
+
+  // If-case statement
+  if (data case [int x, int y] when x < y) {
+    print('Sorted pair: $x, $y');
+  }
+}
+
+// --- Operators ---
+void operatorsDemo() {
+  int a = 10;
+  int b = 5;
+
+  // Arithmetic
+  var add = a + b;
+  var sub = a - b;
+  var mul = a * b;
+  var div = a / b;
+  var intDiv = a ~/ b;
+  var mod = a % b;
+
+  // Relational & Equality
+  var eq = a == b;
+  var neq = a != b;
+  var lt = a < b;
+  var gt = a > b;
+
+  // Logical
+  var and = (a > 0) && (b > 0);
+  var or = (a < 0) || (b > 0);
+  var not = !and;
+
+  // Bitwise
+  var bitAnd = a & b;
+  var bitOr = a | b;
+  var bitXor = a ^ b;
+  var shiftL = a << 1;
+  var shiftR = a >> 1;
+
+  // Assignment
+  a += 5;
+  a ??= 20;
+
+  // Cascade & Null-Aware
+  var d = Dog('Labrador', 3)
+    ..age = 4
+    ..speak();
+
+  var maybeMap = {'key': 'val'};
+  var len = maybeMap['key']?.length ?? 0;
+
+  // Conditional
+  var max = a > b ? a : b;
+}
+
+void main() async {
+  print(basicString);
+  controlFlowSyntax([1, 2]);
+
+  var myDog = Dog('Pug', 1);
+  if (myDog is Animal) {
+    myDog.speak();
+  }
+}
