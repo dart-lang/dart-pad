@@ -21,7 +21,7 @@ import { Facet } from "@codemirror/state";
  * Defines the AST node types and their corresponding syntax highlighting tags and behaviors for the Dart language.
  * Connects Lezer tree nodes to CodeMirror theme identifiers.
  */
-export const dartNodeSet = new NodeSet([
+const dartNodeSet = new NodeSet([
   NodeType.define({ id: 0, name: "Error" }),
   NodeType.define({ id: 1, name: "Program", top: true }),
   NodeType.define({
