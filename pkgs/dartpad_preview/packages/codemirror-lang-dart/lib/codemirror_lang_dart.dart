@@ -28,7 +28,7 @@ JSObject dartLanguage() {
 
 /// Maps a Dart analyzer [Token] to an integer identifier matching the `dartNodeSet` definition
 /// established in the `index.ts` JavaScript frontend mapping.
-int mapTokenType(Token token) {
+int _mapTokenType(Token token) {
   var type = token.type;
   if (type.isKeyword || token.keyword != null) {
     return 2; // Keyword
@@ -186,7 +186,7 @@ JSInt32Array parseCodeCallback(JSString codeStr, [JSArray<JSNumber>? cleanRanges
           lastValidOffset = absOffset;
         }
 
-        int id = mapTokenType(token);
+        int id = _mapTokenType(token);
 
         if (token.type == TokenType.OPEN_CURLY_BRACKET || token.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           stack.add(_PendingNode(9, absOffset, buffer.length));
