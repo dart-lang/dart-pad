@@ -4,9 +4,13 @@
 name: dartpad_preview_workspace
 publish_to: none
 
+environment:
+  sdk: ^3.12.0
+
 workspace:
   - codemirror-lang-dart
   - codemirror-dart
+  - packages/dartpad_preview_shared
 
 environment:
   sdk: ^3.12.0-0
