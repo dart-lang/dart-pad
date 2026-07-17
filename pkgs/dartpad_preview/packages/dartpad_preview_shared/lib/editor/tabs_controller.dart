@@ -98,6 +98,7 @@ abstract mixin class TabsController<T> {
       // Check if it got cancelled or deleted while loading
       if (!_loadingTabs.containsKey(fileName)) {
         tab.dispose();
+        await _tabUpdateSubscriptions.remove(fileName)?.cancel();
         return;
       }
 

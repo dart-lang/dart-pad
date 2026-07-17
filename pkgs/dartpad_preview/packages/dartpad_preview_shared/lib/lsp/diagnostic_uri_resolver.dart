@@ -23,20 +23,11 @@ String? _pathWithinWorkspace(String uri, Uri? workspaceFolder) {
     return null;
   }
 
-  final relativeUri = workspaceFolder.resolveUri(Uri.parse('.')).toString();
-  final workspaceUri = workspaceFolder.toString();
-  final relativePath = parsedUri.path.startsWith(workspaceFolder.path)
-      ? parsedUri.path.substring(workspaceFolder.path.length)
-      : null;
-
-  if (relativePath != null) {
+  final workspacePath = workspaceFolder.path.endsWith('/') ? workspaceFolder.path : '${workspaceFolder.path}/';
+  final isSameLocation = parsedUri.scheme == workspaceFolder.scheme && parsedUri.authority == workspaceFolder.authority;
+  if (isSameLocation && parsedUri.path.startsWith(workspacePath)) {
+    final relativePath = parsedUri.path.substring(workspacePath.length);
     return normalizePath(Uri.decodeFull(relativePath));
-  }
-  if (uri.startsWith(workspaceUri)) {
-    return normalizePath(Uri.decodeFull(uri.substring(workspaceUri.length)));
-  }
-  if (uri.startsWith(relativeUri)) {
-    return normalizePath(Uri.decodeFull(uri.substring(relativeUri.length)));
   }
 
   return null;
