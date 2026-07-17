@@ -1,6 +1,19 @@
-import { NodeSet, NodeType, Parser, Tree, PartialParse, Input, TreeFragment } from "@lezer/common";
+import {
+  NodeSet,
+  NodeType,
+  Parser,
+  Tree,
+  PartialParse,
+  Input,
+  TreeFragment,
+} from "@lezer/common";
 import { styleTags, tags as t } from "@lezer/highlight";
-import { Language, LanguageSupport, foldNodeProp, foldInside } from "@codemirror/language";
+import {
+  Language,
+  LanguageSupport,
+  foldNodeProp,
+  foldInside,
+} from "@codemirror/language";
 
 import { Facet } from "@codemirror/state";
 
@@ -11,16 +24,56 @@ import { Facet } from "@codemirror/state";
 export const dartNodeSet = new NodeSet([
   NodeType.define({ id: 0, name: "Error" }),
   NodeType.define({ id: 1, name: "Program", top: true }),
-  NodeType.define({ id: 2, name: "Keyword", props: [styleTags({ Keyword: t.keyword })] }),
-  NodeType.define({ id: 3, name: "Identifier", props: [styleTags({ Identifier: t.variableName })] }),
-  NodeType.define({ id: 4, name: "String", props: [styleTags({ String: t.string })] }),
-  NodeType.define({ id: 5, name: "Number", props: [styleTags({ Number: t.number })] }),
-  NodeType.define({ id: 6, name: "Operator", props: [styleTags({ Operator: t.operator })] }),
-  NodeType.define({ id: 7, name: "Punctuation", props: [styleTags({ Punctuation: t.punctuation })] }),
-  NodeType.define({ id: 8, name: "Comment", props: [styleTags({ Comment: t.comment })] }),
-  NodeType.define({ id: 9, name: "Block", props: [[foldNodeProp, foldInside]] }),
-  NodeType.define({ id: 10, name: "List", props: [[foldNodeProp, foldInside]] }),
-  NodeType.define({ id: 11, name: "ArgumentList", props: [[foldNodeProp, foldInside]] }),
+  NodeType.define({
+    id: 2,
+    name: "Keyword",
+    props: [styleTags({ Keyword: t.keyword })],
+  }),
+  NodeType.define({
+    id: 3,
+    name: "Identifier",
+    props: [styleTags({ Identifier: t.variableName })],
+  }),
+  NodeType.define({
+    id: 4,
+    name: "String",
+    props: [styleTags({ String: t.string })],
+  }),
+  NodeType.define({
+    id: 5,
+    name: "Number",
+    props: [styleTags({ Number: t.number })],
+  }),
+  NodeType.define({
+    id: 6,
+    name: "Operator",
+    props: [styleTags({ Operator: t.operator })],
+  }),
+  NodeType.define({
+    id: 7,
+    name: "Punctuation",
+    props: [styleTags({ Punctuation: t.punctuation })],
+  }),
+  NodeType.define({
+    id: 8,
+    name: "Comment",
+    props: [styleTags({ Comment: t.comment })],
+  }),
+  NodeType.define({
+    id: 9,
+    name: "Block",
+    props: [[foldNodeProp, foldInside]],
+  }),
+  NodeType.define({
+    id: 10,
+    name: "List",
+    props: [[foldNodeProp, foldInside]],
+  }),
+  NodeType.define({
+    id: 11,
+    name: "ArgumentList",
+    props: [[foldNodeProp, foldInside]],
+  }),
   NodeType.define({ id: 12, name: "TopLevel" }),
 ]);
 
@@ -40,7 +93,7 @@ class DartPartialParse implements PartialParse {
   constructor(
     private input: Input,
     private parseCode: (code: string, cleanRanges: number[]) => Int32Array,
-    private fragments: readonly TreeFragment[]
+    private fragments: readonly TreeFragment[],
   ) {
     this.parsedPos = input.length;
   }
@@ -85,7 +138,13 @@ class DartPartialParse implements PartialParse {
     const buffer = this.parseCode(code, cleanRanges);
     let nativeBuffer = Array.from(buffer);
 
-    let res = Tree.build({ buffer: nativeBuffer, nodeSet: dartNodeSet, topID: 1, length: code.length, reused: reused });
+    let res = Tree.build({
+      buffer: nativeBuffer,
+      nodeSet: dartNodeSet,
+      topID: 1,
+      length: code.length,
+      reused: reused,
+    });
     return res;
   }
 
@@ -93,7 +152,7 @@ class DartPartialParse implements PartialParse {
    * Instructs the parser to pause execution upon reaching a specific character index.
    * Currently a no-op as the Dart backend parses document states synchronously.
    */
-  stopAt(pos: number): void { }
+  stopAt(pos: number): void {}
 
   /**
    * Indicates the position at which the partial parse was interrupted.
@@ -111,14 +170,23 @@ export class DartParser extends Parser {
   /**
    * @param dartParseCallback A bridging function that forwards Document state strings to the Dart runtime.
    */
-  constructor(private dartParseCallback: (code: string, cleanRanges: number[]) => Int32Array) {
+  constructor(
+    private dartParseCallback: (
+      code: string,
+      cleanRanges: number[],
+    ) => Int32Array,
+  ) {
     super();
   }
 
   /**
    * Spawns a new incremental parsing session when document edits occur.
    */
-  createParse(input: Input, fragments: readonly TreeFragment[], ranges: readonly { from: number, to: number }[]): PartialParse {
+  createParse(
+    input: Input,
+    fragments: readonly TreeFragment[],
+    ranges: readonly { from: number; to: number }[],
+  ): PartialParse {
     return new DartPartialParse(input, this.dartParseCallback, fragments);
   }
 }
@@ -145,7 +213,7 @@ export function dartLanguage(parseCallback: ParseCallback) {
   const dartLanguage = new Language(
     dataFacet,
     customParser,
-    [] // extensions
+    [], // extensions
   );
 
   return new LanguageSupport(dartLanguage, []);
