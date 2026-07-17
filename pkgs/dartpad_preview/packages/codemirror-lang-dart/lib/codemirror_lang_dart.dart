@@ -27,7 +27,7 @@ JSObject dartLanguage() {
 }
 
 /// Maps a Dart analyzer [Token] to an integer identifier matching the `dartNodeSet` definition
-/// established in the `lang.ts` JavaScript frontend mapping.
+/// established in the `index.ts` JavaScript frontend mapping.
 int mapTokenType(Token token) {
   var type = token.type;
   if (type.isKeyword || token.keyword != null) {
