@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node -e \"require('fs').mkdirSync('test/dist',{recursive:true})\" && dart compile js -Dnode=true -O2 test/dart_test_env.dart -o test/dist/dart_impl.cjs && mocha --node-option loader=ts-node/esm test/test-*.ts"
+    "test": "node tool/run_tests.js"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
