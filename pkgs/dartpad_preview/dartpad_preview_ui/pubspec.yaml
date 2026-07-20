@@ -3,10 +3,6 @@ description: A new Jaspr project
 version: 0.0.1
 publish_to: none
 
-workspace:
-  - packages/codemirror-dart
-  - packages/codemirror-lang-dart
-
 environment:
   sdk: ^3.12.0
 
