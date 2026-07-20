@@ -1,0 +1,41 @@
+name: package:codemirror-lang-dart
+
+permissions: read-all
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/codemirror_lang_dart.yml'
+      - 'pkgs/codemirror-lang-dart/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/codemirror_lang_dart.yml'
+      - 'pkgs/codemirror-lang-dart/**'
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/codemirror-lang-dart/
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '20'
+
+      - name: Install Dart dependencies
+        run: dart pub get
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
