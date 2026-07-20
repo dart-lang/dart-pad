@@ -10,8 +10,6 @@ workspace:
   - pkgs/dartpad_shared
   - pkgs/dartpad_ui
   - pkgs/samples
-  - pkgs/codemirror-dart
-  - pkgs/codemirror-lang-dart
 
 environment:
   sdk: ^3.12.0
