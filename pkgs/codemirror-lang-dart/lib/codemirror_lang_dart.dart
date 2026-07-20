@@ -100,6 +100,7 @@ class _PendingNode {
 /// Efficiently tokenizes the Dart [codeStr] using the `analyzer` package, while skipping over regions
 /// marked as unchanged in [cleanRangesJs] to drastically optimize incremental typing performance.
 /// Returns an Int32Array representing a flattened Lezer flatbuffer syntax tree structure.
+/// This needs to be exposed for benchmarking.
 JSInt32Array parseCodeCallback(JSString codeStr, [JSArray<JSNumber>? cleanRangesJs]) {
   final code = codeStr.toDart;
   final cleanRanges = cleanRangesJs?.toDart.map((e) => e.toDartInt).toList() ?? <int>[];
