@@ -7,12 +7,12 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/codemirror_lang_dart.yml'
-      - 'pkgs/codemirror-lang-dart/**'
+      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
   pull_request:
     branches: [ main ]
     paths:
       - '.github/workflows/codemirror_lang_dart.yml'
-      - 'pkgs/codemirror-lang-dart/**'
+      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
   schedule:
     - cron: '0 0 * * 0' # weekly
 
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: pkgs/codemirror-lang-dart/
+        working-directory: pkgs/dartpad_preview/codemirror-lang-dart/
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
