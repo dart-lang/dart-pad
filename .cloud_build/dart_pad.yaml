@@ -24,9 +24,9 @@ steps:
         dart pub global activate jaspr_cli
         dart pub get
         dart pub global run jaspr_cli:jaspr build
-    dir: pkgs/dartpad_preview
+    dir: pkgs/dartpad_preview/dartpad_preview_ui
 
   # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)
   - name: gcr.io/$PROJECT_ID/firebase
     args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:preview']
-    dir: pkgs/dartpad_preview
+    dir: pkgs/dartpad_preview/dartpad_preview_ui
