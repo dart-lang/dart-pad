@@ -9,6 +9,3 @@ environment:
 dependencies:
   analyzer: ^12.1.0
   web: ^1.1.1
-
-dev_dependencies:
-  lints: ^6.0.0

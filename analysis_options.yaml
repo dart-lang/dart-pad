@@ -1,0 +1,27 @@
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-raw-types: true
+  exclude:
+    - third_party/**
+    - "**/node_modules/**"
+
+formatter:
+  page_width: 120
+  trailing_commas: preserve
+
+linter:
+  rules:
+    lines_longer_than_80_chars: false
+    omit_local_variable_types: false
+    always_put_control_body_on_new_line: true
+    avoid_equals_and_hash_code_on_mutable_classes: true
+    avoid_escaping_inner_quotes: true
+    avoid_multiple_declarations_per_line: true
+    avoid_positional_boolean_parameters: true
+    matching_super_parameters: true
+    no_literal_bool_comparisons: true
+    unnecessary_breaks: true
+    unnecessary_ignore: true
+    unnecessary_null_checks: true
