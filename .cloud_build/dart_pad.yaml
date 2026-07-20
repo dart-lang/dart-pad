@@ -29,4 +29,4 @@ steps:
   # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)
   - name: gcr.io/$PROJECT_ID/firebase
     args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:preview']
-    dir: pkgs/dartpad_preview
+    dir: pkgs/dartpad_preview/dartpad_preview_ui
