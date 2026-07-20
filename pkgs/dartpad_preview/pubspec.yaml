@@ -1,0 +1,12 @@
+# Workspace for DartPad preview packages.
+# This is intentionally separate from the top-level dartpad workspace
+# to avoid being constrained by its potentially outdated dependencies.
+name: dartpad_preview_workspace
+publish_to: none
+
+workspace:
+  - codemirror-lang-dart
+  - codemirror-dart
+
+environment:
+  sdk: ^3.12.0-0
