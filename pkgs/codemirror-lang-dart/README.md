@@ -20,6 +20,23 @@ To configure the package locally, ensure you install both its Dart and Node.js d
 1. Run `dart pub get` to install the Dart dependencies.
 2. Run `npm install` to install the Node.js dependencies.
 
+## Using with CodeMirror 6
+
+Call `dartLanguage()` with the analyzer-backed parse callback, then add the returned `LanguageSupport` to your editor's extensions:
+
+```ts
+import { basicSetup, EditorView } from "codemirror";
+import { dartLanguage } from "codemirror-lang-dart";
+
+const view = new EditorView({
+  doc: "void main() {\n  print('Hello, world!');\n}",
+  extensions: [basicSetup, dartLanguage(parseCodeCallback)],
+  parent: document.querySelector("#editor")!,
+});
+```
+
+`parseCodeCallback` must be the synchronous callback provided by the compiled Dart analyzer bridge. It accepts `(code, cleanRanges)` and returns an `Int32Array` syntax-tree buffer. The package does not currently bundle that compiled Dart callback, so it cannot be used as a standalone NPM dependency.
+
 ## Running Tests
 
 To run the test suite, simply use the following command:
