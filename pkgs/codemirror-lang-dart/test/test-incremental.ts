@@ -1,11 +1,18 @@
-import { createRequire } from 'module';
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 (global as any).window = global;
 (global as any).self = global;
 (global as any).location = { href: "file:///" };
 (global as any)._codemirror = {
-  dartLanguage: (cb: any) => { (global as any).dartParseCallback = cb; return {}; }
+  dartLanguage: (cb: any) => {
+    (global as any).dartParseCallback = cb;
+    return {};
+  },
 };
 
 require("./dist/dart_impl.cjs");
@@ -21,17 +28,18 @@ describe("Dart Analyzer Incremental Parsing & Bleeding", () => {
     const dartSupport = dartLanguage((global as any).dartParseCallback);
     let state = EditorState.create({
       doc: "void foo() {}\nvoid bar() {}",
-      extensions: [dartSupport]
+      extensions: [dartSupport],
     });
 
     // Initial parse gives two TopLevel blocks
     let tree = syntaxTree(state);
-    const expected = "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation))))";
+    const expected =
+      "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation))))";
     assert.strictEqual(printTree(tree), expected);
 
     // Mutate the second block only
     state = state.update({
-      changes: { from: 19, to: 19, insert: " " }
+      changes: { from: 19, to: 19, insert: " " },
     }).state;
 
     tree = syntaxTree(state);
@@ -42,16 +50,17 @@ describe("Dart Analyzer Incremental Parsing & Bleeding", () => {
     const dartSupport = dartLanguage((global as any).dartParseCallback);
     let state = EditorState.create({
       doc: "void foo() {}\nvoid bar() {}",
-      extensions: [dartSupport]
+      extensions: [dartSupport],
     });
 
     // Initially parsed cleanly
-    const expectedInitial = "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation))))";
+    const expectedInitial =
+      "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation)), TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation))))";
     assert.strictEqual(printTree(syntaxTree(state)), expectedInitial);
 
     // Inject a block comment start to swallow the rest of the file
     state = state.update({
-      changes: { from: 0, to: 0, insert: "/*" }
+      changes: { from: 0, to: 0, insert: "/*" },
     }).state;
 
     const tree = syntaxTree(state);
@@ -62,15 +71,18 @@ describe("Dart Analyzer Incremental Parsing & Bleeding", () => {
     const dartSupport = dartLanguage((global as any).dartParseCallback);
     let state = EditorState.create({
       doc: "void foo() {}\nvoid bar() {}",
-      extensions: [dartSupport]
+      extensions: [dartSupport],
     });
 
     // Delete closing bracket of first TopLevel to break encapsulation
     state = state.update({
-      changes: { from: 12, to: 13 }
+      changes: { from: 12, to: 13 },
     }).state;
 
     const tree = syntaxTree(state);
-    assert.strictEqual(printTree(tree), "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation), Punctuation))))");
+    assert.strictEqual(
+      printTree(tree),
+      "Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation), Punctuation))))",
+    );
   });
 });
