@@ -1,9 +1,23 @@
-import 'package:dartpad/dartpad.dart';
+import 'dart:typed_data';
+
 import 'package:path/path.dart' as path;
 
-import 'workspace_watcher.dart';
-
 final _path = path.posix;
+
+abstract interface class WorkspaceApi {
+  int get id;
+  Uri get workspaceFolder;
+  Future<bool> fileExist(String uri);
+  Future<bool> folderExist(String uri);
+  Future<String> readFileAsText(String uri);
+  Future<Uint8List> readFileAsBytes(String uri);
+  Future<void> writeFileFromText(String uri, String content);
+  Future<void> writeFileFromBytes(String uri, Uint8List bytes);
+  Future<void> createFolder(String uri);
+  Future<void> deleteFileSystemEntity(String uri);
+  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false});
+  void addMoveIntention(String oldPath, String newPath);
+}
 
 /// An abstraction of a file or folder in the workspace.
 ///
@@ -14,8 +28,8 @@ sealed class WorkspaceResource {
     required this.workspace,
   });
 
-  /// The underlying [Workspace] this resource belongs to.
-  final Workspace workspace;
+  /// The underlying [WorkspaceApi] this resource belongs to.
+  final WorkspaceApi workspace;
 
   /// Return the [WorkspaceFolder] that contains this resource, possibly itself if this
   /// resource is a root folder.

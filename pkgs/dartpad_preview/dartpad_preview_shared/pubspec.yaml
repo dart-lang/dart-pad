@@ -13,7 +13,7 @@ dependencies:
   dartpad: any
   logging: ^1.3.0
   path: ^1.9.1
-  web: ^2.0.0
+  web: ^1.1.1
 
 dev_dependencies:
   test: ^1.31.0

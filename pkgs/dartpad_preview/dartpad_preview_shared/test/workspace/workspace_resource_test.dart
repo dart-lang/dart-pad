@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_preview_shared/workspace/workspace_resource.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
 import 'package:test/test.dart';
 
-class MemoryWorkspace implements Workspace {
+class MemoryWorkspace implements WorkspaceApi {
   final Map<String, Uint8List> files = {};
   final Set<String> folders = {''};
   final List<String> mutations = [];
+  final Map<String, String> pendingMoves = {};
+
+  @override
+  void addMoveIntention(String oldPath, String newPath) {
+    pendingMoves[newPath] = oldPath;
+  }
 
   @override
   int get id => 0;
@@ -17,8 +21,7 @@ class MemoryWorkspace implements Workspace {
   @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
 
-  @override
-  Stream<WorkspaceEvent> get fileSystemChanges => const Stream.empty();
+
 
   @override
   Future<bool> fileExist(String uri) async => files.containsKey(uri);

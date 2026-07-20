@@ -4,16 +4,20 @@
 name: dartpad_preview_workspace
 publish_to: none
 
-environment:
-  sdk: ^3.12.0
-
 workspace:
   - codemirror-lang-dart
   - codemirror-dart
-  - packages/dartpad_preview_shared
+  - dartpad_preview_shared
 
 environment:
   sdk: ^3.12.0-0
 
 dev_dependencies:
   dart_flutter_team_lints: ^3.5.2
+
+dependency_overrides:
+  dartpad:
+    git:
+      url: https://github.com/dart-lang/sdk
+      path: pkg/dartpad
+      ref: 064fcb01ba7e08a2179a28146801df49341188e4

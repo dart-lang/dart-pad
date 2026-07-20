@@ -246,7 +246,7 @@ abstract mixin class TabsController<T> {
   }
 
   Future<void> _handleDisplayFile(String uri) async {
-    final folderPath = workspaceController.workspace.workspaceFolder.path;
+    final folderPath = workspaceController.workspaceUri.path;
     final relativePath = LanguageServerClient.getRelativePath(uri, folderPath);
     await openFile(relativePath);
   }

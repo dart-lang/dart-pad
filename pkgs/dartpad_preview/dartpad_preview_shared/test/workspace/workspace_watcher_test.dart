@@ -1,56 +1,51 @@
 import 'dart:async';
 
-import 'package:dartpad/dartpad.dart';
+import 'package:dartpad/src/worker_client.dart' show FileChangeEvent, FileAddedEvent, FileRemovedEvent, FileModifiedEvent;
 import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
 import 'package:test/test.dart';
 
-class FakeWorkspace implements Workspace {
-  final StreamController<WorkspaceEvent> _changes = StreamController<WorkspaceEvent>.broadcast();
+class FakeWorkspaceChangeStream {
+  final StreamController<FileChangeEvent> _changes = StreamController<FileChangeEvent>.broadcast();
 
-  @override
-  Stream<WorkspaceEvent> get fileSystemChanges => _changes.stream;
+  Stream<FileChangeEvent> get stream => _changes.stream;
 
-  @override
-  Uri get workspaceFolder => Uri.parse('file:///workspace/');
+  void emitAdd(String path) {
+    _changes.add(FileAddedEvent(Uri.parse(path)));
+  }
 
-  @override
-  int get id => 0;
+  void emitRemove(String path) {
+    _changes.add(FileRemovedEvent(Uri.parse(path)));
+  }
 
-  void emit(WorkspaceEventType type, String path) {
-    _changes.add(WorkspaceEvent.fromMap({'type': type.name, 'path': path}));
+  void emitModify(String path) {
+    _changes.add(FileModifiedEvent(Uri.parse(path)));
   }
 
   Future<void> close() => _changes.close();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
   group('RenameCache', () {
     test('tracks, overwrites, and consumes move intentions independently', () {
-      final workspace = FakeWorkspace();
-      addTearDown(workspace.close);
+      final watcher = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
 
-      workspace
+      watcher
         ..addMoveIntention('a.dart', 'target.dart')
         ..addMoveIntention('replacement.dart', 'target.dart')
         ..addMoveIntention('x.dart', 'y.dart');
 
-      expect(workspace.pendingMoves, {
+      expect(watcher.pendingMoves, {
         'target.dart': 'replacement.dart',
         'y.dart': 'x.dart',
       });
-      expect(workspace.removeMoveIntention('target.dart'), 'replacement.dart');
-      expect(workspace.removeMoveIntention('target.dart'), isNull);
-      expect(workspace.removeMoveIntention('y.dart'), 'x.dart');
+      expect(watcher.removeMoveIntention('target.dart'), 'replacement.dart');
+      expect(watcher.removeMoveIntention('target.dart'), isNull);
+      expect(watcher.removeMoveIntention('y.dart'), 'x.dart');
     });
 
-    test('keeps move intentions isolated per workspace', () {
-      final first = FakeWorkspace();
-      final second = FakeWorkspace();
-      addTearDown(first.close);
-      addTearDown(second.close);
+    test('keeps move intentions isolated per watcher', () {
+      final first = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
+      final second = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
 
       first.addMoveIntention('a.dart', 'b.dart');
 
@@ -59,26 +54,26 @@ void main() {
     });
   });
 
-  group('WorkspaceWatcher', () {
-    late FakeWorkspace workspace;
-    late WorkspaceWatcher watcher;
+  group('WorkspaceChangeWatcher', () {
+    late FakeWorkspaceChangeStream stream;
+    late WorkspaceChangeWatcher watcher;
     late List<WorkspaceChangeEvent> events;
 
     setUp(() {
-      workspace = FakeWorkspace();
-      watcher = WorkspaceWatcher(workspace: workspace)..watchFileSystem();
+      stream = FakeWorkspaceChangeStream();
+      watcher = WorkspaceChangeWatcher(fileChanges: stream.stream)..watchFileSystem();
       events = [];
       watcher.events.listen(events.add);
     });
 
-    tearDown(() => workspace.close());
+    tearDown(() => stream.close());
 
     test('forwards raw add, remove, and modify events', () async {
       final delivered = watcher.events.take(3).toList();
-      workspace
-        ..emit(WorkspaceEventType.add, 'added.dart')
-        ..emit(WorkspaceEventType.remove, 'removed.dart')
-        ..emit(WorkspaceEventType.modify, 'modified.dart');
+      stream
+        ..emitAdd('added.dart')
+        ..emitRemove('removed.dart')
+        ..emitModify('modified.dart');
       await delivered;
 
       expect(
@@ -93,10 +88,10 @@ void main() {
 
     test('consolidates a move and suppresses its matching remove', () async {
       final delivered = watcher.events.first;
-      workspace
-        ..addMoveIntention('old.dart', 'new.dart')
-        ..emit(WorkspaceEventType.add, 'new.dart')
-        ..emit(WorkspaceEventType.remove, 'old.dart');
+      watcher.addMoveIntention('old.dart', 'new.dart');
+      stream
+        ..emitAdd('new.dart')
+        ..emitRemove('old.dart');
       await delivered;
 
       expect(events.map(_eventTuple), [
@@ -106,12 +101,12 @@ void main() {
 
     test('scopes remove suppression to one matching event', () async {
       final delivered = watcher.events.take(3).toList();
-      workspace
-        ..addMoveIntention('old.dart', 'new.dart')
-        ..emit(WorkspaceEventType.add, 'new.dart')
-        ..emit(WorkspaceEventType.remove, 'unrelated.dart')
-        ..emit(WorkspaceEventType.remove, 'old.dart')
-        ..emit(WorkspaceEventType.remove, 'old.dart');
+      watcher.addMoveIntention('old.dart', 'new.dart');
+      stream
+        ..emitAdd('new.dart')
+        ..emitRemove('unrelated.dart')
+        ..emitRemove('old.dart')
+        ..emitRemove('old.dart');
       await delivered;
 
       expect(events.map(_eventTuple), [
@@ -126,7 +121,7 @@ void main() {
       watcher.events.listen(secondListenerEvents.add);
       final delivered = watcher.events.first;
 
-      workspace.emit(WorkspaceEventType.add, 'file.dart');
+      stream.emitAdd('file.dart');
       await delivered;
 
       expect(events, hasLength(1));

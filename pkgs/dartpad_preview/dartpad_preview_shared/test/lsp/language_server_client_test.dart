@@ -22,7 +22,7 @@ Map<String, dynamic> _edit(
   'newText': newText,
 };
 
-class FakeWorkspace implements Workspace {
+class FakeWorkspace implements WorkspaceApi {
   final Map<String, String> files = {};
   Object? writeError;
 
@@ -32,8 +32,7 @@ class FakeWorkspace implements Workspace {
   @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
 
-  @override
-  Stream<WorkspaceEvent> get fileSystemChanges => const Stream.empty();
+
 
   @override
   Future<bool> fileExist(String uri) async => files.containsKey(uri);
@@ -54,16 +53,30 @@ class FakeWorkspace implements Workspace {
 }
 
 class FakeWorkspaceController implements WorkspaceController {
-  FakeWorkspaceController(this.workspace);
+  FakeWorkspaceController(this.fakeWorkspace);
+
+  final FakeWorkspace fakeWorkspace;
 
   @override
-  final FakeWorkspace workspace;
+  Workspace get workspace => throw UnimplementedError('Use fakeWorkspace in tests');
 
   @override
-  Uri get workspaceUri => workspace.workspaceFolder;
+  Uri get workspaceUri => fakeWorkspace.workspaceFolder;
 
   @override
-  WorkspaceFolder get root => WorkspaceFolder(workspace: workspace, path: '');
+  WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
+
+  // WorkspaceApi delegates
+  @override
+  int get id => fakeWorkspace.id;
+  @override
+  Uri get workspaceFolder => fakeWorkspace.workspaceFolder;
+  @override
+  Future<bool> fileExist(String uri) => fakeWorkspace.fileExist(uri);
+  @override
+  Future<String> readFileAsText(String uri) => fakeWorkspace.readFileAsText(uri);
+  @override
+  Future<void> writeFileFromText(String uri, String content) => fakeWorkspace.writeFileFromText(uri, content);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

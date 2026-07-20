@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
+import 'package:dartpad/src/worker_client.dart' show FileChangeEvent, FileAddedEvent, FileRemovedEvent, FileModifiedEvent;
 import 'package:dartpad_preview_shared/editor/editor_tab.dart';
 import 'package:dartpad_preview_shared/editor/tabs_controller.dart';
 import 'package:dartpad_preview_shared/lsp/language_server_client.dart';
@@ -15,12 +16,11 @@ import 'package:test/test.dart';
 
 /// A minimal fake [Workspace] for testing. Supports a configurable set of
 /// files that "exist" and provides a controllable event stream.
-class FakeWorkspace implements Workspace {
+class FakeWorkspace implements WorkspaceApi {
   final Set<String> _existingFiles = {};
-  final StreamController<WorkspaceEvent> _changesController = StreamController<WorkspaceEvent>.broadcast(sync: true);
+  final StreamController<FileChangeEvent> _changesController = StreamController<FileChangeEvent>.broadcast(sync: true);
 
-  @override
-  Stream<WorkspaceEvent> get fileSystemChanges => _changesController.stream;
+  Stream<FileChangeEvent> get fileChanges => _changesController.stream;
 
   @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
@@ -62,25 +62,45 @@ class FakeLanguageServerClient implements LanguageServerClient {
 /// A fake [WorkspaceController] that bypasses the real constructor
 /// (which requires a real [LanguageServer] and CodeMirror JS interop).
 class FakeWorkspaceController implements WorkspaceController {
-  FakeWorkspaceController({required this.workspace}) {
-    watcher = WorkspaceWatcher(workspace: workspace)..watchFileSystem();
+  FakeWorkspaceController({required this.fakeWorkspace}) {
+    watcher = WorkspaceChangeWatcher(fileChanges: fakeWorkspace.fileChanges)..watchFileSystem();
     languageServerClient = FakeLanguageServerClient();
   }
 
-  @override
-  final Workspace workspace;
+  final FakeWorkspace fakeWorkspace;
 
   @override
-  late final WorkspaceWatcher watcher;
+  Workspace get workspace => throw UnimplementedError('Use fakeWorkspace in tests');
+
+  @override
+  late final WorkspaceChangeWatcher watcher;
 
   @override
   late final LanguageServerClient languageServerClient;
 
   @override
-  Uri get workspaceUri => workspace.workspaceFolder;
+  Uri get workspaceUri => fakeWorkspace.workspaceFolder;
 
   @override
-  WorkspaceFolder get root => WorkspaceFolder(workspace: workspace, path: '');
+  WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
+
+  @override
+  void addMoveIntention(String oldPath, String newPath) {
+    watcher.addMoveIntention(oldPath, newPath);
+  }
+
+  // WorkspaceApi delegates
+  @override
+  int get id => fakeWorkspace.id;
+  @override
+  Uri get workspaceFolder => fakeWorkspace.workspaceFolder;
+  @override
+  Future<bool> fileExist(String uri) => fakeWorkspace.fileExist(uri);
+  @override
+  Future<bool> folderExist(String uri) => fakeWorkspace.folderExist(uri);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A concrete [EditorTab] for testing that tracks lifecycle calls.
@@ -216,7 +236,7 @@ void main() {
 
   setUp(() {
     workspace = FakeWorkspace();
-    controller = FakeWorkspaceController(workspace: workspace);
+    controller = FakeWorkspaceController(fakeWorkspace: workspace);
     adapter = TestTabAdapter();
     tabs = TestTabsController();
     tabs.init(workspaceController: controller, adapters: [adapter]);
@@ -237,7 +257,14 @@ void main() {
 
   Future<void> emitWorkspaceEvent(Map<String, String> event) async {
     final delivered = controller.watcher.events.first;
-    workspace._changesController.add(WorkspaceEvent.fromMap(event));
+    final uri = Uri.parse(event['path']!);
+    if (event['type'] == 'add') {
+      workspace._changesController.add(FileAddedEvent(uri));
+    } else if (event['type'] == 'remove') {
+      workspace._changesController.add(FileRemovedEvent(uri));
+    } else if (event['type'] == 'modify') {
+      workspace._changesController.add(FileModifiedEvent(uri));
+    }
     await delivered;
   }
 
@@ -497,7 +524,7 @@ void main() {
   group('workspace events', () {
     test('move event renames the open tab path', () async {
       await openExisting('old.dart');
-      workspace.addMoveIntention('old.dart', 'new.dart');
+      controller.addMoveIntention('old.dart', 'new.dart');
       workspace.addFile('new.dart');
 
       // Simulate the filesystem event sequence.
@@ -516,7 +543,7 @@ void main() {
       await openExisting('b.dart');
       tabs.closeTab('a.dart'); // now in keepAlive cache
 
-      workspace.addMoveIntention('a.dart', 'a2.dart');
+      controller.addMoveIntention('a.dart', 'a2.dart');
       workspace.addFile('a2.dart');
       await emitWorkspaceEvent(
         {'type': 'add', 'path': 'a2.dart'},
