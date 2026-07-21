@@ -8,9 +8,9 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-// ignore: implementation_imports  //TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
+// ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-// ignore: implementation_imports  //TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
+// ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
 import 'package:analyzer/src/string_source.dart';
 
 @JS('window._codemirror')
