@@ -6,7 +6,8 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
 
-final _path = path.posix;
+// Workspace paths are virtual, URI-style paths and always use `/`.
+final _workspacePath = path.posix;
 
 abstract interface class WorkspaceApi {
   int get id;
@@ -77,10 +78,10 @@ class WorkspaceFile extends WorkspaceResource {
   final String path;
 
   @override
-  String get shortName => _path.basename(path);
+  String get shortName => _workspacePath.basename(path);
 
   @override
-  WorkspaceFolder get parent => WorkspaceFolder(workspace: workspace, path: _path.dirname(path));
+  WorkspaceFolder get parent => WorkspaceFolder(workspace: workspace, path: _workspacePath.dirname(path));
 
   @override
   Future<bool> exists() {
@@ -99,7 +100,7 @@ class WorkspaceFile extends WorkspaceResource {
 
   @override
   Future<WorkspaceFile> rename(String newName) async {
-    final newPath = _path.canonicalize(_path.join(_path.dirname(path), newName));
+    final newPath = _workspacePath.canonicalize(_workspacePath.join(_workspacePath.dirname(path), newName));
     if (newPath == path) {
       return this;
     }
@@ -115,7 +116,7 @@ class WorkspaceFile extends WorkspaceResource {
 
   @override
   Future<WorkspaceFile> moveTo(WorkspaceFolder targetFolder) async {
-    final newPath = _path.canonicalize(_path.join(targetFolder.path, shortName));
+    final newPath = _workspacePath.canonicalize(_workspacePath.join(targetFolder.path, shortName));
     if (newPath == path) {
       return this;
     }
@@ -146,7 +147,7 @@ class WorkspaceFolder extends WorkspaceResource {
   final String path;
 
   @override
-  String get shortName => _path.basename(path);
+  String get shortName => _workspacePath.basename(path);
 
   /// Return `true` if this folder is a file system root.
   bool get isRoot => path.isEmpty;
@@ -156,7 +157,7 @@ class WorkspaceFolder extends WorkspaceResource {
     if (isRoot) {
       return this;
     }
-    return WorkspaceFolder(workspace: workspace, path: _path.dirname(path));
+    return WorkspaceFolder(workspace: workspace, path: _workspacePath.dirname(path));
   }
 
   @override
@@ -175,7 +176,7 @@ class WorkspaceFolder extends WorkspaceResource {
   /// exists on the filesystem - client must call the [WorkspaceFile]'s `exists()` method
   /// to determine whether the file actually exists.
   WorkspaceFile getFile(String relPath) {
-    return WorkspaceFile(workspace: workspace, path: _path.join(path, relPath));
+    return WorkspaceFile(workspace: workspace, path: _workspacePath.join(path, relPath));
   }
 
   /// Return a [WorkspaceFolder] representing a the child folder at [relPath].
@@ -184,7 +185,7 @@ class WorkspaceFolder extends WorkspaceResource {
   /// exists on the filesystem--client must call the [WorkspaceFolder]'s `exists()` method
   /// to determine whether the folder actually exists.
   WorkspaceFolder getFolder(String relPath) {
-    return WorkspaceFolder(workspace: workspace, path: _path.join(path, relPath));
+    return WorkspaceFolder(workspace: workspace, path: _workspacePath.join(path, relPath));
   }
 
   /// Return a list of existing children [WorkspaceResource]s (folders and files)
@@ -203,7 +204,7 @@ class WorkspaceFolder extends WorkspaceResource {
 
   @override
   Future<WorkspaceFolder> rename(String newName) async {
-    final newPath = _path.canonicalize(_path.join(_path.dirname(path), newName));
+    final newPath = _workspacePath.canonicalize(_workspacePath.join(_workspacePath.dirname(path), newName));
     if (newPath == path) {
       return this;
     }
@@ -212,7 +213,7 @@ class WorkspaceFolder extends WorkspaceResource {
 
   @override
   Future<WorkspaceFolder> moveTo(WorkspaceFolder targetFolder) async {
-    final newPath = _path.join(targetFolder.path, shortName);
+    final newPath = _workspacePath.join(targetFolder.path, shortName);
     if (newPath == path) {
       return this;
     }
@@ -237,7 +238,7 @@ class WorkspaceFolder extends WorkspaceResource {
     children.sort((a, b) => a.path.length.compareTo(b.path.length));
 
     for (final child in children) {
-      final targetPath = _path.join(newPath, _path.relative(child.path, from: path));
+      final targetPath = _workspacePath.join(newPath, _workspacePath.relative(child.path, from: path));
       workspace.addMoveIntention(child.path, targetPath);
       if (child is WorkspaceFolder) {
         await WorkspaceFolder(workspace: workspace, path: targetPath).create();
