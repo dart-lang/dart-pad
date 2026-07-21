@@ -69,14 +69,5 @@ messages back through `receiveFromServer`.
 npm run typecheck
 npm test
 dart analyze --fatal-infos
-dart format --output=none --set-exit-if-changed benchmark lib
+dart format --output=none --set-exit-if-changed lib
 ```
-
-## Benchmarks
-
-```bash
-npm run benchmark
-```
-
-The benchmark script builds the bundle, compiles the Dart benchmark harness, and
-opens `benchmark/benchmark.html` with the platform's default browser.

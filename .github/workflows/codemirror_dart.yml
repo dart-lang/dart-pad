@@ -51,7 +51,7 @@ jobs:
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/codemirror-dart
         run: |
-          dart format --output=none --set-exit-if-changed benchmark lib
+          dart format --output=none --set-exit-if-changed lib
           dart analyze --fatal-infos
 
       - name: Check TypeScript and run tests

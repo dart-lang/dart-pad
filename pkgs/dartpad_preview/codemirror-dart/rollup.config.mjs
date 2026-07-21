@@ -48,13 +48,4 @@ export default [
       }),
     ],
   },
-  {
-    input: "benchmark/benchmark.ts",
-    preserveSymlinks: true,
-    output: {
-      file: "benchmark/dist/benchmark.bundle.js",
-      format: "iife",
-    },
-    plugins,
-  },
 ];

@@ -7,8 +7,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "node tool/build.js",
-    "benchmark": "node tool/run_benchmark.js",
-    "format:check": "prettier --check \"{benchmark,src,test,tool}/**/*.{html,js,ts}\" README.md package.json rollup.config.mjs tsconfig.json",
+    "format:check": "prettier --check \"{src,test,tool}/**/*.{html,js,ts}\" README.md package.json rollup.config.mjs tsconfig.json",
     "test": "node --import tsx --test test/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

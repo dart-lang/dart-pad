@@ -7,5 +7,5 @@
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "benchmark/**/*", "test/**/*"]
+  "include": ["src/**/*", "test/**/*"]
 }
