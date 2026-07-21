@@ -7,6 +7,7 @@ import test from "node:test";
 
 import { Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
+import { LSPPlugin } from "@codemirror/lsp-client";
 
 import { CMWorkspace } from "../src/lspClient";
 
@@ -70,4 +71,47 @@ test("displayFile waits until the requested editor is mounted", async () => {
   workspace.openFile(uri, "dart", view);
 
   assert.equal(await display, view);
+});
+
+test("syncFiles returns and clears only unsynchronized changes", () => {
+  const client = {
+    didOpen() {},
+    didClose() {},
+  };
+  const workspace = new CMWorkspace(client);
+  const uri = "file:///main.dart";
+  const view = fakeView("before");
+  workspace.openFile(uri, "dart", view);
+  const file = workspace.getFile(uri)!;
+  const previousDocument = file.doc;
+  const currentDocument = Text.of(["after"]);
+  (view as unknown as { state: { doc: Text } }).state.doc = currentDocument;
+
+  const changes = { empty: false };
+  let clearCalls = 0;
+  const plugin = {
+    unsyncedChanges: changes,
+    clear() {
+      clearCalls++;
+      changes.empty = true;
+    },
+  };
+  const originalGet = LSPPlugin.get;
+  LSPPlugin.get = (candidate) =>
+    candidate === view ? (plugin as unknown as LSPPlugin) : null;
+
+  try {
+    const result = workspace.syncFiles();
+
+    assert.equal(result.length, 1);
+    assert.equal(result[0].changes, changes);
+    assert.equal(result[0].file, file);
+    assert.equal(result[0].prevDoc, previousDocument);
+    assert.equal(file.doc, currentDocument);
+    assert.equal(file.version, 1);
+    assert.equal(clearCalls, 1);
+    assert.deepEqual(workspace.syncFiles(), []);
+  } finally {
+    LSPPlugin.get = originalGet;
+  }
 });

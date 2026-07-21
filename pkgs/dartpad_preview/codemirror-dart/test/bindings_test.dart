@@ -139,4 +139,29 @@ void main() {
 
     expect(state.doc.toJsString().toDart, 'void main() {}');
   });
+
+  test('dart language provides the comment tokens used by commands', () {
+    final state = EditorState.create(
+      EditorStateConfig(
+        doc: 'void main() {}'.toJS,
+        extensions: <JSAny>[dart()].toJS,
+      ),
+    );
+    final languageDataAt = state.getProperty<JSFunction>(
+      'languageDataAt'.toJS,
+    );
+    final values =
+        languageDataAt.callAsFunction(
+              state,
+              'commentTokens'.toJS,
+              0.toJS,
+            )!
+            as JSArray<JSObject>;
+    final commentTokens = values.toDart.single;
+    final block = commentTokens.getProperty<JSObject>('block'.toJS);
+
+    expect(commentTokens.getProperty<JSString>('line'.toJS).toDart, '//');
+    expect(block.getProperty<JSString>('open'.toJS).toDart, '/*');
+    expect(block.getProperty<JSString>('close'.toJS).toDart, '*/');
+  });
 }

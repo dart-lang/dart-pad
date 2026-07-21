@@ -10,6 +10,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:codemirror_dart/codemirror_dart.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:test/test.dart';
 
 import 'browser_test_utils.dart';
@@ -189,5 +190,33 @@ void main() {
 
     expect(statuses, [isTrue, isTrue, isFalse]);
     expect(jsClient.getProperty<JSAny?>('analysisFinished'.toJS), isNull);
+  });
+
+  test('releases deferred analysis when the server stops reporting', () async {
+    CodeMirrorLspClient(
+      (_) {},
+      'file:///workspace',
+      onDisplayFile: (_) async {},
+      language: language,
+    );
+    final jsClient = JSObject();
+    late JSPromise analysisFinished;
+
+    fakeAsync((async) {
+      analyzerStatusCallback.callAsFunction(
+        null,
+        jsClient,
+        {'isAnalyzing': true}.jsify() as JSObject,
+      );
+      analysisFinished = jsClient.getProperty<JSPromise>(
+        'analysisFinished'.toJS,
+      );
+
+      async.elapse(const Duration(seconds: 30));
+
+      expect(jsClient.getProperty<JSAny?>('analysisFinished'.toJS), isNull);
+    });
+
+    await expectLater(analysisFinished.toDart, completes);
   });
 }
