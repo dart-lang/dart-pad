@@ -10,6 +10,7 @@ import type { EditorView } from "@codemirror/view";
 import { LSPPlugin } from "@codemirror/lsp-client";
 
 import { CMWorkspace } from "../src/lspClient";
+import { formatDocumentAsync } from "../src/formatting";
 
 function fakeView(contents: string): EditorView {
   return {
@@ -114,4 +115,98 @@ test("syncFiles returns and clears only unsynchronized changes", () => {
   } finally {
     LSPPlugin.get = originalGet;
   }
+});
+
+test("formatDocumentAsync resolves after formatting edits are dispatched", async () => {
+  const events: string[] = [];
+  let dispatched: unknown;
+  const view = {
+    state: {
+      tabSize: 2,
+      facet() {
+        return "  ";
+      },
+    },
+    dispatch(transaction: unknown) {
+      events.push("dispatch");
+      dispatched = transaction;
+    },
+  } as unknown as EditorView;
+  const plugin = {
+    uri: "file:///main.dart",
+    client: {
+      sync() {
+        events.push("sync");
+      },
+      async withMapping<T>(callback: (mapping: unknown) => Promise<T>) {
+        return callback({
+          getMapping() {
+            return null;
+          },
+          mapPosition(_uri: string, position: { character: number }) {
+            return position.character;
+          },
+        });
+      },
+      async request() {
+        events.push("request");
+        await Promise.resolve();
+        events.push("response");
+        return [
+          {
+            range: {
+              start: { line: 0, character: 0 },
+              end: { line: 0, character: 3 },
+            },
+            newText: "var value = 1;",
+          },
+        ];
+      },
+    },
+    reportError() {
+      assert.fail("formatting should not report an error");
+    },
+  } as unknown as LSPPlugin;
+
+  const result = await formatDocumentAsync(view, () => plugin);
+
+  assert.equal(result, true);
+  assert.deepEqual(events, ["sync", "request", "response", "dispatch"]);
+  assert.deepEqual(dispatched, {
+    changes: [{ from: 0, to: 3, insert: "var value = 1;" }],
+    userEvent: "format",
+  });
+});
+
+test("formatDocumentAsync reports request failures and resolves false", async () => {
+  const expectedError = new Error("formatting failed");
+  let reportedError: unknown;
+  const view = {
+    state: {
+      tabSize: 2,
+      facet() {
+        return "  ";
+      },
+    },
+  } as unknown as EditorView;
+  const plugin = {
+    uri: "file:///main.dart",
+    client: {
+      sync() {},
+      async withMapping<T>(callback: (mapping: unknown) => Promise<T>) {
+        return callback({});
+      },
+      async request() {
+        throw expectedError;
+      },
+    },
+    reportError(_message: string, error: unknown) {
+      reportedError = error;
+    },
+  } as unknown as LSPPlugin;
+
+  const result = await formatDocumentAsync(view, () => plugin);
+
+  assert.equal(result, false);
+  assert.equal(reportedError, expectedError);
 });

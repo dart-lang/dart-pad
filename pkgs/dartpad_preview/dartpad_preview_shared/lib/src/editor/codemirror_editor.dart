@@ -197,16 +197,16 @@ final class CodeMirrorEditor {
     );
   }
 
-  /// Requests formatting through the LSP client.
+  /// Formats the document through the LSP client.
   ///
-  /// Returns whether a formatting request was started. The resulting edits are
-  /// delivered asynchronously through the editor update listener.
-  bool format() {
+  /// Returns after formatting edits have been applied, or `false` when no
+  /// formatting request could be completed.
+  Future<bool> format() async {
     if (!_isDartFile(file)) {
       return false;
     }
 
-    return (cm.formatDocument.callAsFunction(null, view) as JSBoolean?)?.toDart ?? false;
+    return (await cm.formatDocumentAsync(view).toDart).toDart;
   }
 
   /// Focuses the editor input.

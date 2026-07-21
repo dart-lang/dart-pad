@@ -40055,6 +40055,57 @@ ${text}</tr>
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
     /**
+     * Formats a document and resolves after the returned edits have been applied.
+     *
+     * The upstream `formatDocument` command returns as soon as the request starts,
+     * which is appropriate for a key binding but cannot be awaited before saving.
+     */
+    function formatDocumentAsync(view_1) {
+        return __awaiter(this, arguments, void 0, function* (view, getPlugin = LSPPlugin.get) {
+            const plugin = getPlugin(view);
+            if (!plugin)
+                return false;
+            plugin.client.sync();
+            try {
+                yield plugin.client.withMapping((mapping) => __awaiter(this, void 0, void 0, function* () {
+                    const response = yield plugin.client.request("textDocument/formatting", {
+                        options: {
+                            tabSize: getIndentUnit(view.state),
+                            insertSpaces: view.state.facet(indentUnit).indexOf("\t") < 0,
+                        },
+                        textDocument: { uri: plugin.uri },
+                    });
+                    if (!response)
+                        return;
+                    const changed = mapping.getMapping(plugin.uri);
+                    const changes = [];
+                    for (const edit of response) {
+                        let from = mapping.mapPosition(plugin.uri, edit.range.start);
+                        let to = mapping.mapPosition(plugin.uri, edit.range.end);
+                        if (changed) {
+                            // Do not apply stale edits when their range changed during the request.
+                            if (changed.touchesRange(from, to))
+                                return;
+                            from = changed.mapPos(from, 1);
+                            to = changed.mapPos(to, -1);
+                        }
+                        changes.push({ from, to, insert: edit.newText });
+                    }
+                    view.dispatch({ changes, userEvent: "format" });
+                }));
+            }
+            catch (error) {
+                plugin.reportError("Formatting request failed", error);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
+    /**
      * Main global interface exporting CodeMirror dependencies to Dart JS-Interop bindings.
      */
     window._codemirror = {
@@ -40072,6 +40123,7 @@ ${text}</tr>
         linter,
         LSPPlugin,
         formatDocument,
+        formatDocumentAsync,
         oneDark,
         showPanel,
         syntaxHighlighting,
