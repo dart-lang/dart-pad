@@ -24,7 +24,7 @@ Map<String, dynamic> _edit(
 
 class FakeWorkspace implements WorkspaceApi {
   final Map<String, String> files = {};
-  Object? writeError;
+  Error? writeError;
 
   @override
   int get id => 0;

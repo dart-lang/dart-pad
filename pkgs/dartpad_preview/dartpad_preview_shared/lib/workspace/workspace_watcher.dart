@@ -1,6 +1,10 @@
 import 'dart:async';
 
-import 'package:dartpad/src/worker_client.dart' show FileChangeEvent, FileAddedEvent, FileRemovedEvent, FileModifiedEvent;
+// TODO: Use package:dartpad/dartpad.dart once it exports the file change event which should be fixed in Version 0.0.4 (currently at 0.0.3)
+// types returned by WorkspaceWatcher.changes.
+// ignore: implementation_imports
+import 'package:dartpad/src/worker_client.dart'
+    show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
 
 /// Watches a filesystem event stream and emits
 /// consolidated [WorkspaceChangeEvent]s that reconcile raw add/remove events
@@ -122,4 +126,3 @@ class WorkspaceChangeEvent {
   /// The original path if the event type is [WorkspaceChangeEventType.move].
   final String? oldPath;
 }
-

@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:dartpad/src/worker_client.dart' show FileChangeEvent, FileAddedEvent, FileRemovedEvent, FileModifiedEvent;
+import 'package:dartpad/src/worker_client.dart'
+    show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
 import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
 import 'package:test/test.dart';
 

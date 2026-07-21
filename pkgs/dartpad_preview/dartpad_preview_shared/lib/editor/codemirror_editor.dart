@@ -42,7 +42,6 @@ final class CodeMirrorEditor {
   /// - [onUpdate] is triggered when the document text changes.
   /// - [onSave] is triggered on Cmd/Ctrl+S keypress.
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
-  /// - [onSelectionAction] is triggered for custom selection actions (e.g. Cmd/Ctrl+L).
   /// - [onFixDiagnostic] is triggered when applying diagnostic fixes.
   factory CodeMirrorEditor(
     web.HTMLElement element, {
@@ -52,7 +51,6 @@ final class CodeMirrorEditor {
     void Function(String text)? onUpdate,
     void Function()? onSave,
     void Function()? onCodeActionRequested,
-    void Function(int from, int to, String text)? onSelectionAction,
     void Function(int from, int to, String message)? onFixDiagnostic,
   }) {
     final langCompartment = cm.Compartment();
@@ -111,16 +109,6 @@ final class CodeMirrorEditor {
                   }).toJS,
                 ),
               ].toJS,
-            ),
-          if (onSelectionAction != null)
-            cm.selectionAction(
-              cm.SelectionActionConfig(
-                key: 'Mod-l'.toJS,
-                label: 'Agent'.toJS,
-                run: ((int from, int to, JSString text) {
-                  onSelectionAction.call(from, to, text.toDart);
-                }).toJS,
-              ),
             ),
           if (onFixDiagnostic != null)
             cm.diagnosticHoverToolbar(

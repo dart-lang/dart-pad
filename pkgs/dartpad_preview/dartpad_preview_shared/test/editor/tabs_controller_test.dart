@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad/src/worker_client.dart' show FileChangeEvent, FileAddedEvent, FileRemovedEvent, FileModifiedEvent;
+import 'package:dartpad/src/worker_client.dart'
+    show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
 import 'package:dartpad_preview_shared/editor/editor_tab.dart';
 import 'package:dartpad_preview_shared/editor/tabs_controller.dart';
 import 'package:dartpad_preview_shared/lsp/language_server_client.dart';
@@ -115,7 +116,7 @@ class TestTab extends EditorTab<String> {
 
   final bool testKeepAlive;
   bool dirty;
-  final Object? saveError;
+  final Error? saveError;
   final List<String>? eventLog;
 
   final List<String> lifecycleLog = [];
@@ -179,7 +180,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
 
   bool keepAlive;
   bool dirty;
-  Object? saveError;
+  Error? saveError;
   Completer<void>? creationGate;
   int creationCount = 0;
   final Completer<void> creationStarted = Completer<void>();

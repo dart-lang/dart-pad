@@ -47,13 +47,15 @@ sealed class WorkspaceResource {
 
   /// Rename this resource within its current parent folder.
   ///
-  /// Registers a move intention in [RenameCache], reads/writes the resource content,
+  /// Registers a move intention with [WorkspaceApi.addMoveIntention], reads/writes
+  /// the resource content,
   /// and deletes the old resource.
   Future<WorkspaceResource> rename(String newName);
 
   /// Move this resource to a new parent folder [targetFolder].
   ///
-  /// Registers a move intention in [RenameCache], reads/writes the resource content
+  /// Registers a move intention with [WorkspaceApi.addMoveIntention], reads/writes
+  /// the resource content
   /// at the target destination, and deletes the old resource.
   Future<WorkspaceResource> moveTo(WorkspaceFolder targetFolder);
 
@@ -217,7 +219,8 @@ class WorkspaceFolder extends WorkspaceResource {
   ///
   /// This iterates over all child resources, creates corresponding folders
   /// at the target path, copies file contents (using bytes), registers move
-  /// intentions in [RenameCache], and recursively deletes the old folder structure.
+  /// intentions with [WorkspaceApi.addMoveIntention], and recursively deletes the
+  /// old folder structure.
   Future<WorkspaceFolder> _moveFolderContents(String newPath) async {
     // Register the intention for the folder itself
     workspace.addMoveIntention(path, newPath);
