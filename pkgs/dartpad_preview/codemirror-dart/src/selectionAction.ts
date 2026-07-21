@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import { showTooltip, Tooltip, EditorView, keymap } from "@codemirror/view";
 import { StateField } from "@codemirror/state";
 
@@ -12,7 +16,7 @@ export function selectionAction(config: {
     const lineTo = view.state.doc.lineAt(to).number;
     config.run(lineFrom, lineTo, text);
     view.dispatch({
-      selection: { anchor: to }
+      selection: { anchor: to },
     });
   };
 
@@ -52,7 +56,8 @@ export function selectionAction(config: {
               : /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
             let keyText = config.key;
             if (keyText.toLowerCase().startsWith("mod-")) {
-              keyText = (isMac ? "⌘" : "Ctrl+") + keyText.slice(4).toUpperCase();
+              keyText =
+                (isMac ? "⌘" : "Ctrl+") + keyText.slice(4).toUpperCase();
             } else {
               keyText = keyText.replace(/Mod/gi, isMac ? "⌘" : "Ctrl");
             }

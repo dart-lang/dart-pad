@@ -1,8 +1,7 @@
-/*!
- * Copyright (c) 2026, the Dart project authors.
- * For third-party licenses, see THIRD_PARTY_NOTICES.txt.
- */
-
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+// Third-party licenses are listed in THIRD_PARTY_NOTICES.txt.
 (function () {
     'use strict';
 
@@ -118,7 +117,7 @@
         /**
         The inner tree.
         */
-        tree, 
+        tree,
         /**
         If this is null, this tree replaces the entire node (it will
         be included in the regular iteration instead of its host
@@ -128,11 +127,11 @@
         only entered by [`resolveInner`](#common.Tree.resolveInner)
         and [`enter`](#common.SyntaxNode.enter).
         */
-        overlay, 
+        overlay,
         /**
         The parser used to create this subtree.
         */
-        parser, 
+        parser,
         /**
         [Indicates](#common.IterMode.EnterBracketed) that the nested
         content is delineated with some kind
@@ -166,16 +165,16 @@
         same name within a node set should play the same semantic
         role.
         */
-        name, 
+        name,
         /**
         @internal
         */
-        props, 
+        props,
         /**
         The id of this node in its set. Corresponds to the term ids
         used in the parser.
         */
-        id, 
+        id,
         /**
         @internal
         */
@@ -379,20 +378,20 @@
         /**
         The type of the top node.
         */
-        type, 
+        type,
         /**
         This node's child nodes.
         */
-        children, 
+        children,
         /**
         The positions (offsets relative to the start of this tree) of
         the children.
         */
-        positions, 
+        positions,
         /**
         The total length of this tree
         */
-        length, 
+        length,
         /**
         Per-node [node props](#common.NodeProp) to associate with this node.
         */
@@ -464,7 +463,7 @@
         position. If 1, it'll move into nodes that start at the
         position. With 0, it'll only enter nodes that cover the position
         from both sides.
-        
+
         Note that this will not enter
         [overlays](#common.MountedTree.overlay), and you often want
         [`resolveInner`](#common.Tree.resolveInner) instead.
@@ -589,11 +588,11 @@
         /**
         The buffer's content.
         */
-        buffer, 
+        buffer,
         /**
         The total length of the group of nodes in the buffer.
         */
-        length, 
+        length,
         /**
         The node set used in this buffer.
         */
@@ -738,7 +737,7 @@
         get next() { return this.parent; }
     }
     class TreeNode extends BaseNode {
-        constructor(_tree, from, 
+        constructor(_tree, from,
         // Index in parent node, set to -1 if the node is not a direct child of _parent.node (overlay)
         index, _parent) {
             super();
@@ -1532,17 +1531,17 @@
     }
     function balanceRange(
     // The type the balanced tree's inner nodes.
-    balanceType, 
+    balanceType,
     // The direct children and their positions
-    children, positions, 
+    children, positions,
     // The index range in children/positions to use
-    from, to, 
+    from, to,
     // The start position of the nodes, relative to their parent.
-    start, 
+    start,
     // Length of the outer node
-    length, 
+    length,
     // Function to build the top node of the balanced tree
-    mkTop, 
+    mkTop,
     // Function to build internal nodes for the balanced tree
     mkTree) {
         let total = 0;
@@ -1653,15 +1652,15 @@
         This refers to an offset in the _updated_ document (as opposed
         to the original tree).
         */
-        from, 
+        from,
         /**
         The end of the unchanged range.
         */
-        to, 
+        to,
         /**
         The tree that this fragment is based on.
         */
-        tree, 
+        tree,
         /**
         The offset between the fragment's tree and the document that
         this fragment can be used against. Add this when going from
@@ -1744,7 +1743,7 @@
         Start a parse, returning a [partial parse](#common.PartialParse)
         object. [`fragments`](#common.TreeFragment) can be passed in to
         make the parse incremental.
-        
+
         By default, the entire input is parsed. You can pass `ranges`,
         which should be a sorted array of non-empty, non-overlapping
         ranges, to parse only those ranges. The tree returned in that
@@ -2235,17 +2234,17 @@
         /**
         The optional name of the base tag @internal
         */
-        name, 
+        name,
         /**
         The set of this tag and all its parent tags, starting with
         this one itself and sorted in order of decreasing specificity.
         */
-        set, 
+        set,
         /**
         The base unmodified tag that this one is based on, if it's
         modified @internal
         */
-        base, 
+        base,
         /**
         The modifiers applied to this.base @internal
         */
@@ -2285,7 +2284,7 @@
         same modifier to a twice tag will return the same value (`m1(t1)
         == m1(t1)`) and applying multiple modifiers will, regardless or
         order, produce the same tag (`m1(m2(t1)) == m2(m1(t1))`).
-        
+
         When multiple modifiers are applied to a given base tag, each
         smaller set of modifiers is registered as a parent, so that for
         example `m1(m2(m3(t1)))` is a subtype of `m1(m2(t1))`,
@@ -2517,17 +2516,17 @@
     [`highlightCode`](#highlight.highlightCode) function is easier to
     use.
     */
-    function highlightTree(tree, highlighter, 
+    function highlightTree(tree, highlighter,
     /**
     Assign styling to a region of the text. Will be called, in order
     of position, for any ranges where more than zero classes apply.
     `classes` is a space separated string of CSS classes.
     */
-    putStyle, 
+    putStyle,
     /**
     The start of the range to highlight.
     */
-    from = 0, 
+    from = 0,
     /**
     The end of the range.
     */
@@ -3295,7 +3294,7 @@
         Return a cursor that iterates over the given range of lines,
         _without_ returning the line breaks between, and yielding empty
         strings for empty lines.
-        
+
         When `from` and `to` are given, they should be 1-based line numbers.
         */
         iterLines(from, to) {
@@ -3745,16 +3744,16 @@
         /**
         The position of the start of the line.
         */
-        from, 
+        from,
         /**
         The position at the end of the line (_before_ the line break,
         or at the end of document for the last line).
         */
-        to, 
+        to,
         /**
         This line's line number (1-based).
         */
-        number, 
+        number,
         /**
         The line's content.
         */
@@ -3910,7 +3909,7 @@
         `fromA`/`toA` provides the extent of the change in the starting
         document, `fromB`/`toB` the extent of the replacement in the
         changed document.
-        
+
         When `individual` is true, adjacent changes (which are kept
         separate for [position mapping](https://codemirror.net/6/docs/ref/#state.ChangeDesc.mapPos)) are
         reported separately.
@@ -4019,7 +4018,7 @@
     with exactly that length.
     */
     class ChangeSet extends ChangeDesc {
-        constructor(sections, 
+        constructor(sections,
         /**
         @internal
         */
@@ -4073,7 +4072,7 @@
         applied to the document produced by applying `other`. When
         `before` is `true`, order changes as if `this` comes before
         `other`, otherwise (the default) treat `other` as coming first.
-        
+
         Given two changes `A` and `B`, `A.compose(B.map(A))` and
         `B.compose(A.map(B, true))` will produce the same document. This
         provides a basic form of [operational
@@ -4086,7 +4085,7 @@
         each, with the range in the original document (`fromA`-`toA`)
         and the range that replaces it in the new document
         (`fromB`-`toB`).
-        
+
         When `individual` is true, adjacent changes are reported
         separately.
         */
@@ -4470,7 +4469,7 @@
         /**
         The lower boundary of the range.
         */
-        from, 
+        from,
         /**
         The upper boundary of the range.
         */
@@ -4578,7 +4577,7 @@
         The ranges in the selection, sorted by position. Ranges cannot
         overlap (but they may touch, if they aren't empty).
         */
-        ranges, 
+        ranges,
         /**
         The index of the _main_ range in the selection (which is
         usually the range that was added last).
@@ -4739,11 +4738,11 @@
         /**
         @internal
         */
-        combine, 
+        combine,
         /**
         @internal
         */
-        compareInput, 
+        compareInput,
         /**
         @internal
         */
@@ -4781,7 +4780,7 @@
         state. You must take care to declare the parts of the state that
         this value depends on, since your function is only called again
         for a new state when one of those parts changed.
-        
+
         In cases where your value depends only on a single field, you'll
         want to use the [`from`](https://codemirror.net/6/docs/ref/#state.Facet.from) method instead.
         */
@@ -4941,7 +4940,7 @@
         /**
         @internal
         */
-        id, createF, updateF, compareF, 
+        id, createF, updateF, compareF,
         /**
         @internal
         */
@@ -5262,7 +5261,7 @@
         /**
         The annotation type.
         */
-        type, 
+        type,
         /**
         The value of this annotation.
         */
@@ -5324,7 +5323,7 @@
         /**
         @internal
         */
-        type, 
+        type,
         /**
         The value of this effect.
         */
@@ -5396,24 +5395,24 @@
         /**
         The state from which the transaction starts.
         */
-        startState, 
+        startState,
         /**
         The document changes made by this transaction.
         */
-        changes, 
+        changes,
         /**
         The selection set by this transaction, or undefined if it
         doesn't explicitly set a selection.
         */
-        selection, 
+        selection,
         /**
         The effects added to the transaction.
         */
-        effects, 
+        effects,
         /**
         @internal
         */
-        annotations, 
+        annotations,
         /**
         Whether the selection should be scrolled into view after this
         transaction is dispatched.
@@ -5734,15 +5733,15 @@
         /**
         @internal
         */
-        config, 
+        config,
         /**
         The current document.
         */
-        doc, 
+        doc,
         /**
         The current selection.
         */
-        selection, 
+        selection,
         /**
         @internal
         */
@@ -5978,7 +5977,7 @@
         Look up a translation for the given phrase (via the
         [`phrases`](https://codemirror.net/6/docs/ref/#state.EditorState^phrases) facet), or return the
         original string if no translation is found.
-        
+
         If additional arguments are passed, they will be inserted in
         place of markers like `$1` (for the first value) and `$2`, etc.
         A single `$` is equivalent to `$1`, and `$$` will produce a
@@ -6002,9 +6001,9 @@
         /**
         Find the values for a given language data field, provided by the
         the [`languageData`](https://codemirror.net/6/docs/ref/#state.EditorState^languageData) facet.
-        
+
         Examples of language data fields are...
-        
+
         - [`"commentTokens"`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) for specifying
           comment syntax.
         - [`"autocomplete"`](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion^config.override)
@@ -6029,7 +6028,7 @@
         Return a function that can categorize strings (expected to
         represent a single [grapheme cluster](https://codemirror.net/6/docs/ref/#state.findClusterBreak))
         into one of:
-        
+
          - Word (contains an alphanumeric character or a character
            explicitly listed in the local language's `"wordChars"`
            language data, which should be a string)
@@ -6235,11 +6234,11 @@
         /**
         The range's start position.
         */
-        from, 
+        from,
         /**
         Its end position.
         */
-        to, 
+        to,
         /**
         The value associated with this range.
         */
@@ -6259,7 +6258,7 @@
         return a.from - b.from || a.value.startSide - b.value.startSide;
     }
     class Chunk {
-        constructor(from, to, value, 
+        constructor(from, to, value,
         // Chunks are marked with the largest point that occurs
         // in them (or -1 for no points), so that scans that are
         // only interested in points (such as the
@@ -6338,15 +6337,15 @@
         /**
         @internal
         */
-        chunkPos, 
+        chunkPos,
         /**
         @internal
         */
-        chunk, 
+        chunk,
         /**
         @internal
         */
-        nextLayer, 
+        nextLayer,
         /**
         @internal
         */
@@ -6389,7 +6388,7 @@
         /**
         Update the range set, optionally adding new ranges or filtering
         out existing ones.
-        
+
         (Note: The type parameter is just there as a kludge to work
         around TypeScript variance issues that prevented `RangeSet<X>`
         from being a subtype of `RangeSet<Y>` when `X` is a subtype of
@@ -6495,12 +6494,12 @@
         Iterate over two groups of sets, calling methods on `comparator`
         to notify it of possible differences.
         */
-        static compare(oldSets, newSets, 
+        static compare(oldSets, newSets,
         /**
         This indicates how the underlying data changed between these
         ranges, and is needed to synchronize the iteration.
         */
-        textDiff, comparator, 
+        textDiff, comparator,
         /**
         Can be used to ignore all non-point ranges, and points below
         the given size. When -1, all ranges are compared.
@@ -6548,7 +6547,7 @@
         [`SpanIterator.span`](https://codemirror.net/6/docs/ref/#state.SpanIterator.span)) at the end
         of the iteration.
         */
-        static spans(sets, from, to, iterator, 
+        static spans(sets, from, to, iterator,
         /**
         When given and greater than -1, only points of at least this
         size are taken into account.
@@ -7632,15 +7631,15 @@
         /**
         @internal
         */
-        startSide, 
+        startSide,
         /**
         @internal
         */
-        endSide, 
+        endSide,
         /**
         @internal
         */
-        widget, 
+        widget,
         /**
         The config object used to create this decoration. You can
         include additional properties in there to store metadata about
@@ -8289,11 +8288,11 @@
         /**
         The start of the span (relative to the start of the line).
         */
-        from, 
+        from,
         /**
         The end of the span.
         */
-        to, 
+        to,
         /**
         The ["bidi
         level"](https://unicode.org/reports/tr9/#Basic_Display_Algorithm)
@@ -8728,7 +8727,7 @@
     });
     const scrollHandler = /*@__PURE__*/Facet.define();
     class ScrollTarget {
-        constructor(range, y, x, yMargin, xMargin, 
+        constructor(range, y, x, yMargin, xMargin,
         // This data structure is abused to also store precise scroll
         // snapshots, instead of a `scrollIntoView` request. When this
         // flag is `true`, `range` points at a position in the reference
@@ -8801,15 +8800,15 @@
         /**
         @internal
         */
-        id, 
+        id,
         /**
         @internal
         */
-        create, 
+        create,
         /**
         @internal
         */
-        domEventHandlers, 
+        domEventHandlers,
         /**
         @internal
         */
@@ -9043,11 +9042,11 @@
         /**
         The editor view that the update is associated with.
         */
-        view, 
+        view,
         /**
         The new editor state.
         */
-        state, 
+        state,
         /**
         The transactions involved in the update. May be empty.
         */
@@ -12803,20 +12802,20 @@
         /**
         The start of the element in the document.
         */
-        from, 
+        from,
         /**
         The length of the element.
         */
-        length, 
+        length,
         /**
         The top position of the element (relative to the top of the
         document).
         */
-        top, 
+        top,
         /**
         Its height.
         */
-        height, 
+        height,
         /**
         @internal Weird packed field that holds an array of children
         for composite blocks, a decoration for block widgets, and a
@@ -15779,7 +15778,7 @@
         When the start position was the last one on the line, the
         returned position will be across the line break. If there is no
         further line, the original position is returned.
-        
+
         By default, this method moves over a single cluster. The
         optional `by` argument can be used to move across more. It will
         be called with the first cluster as argument, and should return
@@ -15823,7 +15822,7 @@
         it defaults to moving to the next line (including wrapped
         lines). Otherwise, `distance` should provide a positive distance
         in pixels.
-        
+
         When `start` has a
         [`goalColumn`](https://codemirror.net/6/docs/ref/#state.SelectionRange.goalColumn), the vertical
         motion will use that as a target horizontal position. Otherwise,
@@ -15838,7 +15837,7 @@
         Find the DOM parent node and offset (child offset if `node` is
         an element, character offset when it is a text node) at the
         given document position.
-        
+
         Note that for positions that aren't currently in
         `visibleRanges`, the resulting DOM position isn't necessarily
         meaningful (it may just point before or after a placeholder
@@ -16021,7 +16020,7 @@
         only affects the editor's own scrollable element, not parents.
         See also
         [`EditorViewConfig.scrollTo`](https://codemirror.net/6/docs/ref/#view.EditorViewConfig.scrollTo).
-        
+
         The effect should be used with a document identical to the one
         it was created for. Failing to do so is not an error, but may
         not scroll to the expected position. You can
@@ -16037,7 +16036,7 @@
         for Tab and Shift-Tab, letting the browser's default
         focus-changing behavior go through instead. This is useful to
         prevent trapping keyboard users in your editor.
-        
+
         Without argument, this toggles the mode. With a boolean, it
         enables (true) or disables it (false). Given a number, it
         temporarily enables the mode until that number of milliseconds
@@ -16082,14 +16081,14 @@
         [`style-mod`](https://code.haverbeke.berlin/marijn/style-mod#documentation)
         style spec providing the styles for the theme. These will be
         prefixed with a generated class for the style.
-        
+
         Because the selectors will be prefixed with a scope class, rule
         that directly match the editor's [wrapper
         element](https://codemirror.net/6/docs/ref/#view.EditorView.dom)—to which the scope class will be
         added—need to be explicitly differentiated by adding an `&` to
         the selector for that element—for example
         `&.cm-focused`.
-        
+
         When `dark` is set to true, the theme will be marked as dark,
         which will cause the `&dark` rules from [base
         themes](https://codemirror.net/6/docs/ref/#view.EditorView^baseTheme) to be used (as opposed to
@@ -16590,19 +16589,19 @@
         Create a marker with the given class and dimensions. If `width`
         is null, the DOM element will get no width style.
         */
-        constructor(className, 
+        constructor(className,
         /**
         The left position of the marker (in pixels, document-relative).
         */
-        left, 
+        left,
         /**
         The top position of the marker.
         */
-        top, 
+        top,
         /**
         The width of the marker, or null if it shouldn't get a width assigned.
         */
-        width, 
+        width,
         /**
         The height of the marker.
         */
@@ -19046,7 +19045,7 @@
         The [language data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt) facet
         used for this language.
         */
-        data, parser, extraExtensions = [], 
+        data, parser, extraExtensions = [],
         /**
         A language name.
         */
@@ -19223,23 +19222,23 @@
     A parse context provided to parsers working on the editor content.
     */
     class ParseContext {
-        constructor(parser, 
+        constructor(parser,
         /**
         The current editor state.
         */
-        state, 
+        state,
         /**
         Tree fragments that can be reused by incremental re-parses.
         */
-        fragments = [], 
+        fragments = [],
         /**
         @internal
         */
-        tree, 
+        tree,
         /**
         @internal
         */
-        treeLen, 
+        treeLen,
         /**
         The current editor viewport (or some overapproximation
         thereof). Intended to be used for opportunistically avoiding
@@ -19248,11 +19247,11 @@
         should be called to make sure the parser is restarted when the
         skipped region becomes visible).
         */
-        viewport, 
+        viewport,
         /**
         @internal
         */
-        skipped, 
+        skipped,
         /**
         This is where skipping parsers can register a promise that,
         when resolved, will schedule a new parse. It is cleared when
@@ -19416,7 +19415,7 @@
         asynchronously loading a nested parser. It'll skip its input and
         mark it as not-really-parsed, so that the next update will parse
         it again.
-        
+
         When `until` is given, a reparse will be scheduled when that
         promise resolves.
         */
@@ -19622,7 +19621,7 @@
         /**
         The language object.
         */
-        language, 
+        language,
         /**
         An optional set of supporting extensions. When nesting a
         language in another language, the outer language is encouraged
@@ -19646,20 +19645,20 @@
         /**
         The name of this language.
         */
-        name, 
+        name,
         /**
         Alternative names for the mode (lowercased, includes `this.name`).
         */
-        alias, 
+        alias,
         /**
         File extensions associated with this language.
         */
-        extensions, 
+        extensions,
         /**
         Optional filename pattern that should be associated with this
         language.
         */
-        filename, loadFunc, 
+        filename, loadFunc,
         /**
         If the language has been loaded, this will hold its value.
         */
@@ -19821,7 +19820,7 @@
         /**
         The editor state.
         */
-        state, 
+        state,
         /**
         @internal
         */
@@ -19951,11 +19950,11 @@
     methods to indentation functions registered on syntax nodes.
     */
     class TreeIndentContext extends IndentContext {
-        constructor(base, 
+        constructor(base,
         /**
         The position at which indentation is being computed.
         */
-        pos, 
+        pos,
         /**
         @internal
         */
@@ -20567,7 +20566,7 @@
         that rely on external styling), or a
         [`style-mod`](https://github.com/marijnh/style-mod#documentation)-style
         set of CSS properties (which define the styling for those tags).
-        
+
         The CSS rules created for a highlighter will be emitted in the
         order of the spec's properties. That means that for elements that
         have multiple tags associated with them, styles defined further
@@ -20958,6 +20957,9 @@
         rtl: /*@__PURE__*/Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "rtl" }, bidiIsolate: Direction.RTL }),
         ltr: /*@__PURE__*/Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "ltr" }, bidiIsolate: Direction.LTR })});
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     /**
      * Defines the AST node types and their corresponding syntax highlighting tags and behaviors for the Dart language.
      * Connects Lezer tree nodes to CodeMirror theme identifiers.
@@ -20965,16 +20967,56 @@
     const dartNodeSet = new NodeSet([
         NodeType.define({ id: 0, name: "Error" }),
         NodeType.define({ id: 1, name: "Program", top: true }),
-        NodeType.define({ id: 2, name: "Keyword", props: [styleTags({ Keyword: tags$1.keyword })] }),
-        NodeType.define({ id: 3, name: "Identifier", props: [styleTags({ Identifier: tags$1.variableName })] }),
-        NodeType.define({ id: 4, name: "String", props: [styleTags({ String: tags$1.string })] }),
-        NodeType.define({ id: 5, name: "Number", props: [styleTags({ Number: tags$1.number })] }),
-        NodeType.define({ id: 6, name: "Operator", props: [styleTags({ Operator: tags$1.operator })] }),
-        NodeType.define({ id: 7, name: "Punctuation", props: [styleTags({ Punctuation: tags$1.punctuation })] }),
-        NodeType.define({ id: 8, name: "Comment", props: [styleTags({ Comment: tags$1.comment })] }),
-        NodeType.define({ id: 9, name: "Block", props: [[foldNodeProp, foldInside]] }),
-        NodeType.define({ id: 10, name: "List", props: [[foldNodeProp, foldInside]] }),
-        NodeType.define({ id: 11, name: "ArgumentList", props: [[foldNodeProp, foldInside]] }),
+        NodeType.define({
+            id: 2,
+            name: "Keyword",
+            props: [styleTags({ Keyword: tags$1.keyword })],
+        }),
+        NodeType.define({
+            id: 3,
+            name: "Identifier",
+            props: [styleTags({ Identifier: tags$1.variableName })],
+        }),
+        NodeType.define({
+            id: 4,
+            name: "String",
+            props: [styleTags({ String: tags$1.string })],
+        }),
+        NodeType.define({
+            id: 5,
+            name: "Number",
+            props: [styleTags({ Number: tags$1.number })],
+        }),
+        NodeType.define({
+            id: 6,
+            name: "Operator",
+            props: [styleTags({ Operator: tags$1.operator })],
+        }),
+        NodeType.define({
+            id: 7,
+            name: "Punctuation",
+            props: [styleTags({ Punctuation: tags$1.punctuation })],
+        }),
+        NodeType.define({
+            id: 8,
+            name: "Comment",
+            props: [styleTags({ Comment: tags$1.comment })],
+        }),
+        NodeType.define({
+            id: 9,
+            name: "Block",
+            props: [[foldNodeProp, foldInside]],
+        }),
+        NodeType.define({
+            id: 10,
+            name: "List",
+            props: [[foldNodeProp, foldInside]],
+        }),
+        NodeType.define({
+            id: 11,
+            name: "ArgumentList",
+            props: [[foldNodeProp, foldInside]],
+        }),
         NodeType.define({ id: 12, name: "TopLevel" }),
     ]);
     /**
@@ -21029,7 +21071,13 @@
             }
             const buffer = this.parseCode(code, cleanRanges);
             let nativeBuffer = Array.from(buffer);
-            let res = Tree.build({ buffer: nativeBuffer, nodeSet: dartNodeSet, topID: 1, length: code.length, reused: reused });
+            let res = Tree.build({
+                buffer: nativeBuffer,
+                nodeSet: dartNodeSet,
+                topID: 1,
+                length: code.length,
+                reused: reused,
+            });
             return res;
         }
         /**
@@ -21074,8 +21122,7 @@
      */
     function dartLanguage(parseCallback) {
         const customParser = new DartParser(parseCallback);
-        const dartLanguage = new Language(dataFacet, customParser, [] // extensions
-        );
+        const dartLanguage = new Language(dataFacet, customParser, []);
         return new LanguageSupport(dartLanguage, []);
     }
 
@@ -21093,16 +21140,16 @@
         /**
         The parse that this stack is part of @internal
         */
-        p, 
+        p,
         /**
         Holds state, input pos, buffer index triplets for all but the
         top state @internal
         */
-        stack, 
+        stack,
         /**
         The current parse state @internal
         */
-        state, 
+        state,
         // The position at which the next reduce should take place. This
         // can be less than `this.pos` when skipped expressions have been
         // added to the stack (which should be moved outside of the next
@@ -21110,24 +21157,24 @@
         /**
         @internal
         */
-        reducePos, 
+        reducePos,
         /**
         The input position up to which this stack has parsed.
         */
-        pos, 
+        pos,
         /**
         The dynamic score of the stack, including dynamic precedence
         and error-recovery penalties
         @internal
         */
-        score, 
+        score,
         // The output buffer. Holds (type, start, end, size) quads
         // representing nodes created by the parser, where `size` is
         // amount of buffer array entries covered by this node.
         /**
         @internal
         */
-        buffer, 
+        buffer,
         // The base offset of the buffer. When stacks are split, the split
         // instance shared the buffer history with its parent up to
         // `bufferBase`, which is the absolute offset (including the
@@ -21136,15 +21183,15 @@
         /**
         @internal
         */
-        bufferBase, 
+        bufferBase,
         /**
         @internal
         */
-        curContext, 
+        curContext,
         /**
         @internal
         */
-        lookAhead = 0, 
+        lookAhead = 0,
         // A parent stack from which this was split off, if any. This is
         // set up so that it always points to a stack that has some
         // additional buffer content, never to a stack with an equal
@@ -21745,7 +21792,7 @@
         /**
         @internal
         */
-        input, 
+        input,
         /**
         @internal
         */
@@ -21817,7 +21864,7 @@
         Look at a code unit near the stream position. `.peek(0)` equals
         `.next`, `.peek(-1)` gives you the previous character, and so
         on.
-        
+
         Note that looking around during tokenizing creates dependencies
         on potentially far-away content, which may reduce the
         effectiveness incremental parsing—when looking forward—or even
@@ -23179,7 +23226,7 @@
       input.advance();
       while (!isSep(input.next) && charTag(input.next) != "f") input.advance();
     }
-      
+
     function readQuoted(input, scan) {
       let quote = input.next, lineBreak = false, start = input.pos;
       input.advance();
@@ -23416,18 +23463,18 @@
         /**
         The editor state that the completion happens in.
         */
-        state, 
+        state,
         /**
         The position at which the completion is happening.
         */
-        pos, 
+        pos,
         /**
         Indicates whether completion was activated explicitly, or
         implicitly by typing. The usual way to respond to this is to
         only return completions when either there is part of a
         completable entity before the cursor, or `explicit` is true.
         */
-        explicit, 
+        explicit,
         /**
         The editor view. May be undefined if the context was created
         in a situation where there is no such view available, such as
@@ -23481,7 +23528,7 @@
         Allows you to register abort handlers, which will be called when
         the query is
         [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
-        
+
         By default, running queries will not be aborted for regular
         typing or backspacing, on the assumption that they are likely to
         return a result with a
@@ -25365,7 +25412,7 @@
             let hash = (parentHash + (parentHash << 8) + type + (value << 4)) | 0;
             return new CompositeBlock(type, value, from, hash, end, [], []);
         }
-        constructor(type, 
+        constructor(type,
         // Used for indentation in list items, markup character in lists
         value, from, hash, end, children, positions) {
             this.type = type;
@@ -25453,7 +25500,7 @@
         /**
         The start position of the block.
         */
-        start, 
+        start,
         /**
         The block's text content.
         */
@@ -26068,11 +26115,11 @@
         /**
         The parser configuration used.
         */
-        parser, 
+        parser,
         /**
         @internal
         */
-        input, fragments, 
+        input, fragments,
         /**
         @internal
         */
@@ -26427,35 +26474,35 @@
         The parser's syntax [node
         types](https://lezer.codemirror.net/docs/ref/#common.NodeSet).
         */
-        nodeSet, 
+        nodeSet,
         /**
         @internal
         */
-        blockParsers, 
+        blockParsers,
         /**
         @internal
         */
-        leafBlockParsers, 
+        leafBlockParsers,
         /**
         @internal
         */
-        blockNames, 
+        blockNames,
         /**
         @internal
         */
-        endLeafBlock, 
+        endLeafBlock,
         /**
         @internal
         */
-        skipContextMarkup, 
+        skipContextMarkup,
         /**
         @internal
         */
-        inlineParsers, 
+        inlineParsers,
         /**
         @internal
         */
-        inlineNames, 
+        inlineNames,
         /**
         @internal
         */
@@ -26680,15 +26727,15 @@
         The node's
         [id](https://lezer.codemirror.net/docs/ref/#common.NodeType.id).
         */
-        type, 
+        type,
         /**
         The start of the node, as an offset from the start of the document.
         */
-        from, 
+        from,
         /**
         The end of the node.
         */
-        to, 
+        to,
         /**
         The node's child nodes @internal
         */
@@ -26994,11 +27041,11 @@
         /**
         The parser that is being used.
         */
-        parser, 
+        parser,
         /**
         The text of this inline section.
         */
-        text, 
+        text,
         /**
         The starting offset of the section in the document.
         */
@@ -27988,7 +28035,7 @@
     //   tagName?: string,
     //   parser: Parser
     // }[]
-     
+
     function configureNesting(tags = [], attributes = []) {
       let script = [], style = [], textarea = [], other = [];
       for (let tag of tags) {
@@ -31575,11 +31622,11 @@
         /**
         @internal
         */
-        dialect, 
+        dialect,
         /**
         The language for this dialect.
         */
-        language, 
+        language,
         /**
         The spec used to define this dialect.
         */
@@ -31953,14 +32000,14 @@
         // events before the first change, in which case a special type of
         // instance is created which doesn't hold any changes, with
         // changes == startSelection == undefined
-        changes, 
+        changes,
         // The effects associated with this event
-        effects, 
+        effects,
         // Accumulated mapping (from addToHistory==false) that should be
         // applied to events below this one.
-        mapped, 
+        mapped,
         // The selection before this event
-        startSelection, 
+        startSelection,
         // Stores selection changes after this event, to be used for
         // selection undo/redo.
         selectionsAfter) {
@@ -33152,12 +33199,12 @@
         /**
         Create a text cursor. The query is the search string, `from` to
         `to` provides the region to search.
-        
+
         When `normalize` is given, it will be called, on both the query
         string and the content it is matched against, before comparing.
         You can, for example, create a case-insensitive search by
         passing `s => s.toLowerCase()`.
-        
+
         Text is always normalized with
         [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
         (when supported).
@@ -33168,7 +33215,7 @@
             The current match (only holds a meaningful value after
             [`next`](https://codemirror.net/6/docs/ref/#search.SearchCursor.next) has been called and when
             `done` is false).
-            
+
             The `precise` flag will be set to false if the match starts or
             ends _inside_ a character that, when normalized, expands to
             multiple characters. It indicates that the `from`-`to` range
@@ -38178,11 +38225,11 @@ ${text}</tr>
         will include the editor
         extensions included in this client's
         [configuration](https://codemirror.net/6/docs/ref/#lsp-client.LSPClientConfig.extensions).
-        
+
         Creating an editor with this plugin will cause
         [`openFile`](https://codemirror.net/6/docs/ref/#lsp-client.Workspace.openFile) to be called on the
         workspace.
-        
+
         By default, the language ID given to the server for this file is
         derived from the editor's language configuration via
         [`Language.name`](https://codemirror.net/6/docs/ref/#language.Language.name). You can pass in
@@ -38263,7 +38310,7 @@ ${text}</tr>
         the response or rejects with a failure message. You'll probably
         want to use types from the `vscode-languageserver-protocol`
         package for the type parameters.
-        
+
         The caller is responsible for
         [synchronizing](https://codemirror.net/6/docs/ref/#lsp-client.LSPClient.sync) state before the
         request and correctly handling state drift caused by local
@@ -39344,6 +39391,9 @@ ${text}</tr>
         return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
     };
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     const semanticExtension = {
         clientCapabilities: {
             textDocument: {
@@ -39390,33 +39440,53 @@ ${text}</tr>
      */
     function getSemanticTag(typeString) {
         switch (typeString) {
-            case 'class':
-            case 'type':
-            case 'struct': return tags$1.className;
-            case 'typeParameter': return tags$1.typeName;
-            case 'property': return tags$1.propertyName;
-            case 'variable': return tags$1.variableName;
-            case 'function':
-            case 'method': return tags$1.function(tags$1.variableName);
-            case 'keyword': return tags$1.keyword;
-            case 'modifier': return tags$1.modifier;
-            case 'comment': return tags$1.comment;
-            case 'string': return tags$1.string;
-            case 'number': return tags$1.number;
-            case 'operator': return tags$1.operator;
-            case 'enum': return tags$1.typeName;
-            case 'enumMember': return tags$1.propertyName;
-            case 'macro': return tags$1.macroName;
-            case 'parameter': return tags$1.local(tags$1.variableName);
-            case 'annotation': return tags$1.meta;
-            case 'boolean': return tags$1.bool;
-            default: return null;
+            case "class":
+            case "type":
+            case "struct":
+                return tags$1.className;
+            case "typeParameter":
+                return tags$1.typeName;
+            case "property":
+                return tags$1.propertyName;
+            case "variable":
+                return tags$1.variableName;
+            case "function":
+            case "method":
+                return tags$1.function(tags$1.variableName);
+            case "keyword":
+                return tags$1.keyword;
+            case "modifier":
+                return tags$1.modifier;
+            case "comment":
+                return tags$1.comment;
+            case "string":
+                return tags$1.string;
+            case "number":
+                return tags$1.number;
+            case "operator":
+                return tags$1.operator;
+            case "enum":
+                return tags$1.typeName;
+            case "enumMember":
+                return tags$1.propertyName;
+            case "macro":
+                return tags$1.macroName;
+            case "parameter":
+                return tags$1.local(tags$1.variableName);
+            case "annotation":
+                return tags$1.meta;
+            case "boolean":
+                return tags$1.bool;
+            default:
+                return null;
         }
     }
     const setSemanticTokens = StateEffect.define();
     const forceSemanticTokensRefresh = StateEffect.define();
     const semanticTokensField = StateField.define({
-        create() { return Decoration.none; },
+        create() {
+            return Decoration.none;
+        },
         update(value, tr) {
             value = value.map(tr.changes);
             for (const e of tr.effects) {
@@ -39425,7 +39495,7 @@ ${text}</tr>
             }
             return value;
         },
-        provide: f => EditorView.decorations.from(f)
+        provide: (f) => EditorView.decorations.from(f),
     });
     /**
      * Mounts standard LSP semantic tokens natively extracted from the Dart Language Server
@@ -39437,10 +39507,15 @@ ${text}</tr>
         const plugin = ViewPlugin.fromClass(class {
             constructor(view) {
                 this.updateId = null;
+                this.requestGeneration = 0;
+                this.destroyed = false;
                 this.fetchSemanticTokens(view);
             }
             update(update) {
-                if (update.docChanged || update.transactions.some(tr => tr.effects.some(e => e.is(forceSemanticTokensRefresh)))) {
+                if (update.docChanged ||
+                    update.transactions.some((tr) => tr.effects.some((e) => e.is(forceSemanticTokensRefresh)))) {
+                    // Invalidate any response that was requested for the previous document.
+                    this.requestGeneration++;
                     if (this.updateId !== null)
                         clearTimeout(this.updateId);
                     // Throttle synchronization request lag.
@@ -39450,10 +39525,16 @@ ${text}</tr>
             fetchSemanticTokens(view_1) {
                 return __awaiter(this, arguments, void 0, function* (view, retries = 5) {
                     var _a;
+                    const requestGeneration = ++this.requestGeneration;
+                    const doc = view.state.doc;
                     yield client.initializing;
+                    if (!this.isCurrent(requestGeneration, view, doc))
+                        return;
                     if (client.isAnalyzing) {
                         // Delay requesting tokens until analysis is complete.
                         yield client.analysisFinished;
+                        if (!this.isCurrent(requestGeneration, view, doc))
+                            return;
                     }
                     const capabilities = (_a = client.serverCapabilities) === null || _a === void 0 ? void 0 : _a.semanticTokensProvider;
                     if (!capabilities) {
@@ -39467,8 +39548,10 @@ ${text}</tr>
                         // Enforce pushing CodeMirror text changes onto Language Server AST before queries
                         client.sync();
                         const response = yield client.request("textDocument/semanticTokens/full", {
-                            textDocument: { uri }
+                            textDocument: { uri },
                         });
+                        if (!this.isCurrent(requestGeneration, view, doc))
+                            return;
                         const data = response === null || response === void 0 ? void 0 : response.data;
                         if (!data) {
                             return;
@@ -39493,24 +39576,42 @@ ${text}</tr>
                             if (tag) {
                                 const themeClass = highlightingFor(view.state, [tag]);
                                 if (themeClass) {
-                                    const line = view.state.doc.line(currentLine + 1);
+                                    if (currentLine >= doc.lines)
+                                        continue;
+                                    const line = doc.line(currentLine + 1);
                                     const start = line.from + currentCol;
+                                    if (start < line.from || start + length > line.to)
+                                        continue;
                                     builder.add(start, start + length, Decoration.mark({ class: themeClass + " cm-semantic-token" }));
                                 }
                             }
                         }
-                        view.dispatch({ effects: setSemanticTokens.of(builder.finish()) });
+                        if (this.isCurrent(requestGeneration, view, doc)) {
+                            view.dispatch({ effects: setSemanticTokens.of(builder.finish()) });
+                        }
                     }
-                    catch (e) {
-                        // Gracefully retry on timeout during cold initialization delays naturally 
-                        // mitigating server sync bottlenecks. 
-                        if (retries > 0) {
-                            setTimeout(() => {
+                    catch (_b) {
+                        // Retry timeouts caused by a cold language-server initialization.
+                        if (retries > 0 && this.isCurrent(requestGeneration, view, doc)) {
+                            this.updateId = window.setTimeout(() => {
                                 this.fetchSemanticTokens(view, retries - 1);
                             }, 1000);
                         }
                     }
                 });
+            }
+            isCurrent(requestGeneration, view, doc) {
+                return (!this.destroyed &&
+                    requestGeneration === this.requestGeneration &&
+                    view.state.doc === doc);
+            }
+            destroy() {
+                this.destroyed = true;
+                this.requestGeneration++;
+                if (this.updateId !== null) {
+                    clearTimeout(this.updateId);
+                    this.updateId = null;
+                }
             }
         });
         // Dominant inheritance mapping forcing wrapped syntax layers logically
@@ -39520,12 +39621,15 @@ ${text}</tr>
                 color: "inherit !important",
                 fontStyle: "inherit !important",
                 fontWeight: "inherit !important",
-                textDecoration: "inherit !important"
-            }
+                textDecoration: "inherit !important",
+            },
         });
         return [semanticTokensField, plugin, semanticTheme];
     }
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     function createLspClient(sendToServer, rootUri, onInitialized, onDisplayFile, notificationHandlers, language) {
         let handlers = [];
         const transport = {
@@ -39587,7 +39691,14 @@ ${text}</tr>
                 },
                 serverCompletion(),
                 [hoverTooltips({ hoverTime: 800 })],
-                [keymap.of([...formatKeymap, ...renameKeymap, ...jumpToDefinitionKeymap, ...findReferencesKeymap])],
+                [
+                    keymap.of([
+                        ...formatKeymap,
+                        ...renameKeymap,
+                        ...jumpToDefinitionKeymap,
+                        ...findReferencesKeymap,
+                    ]),
+                ],
                 signatureHelp(),
                 serverDiagnostics(),
             ],
@@ -39686,7 +39797,7 @@ ${text}</tr>
          */
         closeFile(uri, view) {
             const file = this.getFile(uri);
-            if (file) {
+            if ((file === null || file === void 0 ? void 0 : file.view) === view) {
                 file.view = null;
                 this.client.didClose(uri);
             }
@@ -39723,6 +39834,9 @@ ${text}</tr>
         }
     }
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     // A StateEffect to update the hover definition link range
     const setHoverLink = StateEffect.define();
     // Underline decoration style
@@ -39737,7 +39851,9 @@ ${text}</tr>
             for (let effect of tr.effects) {
                 if (effect.is(setHoverLink)) {
                     if (effect.value) {
-                        return Decoration.set([linkDecoration.range(effect.value.from, effect.value.to)]);
+                        return Decoration.set([
+                            linkDecoration.range(effect.value.from, effect.value.to),
+                        ]);
                     }
                     else {
                         return Decoration.none;
@@ -39746,12 +39862,12 @@ ${text}</tr>
             }
             return value;
         },
-        provide: f => EditorView.decorations.from(f)
+        provide: (f) => EditorView.decorations.from(f),
     });
     const gotoDefinitionOnClick = () => {
         return [
             hoverLinkState,
-            ViewPlugin.define(view => {
+            ViewPlugin.define((view) => {
                 let hoveredWord = null;
                 let queryTimeout = null;
                 function clear() {
@@ -39780,7 +39896,9 @@ ${text}</tr>
                         return;
                     }
                     // If we're already hovering over this word, do nothing
-                    if (hoveredWord && hoveredWord.from === word.from && hoveredWord.to === word.to) {
+                    if (hoveredWord &&
+                        hoveredWord.from === word.from &&
+                        hoveredWord.to === word.to) {
                         return;
                     }
                     // Clear previous state and queue a new query
@@ -39792,21 +39910,33 @@ ${text}</tr>
                             return;
                         plugin.client.sync();
                         // Request definition at the current position
-                        plugin.client.request("textDocument/definition", {
+                        plugin.client
+                            .request("textDocument/definition", {
                             textDocument: { uri: plugin.uri },
-                            position: plugin.toPosition(word.from)
-                        }).then(result => {
+                            position: plugin.toPosition(word.from),
+                        })
+                            .then((result) => {
                             // Check if the hovered word is still the same when the response arrives
-                            if (hoveredWord && hoveredWord.from === word.from && hoveredWord.to === word.to) {
+                            if (hoveredWord &&
+                                hoveredWord.from === word.from &&
+                                hoveredWord.to === word.to) {
                                 if (result && (!Array.isArray(result) || result.length > 0)) {
-                                    view.dispatch({ effects: setHoverLink.of({ from: word.from, to: word.to }) });
+                                    view.dispatch({
+                                        effects: setHoverLink.of({
+                                            from: word.from,
+                                            to: word.to,
+                                        }),
+                                    });
                                 }
                                 else {
                                     view.dispatch({ effects: setHoverLink.of(null) });
                                 }
                             }
-                        }).catch(() => {
-                            if (hoveredWord && hoveredWord.from === word.from && hoveredWord.to === word.to) {
+                        })
+                            .catch(() => {
+                            if (hoveredWord &&
+                                hoveredWord.from === word.from &&
+                                hoveredWord.to === word.to) {
                                 view.dispatch({ effects: setHoverLink.of(null) });
                             }
                         });
@@ -39830,7 +39960,7 @@ ${text}</tr>
                         window.removeEventListener("keydown", keyListener);
                         window.removeEventListener("keyup", keyListener);
                         window.removeEventListener("blur", clear);
-                    }
+                    },
                 };
             }, {
                 eventHandlers: {
@@ -39842,7 +39972,10 @@ ${text}</tr>
                     },
                     mousedown(event, view) {
                         if (event.metaKey || event.ctrlKey) {
-                            const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+                            const pos = view.posAtCoords({
+                                x: event.clientX,
+                                y: event.clientY,
+                            });
                             if (pos !== null) {
                                 this.clear();
                                 view.dispatch({ selection: { anchor: pos } });
@@ -39853,12 +39986,15 @@ ${text}</tr>
                             }
                         }
                         return false;
-                    }
-                }
-            })
+                    },
+                },
+            }),
         ];
     };
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     function selectionAction(config) {
         const runAction = (view, from, to) => {
             const text = view.state.sliceDoc(from, to);
@@ -39866,7 +40002,7 @@ ${text}</tr>
             const lineTo = view.state.doc.lineAt(to).number;
             config.run(lineFrom, lineTo, text);
             view.dispatch({
-                selection: { anchor: to }
+                selection: { anchor: to },
             });
         };
         const selectionTooltipField = StateField.define({
@@ -39901,7 +40037,8 @@ ${text}</tr>
                                 : /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
                             let keyText = config.key;
                             if (keyText.toLowerCase().startsWith("mod-")) {
-                                keyText = (isMac ? "⌘" : "Ctrl+") + keyText.slice(4).toUpperCase();
+                                keyText =
+                                    (isMac ? "⌘" : "Ctrl+") + keyText.slice(4).toUpperCase();
                             }
                             else {
                                 keyText = keyText.replace(/Mod/gi, isMac ? "⌘" : "Ctrl");
@@ -39939,6 +40076,9 @@ ${text}</tr>
         ];
     }
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     function hideTooltip(tr, tooltip) {
         const from = tooltip.pos, to = tooltip.end || from;
         const line = tr.startState.doc.lineAt(tooltip.pos);
@@ -39981,13 +40121,16 @@ ${text}</tr>
                         dom.appendChild(button);
                     }
                     return { dom };
-                }
+                },
             };
         }, {
-            hideOn: hideTooltip
+            hideOn: hideTooltip,
         });
     }
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     /**
      * Main global interface exporting CodeMirror dependencies to Dart JS-Interop bindings.
      */

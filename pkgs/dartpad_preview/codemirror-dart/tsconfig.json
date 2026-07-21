@@ -4,10 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*",
-    "benchmark/**/*"
-  ]
+  "include": ["src/**/*", "benchmark/**/*", "test/**/*"]
 }

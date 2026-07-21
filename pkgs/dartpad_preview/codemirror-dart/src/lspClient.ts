@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import { Extension, Text } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import {
@@ -14,7 +18,10 @@ import {
   findReferencesKeymap,
   serverDiagnostics,
 } from "@codemirror/lsp-client";
-import { semanticHighlightingPlugin, semanticExtension } from "./semanticHighlighting";
+import {
+  semanticHighlightingPlugin,
+  semanticExtension,
+} from "./semanticHighlighting";
 import { LanguageSupport } from "@codemirror/language";
 
 export type LspClientBindings = {
@@ -48,7 +55,9 @@ export function createLspClient(
     },
   };
 
-  const handlersObj: { [method: string]: (client: LSPClient, params: any) => boolean } = {};
+  const handlersObj: {
+    [method: string]: (client: LSPClient, params: any) => boolean;
+  } = {};
   for (const handler of notificationHandlers) {
     handlersObj[handler.method] = handler.callback;
   }
@@ -96,7 +105,14 @@ export function createLspClient(
       },
       serverCompletion(),
       [hoverTooltips({ hoverTime: 800 })],
-      [keymap.of([...formatKeymap, ...renameKeymap, ...jumpToDefinitionKeymap, ...findReferencesKeymap])],
+      [
+        keymap.of([
+          ...formatKeymap,
+          ...renameKeymap,
+          ...jumpToDefinitionKeymap,
+          ...findReferencesKeymap,
+        ]),
+      ],
       signatureHelp(),
       serverDiagnostics(),
     ],
@@ -126,8 +142,8 @@ class CMWorkspaceFile implements WorkspaceFile {
     readonly languageId: string,
     public version: number,
     public doc: Text,
-    public view: EditorView | null
-  ) { }
+    public view: EditorView | null,
+  ) {}
 
   getView() {
     return this.view;
@@ -142,9 +158,14 @@ class CMWorkspaceFile implements WorkspaceFile {
 export class CMWorkspace extends Workspace {
   files: CMWorkspaceFile[] = [];
   private fileVersions: { [uri: string]: number } = Object.create(null);
-  private pendingDisplayFiles: { [uri: string]: ((view: EditorView | null) => void)[] } = Object.create(null);
+  private pendingDisplayFiles: {
+    [uri: string]: ((view: EditorView | null) => void)[];
+  } = Object.create(null);
 
-  constructor(client: any, private onDisplayFile?: (uri: string) => any) {
+  constructor(
+    client: any,
+    private onDisplayFile?: (uri: string) => any,
+  ) {
     super(client);
   }
 
@@ -180,15 +201,21 @@ export class CMWorkspace extends Workspace {
   openFile(uri: string, languageId: string, view: EditorView) {
     let file = this.getFile(uri) as CMWorkspaceFile | null;
     if (file) {
+      if (file.view === view) return;
+
+      // Keep the LSP document lifecycle balanced when a newly mounted editor
+      // replaces the existing view before that view has been destroyed.
+      if (file.view) this.client.didClose(uri);
       file.view = view;
       file.doc = view.state.doc;
+      file.version = this.nextFileVersion(uri);
     } else {
       file = new CMWorkspaceFile(
         uri,
         languageId,
         this.nextFileVersion(uri),
         view.state.doc,
-        view
+        view,
       );
       this.files.push(file);
     }
@@ -207,7 +234,7 @@ export class CMWorkspace extends Workspace {
    */
   closeFile(uri: string, view: EditorView) {
     const file = this.getFile(uri) as CMWorkspaceFile | null;
-    if (file) {
+    if (file?.view === view) {
       file.view = null;
       this.client.didClose(uri);
     }

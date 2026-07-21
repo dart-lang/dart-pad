@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import { dartLanguage } from "codemirror-lang-dart";
 import { yaml } from "@codemirror/lang-yaml";
 import { markdown } from "@codemirror/lang-markdown";
@@ -8,7 +12,12 @@ import { json } from "@codemirror/lang-json";
 import { xml } from "@codemirror/lang-xml";
 import { sass } from "@codemirror/lang-sass";
 import { sql } from "@codemirror/lang-sql";
-import { EditorSelection, EditorState, Compartment, Extension } from "@codemirror/state";
+import {
+  EditorSelection,
+  EditorState,
+  Compartment,
+  Extension,
+} from "@codemirror/state";
 import { EditorView, keymap, showPanel } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -110,4 +119,3 @@ window._codemirror = {
   diagnosticHoverToolbar,
   forceSemanticTokensRefresh,
 };
-
