@@ -31,7 +31,6 @@ import { lintGutter, linter } from "@codemirror/lint";
 import { LSPPlugin, formatDocument } from "@codemirror/lsp-client";
 import { createLspClient } from "./lspClient";
 import { gotoDefinitionOnClick } from "./gotoDefinition";
-import { selectionAction } from "./selectionAction";
 import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
 
@@ -71,7 +70,6 @@ declare global {
       sql: typeof sql;
       createLspClient: typeof createLspClient;
       gotoDefinitionOnClick: typeof gotoDefinitionOnClick;
-      selectionAction: typeof selectionAction;
       diagnosticHoverToolbar: typeof diagnosticHoverToolbar;
       forceSemanticTokensRefresh: typeof forceSemanticTokensRefresh;
     };
@@ -115,7 +113,6 @@ window._codemirror = {
   sql,
   createLspClient,
   gotoDefinitionOnClick,
-  selectionAction,
   diagnosticHoverToolbar,
   forceSemanticTokensRefresh,
 };

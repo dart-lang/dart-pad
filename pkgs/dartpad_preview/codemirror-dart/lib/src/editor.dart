@@ -134,13 +134,6 @@ extension type ScrollIntoViewOptions._(JSObject _) implements JSObject {
   external factory ScrollIntoViewOptions({JSString? y});
 }
 
-extension type SelectionActionConfig._(JSObject _) implements JSObject {
-  external factory SelectionActionConfig({
-    JSString key,
-    JSString label,
-    JSFunction run,
-  });
-}
 
 extension type SelectionRange(JSObject _) implements JSObject {
   external int get anchor;
@@ -222,8 +215,6 @@ external JSAny linter(JSFunction? source);
 @JS()
 external JSAny get oneDark;
 
-@JS()
-external JSAny selectionAction(SelectionActionConfig config);
 
 @JS()
 external ShowPanel get showPanel;
