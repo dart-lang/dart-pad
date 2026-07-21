@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
@@ -17,8 +21,7 @@ external _LspClientHandle _createLspClient(
   JSAny language,
 );
 
-extension LSPClientProperties on JSObject {
-  external bool get isAnalyzing;
+extension _LSPClientProperties on JSObject {
   external set isAnalyzing(bool value);
 
   external JSPromise? get analysisFinished;
@@ -85,16 +88,21 @@ class CodeMirrorLspClient {
 
           if (isAnalyzing) {
             if (client.analysisFinished == null) {
-              analysisFinishedCompleter ??= Completer();
-              client.analysisFinished = analysisFinishedCompleter!.future.toJS;
+              final completer = Completer<void>();
+              analysisFinishedCompleter = completer;
+              client.analysisFinished = completer.future.toJS;
 
+              analysisTimeout?.cancel();
               analysisTimeout = Timer(const Duration(seconds: 30), () {
-                final completer = analysisFinishedCompleter;
-                if (completer != null && !completer.isCompleted) {
+                if (!completer.isCompleted) {
                   web.console.warn('Analyzer status timeout reached. Resolving deferred requests.'.toJS);
                   completer.complete();
+                }
+                if (identical(analysisFinishedCompleter, completer)) {
+                  analysisFinishedCompleter = null;
                   client.analysisFinished = null;
                 }
+                analysisTimeout = null;
               });
             }
           } else {
@@ -107,8 +115,8 @@ class CodeMirrorLspClient {
             final completer = analysisFinishedCompleter;
             if (completer != null && !completer.isCompleted) {
               completer.complete();
-              analysisFinishedCompleter = null;
             }
+            analysisFinishedCompleter = null;
             client.analysisFinished = null;
           }
           return true.toJS;

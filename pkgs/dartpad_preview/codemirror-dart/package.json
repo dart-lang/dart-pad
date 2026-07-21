@@ -2,21 +2,21 @@
   "name": "codemirror-dart",
   "version": "0.0.1",
   "description": "CodeMirror 6 support for Dart.",
-  "main": "index.js",
-  "directories": {
-    "example": "example",
-    "lib": "lib",
-    "test": "test"
-  },
+  "private": true,
+  "type": "module",
+  "license": "BSD-3-Clause",
   "scripts": {
-    "build": "rollup -c",
-    "benchmark": "rollup -c && dart compile js -O2 benchmark/benchmark.dart -o benchmark/dist/benchmark.dart.js && open benchmark/benchmark.html"
+    "build": "node tool/build.js",
+    "benchmark": "node tool/run_benchmark.js",
+    "format:check": "prettier --check \"{benchmark,src,test,tool}/**/*.{html,js,ts}\" README.md package.json rollup.config.mjs tsconfig.json",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-javascript": "^6.2.5",
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/lang-sass": "^6.0.2",
@@ -38,10 +38,12 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
-    "@types/codemirror": "^5.60.17",
+    "@types/node": "^20.17.0",
+    "prettier": "^3.6.2",
     "rollup": "^4.60.2",
     "rollup-plugin-license": "^3.7.1",
     "tslib": "^2.8.1",
-    "typescript": "^6.0.3"
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3"
   }
 }
