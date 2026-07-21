@@ -5,7 +5,7 @@
 import { getIndentUnit, indentUnit } from "@codemirror/language";
 import type { ChangeSpec } from "@codemirror/state";
 import { LSPPlugin } from "@codemirror/lsp-client";
-import type { EditorView } from "@codemirror/view";
+import type { Command, EditorView } from "@codemirror/view";
 
 interface Position {
   line: number;
@@ -23,10 +23,18 @@ interface TextEdit {
 type PluginLookup = (view: EditorView) => LSPPlugin | null;
 
 /**
+ * Starts formatting from a synchronous CodeMirror command such as a keymap.
+ */
+export const formatDocument: Command = (view) => {
+  const plugin = LSPPlugin.get(view);
+  if (!plugin) return false;
+
+  void formatDocumentAsync(view, () => plugin);
+  return true;
+};
+
+/**
  * Formats a document and resolves after the returned edits have been applied.
- *
- * The upstream `formatDocument` command returns as soon as the request starts,
- * which is appropriate for a key binding but cannot be awaited before saving.
  */
 export async function formatDocumentAsync(
   view: EditorView,
@@ -35,9 +43,8 @@ export async function formatDocumentAsync(
   const plugin = getPlugin(view);
   if (!plugin) return false;
 
-  plugin.client.sync();
-
   try {
+    plugin.client.sync();
     await plugin.client.withMapping(async (mapping) => {
       const response = await plugin.client.request<
         {

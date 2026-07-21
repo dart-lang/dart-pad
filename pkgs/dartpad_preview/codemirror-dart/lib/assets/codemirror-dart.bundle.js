@@ -38672,7 +38672,7 @@ ${text}</tr>
     This command asks the language server to reformat the document,
     and then applies the changes it returns.
     */
-    const formatDocument = view => {
+    const formatDocument$1 = view => {
         const plugin = LSPPlugin.get(view);
         if (!plugin)
             return false;
@@ -38711,7 +38711,7 @@ ${text}</tr>
     [`formatDocument`](https://codemirror.net/6/docs/ref/#lsp-client.formatDocument).
     */
     const formatKeymap = [
-        { key: "Shift-Alt-f", run: formatDocument, preventDefault: true }
+        { key: "Shift-Alt-f", run: formatDocument$1, preventDefault: true }
     ];
 
     function getRename(plugin, pos, newName) {
@@ -40055,18 +40055,25 @@ ${text}</tr>
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
     /**
+     * Starts formatting from a synchronous CodeMirror command such as a keymap.
+     */
+    const formatDocument = (view) => {
+        const plugin = LSPPlugin.get(view);
+        if (!plugin)
+            return false;
+        void formatDocumentAsync(view, () => plugin);
+        return true;
+    };
+    /**
      * Formats a document and resolves after the returned edits have been applied.
-     *
-     * The upstream `formatDocument` command returns as soon as the request starts,
-     * which is appropriate for a key binding but cannot be awaited before saving.
      */
     function formatDocumentAsync(view_1) {
         return __awaiter(this, arguments, void 0, function* (view, getPlugin = LSPPlugin.get) {
             const plugin = getPlugin(view);
             if (!plugin)
                 return false;
-            plugin.client.sync();
             try {
+                plugin.client.sync();
                 yield plugin.client.withMapping((mapping) => __awaiter(this, void 0, void 0, function* () {
                     const response = yield plugin.client.request("textDocument/formatting", {
                         options: {

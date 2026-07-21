@@ -10,7 +10,7 @@ import type { EditorView } from "@codemirror/view";
 import { LSPPlugin } from "@codemirror/lsp-client";
 
 import { CMWorkspace } from "../src/lspClient";
-import { formatDocumentAsync } from "../src/formatting";
+import { formatDocument, formatDocumentAsync } from "../src/formatting";
 
 function fakeView(contents: string): EditorView {
   return {
@@ -209,4 +209,48 @@ test("formatDocumentAsync reports request failures and resolves false", async ()
 
   assert.equal(result, false);
   assert.equal(reportedError, expectedError);
+});
+
+test("formatDocument remains a synchronous CodeMirror command", () => {
+  let synchronized = false;
+  let requested = false;
+  const view = {
+    state: {
+      tabSize: 2,
+      facet() {
+        return "  ";
+      },
+    },
+  } as unknown as EditorView;
+  const plugin = {
+    uri: "file:///main.dart",
+    client: {
+      sync() {
+        synchronized = true;
+      },
+      async withMapping<T>(callback: (mapping: unknown) => Promise<T>) {
+        return callback({});
+      },
+      async request() {
+        requested = true;
+        return null;
+      },
+    },
+    reportError() {
+      assert.fail("formatting should not report an error");
+    },
+  } as unknown as LSPPlugin;
+  const originalGet = LSPPlugin.get;
+
+  try {
+    LSPPlugin.get = () => plugin;
+    assert.equal(formatDocument(view), true);
+    assert.equal(synchronized, true);
+    assert.equal(requested, true);
+
+    LSPPlugin.get = () => null;
+    assert.equal(formatDocument(view), false);
+  } finally {
+    LSPPlugin.get = originalGet;
+  }
 });

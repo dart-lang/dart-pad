@@ -28,12 +28,12 @@ import {
   HighlightStyle,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
-import { LSPPlugin, formatDocument } from "@codemirror/lsp-client";
+import { LSPPlugin } from "@codemirror/lsp-client";
 import { createLspClient } from "./lspClient";
 import { gotoDefinitionOnClick } from "./gotoDefinition";
 import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
-import { formatDocumentAsync } from "./formatting";
+import { formatDocument, formatDocumentAsync } from "./formatting";
 
 declare global {
   interface Window {
