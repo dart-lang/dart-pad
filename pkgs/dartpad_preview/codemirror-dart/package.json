@@ -8,7 +8,7 @@
   "scripts": {
     "build": "node tool/build.js",
     "format:check": "prettier --check \"{src,test,tool}/**/*.{html,js,ts}\" README.md package.json rollup.config.mjs tsconfig.json",
-    "test": "node --import tsx --test test/**/*.test.ts",
+    "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "prettier": {
