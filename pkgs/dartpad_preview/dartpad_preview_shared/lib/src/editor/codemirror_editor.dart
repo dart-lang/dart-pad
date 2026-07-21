@@ -302,7 +302,7 @@ final class CodeMirrorEditor {
 
     view.dispatch(
       cm.TransactionSpec(
-        selection: cm.EditorSelection.cursor(pos),
+        selection: cm.EditorSelection.single(pos),
         effects: cm.EditorView.scrollIntoView(
           pos,
           cm.ScrollIntoViewOptions(y: 'center'.toJS),
