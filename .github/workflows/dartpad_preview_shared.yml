@@ -1,0 +1,53 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+name: package:dartpad-preview-shared
+
+permissions: read-all
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dartpad_preview_shared.yml'
+      - 'pkgs/dartpad_preview/analysis_options.yaml'
+      - 'pkgs/dartpad_preview/pubspec.yaml'
+      - 'pkgs/dartpad_preview/pubspec.lock'
+      - 'pkgs/dartpad_preview/codemirror-dart/**'
+      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
+      - 'pkgs/dartpad_preview/dartpad_preview_shared/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/dartpad_preview_shared.yml'
+      - 'pkgs/dartpad_preview/analysis_options.yaml'
+      - 'pkgs/dartpad_preview/pubspec.yaml'
+      - 'pkgs/dartpad_preview/pubspec.lock'
+      - 'pkgs/dartpad_preview/codemirror-dart/**'
+      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
+      - 'pkgs/dartpad_preview/dartpad_preview_shared/**'
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+
+      - name: Install dependencies
+        working-directory: pkgs/dartpad_preview
+        run: dart pub get
+
+      - name: Check Dart sources
+        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        run: |
+          dart format --output=none --set-exit-if-changed lib test
+          dart analyze --fatal-infos
+
+      - name: Run tests
+        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        run: dart test

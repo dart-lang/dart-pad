@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 // TODO: Use package:dartpad/dartpad.dart once it exports the file change event which should be fixed in Version 0.0.4 (currently at 0.0.3)
@@ -17,6 +21,7 @@ class WorkspaceChangeWatcher {
   final Stream<FileChangeEvent> fileChanges;
 
   final StreamController<WorkspaceChangeEvent> _eventsController = StreamController<WorkspaceChangeEvent>.broadcast();
+  StreamSubscription<FileChangeEvent>? _fileChangesSubscription;
 
   /// A stream of high-level workspace events (adds, removes, modifies, moves)
   /// processed and consolidated for UI consumption.
@@ -50,8 +55,11 @@ class WorkspaceChangeWatcher {
   /// - The original source path is added to [_pendingRemovesToDrop] so that
   ///   when the corresponding raw `remove` event eventually fires, it is ignored
   ///   rather than falsely reporting a deletion to the UI.
-  Future<void> watchFileSystem() async {
-    fileChanges.listen((e) {
+  void watchFileSystem() {
+    if (_fileChangesSubscription != null) {
+      return;
+    }
+    _fileChangesSubscription = fileChanges.listen((e) {
       final path = e.uri.path;
       if (e is FileAddedEvent) {
         final oldPath = removeMoveIntention(path);
@@ -91,6 +99,13 @@ class WorkspaceChangeWatcher {
         );
       }
     });
+  }
+
+  /// Stops watching filesystem events and closes the processed event stream.
+  Future<void> dispose() async {
+    await _fileChangesSubscription?.cancel();
+    _fileChangesSubscription = null;
+    await _eventsController.close();
   }
 }
 

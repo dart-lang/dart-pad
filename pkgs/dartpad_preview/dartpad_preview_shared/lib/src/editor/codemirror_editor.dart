@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:js_interop';
 
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
@@ -193,17 +197,16 @@ final class CodeMirrorEditor {
     );
   }
 
-  /// Formats the editor content using the LSP client.
-  Future<void> format() async {
+  /// Requests formatting through the LSP client.
+  ///
+  /// Returns whether a formatting request was started. The resulting edits are
+  /// delivered asynchronously through the editor update listener.
+  bool format() {
     if (!_isDartFile(file)) {
-      return;
+      return false;
     }
 
-    final result = (cm.formatDocument.callAsFunction(null, view) as JSBoolean?)?.toDart;
-    if (result == true) {
-      // We cannot await [cm.formatDocument] directly, so we wait a bit for the formatter to finish.
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    }
+    return (cm.formatDocument.callAsFunction(null, view) as JSBoolean?)?.toDart ?? false;
   }
 
   /// Focuses the editor input.

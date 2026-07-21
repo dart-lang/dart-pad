@@ -1,7 +1,11 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dartpad_preview_shared/workspace/workspace_resource.dart';
+import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
 import 'package:test/test.dart';
 
 class MemoryWorkspace implements WorkspaceApi {
@@ -20,8 +24,6 @@ class MemoryWorkspace implements WorkspaceApi {
 
   @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
-
-
 
   @override
   Future<bool> fileExist(String uri) async => files.containsKey(uri);

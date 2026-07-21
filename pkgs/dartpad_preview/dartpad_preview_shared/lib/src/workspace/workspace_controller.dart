@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:typed_data';
 
 import 'package:dartpad/dartpad.dart';
@@ -16,7 +20,8 @@ abstract class WorkspaceController implements WorkspaceApi {
     required this.workspace,
     required LanguageServer languageServer,
   }) {
-    watcher = WorkspaceChangeWatcher(fileChanges: workspace.watch(workspace.workspaceFolder.toString()).changes)..watchFileSystem();
+    watcher = WorkspaceChangeWatcher(fileChanges: workspace.watch(workspace.workspaceFolder.toString()).changes)
+      ..watchFileSystem();
     languageServerClient = LanguageServerClient(
       languageServer: languageServer,
       workspaceController: this,
@@ -74,5 +79,11 @@ abstract class WorkspaceController implements WorkspaceApi {
   @override
   void addMoveIntention(String oldPath, String newPath) {
     watcher.addMoveIntention(oldPath, newPath);
+  }
+
+  /// Stops the language-server client and filesystem watcher.
+  Future<void> dispose() async {
+    await languageServerClient.dispose();
+    await watcher.dispose();
   }
 }

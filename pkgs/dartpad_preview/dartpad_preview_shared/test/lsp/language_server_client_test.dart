@@ -1,11 +1,12 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad_preview_shared/lsp/language_server_client.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_controller.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_resource.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
+import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _edit(
@@ -31,8 +32,6 @@ class FakeWorkspace implements WorkspaceApi {
 
   @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
-
-
 
   @override
   Future<bool> fileExist(String uri) async => files.containsKey(uri);
@@ -123,7 +122,7 @@ void main() {
     });
 
     tearDown(() async {
-      client.dispose();
+      await client.dispose();
       await serverMessages.close();
       await workspaceEvents.close();
       await outgoingMessages.close();

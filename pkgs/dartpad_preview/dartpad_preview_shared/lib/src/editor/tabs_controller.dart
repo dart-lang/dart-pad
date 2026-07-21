@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import '../lsp/language_server_client.dart';
@@ -266,6 +270,7 @@ abstract mixin class TabsController<T> {
     if (tabIndex != -1) {
       final tab = _tabs[tabIndex];
       tab.rename(newPath);
+      _moveTabUpdateSubscription(oldPath, newPath);
       if (_activeTabPath == oldPath) {
         _activeTabPath = newPath;
       }
@@ -276,8 +281,18 @@ abstract mixin class TabsController<T> {
     final keptTab = _keepAliveTabs.remove(oldPath);
     if (keptTab != null) {
       keptTab.rename(newPath);
+      _moveTabUpdateSubscription(oldPath, newPath);
       _keepAliveTabs[newPath] = keptTab;
     }
+  }
+
+  void _moveTabUpdateSubscription(String oldPath, String newPath) {
+    final subscription = _tabUpdateSubscriptions.remove(oldPath);
+    if (subscription == null) {
+      return;
+    }
+    unawaited(_tabUpdateSubscriptions.remove(newPath)?.cancel());
+    _tabUpdateSubscriptions[newPath] = subscription;
   }
 
   void _handleDeletedFile(String path) {
@@ -323,6 +338,10 @@ abstract mixin class TabsController<T> {
   /// Disposes all open and keep-alive tabs, and cleans up any active file subscriptions.
   void disposeAllTabs() {
     _workspaceSubscription?.cancel();
+    for (final subscription in _tabUpdateSubscriptions.values) {
+      unawaited(subscription.cancel());
+    }
+    _tabUpdateSubscriptions.clear();
     for (final adapter in adapters) {
       adapter.dispose();
     }

@@ -1,14 +1,13 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad/src/worker_client.dart'
     show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
-import 'package:dartpad_preview_shared/editor/editor_tab.dart';
-import 'package:dartpad_preview_shared/editor/tabs_controller.dart';
-import 'package:dartpad_preview_shared/lsp/language_server_client.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_controller.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_resource.dart';
-import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
+import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
 import 'package:test/test.dart';
 
 // ---------------------------------------------------------------------------
@@ -243,8 +242,9 @@ void main() {
     tabs.init(workspaceController: controller, adapters: [adapter]);
   });
 
-  tearDown(() {
+  tearDown(() async {
     tabs.disposeAllTabs();
+    await controller.watcher.dispose();
     workspace.close();
   });
 
@@ -537,6 +537,24 @@ void main() {
       expect(tabs.openTabs.first.path, 'new.dart');
     });
 
+    test('move event keeps the update subscription associated with the renamed tab', () async {
+      await openExisting('old.dart');
+      await openExisting('other.dart');
+      final movedTab = adapter.createdTabs['old.dart']!;
+
+      controller.addMoveIntention('old.dart', 'new.dart');
+      workspace.addFile('new.dart');
+      await emitWorkspaceEvent(
+        {'type': 'add', 'path': 'new.dart'},
+      );
+      tabs.closeTab('new.dart');
+      tabs.updateLog.clear();
+
+      movedTab.notifyUpdate();
+
+      expect(tabs.updateLog, isEmpty);
+    });
+
     test('move event renames a keepAlive tab in the cache', () async {
       adapter.keepAlive = true;
 
@@ -601,6 +619,17 @@ void main() {
 
       expect(adapter.createdTabs['a.dart']!.lifecycleLog, ['dispose']);
       expect(adapter.createdTabs['b.dart']!.lifecycleLog, ['dispose']);
+    });
+
+    test('cancels tab update subscriptions', () async {
+      await openExisting('a.dart');
+      final tab = adapter.createdTabs['a.dart']!;
+
+      tabs.disposeAllTabs();
+      tabs.updateLog.clear();
+      tab.notifyUpdate();
+
+      expect(tabs.updateLog, isEmpty);
     });
   });
 }

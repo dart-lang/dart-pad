@@ -1,8 +1,12 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:dartpad/src/worker_client.dart'
     show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
-import 'package:dartpad_preview_shared/workspace/workspace_watcher.dart';
+import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
 import 'package:test/test.dart';
 
 class FakeWorkspaceChangeStream {
@@ -67,7 +71,10 @@ void main() {
       watcher.events.listen(events.add);
     });
 
-    tearDown(() => stream.close());
+    tearDown(() async {
+      await watcher.dispose();
+      await stream.close();
+    });
 
     test('forwards raw add, remove, and modify events', () async {
       final delivered = watcher.events.take(3).toList();
@@ -127,6 +134,17 @@ void main() {
 
       expect(events, hasLength(1));
       expect(secondListenerEvents, hasLength(1));
+    });
+
+    test('does not subscribe to the raw event stream more than once', () async {
+      watcher.watchFileSystem();
+      final delivered = watcher.events.first;
+
+      stream.emitAdd('single.dart');
+      await delivered;
+
+      expect(events, hasLength(1));
+      expect(events.single.path, 'single.dart');
     });
   });
 }

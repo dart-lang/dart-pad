@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -33,7 +37,7 @@ final class AnalyzerStatusActivity extends AnalyzerActivity {
 }
 
 /// Serializes analyzer notifications that require asynchronous preprocessing.
-class AnalyzerNotificationQueue {
+class _AnalyzerNotificationQueue {
   Future<void> _tail = Future<void>.value();
 
   /// Enqueues an analyzer notification for serial processing.
@@ -102,7 +106,7 @@ class LanguageServerClient {
 
   late final StreamSubscription<WorkspaceChangeEvent> _workspaceSubscription;
   final Map<String, List<Diagnostic>> _diagnostics = {};
-  final AnalyzerNotificationQueue _analyzerNotificationQueue = AnalyzerNotificationQueue();
+  final _AnalyzerNotificationQueue _analyzerNotificationQueue = _AnalyzerNotificationQueue();
   bool _isAnalyzing = false;
 
   /// All current diagnostics across all files, sorted by severity, file, and position.
@@ -112,6 +116,7 @@ class LanguageServerClient {
   bool get isAnalyzing => _isAnalyzing;
 
   late final CodeMirrorLspClient _codeMirrorLspClient;
+
   /// The CodeMirror LSP client used to bridge CodeMirror extensions with the language server.
   CodeMirrorLspClient get codeMirrorLspClient => _codeMirrorLspClient;
 
@@ -119,6 +124,7 @@ class LanguageServerClient {
 
   final StreamController<Map<String, dynamic>> _diagnosticsController =
       StreamController<Map<String, dynamic>>.broadcast();
+
   /// A broadcast stream of raw diagnostic payloads from the language server.
   Stream<Map<String, dynamic>> get diagnosticsStream => _diagnosticsController.stream;
 
@@ -482,10 +488,10 @@ class LanguageServerClient {
   }
 
   /// Cancels all subscriptions and closes the diagnostic and activity stream controllers.
-  void dispose() {
-    unawaited(_languageServerSubscription.cancel());
-    unawaited(_workspaceSubscription.cancel());
-    unawaited(_diagnosticsController.close());
-    unawaited(_analyzerActivityController.close());
+  Future<void> dispose() async {
+    await _languageServerSubscription.cancel();
+    await _workspaceSubscription.cancel();
+    await _diagnosticsController.close();
+    await _analyzerActivityController.close();
   }
 }
