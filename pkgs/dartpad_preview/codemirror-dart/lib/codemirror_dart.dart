@@ -7,5 +7,8 @@ library;
 
 export 'package:codemirror_lang_dart/codemirror_lang_dart.dart';
 
-export 'src/editor.dart';
+export 'src/extensions.dart';
+export 'src/languages.dart';
 export 'src/lsp_client.dart';
+export 'src/lsp_types.dart';
+export 'src/types.dart';
