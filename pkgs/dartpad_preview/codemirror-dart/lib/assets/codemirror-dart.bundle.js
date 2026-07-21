@@ -39777,8 +39777,15 @@ ${text}</tr>
         openFile(uri, languageId, view) {
             let file = this.getFile(uri);
             if (file) {
+                if (file.view === view)
+                    return;
+                // Keep the LSP document lifecycle balanced when a newly mounted editor
+                // replaces the existing view before that view has been destroyed.
+                if (file.view)
+                    this.client.didClose(uri);
                 file.view = view;
                 file.doc = view.state.doc;
+                file.version = this.nextFileVersion(uri);
             }
             else {
                 file = new CMWorkspaceFile(uri, languageId, this.nextFileVersion(uri), view.state.doc, view);
@@ -39995,90 +40002,6 @@ ${text}</tr>
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
-    function selectionAction(config) {
-        const runAction = (view, from, to) => {
-            const text = view.state.sliceDoc(from, to);
-            const lineFrom = view.state.doc.lineAt(from).number;
-            const lineTo = view.state.doc.lineAt(to).number;
-            config.run(lineFrom, lineTo, text);
-            view.dispatch({
-                selection: { anchor: to },
-            });
-        };
-        const selectionTooltipField = StateField.define({
-            create() {
-                return null;
-            },
-            update(value, tr) {
-                if (tr.docChanged || tr.selection) {
-                    const { main } = tr.state.selection;
-                    if (main.empty) {
-                        return null;
-                    }
-                    return {
-                        pos: main.from,
-                        end: main.to,
-                        above: true,
-                        strictSide: true,
-                        create(view) {
-                            const dom = document.createElement("div");
-                            dom.className = "cm-selection-action-tooltip";
-                            const button = document.createElement("button");
-                            button.className = "cm-selection-action-btn";
-                            button.type = "button";
-                            const labelEl = document.createElement("span");
-                            labelEl.className = "cm-selection-action-label";
-                            labelEl.textContent = config.label;
-                            const shortcutEl = document.createElement("span");
-                            shortcutEl.className = "cm-selection-action-shortcut";
-                            const userAgentData = navigator.userAgentData;
-                            const isMac = userAgentData
-                                ? /Mac|iPhone|iPad|iPod/i.test(userAgentData.platform)
-                                : /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                            let keyText = config.key;
-                            if (keyText.toLowerCase().startsWith("mod-")) {
-                                keyText =
-                                    (isMac ? "⌘" : "Ctrl+") + keyText.slice(4).toUpperCase();
-                            }
-                            else {
-                                keyText = keyText.replace(/Mod/gi, isMac ? "⌘" : "Ctrl");
-                            }
-                            shortcutEl.textContent = keyText;
-                            button.appendChild(labelEl);
-                            button.appendChild(shortcutEl);
-                            button.addEventListener("click", () => {
-                                runAction(view, main.from, main.to);
-                            });
-                            dom.appendChild(button);
-                            return { dom };
-                        },
-                    };
-                }
-                return value;
-            },
-            provide: (f) => showTooltip.from(f),
-        });
-        return [
-            selectionTooltipField,
-            keymap.of([
-                {
-                    key: config.key,
-                    run: (view) => {
-                        const { main } = view.state.selection;
-                        if (main.empty) {
-                            return false;
-                        }
-                        runAction(view, main.from, main.to);
-                        return true;
-                    },
-                },
-            ]),
-        ];
-    }
-
-    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
-    // for details. All rights reserved. Use of this source code is governed by a
-    // BSD-style license that can be found in the LICENSE file.
     function hideTooltip(tr, tooltip) {
         const from = tooltip.pos, to = tooltip.end || from;
         const line = tr.startState.doc.lineAt(tooltip.pos);
@@ -40166,7 +40089,6 @@ ${text}</tr>
         sql,
         createLspClient,
         gotoDefinitionOnClick,
-        selectionAction,
         diagnosticHoverToolbar,
         forceSemanticTokensRefresh,
     };
