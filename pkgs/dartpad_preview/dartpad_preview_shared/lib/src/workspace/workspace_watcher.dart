@@ -15,13 +15,31 @@ import 'package:dartpad/src/worker_client.dart'
 /// into higher-level move events.
 class WorkspaceChangeWatcher {
   /// Creates a [WorkspaceChangeWatcher] that listens to [fileChanges].
-  WorkspaceChangeWatcher({required this.fileChanges});
+  WorkspaceChangeWatcher({
+    required this.fileChanges,
+    this.workspaceUri,
+    Future<void>? sourceReady,
+  }) : _sourceReady = sourceReady ?? Future<void>.value();
 
   /// The stream of raw filesystem events.
   final Stream<FileChangeEvent> fileChanges;
 
+  /// The workspace root used to turn the SDK watcher's absolute URIs into
+  /// workspace-relative paths. Tests and non-SDK callers may omit this when
+  /// their stream already contains relative URIs.
+  final Uri? workspaceUri;
+
+  final Future<void> _sourceReady;
+  StreamSubscription<FileChangeEvent>? _subscription;
+  final Completer<void> _listening = Completer<void>();
+
+  /// Completes once this class is subscribed and the SDK watcher is ready.
+  Future<void> get ready async {
+    await _listening.future;
+    await _sourceReady;
+  }
+
   final StreamController<WorkspaceChangeEvent> _eventsController = StreamController<WorkspaceChangeEvent>.broadcast();
-  StreamSubscription<FileChangeEvent>? _fileChangesSubscription;
 
   /// A stream of high-level workspace events (adds, removes, modifies, moves)
   /// processed and consolidated for UI consumption.
@@ -56,11 +74,14 @@ class WorkspaceChangeWatcher {
   ///   when the corresponding raw `remove` event eventually fires, it is ignored
   ///   rather than falsely reporting a deletion to the UI.
   void watchFileSystem() {
-    if (_fileChangesSubscription != null) {
+    if (_subscription != null) {
       return;
     }
-    _fileChangesSubscription = fileChanges.listen((e) {
-      final path = e.uri.path;
+    _subscription = fileChanges.listen((e) {
+      final path = _relativePath(e.uri);
+      if (path == null) {
+        return;
+      }
       if (e is FileAddedEvent) {
         final oldPath = removeMoveIntention(path);
         if (oldPath != null) {
@@ -99,12 +120,31 @@ class WorkspaceChangeWatcher {
         );
       }
     });
+    if (!_listening.isCompleted) {
+      _listening.complete();
+    }
+  }
+
+  String? _relativePath(Uri uri) {
+    final root = workspaceUri;
+    if (root == null || !uri.hasScheme) {
+      return uri.path.replaceFirst(RegExp(r'^/+'), '');
+    }
+
+    if (uri.scheme != root.scheme || uri.authority != root.authority) {
+      return null;
+    }
+    final rootPath = root.path.endsWith('/') ? root.path : '${root.path}/';
+    if (!uri.path.startsWith(rootPath)) {
+      return null;
+    }
+    return Uri.decodeComponent(uri.path.substring(rootPath.length));
   }
 
   /// Stops watching filesystem events and closes the processed event stream.
   Future<void> dispose() async {
-    await _fileChangesSubscription?.cancel();
-    _fileChangesSubscription = null;
+    await _subscription?.cancel();
+    _subscription = null;
     await _eventsController.close();
   }
 }

@@ -26,7 +26,7 @@ class EditorViewState {
 /// the [WorkspaceController] and language server features (such as syntax highlighting,
 /// diagnostics, code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
-  CodeMirrorEditor._(this.view, this.workspaceController, this.langCompartment, this.file);
+  CodeMirrorEditor._(this.view, this.langCompartment, this.file);
 
   /// The active file path.
   String file;
@@ -34,7 +34,7 @@ final class CodeMirrorEditor {
   /// The underlying CodeMirror [cm.EditorView] instance.
   final cm.EditorView view;
 
-  final WorkspaceController workspaceController;
+  WorkspaceController? _workspaceController;
   final cm.Compartment langCompartment;
 
   /// Creates a new [CodeMirrorEditor] inside the given [element].
@@ -51,7 +51,7 @@ final class CodeMirrorEditor {
     web.HTMLElement element, {
     required String file,
     String? initialDoc,
-    required WorkspaceController workspaceController,
+    WorkspaceController? workspaceController,
     void Function(String text)? onUpdate,
     void Function()? onSave,
     void Function()? onCodeActionRequested,
@@ -140,7 +140,9 @@ final class CodeMirrorEditor {
       ),
     );
 
-    return CodeMirrorEditor._(view, workspaceController, langCompartment, file);
+    final editor = CodeMirrorEditor._(view, langCompartment, file);
+    editor._workspaceController = workspaceController;
+    return editor;
   }
 
   /// Gets the current text content of the editor.
@@ -225,7 +227,26 @@ final class CodeMirrorEditor {
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(filename, workspaceController),
+          _languageExtension(filename, _workspaceController),
+        ),
+      ),
+    );
+  }
+
+  /// Adds LSP support to an already-visible editor without recreating its
+  /// document, selection, history, or scroll state.
+  void attachWorkspace(WorkspaceController workspaceController) {
+    if (identical(_workspaceController, workspaceController)) {
+      return;
+    }
+    if (_workspaceController != null) {
+      throw StateError('A different workspace is already attached.');
+    }
+    _workspaceController = workspaceController;
+    view.dispatch(
+      cm.TransactionSpec(
+        effects: langCompartment.reconfigure(
+          _languageExtension(file, workspaceController),
         ),
       ),
     );
@@ -308,14 +329,15 @@ final class CodeMirrorEditor {
 bool _isDartFile(String fileName) => fileName.endsWith('.dart');
 
 /// Returns the CodeMirror language extension for Dart or non-Dart files, or null.
-JSAny _languageExtension(String fileName, WorkspaceController workspaceController) {
+JSAny _languageExtension(String fileName, WorkspaceController? workspaceController) {
   final lower = fileName.toLowerCase();
   if (lower.endsWith('.dart')) {
     return [
       cm.dart(),
-      workspaceController.languageServerClient.codeMirrorLspClient.createExtension(
-        workspaceController.workspaceUri.resolve(fileName).toString(),
-      ),
+      if (workspaceController != null)
+        workspaceController.languageServerClient.codeMirrorLspClient.createExtension(
+          workspaceController.workspaceUri.resolve(fileName).toString(),
+        ),
       cm.keymapOf(
         [
           cm.KeyBinding(

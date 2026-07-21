@@ -146,6 +146,45 @@ void main() {
       expect(events, hasLength(1));
       expect(events.single.path, 'single.dart');
     });
+
+    test('normalizes absolute SDK watcher URIs to workspace-relative paths', () async {
+      await watcher.dispose();
+      watcher = WorkspaceChangeWatcher(
+        fileChanges: stream.stream,
+        workspaceUri: Uri.parse('file:///workspace/42/'),
+      )..watchFileSystem();
+      events = [];
+      watcher.events.listen(events.add);
+      final delivered = watcher.events.first;
+
+      stream
+        ..emitAdd('file:///somewhere-else/ignored.dart')
+        ..emitAdd('file:///workspace/42/lib/main.dart');
+      await delivered;
+
+      expect(events.map(_eventTuple), [
+        (WorkspaceChangeEventType.add, 'lib/main.dart', null),
+      ]);
+    });
+
+    test('ready waits for the SDK watcher readiness signal', () async {
+      await watcher.dispose();
+      final sourceReady = Completer<void>();
+      watcher = WorkspaceChangeWatcher(
+        fileChanges: stream.stream,
+        sourceReady: sourceReady.future,
+      );
+
+      var completed = false;
+      watcher.watchFileSystem();
+      final start = watcher.ready.then((_) => completed = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(completed, isFalse);
+
+      sourceReady.complete();
+      await start;
+      expect(completed, isTrue);
+    });
   });
 }
 

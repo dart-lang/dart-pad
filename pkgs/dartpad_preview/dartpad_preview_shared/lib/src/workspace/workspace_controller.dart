@@ -20,8 +20,14 @@ abstract class WorkspaceController implements WorkspaceApi {
     required this.workspace,
     required LanguageServer languageServer,
   }) {
-    watcher = WorkspaceChangeWatcher(fileChanges: workspace.watch(workspace.workspaceFolder.toString()).changes)
-      ..watchFileSystem();
+    _languageServer = languageServer;
+    final sdkWatcher = workspace.watch(workspace.workspaceFolder.toString());
+    watcher = WorkspaceChangeWatcher(
+      fileChanges: sdkWatcher.changes,
+      workspaceUri: workspace.workspaceFolder,
+      sourceReady: sdkWatcher.ready,
+    );
+    watcher.watchFileSystem();
     languageServerClient = LanguageServerClient(
       languageServer: languageServer,
       workspaceController: this,
@@ -30,6 +36,7 @@ abstract class WorkspaceController implements WorkspaceApi {
 
   /// The underlying [Workspace] environment containing project files and configurations.
   final Workspace workspace;
+  late final LanguageServer _languageServer;
 
   /// The watcher responsible for monitoring file system changes in the workspace.
   late final WorkspaceChangeWatcher watcher;
@@ -37,11 +44,17 @@ abstract class WorkspaceController implements WorkspaceApi {
   /// The [Uri] of the workspace folder.
   Uri get workspaceUri => workspace.workspaceFolder;
 
+  @override
+  Uri get workspaceFolder => workspaceUri;
+
   /// The root [WorkspaceFolder] of the workspace.
   WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
 
   /// The language server client used to communicate with the [LanguageServer].
   late final LanguageServerClient languageServerClient;
+
+  /// Completes when filesystem events can no longer be missed.
+  Future<void> get ready => watcher.ready;
 
   // -- WorkspaceApi implementation --
 
@@ -81,9 +94,11 @@ abstract class WorkspaceController implements WorkspaceApi {
     watcher.addMoveIntention(oldPath, newPath);
   }
 
-  /// Stops the language-server client and filesystem watcher.
+  /// Releases resources in dependency order.
   Future<void> dispose() async {
     await languageServerClient.dispose();
     await watcher.dispose();
+    await _languageServer.stop();
+    await workspace.dispose();
   }
 }
