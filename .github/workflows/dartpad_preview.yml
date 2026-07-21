@@ -21,7 +21,7 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
-  test:
+  codemirror:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -66,3 +66,24 @@ jobs:
         run: |
           npm run build
           git diff --exit-code -- lib/assets
+
+  shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+
+      - name: Install dependencies
+        working-directory: pkgs/dartpad_preview
+        run: dart pub get
+
+      - name: Check Dart sources
+        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        run: |
+          dart format --output=none --set-exit-if-changed lib test
+          dart analyze --fatal-infos
+
+      - name: Run tests
+        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        run: dart test
