@@ -41,7 +41,7 @@ extension type Compartment._(JSObject _) implements JSObject {
 ///
 /// See: https://codemirror.net/docs/ref/#state.EditorSelection
 extension type EditorSelection(JSObject _) implements JSObject {
-  external static EditorSelection cursor(int pos);
+  external static SelectionRange cursor(int pos);
   external static EditorSelection create(JSArray<SelectionRange> ranges, [int? mainIndex]);
   external static SelectionRange range(int anchor, int head);
 

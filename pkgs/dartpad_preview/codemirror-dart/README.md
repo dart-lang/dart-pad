@@ -68,6 +68,7 @@ messages back through `receiveFromServer`.
 ```bash
 npm run typecheck
 npm test
+dart test --platform chrome
 dart analyze --fatal-infos
-dart format --output=none --set-exit-if-changed lib
+dart format --output=none --set-exit-if-changed lib test
 ```

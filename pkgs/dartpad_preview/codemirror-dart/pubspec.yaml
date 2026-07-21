@@ -1,3 +1,7 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 name: codemirror_dart
 description: CodeMirror 6 support for Dart.
 version: 0.0.1
@@ -11,3 +15,6 @@ resolution: workspace
 dependencies:
   codemirror_lang_dart: any
   web: ^1.1.1
+
+dev_dependencies:
+  test: ^1.31.1

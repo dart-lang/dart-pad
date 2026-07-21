@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-name: package:codemirror-dart
+name: package:dartpad_preview
 
 permissions: read-all
 
@@ -11,12 +11,14 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/codemirror_dart.yml'
+      - '.github/workflows/codemirror_lang_dart.yml'
       - 'pkgs/dartpad_preview/codemirror-dart/**'
       - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/codemirror_dart.yml'
+      - '.github/workflows/codemirror_lang_dart.yml'
       - 'pkgs/dartpad_preview/codemirror-dart/**'
       - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
   schedule:
@@ -34,34 +36,36 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dart dependencies
+      - name: Install Dart workspace dependencies
         working-directory: pkgs/dartpad_preview
         run: dart pub get
 
-      - name: Build codemirror-lang-dart
+      - name: Test and build codemirror-lang-dart
         working-directory: pkgs/dartpad_preview/codemirror-lang-dart
         run: |
           npm ci
+          npm test
           npm run build
 
-      - name: Install codemirror-dart dependencies
+      - name: Install codemirror-dart Node dependencies
         working-directory: pkgs/dartpad_preview/codemirror-dart
         run: npm ci
 
-      - name: Check Dart sources
+      - name: Check codemirror-dart Dart sources
         working-directory: pkgs/dartpad_preview/codemirror-dart
         run: |
-          dart format --output=none --set-exit-if-changed lib
+          dart format --output=none --set-exit-if-changed lib test
           dart analyze --fatal-infos
+          dart test --platform chrome
 
-      - name: Check TypeScript and run tests
+      - name: Check codemirror-dart TypeScript and tests
         working-directory: pkgs/dartpad_preview/codemirror-dart
         run: |
           npm run format:check
           npm run typecheck
           npm test
 
-      - name: Verify generated assets
+      - name: Verify codemirror-dart generated assets
         working-directory: pkgs/dartpad_preview/codemirror-dart
         run: |
           npm run build
