@@ -1,0 +1,117 @@
+# If statement
+void main() {
+  if (x) a();
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# If-else statement
+void main() {
+if (x) {
+a();
+} else {
+b();
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation), Keyword, Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# For loop
+void main() {
+for (var i = 0; i < 10; i++) {
+print(i);
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Keyword, Identifier, Operator, Number, Punctuation, Identifier, Operator, Number, Punctuation, Identifier, Operator, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# For-in loop
+void main() {
+for (var x in list) {
+print(x);
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Keyword, Identifier, Keyword, Identifier, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# While loop
+void main() {
+while (true) {
+break;
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Keyword, Punctuation), Block(Punctuation, Keyword, Punctuation, Punctuation), Punctuation))))
+
+# Do-while loop
+void main() {
+do {
+x++;
+} while (x < 10);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Block(Punctuation, Identifier, Operator, Punctuation, Punctuation), Keyword, ArgumentList(Punctuation, Identifier, Operator, Number, Punctuation), Punctuation, Punctuation))))
+
+# Try-catch-finally
+void main() {
+try {
+foo();
+} on FormatException catch (e) {
+print(e);
+} catch (e, s) {
+print(s);
+} finally {
+cleanup();
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation), Keyword, Identifier, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Keyword, ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Keyword, Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# Rethrow statement
+void main() {
+try {
+foo();
+} catch (e) {
+rethrow;
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation), Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Keyword, Punctuation, Punctuation), Punctuation))))
+
+# For-in loop with metadata
+void main() {
+for (@deprecated var x in list) {
+print(x);
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Punctuation, Identifier, Keyword, Identifier, Keyword, Identifier, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# Pattern for-in with metadata
+void f(x) {
+for (@annotation var (a, b) in x) {}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Punctuation, Identifier, Keyword, ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Punctuation), Keyword, Identifier, Punctuation), Block(Punctuation, Punctuation), Punctuation))))
+
+# Return statement
+int foo() {
+return 42;
+}
+==>
+Program(Program(TopLevel(Identifier, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Number, Punctuation, Punctuation))))
+
+# Assert statement
+void main() {
+assert(x > 0, 'must be positive');
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Operator, Number, Punctuation, String, Punctuation), Punctuation, Punctuation))))
+
+# Empty statement
+void main() {
+foo();
+;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation, Punctuation))))

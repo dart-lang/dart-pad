@@ -1,0 +1,27 @@
+# Simple Generic Class
+class Box<T> {
+  T value;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, Identifier, Operator, Block(Punctuation, Identifier, Identifier, Punctuation, Punctuation))))
+
+# Generic Function
+T identity<T extends Object>(T value) {
+return value;
+}
+==>
+Program(Program(TopLevel(Identifier, Identifier, Operator, Identifier, Keyword, Identifier, Operator, ArgumentList(Punctuation, Identifier, Identifier, Punctuation), Block(Punctuation, Keyword, Identifier, Punctuation, Punctuation))))
+
+# Generic Invocation vs Relational Operator
+void main() {
+var x = a < b > (c);
+var y = foo<int>();
+var z = a < b;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Identifier, Operator, Identifier, Operator, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Keyword, Identifier, Operator, Identifier, Operator, Identifier, Operator, ArgumentList(Punctuation, Punctuation), Punctuation, Keyword, Identifier, Operator, Identifier, Operator, Identifier, Punctuation, Punctuation))))
+
+# Nested Generics
+Map<String, List<int>> map = {};
+==>
+Program(Program(TopLevel(Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Operator, Identifier, Operator, Block(Punctuation, Punctuation)), TopLevel(Punctuation)))

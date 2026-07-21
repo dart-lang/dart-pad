@@ -1,0 +1,85 @@
+# Decimal integer literals
+void main() {
+  0;
+  42;
+  1000;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation, Punctuation))))
+
+# Hexadecimal integer literals
+void main() {
+0x0;
+0xFF;
+0XDEAD;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation, Punctuation))))
+
+# Floating point literals
+void main() {
+3.14;
+.5;
+1e10;
+1.5e-3;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation, Punctuation))))
+
+# Boolean literals
+void main() {
+true;
+false;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Punctuation, Keyword, Punctuation, Punctuation))))
+
+# Null literal
+void main() {
+null;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Punctuation, Punctuation))))
+
+# String literals
+void main() {
+'hello';
+"world";
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, String, Punctuation, String, Punctuation, Punctuation))))
+
+# Symbol literals
+void main() {
+#foo;
+#foo.bar;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Punctuation, Punctuation, Punctuation, Punctuation, Punctuation, Punctuation, Identifier, Punctuation, Punctuation))))
+
+# List literal
+void main() {
+[1, 2, 3];
+<int>[1];
+const [1];
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, List(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation), Punctuation, Operator, Identifier, Operator, List(Punctuation, Number, Punctuation), Punctuation, Keyword, List(Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# Set or map literal
+void main() {
+{1, 2};
+{'a': 1};
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Block(Punctuation, Number, Punctuation, Number, Punctuation), Punctuation, Block(Punctuation, String, Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# Null-aware elements
+void main() {
+[?a];
+{?key: value};
+{key: ?value};
+{?key: ?value};
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, List(Punctuation, Operator, Identifier, Punctuation), Punctuation, Block(Punctuation, Operator, Identifier, Punctuation, Identifier, Punctuation), Punctuation, Block(Punctuation, Identifier, Punctuation, Operator, Identifier, Punctuation), Punctuation, Block(Punctuation, Operator, Identifier, Punctuation, Operator, Identifier, Punctuation), Punctuation, Punctuation))))

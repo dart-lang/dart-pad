@@ -1,0 +1,160 @@
+# Binary expressions
+void main() {
+  a + b;
+  a - b;
+  a * b;
+  a / b;
+  a % b;
+  a ~/ b;
+  a << b;
+  a >> b;
+  a >>> b;
+  a & b;
+  a ^ b;
+  a | b;
+  a && b;
+  a || b;
+  a ?? b;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Punctuation))))
+
+# Relational and equality expressions
+void main() {
+a > b;
+a < b;
+a >= b;
+a <= b;
+a == b;
+a != b;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Operator, Identifier, Punctuation, Punctuation))))
+
+# Ternary expression
+void main() {
+a ? b : c;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Identifier, Punctuation, Identifier, Punctuation, Punctuation))))
+
+# Assignment expression
+void main() {
+x = 1;
+x += 1;
+x ??= 2;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Number, Punctuation, Identifier, Operator, Number, Punctuation, Identifier, Operator, Number, Punctuation, Punctuation))))
+
+# Type test and cast expressions
+void main() {
+x is int;
+x is! String;
+x as double;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Keyword, Identifier, Punctuation, Identifier, Keyword, Operator, Identifier, Punctuation, Identifier, Keyword, Identifier, Punctuation, Punctuation))))
+
+# Unary expressions
+void main() {
+-x;
+!x;
+~x;
+++x;
+--x;
+x++;
+x--;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Operator, Identifier, Punctuation, Operator, Identifier, Punctuation, Operator, Identifier, Punctuation, Operator, Identifier, Punctuation, Operator, Identifier, Punctuation, Identifier, Operator, Punctuation, Identifier, Operator, Punctuation, Punctuation))))
+
+# Await expression
+void main() async {
+await foo();
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Keyword, Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# Throw expression
+void main() {
+throw Exception();
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# Cascade expression
+void main() {
+list..add(1)..add(2);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Identifier, ArgumentList(Punctuation, Number, Punctuation), Operator, Identifier, ArgumentList(Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# Built-in identifiers as assignable expressions
+void f() {
+type = 1;
+get = 2;
+show = 3;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Operator, Number, Punctuation, Keyword, Operator, Number, Punctuation, Keyword, Operator, Number, Punctuation, Punctuation))))
+
+# Built-in identifiers as named arguments
+void f() {
+foo(type: 42);
+bar(show: true);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, Number, Punctuation), Punctuation, Identifier, ArgumentList(Punctuation, Keyword, Punctuation, Keyword, Punctuation), Punctuation, Punctuation))))
+
+# Built-in identifiers as member access
+void f() {
+obj.type = 1;
+this.get = 2;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Identifier, Punctuation, Identifier, Operator, Number, Punctuation, Keyword, Punctuation, Keyword, Operator, Number, Punctuation, Punctuation))))
+
+# Function as identifier (static method access)
+void f() {
+Function.apply(callback, [value]);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, List(Punctuation, Identifier, Punctuation), Punctuation), Punctuation, Punctuation))))
+
+# Dot shorthand in assignment and arguments
+Color f(Color c) {
+Color x = .red;
+paint(.blue);
+return .green;
+}
+==>
+Program(Program(TopLevel(Identifier, Identifier, ArgumentList(Punctuation, Identifier, Identifier, Punctuation), Block(Punctuation, Identifier, Identifier, Operator, Punctuation, Identifier, Punctuation, Identifier, ArgumentList(Punctuation, Punctuation, Identifier, Punctuation), Punctuation, Keyword, Punctuation, Identifier, Punctuation, Punctuation))))
+
+# Dot shorthand in list literal
+void f() {
+var x = [.red, .green, .blue];
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, List(Punctuation, Punctuation, Identifier, Punctuation, Punctuation, Identifier, Punctuation, Punctuation, Identifier, Punctuation), Punctuation, Punctuation))))
+
+# Dot shorthand in map literal value
+void f() {
+var x = {'key': .red};
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Block(Punctuation, String, Punctuation, Punctuation, Identifier, Punctuation), Punctuation, Punctuation))))
+
+# Dot shorthand const constructor
+void f() {
+var x = const .new(1);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Keyword, Punctuation, Keyword, ArgumentList(Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# Super with argument part
+class A extends B {
+int call(int x) => super(x);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Keyword, Identifier, Block(Punctuation, Identifier, Identifier, ArgumentList(Punctuation, Identifier, Identifier, Punctuation), Operator, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation))))

@@ -1,0 +1,44 @@
+# Basic strings
+var a = "hello";
+var b = 'world';
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Punctuation)))
+
+# String interpolation with simple identifiers
+var a = "Hello $name";
+var b = 'World $name';
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Punctuation, Identifier, String, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Punctuation, Identifier, String, Punctuation)))
+
+# String interpolation with expressions
+var a = "Total: ${x + y} dollars";
+var b = "${[1, 2, 3].length}";
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Block(Punctuation, Identifier, Operator, Identifier, Punctuation)), TopLevel(String, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Block(Punctuation, List(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation), Punctuation, Identifier, Punctuation)), TopLevel(String, Punctuation)))
+
+# Multiline strings
+var a = """
+line 1
+line 2
+""";
+
+var b = '''
+single quote
+multiline
+''';
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Punctuation)))
+
+# Raw strings
+var a = r"raw \n string $no_interp";
+var b = r'raw \t another $nothing';
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Punctuation), TopLevel(Keyword, Identifier, Operator, String, Punctuation)))
+
+# Raw multiline strings
+var a = r"""
+multiple $lines
+no \n substitution
+""";
+==>
+Program(Program(TopLevel(Keyword, Identifier, Operator, String, Punctuation)))

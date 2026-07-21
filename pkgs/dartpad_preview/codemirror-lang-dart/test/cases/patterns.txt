@@ -1,0 +1,68 @@
+# Switch with pattern matching
+void main() {
+  switch (obj) {
+    case int x when x > 0:
+      print(x);
+    default:
+      break;
+  }
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Keyword, Identifier, Identifier, Keyword, Identifier, Operator, Number, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Keyword, Punctuation, Keyword, Punctuation, Punctuation), Punctuation))))
+
+# Empty record pattern assignment
+void main() {
+() = x;
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, ArgumentList(Punctuation, Punctuation), Operator, Identifier, Punctuation, Punctuation))))
+
+# Pattern variable declaration
+void main() {
+var (a, b) = (1, 2);
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Punctuation, Identifier, Punctuation), Operator, ArgumentList(Punctuation, Number, Punctuation, Number, Punctuation), Punctuation, Punctuation))))
+
+# If-case statement
+void main() {
+if (obj case [int first, ...]) {
+print(first);
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Keyword, List(Punctuation, Identifier, Identifier, Punctuation, Punctuation), Punctuation), Block(Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Punctuation))))
+
+# Switch expression
+void main() {
+var x = switch (obj) {
+int n => n.toString(),
+_ => 'other',
+};
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Identifier, Identifier, Operator, Identifier, Punctuation, Identifier, ArgumentList(Punctuation, Punctuation), Punctuation, Identifier, Operator, String, Punctuation, Punctuation), Punctuation, Punctuation))))
+
+# Const record pattern
+void f(x) {
+if (x case const (1, 2, 3)) {}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Keyword, Keyword, ArgumentList(Punctuation, Number, Punctuation, Number, Punctuation, Number, Punctuation), Punctuation), Block(Punctuation, Punctuation), Punctuation))))
+
+# Empty switch expression
+f(x) => switch(x) {};
+==>
+Program(Program(TopLevel(Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Operator, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Punctuation)), TopLevel(Punctuation)))
+
+# Object pattern with labeled fields
+class Point { final int x; final int y; Point(this.x, this.y); }
+void main() {
+var p = Point(1, 2);
+switch (p) {
+case Point(x: var px, y: var py) when px > py:
+print(px);
+}
+}
+==>
+Program(Program(TopLevel(Keyword, Identifier, Block(Punctuation, Keyword, Identifier, Identifier, Punctuation, Keyword, Identifier, Identifier, Punctuation, Identifier, ArgumentList(Punctuation, Keyword, Punctuation, Identifier, Punctuation, Keyword, Punctuation, Identifier, Punctuation), Punctuation, Punctuation)), TopLevel(Keyword, Identifier, ArgumentList(Punctuation, Punctuation), Block(Punctuation, Keyword, Identifier, Operator, Identifier, ArgumentList(Punctuation, Number, Punctuation, Number, Punctuation), Punctuation, Keyword, ArgumentList(Punctuation, Identifier, Punctuation), Block(Punctuation, Keyword, Identifier, ArgumentList(Punctuation, Identifier, Punctuation, Keyword, Identifier, Punctuation, Identifier, Punctuation, Keyword, Identifier, Punctuation), Keyword, Identifier, Operator, Identifier, Punctuation, Identifier, ArgumentList(Punctuation, Identifier, Punctuation), Punctuation, Punctuation), Punctuation))))
