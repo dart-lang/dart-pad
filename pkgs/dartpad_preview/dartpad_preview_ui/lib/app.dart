@@ -27,7 +27,6 @@ class AppState extends State<App> {
   late final BrowserConsoleObserver _console;
   late final SingleFileEditorViewModel _editor;
   late final AppBootstrapCoordinator _startup;
-  bool _startupScheduled = false;
 
   @override
   void initState() {
@@ -43,6 +42,8 @@ class AppState extends State<App> {
       editor: _editor,
       onChanged: _refresh,
     );
+    // The editor DOM is committed before any worker download or SDK setup.
+    context.binding.addPostFrameCallback(_startup.start);
   }
 
   void _refresh() {
@@ -53,12 +54,6 @@ class AppState extends State<App> {
 
   @override
   Component build(BuildContext context) {
-    if (!_startupScheduled) {
-      _startupScheduled = true;
-      // The editor DOM is committed before any worker download or SDK setup.
-      context.binding.addPostFrameCallback(_startup.start);
-    }
-
     return EditorShell(
       editor: NodeContainer(_editor.container),
       bootstrapLabel: _startup.status.label,
