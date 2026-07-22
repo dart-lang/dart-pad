@@ -12,6 +12,7 @@ workspace:
   - codemirror-lang-dart
   - codemirror-dart
   - dartpad_editor
+  - dartpad_preview_ui
 
 environment:
   sdk: ^3.12.0-0

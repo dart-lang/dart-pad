@@ -2,62 +2,79 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:jaspr/dom.dart';
+import 'dart:async';
+
 import 'package:jaspr/jaspr.dart';
-import 'package:jaspr_router/jaspr_router.dart';
 
-import 'components/header.dart';
-import 'pages/about.dart';
-import 'pages/home.dart';
+import 'features/editor/editor_shell.dart';
+import 'features/editor/single_file_editor_view_model.dart';
+import 'features/shared/app_event_bus.dart';
+import 'features/shared/browser_console_observer.dart';
+import 'features/shared/node_container.dart';
+import 'features/startup/app_bootstrap_coordinator.dart';
 
-// The main component of your application.
-class App extends StatelessComponent {
+/// The deliberately small first production slice of DartPad Preview.
+class App extends StatefulComponent {
   const App({super.key});
 
   @override
-  Component build(BuildContext context) {
-    // This method is rerun every time the component is rebuilt.
+  State<App> createState() => AppState();
+}
 
-    // Renders a <div class="main"> html element with children.
-    return div(classes: 'main', [
-      Router(
-        routes: [
-          ShellRoute(
-            builder: (context, state, child) => .fragment([
-              const Header(),
-              child,
-            ]),
-            routes: [
-              Route(path: '/', title: 'Home', builder: (context, state) => const Home()),
-              Route(path: '/about', title: 'About', builder: (context, state) => const About()),
-            ],
-          ),
-        ],
-      ),
-    ]);
+class AppState extends State<App> {
+  late final AppEventBus _events;
+  late final BrowserConsoleObserver _console;
+  late final SingleFileEditorViewModel _editor;
+  late final AppBootstrapCoordinator _startup;
+  bool _startupScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _events = AppEventBus();
+    _console = BrowserConsoleObserver(_events);
+    _editor = SingleFileEditorViewModel(
+      events: _events,
+      onChanged: _refresh,
+    );
+    _startup = AppBootstrapCoordinator(
+      events: _events,
+      editor: _editor,
+      onChanged: _refresh,
+    );
   }
 
-  // Defines the CSS styles for this component.
-  //
-  // By using the @css annotation, these will be rendered automatically to CSS and included in your page.
-  // Must be a variable or getter of type [List<StyleRule>].
-  @css
-  static List<StyleRule> get styles => [
-    css('.main', [
-      // The '&' refers to the parent selector of a nested style rules.
-      css('&').styles(
-        display: .flex,
-        height: 100.vh,
-        flexDirection: .column,
-        flexWrap: .wrap,
-      ),
-      css('section').styles(
-        display: .flex,
-        flexDirection: .column,
-        justifyContent: .center,
-        alignItems: .center,
-        flex: Flex(grow: 1),
-      ),
-    ]),
-  ];
+  void _refresh() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Component build(BuildContext context) {
+    if (!_startupScheduled) {
+      _startupScheduled = true;
+      // The editor DOM is committed before any worker download or SDK setup.
+      context.binding.addPostFrameCallback(_startup.start);
+    }
+
+    return EditorShell(
+      editor: NodeContainer(_editor.container),
+      bootstrapLabel: _startup.status.label,
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_disposeResources());
+    super.dispose();
+  }
+
+  Future<void> _disposeResources() async {
+    // Stop producers before their consumers and the shared event stream.
+    await _editor.dispose();
+    await _startup.dispose();
+    await _console.dispose();
+    await _events.dispose();
+  }
 }

@@ -6,6 +6,10 @@
 # Conventional directory for build output.
 /build/
 
+# Until 0.0.4 of dartpad with the new file watcher logic is published, we need
+# to build and keep the SDK runtime assets locally.
+/web/dartpad/
+
 # Miscellaneous
 *.class
 *.log

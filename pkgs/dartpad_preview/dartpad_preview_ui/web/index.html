@@ -5,11 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="scaffolded-by" content="https://github.com/schultek/jaspr">
 
-        <title>dartpad_preview</title>
+        <title>DartPad Preview</title>
 
         <!-- Loads the generated CSS file. -->
         <!-- This contains all @css declarations from your components. -->
         <link rel="stylesheet" href="main.css">
+
+        <!-- CodeMirror must be installed on globalThis before Dart interop loads. -->
+        <script src="packages/codemirror_dart/assets/codemirror-dart.bundle.js"></script>
 
         <!-- Loads and runs the compiled 'main.client.dart' file. -->
         <!-- Can be changed to any other '.client.dart' file inside /lib. -->
