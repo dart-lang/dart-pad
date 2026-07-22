@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad/dartpad.dart';
+
 const String sampleMainDart = r'''import 'package:flutter/material.dart';
 
 void main() {
@@ -86,3 +88,14 @@ dependencies:
 flutter:
   uses-material-design: true
 ''';
+
+/// Creates the files for the default DartPad Preview sample project.
+Future<void> createSampleProject(
+  Workspace workspace, {
+  required String Function() readLatestMainSource,
+}) async {
+  await workspace.createFolder('lib');
+  await workspace.writeFileFromText('pubspec.yaml', samplePubspec);
+  // Read at the last possible moment: edits made during worker startup win.
+  await workspace.writeFileFromText('lib/main.dart', readLatestMainSource());
+}

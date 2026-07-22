@@ -27,12 +27,11 @@ final class WorkspaceRepository extends WorkspaceController {
   /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
 
-  /// Creates a new transient workspace, writes the sample project files,
-  /// and starts the language server.
+  /// Creates a new transient workspace and starts the language server.
   ///
   /// - [events]: event bus used for progress logging.
-  /// - [readLatestMainSource]: called at the last possible moment to capture
-  ///   any edits made while the worker was loading.
+  /// - [readLatestMainSource]: provides the source used to initialize the
+  ///   sample project.
   static Future<WorkspaceRepository> create({
     required AppEventBus events,
     required String Function() readLatestMainSource,
@@ -48,10 +47,10 @@ final class WorkspaceRepository extends WorkspaceController {
 
       events.dispatch(const LogEvent('Creating transient workspace...'));
       workspace = await dartpad.createWorkspace();
-      await workspace.createFolder('lib');
-      await workspace.writeFileFromText('pubspec.yaml', samplePubspec);
-      // Read at the last possible moment: edits made during worker startup win.
-      await workspace.writeFileFromText('lib/main.dart', readLatestMainSource());
+      await createSampleProject(
+        workspace,
+        readLatestMainSource: readLatestMainSource,
+      );
 
       events.dispatch(const LogEvent('Starting analyzer...'));
       final languageServer = await workspace.startLanguageServer();
