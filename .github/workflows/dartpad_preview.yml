@@ -10,17 +10,13 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/codemirror_dart.yml'
-      - '.github/workflows/codemirror_lang_dart.yml'
-      - 'pkgs/dartpad_preview/codemirror-dart/**'
-      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
+      - '.github/workflows/dartpad_preview.yml'
+      - 'pkgs/dartpad_preview/dartpad_preview/**'
   pull_request:
     branches: [main]
     paths:
-      - '.github/workflows/codemirror_dart.yml'
-      - '.github/workflows/codemirror_lang_dart.yml'
-      - 'pkgs/dartpad_preview/codemirror-dart/**'
-      - 'pkgs/dartpad_preview/codemirror-lang-dart/**'
+      - '.github/workflows/dartpad_preview.yml'
+      - 'pkgs/dartpad_preview/dartpad_preview/**'
   schedule:
     - cron: '0 0 * * 0'
 
