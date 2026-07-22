@@ -43,20 +43,6 @@ class EditorShell extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css('html, body').styles(
-      width: 100.percent,
-      height: 100.percent,
-      padding: .zero,
-      margin: .zero,
-      overflow: .hidden,
-      color: const Color('#d4d4d4'),
-      fontFamily: const .list([
-        FontFamily('Inter'),
-        FontFamily('Segoe UI'),
-        FontFamilies.sansSerif,
-      ]),
-      backgroundColor: const Color('#1e1e1e'),
-    ),
     css('.ide-shell').styles(
       display: .flex,
       width: 100.percent,
