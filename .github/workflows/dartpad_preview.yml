@@ -11,12 +11,12 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/dartpad_preview.yml'
-      - 'pkgs/dartpad_preview/dartpad_preview/**'
+      - 'pkgs/dartpad_preview/**'
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/dartpad_preview.yml'
-      - 'pkgs/dartpad_preview/dartpad_preview/**'
+      - 'pkgs/dartpad_preview/**'
   schedule:
     - cron: '0 0 * * 0'
 
