@@ -11,6 +11,7 @@ import '../editor/single_file_editor_view_model.dart';
 import '../shared/app_event_bus.dart';
 import '../workspace/workspace_repository.dart';
 
+/// Discrete phases of the application startup shown to the user.
 enum BootstrapStatus {
   idle('Editor ready'),
   starting('Starting analyzer…'),
@@ -22,6 +23,10 @@ enum BootstrapStatus {
 }
 
 /// Coordinates application startup without delaying the first frame.
+///
+/// - [events]: shared event bus for dispatching log and status events.
+/// - [editor]: the editor view model that receives the workspace once ready.
+/// - [onChanged]: called when [status] changes so the UI can rebuild.
 final class AppBootstrapCoordinator {
   AppBootstrapCoordinator({
     required this.events,
@@ -29,8 +34,13 @@ final class AppBootstrapCoordinator {
     required this.onChanged,
   });
 
+  /// Shared event bus for dispatching log and status events.
   final AppEventBus events;
+
+  /// The editor view model that receives the workspace once ready.
   final SingleFileEditorViewModel editor;
+
+  /// Called when [status] changes so the UI can rebuild.
   final void Function() onChanged;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;

@@ -10,6 +10,9 @@ import '../editor/sample_project.dart';
 import '../shared/app_event_bus.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
+///
+/// - [dartpad]: the DartPad runtime instance that owns the WASM worker.
+/// - [events]: shared event bus for lifecycle and diagnostic logging.
 final class WorkspaceRepository extends WorkspaceController {
   WorkspaceRepository._({
     required this.dartpad,
@@ -18,9 +21,18 @@ final class WorkspaceRepository extends WorkspaceController {
     required this.events,
   });
 
+  /// The DartPad runtime instance that owns the WASM worker.
   final DartPad dartpad;
+
+  /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
 
+  /// Creates a new transient workspace, writes the sample project files,
+  /// and starts the language server.
+  ///
+  /// - [events]: event bus used for progress logging.
+  /// - [readLatestMainSource]: called at the last possible moment to capture
+  ///   any edits made while the worker was loading.
   static Future<WorkspaceRepository> create({
     required AppEventBus events,
     required String Function() readLatestMainSource,

@@ -6,9 +6,13 @@ import 'package:jaspr/client.dart';
 import 'package:web/web.dart' as web;
 
 /// Inserts a DOM node managed by CodeMirror into Jaspr's render tree.
+///
+/// [containerNode] is the externally managed DOM node (e.g. CodeMirror's
+/// root element).
 class NodeContainer extends Component {
   const NodeContainer(this.containerNode);
 
+  /// The externally managed DOM node (e.g. CodeMirror's root element).
   final web.Node containerNode;
 
   @override

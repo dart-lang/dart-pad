@@ -9,6 +9,10 @@ import 'package:web/web.dart' as web;
 
 import 'app_event_bus.dart';
 
+/// Forwards [LogEvent]s from the [AppEventBus] to the browser's developer
+/// console.
+///
+/// Takes an [AppEventBus] to subscribe to log events.
 final class BrowserConsoleObserver {
   BrowserConsoleObserver(AppEventBus events) {
     _subscription = events.on<LogEvent>().listen(_write);

@@ -21,6 +21,7 @@ class App extends StatefulComponent {
   State<App> createState() => AppState();
 }
 
+/// Composition root – wires all services and drives the startup lifecycle.
 class AppState extends State<App> {
   late final AppEventBus _events;
   late final BrowserConsoleObserver _console;

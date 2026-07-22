@@ -11,6 +11,11 @@ import 'package:web/web.dart' as web;
 import '../shared/app_event_bus.dart';
 import 'sample_project.dart';
 
+/// Manages the CodeMirror editor state for a single `lib/main.dart` file,
+/// including save, format, and LSP attachment.
+///
+/// - [events]: shared event bus for logging and cross-component communication.
+/// - [onChanged]: called whenever editor state changes that affect the UI.
 final class SingleFileEditorViewModel {
   SingleFileEditorViewModel({
     required this.events,
@@ -32,7 +37,10 @@ final class SingleFileEditorViewModel {
 
   static const String filePath = 'lib/main.dart';
 
+  /// Shared event bus for logging and cross-component communication.
   final AppEventBus events;
+
+  /// Called whenever editor state changes that affect the UI.
   final void Function() onChanged;
   final web.HTMLElement container;
   late final CodeMirrorEditor editor;
