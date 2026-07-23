@@ -111,12 +111,14 @@ class TestTab extends EditorTab<String> {
     this.dirty = false,
     this.saveError,
     this.eventLog,
+    this.onDiscard,
   });
 
   final bool testKeepAlive;
   bool dirty;
   final Error? saveError;
   final List<String>? eventLog;
+  final void Function()? onDiscard;
 
   final List<String> lifecycleLog = [];
   final StreamController<void> updates = StreamController<void>.broadcast(sync: true);
@@ -156,6 +158,7 @@ class TestTab extends EditorTab<String> {
   @override
   void discardUnsavedChanges() {
     _record('discardUnsavedChanges');
+    onDiscard?.call();
     dirty = false;
   }
 
@@ -175,12 +178,14 @@ class TestTabAdapter extends EditorTabAdapter<String> {
     this.dirty = false,
     this.saveError,
     this.creationGate,
+    this.onDiscard,
   });
 
   bool keepAlive;
   bool dirty;
   Error? saveError;
   Completer<void>? creationGate;
+  void Function(String path)? onDiscard;
   int creationCount = 0;
   final Completer<void> creationStarted = Completer<void>();
   final List<String> eventLog = [];
@@ -201,6 +206,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
       dirty: dirty,
       saveError: saveError,
       eventLog: eventLog,
+      onDiscard: () => onDiscard?.call(path),
     );
     createdTabs[path] = tab;
     return tab;
@@ -322,6 +328,10 @@ void main() {
       adapter.creationGate!.complete();
       await Future.wait([firstOpen, secondOpen]);
       expect(tabs.openTabs.map((tab) => tab.path), ['slow.dart']);
+      expect(
+        adapter.createdTabs['slow.dart']!.lifecycleLog,
+        isNot(contains('dispose')),
+      );
     });
 
     test('disposes a tab deleted while its adapter is still loading', () async {
@@ -489,6 +499,21 @@ void main() {
       expect(adapter.createdTabs['b.dart']!.lifecycleLog, ['save']);
       expect(tabs.saveLog.last, unorderedEquals(['a.dart', 'b.dart']));
     });
+
+    test('also saves dirty keep-alive tabs that are currently closed', () async {
+      adapter
+        ..dirty = true
+        ..keepAlive = true;
+      await openExisting('a.dart');
+      await openExisting('b.dart');
+      tabs.closeTab('a.dart');
+
+      await tabs.saveAllTabs();
+
+      expect(adapter.createdTabs['a.dart']!.dirty, isFalse);
+      expect(adapter.createdTabs['b.dart']!.dirty, isFalse);
+      expect(tabs.saveLog.single, containsAll(['a.dart', 'b.dart']));
+    });
   });
 
   test('tracks and discards only dirty tabs', () async {
@@ -511,6 +536,24 @@ void main() {
       isNot(contains('discardUnsavedChanges')),
     );
     expect(tabs.hasUnsavedChanges, isFalse);
+  });
+
+  test('discard snapshots dirty tabs before callbacks can mutate the tab list', () async {
+    adapter
+      ..dirty = true
+      ..onDiscard = (path) {
+        if (path == 'dirty.dart') {
+          tabs.closeTab('clean.dart');
+        }
+      };
+    await openExisting('dirty.dart');
+    await openExisting('clean.dart');
+    adapter.createdTabs['clean.dart']!.dirty = false;
+
+    expect(tabs.discardUnsavedChanges, returnsNormally);
+
+    expect(tabs.openTabs.map((tab) => tab.path), ['dirty.dart']);
+    expect(adapter.createdTabs['dirty.dart']!.dirty, isFalse);
   });
 
   test('tab update events notify the controller', () async {
@@ -573,6 +616,65 @@ void main() {
       expect(tabs.getTab('a.dart'), isNull);
     });
 
+    test('folder move rebases open, active, and keepAlive descendants once', () async {
+      adapter.keepAlive = true;
+      await openExisting('lib/cached.dart');
+      await openExisting('lib/nested/active.dart');
+      await openExisting('library/untouched.dart');
+      tabs.closeTab('lib/cached.dart');
+      tabs.switchFile('lib/nested/active.dart');
+      tabs.updateLog.clear();
+
+      controller.addMoveIntention('lib', 'src');
+      await emitWorkspaceEvent(
+        {'type': 'add', 'path': 'src'},
+      );
+
+      expect(tabs.activeFile, 'src/nested/active.dart');
+      expect(tabs.getTab('src/nested/active.dart'), isNotNull);
+      expect(tabs.getTab('src/cached.dart'), isNotNull);
+      expect(tabs.getTab('lib/nested/active.dart'), isNull);
+      expect(tabs.getTab('lib/cached.dart'), isNull);
+      expect(tabs.getTab('library/untouched.dart'), isNotNull);
+      expect(tabs.updateLog, [null]);
+
+      tabs.updateLog.clear();
+      adapter.createdTabs['lib/nested/active.dart']!.notifyUpdate();
+      expect(tabs.updateLog, [null]);
+
+      tabs.updateLog.clear();
+      controller.addMoveIntention(
+        'lib/nested/active.dart',
+        'src/nested/active.dart',
+      );
+      await emitWorkspaceEvent(
+        {'type': 'add', 'path': 'src/nested/active.dart'},
+      );
+      expect(tabs.activeFile, 'src/nested/active.dart');
+      expect(tabs.updateLog, isEmpty);
+    });
+
+    test('folder move cancels descendant tabs that are still loading', () async {
+      adapter.creationGate = Completer<void>();
+      workspace.addFile('old/slow.dart');
+      final opening = tabs.openFile('old/slow.dart');
+      await adapter.creationStarted.future;
+
+      controller.addMoveIntention('old', 'new');
+      await emitWorkspaceEvent(
+        {'type': 'add', 'path': 'new'},
+      );
+      adapter.creationGate!.complete();
+      await opening;
+
+      expect(tabs.getTab('old/slow.dart'), isNull);
+      expect(tabs.getTab('new/slow.dart'), isNull);
+      expect(
+        adapter.createdTabs['old/slow.dart']!.lifecycleLog,
+        contains('dispose'),
+      );
+    });
+
     test('remove event disposes the active tab and activates its neighbor', () async {
       await openExisting('a.dart');
       await openExisting('b.dart');
@@ -602,6 +704,51 @@ void main() {
 
       expect(tabA.lifecycleLog, ['close', 'dispose']);
       expect(tabs.getTab('a.dart'), isNull);
+    });
+
+    test('folder remove disposes open and keepAlive descendants but not similar prefixes', () async {
+      adapter.keepAlive = true;
+      await openExisting('lib/cached.dart');
+      await openExisting('lib/nested/active.dart');
+      await openExisting('library/untouched.dart');
+      tabs.closeTab('lib/cached.dart');
+      tabs.switchFile('lib/nested/active.dart');
+      final cachedTab = adapter.createdTabs['lib/cached.dart']!..lifecycleLog.clear();
+      final activeTab = adapter.createdTabs['lib/nested/active.dart']!..lifecycleLog.clear();
+
+      await emitWorkspaceEvent(
+        {'type': 'remove', 'path': 'lib'},
+      );
+
+      expect(tabs.openTabs.map((tab) => tab.path), ['library/untouched.dart']);
+      expect(tabs.activeFile, 'library/untouched.dart');
+      expect(tabs.getTab('lib/cached.dart'), isNull);
+      expect(cachedTab.lifecycleLog, ['close', 'dispose']);
+      expect(activeTab.lifecycleLog, ['deactivate', 'close', 'dispose']);
+
+      tabs.updateLog.clear();
+      cachedTab.notifyUpdate();
+      activeTab.notifyUpdate();
+      expect(tabs.updateLog, isEmpty);
+    });
+
+    test('folder remove cancels descendant tabs that are still loading', () async {
+      adapter.creationGate = Completer<void>();
+      workspace.addFile('folder/slow.dart');
+      final opening = tabs.openFile('folder/slow.dart');
+      await adapter.creationStarted.future;
+
+      await emitWorkspaceEvent(
+        {'type': 'remove', 'path': 'folder'},
+      );
+      adapter.creationGate!.complete();
+      await opening;
+
+      expect(tabs.getTab('folder/slow.dart'), isNull);
+      expect(
+        adapter.createdTabs['folder/slow.dart']!.lifecycleLog,
+        contains('dispose'),
+      );
     });
   });
 
