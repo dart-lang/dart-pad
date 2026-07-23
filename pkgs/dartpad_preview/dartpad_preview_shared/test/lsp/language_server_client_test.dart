@@ -236,6 +236,82 @@ void main() {
       expect(workspace.files, isNot(contains('open.dart')));
     });
 
+    test('awaits asynchronous open-document handlers before completing workspace edits', () async {
+      final gate = Completer<void>();
+      var handlerCompleted = false;
+      client.setDocumentEditsHandler((file, edits) async {
+        await gate.future;
+        handlerCompleted = true;
+        return true;
+      });
+
+      final applyFuture = client.applyWorkspaceEdit({
+        'changes': {
+          'file:///workspace/open.dart': [_edit(0, 0, 0, 0, 'open')],
+        },
+      });
+      await pumpEventQueue();
+      expect(handlerCompleted, isFalse);
+
+      gate.complete();
+      await applyFuture;
+
+      expect(handlerCompleted, isTrue);
+    });
+
+    test('propagates document handler failures and stops subsequent edits', () async {
+      final handlerError = StateError('open document write failed');
+      final handledFiles = <String>[];
+      client.setDocumentEditsHandler((file, edits) async {
+        handledFiles.add(file);
+        if (file == 'first.dart') {
+          throw handlerError;
+        }
+        return true;
+      });
+
+      await expectLater(
+        client.applyWorkspaceEdit({
+          'changes': {
+            'file:///workspace/first.dart': [_edit(0, 0, 0, 0, 'first')],
+            'file:///workspace/second.dart': [_edit(0, 0, 0, 0, 'second')],
+          },
+        }),
+        throwsA(same(handlerError)),
+      );
+
+      expect(handledFiles, ['first.dart']);
+    });
+
+    test('willRenameFiles awaits returned edits and propagates protocol errors', () async {
+      workspace.files['consumer.dart'] = "import 'old.dart';";
+      final renameFuture = client.willRenameFiles('old.dart', 'new.dart');
+      expect(sentMessages.single, containsPair('method', 'workspace/willRenameFiles'));
+
+      serverMessages.add({
+        'jsonrpc': '2.0',
+        'id': 1,
+        'result': {
+          'changes': {
+            'file:///workspace/consumer.dart': [
+              _edit(0, 8, 0, 16, 'new.dart'),
+            ],
+          },
+        },
+      });
+
+      await renameFuture;
+      expect(workspace.files['consumer.dart'], "import 'new.dart';");
+
+      final failedRename = client.willRenameFiles('new.dart', 'other.dart');
+      serverMessages.add({
+        'jsonrpc': '2.0',
+        'id': 2,
+        'error': {'code': -32603, 'message': 'rename failed'},
+      });
+      await expectLater(failedRename, throwsA(isA<StateError>()));
+    });
+
     test('applies documentChanges and completes matching JSON-RPC requests', () async {
       workspace.files['main.dart'] = 'old';
       await client.applyWorkspaceEdit({

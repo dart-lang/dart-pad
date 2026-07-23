@@ -136,10 +136,12 @@ class LanguageServerClient {
   /// A handler registered by the editor tab/view model to intercept edits
   /// and apply them in-memory/in-state if the file is currently open in CodeMirror.
   /// Should return `true` if the edits were successfully intercepted and applied.
-  bool Function(String file, List<dynamic> edits)? _documentEditsHandler;
+  FutureOr<bool> Function(String file, List<dynamic> edits)? _documentEditsHandler;
 
   /// Registers [documentEditsHandler] to intercept edits for open files.
-  void setDocumentEditsHandler(bool Function(String file, List<dynamic> edits)? documentEditsHandler) {
+  void setDocumentEditsHandler(
+    FutureOr<bool> Function(String file, List<dynamic> edits)? documentEditsHandler,
+  ) {
     _documentEditsHandler = documentEditsHandler;
   }
 
@@ -233,21 +235,24 @@ class LanguageServerClient {
     final oldUri = workspaceController.workspaceUri.resolve(oldPath).toString();
     final newUri = workspaceController.workspaceUri.resolve(newPath).toString();
 
-    try {
-      final response = await sendLspRequest('workspace/willRenameFiles', {
-        'files': [
-          {'oldUri': oldUri, 'newUri': newUri},
-        ],
-      });
+    final response = await sendLspRequest('workspace/willRenameFiles', {
+      'files': [
+        {'oldUri': oldUri, 'newUri': newUri},
+      ],
+    });
 
-      if (response != null && response.containsKey('result')) {
-        final result = response['result'] as Map<String, dynamic>?;
-        if (result != null) {
-          await applyWorkspaceEdit(result);
-        }
+    if (response == null) {
+      return;
+    }
+    final error = response['error'];
+    if (error != null) {
+      throw StateError('workspace/willRenameFiles failed: $error');
+    }
+    if (response.containsKey('result')) {
+      final result = response['result'] as Map<String, dynamic>?;
+      if (result != null) {
+        await applyWorkspaceEdit(result);
       }
-    } catch (e) {
-      print('LSP workspace/willRenameFiles failed: $e');
     }
   }
 
@@ -317,8 +322,9 @@ class LanguageServerClient {
   /// directly to the file on disk.
   Future<void> _applyEditsToFile(String uri, List<dynamic> edits) async {
     final relativePath = getRelativePath(uri, workspaceController.workspaceUri.path);
-    final wasChanged = _documentEditsHandler?.call(relativePath, edits);
-    if (wasChanged == true) {
+    final handler = _documentEditsHandler;
+    final wasChanged = handler == null ? false : await handler(relativePath, edits);
+    if (wasChanged) {
       return;
     } else {
       final file = workspaceController.root.getFile(relativePath);
