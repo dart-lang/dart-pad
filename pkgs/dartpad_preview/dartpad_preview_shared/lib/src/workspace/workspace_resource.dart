@@ -24,6 +24,41 @@ abstract interface class WorkspaceApi {
   void addMoveIntention(String oldPath, String newPath);
 }
 
+/// Thrown when a rename or move would overwrite an existing workspace entry.
+final class WorkspaceResourceConflictException implements Exception {
+  const WorkspaceResourceConflictException({
+    required this.sourcePath,
+    required this.targetPath,
+  });
+
+  final String sourcePath;
+  final String targetPath;
+
+  @override
+  String toString() => 'Cannot move "$sourcePath" to "$targetPath": the target already exists.';
+}
+
+/// Adds shared validation for workspace operations that must not overwrite an
+/// existing file or folder.
+extension WorkspaceConflictValidation on WorkspaceApi {
+  /// Throws a [WorkspaceResourceConflictException] when [targetPath] already
+  /// exists as either a file or folder.
+  Future<void> ensureTargetAvailable({
+    required String sourcePath,
+    required String targetPath,
+  }) async {
+    if (targetPath == sourcePath) {
+      return;
+    }
+    if (await fileExist(targetPath) || await folderExist(targetPath)) {
+      throw WorkspaceResourceConflictException(
+        sourcePath: sourcePath,
+        targetPath: targetPath,
+      );
+    }
+  }
+}
+
 /// An abstraction of a file or folder in the workspace.
 ///
 /// Provides a unified interface for querying, renaming, moving, and deleting
@@ -104,6 +139,10 @@ class WorkspaceFile extends WorkspaceResource {
     if (newPath == path) {
       return this;
     }
+    await workspace.ensureTargetAvailable(
+      sourcePath: path,
+      targetPath: newPath,
+    );
 
     workspace.addMoveIntention(path, newPath);
 
@@ -120,6 +159,10 @@ class WorkspaceFile extends WorkspaceResource {
     if (newPath == path) {
       return this;
     }
+    await workspace.ensureTargetAvailable(
+      sourcePath: path,
+      targetPath: newPath,
+    );
 
     workspace.addMoveIntention(path, newPath);
 
@@ -204,20 +247,40 @@ class WorkspaceFolder extends WorkspaceResource {
 
   @override
   Future<WorkspaceFolder> rename(String newName) async {
+    if (isRoot) {
+      throw StateError('The workspace root cannot be renamed.');
+    }
     final newPath = _workspacePath.canonicalize(_workspacePath.join(_workspacePath.dirname(path), newName));
     if (newPath == path) {
       return this;
     }
+    await _ensureMoveIsSafe(newPath);
     return await _moveFolderContents(newPath);
   }
 
   @override
   Future<WorkspaceFolder> moveTo(WorkspaceFolder targetFolder) async {
+    if (isRoot) {
+      throw StateError('The workspace root cannot be moved.');
+    }
     final newPath = _workspacePath.join(targetFolder.path, shortName);
     if (newPath == path) {
       return this;
     }
+    await _ensureMoveIsSafe(newPath);
     return await _moveFolderContents(newPath);
+  }
+
+  Future<void> _ensureMoveIsSafe(String newPath) async {
+    final normalizedSource = _workspacePath.canonicalize(path);
+    final normalizedTarget = _workspacePath.canonicalize(newPath);
+    if (_workspacePath.isWithin(normalizedSource, normalizedTarget)) {
+      throw ArgumentError.value(newPath, 'newPath', 'A folder cannot be moved into itself.');
+    }
+    await workspace.ensureTargetAvailable(
+      sourcePath: path,
+      targetPath: normalizedTarget,
+    );
   }
 
   /// Recursively moves folder contents from the current folder to [newPath].

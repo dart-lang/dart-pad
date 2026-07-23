@@ -88,6 +88,38 @@ class MemoryWorkspace implements WorkspaceApi {
 }
 
 void main() {
+  test('shared target validation rejects existing files and folders', () async {
+    final workspace = MemoryWorkspace()
+      ..folders.addAll(['lib', 'lib/existing'])
+      ..files['lib/existing.dart'] = Uint8List.fromList([1]);
+
+    await expectLater(
+      workspace.ensureTargetAvailable(
+        sourcePath: 'lib/source.dart',
+        targetPath: 'lib/existing.dart',
+      ),
+      throwsA(
+        isA<WorkspaceResourceConflictException>()
+            .having((error) => error.sourcePath, 'sourcePath', 'lib/source.dart')
+            .having((error) => error.targetPath, 'targetPath', 'lib/existing.dart'),
+      ),
+    );
+    await expectLater(
+      workspace.ensureTargetAvailable(
+        sourcePath: 'lib/source.dart',
+        targetPath: 'lib/existing',
+      ),
+      throwsA(isA<WorkspaceResourceConflictException>()),
+    );
+    await expectLater(
+      workspace.ensureTargetAvailable(
+        sourcePath: 'lib/source.dart',
+        targetPath: 'lib/source.dart',
+      ),
+      completes,
+    );
+  });
+
   test('WorkspaceFile.rename preserves bytes and records the move intention', () async {
     final workspace = MemoryWorkspace()
       ..folders.add('lib')
@@ -142,5 +174,56 @@ void main() {
     expect(workspace.pendingMoves, isEmpty);
     expect(workspace.files['lib/main.dart'], [1, 2, 3]);
     expect(workspace.folders, contains('lib/src'));
+  });
+
+  test('file rename refuses an existing file or folder without mutating the workspace', () async {
+    final workspace = MemoryWorkspace()
+      ..folders.addAll(['lib', 'lib/existing'])
+      ..files['lib/source.dart'] = Uint8List.fromList([1])
+      ..files['lib/existing.dart'] = Uint8List.fromList([2]);
+    final source = WorkspaceFile(workspace: workspace, path: 'lib/source.dart');
+
+    await expectLater(
+      source.rename('existing.dart'),
+      throwsA(isA<WorkspaceResourceConflictException>()),
+    );
+    await expectLater(
+      source.rename('existing'),
+      throwsA(isA<WorkspaceResourceConflictException>()),
+    );
+
+    expect(workspace.mutations, isEmpty);
+    expect(workspace.pendingMoves, isEmpty);
+    expect(workspace.files['lib/source.dart'], [1]);
+  });
+
+  test('folder move refuses an existing target before creating or deleting anything', () async {
+    final workspace = MemoryWorkspace()
+      ..folders.addAll(['source', 'target', 'target/source'])
+      ..files['source/a.dart'] = Uint8List.fromList([1]);
+    final source = WorkspaceFolder(workspace: workspace, path: 'source');
+    final target = WorkspaceFolder(workspace: workspace, path: 'target');
+
+    await expectLater(
+      source.moveTo(target),
+      throwsA(isA<WorkspaceResourceConflictException>()),
+    );
+
+    expect(workspace.mutations, isEmpty);
+    expect(workspace.pendingMoves, isEmpty);
+    expect(workspace.files['source/a.dart'], [1]);
+  });
+
+  test('folder move rejects moving a folder into itself', () async {
+    final workspace = MemoryWorkspace()..folders.addAll(['source', 'source/nested']);
+    final source = WorkspaceFolder(workspace: workspace, path: 'source');
+    final nested = WorkspaceFolder(workspace: workspace, path: 'source/nested');
+
+    await expectLater(
+      source.moveTo(nested),
+      throwsA(isA<ArgumentError>()),
+    );
+
+    expect(workspace.mutations, isEmpty);
   });
 }
