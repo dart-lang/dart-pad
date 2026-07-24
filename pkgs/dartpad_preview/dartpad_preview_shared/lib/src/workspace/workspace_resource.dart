@@ -4,10 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:path/path.dart' as path;
-
-// Workspace paths are virtual, URI-style paths and always use `/`.
-final _workspacePath = path.posix;
+import 'workspace_path.dart';
 
 abstract interface class WorkspaceApi {
   int get id;
@@ -113,10 +110,10 @@ class WorkspaceFile extends WorkspaceResource {
   final String path;
 
   @override
-  String get shortName => _workspacePath.basename(path);
+  String get shortName => workspacePath.basename(path);
 
   @override
-  WorkspaceFolder get parent => WorkspaceFolder(workspace: workspace, path: _workspacePath.dirname(path));
+  WorkspaceFolder get parent => WorkspaceFolder(workspace: workspace, path: workspacePath.dirname(path));
 
   @override
   Future<bool> exists() {
@@ -135,7 +132,7 @@ class WorkspaceFile extends WorkspaceResource {
 
   @override
   Future<WorkspaceFile> rename(String newName) async {
-    final newPath = _workspacePath.canonicalize(_workspacePath.join(_workspacePath.dirname(path), newName));
+    final newPath = workspacePath.canonicalize(workspacePath.join(workspacePath.dirname(path), newName));
     if (newPath == path) {
       return this;
     }
@@ -155,7 +152,7 @@ class WorkspaceFile extends WorkspaceResource {
 
   @override
   Future<WorkspaceFile> moveTo(WorkspaceFolder targetFolder) async {
-    final newPath = _workspacePath.canonicalize(_workspacePath.join(targetFolder.path, shortName));
+    final newPath = workspacePath.canonicalize(workspacePath.join(targetFolder.path, shortName));
     if (newPath == path) {
       return this;
     }
@@ -190,7 +187,7 @@ class WorkspaceFolder extends WorkspaceResource {
   final String path;
 
   @override
-  String get shortName => _workspacePath.basename(path);
+  String get shortName => workspacePath.basename(path);
 
   /// Return `true` if this folder is a file system root.
   bool get isRoot => path.isEmpty;
@@ -200,7 +197,7 @@ class WorkspaceFolder extends WorkspaceResource {
     if (isRoot) {
       return this;
     }
-    return WorkspaceFolder(workspace: workspace, path: _workspacePath.dirname(path));
+    return WorkspaceFolder(workspace: workspace, path: workspacePath.dirname(path));
   }
 
   @override
@@ -219,7 +216,7 @@ class WorkspaceFolder extends WorkspaceResource {
   /// exists on the filesystem - client must call the [WorkspaceFile]'s `exists()` method
   /// to determine whether the file actually exists.
   WorkspaceFile getFile(String relPath) {
-    return WorkspaceFile(workspace: workspace, path: _workspacePath.join(path, relPath));
+    return WorkspaceFile(workspace: workspace, path: workspacePath.join(path, relPath));
   }
 
   /// Return a [WorkspaceFolder] representing a the child folder at [relPath].
@@ -228,7 +225,7 @@ class WorkspaceFolder extends WorkspaceResource {
   /// exists on the filesystem--client must call the [WorkspaceFolder]'s `exists()` method
   /// to determine whether the folder actually exists.
   WorkspaceFolder getFolder(String relPath) {
-    return WorkspaceFolder(workspace: workspace, path: _workspacePath.join(path, relPath));
+    return WorkspaceFolder(workspace: workspace, path: workspacePath.join(path, relPath));
   }
 
   /// Return a list of existing children [WorkspaceResource]s (folders and files)
@@ -250,7 +247,7 @@ class WorkspaceFolder extends WorkspaceResource {
     if (isRoot) {
       throw StateError('The workspace root cannot be renamed.');
     }
-    final newPath = _workspacePath.canonicalize(_workspacePath.join(_workspacePath.dirname(path), newName));
+    final newPath = workspacePath.canonicalize(workspacePath.join(workspacePath.dirname(path), newName));
     if (newPath == path) {
       return this;
     }
@@ -263,7 +260,7 @@ class WorkspaceFolder extends WorkspaceResource {
     if (isRoot) {
       throw StateError('The workspace root cannot be moved.');
     }
-    final newPath = _workspacePath.join(targetFolder.path, shortName);
+    final newPath = workspacePath.join(targetFolder.path, shortName);
     if (newPath == path) {
       return this;
     }
@@ -272,9 +269,9 @@ class WorkspaceFolder extends WorkspaceResource {
   }
 
   Future<void> _ensureMoveIsSafe(String newPath) async {
-    final normalizedSource = _workspacePath.canonicalize(path);
-    final normalizedTarget = _workspacePath.canonicalize(newPath);
-    if (_workspacePath.isWithin(normalizedSource, normalizedTarget)) {
+    final normalizedSource = workspacePath.canonicalize(path);
+    final normalizedTarget = workspacePath.canonicalize(newPath);
+    if (workspacePath.isWithin(normalizedSource, normalizedTarget)) {
       throw ArgumentError.value(newPath, 'newPath', 'A folder cannot be moved into itself.');
     }
     await workspace.ensureTargetAvailable(
@@ -301,7 +298,7 @@ class WorkspaceFolder extends WorkspaceResource {
     children.sort((a, b) => a.path.length.compareTo(b.path.length));
 
     for (final child in children) {
-      final targetPath = _workspacePath.join(newPath, _workspacePath.relative(child.path, from: path));
+      final targetPath = workspacePath.join(newPath, workspacePath.relative(child.path, from: path));
       workspace.addMoveIntention(child.path, targetPath);
       if (child is WorkspaceFolder) {
         await WorkspaceFolder(workspace: workspace, path: targetPath).create();

@@ -4,14 +4,11 @@
 
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
-
 import '../lsp/language_server_client.dart';
 import '../workspace/workspace_controller.dart';
+import '../workspace/workspace_path.dart';
 import '../workspace/workspace_watcher.dart';
 import 'editor_tab.dart';
-
-final p.Context _workspacePath = p.posix;
 
 /// A mixin class that controls the state of open editor tabs.
 ///
@@ -277,8 +274,8 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleFileMoved(String oldPath, String newPath) {
-    final normalizedOldPath = _normalizeWorkspacePath(oldPath);
-    final normalizedNewPath = _normalizeWorkspacePath(newPath);
+    final normalizedOldPath = normalizeWorkspacePath(oldPath);
+    final normalizedNewPath = normalizeWorkspacePath(newPath);
     _cancelLoadsAtOrBelow(normalizedOldPath);
 
     final openTabs = _tabs.where((tab) => _isPathAtOrBelow(tab.path, normalizedOldPath)).toList();
@@ -329,7 +326,7 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleDeletedFile(String path) {
-    final normalizedPath = _normalizeWorkspacePath(path);
+    final normalizedPath = normalizeWorkspacePath(path);
     _cancelLoadsAtOrBelow(normalizedPath);
 
     final openTabs = _tabs.where((tab) => _isPathAtOrBelow(tab.path, normalizedPath)).toList();
@@ -424,28 +421,23 @@ abstract mixin class TabsController<T> {
   }
 }
 
-String _normalizeWorkspacePath(String value) {
-  final normalized = _workspacePath.normalize(value);
-  return normalized == '.' ? '' : normalized;
-}
-
 bool _isPathAtOrBelow(String value, String root) {
-  final normalizedValue = _normalizeWorkspacePath(value);
-  final normalizedRoot = _normalizeWorkspacePath(root);
+  final normalizedValue = normalizeWorkspacePath(value);
+  final normalizedRoot = normalizeWorkspacePath(root);
   return normalizedRoot.isEmpty ||
       normalizedValue == normalizedRoot ||
-      _workspacePath.isWithin(normalizedRoot, normalizedValue);
+      workspacePath.isWithin(normalizedRoot, normalizedValue);
 }
 
 String _rebaseWorkspacePath(String value, String oldRoot, String newRoot) {
-  final normalizedValue = _normalizeWorkspacePath(value);
-  final normalizedOldRoot = _normalizeWorkspacePath(oldRoot);
-  final normalizedNewRoot = _normalizeWorkspacePath(newRoot);
+  final normalizedValue = normalizeWorkspacePath(value);
+  final normalizedOldRoot = normalizeWorkspacePath(oldRoot);
+  final normalizedNewRoot = normalizeWorkspacePath(newRoot);
   if (normalizedValue == normalizedOldRoot) {
     return normalizedNewRoot;
   }
-  return _workspacePath.join(
+  return workspacePath.join(
     normalizedNewRoot,
-    _workspacePath.relative(normalizedValue, from: normalizedOldRoot),
+    workspacePath.relative(normalizedValue, from: normalizedOldRoot),
   );
 }

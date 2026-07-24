@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:path/path.dart' as p;
 
+import '../workspace/workspace_path.dart';
 import 'tabs_controller.dart';
 
 /// Represents a tab in the editor workspace associated with a specific file path.
@@ -20,7 +20,7 @@ abstract class EditorTab<T> {
   String path;
 
   /// The display name of the tab, derived from the file path.
-  String get name => p.posix.basename(path);
+  String get name => workspacePath.basename(path);
 
   /// Whether this tab should be kept in memory when closed.
   bool get keepAlive => false;

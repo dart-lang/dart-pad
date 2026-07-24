@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as p;
+import '../workspace/workspace_path.dart';
 
 /// Resolves an LSP diagnostic URI to a workspace-relative file path.
 ///
@@ -31,14 +31,8 @@ String? _pathWithinWorkspace(String uri, Uri? workspaceFolder) {
   final isSameLocation = parsedUri.scheme == workspaceFolder.scheme && parsedUri.authority == workspaceFolder.authority;
   if (isSameLocation && parsedUri.path.startsWith(workspacePath)) {
     final relativePath = parsedUri.path.substring(workspacePath.length);
-    return normalizePath(Uri.decodeFull(relativePath));
+    return normalizeWorkspacePath(Uri.decodeFull(relativePath));
   }
 
   return null;
-}
-
-/// Normalizes a POSIX-style [path], returning an empty string for the current directory (`.`).
-String normalizePath(String path) {
-  final normalized = p.posix.normalize(path);
-  return normalized == '.' ? '' : normalized;
 }
