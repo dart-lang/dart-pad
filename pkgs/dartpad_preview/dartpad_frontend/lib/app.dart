@@ -8,13 +8,14 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 
-import 'features/editor/view/editor_shell.dart';
-import 'features/editor/view_model/single_file_editor_view_model.dart';
+import 'features/editor/codemirror/code_mirror_tab.dart';
+import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
+import 'features/editor/components/editor_shell.dart';
+import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
-import 'features/shared/node_container.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 
@@ -31,7 +32,7 @@ class AppState extends State<App> {
   late final AppEventBus _events;
   late final WorkspaceRepository _workspaceRepository;
   late final BrowserConsoleObserver _console;
-  late final SingleFileEditorViewModel _editor;
+  late final TabsViewModel _tabs;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -44,7 +45,14 @@ class AppState extends State<App> {
 
     _workspaceRepository = WorkspaceRepository.create(events: _events);
 
-    _editor = SingleFileEditorViewModel(events: _events, workspaceRepository: _workspaceRepository);
+    final codemirrorAdapter = CodeMirrorTabAdapter();
+
+    _tabs = TabsViewModel(
+      events: _events,
+      workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
+      adapters: [codemirrorAdapter],
+    );
+
     _console = BrowserConsoleObserver(_events);
 
     _events.on<WorkspaceLoadedEvent>().listen((event) async {
@@ -62,15 +70,16 @@ class AppState extends State<App> {
         rootWorkspaceUri: event.workspace.workspaceFolder,
         workspaceChangeEvents: _workspaceRepository.workspaceResourceApi.changeEvents,
         documentEditsHandler: (filePath, edits) async {
-          if (filePath == SingleFileEditorViewModel.filePath) {
-            _editor.editor.applyEdits(edits);
+          final tab = _tabs.getTab(filePath);
+          if (tab != null && tab is CodeMirrorTab) {
+            await tab.applyEdits(edits);
           } else {
             final file = _workspaceRepository.root.getFile(filePath);
             await file.writeContent(LanguageServerClient.applyEdits(await file.readContent(), edits));
           }
         },
         displayFileHandler: (filePath) async {
-          // TODO: Wire up once tabs are implemented.
+          await _tabs.openFile(filePath);
         },
       );
 
@@ -84,14 +93,17 @@ class AppState extends State<App> {
 
       await _workspaceRepository.pubGet();
 
-      _editor.editor.attachLanguageServerClient(languageServerClient);
+      codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
       setState(() {
         loadingStatus = 'Analyzing Project...';
       });
     });
 
-    createSampleProject(_workspaceRepository.root);
+    Future(() async {
+      await createSampleProject(_workspaceRepository.root);
+      await openSampleProject(_tabs.openFile);
+    });
   }
 
   void _logAnalyzerActivity(LanguageServerClient languageServerClient, AnalyzerActivity activity) {
@@ -134,10 +146,14 @@ class AppState extends State<App> {
   @override
   Component build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _editor,
+      listenable: _tabs,
       builder: (context) {
         return EditorShell(
-          editor: NodeContainer(_editor.container),
+          openTabs: _tabs.openTabs,
+          activeFile: _tabs.activeFile,
+          errorMessage: _tabs.errorMessage,
+          onSwitchFile: _tabs.switchFile,
+          onCloseFile: _tabs.closeFile,
           bootstrapLabel: loadingStatus,
         );
       },
@@ -152,9 +168,7 @@ class AppState extends State<App> {
   }
 
   Future<void> _disposeResources() async {
-    // Stop producers before their consumers and the shared event stream.
-
-    _editor.dispose();
+    _tabs.dispose();
     _console.dispose();
     await _events.dispose();
   }

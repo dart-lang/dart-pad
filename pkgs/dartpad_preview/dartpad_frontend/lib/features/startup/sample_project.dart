@@ -12,6 +12,16 @@ Future<void> createSampleProject(WorkspaceFolder root) async {
   await root.getFile('lib/main.dart').writeContent(sampleMainDart.trimLeft());
 }
 
+/// Opens the default sample files and leaves the Dart source active.
+Future<void> openSampleProject(Future<void> Function(String path) openFile) async {
+  await openFile(_samplePubspecPath);
+  await openFile(_sampleMainPath);
+}
+
+const String _sampleMainPath = 'lib/main.dart';
+const String _samplePubspecPath = 'pubspec.yaml';
+
+/// The initial Dart source for the default sample project.
 const String sampleMainDart = r'''
 import 'package:flutter/material.dart';
 
@@ -82,6 +92,7 @@ class _CounterPageState extends State<CounterPage> {
 }
 ''';
 
+/// The initial pubspec for the default sample project.
 const String samplePubspec = '''
 name: counter_app
 description: A simple counter app.

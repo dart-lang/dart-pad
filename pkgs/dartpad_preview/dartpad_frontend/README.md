@@ -1,9 +1,13 @@
 # DartPad Frontend
 
-This client deliberately renders a transient `lib/main.dart` CodeMirror editor
-before it starts the DartPad worker. After the first browser frame it creates an
-in-memory Flutter project, starts LSP and runs `pub get`. Ctrl/Cmd+S formats and
-writes the visible buffer; reloading resets the project.
+The first browser frame renders the editor shell while the DartPad worker
+creates the transient in-memory Flutter project. As soon as that workspace is
+available, `lib/main.dart` and `pubspec.yaml` are opened in reusable editor
+tabs. LSP initialization and `pub get` continue in the background and do not
+block the workspace UI.
+
+Ctrl/Cmd+S saves every dirty tab and formats Dart files before writing. Closing
+a dirty tab requires confirmation before its changes are discarded. Reloading resets the transient project.
 
 ## Running
 
@@ -37,4 +41,5 @@ local verification can use:
 dart run tool/build_sdk_assets.dart --validate-only
 ```
 
-Build the client with `jaspr build` after the assets have been generated.
+Build the client with `dart run jaspr_cli:jaspr build` after the assets have
+been generated.

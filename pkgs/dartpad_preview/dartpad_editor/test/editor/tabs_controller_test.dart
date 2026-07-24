@@ -24,7 +24,10 @@ class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceRes
   @override
   Future<void> get changeEventsReady => Future.value();
 
+  /// Adds [path] to the set of files reported as existing.
   void addFile(String path) => _existingFiles.add(path);
+
+  /// Removes [path] from the set of files reported as existing.
   void removeFile(String path) => _existingFiles.remove(path);
 
   @override
@@ -33,6 +36,7 @@ class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceRes
   @override
   Future<bool> folderExist(String uri) async => false;
 
+  /// Closes the file-change stream.
   void close() {
     _changesController.close();
   }
@@ -48,6 +52,7 @@ class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceRes
 
 /// A concrete [EditorTab] for testing that tracks lifecycle calls.
 class TestTab extends EditorTab<String> {
+  /// Creates a test tab with configurable lifecycle behavior.
   TestTab(
     super.path, {
     this.testKeepAlive = false,
@@ -87,6 +92,7 @@ class TestTab extends EditorTab<String> {
   @override
   Stream<void> get onUpdate => updates.stream;
 
+  /// Emits a tab update event.
   void notifyUpdate() => updates.add(null);
 
   @override
@@ -116,6 +122,7 @@ class TestTab extends EditorTab<String> {
 
 /// A simple [EditorTabAdapter] that creates [TestTab]s.
 class TestTabAdapter extends EditorTabAdapter<String> {
+  /// Creates an adapter with configurable tab creation behavior.
   TestTabAdapter({
     this.keepAlive = false,
     this.dirty = false,
@@ -177,6 +184,7 @@ class TestTabsController with TabsController<String> {
 // Tests
 // ---------------------------------------------------------------------------
 
+/// Runs the [TabsController] test suite.
 void main() {
   late FakeWorkspaceApi workspace;
   late TestTabAdapter adapter;
@@ -333,12 +341,16 @@ void main() {
       expect(tabA.lifecycleLog, ['close', 'dispose']);
     });
 
-    test('does not close the last remaining tab', () async {
+    test('closes the last remaining tab', () async {
       await openExisting('only.dart');
+      final onlyTab = adapter.createdTabs['only.dart']!..lifecycleLog.clear();
       tabs.closeTab('only.dart');
 
-      expect(tabs.openTabs, hasLength(1));
-      expect(tabs.activeFile, 'only.dart');
+      expect(tabs.openTabs, isEmpty);
+      expect(tabs.activeTab, isNull);
+      expect(tabs.activeFile, isEmpty);
+      expect(tabs.getTab('only.dart'), isNull);
+      expect(onlyTab.lifecycleLog, ['deactivate', 'close', 'dispose']);
     });
 
     test('activates the next tab when closing the active tab', () async {
