@@ -28,15 +28,6 @@ class EditorViewState {
 final class CodeMirrorEditor {
   CodeMirrorEditor._(this.view, this.langCompartment, this.file);
 
-  /// The active file path.
-  String file;
-
-  /// The underlying CodeMirror [cm.EditorView] instance.
-  final cm.EditorView view;
-
-  WorkspaceController? _workspaceController;
-  final cm.Compartment langCompartment;
-
   /// Creates a new [CodeMirrorEditor] inside the given [element].
   ///
   /// The editor is configured with Dart syntax highlighting and LSP integration
@@ -144,6 +135,15 @@ final class CodeMirrorEditor {
     editor._workspaceController = workspaceController;
     return editor;
   }
+
+  /// The active file path.
+  String file;
+
+  /// The underlying CodeMirror [cm.EditorView] instance.
+  final cm.EditorView view;
+
+  WorkspaceController? _workspaceController;
+  final cm.Compartment langCompartment;
 
   /// Gets the current text content of the editor.
   String get text => view.state.doc.toJsString().toDart;
