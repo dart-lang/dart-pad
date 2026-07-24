@@ -162,14 +162,14 @@ final class CodeMirrorEditor {
   }
 
   /// Applies a list of LSP document edits to the editor.
-  void applyEdits(List<dynamic> edits) {
+  void applyEdits(List<Object?> edits) {
     if (edits.isEmpty) {
       return;
     }
 
     final doc = view.state.doc;
     final changeSpecs = edits.map((e) {
-      final editMap = Map<String, dynamic>.from(e as Map);
+      final editMap = Map<String, Object?>.from(e as Map);
       final range = editMap['range'] as Map;
       final start = range['start'] as Map;
       final end = range['end'] as Map;

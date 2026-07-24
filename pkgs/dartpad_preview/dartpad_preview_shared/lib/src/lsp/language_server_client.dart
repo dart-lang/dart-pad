@@ -122,11 +122,11 @@ class LanguageServerClient {
 
   late final StreamSubscription<Object?> _languageServerSubscription;
 
-  final StreamController<Map<String, dynamic>> _diagnosticsController =
-      StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<Map<String, Object?>> _diagnosticsController =
+      StreamController<Map<String, Object?>>.broadcast();
 
   /// A broadcast stream of raw diagnostic payloads from the language server.
-  Stream<Map<String, dynamic>> get diagnosticsStream => _diagnosticsController.stream;
+  Stream<Map<String, Object?>> get diagnosticsStream => _diagnosticsController.stream;
 
   final StreamController<AnalyzerActivity> _analyzerActivityController = StreamController<AnalyzerActivity>.broadcast();
 
@@ -136,11 +136,11 @@ class LanguageServerClient {
   /// A handler registered by the editor tab/view model to intercept edits
   /// and apply them in-memory/in-state if the file is currently open in CodeMirror.
   /// Should return `true` if the edits were successfully intercepted and applied.
-  FutureOr<bool> Function(String file, List<dynamic> edits)? _documentEditsHandler;
+  FutureOr<bool> Function(String file, List<Object?> edits)? _documentEditsHandler;
 
   /// Registers [documentEditsHandler] to intercept edits for open files.
   void setDocumentEditsHandler(
-    FutureOr<bool> Function(String file, List<dynamic> edits)? documentEditsHandler,
+    FutureOr<bool> Function(String file, List<Object?> edits)? documentEditsHandler,
   ) {
     _documentEditsHandler = documentEditsHandler;
   }
@@ -173,7 +173,7 @@ class LanguageServerClient {
   }
 
   int _nextRequestId = 1;
-  final Map<int, Completer<Map<String, dynamic>?>> _pendingRequests = {};
+  final Map<int, Completer<Map<String, Object?>?>> _pendingRequests = {};
 
   void _handleMessage(Object? message) {
     if (message is Map) {
@@ -181,9 +181,9 @@ class LanguageServerClient {
         final id = message['id'];
         final method = message['method'];
         if (method == 'workspace/applyEdit') {
-          final params = message['params'] as Map<String, dynamic>?;
+          final params = message['params'] as Map<String, Object?>?;
           if (params != null) {
-            final edit = params['edit'] as Map<String, dynamic>?;
+            final edit = params['edit'] as Map<String, Object?>?;
             if (edit != null) {
               applyWorkspaceEdit(edit)
                   .then((_) {
@@ -207,13 +207,13 @@ class LanguageServerClient {
 
         if (id is int && _pendingRequests.containsKey(id)) {
           final completer = _pendingRequests.remove(id)!;
-          completer.complete(Map<String, dynamic>.from(message));
+          completer.complete(Map<String, Object?>.from(message));
         }
       } else {
         final method = message['method'];
         final analysisStatus = analysisStatusFromServerMessage(message);
         final diagnosticsParams = method == 'textDocument/publishDiagnostics'
-            ? message['params'] as Map<String, dynamic>?
+            ? message['params'] as Map<String, Object?>?
             : null;
         if (diagnosticsParams != null || analysisStatus != null) {
           _analyzerNotificationQueue.enqueue(
@@ -249,7 +249,7 @@ class LanguageServerClient {
       throw StateError('workspace/willRenameFiles failed: $error');
     }
     if (response.containsKey('result')) {
-      final result = response['result'] as Map<String, dynamic>?;
+      final result = response['result'] as Map<String, Object?>?;
       if (result != null) {
         await applyWorkspaceEdit(result);
       }
@@ -257,7 +257,7 @@ class LanguageServerClient {
   }
 
   /// Sends a request to execute a command on the LSP server.
-  Future<void> executeCommand(String command, List<dynamic>? arguments) async {
+  Future<void> executeCommand(String command, List<Object?>? arguments) async {
     try {
       await sendLspRequest('workspace/executeCommand', {'command': command, 'arguments': ?arguments});
     } catch (e) {
@@ -266,13 +266,13 @@ class LanguageServerClient {
   }
 
   /// Sends a raw LSP JSON-RPC request and returns the parsed response map.
-  Future<Map<String, dynamic>?> sendLspRequest(String method, Map<String, dynamic> params) {
+  Future<Map<String, Object?>?> sendLspRequest(String method, Map<String, Object?> params) {
     return _sendLspRequest(method, params);
   }
 
-  Future<Map<String, dynamic>?> _sendLspRequest(String method, Object? params) {
+  Future<Map<String, Object?>?> _sendLspRequest(String method, Object? params) {
     final id = _nextRequestId++;
-    final completer = Completer<Map<String, dynamic>?>();
+    final completer = Completer<Map<String, Object?>?>();
     _pendingRequests[id] = completer;
 
     final request = <String, Object?>{
@@ -288,26 +288,26 @@ class LanguageServerClient {
   }
 
   /// Applies LSP WorkspaceEdit structure (which may contain `changes` or `documentChanges`).
-  Future<void> applyWorkspaceEdit(Map<String, dynamic> edit) async {
+  Future<void> applyWorkspaceEdit(Map<String, Object?> edit) async {
     if (edit.containsKey('changes')) {
       final changes = edit['changes'] as Map?;
       if (changes != null) {
         for (final entry in changes.entries) {
           final uri = entry.key as String;
-          final edits = entry.value as List<dynamic>;
+          final edits = entry.value as List<Object?>;
           await _applyEditsToFile(uri, edits);
         }
       }
     }
 
     if (edit.containsKey('documentChanges')) {
-      final docChanges = edit['documentChanges'] as List<dynamic>?;
+      final docChanges = edit['documentChanges'] as List<Object?>?;
       if (docChanges != null) {
         for (final change in docChanges) {
           if (change is Map && change.containsKey('textDocument') && change.containsKey('edits')) {
             final textDoc = change['textDocument'] as Map;
             final uri = textDoc['uri'] as String;
-            final edits = change['edits'] as List<dynamic>;
+            final edits = change['edits'] as List<Object?>;
             await _applyEditsToFile(uri, edits);
           }
         }
@@ -320,7 +320,7 @@ class LanguageServerClient {
   /// If the file is currently open in the editor, [_documentEditsHandler] intercepts
   /// and applies the edits in-memory/in-state; otherwise, the edits are applied
   /// directly to the file on disk.
-  Future<void> _applyEditsToFile(String uri, List<dynamic> edits) async {
+  Future<void> _applyEditsToFile(String uri, List<Object?> edits) async {
     final relativePath = getRelativePath(uri, workspaceController.workspaceUri.path);
     final handler = _documentEditsHandler;
     final wasChanged = handler == null ? false : await handler(relativePath, edits);
@@ -345,12 +345,12 @@ class LanguageServerClient {
   ///
   /// Edits are sorted in reverse document order so they can be applied without
   /// invalidating earlier offsets.
-  static String applyEdits(String text, List<dynamic> edits) {
+  static String applyEdits(String text, List<Object?> edits) {
     if (edits.isEmpty) {
       return text;
     }
 
-    final parsedEdits = edits.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    final parsedEdits = edits.map((e) => Map<String, Object?>.from(e as Map)).toList();
 
     parsedEdits.sort((a, b) {
       final startA = (a['range'] as Map)['start'] as Map;
@@ -373,7 +373,7 @@ class LanguageServerClient {
   }
 
   /// Applies a single LSP text edit to a mutable list of [lines] in-place.
-  static void applyEdit(List<String> lines, Map<String, dynamic> edit) {
+  static void applyEdit(List<String> lines, Map<String, Object?> edit) {
     final range = edit['range'] as Map;
     final start = range['start'] as Map;
     final end = range['end'] as Map;
@@ -411,7 +411,7 @@ class LanguageServerClient {
     }
   }
 
-  Future<void> _handlePublishDiagnostics(Map<String, dynamic> map) async {
+  Future<void> _handlePublishDiagnostics(Map<String, Object?> map) async {
     try {
       final uri = map['uri'] as String? ?? '';
       final fileName = pathFromDiagnosticUri(uri, workspaceFolder: workspaceController.workspaceUri);
@@ -432,7 +432,7 @@ class LanguageServerClient {
               severity: DiagnosticSeverity.fromLsp(
                 (diagnosticMap['severity'] as num?)?.toInt(),
               ),
-              raw: Map<String, dynamic>.from(diagnosticMap),
+              raw: Map<String, Object?>.from(diagnosticMap),
             );
           })
           .toList(growable: false);
@@ -460,7 +460,7 @@ class LanguageServerClient {
   ///
   /// Returns `true` if analysis started, `false` if it ended, or `null` if the
   /// message is unrelated to analysis status.
-  static bool? analysisStatusFromServerMessage(Map<dynamic, dynamic> message) {
+  static bool? analysisStatusFromServerMessage(Map<Object?, Object?> message) {
     final method = message['method'];
     if (method == r'$/analyzerStatus') {
       final params = message['params'];

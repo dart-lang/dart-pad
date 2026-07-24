@@ -61,7 +61,7 @@ class Diagnostic {
   final DiagnosticSeverity severity;
 
   /// The raw LSP diagnostic payload, if available.
-  final Map<String, dynamic>? raw;
+  final Map<String, Object?>? raw;
 
   const Diagnostic({
     required this.line,

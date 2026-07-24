@@ -55,7 +55,7 @@ class CodeActionsController {
         .map((entry) => entry.diagnostic)
         .toList();
 
-    final overlappingDiagnostics = <dynamic>[];
+    final overlappingDiagnostics = <Object?>[];
     for (final diag in fileDiagnostics) {
       final rawRange = diag.raw?['range'] as Map?;
       if (rawRange != null) {
@@ -103,15 +103,15 @@ class CodeActionsController {
   Future<void> applyCodeAction(cm.LSPCodeAction action) async {
     final edit = action.edit;
     if (edit != null) {
-      final Map<String, dynamic> editMap = (edit.dartify() as Map).cast<String, dynamic>();
+      final editMap = (edit.dartify() as Map).cast<String, Object?>();
       await workspaceController.languageServerClient.applyWorkspaceEdit(editMap);
     }
 
     final command = action.command;
     if (command != null) {
-      final Map<String, dynamic> commandMap = (command.dartify() as Map).cast<String, dynamic>();
+      final commandMap = (command.dartify() as Map).cast<String, Object?>();
       final commandStr = commandMap['command'] as String;
-      final arguments = commandMap['arguments'] as List<dynamic>?;
+      final arguments = commandMap['arguments'] as List<Object?>?;
       await workspaceController.languageServerClient.executeCommand(commandStr, arguments);
     }
 
