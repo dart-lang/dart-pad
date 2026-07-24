@@ -330,9 +330,9 @@ bool _isDartFile(String fileName) => fileName.endsWith('.dart');
 
 /// Returns the CodeMirror language extension for Dart or non-Dart files, or null.
 JSAny _languageExtension(String fileName, WorkspaceController? workspaceController) {
-  final lower = fileName.toLowerCase();
-  if (lower.endsWith('.dart')) {
-    return [
+  final extension = fileName.split('.').last.toLowerCase();
+  return switch (extension) {
+    'dart' => [
       cm.dart(),
       if (workspaceController != null)
         workspaceController.languageServerClient.codeMirrorLspClient.createExtension(
@@ -352,34 +352,16 @@ JSAny _languageExtension(String fileName, WorkspaceController? workspaceControll
           ),
         ].toJS,
       ),
-    ].toJS;
-  }
-  if (lower.endsWith('.yaml') || lower.endsWith('.yml') || lower.endsWith('.lock')) {
-    return cm.yaml();
-  }
-  if (lower.endsWith('.md')) {
-    return cm.markdown();
-  }
-  if (lower.endsWith('.js') || lower.endsWith('.ts')) {
-    return cm.javascript();
-  }
-  if (lower.endsWith('.html')) {
-    return cm.html();
-  }
-  if (lower.endsWith('.css')) {
-    return cm.css();
-  }
-  if (lower.endsWith('.json')) {
-    return cm.json();
-  }
-  if (lower.endsWith('.xml')) {
-    return cm.xml();
-  }
-  if (lower.endsWith('.scss') || lower.endsWith('.sass')) {
-    return cm.sass();
-  }
-  if (lower.endsWith('.sql')) {
-    return cm.sql();
-  }
-  return JSArray();
+    ].toJS,
+    'yaml' || 'yml' || 'lock' => cm.yaml(),
+    'md' => cm.markdown(),
+    'js' || 'ts' => cm.javascript(),
+    'html' => cm.html(),
+    'css' => cm.css(),
+    'json' => cm.json(),
+    'xml' => cm.xml(),
+    'scss' || 'sass' => cm.sass(),
+    'sql' => cm.sql(),
+    _ => JSArray(),
+  };
 }
