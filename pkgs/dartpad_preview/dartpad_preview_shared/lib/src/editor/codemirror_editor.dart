@@ -15,7 +15,7 @@ class EditorViewState {
   final double scrollLeft;
   final cm.EditorSelection selection;
 
-  EditorViewState({
+  const EditorViewState({
     required this.scrollTop,
     required this.scrollLeft,
     required this.selection,
