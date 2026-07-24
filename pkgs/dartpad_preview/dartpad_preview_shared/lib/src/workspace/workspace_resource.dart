@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'workspace_path.dart';
 
+/// Provides access to the files and directories of a virtual workspace.
 abstract interface class WorkspaceApi {
   int get id;
   Uri get workspaceFolder;
