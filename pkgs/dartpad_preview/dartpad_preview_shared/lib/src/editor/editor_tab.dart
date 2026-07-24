@@ -9,6 +9,8 @@ import 'tabs_controller.dart';
 
 /// Represents a tab in the editor workspace associated with a specific file path.
 ///
+/// The type parameter [T] is the UI representation returned by [build].
+///
 /// Implementations of [EditorTab] specify how to build the tab's UI (via [build])
 /// and handle lifecycle events.
 abstract class EditorTab<T> {
