@@ -389,7 +389,12 @@ abstract mixin class TabsController<T> {
   /// Hook called after one or more tabs have been successfully saved to disk.
   Future<void> didSaveTabs(List<String> paths);
 
-  /// Hook called when the controller state updates (e.g. active tab changes, tab contents are updated, or tabs are saved).
+  /// Hook called when the controller state updates, for example when the
+  /// active tab or tab contents change.
+  ///
+  /// When [isSaving] is `true` or `false`, the current saving state changed to
+  /// that value. When it is `null`, the saving state did not change and its
+  /// current value should be preserved.
   void didUpdate({bool? isSaving});
 
   /// Disposes all open and keep-alive tabs, and cleans up any active file subscriptions.
