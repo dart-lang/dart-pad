@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
 class MemoryWorkspace implements WorkspaceApi {

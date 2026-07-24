@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad_preview_shared/src/lsp/diagnostic_uri_resolver.dart';
-import 'package:dartpad_preview_shared/src/workspace/workspace_path.dart';
+import 'package:dartpad_editor/src/lsp/diagnostic_uri_resolver.dart';
+import 'package:dartpad_editor/src/workspace/workspace_path.dart';
 import 'package:test/test.dart';
 
 void main() {

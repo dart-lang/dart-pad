@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-name: dartpad_preview_shared
-description: Shared modules for Dartpad Frontend.
+name: dartpad_editor
+description: Editor, language-server, and workspace modules for DartPad.
 version: 0.0.1
 publish_to: none
 

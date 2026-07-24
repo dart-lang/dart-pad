@@ -11,7 +11,7 @@ publish_to: none
 workspace:
   - codemirror-lang-dart
   - codemirror-dart
-  - dartpad_preview_shared
+  - dartpad_editor
 
 environment:
   sdk: ^3.12.0-0

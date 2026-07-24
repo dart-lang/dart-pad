@@ -1,15 +1,14 @@
-# dartpad_preview_shared
+# dartpad_editor
 
-Shared editor, language-server, and workspace building blocks for the DartPad
-Preview frontend. This is a private workspace package and is not published to
-pub.dev.
+Editor, language-server, and workspace building blocks for client-side DartPad.
+This is a private workspace package and is not published to pub.dev.
 
 ## Usage
 
 Import the package entrypoint instead of implementation files under `lib/src`:
 
 ```dart
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 ```
 
 The public API provides:
@@ -26,13 +25,12 @@ JavaScript bundle must be loaded as described by the sibling
 
 ## Development
 
-Resolve dependencies from the preview workspace root and run checks from this
-directory:
+Resolve dependencies from the workspace root and run checks from this directory:
 
 ```bash
 cd ..
 dart pub get
-cd dartpad_preview_shared
+cd dartpad_editor
 dart format --output=none --set-exit-if-changed lib test
 dart analyze --fatal-infos
 dart test

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
 Map<String, dynamic> _edit(

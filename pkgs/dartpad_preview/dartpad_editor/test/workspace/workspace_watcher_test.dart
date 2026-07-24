@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad/src/worker_client.dart'
     show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
 class FakeWorkspaceChangeStream {

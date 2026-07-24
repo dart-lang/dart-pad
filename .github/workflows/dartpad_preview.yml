@@ -67,7 +67,7 @@ jobs:
           npm run build
           git diff --exit-code -- lib/assets
 
-  shared:
+  editor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -79,11 +79,11 @@ jobs:
         run: dart pub get
 
       - name: Check Dart sources
-        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        working-directory: pkgs/dartpad_preview/dartpad_editor
         run: |
           dart format --output=none --set-exit-if-changed lib test
           dart analyze --fatal-infos
 
       - name: Run tests
-        working-directory: pkgs/dartpad_preview/dartpad_preview_shared
+        working-directory: pkgs/dartpad_preview/dartpad_editor
         run: dart test
