@@ -22,7 +22,11 @@ abstract class EditorTab<T> {
   /// The display name of the tab, derived from the file path.
   String get name => workspacePath.basename(path);
 
-  /// Whether this tab should be kept in memory when closed.
+  /// Whether this tab should remain in memory after it is closed.
+  ///
+  /// Keeping a tab alive allows it to be reopened without recreating its
+  /// editor, preserving in-memory state such as unsaved content, undo history,
+  /// selection, and scroll position.
   bool get keepAlive => false;
 
   /// Called when the tab becomes active or focused in the workspace.
