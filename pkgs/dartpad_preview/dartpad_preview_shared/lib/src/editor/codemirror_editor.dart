@@ -350,6 +350,12 @@ JSAny _languageExtension(String fileName, WorkspaceController? workspaceControll
             run: cm.formatDocument,
             preventDefault: true,
           ),
+          // macOS may report Option+Shift+F as "Ï" in KeyboardEvent.key.
+          cm.KeyBinding(
+            key: 'Shift-Alt-Ï'.toJS,
+            run: cm.formatDocument,
+            preventDefault: true,
+          ),
         ].toJS,
       ),
     ].toJS,
