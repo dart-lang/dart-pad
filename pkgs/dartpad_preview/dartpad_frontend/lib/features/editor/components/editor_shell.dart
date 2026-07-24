@@ -17,6 +17,8 @@ class EditorShell extends StatelessComponent {
     required this.openTabs,
     required this.activeFile,
     required this.errorMessage,
+    required this.warningMessage,
+    required this.fileTree,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bootstrapLabel,
@@ -35,11 +37,17 @@ class EditorShell extends StatelessComponent {
   /// The latest user-facing editor error, or `null` if there is none.
   final String? errorMessage;
 
+  /// The latest user-facing editor warning, or `null` if there is none.
+  final String? warningMessage;
+
   /// Switches to the editor tab at the provided path.
   final void Function(String path)? onSwitchFile;
 
   /// Closes the editor tab at the provided path.
   final bool Function(String path, {bool discardChanges})? onCloseFile;
+
+  /// The workspace file tree.
+  final Component fileTree;
 
   /// Human-readable label for the current status.
   final String bootstrapLabel;
@@ -48,27 +56,31 @@ class EditorShell extends StatelessComponent {
   Component build(BuildContext context) {
     final openTabs = this.openTabs;
     return div(classes: 'ide-shell', [
-      main_(classes: 'editor-host', [
-        if (openTabs != null) ...[
-          EditorTabs(
-            openTabs: openTabs,
-            activeFile: activeFile,
-            onSwitchFile: onSwitchFile!,
-            onCloseFile: onCloseFile!,
-          ),
-          EditorStack(
-            openTabs: openTabs,
-            activeFile: activeFile,
-          ),
-        ],
+      div(classes: 'workspace-shell', [
+        aside(classes: 'file-tree-pane', [fileTree]),
+        main_(classes: 'editor-host', [
+          if (openTabs != null) ...[
+            EditorTabs(
+              openTabs: openTabs,
+              activeFile: activeFile,
+              onSwitchFile: onSwitchFile!,
+              onCloseFile: onCloseFile!,
+            ),
+            EditorStack(
+              openTabs: openTabs,
+              activeFile: activeFile,
+            ),
+          ],
+        ]),
       ]),
       div(
         classes: [
           'status-bar',
           if (errorMessage != null) 'error',
+          if (errorMessage == null && warningMessage != null) 'warning',
         ].join(' '),
         [
-          .text(errorMessage ?? bootstrapLabel),
+          .text(errorMessage ?? warningMessage ?? bootstrapLabel),
         ],
       ),
     ]);

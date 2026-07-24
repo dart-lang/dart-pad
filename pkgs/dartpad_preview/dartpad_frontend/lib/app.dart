@@ -12,6 +12,9 @@ import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/view_models/tabs_view_model.dart';
+import 'features/filetree/file_tree_tabs_adapter.dart';
+import 'features/filetree/file_tree_view.dart';
+import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
 import 'features/shared/events/log_event.dart';
@@ -33,6 +36,7 @@ class AppState extends State<App> {
   late final WorkspaceRepository _workspaceRepository;
   late final BrowserConsoleObserver _console;
   late final TabsViewModel _tabs;
+  late final FileTreeViewModel _fileTree;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -51,6 +55,11 @@ class AppState extends State<App> {
       events: _events,
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
+    );
+    _fileTree = FileTreeViewModel(
+      tabs: FileTreeTabsAdapter(tabs),
+      workspace: repository,
+      events: _events,
     );
 
     _console = BrowserConsoleObserver(_events);
@@ -152,11 +161,22 @@ class AppState extends State<App> {
           openTabs: _tabs.openTabs,
           activeFile: _tabs.activeFile,
           errorMessage: _tabs.errorMessage,
+          fileTree: _buildFileTree(),
           onSwitchFile: _tabs.switchFile,
           onCloseFile: _tabs.closeFile,
           bootstrapLabel: loadingStatus,
         );
       },
+    );
+  }
+
+  Component _buildFileTree() {
+    return ListenableBuilder(
+      listenable: _fileTree,
+      builder: (context) => FileTreeView(
+        state: _fileTree.state,
+        actions: _fileTree.actions,
+      ),
     );
   }
 
@@ -168,6 +188,7 @@ class AppState extends State<App> {
   }
 
   Future<void> _disposeResources() async {
+    _fileTree.dispose();
     _tabs.dispose();
     _console.dispose();
     await _events.dispose();
