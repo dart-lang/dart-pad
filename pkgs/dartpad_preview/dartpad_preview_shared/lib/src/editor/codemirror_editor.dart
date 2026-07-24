@@ -350,11 +350,6 @@ JSAny _languageExtension(String fileName, WorkspaceController? workspaceControll
             run: cm.formatDocument,
             preventDefault: true,
           ),
-          cm.KeyBinding(
-            key: 'Shift-Alt-Ï'.toJS,
-            run: cm.formatDocument,
-            preventDefault: true,
-          ),
         ].toJS,
       ),
     ].toJS;
