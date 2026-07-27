@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:jaspr/jaspr.dart';
 
-import 'features/editor/editor_shell.dart';
-import 'features/editor/single_file_editor_view_model.dart';
+import 'features/editor/view/editor_shell.dart';
+import 'features/editor/view_model/single_file_editor_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
 import 'features/shared/node_container.dart';
@@ -26,37 +26,38 @@ class AppState extends State<App> {
   late final AppEventBus _events;
   late final BrowserConsoleObserver _console;
   late final SingleFileEditorViewModel _editor;
-  late final AppBootstrapCoordinator _startup;
+  late final AppBootstrapCoordinator _bootstrap;
 
   @override
   void initState() {
     super.initState();
     _events = AppEventBus();
-    _console = BrowserConsoleObserver(_events);
-    _editor = SingleFileEditorViewModel(
+    _bootstrap = AppBootstrapCoordinator(
       events: _events,
-      onChanged: _refresh,
+      onChanged: () {
+        if (mounted) {
+          setState(() {});
+        }
+      },
     );
-    _startup = AppBootstrapCoordinator(
-      events: _events,
-      editor: _editor,
-      onChanged: _refresh,
-    );
-    // The editor DOM is committed before any worker download or SDK setup.
-    context.binding.addPostFrameCallback(_startup.start);
-  }
 
-  void _refresh() {
-    if (mounted) {
-      setState(() {});
-    }
+    _editor = SingleFileEditorViewModel(events: _events);
+    _console = BrowserConsoleObserver(_events);
+
+    // The editor DOM is committed before any worker download or SDK setup.
+    context.binding.addPostFrameCallback(_bootstrap.start);
   }
 
   @override
   Component build(BuildContext context) {
-    return EditorShell(
-      editor: NodeContainer(_editor.container),
-      bootstrapLabel: _startup.status.label,
+    return ListenableBuilder(
+      listenable: _editor,
+      builder: (context) {
+        return EditorShell(
+          editor: NodeContainer(_editor.container),
+          bootstrapLabel: _bootstrap.status.label,
+        );
+      },
     );
   }
 
@@ -68,9 +69,10 @@ class AppState extends State<App> {
 
   Future<void> _disposeResources() async {
     // Stop producers before their consumers and the shared event stream.
-    await _editor.dispose();
-    await _startup.dispose();
-    await _console.dispose();
+
+    _editor.dispose();
+    await _bootstrap.dispose();
+    _console.dispose();
     await _events.dispose();
   }
 }

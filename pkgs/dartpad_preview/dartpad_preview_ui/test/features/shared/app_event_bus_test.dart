@@ -6,25 +6,25 @@ import 'package:dartpad_preview/features/shared/app_event_bus.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('dispatchAsync completes with the command result', () async {
+  test('dispatchAsync completes with the event result', () async {
     final events = AppEventBus();
-    final subscription = events.on<_TestCommand>().listen((command) {
-      command.complete('done');
+    final subscription = events.on<_TestEvent>().listen((event) {
+      event.complete('done');
     });
 
-    await expectLater(events.dispatchAsync(_TestCommand()), completion('done'));
+    await expectLater(events.dispatchAsync(_TestEvent()), completion('done'));
 
     await subscription.cancel();
     await events.dispose();
   });
 
-  test('dispatchAsync completes void commands without a value', () async {
+  test('dispatchAsync completes void events without a value', () async {
     final events = AppEventBus();
-    final subscription = events.on<_TestVoidCommand>().listen((command) {
-      command.complete();
+    final subscription = events.on<_TestVoidEvent>().listen((event) {
+      event.complete();
     });
 
-    await expectLater(events.dispatchAsync(_TestVoidCommand()), completes);
+    await expectLater(events.dispatchAsync(_TestVoidEvent()), completes);
 
     await subscription.cancel();
     await events.dispose();
@@ -34,7 +34,7 @@ void main() {
     final events = AppEventBus();
     final logs = events.on<LogEvent>().toList();
 
-    events.dispatch(_TestVoidCommand());
+    events.dispatch(_TestVoidEvent());
     events.dispatch(const LogEvent('ready'));
     await events.dispose();
 
@@ -42,6 +42,6 @@ void main() {
   });
 }
 
-final class _TestCommand extends AsyncCommand<String> {}
+final class _TestEvent extends AsyncEvent<String> {}
 
-final class _TestVoidCommand extends VoidAsyncCommand {}
+final class _TestVoidEvent extends VoidAsyncEvent {}

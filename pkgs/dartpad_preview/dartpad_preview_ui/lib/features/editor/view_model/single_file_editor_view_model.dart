@@ -4,23 +4,18 @@
 
 import 'dart:async';
 
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
-import '../shared/app_event_bus.dart';
-import 'sample_project.dart';
+import '../../shared/app_event_bus.dart';
+import '../../startup/sample_project.dart';
 
 /// Manages the CodeMirror editor state for a single `lib/main.dart` file,
 /// including save, format, and LSP attachment.
-///
-/// - [events]: shared event bus for logging and cross-component communication.
-/// - [onChanged]: called whenever editor state changes that affect the UI.
-final class SingleFileEditorViewModel {
-  SingleFileEditorViewModel({
-    required this.events,
-    required this.onChanged,
-  }) : container = web.document.createElement('div') as web.HTMLElement {
+final class SingleFileEditorViewModel extends ChangeNotifier {
+  SingleFileEditorViewModel({required this.events}) : container = web.document.createElement('div') as web.HTMLElement {
     container.className = 'editor-container';
     editor = CodeMirrorEditor(
       container,
@@ -29,10 +24,23 @@ final class SingleFileEditorViewModel {
       onUpdate: (_) {
         _source = editor.text;
         _isDirty = _source != _savedSource;
-        onChanged();
+        notifyListeners();
       },
-      onSave: _handleSave,
+      onSave: () {
+        if (_disposed) {
+          return;
+        }
+        unawaited(_save());
+      },
     );
+
+    events.on<WorkspaceInitializedEvent>().listen((event) {
+      if (_disposed) {
+        return;
+      }
+      _workspace = event.workspace;
+      editor.attachWorkspace(event.workspace);
+    });
   }
 
   static const String filePath = 'lib/main.dart';
@@ -40,8 +48,6 @@ final class SingleFileEditorViewModel {
   /// Shared event bus for logging and cross-component communication.
   final AppEventBus events;
 
-  /// Called whenever editor state changes that affect the UI.
-  final void Function() onChanged;
   final web.HTMLElement container;
   late final CodeMirrorEditor editor;
 
@@ -50,34 +56,9 @@ final class SingleFileEditorViewModel {
   bool _isDirty = false;
   bool _disposed = false;
   WorkspaceController? _workspace;
-  final Set<Future<void>> _pendingSaves = {};
 
   String get source => _source;
   bool get isDirty => _isDirty;
-
-  void attachWorkspace(WorkspaceController workspace) {
-    if (_disposed) {
-      return;
-    }
-    _workspace = workspace;
-    editor.attachWorkspace(workspace);
-  }
-
-  void refreshSemanticHighlighting() {
-    if (!_disposed) {
-      editor.triggerLspRefresh();
-    }
-  }
-
-  void _handleSave() {
-    if (_disposed) {
-      return;
-    }
-    late final Future<void> save;
-    save = _save().whenComplete(() => _pendingSaves.remove(save));
-    _pendingSaves.add(save);
-    unawaited(save);
-  }
 
   Future<void> _save() async {
     try {
@@ -104,15 +85,13 @@ final class SingleFileEditorViewModel {
   void _markSaved() {
     _savedSource = source;
     _isDirty = false;
-    onChanged();
+    notifyListeners();
   }
 
-  Future<void> dispose() async {
-    if (_disposed) {
-      return;
-    }
+  @override
+  void dispose() {
     _disposed = true;
-    await Future.wait(_pendingSaves.toList());
     editor.destroy();
+    super.dispose();
   }
 }

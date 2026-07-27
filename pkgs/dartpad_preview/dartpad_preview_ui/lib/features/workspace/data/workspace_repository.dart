@@ -3,16 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:web/web.dart' as web;
 
-import '../editor/sample_project.dart';
-import '../shared/app_event_bus.dart';
+import '../../shared/app_event_bus.dart';
+import '../../startup/sample_project.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
-///
-/// - [dartpad]: the DartPad runtime instance that owns the WASM worker.
-/// - [events]: shared event bus for lifecycle and diagnostic logging.
 final class WorkspaceRepository extends WorkspaceController {
   WorkspaceRepository._({
     required this.dartpad,
@@ -28,13 +25,8 @@ final class WorkspaceRepository extends WorkspaceController {
   final AppEventBus events;
 
   /// Creates a new transient workspace and starts the language server.
-  ///
-  /// - [events]: event bus used for progress logging.
-  /// - [readLatestMainSource]: provides the source used to initialize the
-  ///   sample project.
   static Future<WorkspaceRepository> create({
     required AppEventBus events,
-    required String Function() readLatestMainSource,
   }) async {
     DartPad? dartpad;
     Workspace? workspace;
@@ -47,10 +39,7 @@ final class WorkspaceRepository extends WorkspaceController {
 
       events.dispatch(const LogEvent('Creating transient workspace...'));
       workspace = await dartpad.createWorkspace();
-      await createSampleProject(
-        workspace,
-        readLatestMainSource: readLatestMainSource,
-      );
+      await createSampleProject(workspace);
 
       events.dispatch(const LogEvent('Starting analyzer...'));
       final languageServer = await workspace.startLanguageServer();

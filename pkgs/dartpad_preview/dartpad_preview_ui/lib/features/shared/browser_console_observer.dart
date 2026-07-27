@@ -29,5 +29,7 @@ final class BrowserConsoleObserver {
     web.console.log(message);
   }
 
-  Future<void> dispose() => _subscription.cancel();
+  void dispose() {
+    _subscription.cancel();
+  }
 }

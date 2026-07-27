@@ -4,12 +4,11 @@
 
 import 'dart:async';
 
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:logging/logging.dart';
 
-import '../editor/single_file_editor_view_model.dart';
 import '../shared/app_event_bus.dart';
-import '../workspace/workspace_repository.dart';
+import '../workspace/data/workspace_repository.dart';
 
 /// Discrete phases of the application startup shown to the user.
 enum BootstrapStatus {
@@ -23,22 +22,14 @@ enum BootstrapStatus {
 }
 
 /// Coordinates application startup without delaying the first frame.
-///
-/// - [events]: shared event bus for dispatching log and status events.
-/// - [editor]: the editor view model that receives the workspace once ready.
-/// - [onChanged]: called when [status] changes so the UI can rebuild.
 final class AppBootstrapCoordinator {
   AppBootstrapCoordinator({
     required this.events,
-    required this.editor,
     required this.onChanged,
   });
 
   /// Shared event bus for dispatching log and status events.
   final AppEventBus events;
-
-  /// The editor view model that receives the workspace once ready.
-  final SingleFileEditorViewModel editor;
 
   /// Called when [status] changes so the UI can rebuild.
   final void Function() onChanged;
@@ -46,11 +37,9 @@ final class AppBootstrapCoordinator {
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
   WorkspaceRepository? _repository;
   Future<void>? _startFuture;
-  Future<void>? _pubGetFuture;
   BootstrapStatus status = BootstrapStatus.idle;
   bool _started = false;
   bool _disposed = false;
-  int _generation = 0;
 
   /// Starts the application services in the following order:
   ///
@@ -69,22 +58,27 @@ final class AppBootstrapCoordinator {
     }
     _started = true;
     _setStatus(BootstrapStatus.starting);
-    final generation = ++_generation;
 
     try {
-      final repository = await _createWorkspace(generation);
-      if (repository == null) {
+      final repository = await WorkspaceRepository.create(events: events);
+      if (_disposed) {
+        await repository.close();
         return;
       }
       _repository = repository;
-      _subscribeToAnalyzerActivity(repository);
-      _pubGetFuture = _runPubGet(repository);
-      await _initializeAnalyzer(repository, generation);
+      _analyzerSubscription = repository.languageServerClient.analyzerActivityStream.listen(
+        (activity) => _logAnalyzerActivity(repository, activity),
+      );
 
-      if (_isCurrentGeneration(generation)) {
-        _setStatus(BootstrapStatus.ready);
-        events.dispatch(const LogEvent('Startup complete.'));
-      }
+      await _runPubGet(repository);
+
+      await repository.languageServerClient.codeMirrorLspClient.initialized;
+
+      events.dispatch(WorkspaceInitializedEvent(repository));
+      events.dispatch(const LogEvent('LSP initialized and attached to editor.'));
+
+      _setStatus(BootstrapStatus.ready);
+      events.dispatch(const LogEvent('Startup complete.'));
     } catch (error, stackTrace) {
       if (!_disposed) {
         _setStatus(BootstrapStatus.failed);
@@ -100,40 +94,14 @@ final class AppBootstrapCoordinator {
     }
   }
 
-  Future<WorkspaceRepository?> _createWorkspace(int generation) async {
-    final repository = await WorkspaceRepository.create(
-      events: events,
-      readLatestMainSource: () => editor.source,
-    );
-    if (!_isCurrentGeneration(generation)) {
-      await repository.close();
-      return null;
-    }
-    return repository;
-  }
-
-  void _subscribeToAnalyzerActivity(WorkspaceRepository repository) {
-    _analyzerSubscription = repository.languageServerClient.analyzerActivityStream.listen(
-      (activity) => _logAnalyzerActivity(repository, activity),
-    );
-  }
-
-  Future<void> _initializeAnalyzer(
-    WorkspaceRepository repository,
-    int generation,
-  ) async {
-    await repository.languageServerClient.codeMirrorLspClient.initialized;
-    if (!_isCurrentGeneration(generation)) {
-      return;
-    }
-    editor.attachWorkspace(repository);
-    events.dispatch(const LogEvent('LSP initialized and attached to main.dart.'));
+  void _setStatus(BootstrapStatus value) {
+    status = value;
+    onChanged();
   }
 
   Future<void> _runPubGet(WorkspaceRepository repository) async {
     try {
       await repository.pubGet();
-      editor.refreshSemanticHighlighting();
     } catch (error, stackTrace) {
       if (!_disposed) {
         events.dispatch(
@@ -146,13 +114,6 @@ final class AppBootstrapCoordinator {
         );
       }
     }
-  }
-
-  bool _isCurrentGeneration(int generation) => !_disposed && generation == _generation;
-
-  void _setStatus(BootstrapStatus value) {
-    status = value;
-    onChanged();
   }
 
   void _logAnalyzerActivity(
@@ -186,9 +147,7 @@ final class AppBootstrapCoordinator {
       return;
     }
     _disposed = true;
-    _generation++;
-    await _startFuture;
-    await _pubGetFuture;
+
     await _analyzerSubscription?.cancel();
     final repository = _repository;
     _repository = null;

@@ -4,7 +4,15 @@
 
 import 'package:dartpad/dartpad.dart';
 
-const String sampleMainDart = r'''import 'package:flutter/material.dart';
+/// Creates the files for the default DartPad Preview sample project.
+Future<void> createSampleProject(Workspace workspace) async {
+  await workspace.createFolder('lib');
+  await workspace.writeFileFromText('pubspec.yaml', samplePubspec.trimLeft());
+  await workspace.writeFileFromText('lib/main.dart', sampleMainDart.trimLeft());
+}
+
+const String sampleMainDart = r'''
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const CounterApp());
@@ -73,7 +81,8 @@ class _CounterPageState extends State<CounterPage> {
 }
 ''';
 
-const String samplePubspec = '''name: counter_app
+const String samplePubspec = '''
+name: counter_app
 description: A transient DartPad Preview counter app.
 publish_to: none
 version: 1.0.0+1
@@ -88,14 +97,3 @@ dependencies:
 flutter:
   uses-material-design: true
 ''';
-
-/// Creates the files for the default DartPad Preview sample project.
-Future<void> createSampleProject(
-  Workspace workspace, {
-  required String Function() readLatestMainSource,
-}) async {
-  await workspace.createFolder('lib');
-  await workspace.writeFileFromText('pubspec.yaml', samplePubspec);
-  // Read at the last possible moment: edits made during worker startup win.
-  await workspace.writeFileFromText('lib/main.dart', readLatestMainSource());
-}

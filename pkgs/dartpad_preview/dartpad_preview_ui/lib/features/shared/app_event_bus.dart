@@ -6,15 +6,39 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
+import '../workspace/data/workspace_repository.dart';
+
+part 'events/log_event.dart';
+part 'events/workspace_event.dart';
+
+/// Lightweight, broadcast-based event bus for decoupled communication
+/// between application components.
+final class AppEventBus {
+  final StreamController<AppEvent> _controller = StreamController<AppEvent>.broadcast();
+
+  Stream<T> on<T extends AppEvent>() => _controller.stream.where((event) => event is T).cast<T>();
+
+  void dispatch(AppEvent event) => _controller.add(event);
+
+  Future<T> dispatchAsync<T>(AsyncEventBase<T> command) {
+    dispatch(command);
+    return command.future;
+  }
+
+  Future<void> dispose() async {
+    await _controller.close();
+  }
+}
+
 /// Base type for all events dispatched through the [AppEventBus].
 sealed class AppEvent {
   const AppEvent();
 }
 
-/// A command that carries its own [Completer] so dispatchers can `await`
+/// An event that carries its own [Completer] so dispatchers can `await`
 /// the handler's result.
-abstract class AsyncCommandBase<T> extends AppEvent {
-  AsyncCommandBase() : _completer = Completer<T>();
+abstract class AsyncEventBase<T> extends AppEvent {
+  AsyncEventBase() : _completer = Completer<T>();
 
   final Completer<T> _completer;
   Future<T> get future => _completer.future;
@@ -26,8 +50,8 @@ abstract class AsyncCommandBase<T> extends AppEvent {
   }
 }
 
-/// An async command that resolves with a value of type [T].
-abstract class AsyncCommand<T> extends AsyncCommandBase<T> {
+/// An event that resolves with a value of type [T].
+abstract class AsyncEvent<T> extends AsyncEventBase<T> {
   void complete(T value) {
     if (!_completer.isCompleted) {
       _completer.complete(value);
@@ -35,55 +59,11 @@ abstract class AsyncCommand<T> extends AsyncCommandBase<T> {
   }
 }
 
-/// An async command that completes without a return value.
-abstract class VoidAsyncCommand extends AsyncCommandBase<void> {
+/// An event that completes without a return value.
+abstract class VoidAsyncEvent extends AsyncEventBase<void> {
   void complete() {
     if (!_completer.isCompleted) {
       _completer.complete();
     }
   }
-}
-
-/// A structured log message routed through the event bus.
-///
-/// - [message]: human-readable log text.
-/// - [level]: severity level; defaults to [Level.INFO].
-/// - [error]: optional error object associated with this entry.
-/// - [stackTrace]: optional stack trace accompanying [error].
-final class LogEvent extends AppEvent {
-  const LogEvent(
-    this.message, {
-    this.level = Level.INFO,
-    this.error,
-    this.stackTrace,
-  });
-
-  /// Human-readable log text.
-  final String message;
-
-  /// Severity level; defaults to [Level.INFO].
-  final Level level;
-
-  /// Optional error object associated with this log entry.
-  final Object? error;
-
-  /// Optional stack trace accompanying [error].
-  final StackTrace? stackTrace;
-}
-
-/// Lightweight, broadcast-based event bus for decoupled communication
-/// between application components.
-final class AppEventBus {
-  final StreamController<AppEvent> _controller = StreamController<AppEvent>.broadcast();
-
-  Stream<T> on<T extends AppEvent>() => _controller.stream.where((event) => event is T).cast<T>();
-
-  void dispatch(AppEvent event) => _controller.add(event);
-
-  Future<T> dispatchAsync<T>(AsyncCommandBase<T> command) {
-    dispatch(command);
-    return command.future;
-  }
-
-  Future<void> dispose() => _controller.close();
 }

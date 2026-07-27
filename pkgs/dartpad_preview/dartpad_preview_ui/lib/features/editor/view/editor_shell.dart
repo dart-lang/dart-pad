@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport '../shared/node_container.dart';
-/// @docImport '../startup/app_bootstrap_coordinator.dart';
+/// @docImport '../../shared/node_container.dart';
+/// @docImport '../../startup/app_bootstrap_coordinator.dart';
 library;
 
 import 'package:jaspr/dom.dart';
@@ -11,11 +11,6 @@ import 'package:jaspr/jaspr.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor and the bootstrap
 /// status indicator.
-///
-/// - [editor]: the editor component (typically a [NodeContainer] wrapping
-///   CodeMirror).
-/// - [bootstrapLabel]: human-readable label for the current
-///   [BootstrapStatus].
 class EditorShell extends StatelessComponent {
   const EditorShell({
     required this.editor,

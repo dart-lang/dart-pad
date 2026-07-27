@@ -5,6 +5,14 @@ before it starts the DartPad worker. After the first browser frame it creates an
 in-memory Flutter project, starts LSP and runs `pub get`. Ctrl/Cmd+S formats and
 writes the visible buffer; reloading resets the project.
 
+## Running
+
+Run the project using:
+
+```bash
+dart run jaspr_cli:jaspr serve -v
+```
+
 ## SDK assets
 
 The generated worker and Flutter SDK artifacts are collected under the single
