@@ -8,6 +8,8 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:logging/logging.dart';
 
 import '../shared/app_event_bus.dart';
+import '../shared/events/log_event.dart';
+import '../shared/events/workspace_event.dart';
 import '../workspace/data/workspace_repository.dart';
 
 /// Discrete phases of the application startup shown to the user.

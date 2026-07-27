@@ -1,5 +1,5 @@
-name: dartpad_preview
-description: A new Jaspr project
+name: dartpad_frontend
+description: Frontend of the client-side DartPad
 version: 0.0.1
 publish_to: none
 

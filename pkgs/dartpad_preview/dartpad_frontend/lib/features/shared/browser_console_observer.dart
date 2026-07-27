@@ -8,6 +8,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 import 'app_event_bus.dart';
+import 'events/log_event.dart';
 
 /// Forwards [LogEvent]s from the [AppEventBus] to the browser's developer
 /// console.

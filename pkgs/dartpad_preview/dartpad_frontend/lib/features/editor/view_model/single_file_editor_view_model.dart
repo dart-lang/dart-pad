@@ -10,6 +10,8 @@ import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../shared/app_event_bus.dart';
+import '../../shared/events/log_event.dart';
+import '../../shared/events/workspace_event.dart';
 import '../../startup/sample_project.dart';
 
 /// Manages the CodeMirror editor state for a single `lib/main.dart` file,

@@ -4,13 +4,6 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
-
-import '../workspace/data/workspace_repository.dart';
-
-part 'events/log_event.dart';
-part 'events/workspace_event.dart';
-
 /// Lightweight, broadcast-based event bus for decoupled communication
 /// between application components.
 final class AppEventBus {
@@ -31,7 +24,7 @@ final class AppEventBus {
 }
 
 /// Base type for all events dispatched through the [AppEventBus].
-sealed class AppEvent {
+class AppEvent {
   const AppEvent();
 }
 

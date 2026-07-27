@@ -6,10 +6,6 @@
 # Conventional directory for build output.
 /build/
 
-# Until 0.0.4 of dartpad with the new file watcher logic is published, we need
-# to build and keep the SDK runtime assets locally.
-/web/dartpad/
-
 # Miscellaneous
 *.class
 *.log
@@ -32,3 +28,8 @@ migrate_working_dir/
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
+
+# TODO: Remove this.
+# Until 0.0.4 of dartpad with the new file watcher logic is published, we need
+# to build and keep the SDK runtime assets locally.
+/web/dartpad/

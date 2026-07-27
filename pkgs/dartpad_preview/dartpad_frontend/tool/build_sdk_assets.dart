@@ -61,7 +61,7 @@ Future<void> main(List<String> args) async {
   );
 
   final configuration = 'ReleaseX64';
-  final buildRoot = Directory(p.join(dartRoot.path, 'out', configuration));
+  final buildRoot = Directory(p.join(dartRoot.path, Platform.isMacOS ? 'xcodebuild' : 'out', configuration));
   final builtDart = p.join(
     buildRoot.path,
     'dart-sdk',

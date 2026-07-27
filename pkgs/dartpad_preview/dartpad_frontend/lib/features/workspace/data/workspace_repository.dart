@@ -7,6 +7,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:web/web.dart' as web;
 
 import '../../shared/app_event_bus.dart';
+import '../../shared/events/log_event.dart';
 import '../../startup/sample_project.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
