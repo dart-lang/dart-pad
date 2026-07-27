@@ -28,11 +28,12 @@ import {
   HighlightStyle,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
-import { LSPPlugin, formatDocument } from "@codemirror/lsp-client";
+import { LSPPlugin } from "@codemirror/lsp-client";
 import { createLspClient } from "./lspClient";
 import { gotoDefinitionOnClick } from "./gotoDefinition";
 import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
+import { formatDocument, formatDocumentAsync } from "./formatting";
 
 declare global {
   interface Window {
@@ -52,6 +53,7 @@ declare global {
       linter: (source: any, config?: any) => Extension;
       LSPPlugin: typeof LSPPlugin;
       formatDocument: typeof formatDocument;
+      formatDocumentAsync: typeof formatDocumentAsync;
       oneDark: Extension;
       showPanel: typeof showPanel;
       syntaxHighlighting: (style: any, options?: any) => Extension;
@@ -95,6 +97,7 @@ window._codemirror = {
   linter,
   LSPPlugin,
   formatDocument,
+  formatDocumentAsync,
   oneDark,
   showPanel,
   syntaxHighlighting,

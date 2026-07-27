@@ -44,6 +44,7 @@ extension type EditorSelection(JSObject _) implements JSObject {
   external static SelectionRange cursor(int pos);
   external static EditorSelection create(JSArray<SelectionRange> ranges, [int? mainIndex]);
   external static SelectionRange range(int anchor, int head);
+  external static EditorSelection single(int anchor, [int? head]);
 
   external JSArray<SelectionRange> get ranges;
   external SelectionRange get main;

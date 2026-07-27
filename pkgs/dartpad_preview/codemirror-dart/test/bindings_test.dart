@@ -91,6 +91,15 @@ void main() {
     expect(state.selection.main.empty, isTrue);
   });
 
+  test('EditorSelection.single creates a single selection', () {
+    final selection = EditorSelection.single(2);
+
+    expect(selection.ranges.toDart, hasLength(1));
+    expect(selection.main.anchor, 2);
+    expect(selection.main.head, 2);
+    expect(selection.main.empty, isTrue);
+  });
+
   test('EditorView dispatch applies ChangeSpec and TransactionSpec', () {
     final parent = web.HTMLDivElement();
     web.document.body!.append(parent);

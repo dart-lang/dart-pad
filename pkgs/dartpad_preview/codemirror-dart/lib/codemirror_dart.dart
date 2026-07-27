@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Dart bindings for the CodeMirror bundle used by DartPad Preview.
+/// Dart bindings for the CodeMirror bundle used by client-side DartPad.
 library;
 
 export 'package:codemirror_lang_dart/codemirror_lang_dart.dart';

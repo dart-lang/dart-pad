@@ -1,6 +1,6 @@
 # codemirror-dart
 
-A private Dart wrapper around the CodeMirror 6 text editor used by DartPad Preview.
+A private Dart wrapper around the CodeMirror 6 text editor used by client-side DartPad.
 
 This directory contains both a Dart package and the TypeScript sources used to
 build the JavaScript bundle consumed through Dart JS interop. It is an internal
