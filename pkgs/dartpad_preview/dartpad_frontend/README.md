@@ -19,8 +19,8 @@ The generated worker and Flutter SDK artifacts are collected under the single
 ignored directory `web/dartpad/`. They must be built from this exact compatible
 pair:
 
-- Dart SDK `064fcb01ba7e08a2179a28146801df49341188e4`
-- Flutter `f9628e39032b6d79e6c8707a1aac8ab2aa0e4417`
+- Dart SDK `682f45325f17dc10c33dd07c485256154715ddb9`
+- Flutter `d776076fe2f7470f4da43cc6084137e5bbe35b6d`
 
 From this package directory run:
 

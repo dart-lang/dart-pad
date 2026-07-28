@@ -2,25 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
+import 'workspace_api.dart';
 import 'workspace_path.dart';
 
-/// Provides access to the files and directories of a virtual workspace.
-abstract interface class WorkspaceApi {
-  int get id;
-  Uri get workspaceFolder;
-  Future<bool> fileExist(String uri);
-  Future<bool> folderExist(String uri);
-  Future<String> readFileAsText(String uri);
-  Future<Uint8List> readFileAsBytes(String uri);
-  Future<void> writeFileFromText(String uri, String content);
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes);
-  Future<void> createFolder(String uri);
-  Future<void> deleteFileSystemEntity(String uri);
-  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false});
-  void addMoveIntention(String oldPath, String newPath);
-}
 
 /// Thrown when a rename or move would overwrite an existing workspace entry.
 final class WorkspaceResourceConflictException implements Exception {
@@ -38,7 +22,7 @@ final class WorkspaceResourceConflictException implements Exception {
 
 /// Adds shared validation for workspace operations that must not overwrite an
 /// existing file or folder.
-extension WorkspaceConflictValidation on WorkspaceApi {
+extension WorkspaceConflictValidation on WorkspaceResourceApi {
   /// Throws a [WorkspaceResourceConflictException] when [targetPath] already
   /// exists as either a file or folder.
   Future<void> ensureTargetAvailable({
@@ -66,8 +50,8 @@ sealed class WorkspaceResource {
     required this.workspace,
   });
 
-  /// The underlying [WorkspaceApi] this resource belongs to.
-  final WorkspaceApi workspace;
+  /// The underlying [WorkspaceResourceApi] this resource belongs to.
+  final WorkspaceResourceApi workspace;
 
   /// Return the [WorkspaceFolder] that contains this resource, possibly itself if this
   /// resource is a root folder.
@@ -85,14 +69,14 @@ sealed class WorkspaceResource {
 
   /// Rename this resource within its current parent folder.
   ///
-  /// Registers a move intention with [WorkspaceApi.addMoveIntention], reads/writes
+  /// Registers a move intention with [WorkspaceResourceApi.addMoveIntention], reads/writes
   /// the resource content,
   /// and deletes the old resource.
   Future<WorkspaceResource> rename(String newName);
 
   /// Move this resource to a new parent folder [targetFolder].
   ///
-  /// Registers a move intention with [WorkspaceApi.addMoveIntention], reads/writes
+  /// Registers a move intention with [WorkspaceResourceApi.addMoveIntention], reads/writes
   /// the resource content
   /// at the target destination, and deletes the old resource.
   Future<WorkspaceResource> moveTo(WorkspaceFolder targetFolder);
@@ -285,7 +269,7 @@ class WorkspaceFolder extends WorkspaceResource {
   ///
   /// This iterates over all child resources, creates corresponding folders
   /// at the target path, copies file contents (using bytes), registers move
-  /// intentions with [WorkspaceApi.addMoveIntention], and recursively deletes the
+  /// intentions with [WorkspaceResourceApi.addMoveIntention], and recursively deletes the
   /// old folder structure.
   Future<WorkspaceFolder> _moveFolderContents(String newPath) async {
     // Register the intention for the folder itself

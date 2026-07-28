@@ -4,11 +4,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
-import '../workspace/workspace_controller.dart';
-import '../workspace/workspace_watcher.dart';
+import '../workspace/workspace_events.dart';
 import 'diagnostic.dart';
 import 'diagnostic_uri_resolver.dart';
 
@@ -64,26 +64,30 @@ class _AnalyzerNotificationQueue {
 class LanguageServerClient {
   LanguageServerClient({
     required LanguageServer? languageServer,
-    required this.workspaceController,
+    required this.rootWorkspaceUri,
+    required Stream<WorkspaceChangeEvent> workspaceChangeEvents,
+    this._documentEditsHandler,
+    this._displayFileHandler,
+    // Below: Testing overrides
     void Function(Object? message)? sendToLanguageServer,
     Stream<Object?>? languageServerMessages,
-    Stream<WorkspaceChangeEvent>? workspaceChangeEvents,
     CodeMirrorLspClient Function(void Function(String) sendToServer, String rootUri)? createCodeMirrorLspClient,
   }) {
     _sendToLanguageServer = sendToLanguageServer ?? languageServer!.languageServerChannel.sink.add;
     if (createCodeMirrorLspClient != null) {
       _codeMirrorLspClient = createCodeMirrorLspClient(
         (String msg) => _sendToLanguageServer(jsonDecode(msg)),
-        workspaceController.workspaceUri.toString(),
+        rootWorkspaceUri.toString(),
       );
     } else {
       _codeMirrorLspClient = CodeMirrorLspClient(
         (String msg) => _sendToLanguageServer(jsonDecode(msg)),
-        workspaceController.workspaceUri.toString(),
+        rootWorkspaceUri.toString(),
         onDisplayFile: (String uri) async {
           final handler = _displayFileHandler;
           if (handler != null) {
-            await handler(uri);
+            final relativePath = getRelativePath(uri, rootWorkspaceUri.path);
+            await handler(relativePath);
           }
         },
         language: dart(),
@@ -92,7 +96,7 @@ class LanguageServerClient {
     _languageServerSubscription = (languageServerMessages ?? languageServer!.languageServerChannel.stream).listen(
       _handleMessage,
     );
-    _workspaceSubscription = (workspaceChangeEvents ?? workspaceController.watcher.events).listen((event) {
+    _workspaceSubscription = workspaceChangeEvents.listen((event) {
       if (event.type == WorkspaceChangeEventType.move) {
         _handleFileMoved(event.oldPath!, event.path);
       } else if (event.type == WorkspaceChangeEventType.remove) {
@@ -101,7 +105,7 @@ class LanguageServerClient {
     });
   }
 
-  final WorkspaceController workspaceController;
+  final Uri rootWorkspaceUri;
   late final void Function(Object? message) _sendToLanguageServer;
 
   late final StreamSubscription<WorkspaceChangeEvent> _workspaceSubscription;
@@ -135,22 +139,8 @@ class LanguageServerClient {
 
   /// A handler registered by the editor tab/view model to intercept edits
   /// and apply them in-memory/in-state if the file is currently open in CodeMirror.
-  /// Should return `true` if the edits were successfully intercepted and applied.
-  FutureOr<bool> Function(String file, List<Object?> edits)? _documentEditsHandler;
-
-  /// Registers [documentEditsHandler] to intercept edits for open files.
-  void setDocumentEditsHandler(
-    FutureOr<bool> Function(String file, List<Object?> edits)? documentEditsHandler,
-  ) {
-    _documentEditsHandler = documentEditsHandler;
-  }
-
-  Future<void> Function(String uri)? _displayFileHandler;
-
-  /// Registers [displayFileHandler] to switch tabs when the language server requests to display a file.
-  void setDisplayFileHandler(Future<void> Function(String uri)? displayFileHandler) {
-    _displayFileHandler = displayFileHandler;
-  }
+  final Future<void> Function(String file, List<Object?> edits)? _documentEditsHandler;
+  final Future<void> Function(String uri)? _displayFileHandler;
 
   bool Function(String file, String content)? _externalDocumentWriteHandler;
 
@@ -232,8 +222,8 @@ class LanguageServerClient {
   ///
   /// Any returned workspace edits are applied to the relevant files.
   Future<void> willRenameFiles(String oldPath, String newPath) async {
-    final oldUri = workspaceController.workspaceUri.resolve(oldPath).toString();
-    final newUri = workspaceController.workspaceUri.resolve(newPath).toString();
+    final oldUri = rootWorkspaceUri.resolve(oldPath).toString();
+    final newUri = rootWorkspaceUri.resolve(newPath).toString();
 
     final response = await sendLspRequest('workspace/willRenameFiles', {
       'files': [
@@ -321,15 +311,8 @@ class LanguageServerClient {
   /// and applies the edits in-memory/in-state; otherwise, the edits are applied
   /// directly to the file on disk.
   Future<void> _applyEditsToFile(String uri, List<Object?> edits) async {
-    final relativePath = getRelativePath(uri, workspaceController.workspaceUri.path);
-    final handler = _documentEditsHandler;
-    final wasChanged = handler == null ? false : await handler(relativePath, edits);
-    if (wasChanged) {
-      return;
-    } else {
-      final file = workspaceController.root.getFile(relativePath);
-      await file.writeContent(applyEdits(await file.readContent(), edits));
-    }
+    final relativePath = getRelativePath(uri, rootWorkspaceUri.path);
+    await _documentEditsHandler?.call(relativePath, edits);
   }
 
   /// Extracts the workspace-relative path from [uriString] by stripping the [folderPath] prefix.
@@ -414,10 +397,7 @@ class LanguageServerClient {
   Future<void> _handlePublishDiagnostics(Map<String, Object?> map) async {
     try {
       final uri = map['uri'] as String? ?? '';
-      final fileName = pathFromDiagnosticUri(uri, workspaceFolder: workspaceController.workspaceUri);
-      if (!await workspaceController.root.getFile(fileName).exists()) {
-        return;
-      }
+      final fileName = pathFromDiagnosticUri(uri, workspaceFolder: rootWorkspaceUri);
 
       final rawList = map['diagnostics'] as List? ?? const [];
       final diagnostics = rawList
@@ -499,5 +479,11 @@ class LanguageServerClient {
     await _workspaceSubscription.cancel();
     await _diagnosticsController.close();
     await _analyzerActivityController.close();
+  }
+
+  JSObject createCodeMirrorExtension(String fileName) {
+    return codeMirrorLspClient.createExtension(
+      rootWorkspaceUri.resolve(fileName).toString(),
+    );
   }
 }

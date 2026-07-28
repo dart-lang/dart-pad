@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartpad/dartpad.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 
 /// Creates the files for the default DartPad sample project.
-Future<void> createSampleProject(Workspace workspace) async {
-  await workspace.createFolder('lib');
-  await workspace.writeFileFromText('pubspec.yaml', samplePubspec.trimLeft());
-  await workspace.writeFileFromText('analysis_options.yaml', sampleAnalysisOptions.trimLeft());
-  await workspace.writeFileFromText('lib/main.dart', sampleMainDart.trimLeft());
+Future<void> createSampleProject(WorkspaceFolder root) async {
+  await root.getFolder('lib').create();
+  await root.getFile('pubspec.yaml').writeContent(samplePubspec.trimLeft());
+  await root.getFile('analysis_options.yaml').writeContent(sampleAnalysisOptions.trimLeft());
+  await root.getFile('lib/main.dart').writeContent(sampleMainDart.trimLeft());
 }
 
 const String sampleMainDart = r'''

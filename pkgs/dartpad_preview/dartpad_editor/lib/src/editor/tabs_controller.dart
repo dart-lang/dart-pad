@@ -4,10 +4,9 @@
 
 import 'dart:async';
 
-import '../lsp/language_server_client.dart';
-import '../workspace/workspace_controller.dart';
+import '../workspace/workspace_api.dart';
+import '../workspace/workspace_events.dart';
 import '../workspace/workspace_path.dart';
-import '../workspace/workspace_watcher.dart';
 import 'editor_tab.dart';
 
 /// A mixin class that controls the state of open editor tabs.
@@ -15,21 +14,20 @@ import 'editor_tab.dart';
 /// It manages opening, switching, saving, closing, and updating files within the editor workspace.
 /// [T] represents the type of the tab's underlying editor view or content.
 abstract mixin class TabsController<T> {
-  /// Initializes the tabs controller with a [workspaceController] and a list of tab [adapters].
+  /// Initializes the tabs controller with a [workspaceResourceApi] and a list of tab [adapters].
   ///
   /// Must be called in the constructor of the implementing class.
-  void init({required WorkspaceController workspaceController, required List<EditorTabAdapter<T>> adapters}) {
-    this.workspaceController = workspaceController;
+  void init({required WorkspaceResourceApi workspaceResourceApi, required List<EditorTabAdapter<T>> adapters}) {
+    this.workspaceResourceApi = workspaceResourceApi;
     this.adapters = adapters;
-    _workspaceSubscription = workspaceController.watcher.events.listen(_handleWorkspaceEvent);
-    workspaceController.languageServerClient.setDisplayFileHandler(_handleDisplayFile);
+    _workspaceSubscription = workspaceResourceApi.changeEvents.listen(_handleWorkspaceEvent);
 
     for (final adapter in adapters) {
       adapter.register(this);
     }
   }
 
-  late final WorkspaceController workspaceController;
+  late final WorkspaceResourceApi workspaceResourceApi;
   late final List<EditorTabAdapter<T>> adapters;
 
   bool _disposed = false;
@@ -81,7 +79,7 @@ abstract mixin class TabsController<T> {
     if (_disposed) {
       throw StateError('Cannot open a file on a disposed TabsController.');
     }
-    if (!await workspaceController.root.getFile(fileName).exists()) {
+    if (!await workspaceResourceApi.fileExist(fileName)) {
       return;
     }
 
@@ -259,12 +257,6 @@ abstract mixin class TabsController<T> {
     didUpdate();
   }
 
-  Future<void> _handleDisplayFile(String uri) async {
-    final folderPath = workspaceController.workspaceUri.path;
-    final relativePath = LanguageServerClient.getRelativePath(uri, folderPath);
-    await openFile(relativePath);
-  }
-
   void _handleWorkspaceEvent(WorkspaceChangeEvent event) {
     if (event.type == WorkspaceChangeEventType.move) {
       _handleFileMoved(event.oldPath!, event.path);
@@ -403,7 +395,6 @@ abstract mixin class TabsController<T> {
       return;
     }
     _disposed = true;
-    workspaceController.languageServerClient.setDisplayFileHandler(null);
     unawaited(_workspaceSubscription?.cancel());
     _workspaceSubscription = null;
     for (final subscription in _tabUpdateSubscriptions.values) {

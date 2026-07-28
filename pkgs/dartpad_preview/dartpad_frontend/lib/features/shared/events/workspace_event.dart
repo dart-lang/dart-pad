@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../workspace/data/workspace_repository.dart';
+import 'package:dartpad/dartpad.dart';
+
 import '../app_event_bus.dart';
 
-/// Fired when the [WorkspaceRepository] has been initialized.
-final class WorkspaceInitializedEvent extends AppEvent {
-  const WorkspaceInitializedEvent(this.workspace);
+/// Fired when the [Workspace] has been loaded.
+final class WorkspaceLoadedEvent extends AppEvent {
+  const WorkspaceLoadedEvent(this.workspace);
 
-  final WorkspaceRepository workspace;
+  final Workspace workspace;
 }
