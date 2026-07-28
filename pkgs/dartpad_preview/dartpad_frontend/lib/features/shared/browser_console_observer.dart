@@ -26,7 +26,7 @@ final class BrowserConsoleObserver {
       if (event.error != null) event.error,
       if (event.stackTrace != null) event.stackTrace,
     ].join('\n');
-    final message = '[dartpad_preview] ${event.message}${suffix.isEmpty ? '' : '\n$suffix'}'.toJS;
+    final message = '[dartpad] ${event.message}${suffix.isEmpty ? '' : '\n$suffix'}'.toJS;
     web.console.log(message);
   }
 

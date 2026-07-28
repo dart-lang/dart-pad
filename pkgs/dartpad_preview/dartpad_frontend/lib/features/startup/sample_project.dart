@@ -4,10 +4,11 @@
 
 import 'package:dartpad/dartpad.dart';
 
-/// Creates the files for the default DartPad Preview sample project.
+/// Creates the files for the default DartPad sample project.
 Future<void> createSampleProject(Workspace workspace) async {
   await workspace.createFolder('lib');
   await workspace.writeFileFromText('pubspec.yaml', samplePubspec.trimLeft());
+  await workspace.writeFileFromText('analysis_options.yaml', sampleAnalysisOptions.trimLeft());
   await workspace.writeFileFromText('lib/main.dart', sampleMainDart.trimLeft());
 }
 
@@ -83,7 +84,7 @@ class _CounterPageState extends State<CounterPage> {
 
 const String samplePubspec = '''
 name: counter_app
-description: A transient DartPad Preview counter app.
+description: A simple counter app.
 publish_to: none
 version: 1.0.0+1
 
@@ -99,4 +100,20 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+''';
+
+const String sampleAnalysisOptions = '''
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI.
+#
+# For more information, see: https://dart.dev/guides/language/analysis-options
+
+include: package:flutter_lints/flutter.yaml
+
+# linter:
+#   rules:
+#     # avoid_print: false # Uncomment to disable the `avoid_print` rule
+#     # prefer_single_quotes: true # Uncomment to enable the `prefer_single_quotes` rule
 ''';

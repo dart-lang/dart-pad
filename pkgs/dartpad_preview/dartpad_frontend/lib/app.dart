@@ -13,7 +13,7 @@ import 'features/shared/browser_console_observer.dart';
 import 'features/shared/node_container.dart';
 import 'features/startup/app_bootstrap_coordinator.dart';
 
-/// The deliberately small first production slice of DartPad Preview.
+/// The deliberately small first production slice of DartPad.
 class App extends StatefulComponent {
   const App({super.key});
 

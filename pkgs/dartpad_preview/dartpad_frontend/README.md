@@ -1,4 +1,4 @@
-# DartPad Preview
+# DartPad Frontend
 
 This client deliberately renders a transient `lib/main.dart` CodeMirror editor
 before it starts the DartPad worker. After the first browser frame it creates an
