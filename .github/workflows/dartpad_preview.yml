@@ -4,7 +4,8 @@
 
 name: package:dartpad_preview
 
-permissions: read-all
+permissions:
+  contents: read
 
 on:
   push:
