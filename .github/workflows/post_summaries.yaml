@@ -11,10 +11,10 @@ on:
     workflows: 
       - Health
     types:
-      - completed
+      - completed  # zizmor: ignore[dangerous-triggers]
 
 jobs:
   upload:
-    uses: dart-lang/ecosystem/.github/workflows/post_summaries.yaml@main
+    uses: dart-lang/ecosystem/.github/workflows/post_summaries.yaml@edfdb3b4063b9034b708144633a700204f865f43
     permissions:
       pull-requests: write

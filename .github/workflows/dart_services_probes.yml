@@ -1,5 +1,8 @@
 name: package:dart_services
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -25,6 +28,8 @@ jobs:
         sdk: [stable, beta, main]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
             channel: ${{ matrix.sdk }}
