@@ -27,10 +27,7 @@ abstract mixin class TabsController<T> {
     }
   }
 
-  /// The API for the workspace.
   late final WorkspaceResourceApi workspaceResourceApi;
-
-  /// The adapters available for creating tabs.
   late final List<EditorTabAdapter<T>> adapters;
 
   bool _disposed = false;

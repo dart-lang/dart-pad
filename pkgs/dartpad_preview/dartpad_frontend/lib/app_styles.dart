@@ -6,6 +6,7 @@ import 'package:jaspr/dom.dart';
 
 import 'component_styles.dart';
 
+// TODO: Implement proper dartpad theming.
 const colorPrimary = Color.variable('--color-primary');
 const colorOnPrimary = Color.variable('--color-on-primary');
 const colorSurface = Color.variable('--color-surface');

@@ -91,7 +91,7 @@ final class EditorTabs extends StatelessComponent {
                   }
                 },
               },
-              [closeIcon()],
+              [const Icon('close', size: 12)],
             ),
           ],
         ),

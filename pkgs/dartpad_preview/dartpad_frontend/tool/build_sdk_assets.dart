@@ -11,7 +11,6 @@ import 'package:path/path.dart' as p;
 const dartRevision = '682f45325f17dc10c33dd07c485256154715ddb9';
 const flutterRevision = 'd776076fe2f7470f4da43cc6084137e5bbe35b6d';
 
-
 Future<void> main(List<String> args) async {
   final packageRoot = Directory.current.absolute;
   final webRoot = Directory(p.join(packageRoot.path, 'web'));

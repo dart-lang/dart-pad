@@ -1,7 +1,21 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:jaspr/dom.dart';
 
 import '../../../app_styles.dart';
 
+/// Styles for CodeMirror integration components within the editor container.
+///
+/// This includes styles for:
+/// - General buttons (`.cm-button`)
+/// - LSP hover tooltips (`.cm-lsp-hover-tooltip`)
+/// - LSP rename panels (`.cm-lsp-rename-panel`)
+/// - Search panels (`.cm-search`)
+/// - General panels and tooltips (`.cm-panels`, `.cm-tooltip`)
+/// - Selection action popups (`.cm-selection-action-tooltip`)
+/// - Diagnostic hover toolbars (`.cm-diagnostic-hover-toolbar`)
 @css
 List<StyleRule> get codemirrorStyles => [
   css('.editor-container .cm-button').styles(
