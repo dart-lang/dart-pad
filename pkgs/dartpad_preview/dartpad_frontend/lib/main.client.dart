@@ -10,9 +10,10 @@ library;
 // Client-specific Jaspr import.
 import 'package:jaspr/client.dart';
 // Imports the [App] component.
+// ignore: jaspr_lints/unsafe_imports  //TODO(schultek): possible bug in jaspr lints
 import 'app.dart';
 
 void main() {
   // Attaches the [App] component to the <body> of the page.
-  runApp(App());
+  runApp(const App());
 }

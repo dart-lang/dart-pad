@@ -2,9 +2,19 @@ include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
   exclude:
-    - '**/node_modules/**'
+    - "**/node_modules/**"
   language:
     strict-raw-types: true
+
+# Jaspr has a custom analyzer plugin 'jaspr_lints', which is enabled here.
+# Plugins can only be specified at the workspace root.
+plugins:
+  jaspr_lints:
+    version: ^0.7.1
+    diagnostics:
+      prefer_html_components: true
+      sort_children_last: true
+      styles_ordering: true
 
 formatter:
   page_width: 120

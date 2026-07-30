@@ -1,0 +1,53 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:jaspr/client.dart';
+import 'package:web/web.dart' as web;
+
+/// Inserts a DOM node managed by CodeMirror into Jaspr's render tree.
+class NodeContainer extends Component {
+  const NodeContainer(this.containerNode);
+
+  /// The externally managed DOM node (e.g. CodeMirror's root element).
+  final web.Node containerNode;
+
+  @override
+  Element createElement() => _NodeContainerElement(this);
+}
+
+class _NodeContainerElement extends LeafRenderObjectElement {
+  _NodeContainerElement(NodeContainer super.component);
+
+  @override
+  RenderObject createRenderObject() {
+    final parent = parentRenderObjectElement!.renderObject;
+    return _NodeContainerRenderObject((component as NodeContainer).containerNode)..parent = parent as DomRenderObject;
+  }
+
+  @override
+  void updateRenderObject(RenderObject renderObject) {}
+}
+
+class _NodeContainerRenderObject extends DomRenderObject {
+  _NodeContainerRenderObject(this.node);
+
+  @override
+  final web.Node node;
+
+  @override
+  void attach(covariant RenderObject child, {covariant RenderObject? after}) {
+    throw UnsupportedError('NodeContainer cannot contain managed children.');
+  }
+
+  @override
+  void remove(covariant RenderObject child) {
+    throw UnsupportedError('NodeContainer cannot remove managed children.');
+  }
+
+  @override
+  void finalize() {}
+
+  @override
+  web.Node? retakeNode(bool Function(web.Node node) visitNode) => null;
+}
