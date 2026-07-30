@@ -8,15 +8,9 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
-const dartRevision = '064fcb01ba7e08a2179a28146801df49341188e4';
-const flutterRevision = 'f9628e39032b6d79e6c8707a1aac8ab2aa0e4417';
-const rootAssets = <String>[
-  'ddc_module_loader.js',
-  'sandbox.js',
-  'worker.loader.js',
-  'worker.mjs',
-  'worker.wasm',
-];
+const dartRevision = '682f45325f17dc10c33dd07c485256154715ddb9';
+const flutterRevision = 'd776076fe2f7470f4da43cc6084137e5bbe35b6d';
+
 
 Future<void> main(List<String> args) async {
   final packageRoot = Directory.current.absolute;
@@ -75,7 +69,6 @@ Future<void> main(List<String> args) async {
     environment: {...Platform.environment, 'FLUTTER_ROOT': flutterRoot.path},
   );
 
-  final workerAssets = Directory(p.join(buildRoot.path, 'dartpad'));
   final flutterAssets = Directory(
     p.join(
       dartRoot.path,
@@ -88,13 +81,6 @@ Future<void> main(List<String> args) async {
     ),
   );
   await assetRoot.create(recursive: true);
-  for (final name in rootAssets) {
-    final source = File(p.join(workerAssets.path, name));
-    if (!source.existsSync()) {
-      throw StateError('Missing build output: ${source.path}');
-    }
-    await source.copy(p.join(assetRoot.path, name));
-  }
 
   final flutterTarget = Directory(p.join(assetRoot.path, 'flutter'));
   if (!_isInside(assetRoot, flutterTarget)) {
@@ -158,9 +144,7 @@ bool _isInside(Directory parent, Directory child) {
 }
 
 Future<List<File>> _assetFiles(Directory webRoot) async {
-  final files = <File>[
-    for (final name in rootAssets) File(p.join(webRoot.path, name)),
-  ];
+  final files = <File>[];
   final flutter = Directory(p.join(webRoot.path, 'flutter'));
   if (flutter.existsSync()) {
     await for (final entity in flutter.list(recursive: true, followLinks: false)) {

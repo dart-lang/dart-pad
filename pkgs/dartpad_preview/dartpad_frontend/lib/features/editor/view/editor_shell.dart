@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @docImport '../../shared/node_container.dart';
-/// @docImport '../../startup/app_bootstrap_coordinator.dart';
 library;
 
 import 'package:jaspr/dom.dart';
@@ -21,7 +20,7 @@ class EditorShell extends StatelessComponent {
   /// The editor component (typically a [NodeContainer] wrapping CodeMirror).
   final Component editor;
 
-  /// Human-readable label for the current [BootstrapStatus].
+  /// Human-readable label for the current status.
   final String bootstrapLabel;
 
   @override

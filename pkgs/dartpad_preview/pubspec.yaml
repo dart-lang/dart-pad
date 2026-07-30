@@ -25,4 +25,4 @@ dependency_overrides:
     git:
       url: https://github.com/dart-lang/sdk
       path: pkg/dartpad
-      ref: 064fcb01ba7e08a2179a28146801df49341188e4
+      ref: 682f45325f17dc10c33dd07c485256154715ddb9

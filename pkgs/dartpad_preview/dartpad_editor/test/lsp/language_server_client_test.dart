@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:codemirror_dart/codemirror_dart.dart';
-import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
@@ -23,14 +22,10 @@ Map<String, dynamic> _edit(
   'newText': newText,
 };
 
-class FakeWorkspace implements WorkspaceApi {
+class FakeWorkspace implements WorkspaceResourceApi {
   final Map<String, String> files = {};
   Error? writeError;
 
-  @override
-  int get id => 0;
-
-  @override
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
 
   @override
@@ -46,36 +41,6 @@ class FakeWorkspace implements WorkspaceApi {
     }
     files[uri] = text;
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeWorkspaceController implements WorkspaceController {
-  FakeWorkspaceController(this.fakeWorkspace);
-
-  final FakeWorkspace fakeWorkspace;
-
-  @override
-  Workspace get workspace => throw UnimplementedError('Use fakeWorkspace in tests');
-
-  @override
-  Uri get workspaceUri => fakeWorkspace.workspaceFolder;
-
-  @override
-  WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
-
-  // WorkspaceApi delegates
-  @override
-  int get id => fakeWorkspace.id;
-  @override
-  Uri get workspaceFolder => fakeWorkspace.workspaceFolder;
-  @override
-  Future<bool> fileExist(String uri) => fakeWorkspace.fileExist(uri);
-  @override
-  Future<String> readFileAsText(String uri) => fakeWorkspace.readFileAsText(uri);
-  @override
-  Future<void> writeFileFromText(String uri, String content) => fakeWorkspace.writeFileFromText(uri, content);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -100,6 +65,7 @@ void main() {
     late List<Object?> sentMessages;
     late StreamController<Object?> outgoingMessages;
     late LanguageServerClient client;
+    late Future<void> Function(String file, List<Object?> edits)? documentEditsHandler;
 
     setUp(() {
       workspace = FakeWorkspace();
@@ -108,15 +74,24 @@ void main() {
       workspaceEvents = StreamController<WorkspaceChangeEvent>(sync: true);
       sentMessages = [];
       outgoingMessages = StreamController<Object?>.broadcast();
+      documentEditsHandler = null;
       client = LanguageServerClient(
         languageServer: null,
-        workspaceController: FakeWorkspaceController(workspace),
+        rootWorkspaceUri: workspace.workspaceFolder,
+        workspaceChangeEvents: workspaceEvents.stream,
+        documentEditsHandler: (file, edits) async {
+          if (documentEditsHandler != null) {
+            await documentEditsHandler!.call(file, edits);
+          } else {
+            final text = await workspace.readFileAsText(file);
+            await workspace.writeFileFromText(file, LanguageServerClient.applyEdits(text, edits));
+          }
+        },
         sendToLanguageServer: (message) {
           sentMessages.add(message);
           outgoingMessages.add(message);
         },
         languageServerMessages: serverMessages.stream,
-        workspaceChangeEvents: workspaceEvents.stream,
         createCodeMirrorLspClient: (_, _) => codeMirrorClient,
       );
     });
@@ -162,18 +137,6 @@ void main() {
       expect(client.allDiagnostics.single.diagnostic.message, 'A problem');
       expect(client.allDiagnostics.single.diagnostic.severity.name, 'warning');
       expect(codeMirrorClient.receivedMessages, hasLength(2));
-
-      serverMessages.add({
-        'method': 'textDocument/publishDiagnostics',
-        'params': {
-          'uri': 'file:///workspace/missing.dart',
-          'diagnostics': [
-            {'message': 'stale'},
-          ],
-        },
-      });
-      await pumpEventQueue();
-      expect(client.allDiagnostics.single.fileName, 'lib/main.dart');
     });
 
     test('moves and removes cached diagnostics with workspace events', () async {
@@ -216,13 +179,14 @@ void main() {
     test('routes workspace edits to open documents or persistent files', () async {
       workspace.files['closed.dart'] = 'hello world';
       final intercepted = <String, List<dynamic>>{};
-      client.setDocumentEditsHandler((file, edits) {
-        if (file != 'open.dart') {
-          return false;
+      documentEditsHandler = (file, edits) async {
+        if (file == 'open.dart') {
+          intercepted[file] = edits;
+        } else {
+          final text = await workspace.readFileAsText(file);
+          await workspace.writeFileFromText(file, LanguageServerClient.applyEdits(text, edits));
         }
-        intercepted[file] = edits;
-        return true;
-      });
+      };
 
       await client.applyWorkspaceEdit({
         'changes': {
@@ -239,11 +203,10 @@ void main() {
     test('awaits asynchronous open-document handlers before completing workspace edits', () async {
       final gate = Completer<void>();
       var handlerCompleted = false;
-      client.setDocumentEditsHandler((file, edits) async {
+      documentEditsHandler = (file, edits) async {
         await gate.future;
         handlerCompleted = true;
-        return true;
-      });
+      };
 
       final applyFuture = client.applyWorkspaceEdit({
         'changes': {
@@ -262,13 +225,12 @@ void main() {
     test('propagates document handler failures and stops subsequent edits', () async {
       final handlerError = StateError('open document write failed');
       final handledFiles = <String>[];
-      client.setDocumentEditsHandler((file, edits) async {
+      documentEditsHandler = (file, edits) async {
         handledFiles.add(file);
         if (file == 'first.dart') {
           throw handlerError;
         }
-        return true;
-      });
+      };
 
       await expectLater(
         client.applyWorkspaceEdit({

@@ -29,55 +29,58 @@ class FakeWorkspaceChangeStream {
   Future<void> close() => _changes.close();
 }
 
+class FakeWorkspaceEventsApi with WorkspaceResourceEventsMixin implements WorkspaceResourceApi {
+  FakeWorkspaceEventsApi({required this.rawFileChanges, this._fileChangesReady});
+
+  @override
+  final Stream<FileChangeEvent> rawFileChanges;
+
+  final Future<void>? _fileChangesReady;
+
+  @override
+  Future<void> get changeEventsReady => _fileChangesReady ?? Future.value();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
+
 void main() {
   group('RenameCache', () {
     test('tracks, overwrites, and consumes move intentions independently', () {
-      final watcher = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
+      final api = FakeWorkspaceEventsApi(rawFileChanges: const Stream.empty());
 
-      watcher
-        ..addMoveIntention('a.dart', 'target.dart')
-        ..addMoveIntention('replacement.dart', 'target.dart')
-        ..addMoveIntention('x.dart', 'y.dart');
+      api.addMoveIntention('a.dart', 'target.dart');
+      api.addMoveIntention('replacement.dart', 'target.dart');
+      api.addMoveIntention('x.dart', 'y.dart');
 
-      expect(watcher.pendingMoves, {
+      expect(api.pendingMoves, {
         'target.dart': 'replacement.dart',
         'y.dart': 'x.dart',
       });
-      expect(watcher.removeMoveIntention('target.dart'), 'replacement.dart');
-      expect(watcher.removeMoveIntention('target.dart'), isNull);
-      expect(watcher.removeMoveIntention('y.dart'), 'x.dart');
-    });
-
-    test('keeps move intentions isolated per watcher', () {
-      final first = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
-      final second = WorkspaceChangeWatcher(fileChanges: const Stream.empty());
-
-      first.addMoveIntention('a.dart', 'b.dart');
-
-      expect(second.removeMoveIntention('b.dart'), isNull);
-      expect(first.removeMoveIntention('b.dart'), 'a.dart');
+      expect(api.pendingMoves.remove('target.dart'), 'replacement.dart');
+      expect(api.pendingMoves.remove('target.dart'), isNull);
+      expect(api.pendingMoves.remove('y.dart'), 'x.dart');
     });
   });
 
-  group('WorkspaceChangeWatcher', () {
+  group('WorkspaceResourceApi Event Reconciliation', () {
     late FakeWorkspaceChangeStream stream;
-    late WorkspaceChangeWatcher watcher;
+    late FakeWorkspaceEventsApi api;
     late List<WorkspaceChangeEvent> events;
 
     setUp(() {
       stream = FakeWorkspaceChangeStream();
-      watcher = WorkspaceChangeWatcher(fileChanges: stream.stream)..watchFileSystem();
+      api = FakeWorkspaceEventsApi(rawFileChanges: stream.stream);
       events = [];
-      watcher.events.listen(events.add);
+      api.changeEvents.listen(events.add);
     });
 
     tearDown(() async {
-      await watcher.dispose();
       await stream.close();
     });
 
     test('forwards raw add, remove, and modify events', () async {
-      final delivered = watcher.events.take(3).toList();
+      final delivered = api.changeEvents.take(3).toList();
       stream
         ..emitAdd('added.dart')
         ..emitRemove('removed.dart')
@@ -95,8 +98,8 @@ void main() {
     });
 
     test('consolidates a move and suppresses its matching remove', () async {
-      final delivered = watcher.events.first;
-      watcher.addMoveIntention('old.dart', 'new.dart');
+      final delivered = api.changeEvents.first;
+      api.addMoveIntention('old.dart', 'new.dart');
       stream
         ..emitAdd('new.dart')
         ..emitRemove('old.dart');
@@ -108,8 +111,8 @@ void main() {
     });
 
     test('scopes remove suppression to one matching event', () async {
-      final delivered = watcher.events.take(3).toList();
-      watcher.addMoveIntention('old.dart', 'new.dart');
+      final delivered = api.changeEvents.take(3).toList();
+      api.addMoveIntention('old.dart', 'new.dart');
       stream
         ..emitAdd('new.dart')
         ..emitRemove('unrelated.dart')
@@ -126,8 +129,8 @@ void main() {
 
     test('broadcasts events to multiple listeners', () async {
       final secondListenerEvents = <WorkspaceChangeEvent>[];
-      watcher.events.listen(secondListenerEvents.add);
-      final delivered = watcher.events.first;
+      api.changeEvents.listen(secondListenerEvents.add);
+      final delivered = api.changeEvents.first;
 
       stream.emitAdd('file.dart');
       await delivered;
@@ -136,48 +139,15 @@ void main() {
       expect(secondListenerEvents, hasLength(1));
     });
 
-    test('does not subscribe to the raw event stream more than once', () async {
-      watcher.watchFileSystem();
-      final delivered = watcher.events.first;
-
-      stream.emitAdd('single.dart');
-      await delivered;
-
-      expect(events, hasLength(1));
-      expect(events.single.path, 'single.dart');
-    });
-
-    test('normalizes absolute SDK watcher URIs to workspace-relative paths', () async {
-      await watcher.dispose();
-      watcher = WorkspaceChangeWatcher(
-        fileChanges: stream.stream,
-        workspaceUri: Uri.parse('file:///workspace/42/'),
-      )..watchFileSystem();
-      events = [];
-      watcher.events.listen(events.add);
-      final delivered = watcher.events.first;
-
-      stream
-        ..emitAdd('file:///somewhere-else/ignored.dart')
-        ..emitAdd('file:///workspace/42/lib/main.dart');
-      await delivered;
-
-      expect(events.map(_eventTuple), [
-        (WorkspaceChangeEventType.add, 'lib/main.dart', null),
-      ]);
-    });
-
     test('ready waits for the SDK watcher readiness signal', () async {
-      await watcher.dispose();
       final sourceReady = Completer<void>();
-      watcher = WorkspaceChangeWatcher(
-        fileChanges: stream.stream,
-        sourceReady: sourceReady.future,
+      api = FakeWorkspaceEventsApi(
+        rawFileChanges: stream.stream,
+        fileChangesReady: sourceReady.future,
       );
 
       var completed = false;
-      watcher.watchFileSystem();
-      final start = watcher.ready.then((_) => completed = true);
+      final start = api.changeEventsReady.then((_) => completed = true);
       await Future<void>.delayed(Duration.zero);
       expect(completed, isFalse);
 

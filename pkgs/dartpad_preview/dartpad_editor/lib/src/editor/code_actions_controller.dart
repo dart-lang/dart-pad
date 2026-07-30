@@ -8,7 +8,6 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 
 import '../lsp/diagnostic.dart';
-import '../workspace/workspace_controller.dart';
 import 'codemirror_editor.dart';
 
 /// A controller that manages requesting, displaying, and applying
@@ -17,14 +16,12 @@ class CodeActionsController {
   CodeActionsController({
     required this.codeEditor,
     required this.file,
-    required this.workspaceController,
     required this.getDiagnostics,
     required this.onStateChanged,
   });
 
   final CodeMirrorEditor codeEditor;
   String file;
-  final WorkspaceController workspaceController;
   final List<DiagnosticEntry> Function() getDiagnostics;
   final void Function() onStateChanged;
 
@@ -104,7 +101,7 @@ class CodeActionsController {
     final edit = action.edit;
     if (edit != null) {
       final editMap = (edit.dartify() as Map).cast<String, Object?>();
-      await workspaceController.languageServerClient.applyWorkspaceEdit(editMap);
+      await codeEditor.languageServerClient?.applyWorkspaceEdit(editMap);
     }
 
     final command = action.command;
@@ -112,7 +109,7 @@ class CodeActionsController {
       final commandMap = (command.dartify() as Map).cast<String, Object?>();
       final commandStr = commandMap['command'] as String;
       final arguments = commandMap['arguments'] as List<Object?>?;
-      await workspaceController.languageServerClient.executeCommand(commandStr, arguments);
+      await codeEditor.languageServerClient?.executeCommand(commandStr, arguments);
     }
 
     hideCodeActionPanel();

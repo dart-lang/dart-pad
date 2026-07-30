@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad/src/worker_client.dart'
-    show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
@@ -16,17 +14,15 @@ import 'package:test/test.dart';
 
 /// A minimal fake [Workspace] for testing. Supports a configurable set of
 /// files that "exist" and provides a controllable event stream.
-class FakeWorkspace implements WorkspaceApi {
+class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceResourceApi {
   final Set<String> _existingFiles = {};
   final StreamController<FileChangeEvent> _changesController = StreamController<FileChangeEvent>.broadcast(sync: true);
 
-  Stream<FileChangeEvent> get fileChanges => _changesController.stream;
+  @override
+  Stream<FileChangeEvent> get rawFileChanges => _changesController.stream;
 
   @override
-  Uri get workspaceFolder => Uri.parse('file:///workspace/');
-
-  @override
-  int get id => 0;
+  Future<void> get changeEventsReady => Future.value();
 
   void addFile(String path) => _existingFiles.add(path);
   void removeFile(String path) => _existingFiles.remove(path);
@@ -42,65 +38,12 @@ class FakeWorkspace implements WorkspaceApi {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// A minimal stub for [LanguageServerClient] that only implements the methods
-/// used by [TabsController] (namely [setDisplayFileHandler]).
-class FakeLanguageServerClient implements LanguageServerClient {
-  Future<void> Function(String)? displayFileHandler;
-
-  @override
-  void setDisplayFileHandler(Future<void> Function(String)? handler) {
-    displayFileHandler = handler;
+  Future<void> dispose() async {
+    close();
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// A fake [WorkspaceController] that bypasses the real constructor
-/// (which requires a real [LanguageServer] and CodeMirror JS interop).
-class FakeWorkspaceController implements WorkspaceController {
-  FakeWorkspaceController({required this.fakeWorkspace}) {
-    watcher = WorkspaceChangeWatcher(fileChanges: fakeWorkspace.fileChanges)..watchFileSystem();
-    languageServerClient = FakeLanguageServerClient();
-  }
-
-  final FakeWorkspace fakeWorkspace;
-
-  @override
-  Workspace get workspace => throw UnimplementedError('Use fakeWorkspace in tests');
-
-  @override
-  late final WorkspaceChangeWatcher watcher;
-
-  @override
-  late final LanguageServerClient languageServerClient;
-
-  @override
-  Uri get workspaceUri => fakeWorkspace.workspaceFolder;
-
-  @override
-  WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
-
-  @override
-  void addMoveIntention(String oldPath, String newPath) {
-    watcher.addMoveIntention(oldPath, newPath);
-  }
-
-  // WorkspaceApi delegates
-  @override
-  int get id => fakeWorkspace.id;
-  @override
-  Uri get workspaceFolder => fakeWorkspace.workspaceFolder;
-  @override
-  Future<bool> fileExist(String uri) => fakeWorkspace.fileExist(uri);
-  @override
-  Future<bool> folderExist(String uri) => fakeWorkspace.folderExist(uri);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 /// A concrete [EditorTab] for testing that tracks lifecycle calls.
@@ -235,23 +178,20 @@ class TestTabsController with TabsController<String> {
 // ---------------------------------------------------------------------------
 
 void main() {
-  late FakeWorkspace workspace;
-  late FakeWorkspaceController controller;
+  late FakeWorkspaceApi workspace;
   late TestTabAdapter adapter;
   late TestTabsController tabs;
 
   setUp(() {
-    workspace = FakeWorkspace();
-    controller = FakeWorkspaceController(fakeWorkspace: workspace);
+    workspace = FakeWorkspaceApi();
     adapter = TestTabAdapter();
     tabs = TestTabsController();
-    tabs.init(workspaceController: controller, adapters: [adapter]);
+    tabs.init(workspaceResourceApi: workspace, adapters: [adapter]);
   });
 
   tearDown(() async {
     tabs.disposeAllTabs();
-    await controller.watcher.dispose();
-    workspace.close();
+    await workspace.dispose();
   });
 
   // -- Helpers --
@@ -263,7 +203,7 @@ void main() {
   }
 
   Future<void> emitWorkspaceEvent(Map<String, String> event) async {
-    final delivered = controller.watcher.events.first;
+    final delivered = workspace.changeEvents.first;
     final uri = Uri.parse(event['path']!);
     if (event['type'] == 'add') {
       workspace._changesController.add(FileAddedEvent(uri));
@@ -354,17 +294,6 @@ void main() {
       tabs.updateLog.clear();
       deletedTab.notifyUpdate();
       expect(tabs.updateLog, isEmpty);
-    });
-
-    test('opens a workspace-relative file requested by the language server', () async {
-      workspace.addFile('lib/main.dart');
-      final languageServer = controller.languageServerClient as FakeLanguageServerClient;
-
-      await languageServer.displayFileHandler!(
-        'file:///workspace/lib/main.dart',
-      );
-
-      expect(tabs.activeFile, 'lib/main.dart');
     });
   });
 
@@ -568,7 +497,7 @@ void main() {
   group('workspace events', () {
     test('move event renames the open tab path', () async {
       await openExisting('old.dart');
-      controller.addMoveIntention('old.dart', 'new.dart');
+      workspace.addMoveIntention('old.dart', 'new.dart');
       workspace.addFile('new.dart');
 
       // Simulate the filesystem event sequence.
@@ -585,7 +514,7 @@ void main() {
       await openExisting('other.dart');
       final movedTab = adapter.createdTabs['old.dart']!;
 
-      controller.addMoveIntention('old.dart', 'new.dart');
+      workspace.addMoveIntention('old.dart', 'new.dart');
       workspace.addFile('new.dart');
       await emitWorkspaceEvent(
         {'type': 'add', 'path': 'new.dart'},
@@ -605,7 +534,7 @@ void main() {
       await openExisting('b.dart');
       tabs.closeTab('a.dart'); // now in keepAlive cache
 
-      controller.addMoveIntention('a.dart', 'a2.dart');
+      workspace.addMoveIntention('a.dart', 'a2.dart');
       workspace.addFile('a2.dart');
       await emitWorkspaceEvent(
         {'type': 'add', 'path': 'a2.dart'},
@@ -625,7 +554,7 @@ void main() {
       tabs.switchFile('lib/nested/active.dart');
       tabs.updateLog.clear();
 
-      controller.addMoveIntention('lib', 'src');
+      workspace.addMoveIntention('lib', 'src');
       await emitWorkspaceEvent(
         {'type': 'add', 'path': 'src'},
       );
@@ -643,7 +572,7 @@ void main() {
       expect(tabs.updateLog, [null]);
 
       tabs.updateLog.clear();
-      controller.addMoveIntention(
+      workspace.addMoveIntention(
         'lib/nested/active.dart',
         'src/nested/active.dart',
       );
@@ -660,7 +589,7 @@ void main() {
       final opening = tabs.openFile('old/slow.dart');
       await adapter.creationStarted.future;
 
-      controller.addMoveIntention('old', 'new');
+      workspace.addMoveIntention('old', 'new');
       await emitWorkspaceEvent(
         {'type': 'add', 'path': 'new'},
       );

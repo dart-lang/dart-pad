@@ -7,7 +7,7 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:web/web.dart' as web;
 
-import '../workspace/workspace_controller.dart';
+import '../lsp/language_server_client.dart';
 
 /// Represents the scroll and selection state of a [CodeMirrorEditor].
 class EditorViewState {
@@ -22,9 +22,9 @@ class EditorViewState {
   });
 }
 
-/// A wrapper around CodeMirror 6's [cm.EditorView] that integrates with
-/// the [WorkspaceController] and language server features (such as syntax highlighting,
-/// diagnostics, code actions, renaming, and hover tooltips).
+/// A wrapper around CodeMirror 6's [cm.EditorView] that integrates with the
+/// language server features (such as syntax highlighting, diagnostics,
+/// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
   CodeMirrorEditor._(this.view, this.langCompartment, this.file);
 
@@ -42,7 +42,6 @@ final class CodeMirrorEditor {
     web.HTMLElement element, {
     required String file,
     String? initialDoc,
-    WorkspaceController? workspaceController,
     void Function(String text)? onUpdate,
     void Function()? onSave,
     void Function()? onCodeActionRequested,
@@ -90,9 +89,7 @@ final class CodeMirrorEditor {
                 ),
               ].toJS,
             ),
-          langCompartment.of(
-            _languageExtension(file, workspaceController),
-          ),
+          langCompartment.of(_languageExtension(file)),
           if (onCodeActionRequested != null)
             cm.keymapOf(
               [
@@ -132,7 +129,6 @@ final class CodeMirrorEditor {
     );
 
     final editor = CodeMirrorEditor._(view, langCompartment, file);
-    editor._workspaceController = workspaceController;
     return editor;
   }
 
@@ -142,7 +138,9 @@ final class CodeMirrorEditor {
   /// The underlying CodeMirror [cm.EditorView] instance.
   final cm.EditorView view;
 
-  WorkspaceController? _workspaceController;
+  LanguageServerClient? _languageServerClient;
+  LanguageServerClient? get languageServerClient => _languageServerClient;
+
   final cm.Compartment langCompartment;
 
   /// Gets the current text content of the editor.
@@ -227,26 +225,21 @@ final class CodeMirrorEditor {
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(filename, _workspaceController),
+          _languageExtension(filename, _languageServerClient),
         ),
       ),
     );
   }
 
-  /// Adds LSP support to an already-visible editor without recreating its
-  /// document, selection, history, or scroll state.
-  void attachWorkspace(WorkspaceController workspaceController) {
-    if (identical(_workspaceController, workspaceController)) {
+  void attachLanguageServerClient(LanguageServerClient languageServerClient) {
+    if (identical(_languageServerClient, languageServerClient)) {
       return;
     }
-    if (_workspaceController != null) {
-      throw StateError('A different workspace is already attached.');
-    }
-    _workspaceController = workspaceController;
+    _languageServerClient = languageServerClient;
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(file, workspaceController),
+          _languageExtension(file, _languageServerClient),
         ),
       ),
     );
@@ -329,15 +322,12 @@ final class CodeMirrorEditor {
 bool _isDartFile(String fileName) => fileName.endsWith('.dart');
 
 /// Returns the CodeMirror language extension for Dart or non-Dart files, or null.
-JSAny _languageExtension(String fileName, WorkspaceController? workspaceController) {
+JSAny _languageExtension(String fileName, [LanguageServerClient? languageServerClient]) {
   final extension = fileName.split('.').last.toLowerCase();
   return switch (extension) {
     'dart' => [
       cm.dart(),
-      if (workspaceController != null)
-        workspaceController.languageServerClient.codeMirrorLspClient.createExtension(
-          workspaceController.workspaceUri.resolve(fileName).toString(),
-        ),
+      if (languageServerClient case final lsc?) lsc.createCodeMirrorExtension(fileName),
       cm.keymapOf(
         [
           cm.KeyBinding(
