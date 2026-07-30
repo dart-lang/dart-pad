@@ -28,7 +28,9 @@ void main() {
   test('shared target validation rejects existing files and folders', () async {
     final workspace = await createPopulatedWorkspace(
       folders: ['lib', 'lib/existing'],
-      files: {'lib/existing.dart': [1]},
+      files: {
+        'lib/existing.dart': [1],
+      },
     );
 
     await expectLater(
@@ -61,7 +63,9 @@ void main() {
   test('WorkspaceFile.rename preserves bytes and records the move intention', () async {
     final workspace = await createPopulatedWorkspace(
       folders: ['lib'],
-      files: {'lib/old.dart': [0, 1, 255]},
+      files: {
+        'lib/old.dart': [0, 1, 255],
+      },
     );
     final file = WorkspaceFile(workspace: workspace, path: 'lib/old.dart');
 
@@ -104,7 +108,9 @@ void main() {
   test('rename and move to the current path perform no mutations', () async {
     final workspace = await createPopulatedWorkspace(
       folders: ['lib', 'lib/src'],
-      files: {'lib/main.dart': [1, 2, 3]},
+      files: {
+        'lib/main.dart': [1, 2, 3],
+      },
     );
     final file = WorkspaceFile(workspace: workspace, path: 'lib/main.dart');
     final folder = WorkspaceFolder(workspace: workspace, path: 'lib/src');
@@ -145,7 +151,9 @@ void main() {
   test('folder move refuses an existing target before creating or deleting anything', () async {
     final workspace = await createPopulatedWorkspace(
       folders: ['source', 'target', 'target/source'],
-      files: {'source/a.dart': [1]},
+      files: {
+        'source/a.dart': [1],
+      },
     );
     final source = WorkspaceFolder(workspace: workspace, path: 'source');
     final target = WorkspaceFolder(workspace: workspace, path: 'target');

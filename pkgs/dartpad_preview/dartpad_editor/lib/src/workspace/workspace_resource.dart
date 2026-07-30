@@ -5,7 +5,6 @@
 import 'workspace_api.dart';
 import 'workspace_path.dart';
 
-
 /// Thrown when a rename or move would overwrite an existing workspace entry.
 final class WorkspaceResourceConflictException implements Exception {
   const WorkspaceResourceConflictException({
