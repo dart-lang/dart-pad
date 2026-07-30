@@ -8,9 +8,9 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:dartpad/dartpad.dart';
-import 'package:path/path.dart' as p;
 
 import 'workspace_events.dart';
+import 'workspace_path.dart';
 import 'workspace_resource.dart';
 
 /// Provides access to the files and directories of a virtual workspace.
@@ -66,7 +66,7 @@ extension RootResource on WorkspaceResourceApi {
 /// An in-memory implementation of [WorkspaceResourceApi] utilizing [MemoryResourceProvider]
 /// from the analyzer package.
 class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements WorkspaceResourceApi {
-  final ResourceProvider _rp = MemoryResourceProvider(context: p.posix);
+  final ResourceProvider _rp = MemoryResourceProvider(context: workspacePath);
   late final Folder _root = _rp.getFolder('/root')..create();
   late final ResourceWatcher _rpWatcher = _root.watch();
 
@@ -121,7 +121,7 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
     final result = <({String path, String type})>[];
     void visit(Folder f) {
       for (final child in f.getChildren()) {
-        final relPath = p.relative(child.path, from: folder.path);
+        final relPath = workspacePath.relative(child.path, from: folder.path);
         result.add((
           path: relPath,
           type: child is Folder ? 'folder' : 'file',
@@ -138,7 +138,7 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
 
   @override
   Stream<FileChangeEvent> get rawFileChanges => _rpWatcher.changes.map((e) {
-    final relativePath = p.relative(e.path, from: '/root');
+    final relativePath = workspacePath.relative(e.path, from: '/root');
     return switch (e.type) {
       .ADD => FileAddedEvent(Uri.parse(relativePath)),
       .REMOVE => FileRemovedEvent(Uri.parse(relativePath)),

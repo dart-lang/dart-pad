@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:dartpad/dartpad.dart';
 import 'package:meta/meta.dart';
 
-import '../../dartpad_editor.dart';
+import 'workspace_api.dart';
 
 /// The type of file change event propagated to the UI.
 enum WorkspaceChangeEventType {

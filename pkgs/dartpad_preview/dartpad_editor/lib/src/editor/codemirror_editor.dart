@@ -7,7 +7,7 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:web/web.dart' as web;
 
-import '../../dartpad_editor.dart';
+import '../lsp/language_server_client.dart';
 
 /// Represents the scroll and selection state of a [CodeMirrorEditor].
 class EditorViewState {
@@ -22,9 +22,9 @@ class EditorViewState {
   });
 }
 
-/// A wrapper around CodeMirror 6's [cm.EditorView] that integrates with
-/// the [WorkspaceController] and language server features (such as syntax highlighting,
-/// diagnostics, code actions, renaming, and hover tooltips).
+/// A wrapper around CodeMirror 6's [cm.EditorView] that integrates with the
+/// language server features (such as syntax highlighting, diagnostics,
+/// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
   CodeMirrorEditor._(this.view, this.langCompartment, this.file);
 
