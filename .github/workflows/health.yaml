@@ -10,7 +10,7 @@ on:
 
 jobs:
   health:
-    uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+    uses: dart-lang/ecosystem/.github/workflows/health.yaml@edfdb3b4063b9034b708144633a700204f865f43
     with:
       ignore_license: "**.g.dart"
       sdk: dev
