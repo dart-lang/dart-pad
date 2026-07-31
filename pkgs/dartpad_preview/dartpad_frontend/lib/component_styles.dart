@@ -4,7 +4,7 @@
 
 import 'package:jaspr/dom.dart';
 
-//TODO: move styles to components when next Jaspr version is released
+// TODO: move styles to components when next Jaspr version is released
 /// Styles for client components, kept separate from their `package:web`
 /// dependencies so Jaspr can evaluate them on the Dart VM.
 /// This is a temporary solution until the next Jaspr version is released

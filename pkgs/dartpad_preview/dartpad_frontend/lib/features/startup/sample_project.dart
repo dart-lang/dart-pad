@@ -7,18 +7,20 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 /// Creates the files for the default DartPad sample project.
 Future<void> createSampleProject(WorkspaceFolder root) async {
   await root.getFolder('lib').create();
-  await root.getFile('pubspec.yaml').writeContent(samplePubspec.trimLeft());
-  await root.getFile('analysis_options.yaml').writeContent(sampleAnalysisOptions.trimLeft());
-  await root.getFile('lib/main.dart').writeContent(sampleMainDart.trimLeft());
+  await root.getFile(_samplePubspecPath).writeContent(samplePubspec.trimLeft());
+  await root.getFile(_sampleAnalysisOptionsPath).writeContent(sampleAnalysisOptions.trimLeft());
+  await root.getFile(_sampleMainPath).writeContent(sampleMainDart.trimLeft());
 }
 
 /// Opens the default sample files and leaves the Dart source active.
 Future<void> openSampleProject(Future<void> Function(String path) openFile) async {
+  // TODO: Remove this once we have the filetree in place.
   await openFile(_samplePubspecPath);
   await openFile(_sampleMainPath);
 }
 
 const String _sampleMainPath = 'lib/main.dart';
+const String _sampleAnalysisOptionsPath = 'analysis_options.yaml';
 const String _samplePubspecPath = 'pubspec.yaml';
 
 /// The initial Dart source for the default sample project.

@@ -7,7 +7,8 @@ tabs. LSP initialization and `pub get` continue in the background and do not
 block the workspace UI.
 
 Ctrl/Cmd+S saves every dirty tab and formats Dart files before writing. Closing
-a dirty tab requires confirmation before its changes are discarded. Reloading resets the transient project.
+a dirty tab requires confirmation before its changes are discarded. Reloading
+resets the transient project.
 
 ## Running
 

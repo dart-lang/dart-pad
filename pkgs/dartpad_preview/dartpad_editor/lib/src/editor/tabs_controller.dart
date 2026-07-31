@@ -39,6 +39,7 @@ abstract mixin class TabsController<T> {
   String _activeTabPath = '';
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
 
+  // An iterable of all existing tabs, including those that are not currently open but kept alive.
   Iterable<EditorTab<T>> get allTabs => _tabs.followedBy(_keepAliveTabs.values);
 
   /// A read-only list of all currently open tabs.
