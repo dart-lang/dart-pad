@@ -4,6 +4,8 @@
 
 import 'package:jaspr/dom.dart';
 
+import 'app_styles.dart';
+
 // TODO: move styles to components when next Jaspr version is released
 /// Styles for client components, kept separate from their `package:web`
 /// dependencies so Jaspr can evaluate them on the Dart VM.
@@ -24,8 +26,7 @@ List<StyleRule> get componentStyles => [
   ),
   css('.file-tree-pane').styles(
     display: .flex,
-    width: 240.px,
-    minWidth: 240.px,
+    minWidth: 100.px,
     minHeight: .zero,
     border: .only(
       right: .solid(color: const Color('#303030'), width: 1.px),
@@ -215,25 +216,20 @@ List<StyleRule> get componentStyles => [
   ),
   css('.file-tree-list').styles(
     minHeight: .zero,
-    padding: .symmetric(vertical: 4.px),
     overflow: .auto,
     flex: const Flex(grow: 1, basis: .zero),
   ),
   css('.file-tree-list.drop-target').styles(
-    shadow: .inset(
-      offsetX: .zero,
-      offsetY: .zero,
-      blur: .zero,
-      spread: 2.px,
-      color: const Color('#7aa2f7'),
-    ),
+    border: .none,
+    outline: const Outline(style: .none),
+    backgroundColor: const Color('#333333'),
   ),
   css('.file-tree-list.busy').styles(cursor: .progress),
   css('.file-tree-item').styles(
     display: .flex,
     height: 25.px,
     padding: .only(
-      left: const Unit.expression('calc(6px + var(--tree-depth) * 14px)'),
+      left: const Unit.expression('calc(6px + var(--tree-depth) * 10px)'),
       right: 5.px,
     ),
     cursor: .pointer,
@@ -242,21 +238,60 @@ List<StyleRule> get componentStyles => [
     gap: .all(5.px),
     color: const Color('#c5c5c5'),
     fontSize: 12.px,
+    backgroundColor: const Color('#181818'),
   ),
   css('.file-tree-item:hover').styles(backgroundColor: const Color('#252525')),
   css('.file-tree-item.active').styles(
+    backgroundColor: const Color('#333333'),
+  ),
+  css('.file-tree-item.dim .file-tree-name').styles(
+    opacity: 0.4,
+  ),
+  css('.file-tree-item.folder').styles(
+    position: const .sticky(
+      top: .expression('calc(var(--tree-depth) * 25px)'),
+    ),
+    raw: {'z-index': 'calc(100 - var(--tree-depth))'},
+  ),
+  css('.file-tree-item.selected').styles(
+    outline: Outline(
+      color: const Color('#7aa2f7'),
+      style: OutlineStyle.solid,
+      width: OutlineWidth(1.px),
+      offset: (-1).px,
+    ),
     color: const Color('#ffffff'),
     backgroundColor: const Color('#303747'),
   ),
-  css('.file-tree-item.selected').styles(backgroundColor: const Color('#292929')),
-  css('.file-tree-item.drop-target').styles(
-    shadow: .inset(
-      offsetX: .zero,
-      offsetY: .zero,
-      blur: .zero,
-      spread: 1.px,
-      color: const Color('#7aa2f7'),
+  css('.file-tree-folder').styles(position: const .relative()),
+  css('.file-tree-list:hover .file-tree-folder:has(.file-tree-item.folder[aria-expanded=true])::after').styles(
+    opacity: 1,
+  ),
+  css('.file-tree-folder::after').styles(
+    content: '',
+    display: .block,
+    position: .absolute(
+      left: const .expression('calc(14px + var(--tree-depth,0) * 10px)'),
+      top: 22.px,
+      bottom: 0.px,
     ),
+    zIndex: const ZIndex(100),
+    width: 1.px,
+    opacity: 0,
+    backgroundColor: const Color('#444444'),
+  ),
+  css(
+    '.file-tree-folder:has(>.file-tree-item.selected, >.file-tree-folder-children >.file-tree-item.selected)::after',
+  ).styles(
+    backgroundColor: const Color('#666666'),
+  ),
+  css('.file-tree-folder.drop-target').styles(
+    border: .none,
+    outline: const Outline(style: .none),
+    backgroundColor: const Color('#333333'),
+  ),
+  css('.file-tree-folder.drop-target > .file-tree-item *').styles(
+    pointerEvents: .none,
   ),
   css('.file-tree-item.dragging').styles(opacity: 0.45),
   css('.file-tree-item.binary').styles(opacity: 0.58, cursor: .defaultCursor),
@@ -268,8 +303,8 @@ List<StyleRule> get componentStyles => [
   ),
   css('.file-tree-disclosure.spacer').styles(pointerEvents: .none),
   css('.file-tree-icon').styles(
-    width: 16.px,
-    height: 16.px,
+    width: 12.px,
+    height: 12.px,
     flex: const .shrink(0),
     color: const Color('#858585'),
     raw: const {'vertical-align': 'middle'},
@@ -306,13 +341,12 @@ List<StyleRule> get componentStyles => [
   css('.file-tree-input').styles(
     height: 20.px,
     minWidth: .zero,
-    padding: .symmetric(horizontal: 4.px),
     border: .all(color: const Color('#7aa2f7'), width: 1.px),
+    radius: .circular(2.px),
     outline: const Outline(style: .none),
     flex: const Flex(grow: 1, basis: .zero),
     color: const Color('#ffffff'),
-    fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
-    fontSize: 12.px,
+    fontSize: 1.em,
     backgroundColor: const Color('#202020'),
   ),
   css('.file-tree-input.invalid').styles(
@@ -325,7 +359,50 @@ List<StyleRule> get componentStyles => [
     backgroundColor: const Color('#351f1f'),
   ),
   css('.file-tree-validation').styles(
-    margin: .only(left: 22.px, right: 6.px, bottom: 3.px),
+    position: .absolute(top: 24.px, left: 22.px, right: 6.px),
+    zIndex: const ZIndex(20),
+    margin: .zero,
     radius: .circular(3.px),
+  ),
+
+  // Drag Handle Styles
+  css('.drag-handle').styles(
+    position: const .relative(),
+    zIndex: const ZIndex(10),
+    userSelect: .none,
+    flex: const .shrink(0),
+    backgroundColor: Colors.transparent,
+  ),
+  // Horizontal Specific Styles
+  css('.drag-handle.horizontal').styles(
+    width: 6.px,
+    margin: Margin.symmetric(horizontal: (-3).px),
+    cursor: .colResize,
+  ),
+  css('.drag-handle.horizontal::after').styles(
+    content: '',
+    position: .absolute(top: 0.px, bottom: 0.px, left: 2.px),
+    width: 2.px,
+    transition: Transition('background-color', duration: 150.ms, curve: .ease),
+    backgroundColor: colorBorder,
+  ),
+  css('.drag-handle.horizontal:hover::after, .drag-handle.horizontal.dragging::after').styles(
+    backgroundColor: colorPrimary,
+  ),
+  // Vertical Specific Styles
+  css('.drag-handle.vertical').styles(
+    height: 6.px,
+    margin: Margin.symmetric(vertical: (-3).px),
+    cursor: .rowResize,
+  ),
+  css('.drag-handle.vertical::after').styles(
+    content: '',
+    position: .absolute(left: 0.px, right: 0.px, top: 2.px),
+    height: 2.px,
+    transition: Transition('background-color', duration: 150.ms, curve: .ease),
+    backgroundColor: colorBorder,
+  ),
+  css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
+    backgroundColor: colorPrimary,
   ),
 ];

@@ -7,20 +7,20 @@ library;
 
 import 'dart:async';
 
-import 'package:dartpad_preview/features/filetree/file_tree_models.dart';
-import 'package:dartpad_preview/features/filetree/file_tree_view.dart';
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
-final class _Workspace implements WorkspaceApi {
+final class _Workspace implements WorkspaceResourceApi {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Exercises the client-side file-tree rendering and interactions.
 void main() {
-  late WorkspaceApi workspace;
+  late WorkspaceResourceApi workspace;
 
   setUp(() {
     workspace = _Workspace();
@@ -72,7 +72,7 @@ void main() {
 }
 
 FileTreeState _state(
-  WorkspaceApi workspace, {
+  WorkspaceResourceApi workspace, {
   bool openable = true,
   bool dirty = false,
 }) {
@@ -87,19 +87,7 @@ FileTreeState _state(
         ),
       ],
     ),
-    collapsedFolders: const {},
-    selectedFolder: null,
-    dropTargetFolder: null,
-    draggedFile: null,
-    draggedFolder: null,
     activeFile: '',
-    creatingEntry: null,
-    createTargetFolder: '',
-    newEntryName: '',
-    renamingFile: null,
-    renamingFolder: null,
-    renameValue: '',
-    nameValidationError: null,
     operationError: null,
     busy: false,
     protectedEntries: const {},
@@ -111,34 +99,16 @@ FileTreeActions _actions({
   Future<void> Function(String path)? deleteFile,
 }) {
   return FileTreeActions(
-    setNewEntryName: (_) {},
-    setRenameValue: (_) {},
-    startAddingFile: () {},
-    startAddingFolder: () {},
-    handleCreateBlur: _noOpAsync,
-    confirmAddFile: _noOpAsync,
-    confirmAddFolder: _noOpAsync,
-    cancelCreate: () {},
-    startRenamingFile: (_) {},
-    startRenamingFolder: (_) {},
-    confirmRenameFile: _noOpPathAsync,
-    confirmRenameFolder: _noOpPathAsync,
-    cancelRename: () {},
-    selectFolder: (_) {},
-    toggleFolder: (_) {},
-    clearFolderSelection: () {},
-    startDraggingFile: (_) {},
-    startDraggingFolder: (_) {},
-    finishDragging: () {},
-    markDropTarget: (_) {},
-    clearDropTarget: (_) {},
-    dropIntoFolder: _noOpPathAsync,
-    openFile: (_) {},
+    createFile: (_, _) async {},
+    createFolder: (_, _) async {},
+    renameFile: (_, _) async {},
+    renameFolder: (_, _) async {},
     deleteFile: deleteFile ?? _noOpPathAsync,
     deleteFolder: _noOpPathAsync,
+    moveEntry: (_, _) async {},
+    openFile: (_) {},
+    clearOperationError: () {},
   );
 }
-
-Future<void> _noOpAsync() async {}
 
 Future<void> _noOpPathAsync(String _) async {}

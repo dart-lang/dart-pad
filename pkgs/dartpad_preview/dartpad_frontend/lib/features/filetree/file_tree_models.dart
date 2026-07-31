@@ -12,10 +12,13 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 /// A file-system resource displayed in the workspace tree.
 sealed class FileTreeNode {
   /// Creates a tree node for [resource].
-  const FileTreeNode(this.resource);
+  const FileTreeNode(this.resource, {this.isIgnored = false});
 
   /// The workspace resource represented by this node.
   final WorkspaceResource resource;
+
+  /// Whether this node represents an ignored/hidden resource.
+  final bool isIgnored;
 }
 
 /// A file displayed in the workspace tree.
@@ -24,6 +27,7 @@ final class FileTreeFileNode extends FileTreeNode {
   const FileTreeFileNode(
     WorkspaceFile super.resource, {
     required this.openable,
+    super.isIgnored = false,
   });
 
   /// Whether the file can be opened in the text editor.
@@ -36,10 +40,44 @@ final class FileTreeFolderNode extends FileTreeNode {
   FileTreeFolderNode(
     WorkspaceFolder super.resource, [
     Iterable<FileTreeNode> children = const [],
-  ]) : children = List.unmodifiable(children);
+    bool isIgnored = false,
+  ]) : children = List.unmodifiable(children),
+       super(isIgnored: isIgnored);
 
   /// The immutable list of immediate child nodes.
   final List<FileTreeNode> children;
+
+  /// Recursively checks if a node exists in this subtree with the given [path].
+  bool exists(String path) {
+    if (resource.path == path) {
+      return true;
+    }
+    for (final child in children) {
+      if (child is FileTreeFolderNode) {
+        if (child.exists(path)) {
+          return true;
+        }
+      } else if (child.resource.path == path) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Recursively checks if a folder exists in this subtree with the given [path].
+  bool isFolder(String path) {
+    if (resource.path == path) {
+      return true;
+    }
+    for (final child in children) {
+      if (child is FileTreeFolderNode) {
+        if (child.isFolder(path)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
 
 /// The kind of workspace entry being created.
@@ -56,19 +94,7 @@ final class FileTreeState {
   /// Creates a file-tree state snapshot.
   const FileTreeState({
     required this.root,
-    required this.collapsedFolders,
-    required this.selectedFolder,
-    required this.dropTargetFolder,
-    required this.draggedFile,
-    required this.draggedFolder,
     required this.activeFile,
-    required this.creatingEntry,
-    required this.createTargetFolder,
-    required this.newEntryName,
-    required this.renamingFile,
-    required this.renamingFolder,
-    required this.renameValue,
-    required this.nameValidationError,
     required this.operationError,
     required this.busy,
     required this.protectedEntries,
@@ -78,44 +104,8 @@ final class FileTreeState {
   /// The root node whose children are displayed in the tree.
   final FileTreeFolderNode root;
 
-  /// Paths of folders whose children are hidden.
-  final Set<String> collapsedFolders;
-
-  /// The selected folder path, or `null` when no folder is selected.
-  final String? selectedFolder;
-
-  /// The folder currently highlighted as a drop target.
-  final String? dropTargetFolder;
-
-  /// The path of the file currently being dragged.
-  final String? draggedFile;
-
-  /// The path of the folder currently being dragged.
-  final String? draggedFolder;
-
   /// The path displayed in the active editor tab.
   final String activeFile;
-
-  /// The kind of entry currently being created, if any.
-  final FileTreeEntryKind? creatingEntry;
-
-  /// The folder in which the new entry will be created.
-  final String createTargetFolder;
-
-  /// The current value of the new-entry name input.
-  final String newEntryName;
-
-  /// The path of the file currently being renamed.
-  final String? renamingFile;
-
-  /// The path of the folder currently being renamed.
-  final String? renamingFolder;
-
-  /// The current value of the rename input.
-  final String renameValue;
-
-  /// The current name validation error, or `null` for a valid name.
-  final String? nameValidationError;
 
   /// The latest user-facing workspace operation error.
   final String? operationError;
@@ -134,105 +124,41 @@ final class FileTreeState {
 final class FileTreeActions {
   /// Creates the action bundle consumed by [FileTreeView].
   const FileTreeActions({
-    required this.setNewEntryName,
-    required this.setRenameValue,
-    required this.startAddingFile,
-    required this.startAddingFolder,
-    required this.handleCreateBlur,
-    required this.confirmAddFile,
-    required this.confirmAddFolder,
-    required this.cancelCreate,
-    required this.startRenamingFile,
-    required this.startRenamingFolder,
-    required this.confirmRenameFile,
-    required this.confirmRenameFolder,
-    required this.cancelRename,
-    required this.selectFolder,
-    required this.toggleFolder,
-    required this.clearFolderSelection,
-    required this.startDraggingFile,
-    required this.startDraggingFolder,
-    required this.finishDragging,
-    required this.markDropTarget,
-    required this.clearDropTarget,
-    required this.dropIntoFolder,
-    required this.openFile,
+    required this.createFile,
+    required this.createFolder,
+    required this.renameFile,
+    required this.renameFolder,
     required this.deleteFile,
     required this.deleteFolder,
+    required this.moveEntry,
+    required this.openFile,
+    required this.clearOperationError,
   });
 
-  /// Updates the proposed name for a new entry.
-  final void Function(String) setNewEntryName;
+  /// Creates a file in the selected folder.
+  final Future<void> Function(String parentPath, String name) createFile;
 
-  /// Updates the proposed name for the entry being renamed.
-  final void Function(String) setRenameValue;
+  /// Creates a folder in the selected folder.
+  final Future<void> Function(String parentPath, String name) createFolder;
 
-  /// Starts creating a file in the selected folder.
-  final void Function() startAddingFile;
+  /// Renames the file at the supplied path.
+  final Future<void> Function(String path, String newName) renameFile;
 
-  /// Starts creating a folder in the selected folder.
-  final void Function() startAddingFolder;
-
-  /// Confirms or cancels creation when the new-entry input loses focus.
-  final Future<void> Function() handleCreateBlur;
-
-  /// Creates a file using the current new-entry name.
-  final Future<void> Function() confirmAddFile;
-
-  /// Creates a folder using the current new-entry name.
-  final Future<void> Function() confirmAddFolder;
-
-  /// Cancels entry creation.
-  final void Function() cancelCreate;
-
-  /// Starts renaming the file at the supplied path.
-  final void Function(String) startRenamingFile;
-
-  /// Starts renaming the folder at the supplied path.
-  final void Function(String) startRenamingFolder;
-
-  /// Renames the file at the supplied path using the current rename value.
-  final Future<void> Function(String) confirmRenameFile;
-
-  /// Renames the folder at the supplied path using the current rename value.
-  final Future<void> Function(String) confirmRenameFolder;
-
-  /// Cancels the active rename operation.
-  final void Function() cancelRename;
-
-  /// Selects the folder at the supplied path.
-  final void Function(String) selectFolder;
-
-  /// Selects the supplied folder and toggles whether it is collapsed.
-  final void Function(String) toggleFolder;
-
-  /// Clears the current folder selection.
-  final void Function() clearFolderSelection;
-
-  /// Starts dragging the file at the supplied path.
-  final void Function(String) startDraggingFile;
-
-  /// Starts dragging the folder at the supplied path.
-  final void Function(String) startDraggingFolder;
-
-  /// Clears the current drag-and-drop state.
-  final void Function() finishDragging;
-
-  /// Marks the supplied folder as the current drop target.
-  final void Function(String) markDropTarget;
-
-  /// Clears the supplied folder as a drop target.
-  final void Function(String) clearDropTarget;
-
-  /// Moves the dragged entry into the supplied folder.
-  final Future<void> Function(String) dropIntoFolder;
-
-  /// Opens the file at the supplied path.
-  final FutureOr<void> Function(String) openFile;
+  /// Renames the folder at the supplied path.
+  final Future<void> Function(String path, String newName) renameFolder;
 
   /// Deletes the file at the supplied path.
-  final Future<void> Function(String) deleteFile;
+  final Future<void> Function(String path) deleteFile;
 
   /// Deletes the folder at the supplied path and all of its contents.
-  final Future<void> Function(String) deleteFolder;
+  final Future<void> Function(String path) deleteFolder;
+
+  /// Moves the entry into the target folder.
+  final Future<void> Function(String sourcePath, String targetFolderPath) moveEntry;
+
+  /// Opens the file at the supplied path.
+  final FutureOr<void> Function(String path) openFile;
+
+  /// Clears the current operation error.
+  final void Function() clearOperationError;
 }

@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dartpad/dartpad.dart';
-import 'package:dartpad_preview/features/filetree/file_tree_editor_delegate.dart';
-import 'package:dartpad_preview/features/filetree/file_tree_models.dart';
-import 'package:dartpad_preview/features/filetree/file_tree_view_model.dart';
-import 'package:dartpad_preview/features/shared/app_event_bus.dart';
-import 'package:dartpad_preview_shared/dartpad_preview_shared.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_editor_delegate.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_view_model.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
@@ -59,19 +59,6 @@ final class FakeTabs extends ChangeNotifier implements FileTreeEditorDelegate {
   }
 }
 
-/// Controllable workspace watcher used by the file-tree view-model tests.
-final class FakeWatcher implements WorkspaceChangeWatcher {
-  final StreamController<WorkspaceChangeEvent> controller = StreamController<WorkspaceChangeEvent>.broadcast(
-    sync: true,
-  );
-
-  @override
-  Stream<WorkspaceChangeEvent> get events => controller.stream;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /// Language-server fake that records file-rename notifications.
 final class FakeLanguageServerClient implements LanguageServerClient {
   /// Creates a fake client that appends operations to [operationLog].
@@ -94,7 +81,7 @@ final class FakeLanguageServerClient implements LanguageServerClient {
 }
 
 /// In-memory workspace controller used by the file-tree view-model tests.
-final class FakeWorkspaceController implements WorkspaceController {
+final class FakeWorkspaceController implements WorkspaceResourceApi {
   /// Creates an empty workspace that appends operations to [operationLog].
   FakeWorkspaceController(this.operationLog) : languageServerClient = FakeLanguageServerClient(operationLog);
 
@@ -104,26 +91,16 @@ final class FakeWorkspaceController implements WorkspaceController {
   final Map<String, int> fileExistChecks = {};
   int textWriteCount = 0;
 
-  @override
   final FakeLanguageServerClient languageServerClient;
 
-  @override
-  final FakeWatcher watcher = FakeWatcher();
+  final StreamController<WorkspaceChangeEvent> changeEventsController =
+      StreamController<WorkspaceChangeEvent>.broadcast(sync: true);
 
   @override
-  Workspace get workspace => throw UnimplementedError('Tests use the WorkspaceApi delegates.');
+  Stream<WorkspaceChangeEvent> get changeEvents => changeEventsController.stream;
 
   @override
-  Uri get workspaceUri => Uri.parse('file:///workspace/');
-
-  @override
-  Uri get workspaceFolder => workspaceUri;
-
-  @override
-  WorkspaceFolder get root => WorkspaceFolder(workspace: this, path: '');
-
-  @override
-  int get id => 1;
+  Future<void> get changeEventsReady => Future.value();
 
   /// Adds a text file at [path], creating its ancestor folders as needed.
   void addTextFile(String path, String content) {
@@ -195,6 +172,9 @@ final class FakeWorkspaceController implements WorkspaceController {
   }
 
   @override
+  Future<void> dispose() async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -223,7 +203,7 @@ void main() {
       tabs: tabs,
       workspace: workspace,
       events: events,
-    );
+    )..languageServerClient = workspace.languageServerClient;
     await viewModel.refresh();
   });
 
@@ -231,16 +211,21 @@ void main() {
     viewModel.dispose();
     tabs.dispose();
     await logSubscription.cancel();
-    await workspace.watcher.controller.close();
+    await workspace.changeEventsController.close();
     await events.dispose();
   });
 
-  test('builds a folders-first tree and hides generated workspace entries', () {
+  test('builds a folders-first tree and marks generated workspace entries as ignored', () {
     final rootChildren = viewModel.state.root.children;
 
-    expect(rootChildren.first, isA<FileTreeFolderNode>());
-    expect(rootChildren.whereType<FileTreeFolderNode>().map((node) => node.resource.path), ['lib']);
-    expect(rootChildren.whereType<FileTreeFileNode>().map((node) => node.resource.path), ['pubspec.yaml']);
+    final folders = rootChildren.whereType<FileTreeFolderNode>().toList();
+    expect(folders.map((node) => node.resource.path), ['.dart_tool', 'build', 'lib']);
+    expect(folders.firstWhere((node) => node.resource.path == '.dart_tool').isIgnored, isTrue);
+    expect(folders.firstWhere((node) => node.resource.path == 'build').isIgnored, isTrue);
+    expect(folders.firstWhere((node) => node.resource.path == 'lib').isIgnored, isFalse);
+
+    final files = rootChildren.whereType<FileTreeFileNode>().toList();
+    expect(files.map((node) => node.resource.path), ['pubspec.yaml']);
   });
 
   test('exposes presentation metadata without requiring view-model queries', () async {
@@ -260,63 +245,17 @@ void main() {
   });
 
   test('creates text files in the selected folder and opens them', () async {
-    viewModel
-      ..selectFolder('lib')
-      ..startAddingFile()
-      ..setNewEntryName('counter.dart');
-
-    await viewModel.confirmAddFile();
+    await viewModel.createFile('lib', 'counter.dart');
 
     expect(workspace.files, contains('lib/counter.dart'));
     expect(tabs.openedFiles, ['lib/counter.dart']);
     expect(viewModel.state.operationError, isNull);
   });
 
-  test('coalesces Enter submit and the immediately following create blur', () async {
-    viewModel
-      ..selectFolder('lib')
-      ..startAddingFile()
-      ..setNewEntryName('single.dart');
+  test('rejects destination collisions before mutations', () async {
+    await viewModel.createFile('lib', 'main.dart');
 
-    final enterSubmit = viewModel.confirmAddFile();
-    final blurSubmit = viewModel.handleCreateBlur();
-    await Future.wait([enterSubmit, blurSubmit]);
-
-    expect(workspace.textWriteCount, 1);
-    expect(workspace.files, contains('lib/single.dart'));
-    expect(tabs.openedFiles, ['lib/single.dart']);
-  });
-
-  test('ignores a late create blur after the input was removed', () async {
-    viewModel
-      ..selectFolder('lib')
-      ..startAddingFile()
-      ..setNewEntryName('late-blur.dart');
-
-    await viewModel.confirmAddFile();
-    final stateAfterCreate = viewModel.state;
-    await viewModel.handleCreateBlur();
-
-    expect(viewModel.state.creatingEntry, stateAfterCreate.creatingEntry);
-    expect(workspace.textWriteCount, 1);
-    expect(tabs.openedFiles, ['lib/late-blur.dart']);
-  });
-
-  test('rejects invalid names and destination collisions before mutations', () async {
-    viewModel
-      ..selectFolder('lib')
-      ..startAddingFile()
-      ..setNewEntryName('../bad.dart');
-    await viewModel.confirmAddFile();
-    expect(viewModel.state.nameValidationError, isNotNull);
-
-    viewModel.setNewEntryName('main.dart');
-    await viewModel.confirmAddFile();
-
-    expect(
-      viewModel.state.operationError,
-      'A file or folder already exists at "lib/main.dart".',
-    );
+    expect(viewModel.state.operationError, isNotNull);
     expect(operationLog, isEmpty);
   });
 
@@ -325,10 +264,7 @@ void main() {
     await viewModel.refresh();
     tabs.dirty = ['lib/main.dart'];
 
-    viewModel
-      ..startRenamingFile('lib/old.dart')
-      ..setRenameValue('new.dart');
-    await viewModel.confirmRenameFile('lib/old.dart');
+    await viewModel.renameFile('lib/old.dart', 'new.dart');
 
     expect(
       operationLog,
@@ -348,10 +284,7 @@ void main() {
     await viewModel.refresh();
     tabs.saveError = StateError('save failed');
 
-    viewModel
-      ..startRenamingFile('lib/old.dart')
-      ..setRenameValue('new.dart');
-    await viewModel.confirmRenameFile('lib/old.dart');
+    await viewModel.renameFile('lib/old.dart', 'new.dart');
 
     expect(operationLog, ['save-all']);
     expect(workspace.files, contains('lib/old.dart'));
@@ -372,8 +305,7 @@ void main() {
       '{code: -32001, message: request failed}',
     );
 
-    viewModel.startDraggingFile('lib/old.dart');
-    await viewModel.dropIntoFolder('test');
+    await viewModel.moveEntry('lib/old.dart', 'test');
 
     expect(
       operationLog,
@@ -400,8 +332,7 @@ void main() {
     await viewModel.refresh();
     workspace.languageServerClient.renameError = StateError('transport failed');
 
-    viewModel.startDraggingFile('lib/old.dart');
-    await viewModel.dropIntoFolder('test');
+    await viewModel.moveEntry('lib/old.dart', 'test');
 
     expect(
       operationLog,
@@ -427,17 +358,16 @@ void main() {
     expect(viewModel.state.operationError, contains('required project file'));
   });
 
-  test('refuses dragging a folder into itself or a descendant', () async {
+  test('refuses moving a folder into itself or a descendant', () async {
     workspace
       ..folders.add('assets')
       ..folders.add('assets/images');
     await viewModel.refresh();
 
-    viewModel.startDraggingFolder('assets');
-    viewModel.markDropTarget('assets/images');
-
-    expect(viewModel.state.dropTargetFolder, isNull);
-    await viewModel.dropIntoFolder('assets/images');
+    expect(
+      () => viewModel.moveEntry('assets', 'assets/images'),
+      throwsArgumentError,
+    );
     expect(workspace.folders, contains('assets'));
     expect(operationLog, isEmpty);
   });

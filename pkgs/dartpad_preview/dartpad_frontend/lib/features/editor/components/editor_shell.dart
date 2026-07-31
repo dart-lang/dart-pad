@@ -6,6 +6,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/components/split_panel.dart';
 import 'editor_stack.dart';
 import 'editor_tabs.dart';
 
@@ -57,21 +58,27 @@ class EditorShell extends StatelessComponent {
     final openTabs = this.openTabs;
     return div(classes: 'ide-shell', [
       div(classes: 'workspace-shell', [
-        aside(classes: 'file-tree-pane', [fileTree]),
-        main_(classes: 'editor-host', [
-          if (openTabs != null) ...[
-            EditorTabs(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-            ),
-            EditorStack(
-              openTabs: openTabs,
-              activeFile: activeFile,
-            ),
-          ],
-        ]),
+        SplitPanel(
+          initialValue: 200,
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          left: aside(classes: 'file-tree-pane', [fileTree]),
+          right: main_(classes: 'editor-host', [
+            if (openTabs != null) ...[
+              EditorTabs(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+              ),
+              EditorStack(
+                openTabs: openTabs,
+                activeFile: activeFile,
+              ),
+            ],
+          ]),
+        ),
       ]),
       div(
         classes: [

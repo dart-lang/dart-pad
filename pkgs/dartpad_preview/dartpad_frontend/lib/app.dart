@@ -57,8 +57,8 @@ class AppState extends State<App> {
       adapters: [codemirrorAdapter],
     );
     _fileTree = FileTreeViewModel(
-      tabs: FileTreeTabsAdapter(tabs),
-      workspace: repository,
+      tabs: FileTreeTabsAdapter(_tabs),
+      workspace: _workspaceRepository.workspaceResourceApi,
       events: _events,
     );
 
@@ -91,6 +91,8 @@ class AppState extends State<App> {
           await _tabs.openFile(filePath);
         },
       );
+
+      _fileTree.languageServerClient = languageServerClient;
 
       _analyzerSubscription = languageServerClient.analyzerActivityStream.listen(
         (activity) => _logAnalyzerActivity(languageServerClient, activity),
@@ -161,6 +163,7 @@ class AppState extends State<App> {
           openTabs: _tabs.openTabs,
           activeFile: _tabs.activeFile,
           errorMessage: _tabs.errorMessage,
+          warningMessage: _tabs.warningMessage,
           fileTree: _buildFileTree(),
           onSwitchFile: _tabs.switchFile,
           onCloseFile: _tabs.closeFile,
