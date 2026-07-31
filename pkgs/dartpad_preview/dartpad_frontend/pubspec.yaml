@@ -23,6 +23,7 @@ dev_dependencies:
   crypto: ^3.0.6
   jaspr_builder: ^0.23.2
   jaspr_cli: ^0.23.2
+  jaspr_test: ^0.23.2
   lints: ^6.0.0
   path: ^1.9.1
   test: ^1.25.8

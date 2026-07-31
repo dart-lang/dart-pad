@@ -26,7 +26,7 @@ class EditorViewState {
 /// language server features (such as syntax highlighting, diagnostics,
 /// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
-  CodeMirrorEditor._(this.view, this.langCompartment, this.file);
+  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient);
 
   /// Creates a new [CodeMirrorEditor] inside the given [element].
   ///
@@ -46,6 +46,7 @@ final class CodeMirrorEditor {
     void Function()? onSave,
     void Function()? onCodeActionRequested,
     void Function(int from, int to, String message)? onFixDiagnostic,
+    LanguageServerClient? languageServerClient,
   }) {
     final langCompartment = cm.Compartment();
 
@@ -89,7 +90,7 @@ final class CodeMirrorEditor {
                 ),
               ].toJS,
             ),
-          langCompartment.of(_languageExtension(file)),
+          langCompartment.of(_languageExtension(file, languageServerClient)),
           if (onCodeActionRequested != null)
             cm.keymapOf(
               [
@@ -128,7 +129,7 @@ final class CodeMirrorEditor {
       ),
     );
 
-    final editor = CodeMirrorEditor._(view, langCompartment, file);
+    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient);
     return editor;
   }
 

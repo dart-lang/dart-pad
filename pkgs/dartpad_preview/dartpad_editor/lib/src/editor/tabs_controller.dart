@@ -39,7 +39,8 @@ abstract mixin class TabsController<T> {
   String _activeTabPath = '';
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
 
-  Iterable<EditorTab<T>> get _allTabs => _tabs.followedBy(_keepAliveTabs.values);
+  // An iterable of all existing tabs, including those that are not currently open but kept alive.
+  Iterable<EditorTab<T>> get allTabs => _tabs.followedBy(_keepAliveTabs.values);
 
   /// A read-only list of all currently open tabs.
   List<EditorTab<T>> get openTabs => List.unmodifiable(_tabs);
@@ -58,11 +59,11 @@ abstract mixin class TabsController<T> {
   String get activeFile => _activeTabPath;
 
   /// Whether any open tab has unsaved changes.
-  bool get hasUnsavedChanges => _allTabs.any((t) => t.hasUnsavedChanges);
+  bool get hasUnsavedChanges => allTabs.any((t) => t.hasUnsavedChanges);
 
   /// Returns the paths of all files that currently have unsaved changes.
   List<String> get dirtyFiles => [
-    for (final t in _allTabs)
+    for (final t in allTabs)
       if (t.hasUnsavedChanges) t.path,
   ];
 
@@ -172,7 +173,7 @@ abstract mixin class TabsController<T> {
   /// Saves all open tabs that have unsaved changes.
   Future<void> saveAllTabs() async {
     final savedFiles = <String>[];
-    for (final tab in _allTabs) {
+    for (final tab in allTabs) {
       if (tab.hasUnsavedChanges) {
         savedFiles.add(tab.path);
       }
@@ -183,7 +184,7 @@ abstract mixin class TabsController<T> {
 
     didUpdate(isSaving: true);
     try {
-      for (final tab in _allTabs.toList()) {
+      for (final tab in allTabs.toList()) {
         if (tab.hasUnsavedChanges) {
           await tab.save();
         }
@@ -199,13 +200,15 @@ abstract mixin class TabsController<T> {
   /// If the tab is configured as `keepAlive`, it will be kept in memory instead of being disposed.
   void closeTab(String fileName) {
     final tabIndex = _tabs.indexWhere((t) => t.path == fileName);
-    if (tabIndex == -1 || _tabs.length <= 1) {
+    if (tabIndex == -1) {
       return;
     }
 
     final tab = _tabs[tabIndex];
     final wasActive = fileName == _activeTabPath;
-    final nextFile = wasActive ? _tabs[tabIndex + 1 < _tabs.length ? tabIndex + 1 : tabIndex - 1].path : null;
+    final nextFile = wasActive && _tabs.length > 1
+        ? _tabs[tabIndex + 1 < _tabs.length ? tabIndex + 1 : tabIndex - 1].path
+        : null;
 
     if (wasActive) {
       tab.onDeactivate();
@@ -224,6 +227,9 @@ abstract mixin class TabsController<T> {
     if (nextFile != null) {
       _setActivePath(nextFile);
     } else {
+      if (wasActive) {
+        _activeTabPath = '';
+      }
       didUpdate();
     }
   }
@@ -250,7 +256,7 @@ abstract mixin class TabsController<T> {
 
   /// Reverts all editors with unsaved changes to their last saved content.
   void discardUnsavedChanges() {
-    final dirtyTabs = _allTabs.where((tab) => tab.hasUnsavedChanges).toList();
+    final dirtyTabs = allTabs.where((tab) => tab.hasUnsavedChanges).toList();
     for (final tab in dirtyTabs) {
       tab.discardUnsavedChanges();
     }
