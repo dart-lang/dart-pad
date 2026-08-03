@@ -275,10 +275,10 @@ List<StyleRule> get componentStyles => [
       top: 22.px,
       bottom: 0.px,
     ),
-    zIndex: const ZIndex(100),
     width: 1.px,
     opacity: 0,
     backgroundColor: const Color('#444444'),
+    raw: {'z-index': 'calc(100 - var(--tree-depth) - 1)'},
   ),
   css(
     '.file-tree-folder:has(>.file-tree-item.selected, >.file-tree-folder-children >.file-tree-item.selected)::after',
