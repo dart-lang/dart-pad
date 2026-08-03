@@ -31,7 +31,7 @@ String? _pathWithinWorkspace(String uri, Uri? workspaceFolder) {
   final isSameLocation = parsedUri.scheme == workspaceFolder.scheme && parsedUri.authority == workspaceFolder.authority;
   if (isSameLocation && parsedUri.path.startsWith(workspacePath)) {
     final relativePath = parsedUri.path.substring(workspacePath.length);
-    return normalizeWorkspacePath(Uri.decodeFull(relativePath));
+    return workspaceContext.normalize(Uri.decodeFull(relativePath));
   }
 
   return null;

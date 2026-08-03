@@ -6,6 +6,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/components/split_panel.dart';
 import 'editor_stack.dart';
 import 'editor_tabs.dart';
 
@@ -17,6 +18,8 @@ class EditorShell extends StatelessComponent {
     required this.openTabs,
     required this.activeFile,
     required this.errorMessage,
+    required this.warningMessage,
+    required this.fileTree,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bootstrapLabel,
@@ -35,11 +38,17 @@ class EditorShell extends StatelessComponent {
   /// The latest user-facing editor error, or `null` if there is none.
   final String? errorMessage;
 
+  /// The latest user-facing editor warning, or `null` if there is none.
+  final String? warningMessage;
+
   /// Switches to the editor tab at the provided path.
   final void Function(String path)? onSwitchFile;
 
   /// Closes the editor tab at the provided path.
   final bool Function(String path, {bool discardChanges})? onCloseFile;
+
+  /// The workspace file tree.
+  final Component fileTree;
 
   /// Human-readable label for the current status.
   final String bootstrapLabel;
@@ -48,27 +57,37 @@ class EditorShell extends StatelessComponent {
   Component build(BuildContext context) {
     final openTabs = this.openTabs;
     return div(classes: 'ide-shell', [
-      main_(classes: 'editor-host', [
-        if (openTabs != null) ...[
-          EditorTabs(
-            openTabs: openTabs,
-            activeFile: activeFile,
-            onSwitchFile: onSwitchFile!,
-            onCloseFile: onCloseFile!,
-          ),
-          EditorStack(
-            openTabs: openTabs,
-            activeFile: activeFile,
-          ),
-        ],
+      div(classes: 'workspace-shell', [
+        SplitPanel(
+          initialValue: 200,
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          left: aside(classes: 'file-tree-pane', [fileTree]),
+          right: main_(classes: 'editor-host', [
+            if (openTabs != null) ...[
+              EditorTabs(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+              ),
+              EditorStack(
+                openTabs: openTabs,
+                activeFile: activeFile,
+              ),
+            ],
+          ]),
+        ),
       ]),
       div(
         classes: [
           'status-bar',
           if (errorMessage != null) 'error',
+          if (errorMessage == null && warningMessage != null) 'warning',
         ].join(' '),
         [
-          .text(errorMessage ?? bootstrapLabel),
+          .text(errorMessage ?? warningMessage ?? bootstrapLabel),
         ],
       ),
     ]);

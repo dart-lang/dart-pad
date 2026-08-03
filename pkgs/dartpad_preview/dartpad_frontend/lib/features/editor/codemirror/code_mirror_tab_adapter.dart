@@ -9,6 +9,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../../shared/editable_text_file.dart';
 import 'code_mirror_tab.dart';
 
 /// Creates text tabs and synchronizes them with workspace and LSP changes.
@@ -41,6 +42,9 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   Future<EditorTab<Component>?> createTab(String path) async {
     final tabs = _tabs;
     if (tabs == null) {
+      return null;
+    }
+    if (!isEditableTextFile(path)) {
       return null;
     }
     final content = await tabs.workspaceResourceApi.root.getFile(path).readContent();

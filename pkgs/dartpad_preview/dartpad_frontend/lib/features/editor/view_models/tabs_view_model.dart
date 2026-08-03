@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
-import '../codemirror/code_mirror_tab.dart';
 
 /// Owns the multi-file editor tabs and their workspace lifecycle.
 final class TabsViewModel extends ChangeNotifier with TabsController<Component> {
@@ -31,12 +30,16 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
 
   bool _isSaving = false;
   String? _errorMessage;
+  String? _warningMessage;
 
   /// Whether a save operation is in progress.
   bool get isSaving => _isSaving;
 
   /// The latest user-facing editor error, or `null` if there is none.
   String? get errorMessage => _errorMessage;
+
+  /// The latest user-facing editor warning, or `null` if there is none.
+  String? get warningMessage => _warningMessage;
 
   @override
   void didUpdate({bool? isSaving}) {
@@ -66,11 +69,13 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     }
   }
 
-  /// Requests fresh semantic highlighting for the visible editor.
-  void refreshSemanticHighlighting() {
-    final tab = activeTab;
-    if (tab is CodeMirrorTab && tab.container.isConnected) {
-      tab.editor.triggerLspRefresh();
+  /// Opens the text file at [path] and reports failures to the user.
+  Future<void> openTextFile(String path) async {
+    try {
+      await openFile(path);
+      clearMessages();
+    } catch (error, stackTrace) {
+      _reportError('Could not open $path.', error, stackTrace);
     }
   }
 
@@ -88,6 +93,23 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     }
     closeTab(path);
     return true;
+  }
+
+  /// Publishes [message] as the current user-facing warning.
+  void reportWarning(String message) {
+    _warningMessage = message;
+    events.dispatch(LogEvent(message, level: Level.WARNING));
+    notifyListeners();
+  }
+
+  /// Clears the current user-facing error and warning messages.
+  void clearMessages() {
+    if (_errorMessage == null && _warningMessage == null) {
+      return;
+    }
+    _errorMessage = null;
+    _warningMessage = null;
+    notifyListeners();
   }
 
   void _reportError(

@@ -2,9 +2,9 @@
 
 The first browser frame renders the editor shell while the DartPad worker
 creates the transient in-memory Flutter project. As soon as that workspace is
-available, `lib/main.dart` and `pubspec.yaml` are opened in reusable editor
-tabs. LSP initialization and `pub get` continue in the background and do not
-block the workspace UI.
+available, the file tree appears and `lib/main.dart` and `pubspec.yaml` are
+opened in reusable editor tabs. LSP initialization and `pub get` continue in
+the background and do not block the workspace UI.
 
 Ctrl/Cmd+S saves every dirty tab and formats Dart files before writing. Closing
 a dirty tab requires confirmation before its changes are discarded. Reloading
