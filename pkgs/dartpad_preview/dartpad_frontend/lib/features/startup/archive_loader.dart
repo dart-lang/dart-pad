@@ -1,0 +1,119 @@
+import 'dart:typed_data';
+
+import 'package:archive/archive.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:http/http.dart' as http;
+
+class ArchiveLoader {
+  const ArchiveLoader({
+    required this.archiveUrl,
+    required this.filePath,
+    this.mainPath,
+  });
+
+  final String archiveUrl;
+  final String filePath;
+  final String? mainPath;
+
+  Future<void> loadArchive(WorkspaceFolder root, Future<void> Function(String path) openFile) async {
+    final Uri uri = Uri.parse(archiveUrl);
+    if (!uri.isAbsolute) {
+      throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
+    }
+
+    final http.Response response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load archive');
+    }
+
+    final Uint8List bytes = response.bodyBytes;
+    List<int> tarBytes = bytes;
+    if (bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B) {
+      tarBytes = const GZipDecoder().decodeBytes(bytes);
+    }
+
+    final Archive archive = TarDecoder().decodeBytes(tarBytes);
+
+    final String normalizedFilePath = workspaceContext.normalize(filePath);
+    final Set<String> archivePaths = <String>{};
+    for (final ArchiveFile file in archive.files) {
+      String name = file.name;
+      if (name.startsWith('./')) {
+        name = name.substring(2);
+      } else if (name.startsWith('/')) {
+        name = name.substring(1);
+      }
+      archivePaths.add(name);
+    }
+
+    final List<String> segments = normalizedFilePath.split('/');
+    String? rootProjectDir;
+
+    for (int i = segments.length - 1; i >= 0; i--) {
+      final String parentDir = segments.sublist(0, i).join('/');
+      final String pubspecPath = parentDir.isEmpty ? 'pubspec.yaml' : '$parentDir/pubspec.yaml';
+      if (archivePaths.contains(pubspecPath)) {
+        rootProjectDir = parentDir;
+        break;
+      }
+    }
+
+    if (rootProjectDir == null) {
+      throw Exception('Could not find pubspec.yaml in any parent directory of $filePath');
+    }
+
+    final String prefix = rootProjectDir.isEmpty ? '' : '$rootProjectDir/';
+    final List<ArchiveFile> filesToExtract = <ArchiveFile>[];
+    final Set<String> foldersToCreate = <String>{};
+
+    for (final ArchiveFile file in archive.files) {
+      if (!file.isFile) {
+        continue;
+      }
+
+      String name = file.name;
+      if (name.startsWith('./')) {
+        name = name.substring(2);
+      } else if (name.startsWith('/')) {
+        name = name.substring(1);
+      }
+
+      if (rootProjectDir.isEmpty || name.startsWith(prefix)) {
+        filesToExtract.add(file);
+
+        final String relativePath = rootProjectDir.isEmpty ? name : name.substring(prefix.length);
+        String dir = workspaceContext.dirname(relativePath);
+        while (dir.isNotEmpty && dir != '.') {
+          foldersToCreate.add(dir);
+          dir = workspaceContext.dirname(dir);
+        }
+      }
+    }
+
+    final List<String> sortedFolders = foldersToCreate.toList()
+      ..sort((String a, String b) => a.length.compareTo(b.length));
+    for (final String folderPath in sortedFolders) {
+      await root.getFolder(folderPath).create();
+    }
+
+    for (final ArchiveFile file in filesToExtract) {
+      String name = file.name;
+      if (name.startsWith('./')) {
+        name = name.substring(2);
+      } else if (name.startsWith('/')) {
+        name = name.substring(1);
+      }
+
+      final String relativePath = rootProjectDir.isEmpty ? name : name.substring(prefix.length);
+      final dynamic content = file.content;
+      final Uint8List fileBytes = content is Uint8List ? content : Uint8List.fromList(content as List<int>);
+
+      await root.workspace.writeFileFromBytes(root.getFile(relativePath).path, fileBytes);
+    }
+
+    await root.getFile('pubspec_overrides.yaml').writeContent('workspace:\n');
+
+    final String openedPath = rootProjectDir.isEmpty ? normalizedFilePath : normalizedFilePath.substring(prefix.length);
+    await openFile(openedPath);
+  }
+}

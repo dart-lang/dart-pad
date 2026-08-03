@@ -19,6 +19,7 @@ import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
+import 'features/startup/archive_loader.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 
@@ -64,6 +65,8 @@ class AppState extends State<App> {
 
     _console = BrowserConsoleObserver(_events);
 
+    final projectFuture = loadProject();
+
     _events.on<WorkspaceLoadedEvent>().listen((event) async {
       if (!mounted) {
         return;
@@ -98,6 +101,8 @@ class AppState extends State<App> {
         (activity) => _logAnalyzerActivity(languageServerClient, activity),
       );
 
+      await projectFuture;
+
       setState(() {
         loadingStatus = 'Running Pub Get...';
       });
@@ -110,11 +115,22 @@ class AppState extends State<App> {
         loadingStatus = 'Analyzing Project...';
       });
     });
+  }
 
-    Future(() async {
+  Future<void> loadProject() async {
+    final params = Uri.base.queryParameters;
+
+    if (params case {
+      'archive': final String archiveUrl,
+      'path': final String filePath,
+      //'main': final String? mainPath,
+    }) {
+      final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
+      await loader.loadArchive(_workspaceRepository.root, _tabs.openFile);
+    } else {
       await createSampleProject(_workspaceRepository.root);
       await openSampleProject(_tabs.openFile);
-    });
+    }
   }
 
   void _logAnalyzerActivity(LanguageServerClient languageServerClient, AnalyzerActivity activity) {
