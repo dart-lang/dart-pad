@@ -272,19 +272,21 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleFileMoved(String oldPath, String newPath) {
-    final normalizedOldPath = normalizeWorkspacePath(oldPath);
-    final normalizedNewPath = normalizeWorkspacePath(newPath);
+    final normalizedOldPath = workspaceContext.normalize(oldPath);
+    final normalizedNewPath = workspaceContext.normalize(newPath);
     _cancelLoadsAtOrBelow(normalizedOldPath);
 
-    final openTabs = _tabs.where((tab) => _isPathAtOrBelow(tab.path, normalizedOldPath)).toList();
-    final keptTabs = _keepAliveTabs.entries.where((entry) => _isPathAtOrBelow(entry.key, normalizedOldPath)).toList();
+    final openTabs = _tabs.where((tab) => workspaceContext.isWithinFolder(tab.path, normalizedOldPath)).toList();
+    final keptTabs = _keepAliveTabs.entries
+        .where((entry) => workspaceContext.isWithinFolder(entry.key, normalizedOldPath))
+        .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
     }
 
     for (final tab in openTabs) {
       final previousPath = tab.path;
-      final rebasedPath = _rebaseWorkspacePath(
+      final rebasedPath = workspaceContext.rebasePath(
         previousPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -294,7 +296,7 @@ abstract mixin class TabsController<T> {
     }
     for (final entry in keptTabs) {
       final previousPath = entry.key;
-      final rebasedPath = _rebaseWorkspacePath(
+      final rebasedPath = workspaceContext.rebasePath(
         previousPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -304,8 +306,8 @@ abstract mixin class TabsController<T> {
       _moveTabUpdateSubscription(previousPath, rebasedPath);
       _keepAliveTabs[rebasedPath] = entry.value;
     }
-    if (_isPathAtOrBelow(_activeTabPath, normalizedOldPath)) {
-      _activeTabPath = _rebaseWorkspacePath(
+    if (workspaceContext.isWithinFolder(_activeTabPath, normalizedOldPath)) {
+      _activeTabPath = workspaceContext.rebasePath(
         _activeTabPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -324,22 +326,24 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleDeletedFile(String path) {
-    final normalizedPath = normalizeWorkspacePath(path);
+    final normalizedPath = workspaceContext.normalize(path);
     _cancelLoadsAtOrBelow(normalizedPath);
 
-    final openTabs = _tabs.where((tab) => _isPathAtOrBelow(tab.path, normalizedPath)).toList();
-    final keptTabs = _keepAliveTabs.entries.where((entry) => _isPathAtOrBelow(entry.key, normalizedPath)).toList();
+    final openTabs = _tabs.where((tab) => workspaceContext.isWithinFolder(tab.path, normalizedPath)).toList();
+    final keptTabs = _keepAliveTabs.entries
+        .where((entry) => workspaceContext.isWithinFolder(entry.key, normalizedPath))
+        .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
     }
 
     final activeIndex = _tabs.indexWhere((tab) => tab.path == _activeTabPath);
-    final activeWasDeleted = activeIndex != -1 && _isPathAtOrBelow(_activeTabPath, normalizedPath);
+    final activeWasDeleted = activeIndex != -1 && workspaceContext.isWithinFolder(_activeTabPath, normalizedPath);
     String? nextActivePath;
     if (activeWasDeleted) {
       for (var index = activeIndex + 1; index < _tabs.length; index++) {
         final candidate = _tabs[index];
-        if (!_isPathAtOrBelow(candidate.path, normalizedPath)) {
+        if (!workspaceContext.isWithinFolder(candidate.path, normalizedPath)) {
           nextActivePath = candidate.path;
           break;
         }
@@ -347,7 +351,7 @@ abstract mixin class TabsController<T> {
       if (nextActivePath == null) {
         for (var index = activeIndex - 1; index >= 0; index--) {
           final candidate = _tabs[index];
-          if (!_isPathAtOrBelow(candidate.path, normalizedPath)) {
+          if (!workspaceContext.isWithinFolder(candidate.path, normalizedPath)) {
             nextActivePath = candidate.path;
             break;
           }
@@ -378,7 +382,9 @@ abstract mixin class TabsController<T> {
   }
 
   void _cancelLoadsAtOrBelow(String path) {
-    final matchingPaths = _loadingTabs.keys.where((candidate) => _isPathAtOrBelow(candidate, path)).toList();
+    final matchingPaths = _loadingTabs.keys
+        .where((candidate) => workspaceContext.isWithinFolder(candidate, path))
+        .toList();
     for (final matchingPath in matchingPaths) {
       unawaited(_loadingTabs.remove(matchingPath));
     }
@@ -421,25 +427,4 @@ abstract mixin class TabsController<T> {
     _loadingTabs.clear();
     _activeTabPath = '';
   }
-}
-
-bool _isPathAtOrBelow(String value, String root) {
-  final normalizedValue = normalizeWorkspacePath(value);
-  final normalizedRoot = normalizeWorkspacePath(root);
-  return normalizedRoot.isEmpty ||
-      normalizedValue == normalizedRoot ||
-      workspacePath.isWithin(normalizedRoot, normalizedValue);
-}
-
-String _rebaseWorkspacePath(String value, String oldRoot, String newRoot) {
-  final normalizedValue = normalizeWorkspacePath(value);
-  final normalizedOldRoot = normalizeWorkspacePath(oldRoot);
-  final normalizedNewRoot = normalizeWorkspacePath(newRoot);
-  if (normalizedValue == normalizedOldRoot) {
-    return normalizedNewRoot;
-  }
-  return workspacePath.join(
-    normalizedNewRoot,
-    workspacePath.relative(normalizedValue, from: normalizedOldRoot),
-  );
 }

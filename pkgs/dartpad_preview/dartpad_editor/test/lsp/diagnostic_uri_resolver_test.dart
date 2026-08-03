@@ -82,7 +82,7 @@ void main() {
     };
 
     for (final MapEntry(key: input, value: expected) in cases.entries) {
-      expect(normalizeWorkspacePath(input), expected, reason: 'input: $input');
+      expect(workspaceContext.normalize(input), expected, reason: 'input: $input');
     }
   });
 }

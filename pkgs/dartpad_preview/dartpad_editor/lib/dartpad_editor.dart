@@ -13,4 +13,5 @@ export 'src/lsp/diagnostic.dart';
 export 'src/lsp/language_server_client.dart';
 export 'src/workspace/workspace_api.dart';
 export 'src/workspace/workspace_events.dart';
+export 'src/workspace/workspace_path.dart';
 export 'src/workspace/workspace_resource.dart';
