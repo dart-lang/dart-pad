@@ -43,6 +43,14 @@ List<StyleRule> get componentStyles => [
     flexDirection: .column,
     flex: const Flex(grow: 1),
   ),
+  css('.editor-area').styles(
+    display: .flex,
+    minWidth: .zero,
+    minHeight: .zero,
+    overflow: .hidden,
+    flexDirection: .column,
+    flex: const Flex(grow: 1, basis: .zero),
+  ),
   css('.status-bar').styles(
     minHeight: 24.px,
     padding: .symmetric(horizontal: 10.px),
@@ -405,4 +413,187 @@ List<StyleRule> get componentStyles => [
   css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
     backgroundColor: colorPrimary,
   ),
+
+  // Bottom Panel Styles
+  css('.bottom-panel').styles(
+    display: .flex,
+    height: 100.percent,
+    flexDirection: .column,
+    flex: const .shrink(0),
+  ),
+  css('.bottom-panel .bottom-panel-tabs').styles(
+    display: .flex,
+    border: .only(
+      bottom: .solid(color: colorBorder, width: 1.px),
+    ),
+    alignItems: .stretch,
+    flex: const .shrink(0),
+  ),
+  css('.bottom-panel .bottom-panel-content').styles(
+    display: .flex,
+    overflow: .hidden,
+    flexDirection: .column,
+    flex: const Flex(grow: 1, basis: .zero),
+  ),
+  css('.bottom-panel .problems-panel').styles(
+    height: 100.percent,
+    minHeight: .zero,
+    maxHeight: 100.percent,
+    margin: .zero,
+    flex: const Flex(grow: 1, basis: .zero),
+  ),
+  css('.bottom-panel .bottom-panel-tab').styles(
+    display: .inlineFlex,
+    padding: .symmetric(vertical: 7.px, horizontal: 14.px),
+    border: .none,
+    outline: const Outline(style: .none),
+    cursor: .pointer,
+    userSelect: .none,
+    transition: .combine([
+      Transition('background', duration: 150.ms, curve: .ease),
+      Transition('color', duration: 150.ms, curve: .ease),
+      Transition('border-color', duration: 150.ms, curve: .ease),
+    ]),
+    alignItems: .center,
+    gap: Gap.all(6.px),
+    color: colorOnSurfaceVariant,
+    fontSize: 12.px,
+    fontWeight: .w500,
+    backgroundColor: Colors.transparent,
+  ),
+  css('.bottom-panel .bottom-panel-tab:hover').styles(
+    color: colorOnSurface,
+    backgroundColor: colorOnSurface.withOpacity(0.06),
+  ),
+  css('.bottom-panel .bottom-panel-tab.active').styles(
+    color: colorOnSurface,
+    backgroundColor: colorContainer,
+  ),
+  css('.bottom-panel .bottom-panel-tab-count').styles(
+    display: .inlineFlex,
+    padding: .symmetric(vertical: 1.px, horizontal: 4.px),
+    radius: .circular(8.px),
+    justifyContent: .center,
+    alignItems: .center,
+    color: colorOnPrimary,
+    fontSize: 10.px,
+    fontWeight: .w600,
+    backgroundColor: colorPrimary,
+  ),
+  css('.bottom-panel .bottom-panel-tabs-spacer').styles(
+    flex: const Flex(grow: 1),
+  ),
+
+  // Problems Panel Styles
+  css('.problems-panel', [
+    css('&').styles(
+      display: .flex,
+      minHeight: 120.px,
+      maxHeight: 180.px,
+      margin: .only(bottom: 15.px),
+      overflow: .hidden,
+      flexDirection: .column,
+      flex: const .shrink(0),
+      backgroundColor: colorContainerLow,
+    ),
+    css('& .problems-list').styles(
+      minHeight: .zero,
+      overflow: const .only(y: .auto),
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('& .problems-empty').styles(
+      display: .flex,
+      minHeight: 48.px,
+      padding: .symmetric(horizontal: 12.px),
+      alignItems: .center,
+      color: colorOnSurfaceVariant,
+      fontSize: 12.px,
+    ),
+    css('& .problem-row').styles(
+      display: .grid,
+      minHeight: 28.px,
+      padding: .symmetric(horizontal: 12.px),
+      border: .only(
+        left: .solid(color: Colors.transparent, width: 2.px),
+      ),
+      cursor: .pointer,
+      alignItems: .center,
+      gridTemplate: GridTemplate(
+        columns: GridTracks([
+          GridTrack(TrackSize(22.px)),
+          GridTrack(.minmax(TrackSize(0.px), const TrackSize.fr(1))),
+          const GridTrack(TrackSize(Unit.auto)),
+        ]),
+      ),
+      gap: .all(8.px),
+      fontSize: 12.px,
+    ),
+    css('& .problem-row:hover, & .problem-row:focus').styles(
+      outline: const Outline(style: .none),
+      backgroundColor: colorContainerHigh,
+    ),
+    css('& .problem-row.error').styles(
+      border: .only(
+        left: .solid(color: colorError, width: 2.px),
+      ),
+    ),
+    css('& .problem-row.warning').styles(
+      border: .only(
+        left: .solid(color: colorWarning, width: 2.px),
+      ),
+    ),
+    css('& .problem-row.info, & .problem-row.hint').styles(
+      border: .only(
+        left: .solid(color: colorInfo, width: 2.px),
+      ),
+    ),
+    css('& .problem-row.active-file').styles(
+      backgroundColor: colorContainerHigh.withOpacity(0.5),
+    ),
+    css('& .problem-severity-badge').styles(
+      display: .inlineFlex,
+      width: 18.px,
+      height: 18.px,
+      radius: .circular(999.px),
+      justifyContent: .center,
+      alignItems: .center,
+      fontSize: 11.px,
+      fontWeight: .w700,
+    ),
+    css('& .problem-severity-badge.error').styles(
+      color: colorOnSurface,
+      backgroundColor: colorError.withOpacity(0.2),
+    ),
+    css('& .problem-severity-badge.warning').styles(
+      color: colorOnSurface,
+      backgroundColor: colorWarning.withOpacity(0.2),
+    ),
+    css('& .problem-severity-badge.info, & .problem-severity-badge.hint').styles(
+      color: colorOnSurface,
+      backgroundColor: colorInfo.withOpacity(0.2),
+    ),
+    css('& .problem-message').styles(
+      minWidth: .zero,
+      overflow: .hidden,
+      textOverflow: .ellipsis,
+      whiteSpace: .noWrap,
+    ),
+    css('& .problem-actions').styles(
+      display: .flex,
+      justifyContent: .end,
+      alignItems: .center,
+    ),
+    css('& .problem-location').styles(
+      display: .inlineBlock,
+      color: colorOnSurfaceVariant,
+      fontFamily: const .list([FontFamilies.courierNew, FontFamilies.monospace]),
+      fontSize: 11.px,
+    ),
+    css('& .problem-row:hover .problem-location, & .problem-row:focus-within .problem-location').styles(
+      display: .none,
+    ),
+    css('& .problem-row:hover .fix-with-ai-btn, & .problem-row:focus-within .fix-with-ai-btn').styles(
+      display: .inlineFlex,
+    ),
+  ]),
 ];
