@@ -13,6 +13,7 @@ import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tabs.dart';
+import 'package:dartpad_frontend/features/editor/view_models/editor_host_view_model.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -26,6 +27,7 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
     'lib/main.dart': 'void main() {}',
     'pubspec.yaml': 'name: test',
   };
+  Error? readError;
   Error? writeError;
 
   @override
@@ -41,7 +43,12 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
   Future<bool> folderExist(String uri) async => false;
 
   @override
-  Future<String> readFileAsText(String uri) async => files[uri]!;
+  Future<String> readFileAsText(String uri) async {
+    if (readError case final error?) {
+      throw error;
+    }
+    return files[uri]!;
+  }
 
   @override
   Future<void> writeFileFromText(String uri, String content) async {
@@ -63,6 +70,7 @@ void main() {
   late AppEventBus events;
   late FakeWorkspaceController workspace;
   TabsViewModel? tabs;
+  EditorHostViewModel? editorHost;
   late List<LogEvent> logs;
   late StreamSubscription<LogEvent> logSubscription;
 
@@ -86,10 +94,13 @@ void main() {
         CodeMirrorTabAdapter(),
       ],
     );
+    editorHost = EditorHostViewModel(tabs: tabs!);
     await openSampleProject(tabs!.openFile);
   });
 
   tearDown(() async {
+    editorHost?.dispose();
+    editorHost = null;
     tabs?.dispose();
     tabs = null;
     await logSubscription.cancel();
@@ -102,6 +113,44 @@ void main() {
       ['lib/main.dart'],
     );
     expect(tabs!.activeFile, 'lib/main.dart');
+  });
+
+  test('diagnostic navigation activates the target and keeps the requested position', () async {
+    await editorHost!.openDiagnostic(
+      'pubspec.yaml',
+      const Diagnostic(
+        line: 0,
+        character: 4,
+        message: 'Test problem',
+        severity: DiagnosticSeverity.error,
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(tabs!.activeFile, 'pubspec.yaml');
+    final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
+    expect(pubspecTab.editor.view.state.selection.main.head, 4);
+  });
+
+  test('diagnostic navigation reports read failures and keeps the active tab', () async {
+    workspace.files['broken.dart'] = 'void main() {}';
+    workspace.readError = StateError('internal read failure');
+
+    await editorHost!.openDiagnostic(
+      'broken.dart',
+      const Diagnostic(
+        line: 0,
+        character: 0,
+        message: 'Test problem',
+        severity: DiagnosticSeverity.error,
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(tabs!.errorMessage, 'Could not open broken.dart.');
+    expect(tabs!.activeFile, 'lib/main.dart');
+    expect(logs.single.error, isA<StateError>());
+    expect(logs.single.stackTrace, isNotNull);
   });
 
   test('allows every clean tab including the last tab to close', () async {
