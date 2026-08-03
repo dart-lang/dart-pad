@@ -6,9 +6,11 @@ import 'dart:async';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
+import '../../../app_styles.dart';
 
 /// A component that divides its layout space between two sub-components,
 /// allowing the user to resize the boundary between them by dragging a splitter handle.
+
 class SplitPanel extends StatefulComponent {
   const SplitPanel({
     required this.left,
@@ -57,6 +59,9 @@ class SplitPanel extends StatefulComponent {
 
   @override
   State<SplitPanel> createState() => _SplitPanelState();
+
+  @css
+  static List<StyleRule> get styles => _SplitPanelState.styles;
 }
 
 class _SplitPanelState extends State<SplitPanel> {
@@ -175,7 +180,7 @@ class _SplitPanelState extends State<SplitPanel> {
               : const Flex(grow: 1, basis: .zero));
 
     return Component.fragment([
-      Component.wrapElement(
+      Component.apply(
         styles: Styles(
           display: !component.showLeft ? .none : null,
           pointerEvents: isDragging ? .none : null,
@@ -191,7 +196,7 @@ class _SplitPanelState extends State<SplitPanel> {
           },
           [],
         ),
-      Component.wrapElement(
+      Component.apply(
         styles: Styles(
           display: !component.showRight ? .none : null,
           pointerEvents: isDragging ? .none : null,
@@ -201,4 +206,46 @@ class _SplitPanelState extends State<SplitPanel> {
       ),
     ]);
   }
+
+  static List<StyleRule> get styles => [
+    css('.drag-handle').styles(
+      position: const .relative(),
+      zIndex: const ZIndex(10),
+      userSelect: .none,
+      flex: const .shrink(0),
+      backgroundColor: Colors.transparent,
+    ),
+    // Horizontal Specific Styles
+    css('.drag-handle.horizontal').styles(
+      width: 6.px,
+      margin: Margin.symmetric(horizontal: (-3).px),
+      cursor: .colResize,
+    ),
+    css('.drag-handle.horizontal::after').styles(
+      content: '',
+      position: .absolute(top: 0.px, bottom: 0.px, left: 2.px),
+      width: 2.px,
+      transition: Transition('background-color', duration: 150.ms, curve: .ease),
+      backgroundColor: colorBorder,
+    ),
+    css('.drag-handle.horizontal:hover::after, .drag-handle.horizontal.dragging::after').styles(
+      backgroundColor: colorPrimary,
+    ),
+    // Vertical Specific Styles
+    css('.drag-handle.vertical').styles(
+      height: 6.px,
+      margin: Margin.symmetric(vertical: (-3).px),
+      cursor: .rowResize,
+    ),
+    css('.drag-handle.vertical::after').styles(
+      content: '',
+      position: .absolute(left: 0.px, right: 0.px, top: 2.px),
+      height: 2.px,
+      transition: Transition('background-color', duration: 150.ms, curve: .ease),
+      backgroundColor: colorBorder,
+    ),
+    css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
+      backgroundColor: colorPrimary,
+    ),
+  ];
 }

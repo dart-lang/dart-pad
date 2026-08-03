@@ -92,4 +92,58 @@ class EditorShell extends StatelessComponent {
       ),
     ]);
   }
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.ide-shell').styles(
+      display: .flex,
+      width: 100.percent,
+      height: 100.vh,
+      flexDirection: .column,
+      backgroundColor: const Color('#1e1e1e'),
+    ),
+    css('.workspace-shell').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('.file-tree-pane').styles(
+      display: .flex,
+      minWidth: 100.px,
+      minHeight: .zero,
+      border: .only(
+        right: .solid(color: const Color('#303030'), width: 1.px),
+      ),
+      overflow: .hidden,
+      flexDirection: .column,
+      backgroundColor: const Color('#181818'),
+    ),
+    css('.editor-host').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: 0.px,
+      overflow: .hidden,
+      flexDirection: .column,
+      flex: const Flex(grow: 1),
+    ),
+    css('.status-bar', [
+      css('&').styles(
+        minHeight: 24.px,
+        padding: .symmetric(horizontal: 10.px),
+        border: .only(
+          top: .solid(color: const Color('#303030'), width: 1.px),
+        ),
+        overflow: .hidden,
+        color: const Color('#858585'),
+        fontSize: 11.px,
+        lineHeight: 24.px,
+        textOverflow: .ellipsis,
+        whiteSpace: .noWrap,
+        backgroundColor: const Color('#181818'),
+      ),
+      css('&.error').styles(color: const Color('#ff8a8a')),
+      css('&.warning').styles(color: const Color('#e5c07b')),
+    ]),
+  ];
 }

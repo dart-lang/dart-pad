@@ -39,6 +39,9 @@ final class FileTreeView extends StatefulComponent {
 
   @override
   State<FileTreeView> createState() => _FileTreeViewInternalState();
+
+  @css
+  static List<StyleRule> get styles => _FileTreeViewInternalState.styles;
 }
 
 final class _FileTreeViewInternalState extends State<FileTreeView> {
@@ -290,4 +293,226 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       [icon],
     );
   }
+
+  static List<StyleRule> get styles => [
+    css('.file-tree', [
+      css('&').styles(
+        display: .flex,
+        height: 100.percent,
+        minHeight: .zero,
+        overflow: .hidden,
+        flexDirection: .column,
+        backgroundColor: const Color('#181818'),
+      ),
+      css('.file-tree-header').styles(
+        display: .flex,
+        minHeight: 38.px,
+        padding: .symmetric(horizontal: 10.px),
+        border: .only(
+          bottom: .solid(color: const Color('#303030'), width: 1.px),
+        ),
+        justifyContent: .spaceBetween,
+        alignItems: .center,
+      ),
+      css('.file-tree-title').styles(
+        color: const Color('#d4d4d4'),
+        fontSize: 11.px,
+        fontWeight: FontWeight.w600,
+        textTransform: .upperCase,
+        letterSpacing: 0.7.px,
+      ),
+      css('.file-tree-toolbar').styles(display: .flex, gap: .all(4.px)),
+      css('.file-tree-toolbar-button, .file-tree-action, .file-tree-disclosure').styles(
+        display: .flex,
+        padding: .zero,
+        border: .none,
+        radius: .circular(4.px),
+        cursor: .pointer,
+        justifyContent: .center,
+        alignItems: .center,
+        color: const Color('#a8a8a8'),
+        backgroundColor: Colors.transparent,
+      ),
+      css('.file-tree-toolbar-button').styles(width: 24.px, height: 24.px),
+      css('.file-tree-toolbar-button:hover, .file-tree-action:hover, .file-tree-disclosure:hover').styles(
+        color: const Color('#ffffff'),
+        backgroundColor: const Color('#353535'),
+      ),
+      css('.file-tree-toolbar-button:disabled, .file-tree-action:disabled').styles(
+        opacity: 0.45,
+        cursor: .defaultCursor,
+      ),
+
+      css('.file-tree-list', [
+        css('&').styles(
+          minHeight: .zero,
+          overflow: .auto,
+          flex: const Flex(grow: 1, basis: .zero),
+        ),
+        css('&.drop-target').styles(
+          border: .none,
+          outline: const Outline(style: .none),
+          backgroundColor: const Color('#333333'),
+        ),
+
+        css('&.drop-target .file-tree-item').styles(
+          backgroundColor: const Color('#333333'),
+        ),
+        css('&.busy').styles(cursor: .progress),
+      ]),
+
+      css('.file-tree-item', [
+        css('&').styles(
+          display: .flex,
+          height: 25.px,
+          padding: .only(
+            left: const Unit.expression('calc(6px + var(--tree-depth) * 10px)'),
+            right: 5.px,
+          ),
+          cursor: .pointer,
+          userSelect: .none,
+          alignItems: .center,
+          gap: .all(5.px),
+          color: const Color('#c5c5c5'),
+          fontSize: 12.px,
+          backgroundColor: const Color('#181818'),
+        ),
+
+        css('&:hover').styles(backgroundColor: const Color('#252525')),
+        css('&.active').styles(
+          backgroundColor: const Color('#333333'),
+        ),
+        css('&.dim .file-tree-name').styles(
+          opacity: 0.4,
+        ),
+        css('&.folder').styles(
+          position: const .sticky(
+            top: .expression('calc(var(--tree-depth) * 25px)'),
+          ),
+          raw: {'z-index': 'calc(100 - var(--tree-depth))'},
+        ),
+        css('&.selected').styles(
+          outline: Outline(
+            color: const Color('#7aa2f7'),
+            style: OutlineStyle.solid,
+            width: OutlineWidth(1.px),
+            offset: (-1).px,
+          ),
+          color: const Color('#ffffff'),
+          backgroundColor: const Color('#303747'),
+        ),
+
+        css('&.dragging').styles(opacity: 0.45),
+        css('&.binary').styles(opacity: 0.58, cursor: .defaultCursor),
+      ]),
+
+      css('.file-tree-folder').styles(position: const .relative()),
+      css('.file-tree-list:hover .file-tree-folder:has(.file-tree-item.folder[aria-expanded=true])::after').styles(
+        opacity: 1,
+      ),
+      css('.file-tree-folder::after').styles(
+        content: '',
+        display: .block,
+        position: .absolute(
+          left: const .expression('calc(14px + var(--tree-depth,0) * 10px)'),
+          top: 22.px,
+          bottom: 0.px,
+        ),
+        width: 1.px,
+        opacity: 0,
+        backgroundColor: const Color('#444444'),
+        raw: {'z-index': 'calc(100 - var(--tree-depth) - 1)'},
+      ),
+      css(
+        '.file-tree-folder:has(>.file-tree-item.selected, >.file-tree-folder-children >.file-tree-item.selected)::after',
+      ).styles(
+        backgroundColor: const Color('#666666'),
+      ),
+      css('.file-tree-folder.drop-target').styles(
+        border: .none,
+        outline: const Outline(style: .none),
+        backgroundColor: const Color('#333333'),
+      ),
+      css('.file-tree-folder.drop-target .file-tree-item').styles(
+        backgroundColor: const Color('#333333'),
+      ),
+      css('.file-tree-folder.drop-target > .file-tree-item *').styles(
+        pointerEvents: .none,
+      ),
+      css('.file-tree-disclosure').styles(
+        width: 16.px,
+        height: 20.px,
+        flex: const .shrink(0),
+        fontSize: 16.px,
+      ),
+      css('.file-tree-disclosure.spacer').styles(pointerEvents: .none),
+      css('.file-tree-icon').styles(
+        width: 12.px,
+        height: 12.px,
+        flex: const .shrink(0),
+        color: const Color('#858585'),
+        raw: const {'vertical-align': 'middle'},
+      ),
+      css('.file-tree-icon.file-icon-dart').styles(color: const Color('#5da9e9')),
+      css('.file-tree-icon.file-icon-yaml').styles(color: const Color('#c586c0')),
+      css('.file-tree-name').styles(
+        minWidth: .zero,
+        overflow: .hidden,
+        flex: const Flex(grow: 1, basis: .zero),
+        textOverflow: .ellipsis,
+        whiteSpace: .noWrap,
+      ),
+      css('.file-tree-actions').styles(display: .none, gap: .all(2.px)),
+      css('.file-tree-item:hover .file-tree-actions, .file-tree-item.active .file-tree-actions').styles(display: .flex),
+      css('.file-tree-action', [
+        css('&').styles(
+          width: 20.px,
+          height: 20.px,
+          flex: const .shrink(0),
+        ),
+        css('&.delete:hover').styles(
+          color: const Color('#ff8a8a'),
+          backgroundColor: const Color('#4a2525'),
+        ),
+        css('&.confirm:hover').styles(
+          color: const Color('#9ece6a'),
+          backgroundColor: const Color('#243a2a'),
+        ),
+      ]),
+
+      css('.file-tree-action-icon').styles(
+        width: 12.px,
+        height: 12.px,
+      ),
+      css('.file-tree-input-wrapper').styles(position: const .relative()),
+      css('.file-tree-input', [
+        css('&').styles(
+          height: 20.px,
+          minWidth: .zero,
+          border: .all(color: const Color('#7aa2f7'), width: 1.px),
+          radius: .circular(2.px),
+          outline: const Outline(style: .none),
+          flex: const Flex(grow: 1, basis: .zero),
+          color: const Color('#ffffff'),
+          fontSize: 1.em,
+          backgroundColor: const Color('#202020'),
+        ),
+        css('&.invalid').styles(
+          border: .all(color: const Color('#ff6b6b'), width: 1.px),
+        ),
+      ]),
+      css('.file-tree-validation, .file-tree-error').styles(
+        padding: .symmetric(horizontal: 8.px, vertical: 5.px),
+        color: const Color('#ff9a9a'),
+        fontSize: 11.px,
+        backgroundColor: const Color('#351f1f'),
+      ),
+      css('.file-tree-validation').styles(
+        position: .absolute(top: 24.px, left: 22.px, right: 6.px),
+        zIndex: const ZIndex(20),
+        margin: .zero,
+        radius: .circular(3.px),
+      ),
+    ]),
+  ];
 }

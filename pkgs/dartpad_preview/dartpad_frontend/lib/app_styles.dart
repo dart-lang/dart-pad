@@ -4,8 +4,6 @@
 
 import 'package:jaspr/dom.dart';
 
-import 'component_styles.dart';
-
 // TODO: Implement proper dartpad theming.
 const colorPrimary = Color.variable('--color-primary');
 const colorOnPrimary = Color.variable('--color-on-primary');
@@ -58,5 +56,4 @@ List<StyleRule> get appStyles => [
       '--color-info': '#4285f4', // Google Blue
     },
   ),
-  ...componentStyles,
 ];
