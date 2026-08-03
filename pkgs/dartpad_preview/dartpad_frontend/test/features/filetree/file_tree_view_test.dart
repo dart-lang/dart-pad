@@ -80,7 +80,7 @@ FileTreeState _state(
   return FileTreeState(
     root: FileTreeFolderNode(
       WorkspaceFolder(workspace: workspace, path: ''),
-      [
+      children: [
         FileTreeFileNode(
           WorkspaceFile(workspace: workspace, path: path),
           openable: openable,

@@ -132,7 +132,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Renames the file at [oldPath].
   Future<void> renameFile(String oldPath, String newName) async {
     final newPath = joinWorkspacePath(workspaceDirname(oldPath), newName);
-    if (newPath == oldPath) return;
+    if (newPath == oldPath) {
+      return;
+    }
 
     await _runMutation(() async {
       await _prepareRenameOrMove(oldPath, newPath);
@@ -144,7 +146,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Renames the folder at [oldPath].
   Future<void> renameFolder(String oldPath, String newName) async {
     final newPath = joinWorkspacePath(workspaceDirname(oldPath), newName);
-    if (newPath == oldPath) return;
+    if (newPath == oldPath) {
+      return;
+    }
 
     await _runMutation(() async {
       await _prepareRenameOrMove(oldPath, newPath);
@@ -327,8 +331,8 @@ final class FileTreeViewModel extends ChangeNotifier {
       _sortNodes(folderChildren);
       builtFolders[folderPath] = FileTreeFolderNode(
         folder,
-        folderChildren,
-        !isVisibleWorkspacePath(folderPath),
+        children: folderChildren,
+        isIgnored: !isVisibleWorkspacePath(folderPath),
       );
     }
 
@@ -337,7 +341,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       builtFolders.values.where((node) => node.resource.parent.path == root.path),
     );
     _sortNodes(rootChildren);
-    return FileTreeFolderNode(root, rootChildren, !isVisibleWorkspacePath(root.path));
+    return FileTreeFolderNode(root, children: rootChildren, isIgnored: !isVisibleWorkspacePath(root.path));
   }
 
   void _sortNodes(List<FileTreeNode> nodes) {

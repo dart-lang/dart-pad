@@ -38,11 +38,10 @@ final class FileTreeFileNode extends FileTreeNode {
 final class FileTreeFolderNode extends FileTreeNode {
   /// Creates a folder node for [resource] containing [children].
   FileTreeFolderNode(
-    WorkspaceFolder super.resource, [
+    WorkspaceFolder super.resource, {
     Iterable<FileTreeNode> children = const [],
-    bool isIgnored = false,
-  ]) : children = List.unmodifiable(children),
-       super(isIgnored: isIgnored);
+    super.isIgnored,
+  }) : children = List.unmodifiable(children);
 
   /// The immutable list of immediate child nodes.
   final List<FileTreeNode> children;
