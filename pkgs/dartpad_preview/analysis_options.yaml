@@ -22,6 +22,7 @@ plugins:
       prefer_html_components: true
       sort_children_last: true
       styles_ordering: true
+      unsafe_imports: false # TODO: Enable once version 0.8.0 is released.
 
 formatter:
   page_width: 120
