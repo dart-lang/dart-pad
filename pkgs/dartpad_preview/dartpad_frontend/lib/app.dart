@@ -10,7 +10,8 @@ import 'package:logging/logging.dart';
 
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
-import 'features/editor/components/editor_shell.dart';
+import 'features/editor/components/editor_host.dart';
+import 'features/editor/view_models/editor_host_view_model.dart';
 import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
@@ -37,6 +38,7 @@ class AppState extends State<App> {
   late final BrowserConsoleObserver _console;
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
+  late final EditorHostViewModel _editorHost;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -61,6 +63,7 @@ class AppState extends State<App> {
       workspace: _workspaceRepository.workspaceResourceApi,
       events: _events,
     );
+    _editorHost = EditorHostViewModel(tabs: _tabs);
 
     _console = BrowserConsoleObserver(_events);
 
@@ -93,6 +96,7 @@ class AppState extends State<App> {
       );
 
       _fileTree.languageServerClient = languageServerClient;
+      _editorHost.attachLanguageServer(languageServerClient);
 
       _analyzerSubscription = languageServerClient.analyzerActivityStream.listen(
         (activity) => _logAnalyzerActivity(languageServerClient, activity),
@@ -156,20 +160,11 @@ class AppState extends State<App> {
 
   @override
   Component build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _tabs,
-      builder: (context) {
-        return EditorShell(
-          openTabs: _tabs.openTabs,
-          activeFile: _tabs.activeFile,
-          errorMessage: _tabs.errorMessage,
-          warningMessage: _tabs.warningMessage,
-          fileTree: _buildFileTree(),
-          onSwitchFile: _tabs.switchFile,
-          onCloseFile: _tabs.closeFile,
-          bootstrapLabel: loadingStatus,
-        );
-      },
+    return EditorHost(
+      tabs: _tabs,
+      editorHostViewModel: _editorHost,
+      fileTree: _buildFileTree(),
+      bootstrapLabel: loadingStatus,
     );
   }
 
@@ -191,6 +186,7 @@ class AppState extends State<App> {
   }
 
   Future<void> _disposeResources() async {
+    _editorHost.dispose();
     _fileTree.dispose();
     _tabs.dispose();
     _console.dispose();

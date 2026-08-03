@@ -23,6 +23,7 @@ class EditorShell extends StatelessComponent {
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bootstrapLabel,
+    required this.bottomPanel,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -50,6 +51,9 @@ class EditorShell extends StatelessComponent {
   /// The workspace file tree.
   final Component fileTree;
 
+  /// Bottom panel (e.g. problems view) rendered below the editor.
+  final Component bottomPanel;
+
   /// Human-readable label for the current status.
   final String bootstrapLabel;
 
@@ -65,18 +69,28 @@ class EditorShell extends StatelessComponent {
           maxValue: 300,
           left: aside(classes: 'file-tree-pane', [fileTree]),
           right: main_(classes: 'editor-host', [
-            if (openTabs != null) ...[
-              EditorTabs(
-                openTabs: openTabs,
-                activeFile: activeFile,
-                onSwitchFile: onSwitchFile!,
-                onCloseFile: onCloseFile!,
-              ),
-              EditorStack(
-                openTabs: openTabs,
-                activeFile: activeFile,
-              ),
-            ],
+            SplitPanel(
+              isVertical: true,
+              useRatio: true,
+              initialValue: 0.75,
+              minValue: 0.3,
+              maxValue: 0.9,
+              left: div(classes: 'editor-area', [
+                if (openTabs != null) ...[
+                  EditorTabs(
+                    openTabs: openTabs,
+                    activeFile: activeFile,
+                    onSwitchFile: onSwitchFile!,
+                    onCloseFile: onCloseFile!,
+                  ),
+                  EditorStack(
+                    openTabs: openTabs,
+                    activeFile: activeFile,
+                  ),
+                ],
+              ]),
+              right: bottomPanel,
+            ),
           ]),
         ),
       ]),
@@ -126,6 +140,14 @@ class EditorShell extends StatelessComponent {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1),
+    ),
+    css('.editor-area').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      overflow: .hidden,
+      flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
     ),
     css('.status-bar', [
       css('&').styles(
