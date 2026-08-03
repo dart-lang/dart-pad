@@ -117,6 +117,22 @@ final class FileTreeState {
 
   /// File and ancestor folder paths containing unsaved changes.
   final Set<String> dirtyEntries;
+
+  /// Checks if creating or renaming an entry with [newName] at [currentPath] conflicts
+  /// with any existing resource in the root folder.
+  ///
+  /// Returns an error message if there is a conflict, or `null` otherwise.
+  String? checkFileTreeConflict({
+    required String currentPath,
+    required String newName,
+  }) {
+    final parentPath = currentPath.contains('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
+    final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
+    if (newPath != currentPath && root.exists(newPath)) {
+      return 'A file or folder already exists at "$newPath".';
+    }
+    return null;
+  }
 }
 
 /// User actions exposed by the file-tree view model.

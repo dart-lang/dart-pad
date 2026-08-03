@@ -9,9 +9,10 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
-import '../../shared/icons.dart';
 import '../file_tree_models.dart';
 import 'file_tree_input_item.dart';
+import 'file_tree_row.dart';
+import 'file_tree_row_actions.dart';
 
 /// A stateful item representing a file node.
 class FileTreeFileItem extends StatefulComponent {
@@ -26,12 +27,25 @@ class FileTreeFileItem extends StatefulComponent {
     super.key,
   });
 
+  /// The file node that this item represents.
   final FileTreeFileNode node;
+
+  /// The depth of this item in the file tree, used to determine indentation.
   final int depth;
+
+  /// The current state of the file tree.
   final FileTreeState state;
+
+  /// The actions available for file tree manipulation.
   final FileTreeActions actions;
+
+  /// The path of the currently selected node, if any.
   final String? selectedPath;
+
+  /// Callback when this file item is selected.
   final void Function(String path) onSelect;
+
+  /// Optional callback to confirm deletion of this file.
   final bool Function(String message)? confirmDelete;
 
   @override
@@ -40,7 +54,6 @@ class FileTreeFileItem extends StatefulComponent {
 
 class _FileTreeFileItemState extends State<FileTreeFileItem> {
   bool _isRenaming = false;
-  bool _isDragging = false;
 
   @override
   Component build(BuildContext context) {
@@ -56,14 +69,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         initialValue: component.node.resource.shortName,
         depth: component.depth,
         icon: _fileIcon(component.node.resource.shortName),
-        checkConflict: (newName) {
-          final parentPath = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-          final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
-          if (newPath != path && component.state.root.exists(newPath)) {
-            return 'A file or folder already exists at "$newPath".';
-          }
-          return null;
-        },
+        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -81,25 +87,25 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       );
     }
 
-    return div(
+    return FileTreeRow(
+      depth: component.depth,
       classes: [
         'file-tree-item file',
         if (active) 'active',
         if (selected) 'selected',
         if (dim) 'dim',
         if (!openable) 'binary',
-        if (_isDragging) 'dragging',
       ].join(' '),
-      styles: Styles(raw: {'--tree-depth': '${component.depth}'}),
+      path: path,
+      isDraggable: !protected && !component.state.busy,
       attributes: {
         'title': openable ? path : '$path — binary preview is not available',
         'tabindex': '0',
         'role': 'treeitem',
         'aria-disabled': openable ? 'false' : 'true',
-        'draggable': protected || component.state.busy ? 'false' : 'true',
       },
       events: {
-        'click': (event) {
+        'click': (web.Event event) {
           event.stopPropagation();
           component.actions.clearOperationError();
           component.onSelect(path);
@@ -107,35 +113,20 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
             unawaited(Future<void>.sync(() => component.actions.openFile(path)));
           }
         },
-        'keydown': (event) {
+        'keydown': (web.Event event) {
           final keyboardEvent = event as web.KeyboardEvent;
           if (openable && (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
             component.onSelect(path);
             unawaited(Future<void>.sync(() => component.actions.openFile(path)));
           }
         },
-        'dragstart': (event) {
-          if (protected || component.state.busy) {
-            event.preventDefault();
-            return;
-          }
-          final dragEvent = event as web.DragEvent;
-          dragEvent.dataTransfer?.setData('text/plain', path);
-          dragEvent.dataTransfer?.effectAllowed = 'move';
-          setState(() {
-            _isDragging = true;
-          });
-        },
-        'dragend': (_) => setState(() {
-          _isDragging = false;
-        }),
       },
-      [
+      children: [
         const span(classes: 'file-tree-disclosure spacer', []),
         _fileIcon(component.node.resource.shortName),
         span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
         if (!protected)
-          _rowActions(
+          FileTreeRowActions(
             onRename: () {
               component.onSelect(path);
               setState(() {
@@ -146,36 +137,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           ),
       ],
     );
-  }
-
-  Component _rowActions({
-    required void Function() onRename,
-    required void Function() onDelete,
-  }) {
-    return div(classes: 'file-tree-actions', [
-      button(
-        classes: 'file-tree-action',
-        attributes: {'title': 'Rename', 'aria-label': 'Rename'},
-        events: {
-          'click': (event) {
-            event.stopPropagation();
-            onRename();
-          },
-        },
-        [const Icon('edit', size: 12)],
-      ),
-      button(
-        classes: 'file-tree-action delete',
-        attributes: {'title': 'Delete', 'aria-label': 'Delete'},
-        events: {
-          'click': (event) {
-            event.stopPropagation();
-            onDelete();
-          },
-        },
-        [const Icon('delete', size: 12)],
-      ),
-    ]);
   }
 
   Component _fileIcon(String fileName) {

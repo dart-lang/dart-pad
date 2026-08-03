@@ -8,13 +8,15 @@ import 'package:path/path.dart' as p;
 final p.Context workspacePath = p.posix;
 
 /// The singleton [WorkspaceContext] instance for workspace path manipulation.
-final WorkspaceContext workspaceContext = WorkspaceContext();
+final WorkspaceContext workspaceContext = WorkspaceContext._();
 
 /// Utility class for working with virtual workspace paths.
 ///
 /// Provides path manipulation functions such as normalization, joining, rebase,
 /// parent directory detection, and visibility filtering for virtual workspace resources.
 class WorkspaceContext {
+  WorkspaceContext._();
+
   /// Normalizes a workspace [path], returning an empty string for the current directory (`.`).
   String normalize(String path) {
     final normalized = workspacePath.normalize(path);

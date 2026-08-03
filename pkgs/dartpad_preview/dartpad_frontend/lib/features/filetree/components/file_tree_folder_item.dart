@@ -13,6 +13,8 @@ import '../../shared/icons.dart';
 import '../file_tree_models.dart';
 import 'file_tree_file_item.dart';
 import 'file_tree_input_item.dart';
+import 'file_tree_row.dart';
+import 'file_tree_row_actions.dart';
 
 /// A stateful item representing a folder node.
 class FileTreeFolderItem extends StatefulComponent {
@@ -31,16 +33,37 @@ class FileTreeFolderItem extends StatefulComponent {
     super.key,
   });
 
+  /// The folder node that this item represents.
   final FileTreeFolderNode node;
+
+  /// The depth of this item in the file tree, used to determine indentation.
   final int depth;
+
+  /// The current state of the file tree.
   final FileTreeState state;
+
+  /// The actions available for file tree manipulation.
   final FileTreeActions actions;
+
+  /// The path of the currently selected node, if any.
   final String? selectedPath;
+
+  /// Callback when this folder item is selected.
   final void Function(String path) onSelect;
+
+  /// The path of the folder in which a new entry is being created, if any.
   final String? creatingInFolder;
+
+  /// The kind of entry (file or folder) being created, if any.
   final FileTreeEntryKind? creatingEntry;
+
+  /// Callback when creation of a new entry is confirmed with a name.
   final void Function(String name) onConfirmCreate;
+
+  /// Callback when creation of a new entry is cancelled.
   final void Function() onCancelCreate;
+
+  /// Optional callback to confirm deletion of this folder and its contents.
   final bool Function(String message)? confirmDelete;
 
   @override
@@ -51,9 +74,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   final _folderKey = GlobalNodeKey<web.HTMLElement>();
   bool _isCollapsed = false;
   bool _isRenaming = false;
-  bool _isDragging = false;
-  bool _isDropTarget = false;
-  int _dragEnterCount = 0;
 
   @override
   void initState() {
@@ -120,14 +140,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        checkConflict: (newName) {
-          final parentPath = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-          final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
-          if (newPath != path && component.state.root.exists(newPath)) {
-            return 'A file or folder already exists at "$newPath".';
-          }
-          return null;
-        },
+        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -147,31 +160,32 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
 
     final dim = component.node.isIgnored;
 
-    final folderRow = div(
+    final folderRow = FileTreeRow(
+      depth: component.depth,
       classes: [
         'file-tree-item folder',
         if (selected) 'selected',
         if (dim) 'dim',
-        if (_isDragging) 'dragging',
       ].join(' '),
+      path: path,
+      isDraggable: !protected && !component.state.busy,
       attributes: {
         'title': path,
         'tabindex': '0',
         'role': 'treeitem',
         'aria-expanded': _isCollapsed ? 'false' : 'true',
-        'draggable': protected || component.state.busy ? 'false' : 'true',
       },
       events: {
-        'click': (event) {
+        'click': (web.Event event) {
           event.stopPropagation();
           component.onSelect(path);
         },
-        'dblclick': (event) {
+        'dblclick': (web.Event event) {
           event.stopPropagation();
           component.onSelect(path);
           _toggleCollapsed();
         },
-        'keydown': (event) {
+        'keydown': (web.Event event) {
           final keyboardEvent = event as web.KeyboardEvent;
           if (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ') {
             setState(() {
@@ -179,23 +193,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             });
           }
         },
-        'dragstart': (event) {
-          if (protected || component.state.busy) {
-            event.preventDefault();
-            return;
-          }
-          final dragEvent = event as web.DragEvent;
-          dragEvent.dataTransfer?.setData('text/plain', path);
-          dragEvent.dataTransfer?.effectAllowed = 'move';
-          setState(() {
-            _isDragging = true;
-          });
-        },
-        'dragend': (_) => setState(() {
-          _isDragging = false;
-        }),
       },
-      [
+      children: [
         button(
           classes: 'file-tree-disclosure',
           attributes: {
@@ -203,7 +202,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             'aria-label': _isCollapsed ? 'Expand $path' : 'Collapse $path',
           },
           events: {
-            'click': (event) {
+            'click': (web.Event event) {
               event.stopPropagation();
               _toggleCollapsed();
             },
@@ -219,7 +218,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         ),
         span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
         if (!protected)
-          _rowActions(
+          FileTreeRowActions(
             onRename: () {
               component.onSelect(path);
               setState(() {
@@ -231,64 +230,19 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ],
     );
 
-    return div(
+    return FileTreeRow(
       key: _folderKey,
-      classes: [
-        'file-tree-folder',
-        if (_isDropTarget) 'drop-target',
-      ].join(' '),
-      styles: Styles(raw: {'--tree-depth': '${component.depth}'}),
-      events: {
-        'dragover': (event) {
-          if (component.state.busy) {
-            return;
-          }
-          event
-            ..stopPropagation()
-            ..preventDefault();
-        },
-        'dragenter': (event) {
-          if (component.state.busy) {
-            return;
-          }
-          event
-            ..stopPropagation()
-            ..preventDefault();
-          _dragEnterCount++;
-          if (!_isDropTarget) {
-            setState(() {
-              _isDropTarget = true;
-            });
-          }
-        },
-        'dragleave': (event) {
-          event.stopPropagation();
-          _dragEnterCount--;
-          if (_dragEnterCount <= 0) {
-            _dragEnterCount = 0;
-            if (_isDropTarget) {
-              setState(() {
-                _isDropTarget = false;
-              });
-            }
-          }
-        },
-        'drop': (event) {
-          event
-            ..stopPropagation()
-            ..preventDefault();
-          _dragEnterCount = 0;
-          setState(() {
-            _isDropTarget = false;
-          });
-          final dragEvent = event as web.DragEvent;
-          final sourcePath = dragEvent.dataTransfer?.getData('text/plain');
-          if (sourcePath != null && sourcePath != path) {
-            unawaited(component.actions.moveEntry(sourcePath, path));
-          }
-        },
-      },
-      [
+      depth: component.depth,
+      classes: 'file-tree-folder',
+      path: path,
+      onDrop: component.state.busy
+          ? null
+          : (sourcePath) {
+              if (sourcePath != path) {
+                unawaited(component.actions.moveEntry(sourcePath, path));
+              }
+            },
+      children: [
         folderRow,
         if (!_isCollapsed)
           div(classes: 'file-tree-folder-children', [
@@ -361,36 +315,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           ]),
       ],
     );
-  }
-
-  Component _rowActions({
-    required void Function() onRename,
-    required void Function() onDelete,
-  }) {
-    return div(classes: 'file-tree-actions', [
-      button(
-        classes: 'file-tree-action',
-        attributes: {'title': 'Rename', 'aria-label': 'Rename'},
-        events: {
-          'click': (event) {
-            event.stopPropagation();
-            onRename();
-          },
-        },
-        [const Icon('edit', size: 12)],
-      ),
-      button(
-        classes: 'file-tree-action delete',
-        attributes: {'title': 'Delete', 'aria-label': 'Delete'},
-        events: {
-          'click': (event) {
-            event.stopPropagation();
-            onDelete();
-          },
-        },
-        [const Icon('delete', size: 12)],
-      ),
-    ]);
   }
 
   void _confirmDeleteFolder(String path) {

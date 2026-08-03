@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../shared/icons.dart';
+import 'file_tree_row.dart';
 
 /// A stateful item representing a text input for creating/renaming.
 class FileTreeInputItem extends StatefulComponent {
@@ -24,13 +25,28 @@ class FileTreeInputItem extends StatefulComponent {
     super.key,
   });
 
+  /// The depth of this item in the file tree, used to determine indentation.
   final int depth;
+
+  /// The icon component to display next to the input.
   final Component icon;
+
+  /// The optional placeholder text for the text input.
   final String? placeholder;
+
+  /// The initial value of the input, if any.
   final String? initialValue;
+
+  /// Whether to confirm the input value when focus is lost (on blur).
   final bool confirmOnBlur;
+
+  /// Callback when the input is confirmed with a valid value.
   final void Function(String value) onConfirm;
+
+  /// Callback when the input is cancelled.
   final void Function() onCancel;
+
+  /// Optional validation callback to check for conflicts (e.g. name already exists).
   final String? Function(String value)? checkConflict;
 
   @override
@@ -88,10 +104,10 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
     final hasError = validationError != null;
     final displayError = _userHasEdited ? validationError : null;
 
-    return div(
+    return FileTreeRow(
+      depth: component.depth,
       classes: 'file-tree-input-wrapper',
-      styles: Styles(raw: {'--tree-depth': '${component.depth}'}),
-      [
+      children: [
         div(classes: 'file-tree-item input-row', [
           const span(classes: 'file-tree-disclosure spacer', []),
           component.icon,

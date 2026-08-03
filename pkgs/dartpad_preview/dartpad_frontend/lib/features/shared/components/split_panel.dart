@@ -7,6 +7,8 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+/// A component that divides its layout space between two sub-components,
+/// allowing the user to resize the boundary between them by dragging a splitter handle.
 class SplitPanel extends StatefulComponent {
   const SplitPanel({
     required this.left,
@@ -22,15 +24,35 @@ class SplitPanel extends StatefulComponent {
     super.key,
   });
 
+  /// The left or top component in the split panel.
   final Component left;
+
+  /// The right or bottom component in the split panel.
   final Component right;
+
+  /// The initial split value (either ratio or absolute pixels).
   final double initialValue;
+
+  /// Whether to display the left/top component.
   final bool showLeft;
+
+  /// Whether to display the right/bottom component.
   final bool showRight;
+
+  /// Whether the split value represents a ratio (0.0 to 1.0) rather than absolute pixels.
   final bool useRatio;
+
+  /// Whether to orient the split layout vertically (top/bottom) instead of horizontally (left/right).
   final bool isVertical;
+
+  /// When using absolute sizes, whether the absolute value applies to the first (left/top) panel.
+  /// If false, it applies to the second (right/bottom) panel.
   final bool absoluteFirst;
+
+  /// The minimum allowable split value (ratio or pixel limit).
   final double? minValue;
+
+  /// The maximum allowable split value (ratio or pixel limit).
   final double? maxValue;
 
   @override
