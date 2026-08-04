@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 
+import 'features/bottom_panel/view_models/debug_console_view_model.dart';
 import 'features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
@@ -17,7 +18,6 @@ import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
-import 'features/shared/browser_console_observer.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/sample_project.dart';
@@ -35,10 +35,10 @@ class App extends StatefulComponent {
 class AppState extends State<App> {
   late final AppEventBus _events;
   late final WorkspaceRepository _workspaceRepository;
-  late final BrowserConsoleObserver _console;
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
   late final DiagnosticsViewModel _diagnostics;
+  late final DebugConsoleViewModel _debugConsole;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -51,23 +51,21 @@ class AppState extends State<App> {
     super.initState();
     _events = AppEventBus();
 
+    _debugConsole = DebugConsoleViewModel(events: _events);
+
     _workspaceRepository = WorkspaceRepository.create(events: _events);
 
     final codemirrorAdapter = CodeMirrorTabAdapter();
 
     _tabs = TabsViewModel(
-      events: _events,
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
     );
     _fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(_tabs),
       workspace: _workspaceRepository.workspaceResourceApi,
-      events: _events,
     );
     _diagnostics = DiagnosticsViewModel(tabs: _tabs);
-
-    _console = BrowserConsoleObserver(_events);
 
     final projectFuture = loadProject();
 
@@ -224,13 +222,18 @@ class AppState extends State<App> {
 
   Component _buildBottomPanel() {
     return ListenableBuilder(
-      listenable: _diagnostics,
-      builder: (context) => BottomPanel(
-        diagnostics: _diagnostics.diagnostics,
-        activeFile: _tabs.activeFile,
-        onOpenDiagnostic: (fileName, diagnostic) {
-          unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
-        },
+      listenable: _debugConsole,
+      builder: (context) => ListenableBuilder(
+        listenable: _diagnostics,
+        builder: (context) => BottomPanel(
+          diagnostics: _diagnostics.diagnostics,
+          activeFile: _tabs.activeFile,
+          logs: _debugConsole.logs,
+          onClearDebugConsole: _debugConsole.clear,
+          onOpenDiagnostic: (fileName, diagnostic) {
+            unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
+          },
+        ),
       ),
     );
   }
@@ -253,10 +256,10 @@ class AppState extends State<App> {
 
   Future<void> _disposeResources() async {
     await _analyzerSubscription?.cancel();
+    _debugConsole.dispose();
     _diagnostics.dispose();
     _fileTree.dispose();
     _tabs.dispose();
-    _console.dispose();
     await _events.dispose();
   }
 }

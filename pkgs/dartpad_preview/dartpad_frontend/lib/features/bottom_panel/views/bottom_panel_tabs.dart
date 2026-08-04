@@ -14,6 +14,7 @@ class BottomPanelTabs extends StatelessComponent {
     required this.problemsCount,
     required this.activeTab,
     required this.onSelectTab,
+    required this.onClearDebugConsole,
     super.key,
   });
 
@@ -26,6 +27,9 @@ class BottomPanelTabs extends StatelessComponent {
   /// Called when a tab is clicked.
   final void Function(BottomPanelTab tab) onSelectTab;
 
+  /// Clears the debug console's output.
+  final void Function() onClearDebugConsole;
+
   @override
   Component build(BuildContext context) {
     return div(classes: 'bottom-panel-tabs', [
@@ -35,6 +39,18 @@ class BottomPanelTabs extends StatelessComponent {
         active: activeTab == BottomPanelTab.problems,
         onClick: () => onSelectTab(BottomPanelTab.problems),
       ),
+      _BottomPanelTabButton(
+        label: 'Debug Console',
+        active: activeTab == BottomPanelTab.debugConsole,
+        onClick: () => onSelectTab(BottomPanelTab.debugConsole),
+      ),
+      const div(classes: 'bottom-panel-tabs-spacer', []),
+      if (activeTab == BottomPanelTab.debugConsole)
+        button(
+          classes: 'bottom-panel-clear-btn',
+          onClick: onClearDebugConsole,
+          [const .text('Clear')],
+        ),
     ]);
   }
 
@@ -88,6 +104,24 @@ class BottomPanelTabs extends StatelessComponent {
     ),
     css('.bottom-panel-tabs-spacer').styles(
       flex: const Flex(grow: 1),
+    ),
+    css('.bottom-panel-clear-btn').styles(
+      display: .inlineFlex,
+      padding: .symmetric(vertical: 4.px, horizontal: 10.px),
+      margin: .only(right: 8.px),
+      border: const .all(color: colorBorder),
+      radius: .circular(4.px),
+      cursor: .pointer,
+      alignItems: .center,
+      alignSelf: .center,
+      color: colorOnSurfaceVariant,
+      fontSize: 11.px,
+      fontWeight: .w500,
+      backgroundColor: colorOnSurface.withOpacity(0.04),
+    ),
+    css('.bottom-panel-clear-btn:hover').styles(
+      color: colorOnSurface,
+      backgroundColor: colorOnSurface.withOpacity(0.08),
     ),
   ];
 }

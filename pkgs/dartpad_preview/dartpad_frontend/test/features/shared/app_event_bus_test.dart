@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
-import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -33,14 +32,18 @@ void main() {
 
   test('events remain strongly typed', () async {
     final events = AppEventBus();
-    final logs = events.on<LogEvent>().toList();
+    final typedEvents = events.on<_TypedEvent>().toList();
 
     events.dispatch(_TestVoidEvent());
-    events.dispatch(const LogEvent('ready'));
+    events.dispatch(const _TypedEvent());
     await events.dispose();
 
-    expect(await logs, hasLength(1));
+    expect(await typedEvents, hasLength(1));
   });
+}
+
+final class _TypedEvent extends AppEvent {
+  const _TypedEvent();
 }
 
 final class _TestEvent extends AsyncEvent<String> {}
