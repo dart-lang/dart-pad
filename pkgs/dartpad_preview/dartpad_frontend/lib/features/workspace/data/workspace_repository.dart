@@ -32,11 +32,9 @@ final class WorkspaceRepository {
     late final WorkspaceRepository repository;
 
     final workspaceFuture = (() async {
-      events.dispatch(const LogEvent('Starting DartPad worker...'));
       final sdk = DartPadSdk(assetBaseUrl: Uri.parse(web.document.baseURI).resolve('dartpad/flutter/'));
       final dartpad = await sdk.dedicatedWorker();
       repository.dartpad = dartpad;
-      events.dispatch(const LogEvent('Creating transient workspace...'));
       final workspace = await dartpad.createWorkspace();
       return workspace;
     })();

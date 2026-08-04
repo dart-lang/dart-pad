@@ -6,12 +6,12 @@ import 'package:logging/logging.dart';
 
 import '../app_event_bus.dart';
 
-/// A structured log message routed through the event bus.
-///
+/// Output produced by a project-facing tool, such as `pub get` or a runner.
 /// - [message]: human-readable log text.
 /// - [level]: severity level; defaults to [Level.INFO].
 /// - [error]: optional error object associated with this entry.
 /// - [stackTrace]: optional stack trace accompanying [error].
+/// These events are displayed in the application's debug console.
 final class LogEvent extends AppEvent {
   const LogEvent(
     this.message, {
@@ -20,7 +20,7 @@ final class LogEvent extends AppEvent {
     this.stackTrace,
   });
 
-  /// Human-readable log text.
+  /// Raw output text. It may contain multiple lines.
   final String message;
 
   /// Severity level; defaults to [Level.INFO].

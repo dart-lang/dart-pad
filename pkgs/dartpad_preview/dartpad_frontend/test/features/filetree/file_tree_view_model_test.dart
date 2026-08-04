@@ -12,10 +12,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_editor_delegate.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_view_model.dart';
-import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
-import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 /// In-memory editor delegate used by the file-tree view-model tests.
@@ -186,9 +183,6 @@ void main() {
   late List<String> operationLog;
   late FakeTabs tabs;
   late FakeWorkspaceController workspace;
-  late AppEventBus events;
-  late List<LogEvent> logs;
-  late StreamSubscription<LogEvent> logSubscription;
   late FileTreeViewModel viewModel;
 
   setUp(() async {
@@ -199,13 +193,9 @@ void main() {
       ..addTextFile('pubspec.yaml', 'name: test')
       ..addTextFile('.dart_tool/package_config.json', '{}')
       ..addTextFile('build/output.js', '');
-    events = AppEventBus();
-    logs = [];
-    logSubscription = events.on<LogEvent>().listen(logs.add);
     viewModel = FileTreeViewModel(
       tabs: tabs,
       workspace: workspace,
-      events: events,
     )..languageServerClient = workspace.languageServerClient;
     await viewModel.refresh();
   });
@@ -213,9 +203,7 @@ void main() {
   tearDown(() async {
     viewModel.dispose();
     tabs.dispose();
-    await logSubscription.cancel();
     await workspace.changeEventsController.close();
-    await events.dispose();
   });
 
   test('builds a folders-first tree and marks generated workspace entries as ignored', () {
@@ -293,9 +281,6 @@ void main() {
     expect(workspace.files, contains('lib/old.dart'));
     expect(workspace.files, isNot(contains('lib/new.dart')));
     expect(viewModel.state.operationError, 'Workspace operation failed.');
-    await pumpEventQueue();
-    expect(logs.single.error, same(tabs.saveError));
-    expect(logs.single.stackTrace, isNotNull);
   });
 
   test('moves after a willRenameFiles response error and reports a warning', () async {
@@ -323,9 +308,6 @@ void main() {
     expect(tabs.warnings, [
       'Imports could not be updated automatically; continuing with the move.',
     ]);
-    await pumpEventQueue();
-    expect(logs.single.level, Level.WARNING);
-    expect(logs.single.error, same(workspace.languageServerClient.renameError));
   });
 
   test('aborts a move for non-response LSP failures', () async {

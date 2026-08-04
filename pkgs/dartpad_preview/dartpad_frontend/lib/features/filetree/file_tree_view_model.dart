@@ -6,11 +6,8 @@ import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 
-import '../shared/app_event_bus.dart';
 import '../shared/editable_text_file.dart';
-import '../shared/events/log_event.dart';
 import '../shared/user_facing_errors.dart';
 import 'file_tree_editor_delegate.dart';
 import 'file_tree_models.dart';
@@ -21,7 +18,6 @@ final class FileTreeViewModel extends ChangeNotifier {
   FileTreeViewModel({
     required this.tabs,
     required this.workspace,
-    required this.events,
   }) : _fullRoot = FileTreeFolderNode(workspace.root) {
     tabs.addListener(_handleTabsChanged);
     _workspaceSubscription = workspace.changeEvents.listen(_handleWorkspaceEvent);
@@ -42,9 +38,6 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// The workspace whose resources are displayed and mutated.
   final WorkspaceResourceApi workspace;
-
-  /// The event bus used to report workspace operation failures.
-  final AppEventBus events;
 
   /// The language server client used to coordinate file rename refactorings.
   LanguageServerClient? languageServerClient;
@@ -229,20 +222,12 @@ final class FileTreeViewModel extends ChangeNotifier {
       if (languageServerClient case final lsp?) {
         await lsp.willRenameFiles(oldPath, newPath);
       }
-    } catch (error, stackTrace) {
+    } catch (error) {
       if (!_isWillRenameResponseError(error)) {
         rethrow;
       }
       const message = 'Imports could not be updated automatically; continuing with the move.';
       tabs.reportWarning(message);
-      events.dispatch(
-        LogEvent(
-          message,
-          level: Level.WARNING,
-          error: error,
-          stackTrace: stackTrace,
-        ),
-      );
     }
   }
 
@@ -282,19 +267,11 @@ final class FileTreeViewModel extends ChangeNotifier {
     _notify();
     try {
       await operation();
-    } catch (error, stackTrace) {
+    } catch (error) {
       _setOperationError(
         userFacingErrorMessage(
           error,
           fallback: 'Workspace operation failed.',
-        ),
-      );
-      events.dispatch(
-        LogEvent(
-          'Workspace operation failed.',
-          level: Level.SEVERE,
-          error: error,
-          stackTrace: stackTrace,
         ),
       );
     } finally {

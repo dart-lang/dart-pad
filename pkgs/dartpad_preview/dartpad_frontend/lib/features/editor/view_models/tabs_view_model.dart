@@ -6,16 +6,11 @@ import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
-
-import '../../shared/app_event_bus.dart';
-import '../../shared/events/log_event.dart';
 
 /// Owns the multi-file editor tabs and their workspace lifecycle.
 final class TabsViewModel extends ChangeNotifier with TabsController<Component> {
   /// Creates an empty set of tabs backed by [workspaceResourceApi].
   TabsViewModel({
-    required this.events,
     required WorkspaceResourceApi workspaceResourceApi,
     required List<EditorTabAdapter<Component>> adapters,
   }) {
@@ -24,9 +19,6 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
       adapters: adapters,
     );
   }
-
-  /// The event bus used for save and error messages.
-  final AppEventBus events;
 
   bool _isSaving = false;
   String? _errorMessage;
@@ -55,7 +47,6 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
       return;
     }
     _errorMessage = null;
-    events.dispatch(LogEvent('Saved ${paths.join(', ')}.'));
     notifyListeners();
   }
 
@@ -63,8 +54,8 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
   Future<void> saveAllTabs() async {
     try {
       await super.saveAllTabs();
-    } catch (error, stackTrace) {
-      _reportError('Could not save all files.', error, stackTrace);
+    } catch (_) {
+      _reportError('Could not save all files.');
       rethrow;
     }
   }
@@ -74,8 +65,8 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     try {
       await openFile(path);
       clearMessages();
-    } catch (error, stackTrace) {
-      _reportError('Could not open $path.', error, stackTrace);
+    } catch (_) {
+      _reportError('Could not open $path.');
     }
   }
 
@@ -98,7 +89,6 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
   /// Publishes [message] as the current user-facing warning.
   void reportWarning(String message) {
     _warningMessage = message;
-    events.dispatch(LogEvent(message, level: Level.WARNING));
     notifyListeners();
   }
 
@@ -112,20 +102,8 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     notifyListeners();
   }
 
-  void _reportError(
-    String message,
-    Object error,
-    StackTrace stackTrace,
-  ) {
+  void _reportError(String message) {
     _errorMessage = message;
-    events.dispatch(
-      LogEvent(
-        message,
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
     notifyListeners();
   }
 
