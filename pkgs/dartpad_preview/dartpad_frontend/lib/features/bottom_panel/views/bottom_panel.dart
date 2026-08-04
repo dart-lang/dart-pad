@@ -62,21 +62,17 @@ class _BottomPanelState extends State<BottomPanel> {
   }
 
   Component _buildContent() {
-    return div(
-      classes: 'bottom-panel-content',
-      [
-        switch (_activeTab) {
-          BottomPanelTab.problems => ProblemsPanel(
-            diagnostics: component.diagnostics,
-            activeFile: component.activeFile,
-            onOpenDiagnostic: component.onOpenDiagnostic,
-          ),
-        },
-      ],
-    );
+    return div(classes: 'bottom-panel-content', [
+      switch (_activeTab) {
+        BottomPanelTab.problems => ProblemsPanel(
+          diagnostics: component.diagnostics,
+          activeFile: component.activeFile,
+          onOpenDiagnostic: component.onOpenDiagnostic,
+        ),
+      },
+    ]);
   }
 
-  @css
   static List<StyleRule> get styles => [
     css('.bottom-panel').styles(
       display: .flex,
