@@ -30,7 +30,7 @@ class EditorHost extends StatelessComponent {
   /// The tabs view model providing open tabs, active file, and error state.
   final TabsViewModel tabs;
 
-  /// The view model providing diagnostics and problems-panel state.
+  /// The view model providing diagnostics.
   final EditorHostViewModel editorHostViewModel;
 
   /// The workspace file tree component.
@@ -57,8 +57,6 @@ class EditorHost extends StatelessComponent {
           builder: (context) => BottomPanel(
             diagnostics: editorHostViewModel.diagnostics,
             activeFile: tabs.activeFile,
-            showProblems: editorHostViewModel.showProblems,
-            onShowProblems: editorHostViewModel.showProblemsPanel,
             onOpenDiagnostic: (fileName, diagnostic) {
               unawaited(
                 editorHostViewModel.openDiagnostic(fileName, diagnostic),
