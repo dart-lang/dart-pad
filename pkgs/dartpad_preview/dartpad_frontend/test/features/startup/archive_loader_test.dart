@@ -90,20 +90,19 @@ void main() {
       }));
 
       // Verify that the files were extracted under the workspace root, relative to the project root 'my_project/'
-      expect(await api.fileExist('pubspec.yaml'), isTrue);
-      expect(await api.fileExist('lib/main.dart'), isTrue);
-      expect(await api.fileExist('lib/src/helper.dart'), isTrue);
-      expect(await api.fileExist('assets/image.png'), isTrue);
-      expect(await api.fileExist('pubspec_overrides.yaml'), isTrue);
+      expect(await api.fileExist('my_project/pubspec.yaml'), isTrue);
+      expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
+      expect(await api.fileExist('my_project/lib/src/helper.dart'), isTrue);
+      expect(await api.fileExist('my_project/assets/image.png'), isTrue);
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
 
       // Verify content
-      expect(await api.readFileAsText('pubspec.yaml'), 'name: my_project\n');
-      expect(await api.readFileAsText('lib/main.dart'), 'void main() {}');
-      expect(await api.readFileAsText('lib/src/helper.dart'), 'class Helper {}');
-      expect(await api.readFileAsText('pubspec_overrides.yaml'), 'workspace:\n');
+      expect(await api.readFileAsText('my_project/pubspec.yaml'), 'name: my_project\n');
+      expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
+      expect(await api.readFileAsText('my_project/lib/src/helper.dart'), 'class Helper {}');
 
       // Verify that opened path is relative to the root project directory
-      expect(openedPath, 'lib/main.dart');
+      expect(openedPath, 'my_project/lib/main.dart');
     });
 
     test('downloads and extracts uncompressed .tar files', () async {
@@ -128,11 +127,10 @@ void main() {
         return http.Response.bytes(archiveBytes, 200);
       }));
 
-      expect(await api.fileExist('pubspec.yaml'), isTrue);
-      expect(await api.fileExist('lib/main.dart'), isTrue);
-      expect(await api.fileExist('pubspec_overrides.yaml'), isTrue);
-      expect(await api.readFileAsText('pubspec_overrides.yaml'), 'workspace:\n');
-      expect(openedPath, 'lib/main.dart');
+      expect(await api.fileExist('project/pubspec.yaml'), isTrue);
+      expect(await api.fileExist('project/lib/main.dart'), isTrue);
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+      expect(openedPath, 'project/lib/main.dart');
     });
 
     test('throws Exception if no pubspec.yaml is found in the walk', () async {

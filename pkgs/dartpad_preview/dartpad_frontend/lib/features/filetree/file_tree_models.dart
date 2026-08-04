@@ -77,6 +77,22 @@ final class FileTreeFolderNode extends FileTreeNode {
     }
     return false;
   }
+
+  /// Recursively finds a folder in this subtree with the given [path].
+  FileTreeFolderNode? findFolder(String path) {
+    if (resource.path == path) {
+      return this;
+    }
+    for (final child in children) {
+      if (child is FileTreeFolderNode) {
+        final found = child.findFolder(path);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /// The kind of workspace entry being created.
@@ -98,6 +114,7 @@ final class FileTreeState {
     required this.busy,
     required this.protectedEntries,
     required this.dirtyEntries,
+    required this.focusedPath,
   });
 
   /// The root node whose children are displayed in the tree.
@@ -117,6 +134,9 @@ final class FileTreeState {
 
   /// File and ancestor folder paths containing unsaved changes.
   final Set<String> dirtyEntries;
+
+  /// The path of the folder currently focused in the file tree.
+  final String focusedPath;
 
   /// Checks if creating or renaming an entry with [newName] at [currentPath] conflicts
   /// with any existing resource in the root folder.
@@ -148,6 +168,7 @@ final class FileTreeActions {
     required this.moveEntry,
     required this.openFile,
     required this.clearOperationError,
+    required this.navigateUp,
   });
 
   /// Creates a file in the selected folder.
@@ -176,4 +197,7 @@ final class FileTreeActions {
 
   /// Clears the current operation error.
   final void Function() clearOperationError;
+
+  /// Navigates to the parent folder of the currently focused folder.
+  final void Function() navigateUp;
 }

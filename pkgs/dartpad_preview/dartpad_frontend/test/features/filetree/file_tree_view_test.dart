@@ -92,6 +92,7 @@ FileTreeState _state(
     busy: false,
     protectedEntries: const {},
     dirtyEntries: dirty ? const {path} : const {},
+    focusedPath: '',
   );
 }
 
@@ -108,6 +109,7 @@ FileTreeActions _actions({
     moveEntry: (_, _) async {},
     openFile: (_) {},
     clearOperationError: () {},
+    navigateUp: () {},
   );
 }
 

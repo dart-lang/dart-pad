@@ -374,4 +374,60 @@ void main() {
     expect(workspace.folders, contains('assets'));
     expect(operationLog, isEmpty);
   });
+
+  test('focuses on a subfolder and exposes it as the root of the tree', () async {
+    workspace
+      ..addTextFile('my_project/pubspec.yaml', 'name: my_project')
+      ..addTextFile('my_project/lib/main.dart', 'void main() {}')
+      ..addTextFile('other_dir/other.dart', 'void main() {}');
+    await viewModel.refresh();
+
+    // Default root is ''
+    expect(viewModel.state.focusedPath, '');
+    expect(viewModel.state.root.resource.path, '');
+
+    viewModel.focusPath('my_project');
+    expect(viewModel.state.focusedPath, 'my_project');
+    expect(viewModel.state.root.resource.path, 'my_project');
+    
+    // Root children should be my_project's children ('lib' and 'pubspec.yaml')
+    final rootChildren = viewModel.state.root.children;
+    expect(rootChildren.map((node) => node.resource.path), containsAll(['my_project/lib', 'my_project/pubspec.yaml']));
+  });
+
+  test('navigates up until the full filesystem (workspace root) is shown', () async {
+    workspace
+      ..addTextFile('a/b/c/project/pubspec.yaml', 'name: project')
+      ..addTextFile('a/b/c/project/lib/main.dart', 'void main() {}');
+    await viewModel.refresh();
+
+    viewModel.focusPath('a/b/c/project');
+    expect(viewModel.state.focusedPath, 'a/b/c/project');
+    expect(viewModel.state.root.resource.path, 'a/b/c/project');
+
+    // Navigate up to a/b/c
+    viewModel.navigateUp();
+    expect(viewModel.state.focusedPath, 'a/b/c');
+    expect(viewModel.state.root.resource.path, 'a/b/c');
+
+    // Navigate up to a/b
+    viewModel.navigateUp();
+    expect(viewModel.state.focusedPath, 'a/b');
+    expect(viewModel.state.root.resource.path, 'a/b');
+
+    // Navigate up to a
+    viewModel.navigateUp();
+    expect(viewModel.state.focusedPath, 'a');
+    expect(viewModel.state.root.resource.path, 'a');
+
+    // Navigate up to workspace root
+    viewModel.navigateUp();
+    expect(viewModel.state.focusedPath, '');
+    expect(viewModel.state.root.resource.path, '');
+
+    // Navigate up further does nothing
+    viewModel.navigateUp();
+    expect(viewModel.state.focusedPath, '');
+    expect(viewModel.state.root.resource.path, '');
+  });
 }

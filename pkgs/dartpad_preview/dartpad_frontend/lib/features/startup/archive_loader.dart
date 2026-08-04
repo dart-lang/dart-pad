@@ -15,7 +15,7 @@ class ArchiveLoader {
   final String filePath;
   final String? mainPath;
 
-  Future<void> loadArchive(WorkspaceFolder root, Future<void> Function(String path) openFile) async {
+  Future<String> loadArchive(WorkspaceFolder root, Future<void> Function(String path) openFile) async {
     final Uri uri = Uri.parse(archiveUrl);
     if (!uri.isAbsolute) {
       throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
@@ -62,7 +62,6 @@ class ArchiveLoader {
       throw Exception('Could not find pubspec.yaml in any parent directory of $filePath');
     }
 
-    final String prefix = rootProjectDir.isEmpty ? '' : '$rootProjectDir/';
     final List<ArchiveFile> filesToExtract = <ArchiveFile>[];
     final Set<String> foldersToCreate = <String>{};
 
@@ -78,15 +77,12 @@ class ArchiveLoader {
         name = name.substring(1);
       }
 
-      if (rootProjectDir.isEmpty || name.startsWith(prefix)) {
-        filesToExtract.add(file);
+      filesToExtract.add(file);
 
-        final String relativePath = rootProjectDir.isEmpty ? name : name.substring(prefix.length);
-        String dir = workspaceContext.dirname(relativePath);
-        while (dir.isNotEmpty && dir != '.') {
-          foldersToCreate.add(dir);
-          dir = workspaceContext.dirname(dir);
-        }
+      String dir = workspaceContext.dirname(name);
+      while (dir.isNotEmpty && dir != '.') {
+        foldersToCreate.add(dir);
+        dir = workspaceContext.dirname(dir);
       }
     }
 
@@ -104,16 +100,13 @@ class ArchiveLoader {
         name = name.substring(1);
       }
 
-      final String relativePath = rootProjectDir.isEmpty ? name : name.substring(prefix.length);
       final dynamic content = file.content;
       final Uint8List fileBytes = content is Uint8List ? content : Uint8List.fromList(content as List<int>);
 
-      await root.workspace.writeFileFromBytes(root.getFile(relativePath).path, fileBytes);
+      await root.workspace.writeFileFromBytes(root.getFile(name).path, fileBytes);
     }
 
-    await root.getFile('pubspec_overrides.yaml').writeContent('workspace:\n');
-
-    final String openedPath = rootProjectDir.isEmpty ? normalizedFilePath : normalizedFilePath.substring(prefix.length);
-    await openFile(openedPath);
+    await openFile(normalizedFilePath);
+    return rootProjectDir;
   }
 }

@@ -42,6 +42,7 @@ class AppState extends State<App> {
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
   String loadingStatus = 'Loading Workspace...';
+  String _projectDir = '';
 
   @override
   void initState() {
@@ -107,7 +108,7 @@ class AppState extends State<App> {
         loadingStatus = 'Running Pub Get...';
       });
 
-      await _workspaceRepository.pubGet();
+      await _workspaceRepository.pubGet(path: _projectDir);
 
       codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
@@ -126,10 +127,18 @@ class AppState extends State<App> {
       //'main': final String? mainPath,
     }) {
       final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-      await loader.loadArchive(_workspaceRepository.root, _tabs.openFile);
+      final projectDir = await loader.loadArchive(_workspaceRepository.root, _tabs.openFile);
+      setState(() {
+        _projectDir = projectDir;
+      });
+      _fileTree.focusPath(projectDir);
     } else {
       await createSampleProject(_workspaceRepository.root);
       await openSampleProject(_tabs.openFile);
+      setState(() {
+        _projectDir = '';
+      });
+      _fileTree.focusPath('');
     }
   }
 

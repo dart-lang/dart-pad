@@ -56,10 +56,10 @@ final class WorkspaceRepository {
     );
   }
 
-  Future<void> pubGet() async {
+  Future<void> pubGet({String path = ''}) async {
     events.dispatch(const LogEvent('Running pub get...'));
     final workspace = await _workspaceFuture;
-    final result = await workspace.pub(command: 'get');
+    final result = await workspace.pub(uri: path, command: 'get');
     events.dispatch(LogEvent('pub get finished.\n${result.log}'));
   }
 

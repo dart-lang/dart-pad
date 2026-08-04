@@ -50,6 +50,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   FileTreeEntryKind? _creatingEntry;
   bool _isRootDropTarget = false;
   int _dragEnterCount = 0;
+  int _collapseAllCount = 0;
 
   @override
   void didUpdateComponent(FileTreeView oldComponent) {
@@ -71,20 +72,32 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         const span(classes: 'file-tree-title', [.text('Files')]),
         div(classes: 'file-tree-toolbar', [
           _toolbarButton(
+            title: 'Navigate up',
+            disabled: state.busy || state.focusedPath.isEmpty,
+            icon: const Icon('arrow_upward', size: 16),
+            onClick: actions.navigateUp,
+          ),
+          _toolbarButton(
+            title: 'Collapse all',
+            disabled: state.busy,
+            icon: const Icon('unfold_less', size: 16),
+            onClick: () {
+              setState(() {
+                _collapseAllCount++;
+              });
+            },
+          ),
+          _toolbarButton(
             title: 'New file',
             disabled: state.busy,
-            icon: const Icon(
-              'note_add',
-              size: 16,
-              classes: 'file-tree-icon file-icon',
-            ),
+            icon: const Icon('note_add', size: 16),
             onClick: () {
               setState(() {
                 _creatingEntry = FileTreeEntryKind.file;
                 final path = _selectedPath ?? '';
                 _selectedPath = null;
                 if (path.isEmpty) {
-                  _creatingInFolder = '';
+                  _creatingInFolder = state.focusedPath;
                 } else if (state.root.isFolder(path)) {
                   _creatingInFolder = path;
                 } else {
@@ -96,18 +109,14 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           _toolbarButton(
             title: 'New folder',
             disabled: state.busy,
-            icon: const Icon(
-              'create_new_folder',
-              size: 16,
-              classes: 'file-tree-icon folder-icon',
-            ),
+            icon: const Icon('create_new_folder', size: 16),
             onClick: () {
               setState(() {
                 _creatingEntry = FileTreeEntryKind.folder;
                 final path = _selectedPath ?? '';
                 _selectedPath = null;
                 if (path.isEmpty) {
-                  _creatingInFolder = '';
+                  _creatingInFolder = state.focusedPath;
                 } else if (state.root.isFolder(path)) {
                   _creatingInFolder = path;
                 } else {
@@ -168,12 +177,12 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
             final dragEvent = event as web.DragEvent;
             final sourcePath = dragEvent.dataTransfer?.getData('text/plain');
             if (sourcePath != null && sourcePath.isNotEmpty) {
-              unawaited(actions.moveEntry(sourcePath, ''));
+              unawaited(actions.moveEntry(sourcePath, state.focusedPath));
             }
           },
         },
         [
-          if (_creatingEntry != null && _creatingInFolder == '')
+          if (_creatingEntry != null && _creatingInFolder == state.focusedPath)
             FileTreeInputItem(
               placeholder: _creatingEntry == FileTreeEntryKind.folder ? 'folder' : 'file',
               depth: 0,
@@ -190,22 +199,24 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                     ),
               confirmOnBlur: true,
               checkConflict: (name) {
-                if (state.root.exists(name)) {
-                  return 'A file or folder already exists at "$name".';
+                final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
+                if (state.root.exists(targetPath)) {
+                  return 'A file or folder already exists at "$targetPath".';
                 }
                 return null;
               },
               onConfirm: (name) async {
                 final kind = _creatingEntry!;
+                final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
                 setState(() {
                   _creatingEntry = null;
                   _creatingInFolder = null;
-                  _selectedPath = name;
+                  _selectedPath = targetPath;
                 });
                 if (kind == FileTreeEntryKind.folder) {
-                  await actions.createFolder('', name);
+                  await actions.createFolder(state.focusedPath, name);
                 } else {
-                  await actions.createFile('', name);
+                  await actions.createFile(state.focusedPath, name);
                 }
               },
               onCancel: () {
@@ -231,6 +242,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 },
                 creatingInFolder: _creatingInFolder,
                 creatingEntry: _creatingEntry,
+                collapseAllCount: _collapseAllCount,
                 onConfirmCreate: (name) async {
                   final parentPath = _creatingInFolder!;
                   final kind = _creatingEntry!;
