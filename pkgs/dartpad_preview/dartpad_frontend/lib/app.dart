@@ -139,12 +139,24 @@ class AppState extends State<App> {
       final archiveUrl = Uri.decodeComponent(archiveUrlParam);
       final filePath = Uri.decodeComponent(filePathParam);
       final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-      final projectDir = await loader.loadArchive(_workspaceRepository.root);
+      final (projectDir, targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
       setState(() {
         _projectDir = projectDir;
       });
       _fileTree.focusPath(projectDir);
-      unawaited(_tabs.openFile(workspaceContext.normalize(filePath)));
+      if (targetFilePath != null) {
+        unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
+      }
+    } else if (params case {'package': final String packageName}) {
+      final loader = await ArchiveLoader.forPackage(packageName);
+      final (projectDir, targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
+      setState(() {
+        _projectDir = projectDir;
+      });
+      _fileTree.focusPath(projectDir);
+      if (targetFilePath != null) {
+        unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
+      }
     } else {
       await createSampleProject(_workspaceRepository.root);
       setState(() {

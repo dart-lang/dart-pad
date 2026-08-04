@@ -21,24 +21,41 @@ dart run jaspr_cli:jaspr serve -v
 
 ## Query Parameters
 
-The frontend supports the following URL query parameters to load external
-projects at startup:
+The frontend supports loading external projects at startup using URL query
+parameters.
 
-* `archive`: A URI-encoded URL of a .tar/tar.gz archive containing the
-project files. When provided, the frontend downloads, extracts, and loads
-this project into the workspace.
-* `path`: A URI-encoded relative path of the file to open in the editor
-workspace once the project is loaded (e.g., `lib/main.dart`).
+### Loading from Archive
 
-> [!NOTE]
-> Both `archive` and `path` query parameters must be provided together. If
-either is missing, the application will fall back to loading the default
-sample project.
+To load a project from an arbitrary archive URL, you must provide both of the
+following parameters:
+
+* `archive`: A URI-encoded URL of a `.tar` or `.tar.gz` archive containing the
+project files. The frontend downloads and extracts this project into the workspace.
+* `path`: A URI-encoded relative path of the file to open in the editor workspace
+once the project is loaded (e.g., `lib/main.dart`).
 
 Example:
 ```url
 http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md
 ```
+
+### Loading from Package Name
+
+To load the example project of a package published on pub.dev, use the
+following parameter:
+
+* `package`: The name of the package. The frontend fetches the latest version
+of the package, extracts its archive, automatically locates the package's example
+file (e.g., `example/main.dart` or `example/example.dart`), and opens it.
+
+Example:
+```url
+http://localhost:8080/?package=material_ui
+```
+
+> [!NOTE]
+> If neither of these parameter combinations is matched at startup, the
+application falls back to loading the default sample project.
 
 ## SDK assets
 
