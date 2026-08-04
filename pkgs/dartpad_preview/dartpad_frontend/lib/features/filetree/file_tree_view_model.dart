@@ -22,7 +22,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     required this.tabs,
     required this.workspace,
     required this.events,
-  }) : _root = FileTreeFolderNode(workspace.root) {
+  }) : _fullRoot = FileTreeFolderNode(workspace.root) {
     tabs.addListener(_handleTabsChanged);
     _workspaceSubscription = workspace.changeEvents.listen(_handleWorkspaceEvent);
     unawaited(refresh());
@@ -49,7 +49,8 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// The language server client used to coordinate file rename refactorings.
   LanguageServerClient? languageServerClient;
 
-  FileTreeFolderNode _root;
+  FileTreeFolderNode _fullRoot;
+  String _focusedPath = '';
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
   Timer? _refreshDebounce;
   int _refreshGeneration = 0;
@@ -57,14 +58,22 @@ final class FileTreeViewModel extends ChangeNotifier {
   bool _busy = false;
   String? _operationError;
 
+  FileTreeFolderNode get _focusedRoot {
+    if (_focusedPath.isEmpty) {
+      return _fullRoot;
+    }
+    return _fullRoot.findFolder(_focusedPath) ?? _fullRoot;
+  }
+
   /// The current immutable state consumed by the file-tree view.
   FileTreeState get state => FileTreeState(
-    root: _root,
+    root: _focusedRoot,
     activeFile: tabs.activeFile,
     operationError: _operationError,
     busy: _busy,
     protectedEntries: _protectedEntries,
     dirtyEntries: Set.unmodifiable(_pathsWithAncestors(tabs.dirtyFiles)),
+    focusedPath: _focusedPath,
   );
 
   /// The actions that the file-tree view can invoke.
@@ -78,6 +87,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     moveEntry: moveEntry,
     openFile: tabs.openTextFile,
     clearOperationError: clearOperationError,
+    navigateUp: navigateUp,
   );
 
   /// Whether the file at [path] is required by DartPad Preview.
@@ -251,6 +261,17 @@ final class FileTreeViewModel extends ChangeNotifier {
     _notify();
   }
 
+  void focusPath(String path) {
+    _focusedPath = workspaceContext.normalize(path);
+    _notify();
+  }
+
+  void navigateUp() {
+    if (_focusedPath.isNotEmpty) {
+      focusPath(workspaceContext.dirname(_focusedPath));
+    }
+  }
+
   Future<void> _runMutation(Future<void> Function() operation) async {
     if (_busy) {
       return;
@@ -290,7 +311,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     if (_disposed || generation != _refreshGeneration) {
       return;
     }
-    _root = tree;
+    _fullRoot = tree;
     _notify();
   }
 

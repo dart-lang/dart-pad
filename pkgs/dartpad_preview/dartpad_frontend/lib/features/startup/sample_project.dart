@@ -14,8 +14,6 @@ Future<void> createSampleProject(WorkspaceFolder root) async {
 
 /// Opens the default sample files and leaves the Dart source active.
 Future<void> openSampleProject(Future<void> Function(String path) openFile) async {
-  // TODO: Remove this once we have the filetree in place.
-  await openFile(_samplePubspecPath);
   await openFile(_sampleMainPath);
 }
 

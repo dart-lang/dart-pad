@@ -19,6 +19,7 @@ import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
+import 'features/startup/archive_loader.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 
@@ -41,6 +42,7 @@ class AppState extends State<App> {
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
   String loadingStatus = 'Loading Workspace...';
+  String _projectDir = '';
 
   @override
   void initState() {
@@ -63,6 +65,8 @@ class AppState extends State<App> {
     );
 
     _console = BrowserConsoleObserver(_events);
+
+    final projectFuture = loadProject();
 
     _events.on<WorkspaceLoadedEvent>().listen((event) async {
       if (!mounted) {
@@ -98,11 +102,13 @@ class AppState extends State<App> {
         (activity) => _logAnalyzerActivity(languageServerClient, activity),
       );
 
+      await projectFuture;
+
       setState(() {
         loadingStatus = 'Running Pub Get...';
       });
 
-      await _workspaceRepository.pubGet();
+      await _workspaceRepository.pubGet(path: _projectDir);
 
       codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
@@ -110,11 +116,32 @@ class AppState extends State<App> {
         loadingStatus = 'Analyzing Project...';
       });
     });
+  }
 
-    Future(() async {
+  Future<void> loadProject() async {
+    final params = Uri.base.queryParameters;
+
+    if (params case {
+      'archive': final String archiveUrlParam,
+      'path': final String filePathParam,
+    }) {
+      final archiveUrl = Uri.decodeComponent(archiveUrlParam);
+      final filePath = Uri.decodeComponent(filePathParam);
+      final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
+      final projectDir = await loader.loadArchive(_workspaceRepository.root);
+      setState(() {
+        _projectDir = projectDir;
+      });
+      _fileTree.focusPath(projectDir);
+      unawaited(_tabs.openFile(workspaceContext.normalize(filePath)));
+    } else {
       await createSampleProject(_workspaceRepository.root);
-      await openSampleProject(_tabs.openFile);
-    });
+      setState(() {
+        _projectDir = '';
+      });
+      _fileTree.focusPath('');
+      unawaited(openSampleProject(_tabs.openFile));
+    }
   }
 
   void _logAnalyzerActivity(LanguageServerClient languageServerClient, AnalyzerActivity activity) {

@@ -9,9 +9,11 @@ environment:
 resolution: workspace
 
 dependencies:
+  archive: ^4.0.9
   codemirror_dart: any
   dartpad: any
   dartpad_editor: any
+  http: ^1.6.0
   jaspr: ^0.23.2
   jaspr_content: ^0.5.3
   jaspr_router: ^0.8.2

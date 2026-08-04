@@ -53,7 +53,55 @@ class FileTreeFileItem extends StatefulComponent {
 }
 
 class _FileTreeFileItemState extends State<FileTreeFileItem> {
+  final _rowKey = GlobalNodeKey<web.HTMLElement>();
   bool _isRenaming = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final path = component.node.resource.path;
+    final active = component.selectedPath == null && component.state.activeFile == path;
+    if (active) {
+      _scrollIntoView();
+    }
+  }
+
+  @override
+  void didUpdateComponent(FileTreeFileItem oldComponent) {
+    super.didUpdateComponent(oldComponent);
+    final path = component.node.resource.path;
+    final active = component.selectedPath == null && component.state.activeFile == path;
+    final oldActive = oldComponent.selectedPath == null && oldComponent.state.activeFile == path;
+    if (active && !oldActive) {
+      _scrollIntoView();
+    }
+  }
+
+  void _scrollIntoView() {
+    unawaited(
+      Future<void>.delayed(Duration.zero, () {
+        final node = _rowKey.currentNode;
+        final root = node?.closest('.file-tree-list');
+        if (node != null) {
+          node.scrollIntoView(
+            web.ScrollIntoViewOptions(
+              behavior: 'instant',
+              block: 'start',
+            ),
+          );
+          if (root != null) {
+            // Scroll up to account for sticky parent folder items.
+            root.scrollBy(
+              web.ScrollToOptions(
+                top: -25 * component.depth,
+                behavior: 'instant',
+              ),
+            );
+          }
+        }
+      }),
+    );
+  }
 
   @override
   Component build(BuildContext context) {
@@ -88,6 +136,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     }
 
     return FileTreeRow(
+      key: _rowKey,
       depth: component.depth,
       classes: [
         'file-tree-item file',

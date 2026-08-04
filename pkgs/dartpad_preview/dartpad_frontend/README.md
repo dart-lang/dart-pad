@@ -18,6 +18,27 @@ Run the project using:
 dart run jaspr_cli:jaspr serve -v
 ```
 
+## Query Parameters
+
+The frontend supports the following URL query parameters to load external
+projects at startup:
+
+* `archive`: A URI-encoded URL of a .tar/tar.gz archive containing the
+project files. When provided, the frontend downloads, extracts, and loads
+this project into the workspace.
+* `path`: A URI-encoded relative path of the file to open in the editor
+workspace once the project is loaded (e.g., `lib/main.dart`).
+
+> [!NOTE]
+> Both `archive` and `path` query parameters must be provided together. If
+either is missing, the application will fall back to loading the default
+sample project.
+
+Example:
+```url
+http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md
+```
+
 ## SDK assets
 
 The generated worker and Flutter SDK artifacts are collected under the single

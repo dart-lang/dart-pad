@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
@@ -30,6 +31,7 @@ class FileTreeFolderItem extends StatefulComponent {
     required this.onConfirmCreate,
     required this.onCancelCreate,
     this.confirmDelete,
+    this.collapseAllCount = 0,
     super.key,
   });
 
@@ -66,6 +68,9 @@ class FileTreeFolderItem extends StatefulComponent {
   /// Optional callback to confirm deletion of this folder and its contents.
   final bool Function(String message)? confirmDelete;
 
+  /// Trigger generation counter to collapse all folders recursively.
+  final int collapseAllCount;
+
   @override
   State<FileTreeFolderItem> createState() => _FileTreeFolderItemState();
 }
@@ -78,7 +83,17 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void initState() {
     super.initState();
-    _isCollapsed = component.node.isIgnored;
+    final expectedLibPath = workspaceContext.join(component.state.focusedPath, 'lib');
+    final activeFile = component.state.activeFile;
+    final folderPath = component.node.resource.path;
+    final isActiveParent =
+        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
+
+    if (folderPath == expectedLibPath || isActiveParent) {
+      _isCollapsed = false;
+    } else {
+      _isCollapsed = true;
+    }
   }
 
   void _toggleCollapsed() {
@@ -96,6 +111,18 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     if (component.creatingEntry != null && component.creatingInFolder == component.node.resource.path) {
       _isCollapsed = false;
       _scrollTopIntoView();
+    }
+    if (component.collapseAllCount != oldComponent.collapseAllCount) {
+      _isCollapsed = true;
+    }
+
+    final activeFile = component.state.activeFile;
+    final folderPath = component.node.resource.path;
+    final isActiveParent =
+        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
+
+    if (isActiveParent && activeFile != oldComponent.state.activeFile) {
+      _isCollapsed = false;
     }
   }
 
@@ -279,6 +306,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onConfirmCreate: component.onConfirmCreate,
                 onCancelCreate: component.onCancelCreate,
                 confirmDelete: component.confirmDelete,
+                collapseAllCount: component.collapseAllCount,
               );
             }),
             if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)

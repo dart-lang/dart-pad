@@ -96,15 +96,16 @@ void main() {
     await events.dispose();
   });
 
-  test('opens main.dart and pubspec.yaml with main.dart active', () {
+  test('opens main.dart with main.dart active', () {
     expect(
       tabs!.openTabs.map((tab) => tab.path),
-      ['pubspec.yaml', 'lib/main.dart'],
+      ['lib/main.dart'],
     );
     expect(tabs!.activeFile, 'lib/main.dart');
   });
 
-  test('allows every clean tab including the last tab to close', () {
+  test('allows every clean tab including the last tab to close', () async {
+    await tabs!.openFile('pubspec.yaml');
     expect(tabs!.closeFile('lib/main.dart'), isTrue);
     expect(tabs!.activeFile, 'pubspec.yaml');
 
@@ -131,7 +132,7 @@ void main() {
   });
 
   test('save-all writes dirty YAML without formatting', () async {
-    tabs!.switchFile('pubspec.yaml');
+    await tabs!.openFile('pubspec.yaml');
     final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
     pubspecTab.editor.text = '${pubspecTab.content}\nversion: 1.0.0';
 
@@ -146,7 +147,7 @@ void main() {
   });
 
   test('save-all errors hide internal details but retain them in logs', () async {
-    tabs!.switchFile('pubspec.yaml');
+    await tabs!.openFile('pubspec.yaml');
     final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
     pubspecTab.editor.text = '${pubspecTab.content}\nversion: 1.0.0';
     workspace.writeError = StateError('internal write failure');
@@ -163,7 +164,9 @@ void main() {
     expect(logs.single.stackTrace, isNotNull);
   });
 
-  testClient('renders one dirty indicator and a close action for every tab', (tester) {
+  testClient('renders one dirty indicator and a close action for every tab', (tester) async {
+    await tabs!.openFile('pubspec.yaml');
+    tabs!.switchFile('lib/main.dart');
     final mainTab = tabs!.activeTab! as CodeMirrorTab;
     mainTab.editor.text = '${mainTab.content}\n// dirty';
 
@@ -209,6 +212,7 @@ void main() {
   });
 
   testClient('closing all tabs leaves an empty editor stack', (tester) async {
+    await tabs!.openFile('pubspec.yaml');
     tabs!
       ..closeFile('lib/main.dart')
       ..closeFile('pubspec.yaml');
