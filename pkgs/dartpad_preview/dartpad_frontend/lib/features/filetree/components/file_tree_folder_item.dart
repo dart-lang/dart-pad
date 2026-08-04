@@ -86,9 +86,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     final expectedLibPath = workspaceContext.join(component.state.focusedPath, 'lib');
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
-    final isActiveParent = folderPath.isNotEmpty &&
-        workspaceContext.isWithinFolder(activeFile, folderPath) &&
-        activeFile != folderPath;
+    final isActiveParent =
+        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (folderPath == expectedLibPath || isActiveParent) {
       _isCollapsed = false;
@@ -119,9 +118,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
 
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
-    final isActiveParent = folderPath.isNotEmpty &&
-        workspaceContext.isWithinFolder(activeFile, folderPath) &&
-        activeFile != folderPath;
+    final isActiveParent =
+        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (isActiveParent && activeFile != oldComponent.state.activeFile) {
       _isCollapsed = false;

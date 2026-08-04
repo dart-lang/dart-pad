@@ -54,14 +54,17 @@ void main() {
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
-      await http.runWithClient(() async {
-        expect(
-          () => loader.loadArchive(api.root, (String path) async {}),
-          throwsException,
-        );
-      }, () => MockClient((http.Request request) async {
-        return http.Response('Not Found', 404);
-      }));
+      await http.runWithClient(
+        () async {
+          expect(
+            () => loader.loadArchive(api.root, (String path) async {}),
+            throwsException,
+          );
+        },
+        () => MockClient((http.Request request) async {
+          return http.Response('Not Found', 404);
+        }),
+      );
     });
 
     test('downloads, decompresses .tar.gz, finds pubspec, extracts files and opens relative path', () async {
@@ -80,14 +83,17 @@ void main() {
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       String? openedPath;
-      await http.runWithClient(() async {
-        await loader.loadArchive(api.root, (String path) async {
-          openedPath = path;
-        });
-      }, () => MockClient((http.Request request) async {
-        expect(request.url.toString(), absoluteUrl);
-        return http.Response.bytes(archiveBytes, 200);
-      }));
+      await http.runWithClient(
+        () async {
+          await loader.loadArchive(api.root, (String path) async {
+            openedPath = path;
+          });
+        },
+        () => MockClient((http.Request request) async {
+          expect(request.url.toString(), absoluteUrl);
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
 
       // Verify that the files were extracted under the workspace root, relative to the project root 'my_project/'
       expect(await api.fileExist('my_project/pubspec.yaml'), isTrue);
@@ -119,13 +125,16 @@ void main() {
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       String? openedPath;
-      await http.runWithClient(() async {
-        await loader.loadArchive(api.root, (String path) async {
-          openedPath = path;
-        });
-      }, () => MockClient((http.Request request) async {
-        return http.Response.bytes(archiveBytes, 200);
-      }));
+      await http.runWithClient(
+        () async {
+          await loader.loadArchive(api.root, (String path) async {
+            openedPath = path;
+          });
+        },
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
 
       expect(await api.fileExist('project/pubspec.yaml'), isTrue);
       expect(await api.fileExist('project/lib/main.dart'), isTrue);
@@ -145,14 +154,17 @@ void main() {
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
-      await http.runWithClient(() async {
-        expect(
-          () => loader.loadArchive(api.root, (String path) async {}),
-          throwsException,
-        );
-      }, () => MockClient((http.Request request) async {
-        return http.Response.bytes(archiveBytes, 200);
-      }));
+      await http.runWithClient(
+        () async {
+          expect(
+            () => loader.loadArchive(api.root, (String path) async {}),
+            throwsException,
+          );
+        },
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
     });
   });
 }

@@ -389,7 +389,7 @@ void main() {
     viewModel.focusPath('my_project');
     expect(viewModel.state.focusedPath, 'my_project');
     expect(viewModel.state.root.resource.path, 'my_project');
-    
+
     // Root children should be my_project's children ('lib' and 'pubspec.yaml')
     final rootChildren = viewModel.state.root.children;
     expect(rootChildren.map((node) => node.resource.path), containsAll(['my_project/lib', 'my_project/pubspec.yaml']));
