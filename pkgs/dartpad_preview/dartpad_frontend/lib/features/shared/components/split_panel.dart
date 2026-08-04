@@ -10,7 +10,6 @@ import '../../../app_styles.dart';
 
 /// A component that divides its layout space between two sub-components,
 /// allowing the user to resize the boundary between them by dragging a splitter handle.
-
 class SplitPanel extends StatefulComponent {
   const SplitPanel({
     required this.left,
