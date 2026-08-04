@@ -122,10 +122,12 @@ class AppState extends State<App> {
     final params = Uri.base.queryParameters;
 
     if (params case {
-      'archive': final String archiveUrl,
-      'path': final String filePath,
+      'archive': final String archiveUrlParam,
+      'path': final String filePathParam,
       //'main': final String? mainPath,
     }) {
+      final archiveUrl = Uri.decodeComponent(archiveUrlParam);
+      final filePath = Uri.decodeComponent(filePathParam);
       final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
       final projectDir = await loader.loadArchive(_workspaceRepository.root, _tabs.openFile);
       setState(() {
