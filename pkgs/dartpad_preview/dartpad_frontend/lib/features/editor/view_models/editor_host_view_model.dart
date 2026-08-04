@@ -14,7 +14,7 @@ import '../codemirror/code_mirror_tab.dart';
 import 'tabs_view_model.dart';
 
 /// Manages the state for the editor host area: diagnostics from the language
-/// server and bottom-panel visibility.
+/// server.
 ///
 /// Created by [AppState] and fed to the view layer via [ListenableBuilder].
 class EditorHostViewModel extends ChangeNotifier {
@@ -24,15 +24,11 @@ class EditorHostViewModel extends ChangeNotifier {
   final TabsViewModel tabs;
 
   List<DiagnosticEntry> _diagnostics = const [];
-  bool _showProblems = true;
 
   StreamSubscription<Map<String, dynamic>>? _diagnosticsSubscription;
 
   /// All current diagnostics, sorted by severity then location.
   List<DiagnosticEntry> get diagnostics => _diagnostics;
-
-  /// Whether the problems panel is visible.
-  bool get showProblems => _showProblems;
 
   /// Opens the file for [diagnostic] and navigates to its source position.
   Future<void> openDiagnostic(String fileName, Diagnostic diagnostic) async {
@@ -53,12 +49,6 @@ class EditorHostViewModel extends ChangeNotifier {
       _diagnostics = lsc.allDiagnostics;
       notifyListeners();
     });
-    notifyListeners();
-  }
-
-  /// Shows the problems panel.
-  void showProblemsPanel() {
-    _showProblems = true;
     notifyListeners();
   }
 
