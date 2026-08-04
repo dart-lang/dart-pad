@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport '../../../app.dart';
-library;
-
 import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
@@ -15,8 +12,6 @@ import '../../editor/view_models/tabs_view_model.dart';
 
 /// Manages diagnostics from the language server and navigation to their source
 /// locations.
-///
-/// Created by [AppState] and fed to the view layer via [ListenableBuilder].
 class DiagnosticsViewModel extends ChangeNotifier {
   DiagnosticsViewModel({required this.tabs});
 

@@ -153,9 +153,6 @@ class ProblemsPanel extends StatelessComponent {
       css(
         '& .problem-row:hover .problem-location, & .problem-row:focus-within .problem-location',
       ).styles(display: .none),
-      css(
-        '& .problem-row:hover .fix-with-ai-btn, & .problem-row:focus-within .fix-with-ai-btn',
-      ).styles(display: .inlineFlex),
     ]),
   ];
 }
