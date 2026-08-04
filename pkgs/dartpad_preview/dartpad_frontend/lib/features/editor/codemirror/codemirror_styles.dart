@@ -18,6 +18,30 @@ import '../../../app_styles.dart';
 /// - Diagnostic hover toolbars (`.cm-diagnostic-hover-toolbar`)
 @css
 List<StyleRule> get codemirrorStyles => [
+  css('.editor-container').styles(
+    display: .flex,
+    height: 100.percent,
+    minWidth: .zero,
+    overflow: .hidden,
+    flex: const Flex(grow: 1, basis: .zero),
+    backgroundColor: const Color('#1e1e1e'),
+  ),
+  css('.editor-container .cm-editor').styles(
+    position: const .relative(),
+    height: 100.percent,
+    minWidth: .zero,
+    flex: const Flex(grow: 1, basis: .zero),
+  ),
+  css('.editor-container .cm-scroller').styles(
+    overflow: .auto,
+    fontFamily: const .list([
+      FontFamily('Cascadia Code'),
+      FontFamily('Consolas'),
+      FontFamilies.monospace,
+    ]),
+    fontSize: 14.px,
+    raw: {'overscroll-behavior': 'none'},
+  ),
   css('.editor-container .cm-button').styles(
     padding: .symmetric(vertical: 6.px, horizontal: 12.px),
     border: .all(color: colorBorder, width: 1.px),

@@ -34,4 +34,28 @@ final class EditorStack extends StatelessComponent {
         ),
     ]);
   }
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.editor-stack', [
+      css('&').styles(
+        position: const .relative(),
+        minHeight: .zero,
+        flex: const Flex(grow: 1, basis: .zero),
+      ),
+      css('.editor-tab-slot', [
+        css('&').styles(
+          position: .absolute(top: 0.px, left: 0.px, right: 0.px, bottom: 0.px),
+          opacity: 0,
+          pointerEvents: .none,
+        ),
+        css('&.active').styles(
+          position: const .relative(),
+          height: 100.percent,
+          opacity: 1,
+          pointerEvents: .auto,
+        ),
+      ]),
+    ]),
+  ];
 }

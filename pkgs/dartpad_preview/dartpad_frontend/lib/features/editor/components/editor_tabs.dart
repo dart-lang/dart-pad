@@ -97,4 +97,83 @@ final class EditorTabs extends StatelessComponent {
         ),
     ]);
   }
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.editor-tabs', [
+      css('&').styles(
+        display: .flex,
+        minHeight: 36.px,
+        overflow: const .only(x: .auto, y: .hidden),
+        flex: const .shrink(0),
+        backgroundColor: const Color('#181818'),
+      ),
+      css('.editor-tab', [
+        css('&').styles(
+          display: .flex,
+          minWidth: 96.px,
+          maxWidth: 180.px,
+          padding: .only(left: 12.px, right: 8.px),
+          border: .only(
+            right: .solid(color: const Color('#303030'), width: 1.px),
+            top: .solid(color: Colors.transparent, width: 2.px),
+          ),
+          cursor: .pointer,
+          userSelect: .none,
+          alignItems: .center,
+          gap: .all(6.px),
+          color: const Color('#a8a8a8'),
+          backgroundColor: const Color('#181818'),
+        ),
+        css('&.active').styles(
+          border: .only(
+            top: .solid(color: const Color('#7aa2f7'), width: 2.px),
+          ),
+          color: const Color('#e8e8e8'),
+          backgroundColor: const Color('#1e1e1e'),
+        ),
+        css('&:hover').styles(backgroundColor: const Color('#252525')),
+        css('.editor-tab-name').styles(
+          minWidth: .zero,
+          overflow: .hidden,
+          flex: const Flex(grow: 1, basis: .zero),
+          fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+          fontSize: 12.px,
+          textOverflow: .ellipsis,
+          whiteSpace: .noWrap,
+        ),
+        css('.editor-tab-dirty-dot').styles(
+          width: 7.px,
+          height: 7.px,
+          radius: .circular(4.px),
+          flex: const .shrink(0),
+          backgroundColor: const Color('#d4d4d4'),
+        ),
+        css('.editor-tab-action', [
+          css('&').styles(
+            display: .flex,
+            width: 18.px,
+            height: 18.px,
+            padding: .zero,
+            border: .none,
+            radius: .circular(4.px),
+            cursor: .pointer,
+            justifyContent: .center,
+            alignItems: .center,
+            color: const Color('#b8b8b8'),
+            fontSize: 11.px,
+            backgroundColor: Colors.transparent,
+          ),
+          css('&:hover').styles(
+            color: const Color('#ffffff'),
+            backgroundColor: const Color('#3a3a3a'),
+          ),
+          css('&.close:hover').styles(
+            color: const Color('#ff8a8a'),
+            backgroundColor: const Color('#4a2525'),
+          ),
+        ]),
+      ]),
+    ]),
+  ];
 }

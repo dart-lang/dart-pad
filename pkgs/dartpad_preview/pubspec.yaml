@@ -26,3 +26,25 @@ dependency_overrides:
       url: https://github.com/dart-lang/sdk
       path: pkg/dartpad
       ref: 682f45325f17dc10c33dd07c485256154715ddb9
+  # TODO: Remove once https://github.com/dart-lang/webdev/issues/2854 is resolved.
+  frontend_server_client:
+    git:
+      url: https://github.com/schultek/webdev.git
+      path: frontend_server_client
+      ref: frontend-server-client-libraries
+  # TODO: Remove once Jaspr v0.24.0 is released.
+  jaspr:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+  jaspr_builder:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr_builder
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+  jaspr_cli:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr_cli
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
