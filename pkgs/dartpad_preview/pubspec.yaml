@@ -37,14 +37,14 @@ dependency_overrides:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr
-      ref: 873d55e71bcd7927c1e16053078c634ecce12d01
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
   jaspr_builder:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_builder
-      ref: 873d55e71bcd7927c1e16053078c634ecce12d01
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
   jaspr_cli:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_cli
-      ref: 873d55e71bcd7927c1e16053078c634ecce12d01
+      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
