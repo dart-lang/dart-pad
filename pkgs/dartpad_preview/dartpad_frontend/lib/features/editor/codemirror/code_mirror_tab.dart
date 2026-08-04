@@ -95,6 +95,16 @@ final class CodeMirrorTab extends EditorTab<Component> {
     });
   }
 
+  /// Moves the cursor to [line] and [character] and keeps that position when
+  /// this tab has just been activated.
+  void goToPosition(int line, int character) {
+    // Activating a previously opened tab schedules its saved view state to be
+    // restored on the next event-loop turn. A deliberate navigation request
+    // supersedes that state and must not be overwritten by the pending restore.
+    _savedViewState = null;
+    editor.goToPosition(line, character);
+  }
+
   @override
   Future<void> save() async {
     if (!_isDirty) {

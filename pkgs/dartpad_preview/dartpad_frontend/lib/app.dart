@@ -6,8 +6,9 @@ import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 
+import 'features/bottom_panel/view_models/diagnostics_view_model.dart';
+import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
@@ -17,7 +18,6 @@ import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
-import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/sample_project.dart';
@@ -38,6 +38,7 @@ class AppState extends State<App> {
   late final BrowserConsoleObserver _console;
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
+  late final DiagnosticsViewModel _diagnostics;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -63,12 +64,29 @@ class AppState extends State<App> {
       workspace: _workspaceRepository.workspaceResourceApi,
       events: _events,
     );
+    _diagnostics = DiagnosticsViewModel(tabs: _tabs);
 
     _console = BrowserConsoleObserver(_events);
 
     final projectFuture = loadProject();
 
     _events.on<WorkspaceLoadedEvent>().listen((event) async {
+      if (!mounted) {
+        return;
+      }
+
+      await projectFuture;
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        loadingStatus = 'Running Pub Get...';
+      });
+
+      await _workspaceRepository.pubGet(path: _projectDir);
+
       if (!mounted) {
         return;
       }
@@ -96,19 +114,12 @@ class AppState extends State<App> {
         },
       );
 
-      _fileTree.languageServerClient = languageServerClient;
-
       _analyzerSubscription = languageServerClient.analyzerActivityStream.listen(
-        (activity) => _logAnalyzerActivity(languageServerClient, activity),
+        _updateAnalyzerStatus,
       );
 
-      await projectFuture;
-
-      setState(() {
-        loadingStatus = 'Running Pub Get...';
-      });
-
-      await _workspaceRepository.pubGet(path: _projectDir);
+      _fileTree.languageServerClient = languageServerClient;
+      _diagnostics.attachLanguageServer(languageServerClient);
 
       codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
@@ -144,59 +155,49 @@ class AppState extends State<App> {
     }
   }
 
-  void _logAnalyzerActivity(LanguageServerClient languageServerClient, AnalyzerActivity activity) {
-    switch (activity) {
-      case AnalyzerStatusActivity(:final isAnalyzing):
-        _events.dispatch(
-          LogEvent(
-            '${DateTime.now().toIso8601String()}: ${isAnalyzing ? 'Analyzer is working…' : 'Analyzer is idle.'}',
-          ),
-        );
-        if (!isAnalyzing && mounted && loadingStatus == 'Analyzing Project...') {
-          setState(() {
-            loadingStatus = 'Done';
-          });
-        }
-        if (isAnalyzing && mounted && loadingStatus == 'Done') {
-          setState(() {
-            loadingStatus = 'Analyzing Project...';
-          });
-        }
-      case AnalyzerDiagnosticsActivity(:final path):
-        final entries = languageServerClient.allDiagnostics.where((entry) => entry.fileName == path);
-        for (final DiagnosticEntry(:diagnostic) in entries) {
-          final level = switch (diagnostic.severity) {
-            DiagnosticSeverity.error => Level.SEVERE,
-            DiagnosticSeverity.warning => Level.WARNING,
-            DiagnosticSeverity.info || DiagnosticSeverity.hint => Level.INFO,
-          };
-          _events.dispatch(
-            LogEvent(
-              '$path:${diagnostic.line + 1}:${diagnostic.character + 1} '
-              '[${diagnostic.severity.label}] ${diagnostic.message}',
-              level: level,
-            ),
-          );
-        }
+  void _updateAnalyzerStatus(AnalyzerActivity activity) {
+    if (!mounted || activity is! AnalyzerStatusActivity) {
+      return;
     }
+
+    final status = activity.isAnalyzing ? 'Analyzing Project...' : 'Done';
+    if (loadingStatus == status) {
+      return;
+    }
+
+    setState(() {
+      loadingStatus = status;
+    });
   }
 
   @override
   Component build(BuildContext context) {
     return ListenableBuilder(
       listenable: _tabs,
-      builder: (context) {
-        return EditorShell(
-          openTabs: _tabs.openTabs,
-          activeFile: _tabs.activeFile,
-          errorMessage: _tabs.errorMessage,
-          warningMessage: _tabs.warningMessage,
-          fileTree: _buildFileTree(),
-          onSwitchFile: _tabs.switchFile,
-          onCloseFile: _tabs.closeFile,
-          bootstrapLabel: loadingStatus,
-        );
-      },
+      builder: (context) => EditorShell(
+        openTabs: _tabs.openTabs,
+        activeFile: _tabs.activeFile,
+        errorMessage: _tabs.errorMessage,
+        warningMessage: _tabs.warningMessage,
+        fileTree: _buildFileTree(),
+        onSwitchFile: _tabs.switchFile,
+        onCloseFile: _tabs.closeFile,
+        bootstrapLabel: loadingStatus,
+        bottomPanel: _buildBottomPanel(),
+      ),
+    );
+  }
+
+  Component _buildBottomPanel() {
+    return ListenableBuilder(
+      listenable: _diagnostics,
+      builder: (context) => BottomPanel(
+        diagnostics: _diagnostics.diagnostics,
+        activeFile: _tabs.activeFile,
+        onOpenDiagnostic: (fileName, diagnostic) {
+          unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
+        },
+      ),
     );
   }
 
@@ -212,12 +213,13 @@ class AppState extends State<App> {
 
   @override
   void dispose() {
-    _analyzerSubscription?.cancel();
     unawaited(_disposeResources());
     super.dispose();
   }
 
   Future<void> _disposeResources() async {
+    await _analyzerSubscription?.cancel();
+    _diagnostics.dispose();
     _fileTree.dispose();
     _tabs.dispose();
     _console.dispose();
