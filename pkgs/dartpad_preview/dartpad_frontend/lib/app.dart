@@ -124,23 +124,23 @@ class AppState extends State<App> {
     if (params case {
       'archive': final String archiveUrlParam,
       'path': final String filePathParam,
-      //'main': final String? mainPath,
     }) {
       final archiveUrl = Uri.decodeComponent(archiveUrlParam);
       final filePath = Uri.decodeComponent(filePathParam);
       final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-      final projectDir = await loader.loadArchive(_workspaceRepository.root, _tabs.openFile);
+      final projectDir = await loader.loadArchive(_workspaceRepository.root);
       setState(() {
         _projectDir = projectDir;
       });
       _fileTree.focusPath(projectDir);
+      unawaited(_tabs.openFile(workspaceContext.normalize(filePath)));
     } else {
       await createSampleProject(_workspaceRepository.root);
-      await openSampleProject(_tabs.openFile);
       setState(() {
         _projectDir = '';
       });
       _fileTree.focusPath('');
+      unawaited(openSampleProject(_tabs.openFile));
     }
   }
 

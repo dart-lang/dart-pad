@@ -8,18 +8,29 @@ import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
 
+/// A loader that downloads a (gzipped) tar archive from a remote URL,
+/// extracts all of its files into a virtual workspace folder, and opens a
+/// target file.
 class ArchiveLoader {
+  /// Creates an archive loader.
   const ArchiveLoader({
     required this.archiveUrl,
     required this.filePath,
-    this.mainPath,
   });
 
+  /// The absolute URL pointing to the tar or gzipped tar archive.
   final String archiveUrl;
-  final String filePath;
-  final String? mainPath;
 
-  Future<String> loadArchive(WorkspaceFolder root, Future<void> Function(String path) openFile) async {
+  /// The workspace-relative file path within the project to open after extraction.
+  final String filePath;
+
+  /// Downloads, decompresses, and extracts all files from the [archiveUrl]
+  /// into the workspace [root].
+  ///
+  /// Scans the archive files to find the nearest parent directory of [filePath]
+  /// that contains a `pubspec.yaml` file. Returns the path to that directory
+  /// relative to the archive root.
+  Future<String> loadArchive(WorkspaceFolder root) async {
     final Uri uri = Uri.parse(archiveUrl);
     if (!uri.isAbsolute) {
       throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
@@ -110,7 +121,6 @@ class ArchiveLoader {
       await root.workspace.writeFileFromBytes(root.getFile(name).path, fileBytes);
     }
 
-    await openFile(normalizedFilePath);
     return rootProjectDir;
   }
 }
