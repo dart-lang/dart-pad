@@ -10,15 +10,15 @@ import 'dart:async';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../codemirror/code_mirror_tab.dart';
-import 'tabs_view_model.dart';
+import '../../editor/codemirror/code_mirror_tab.dart';
+import '../../editor/view_models/tabs_view_model.dart';
 
-/// Manages the state for the editor host area: diagnostics from the language
-/// server.
+/// Manages diagnostics from the language server and navigation to their source
+/// locations.
 ///
 /// Created by [AppState] and fed to the view layer via [ListenableBuilder].
-class EditorHostViewModel extends ChangeNotifier {
-  EditorHostViewModel({required this.tabs});
+class DiagnosticsViewModel extends ChangeNotifier {
+  DiagnosticsViewModel({required this.tabs});
 
   /// The editor tabs used to open and navigate to diagnostic locations.
   final TabsViewModel tabs;

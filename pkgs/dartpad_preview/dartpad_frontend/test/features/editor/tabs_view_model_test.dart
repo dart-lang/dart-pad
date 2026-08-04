@@ -9,11 +9,11 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tabs.dart';
-import 'package:dartpad_frontend/features/editor/view_models/editor_host_view_model.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -70,7 +70,7 @@ void main() {
   late AppEventBus events;
   late FakeWorkspaceController workspace;
   TabsViewModel? tabs;
-  EditorHostViewModel? editorHost;
+  DiagnosticsViewModel? diagnostics;
   late List<LogEvent> logs;
   late StreamSubscription<LogEvent> logSubscription;
 
@@ -94,13 +94,13 @@ void main() {
         CodeMirrorTabAdapter(),
       ],
     );
-    editorHost = EditorHostViewModel(tabs: tabs!);
+    diagnostics = DiagnosticsViewModel(tabs: tabs!);
     await openSampleProject(tabs!.openFile);
   });
 
   tearDown(() async {
-    editorHost?.dispose();
-    editorHost = null;
+    diagnostics?.dispose();
+    diagnostics = null;
     tabs?.dispose();
     tabs = null;
     await logSubscription.cancel();
@@ -116,7 +116,7 @@ void main() {
   });
 
   test('diagnostic navigation activates the target and keeps the requested position', () async {
-    await editorHost!.openDiagnostic(
+    await diagnostics!.openDiagnostic(
       'pubspec.yaml',
       const Diagnostic(
         line: 0,
@@ -136,7 +136,7 @@ void main() {
     workspace.files['broken.dart'] = 'void main() {}';
     workspace.readError = StateError('internal read failure');
 
-    await editorHost!.openDiagnostic(
+    await diagnostics!.openDiagnostic(
       'broken.dart',
       const Diagnostic(
         line: 0,
