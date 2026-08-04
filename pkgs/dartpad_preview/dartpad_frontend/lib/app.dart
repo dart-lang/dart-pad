@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
@@ -18,7 +17,6 @@ import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/browser_console_observer.dart';
-import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
@@ -39,8 +37,6 @@ class AppState extends State<App> {
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
   late final EditorHostViewModel _editorHost;
-
-  StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
   String loadingStatus = 'Loading Workspace...';
 
@@ -98,10 +94,6 @@ class AppState extends State<App> {
       _fileTree.languageServerClient = languageServerClient;
       _editorHost.attachLanguageServer(languageServerClient);
 
-      _analyzerSubscription = languageServerClient.analyzerActivityStream.listen(
-        (activity) => _logAnalyzerActivity(languageServerClient, activity),
-      );
-
       setState(() {
         loadingStatus = 'Running Pub Get...';
       });
@@ -111,7 +103,7 @@ class AppState extends State<App> {
       codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
       setState(() {
-        loadingStatus = 'Analyzing Project...';
+        loadingStatus = '';
       });
     });
 
@@ -119,43 +111,6 @@ class AppState extends State<App> {
       await createSampleProject(_workspaceRepository.root);
       await openSampleProject(_tabs.openFile);
     });
-  }
-
-  void _logAnalyzerActivity(LanguageServerClient languageServerClient, AnalyzerActivity activity) {
-    switch (activity) {
-      case AnalyzerStatusActivity(:final isAnalyzing):
-        _events.dispatch(
-          LogEvent(
-            '${DateTime.now().toIso8601String()}: ${isAnalyzing ? 'Analyzer is working…' : 'Analyzer is idle.'}',
-          ),
-        );
-        if (!isAnalyzing && mounted && loadingStatus == 'Analyzing Project...') {
-          setState(() {
-            loadingStatus = 'Done';
-          });
-        }
-        if (isAnalyzing && mounted && loadingStatus == 'Done') {
-          setState(() {
-            loadingStatus = 'Analyzing Project...';
-          });
-        }
-      case AnalyzerDiagnosticsActivity(:final path):
-        final entries = languageServerClient.allDiagnostics.where((entry) => entry.fileName == path);
-        for (final DiagnosticEntry(:diagnostic) in entries) {
-          final level = switch (diagnostic.severity) {
-            DiagnosticSeverity.error => Level.SEVERE,
-            DiagnosticSeverity.warning => Level.WARNING,
-            DiagnosticSeverity.info || DiagnosticSeverity.hint => Level.INFO,
-          };
-          _events.dispatch(
-            LogEvent(
-              '$path:${diagnostic.line + 1}:${diagnostic.character + 1} '
-              '[${diagnostic.severity.label}] ${diagnostic.message}',
-              level: level,
-            ),
-          );
-        }
-    }
   }
 
   @override
@@ -180,7 +135,6 @@ class AppState extends State<App> {
 
   @override
   void dispose() {
-    _analyzerSubscription?.cancel();
     unawaited(_disposeResources());
     super.dispose();
   }
