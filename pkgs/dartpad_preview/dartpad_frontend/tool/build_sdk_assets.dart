@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
@@ -165,14 +166,43 @@ Future<void> _writeManifest(Directory webRoot) async {
       'sha256': (await sha256.bind(file.openRead()).first).toString(),
     };
   }
+  final runtimeVersions = await _readRuntimeVersions(webRoot);
   final manifest = {
     'schemaVersion': 1,
     'dartRevision': dartRevision,
     'flutterRevision': flutterRevision,
+    'dartVersion': runtimeVersions.dartVersion,
+    'flutterVersion': runtimeVersions.flutterVersion,
     'files': entries,
   };
   final encoder = const JsonEncoder.withIndent('  ');
   await File(p.join(webRoot.path, 'dartpad-assets.json')).writeAsString('${encoder.convert(manifest)}\n');
+}
+
+Future<({String dartVersion, String flutterVersion})> _readRuntimeVersions(
+  Directory webRoot,
+) async {
+  final archiveBytes = await File(
+    p.join(webRoot.path, 'flutter', 'sdk.tar'),
+  ).readAsBytes();
+  final archive = TarDecoder().decodeBytes(archiveBytes);
+
+  String readEntry(String path) {
+    final file = archive.files.firstWhere(
+      (file) => file.name == path || file.name == '/$path',
+    );
+    return utf8.decode(file.content);
+  }
+
+  final flutterVersion =
+      jsonDecode(
+            readEntry('sdk/bin/cache/flutter.version.json'),
+          )
+          as Map<String, dynamic>;
+  return (
+    dartVersion: flutterVersion['dartSdkVersion'] as String,
+    flutterVersion: flutterVersion['flutterVersion'] as String,
+  );
 }
 
 Future<void> _validateManifest(Directory webRoot) async {
