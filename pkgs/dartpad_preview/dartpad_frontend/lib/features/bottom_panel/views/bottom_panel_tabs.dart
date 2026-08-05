@@ -91,7 +91,7 @@ class BottomPanelTabs extends StatelessComponent {
     ),
     css('.bottom-panel-tab.active').styles(
       color: colorOnSurface,
-      backgroundColor: colorContainer,
+      backgroundColor: colorOnSurface.withOpacity(0.08),
     ),
     css('.bottom-panel-tab-count').styles(
       display: .inlineFlex,
