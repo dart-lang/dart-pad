@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:web/web.dart' as web;
@@ -90,6 +92,83 @@ final class WorkspaceRepository {
   Future<void> close() async {
     await workspaceResourceApi.dispose();
     await dartpad?.dispose();
+  }
+
+  Future<HotReloadCompiler> startHotReloadCompiler(Uri uri) async {
+    final workspace = await _workspaceFuture;
+    return await workspace.startHotReloadCompiler(uri);
+  }
+
+  /// Converts a workspace [filePath] to a `package:` URI based on the nearest
+  /// resolved package configuration or pubspec.yaml.
+  Future<Uri> convertToPackageUri(String filePath) async {
+    String? resolvedPackageName;
+    WorkspaceFolder? resolvedFolder;
+
+    // 1. Search for package_config.json in all parent folders (from bottom to top)
+    WorkspaceFolder folder = root.getFile(filePath).parent;
+    while (true) {
+      final config = folder.getFile('.dart_tool/package_config.json');
+      if (await config.exists()) {
+        try {
+          final content = await config.readContent();
+          final configJson = json.decode(content) as Map<String, dynamic>;
+          final packages = configJson['packages'] as List<dynamic>?;
+          if (packages != null) {
+            for (final pkg in packages) {
+              final map = pkg as Map<String, dynamic>;
+              if (map['rootUri'] == '../') {
+                resolvedPackageName = map['name'] as String;
+                resolvedFolder = folder;
+                break;
+              }
+            }
+          }
+        } catch (_) {
+          // Fall through.
+        }
+      }
+      if (resolvedPackageName != null) {
+        break;
+      }
+
+      if (folder.isRoot) {
+        break;
+      }
+      folder = folder.parent;
+    }
+
+    // 2. Search for pubspec.yaml in all parent folders (from bottom to top)
+    if (resolvedPackageName == null) {
+      folder = root.getFile(filePath).parent;
+      while (true) {
+        final pubspec = folder.getFile('pubspec.yaml');
+        if (await pubspec.exists()) {
+          final content = await pubspec.readContent();
+          final match = RegExp(r'^name:\s*(\S+)', multiLine: true).firstMatch(content);
+          if (match != null) {
+            resolvedPackageName = match.group(1)!.replaceAll(RegExp(r'''^['"]|['"]$'''), '');
+            resolvedFolder = folder;
+            break;
+          }
+        }
+
+        if (folder.isRoot) {
+          break;
+        }
+        folder = folder.parent;
+      }
+    }
+
+    final packageName = resolvedPackageName ?? 'app';
+    final packageFolder = resolvedFolder ?? root;
+
+    final libFolder = workspaceContext.join(packageFolder.path, 'lib');
+    final relativePath = workspacePath.relative(filePath, from: libFolder);
+    return Uri(
+      scheme: 'package',
+      path: workspacePath.join(packageName, relativePath),
+    );
   }
 }
 
