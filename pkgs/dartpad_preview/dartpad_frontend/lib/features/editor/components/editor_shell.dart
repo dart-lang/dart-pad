@@ -20,6 +20,7 @@ class EditorShell extends StatelessComponent {
     required this.errorMessage,
     required this.warningMessage,
     required this.fileTree,
+    required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bootstrapLabel,
@@ -50,6 +51,9 @@ class EditorShell extends StatelessComponent {
 
   /// The workspace file tree.
   final Component fileTree;
+
+  /// A component displayed above the active editor content.
+  final Component editorOverlay;
 
   /// Bottom panel (e.g. problems view) rendered below the editor.
   final Component bottomPanel;
@@ -86,6 +90,7 @@ class EditorShell extends StatelessComponent {
                   EditorStack(
                     openTabs: openTabs,
                     activeFile: activeFile,
+                    overlay: editorOverlay,
                   ),
                 ],
               ]),

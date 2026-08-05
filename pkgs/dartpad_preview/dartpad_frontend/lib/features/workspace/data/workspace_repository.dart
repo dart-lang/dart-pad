@@ -9,6 +9,7 @@ import 'package:web/web.dart' as web;
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/events/workspace_event.dart';
+import '../project_path.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 final class WorkspaceRepository {
@@ -54,15 +55,60 @@ final class WorkspaceRepository {
     );
   }
 
-  Future<void> pubGet({String path = ''}) async {
-    events.dispatch(const LogEvent('Running pub get...'));
-    final workspace = await _workspaceFuture;
-    final result = await workspace.pub(uri: path, command: 'get');
-    events.dispatch(LogEvent('pub get finished.\n${result.log}'));
+  Future<void> pubGet({String path = '', String projectRoot = ''}) => runWorkspacePubGet(
+    events: events,
+    path: path,
+    projectRoot: projectRoot,
+    command: (normalizedPath) async {
+      final workspace = await _workspaceFuture;
+      final result = await workspace.pub(uri: normalizedPath, command: 'get');
+      return result.log;
+    },
+  );
+
+  /// Removes generated Pub and build output from the workspace.
+  Future<void> pubClean({String path = ''}) async {
+    events.dispatch(const LogEvent('Cleaning workspace...'));
+    await cleanGeneratedOutput(workspaceResourceApi, path: path);
+    events.dispatch(const LogEvent('Cleaning workspace... Done'));
+  }
+
+  /// Deletes generated directories when they exist.
+  static Future<void> cleanGeneratedOutput(
+    WorkspaceResourceApi workspace, {
+    String path = '',
+  }) async {
+    final buildPath = workspaceContext.join(path, 'build');
+    final dartToolPath = workspaceContext.join(path, '.dart_tool');
+    if (await workspace.folderExist(buildPath)) {
+      await workspace.deleteFileSystemEntity(buildPath);
+    }
+    if (await workspace.folderExist(dartToolPath)) {
+      await workspace.deleteFileSystemEntity(dartToolPath);
+    }
   }
 
   Future<void> close() async {
     await workspaceResourceApi.dispose();
     await dartpad?.dispose();
+  }
+}
+
+/// Runs Pub Get and forwards its output to the application debug console.
+Future<void> runWorkspacePubGet({
+  required AppEventBus events,
+  required String path,
+  required String projectRoot,
+  required Future<String> Function(String normalizedPath) command,
+}) async {
+  final normalizedPath = workspaceContext.normalize(path);
+  final pathLabel = projectRelativeDisplayPath(
+    path: normalizedPath,
+    projectRoot: projectRoot,
+  );
+  events.dispatch(LogEvent('Running pub get in $pathLabel'));
+  final log = await command(normalizedPath);
+  if (log.isNotEmpty) {
+    events.dispatch(LogEvent(log));
   }
 }
