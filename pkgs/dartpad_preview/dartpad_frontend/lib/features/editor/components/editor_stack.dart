@@ -14,6 +14,7 @@ final class EditorStack extends StatelessComponent {
   const EditorStack({
     required this.openTabs,
     required this.activeFile,
+    required this.overlay,
     super.key,
   });
 
@@ -22,6 +23,9 @@ final class EditorStack extends StatelessComponent {
 
   /// The path of the visible editor tab.
   final String activeFile;
+
+  /// A component displayed above the editor tab slots.
+  final Component overlay;
 
   @override
   Component build(BuildContext context) {
@@ -32,6 +36,7 @@ final class EditorStack extends StatelessComponent {
           classes: tab.path == activeFile ? 'editor-tab-slot active' : 'editor-tab-slot',
           [tab.build()],
         ),
+      overlay,
     ]);
   }
 
