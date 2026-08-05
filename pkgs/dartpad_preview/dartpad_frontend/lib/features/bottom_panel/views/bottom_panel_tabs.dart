@@ -6,6 +6,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/icons.dart';
 import 'bottom_panel.dart';
 
 /// The tab bar for the bottom panel.
@@ -48,8 +49,9 @@ class BottomPanelTabs extends StatelessComponent {
       if (activeTab == BottomPanelTab.debugConsole)
         button(
           classes: 'bottom-panel-clear-btn',
+          attributes: const {'title': 'Clear console', 'aria-label': 'Clear console'},
           onClick: onClearDebugConsole,
-          [const .text('Clear')],
+          [const Icon('playlist_remove', size: 20)],
         ),
     ]);
   }
@@ -107,17 +109,16 @@ class BottomPanelTabs extends StatelessComponent {
     ),
     css('.bottom-panel-clear-btn').styles(
       display: .inlineFlex,
-      padding: .symmetric(vertical: 4.px, horizontal: 10.px),
+      padding: .all(4.px),
       margin: .only(right: 8.px),
-      border: const .all(color: colorBorder),
+      border: .none,
       radius: .circular(4.px),
       cursor: .pointer,
+      justifyContent: .center,
       alignItems: .center,
       alignSelf: .center,
       color: colorOnSurfaceVariant,
-      fontSize: 11.px,
-      fontWeight: .w500,
-      backgroundColor: colorOnSurface.withOpacity(0.04),
+      backgroundColor: Colors.transparent,
     ),
     css('.bottom-panel-clear-btn:hover').styles(
       color: colorOnSurface,

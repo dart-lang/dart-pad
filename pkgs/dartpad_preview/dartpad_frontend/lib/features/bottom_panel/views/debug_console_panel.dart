@@ -95,24 +95,21 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
     ),
     css('.log-row').styles(
       display: .block,
-      padding: .symmetric(horizontal: 12.px, vertical: 4.px),
+      padding: .symmetric(horizontal: 12.px, vertical: 2.px),
       border: .only(
         left: .solid(color: Colors.transparent, width: 2.px),
-        bottom: .solid(color: colorBorder, width: 1.px),
       ),
       backgroundColor: Colors.transparent,
     ),
     css('.log-row.warning').styles(
       border: .only(
         left: .solid(color: colorWarning, width: 2.px),
-        bottom: .solid(color: colorBorder, width: 1.px),
       ),
       backgroundColor: colorWarning.withOpacity(0.08),
     ),
     css('.log-row.error').styles(
       border: .only(
         left: .solid(color: colorError, width: 2.px),
-        bottom: .solid(color: colorBorder, width: 1.px),
       ),
       backgroundColor: colorError.withOpacity(0.08),
     ),
