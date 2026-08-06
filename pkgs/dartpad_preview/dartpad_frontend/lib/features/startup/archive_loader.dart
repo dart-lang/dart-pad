@@ -27,7 +27,7 @@ class ArchiveLoader {
       throw Exception('Failed to load package $packageName');
     }
 
-    final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, Object?> json = jsonDecode(response.body) as Map<String, Object?>;
     if (json case {'latest': {'archive_url': final String archiveUrl}}) {
       return ArchiveLoader(archiveUrl: archiveUrl, packageName: packageName);
     }
@@ -47,10 +47,15 @@ class ArchiveLoader {
   /// Downloads, decompresses, and extracts all files from the [archiveUrl]
   /// into the workspace [root].
   ///
-  /// Scans the archive files to find the nearest parent directory of [filePath]
-  /// that contains a `pubspec.yaml` file. Returns the path to that directory
-  /// relative to the archive root.
-  Future<(String, String?)> loadArchive(WorkspaceFolder root) async {
+  /// Scans the archive files to find the nearest parent directory containing
+  /// a `pubspec.yaml` file for the active target file.
+  ///
+  /// Returns a record containing:
+  /// - `projectDir`: The path to the project directory relative to the archive root.
+  /// - `targetFilePath`: The path to the file to open after extraction, which is
+  ///   either the provided [filePath] or resolved by searching the archive for
+  ///   well-known example files.
+  Future<({String projectDir, String? targetFilePath})> loadArchive(WorkspaceFolder root) async {
     final Uri uri = Uri.parse(archiveUrl);
     if (!uri.isAbsolute) {
       throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
@@ -141,7 +146,7 @@ class ArchiveLoader {
       await root.workspace.writeFileFromBytes(root.getFile(name).path, fileBytes);
     }
 
-    return (projectDir, targetFilePath);
+    return (projectDir: projectDir, targetFilePath: targetFilePath);
   }
 
   /// Finds the example file in the archive, returning null if not found.
