@@ -228,11 +228,11 @@ class AppState extends State<App> {
       activeFile: _tabs.activeFile,
       saveAllFiles: _tabs.saveAllTabs,
       events: _events,
-      onPubGet: (path) => _workspaceRepository.pubGet(
-        path: path,
+      onPubGet: (workspacePath) => _workspaceRepository.pubGet(
+        path: workspacePath,
         projectRoot: _projectDir,
       ),
-      onPubClean: (path) => _workspaceRepository.pubClean(path: path),
+      onPubClean: (workspacePath) => _workspaceRepository.pubClean(path: workspacePath),
     );
   }
 
