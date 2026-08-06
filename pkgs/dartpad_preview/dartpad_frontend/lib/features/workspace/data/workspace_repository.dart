@@ -8,10 +8,10 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:web/web.dart' as web;
 
+import '../../preview/models/compiler_session.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/events/workspace_event.dart';
-import '../../preview/models/compiler_session.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 class WorkspaceRepository {
