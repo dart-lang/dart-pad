@@ -6,6 +6,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/icons.dart';
 import 'bottom_panel.dart';
 
 /// The tab bar for the bottom panel.
@@ -14,6 +15,7 @@ class BottomPanelTabs extends StatelessComponent {
     required this.problemsCount,
     required this.activeTab,
     required this.onSelectTab,
+    required this.onClearDebugConsole,
     super.key,
   });
 
@@ -26,6 +28,9 @@ class BottomPanelTabs extends StatelessComponent {
   /// Called when a tab is clicked.
   final void Function(BottomPanelTab tab) onSelectTab;
 
+  /// Clears the debug console's output.
+  final void Function() onClearDebugConsole;
+
   @override
   Component build(BuildContext context) {
     return div(classes: 'bottom-panel-tabs', [
@@ -35,6 +40,19 @@ class BottomPanelTabs extends StatelessComponent {
         active: activeTab == BottomPanelTab.problems,
         onClick: () => onSelectTab(BottomPanelTab.problems),
       ),
+      _BottomPanelTabButton(
+        label: 'Debug Console',
+        active: activeTab == BottomPanelTab.debugConsole,
+        onClick: () => onSelectTab(BottomPanelTab.debugConsole),
+      ),
+      const div(classes: 'bottom-panel-tabs-spacer', []),
+      if (activeTab == BottomPanelTab.debugConsole)
+        button(
+          classes: 'bottom-panel-clear-btn',
+          attributes: const {'title': 'Clear console', 'aria-label': 'Clear console'},
+          onClick: onClearDebugConsole,
+          [const Icon('playlist_remove', size: 20)],
+        ),
     ]);
   }
 
@@ -73,7 +91,7 @@ class BottomPanelTabs extends StatelessComponent {
     ),
     css('.bottom-panel-tab.active').styles(
       color: colorOnSurface,
-      backgroundColor: colorContainer,
+      backgroundColor: colorOnSurface.withOpacity(0.08),
     ),
     css('.bottom-panel-tab-count').styles(
       display: .inlineFlex,
@@ -88,6 +106,23 @@ class BottomPanelTabs extends StatelessComponent {
     ),
     css('.bottom-panel-tabs-spacer').styles(
       flex: const Flex(grow: 1),
+    ),
+    css('.bottom-panel-clear-btn').styles(
+      display: .inlineFlex,
+      padding: .all(4.px),
+      margin: .only(right: 8.px),
+      border: .none,
+      radius: .circular(4.px),
+      cursor: .pointer,
+      justifyContent: .center,
+      alignItems: .center,
+      alignSelf: .center,
+      color: colorOnSurfaceVariant,
+      backgroundColor: Colors.transparent,
+    ),
+    css('.bottom-panel-clear-btn:hover').styles(
+      color: colorOnSurface,
+      backgroundColor: colorOnSurface.withOpacity(0.08),
     ),
   ];
 }

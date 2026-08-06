@@ -15,8 +15,6 @@ import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adap
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tabs.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
-import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
-import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/startup/sample_project.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -67,12 +65,9 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
 
 /// Runs the [TabsViewModel] test suite.
 void main() {
-  late AppEventBus events;
   late FakeWorkspaceController workspace;
   TabsViewModel? tabs;
   DiagnosticsViewModel? diagnostics;
-  late List<LogEvent> logs;
-  late StreamSubscription<LogEvent> logSubscription;
 
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
@@ -83,12 +78,8 @@ void main() {
   });
 
   setUp(() async {
-    events = AppEventBus();
     workspace = FakeWorkspaceController();
-    logs = [];
-    logSubscription = events.on<LogEvent>().listen(logs.add);
     tabs = TabsViewModel(
-      events: events,
       workspaceResourceApi: workspace,
       adapters: [
         CodeMirrorTabAdapter(),
@@ -103,8 +94,6 @@ void main() {
     diagnostics = null;
     tabs?.dispose();
     tabs = null;
-    await logSubscription.cancel();
-    await events.dispose();
   });
 
   test('opens main.dart with main.dart active', () {
@@ -149,8 +138,6 @@ void main() {
 
     expect(tabs!.errorMessage, 'Could not open broken.dart.');
     expect(tabs!.activeFile, 'lib/main.dart');
-    expect(logs.single.error, isA<StateError>());
-    expect(logs.single.stackTrace, isNotNull);
   });
 
   test('allows every clean tab including the last tab to close', () async {
@@ -192,10 +179,9 @@ void main() {
       'name: test\nversion: 1.0.0',
     );
     expect(pubspecTab.hasUnsavedChanges, isFalse);
-    expect(logs.single.message, contains('pubspec.yaml'));
   });
 
-  test('save-all errors hide internal details but retain them in logs', () async {
+  test('save-all errors hide internal details', () async {
     await tabs!.openFile('pubspec.yaml');
     final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
     pubspecTab.editor.text = '${pubspecTab.content}\nversion: 1.0.0';
@@ -209,8 +195,6 @@ void main() {
 
     expect(tabs!.errorMessage, 'Could not save all files.');
     expect(tabs!.errorMessage, isNot(contains('Bad state')));
-    expect(logs.single.error, isA<StateError>());
-    expect(logs.single.stackTrace, isNotNull);
   });
 
   testClient('renders one dirty indicator and a close action for every tab', (tester) async {
