@@ -52,6 +52,7 @@ class AppState extends State<App> {
 
   String loadingStatus = 'Loading Workspace...';
   String _projectDir = '';
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -68,6 +69,7 @@ class AppState extends State<App> {
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
     );
+
     _fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(_tabs),
       workspace: _workspaceRepository.workspaceResourceApi,
@@ -152,26 +154,59 @@ class AppState extends State<App> {
   Future<void> loadProject() async {
     final params = Uri.base.queryParameters;
 
-    if (params case {
-      'archive': final String archiveUrlParam,
-      'path': final String filePathParam,
-    }) {
-      final archiveUrl = Uri.decodeComponent(archiveUrlParam);
-      final filePath = Uri.decodeComponent(filePathParam);
-      final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-      final projectDir = await loader.loadArchive(_workspaceRepository.root);
+    try {
+      if (params case {
+        'archive': final String archiveUrlParam,
+        'path': final String filePathParam,
+      }) {
+        setState(() {
+          loadingStatus = 'Downloading Archive...';
+          _errorMessage = null;
+        });
+        final archiveUrl = Uri.decodeComponent(archiveUrlParam);
+        final filePath = Uri.decodeComponent(filePathParam);
+        final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
+        final (:projectDir, :targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
+        setState(() {
+          _projectDir = projectDir;
+        });
+        _fileTree.focusPath(projectDir);
+        if (targetFilePath != null) {
+          unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
+        }
+      } else if (params case {'package': final String packageName}) {
+        setState(() {
+          loadingStatus = 'Resolving Package...';
+          _errorMessage = null;
+        });
+        final loader = await ArchiveLoader.forPackage(packageName);
+        setState(() {
+          loadingStatus = 'Downloading Package...';
+        });
+        final (:projectDir, :targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
+        setState(() {
+          _projectDir = projectDir;
+        });
+        _fileTree.focusPath(projectDir);
+        if (targetFilePath != null) {
+          unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
+        }
+      } else {
+        setState(() {
+          loadingStatus = 'Creating Sample Project...';
+          _errorMessage = null;
+        });
+        await createSampleProject(_workspaceRepository.root);
+        setState(() {
+          _projectDir = '';
+        });
+        _fileTree.focusPath('');
+        unawaited(openSampleProject(_tabs.openFile));
+      }
+    } catch (error) {
       setState(() {
-        _projectDir = projectDir;
+        _errorMessage = 'Failed to load project: $error';
       });
-      _fileTree.focusPath(projectDir);
-      unawaited(_tabs.openFile(workspaceContext.normalize(filePath)));
-    } else {
-      await createSampleProject(_workspaceRepository.root);
-      setState(() {
-        _projectDir = '';
-      });
-      _fileTree.focusPath('');
-      unawaited(openSampleProject(_tabs.openFile));
     }
   }
 
@@ -207,7 +242,7 @@ class AppState extends State<App> {
           ),
         ]),
         Footer(
-          statusLabel: _tabs.errorMessage ?? _tabs.warningMessage ?? loadingStatus,
+          statusLabel: _errorMessage ?? _tabs.errorMessage ?? _tabs.warningMessage ?? loadingStatus,
         ),
       ]),
     );
@@ -220,6 +255,7 @@ class AppState extends State<App> {
         listenable: _diagnostics,
         builder: (context) => BottomPanel(
           diagnostics: _diagnostics.diagnostics,
+          hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
           activeFile: _tabs.activeFile,
           logs: _debugConsole.logs,
           onClearDebugConsole: _debugConsole.clear,
