@@ -103,7 +103,7 @@ final class EditorTabs extends StatelessComponent {
     css('.editor-tabs', [
       css('&').styles(
         display: .flex,
-        minHeight: 36.px,
+        minHeight: 38.px,
         overflow: const .only(x: .auto, y: .hidden),
         flex: const .shrink(0),
         backgroundColor: const Color('#181818'),

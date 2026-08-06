@@ -238,6 +238,7 @@ class AppState extends State<App> {
       builder: (context) => div(classes: 'app-shell', [
         div(classes: 'app-workspace', [
           SplitPanel(
+            initialValue: 0.7,
             left: EditorShell(
               openTabs: _tabs.openTabs,
               activeFile: _tabs.activeFile,
@@ -247,13 +248,7 @@ class AppState extends State<App> {
               onCloseFile: _tabs.closeFile,
               bottomPanel: _buildBottomPanel(),
             ),
-            right: ListenableBuilder(
-              listenable: _preview,
-              builder: (context) => PreviewContainer(
-                preview: _preview,
-                activeFile: _tabs.activeFile,
-              ),
-            ),
+            right: _buildPreviewPanel(),
           ),
         ]),
         Footer(
@@ -301,6 +296,16 @@ class AppState extends State<App> {
       builder: (context) => FileTreeView(
         state: _fileTree.state,
         actions: _fileTree.actions,
+      ),
+    );
+  }
+
+  Component _buildPreviewPanel() {
+    return ListenableBuilder(
+      listenable: _preview,
+      builder: (context) => PreviewContainer(
+        preview: _preview,
+        activeFile: _tabs.activeFile,
       ),
     );
   }

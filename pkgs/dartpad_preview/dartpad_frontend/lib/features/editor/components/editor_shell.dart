@@ -51,61 +51,52 @@ class EditorShell extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final openTabs = this.openTabs;
-    return div(classes: 'ide-shell', [
-      div(classes: 'workspace-shell', [
-        SplitPanel(
-          initialValue: 200,
-          useRatio: false,
-          minValue: 150,
-          maxValue: 300,
-          left: aside(classes: 'file-tree-pane', [fileTree]),
-          right: main_(classes: 'editor-host', [
-            SplitPanel(
-              isVertical: true,
-              useRatio: true,
-              initialValue: 0.75,
-              minValue: 0.3,
-              maxValue: 0.9,
-              left: div(classes: 'editor-area', [
-                if (openTabs != null) ...[
-                  EditorTabs(
-                    openTabs: openTabs,
-                    activeFile: activeFile,
-                    onSwitchFile: onSwitchFile!,
-                    onCloseFile: onCloseFile!,
-                  ),
-                  EditorStack(
-                    openTabs: openTabs,
-                    activeFile: activeFile,
-                    overlay: editorOverlay,
-                  ),
-                ],
-              ]),
-              right: bottomPanel,
-            ),
-          ]),
-        ),
-      ]),
+    return div(classes: 'editor-shell', [
+      SplitPanel(
+        initialValue: 200,
+        useRatio: false,
+        minValue: 150,
+        maxValue: 300,
+        left: aside(classes: 'file-tree-pane', [fileTree]),
+        right: main_(classes: 'editor-host', [
+          SplitPanel(
+            isVertical: true,
+            useRatio: true,
+            initialValue: 0.75,
+            minValue: 0.3,
+            maxValue: 0.9,
+            left: div(classes: 'editor-area', [
+              if (openTabs != null) ...[
+                EditorTabs(
+                  openTabs: openTabs,
+                  activeFile: activeFile,
+                  onSwitchFile: onSwitchFile!,
+                  onCloseFile: onCloseFile!,
+                ),
+                EditorStack(
+                  openTabs: openTabs,
+                  activeFile: activeFile,
+                  overlay: editorOverlay,
+                ),
+              ],
+            ]),
+            right: bottomPanel,
+          ),
+        ]),
+      ),
     ]);
   }
 
   @css
   static List<StyleRule> get styles => [
-    css('.ide-shell').styles(
+    css('.editor-shell').styles(
       display: .flex,
       width: 100.percent,
       height: 100.percent,
       minWidth: .zero,
       minHeight: .zero,
-      flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: const Color('#1e1e1e'),
-    ),
-    css('.workspace-shell').styles(
-      display: .flex,
-      minWidth: .zero,
-      minHeight: .zero,
-      flex: const Flex(grow: 1, basis: .zero),
     ),
     css('.file-tree-pane').styles(
       display: .flex,

@@ -118,7 +118,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,
-          padding: .symmetric(vertical: 10.px, horizontal: 12.px),
+          padding: .symmetric(vertical: 4.px, horizontal: 12.px),
           border: .only(
             bottom: .solid(color: colorBorder, width: 1.px),
           ),
