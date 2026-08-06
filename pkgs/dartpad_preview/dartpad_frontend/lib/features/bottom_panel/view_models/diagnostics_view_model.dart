@@ -15,6 +15,9 @@ import '../../editor/view_models/tabs_view_model.dart';
 class DiagnosticsViewModel extends ChangeNotifier {
   DiagnosticsViewModel({required this.tabs});
 
+  /// The maximum number of diagnostics rendered in the problems panel.
+  static const maxDisplayedDiagnostics = 1000;
+
   /// The editor tabs used to open and navigate to diagnostic locations.
   final TabsViewModel tabs;
 
@@ -22,11 +25,15 @@ class DiagnosticsViewModel extends ChangeNotifier {
 
   StreamSubscription<Map<String, dynamic>>? _diagnosticsSubscription;
 
-  /// The first 1,000 diagnostics, sorted by severity then location.
+  /// The first [maxDisplayedDiagnostics] diagnostics, sorted by severity then
+  /// location.
   ///
   /// Limiting the entries keeps the problems panel responsive when the
   /// language server reports a very large number of diagnostics.
-  List<DiagnosticEntry> get diagnostics => _diagnostics.take(1000).toList(growable: false);
+  List<DiagnosticEntry> get diagnostics => _diagnostics.take(maxDisplayedDiagnostics).toList(growable: false);
+
+  /// Whether some diagnostics are omitted from the problems panel.
+  bool get hasMoreDiagnostics => _diagnostics.length > maxDisplayedDiagnostics;
 
   /// Opens the file for [diagnostic] and navigates to its source position.
   Future<void> openDiagnostic(String fileName, Diagnostic diagnostic) async {

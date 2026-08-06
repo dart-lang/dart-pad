@@ -227,6 +227,7 @@ class AppState extends State<App> {
         listenable: _diagnostics,
         builder: (context) => BottomPanel(
           diagnostics: _diagnostics.diagnostics,
+          hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
           activeFile: _tabs.activeFile,
           logs: _debugConsole.logs,
           onClearDebugConsole: _debugConsole.clear,

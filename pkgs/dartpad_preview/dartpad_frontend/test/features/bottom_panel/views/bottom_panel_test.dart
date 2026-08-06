@@ -17,6 +17,7 @@ void main() {
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
+        hasMoreDiagnostics: false,
         activeFile: '',
         logs: const [DebugConsoleEntry(message: 'Running pub get...', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
@@ -44,6 +45,7 @@ void main() {
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
+        hasMoreDiagnostics: false,
         activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
@@ -57,5 +59,23 @@ void main() {
 
     final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
+  });
+
+  testClient('shows a diagnostic limit notice in the problems panel', (tester) async {
+    tester.pumpComponent(
+      BottomPanel(
+        diagnostics: const [],
+        hasMoreDiagnostics: true,
+        activeFile: '',
+        logs: const [],
+        onOpenDiagnostic: (_, _) {},
+        onClearDebugConsole: () {},
+      ),
+    );
+
+    expect(
+      web.document.querySelector('.diagnostics-limit-notice')!.textContent,
+      contains('Only the first 1,000 problems are shown.'),
+    );
   });
 }

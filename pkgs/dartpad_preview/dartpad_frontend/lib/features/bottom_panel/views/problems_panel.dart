@@ -14,18 +14,26 @@ import '../../../app_styles.dart';
 class ProblemsPanel extends StatelessComponent {
   const ProblemsPanel({
     required this.diagnostics,
+    required this.hasMoreDiagnostics,
     required this.activeFile,
     required this.onOpenDiagnostic,
     super.key,
   });
 
   final List<DiagnosticEntry> diagnostics;
+
+  /// Whether diagnostics are omitted from the problems panel.
+  final bool hasMoreDiagnostics;
   final String activeFile;
   final FutureOr<void> Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
 
   @override
   Component build(BuildContext context) {
     return div(classes: 'problems-panel', [
+      if (hasMoreDiagnostics)
+        const div(classes: 'diagnostics-limit-notice', [
+          .text('Only the first 1,000 problems are shown.'),
+        ]),
       div(classes: 'problems-list', [
         if (diagnostics.isEmpty)
           const div(classes: 'problems-empty', [.text('No problems')])
@@ -46,6 +54,7 @@ class ProblemsPanel extends StatelessComponent {
     css('.problems-panel', [
       css('&').styles(
         display: .flex,
+        position: const .relative(),
         minHeight: 120.px,
         maxHeight: 180.px,
         margin: .only(bottom: 15.px),
@@ -58,6 +67,15 @@ class ProblemsPanel extends StatelessComponent {
         minHeight: .zero,
         overflow: const .only(y: .auto),
         flex: const Flex(grow: 1, basis: .zero),
+      ),
+      css('& .diagnostics-limit-notice').styles(
+        position: .absolute(top: 8.px, right: 12.px),
+        zIndex: const ZIndex(1),
+        padding: .symmetric(horizontal: 10.px, vertical: 5.px),
+        radius: .circular(999.px),
+        color: colorOnSurface,
+        backgroundColor: colorWarning.withOpacity(0.2),
+        fontSize: 12.px,
       ),
       css('& .problems-empty').styles(
         display: .flex,
