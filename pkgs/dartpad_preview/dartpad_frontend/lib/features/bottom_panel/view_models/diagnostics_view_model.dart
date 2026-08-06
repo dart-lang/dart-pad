@@ -22,8 +22,11 @@ class DiagnosticsViewModel extends ChangeNotifier {
 
   StreamSubscription<Map<String, dynamic>>? _diagnosticsSubscription;
 
-  /// All current diagnostics, sorted by severity then location.
-  List<DiagnosticEntry> get diagnostics => _diagnostics;
+  /// The first 1,000 diagnostics, sorted by severity then location.
+  ///
+  /// Limiting the entries keeps the problems panel responsive when the
+  /// language server reports a very large number of diagnostics.
+  List<DiagnosticEntry> get diagnostics => _diagnostics.take(1000).toList(growable: false);
 
   /// Opens the file for [diagnostic] and navigates to its source position.
   Future<void> openDiagnostic(String fileName, Diagnostic diagnostic) async {
