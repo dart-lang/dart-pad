@@ -9,7 +9,6 @@ import 'package:web/web.dart' as web;
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/events/workspace_event.dart';
-import '../project_path.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 final class WorkspaceRepository {
@@ -102,7 +101,7 @@ Future<void> runWorkspacePubGet({
   required Future<String> Function(String normalizedPath) command,
 }) async {
   final normalizedPath = workspaceContext.normalize(path);
-  final pathLabel = projectRelativeDisplayPath(
+  final pathLabel = workspaceContext.relativeDisplayPath(
     path: normalizedPath,
     projectRoot: projectRoot,
   );
