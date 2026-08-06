@@ -192,4 +192,3 @@ Future<void> runWorkspacePubGet({
     events.dispatch(LogEvent(log));
   }
 }
-
