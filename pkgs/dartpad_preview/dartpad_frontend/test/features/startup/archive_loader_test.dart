@@ -151,7 +151,8 @@ void main() {
         }),
       );
 
-      expect(result, ('', 'my_project/lib/main.dart'));
+      expect(result.projectDir, '');
+      expect(result.targetFilePath, 'my_project/lib/main.dart');
       expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
       expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
     });
