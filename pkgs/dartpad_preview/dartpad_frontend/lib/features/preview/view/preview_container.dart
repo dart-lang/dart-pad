@@ -110,6 +110,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flex: const .grow(1),
         backgroundColor: colorContainer,
       ),
+      css('.active-icon-btn').styles(
+        color: colorOnPrimary,
+        backgroundColor: colorPrimary,
+      ),
+      css('.active-icon-btn:not(.disabled):hover').styles(
+        backgroundColor: colorPrimary,
+      ),
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,

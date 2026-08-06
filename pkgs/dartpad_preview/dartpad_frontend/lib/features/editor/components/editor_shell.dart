@@ -185,6 +185,7 @@ class _EditorShellState extends State<EditorShell> {
       minWidth: .zero,
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
+      backgroundColor: colorContainer,
     ),
     css('.file-tree-pane').styles(
       display: .flex,
