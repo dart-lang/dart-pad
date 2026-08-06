@@ -19,7 +19,7 @@ void main() {
         diagnostics: const [],
         hasMoreDiagnostics: false,
         activeFile: '',
-        logs: const [DebugConsoleEntry(message: 'Running pub get...', level: Level.INFO)],
+        logs: const [DebugConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
         onClearDebugConsole: () => clearCalls++,
       ),
@@ -32,7 +32,7 @@ void main() {
     debugTab.click();
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.debug-console-panel')!.textContent, contains('Running pub get...'));
+    expect(web.document.querySelector('.debug-console-panel')!.textContent, contains('Running pub get in /'));
     final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
 

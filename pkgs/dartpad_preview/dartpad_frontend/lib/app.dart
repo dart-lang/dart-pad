@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:logging/logging.dart';
 
 import 'features/bottom_panel/view_models/debug_console_view_model.dart';
 import 'features/bottom_panel/view_models/diagnostics_view_model.dart';
@@ -13,11 +14,13 @@ import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
+import 'features/editor/components/pubspec_editor_actions.dart';
 import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
+import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/sample_project.dart';
@@ -61,6 +64,7 @@ class AppState extends State<App> {
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
     );
+
     _fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(_tabs),
       workspace: _workspaceRepository.workspaceResourceApi,
@@ -84,7 +88,21 @@ class AppState extends State<App> {
         loadingStatus = 'Running Pub Get...';
       });
 
-      await _workspaceRepository.pubGet(path: _projectDir);
+      try {
+        await _workspaceRepository.pubGet(
+          path: _projectDir,
+          projectRoot: _projectDir,
+        );
+      } catch (error, stackTrace) {
+        _events.dispatch(
+          LogEvent(
+            'Pub get failed.',
+            level: Level.SEVERE,
+            error: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
 
       if (!mounted) {
         return;
@@ -212,6 +230,7 @@ class AppState extends State<App> {
         errorMessage: _errorMessage ?? _tabs.errorMessage,
         warningMessage: _tabs.warningMessage,
         fileTree: _buildFileTree(),
+        editorOverlay: _buildEditorOverlay(),
         onSwitchFile: _tabs.switchFile,
         onCloseFile: _tabs.closeFile,
         bootstrapLabel: loadingStatus,
@@ -236,6 +255,19 @@ class AppState extends State<App> {
           },
         ),
       ),
+    );
+  }
+
+  Component _buildEditorOverlay() {
+    return PubspecEditorActions(
+      activeFile: _tabs.activeFile,
+      saveAllFiles: _tabs.saveAllTabs,
+      events: _events,
+      onPubGet: (workspacePath) => _workspaceRepository.pubGet(
+        path: workspacePath,
+        projectRoot: _projectDir,
+      ),
+      onPubClean: (workspacePath) => _workspaceRepository.pubClean(path: workspacePath),
     );
   }
 

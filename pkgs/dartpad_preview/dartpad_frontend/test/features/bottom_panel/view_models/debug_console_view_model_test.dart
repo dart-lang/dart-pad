@@ -28,7 +28,7 @@ void main() {
     test('captures multi-line messages, errors, and stack traces', () async {
       events.dispatch(
         LogEvent(
-          'pub get finished.\n  dependency resolved\n\nnext step\n',
+          'Resolving dependencies...\n  dependency resolved\n\nnext step\n',
           level: Level.SEVERE,
           error: StateError('failed'),
           stackTrace: StackTrace.fromString('trace one\ntrace two\n'),
@@ -39,7 +39,7 @@ void main() {
       expect(
         viewModel.logs.map((entry) => entry.message),
         [
-          'pub get finished.',
+          'Resolving dependencies...',
           '  dependency resolved',
           '',
           'next step',
@@ -55,7 +55,7 @@ void main() {
       var notifications = 0;
       viewModel.addListener(() => notifications++);
 
-      events.dispatch(const LogEvent('Running pub get...'));
+      events.dispatch(const LogEvent('Running pub get in /'));
       await Future<void>.delayed(Duration.zero);
       viewModel.clear();
 
