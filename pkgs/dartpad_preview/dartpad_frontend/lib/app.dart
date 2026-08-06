@@ -68,7 +68,6 @@ class AppState extends State<App> {
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
     );
-
     _fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(_tabs),
       workspace: _workspaceRepository.workspaceResourceApi,
