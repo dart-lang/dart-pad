@@ -116,15 +116,17 @@ final class EditorTabs extends StatelessComponent {
           maxWidth: 180.px,
           padding: .only(left: 12.px, right: 8.px),
           border: .only(
-            right: .solid(color: colorBorder, width: 1.px),
             top: .solid(color: Colors.transparent, width: 2.px),
           ),
           cursor: .pointer,
           userSelect: .none,
           alignItems: .center,
           gap: .all(6.px),
-          color: colorOnSurface,
-          backgroundColor: colorSurface,
+          color: colorOnContainer,
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
+        ),
+        css('&:hover').styles(
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
         ),
         css('&.active').styles(
           border: .only(
@@ -133,7 +135,9 @@ final class EditorTabs extends StatelessComponent {
           color: colorOnContainer,
           backgroundColor: colorContainer,
         ),
-        css('&:hover').styles(backgroundColor: colorSurface.highlight(colorOnSurface, 0.1)),
+        css('&.active:hover').styles(
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
+        ),
         css('.editor-tab-name').styles(
           minWidth: .zero,
           overflow: .hidden,
@@ -170,8 +174,8 @@ final class EditorTabs extends StatelessComponent {
             backgroundColor: const Color('#3a3a3a'),
           ),
           css('&.close:hover').styles(
-            color: const Color('#ff8a8a'),
-            backgroundColor: const Color('#4a2525'),
+            color: colorError,
+            backgroundColor: colorSurface,
           ),
         ]),
       ]),

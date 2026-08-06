@@ -48,23 +48,22 @@ class Button extends StatelessComponent {
     css('.dp-button', [
       css('&').styles(
         display: .inlineFlex,
-        padding: .symmetric(vertical: 5.px, horizontal: 8.px),
-        border: .all(color: colorBorder, width: 1.px),
+        padding: .symmetric(vertical: 8.px, horizontal: 12.px),
+        border: .none,
         radius: .circular(5.px),
         outline: const Outline(style: .none),
         cursor: .pointer,
         justifyContent: .center,
         alignItems: .center,
-        color: colorOnSurface,
+        color: colorOnPrimary,
         fontSize: 12.px,
         fontWeight: FontWeight.w500,
         whiteSpace: .noWrap,
-        backgroundColor: colorContainerHigh,
+        backgroundColor: colorPrimary,
       ),
       css('&:not(:disabled):hover').styles(
-        border: .all(color: colorPrimary, width: 1.px),
         color: colorOnPrimary,
-        backgroundColor: const Color('#353535'),
+        backgroundColor: colorPrimary.highlight(colorOnPrimary, 0.1),
       ),
       css('&:disabled').styles(
         opacity: 0.45,

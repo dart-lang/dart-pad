@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:js_interop';
-import 'package:jaspr_content/components/theme_toggle.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
@@ -12,6 +11,8 @@ import 'package:web/web.dart' as web;
 import '../../../app_styles.dart';
 import '../icons.dart';
 import '../runtime_versions.dart';
+import 'icon_button.dart';
+import 'theme_toggle.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
 final class Footer extends StatefulComponent {
@@ -97,11 +98,16 @@ class _FooterState extends State<Footer> {
     return Component.fragment([
       footer(classes: 'app-footer', [
         div(classes: 'app-footer-buttons', [
-          _buildShortcutsButton(),
+          IconButton(
+            icon: 'keyboard',
+            label: 'Keyboard shortcuts',
+            tooltip: 'Keyboard shortcuts',
+            onClick: (_) => _openShortcuts(),
+          ),
+          const ThemeToggle(),
           _buildPrivacyNoticeLink(),
           _buildFeedbackLink(),
         ]),
-        ThemeToggle(),
         div(
           classes: 'app-footer-runtime-versions',
           attributes: {'aria-label': 'Runtime versions'},
@@ -115,18 +121,6 @@ class _FooterState extends State<Footer> {
       ]),
       if (_showShortcuts) _buildShortcutsDialog(),
     ]);
-  }
-
-  Component _buildShortcutsButton() {
-    return button(
-      classes: 'app-footer-icon-button',
-      attributes: const {
-        'title': 'Keyboard shortcuts',
-        'aria-label': 'Keyboard shortcuts',
-      },
-      onClick: _openShortcuts,
-      [const Icon('keyboard', size: 18)],
-    );
   }
 
   Component _buildPrivacyNoticeLink() {
@@ -177,14 +171,10 @@ class _FooterState extends State<Footer> {
           const h2(id: 'app-footer-shortcuts-title', [
             .text('Keyboard shortcuts'),
           ]),
-          button(
-            classes: 'app-footer-icon-button',
-            attributes: const {
-              'title': 'Close',
-              'aria-label': 'Close shortcuts dialog',
-            },
-            onClick: _closeShortcuts,
-            [const Icon('close', size: 18)],
+          IconButton(
+            icon: 'close',
+            label: 'Close shortcuts dialog',
+            onClick: (_) => _closeShortcuts(),
           ),
         ]),
         div(classes: 'app-footer-shortcuts-list', [
@@ -224,7 +214,7 @@ class _FooterState extends State<Footer> {
       display: .flex,
       minWidth: .zero,
       alignItems: .center,
-      gap: Gap.all(20.px),
+      gap: Gap.all(10.px),
     ),
     css('.app-footer .material-symbols-outlined').styles(
       display: .block,
@@ -232,6 +222,7 @@ class _FooterState extends State<Footer> {
     ),
     css('.app-footer-link').styles(
       display: .inlineFlex,
+      padding: .symmetric(horizontal: 8.px),
       alignItems: .center,
       gap: Gap.all(4.px),
       color: colorOnSurface,
@@ -254,31 +245,6 @@ class _FooterState extends State<Footer> {
       fontSize: 11.px,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
-    ),
-    css('.app-footer-icon-button').styles(
-      display: .inlineFlex,
-      width: 24.px,
-      height: 24.px,
-      padding: .zero,
-      border: .none,
-      radius: .circular(4.px),
-      cursor: .pointer,
-      justifyContent: .center,
-      alignItems: .center,
-      color: colorOnSurface,
-      backgroundColor: Colors.transparent,
-    ),
-    css('.app-footer-icon-button:hover').styles(
-      color: colorOnSurface,
-      backgroundColor: colorOnSurface.withOpacity(0.08),
-    ),
-    css('.app-footer-icon-button:focus-visible').styles(
-      outline: Outline(
-        color: colorPrimary,
-        style: OutlineStyle.solid,
-        width: OutlineWidth(2.px),
-        offset: 2.px,
-      ),
     ),
     css('.app-footer-shortcuts-dialog::backdrop').styles(
       backgroundColor: const Color('rgba(0, 0, 0, 0.55)'),
@@ -328,10 +294,11 @@ class _FooterState extends State<Footer> {
       padding: .symmetric(vertical: 2.px, horizontal: 6.px),
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(4.px),
-      color: colorOnSurface,
+      color: colorOnContainer,
       fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
       fontSize: 11.px,
       whiteSpace: .noWrap,
+      backgroundColor: colorContainer,
     ),
   ];
 }

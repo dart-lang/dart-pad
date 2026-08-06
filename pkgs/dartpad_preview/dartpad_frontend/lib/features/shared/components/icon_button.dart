@@ -62,7 +62,7 @@ class _IconButtonState extends State<IconButton> {
   }
 
   void _onMouseEnter() {
-    final tooltipText = component.tooltip ?? component.label;
+    final tooltipText = component.tooltip;
     if (tooltipText == null) {
       return;
     }
@@ -146,9 +146,9 @@ class _IconButtonState extends State<IconButton> {
     ].join(' ');
 
     final attributes = <String, String>{};
-    final tooltipText = component.tooltip ?? component.label;
-    if (tooltipText != null) {
-      attributes['aria-label'] = tooltipText;
+    final tooltipText = component.tooltip;
+    if (component.label case final label? when label.isNotEmpty) {
+      attributes['aria-label'] = label;
     }
     if (component.disabled) {
       attributes['disabled'] = 'true';
@@ -211,7 +211,7 @@ class _IconButtonState extends State<IconButton> {
         raw: {'flex-shrink': '0'},
       ),
       css('&:not(:disabled):hover').styles(
-        backgroundColor: colorContainerHigh,
+        backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
       ),
       css('&:disabled').styles(
         cursor: .notAllowed,
@@ -231,7 +231,7 @@ class _IconButtonState extends State<IconButton> {
         fontSize: 12.px,
         fontWeight: .w500,
         whiteSpace: .noWrap,
-        backgroundColor: colorContainerLow,
+        backgroundColor: colorSurface,
       ),
       css('.custom-tooltip.rich-tooltip').styles(
         display: .flex,
@@ -248,7 +248,7 @@ class _IconButtonState extends State<IconButton> {
         fontWeight: .w600,
       ),
       css('.tooltip-desc').styles(
-        color: colorOnSurfaceVariant,
+        color: colorOnSurface,
         fontSize: 11.px,
         fontWeight: .w400,
         lineHeight: 1.4.em,
