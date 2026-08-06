@@ -15,7 +15,6 @@ import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
-import 'features/editor/view_models/pub_actions_view_model.dart';
 import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
@@ -40,7 +39,6 @@ class AppState extends State<App> {
   late final AppEventBus _events;
   late final WorkspaceRepository _workspaceRepository;
   late final TabsViewModel _tabs;
-  late final PubActionsViewModel _pubActions;
   late final FileTreeViewModel _fileTree;
   late final DiagnosticsViewModel _diagnostics;
   late final DebugConsoleViewModel _debugConsole;
@@ -65,15 +63,7 @@ class AppState extends State<App> {
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
       adapters: [codemirrorAdapter],
     );
-    _pubActions = PubActionsViewModel(
-      saveAllFiles: _tabs.saveAllTabs,
-      events: _events,
-      pubGetAction: (path) => _workspaceRepository.pubGet(
-        path: path,
-        projectRoot: _projectDir,
-      ),
-      pubCleanAction: (path) => _workspaceRepository.pubClean(path: path),
-    );
+
     _fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(_tabs),
       workspace: _workspaceRepository.workspaceResourceApi,
@@ -234,14 +224,15 @@ class AppState extends State<App> {
   }
 
   Component _buildEditorOverlay() {
-    return ListenableBuilder(
-      listenable: _pubActions,
-      builder: (context) => PubspecEditorActions(
-        activeFile: _tabs.activeFile,
-        busy: _pubActions.busy,
-        onPubGet: _pubActions.pubGet,
-        onPubClean: _pubActions.pubClean,
+    return PubspecEditorActions(
+      activeFile: _tabs.activeFile,
+      saveAllFiles: _tabs.saveAllTabs,
+      events: _events,
+      onPubGet: (path) => _workspaceRepository.pubGet(
+        path: path,
+        projectRoot: _projectDir,
       ),
+      onPubClean: (path) => _workspaceRepository.pubClean(path: path),
     );
   }
 
@@ -265,7 +256,6 @@ class AppState extends State<App> {
     await _analyzerSubscription?.cancel();
     _debugConsole.dispose();
     _diagnostics.dispose();
-    _pubActions.dispose();
     _fileTree.dispose();
     _tabs.dispose();
     await _events.dispose();

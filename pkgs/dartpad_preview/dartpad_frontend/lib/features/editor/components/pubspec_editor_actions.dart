@@ -7,13 +7,22 @@ import 'dart:async';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:logging/logging.dart';
+
+import '../../shared/app_event_bus.dart';
+import '../../shared/components/button.dart';
+import '../../shared/events/log_event.dart';
 
 /// Displays path-aware Pub actions for an active Pub metadata file.
-final class PubspecEditorActions extends StatelessComponent {
+///
+/// Manages its own busy state internally, disabling the action buttons while
+/// a Pub operation is in progress.
+final class PubspecEditorActions extends StatefulComponent {
   /// Creates the floating Pub actions for [activeFile].
   const PubspecEditorActions({
     required this.activeFile,
-    required this.busy,
+    required this.saveAllFiles,
+    required this.events,
     required this.onPubGet,
     required this.onPubClean,
     super.key,
@@ -22,8 +31,11 @@ final class PubspecEditorActions extends StatelessComponent {
   /// The path shown in the active editor tab.
   final String activeFile;
 
-  /// Whether either Pub action is currently running.
-  final bool busy;
+  /// Persists all open editor files before Pub resolves dependencies.
+  final Future<void> Function() saveAllFiles;
+
+  /// Event bus used to report Pub failures to the debug console.
+  final AppEventBus events;
 
   /// Runs Pub Get in the supplied workspace-relative directory.
   final Future<void> Function(String path) onPubGet;
@@ -32,78 +44,90 @@ final class PubspecEditorActions extends StatelessComponent {
   final Future<void> Function(String path) onPubClean;
 
   @override
-  Component build(BuildContext context) {
-    final fileName = workspaceContext.basename(activeFile);
-    if (fileName != 'pubspec.yaml' && fileName != 'pubspec.lock') {
-      return const Component.fragment([]);
-    }
-
-    final directory = workspaceContext.dirname(activeFile);
-    return div(classes: 'pubspec-editor-actions', [
-      _button(
-        label: 'Pub get',
-        disabled: busy,
-        onClick: () => onPubGet(directory),
-      ),
-      _button(
-        label: 'Pub clean',
-        disabled: busy,
-        onClick: () => onPubClean(directory),
-      ),
-    ]);
-  }
-
-  Component _button({
-    required String label,
-    required bool disabled,
-    required Future<void> Function() onClick,
-  }) {
-    return button(
-      classes: 'pubspec-maintenance-button',
-      attributes: {
-        'title': label,
-        'aria-label': label,
-        if (disabled) 'disabled': '',
-      },
-      onClick: disabled ? null : () => unawaited(onClick()),
-      [.text(label)],
-    );
-  }
+  State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
 
   @css
   static List<StyleRule> get styles => [
     css('.pubspec-editor-actions').styles(
       display: .flex,
-      position: .absolute(right: 32.px, bottom: 16.px),
+      position: .absolute(right: 32.px, top: 16.px),
       zIndex: const ZIndex(20),
       alignItems: .center,
       gap: .all(8.px),
     ),
-    css('.pubspec-maintenance-button', [
-      css('&').styles(
-        display: .inlineFlex,
-        padding: .symmetric(vertical: 5.px, horizontal: 8.px),
-        border: .all(color: const Color('#454545'), width: 1.px),
-        radius: .circular(5.px),
-        outline: const Outline(style: .none),
-        cursor: .pointer,
-        justifyContent: .center,
-        alignItems: .center,
-        color: const Color('#d4d4d4'),
-        fontSize: 12.px,
-        fontWeight: FontWeight.w500,
-        whiteSpace: .noWrap,
-        backgroundColor: const Color('#252525'),
-      ),
-      css('&:not(:disabled):hover').styles(
-        border: .all(color: const Color('#7aa2f7'), width: 1.px),
-        color: const Color('#ffffff'),
-        backgroundColor: const Color('#353535'),
-      ),
-      css('&:disabled').styles(
-        opacity: 0.45,
-        cursor: .defaultCursor,
-      ),
-    ]),
   ];
+}
+
+class _PubspecEditorActionsState extends State<PubspecEditorActions> {
+  bool _busy = false;
+
+  /// Saves all files and runs Pub Get in [path].
+  Future<void> _pubGet(String path) async {
+    await _run('Pub get failed.', () async {
+      try {
+        await component.saveAllFiles();
+      } catch (_) {
+        // The editor owns and displays save failures.
+        return;
+      }
+      await component.onPubGet(path);
+    });
+  }
+
+  /// Runs Pub Clean in [path] without saving files first.
+  Future<void> _pubClean(String path) async {
+    await _run('Pub clean failed.', () => component.onPubClean(path));
+  }
+
+  Future<void> _run(
+    String failureMessage,
+    Future<void> Function() operation,
+  ) async {
+    if (_busy) {
+      return;
+    }
+    setState(() {
+      _busy = true;
+    });
+    try {
+      await operation();
+    } catch (error, stackTrace) {
+      component.events.dispatch(
+        LogEvent(
+          failureMessage,
+          level: Level.SEVERE,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Component build(BuildContext context) {
+    final fileName = workspaceContext.basename(component.activeFile);
+    if (fileName != 'pubspec.yaml' && fileName != 'pubspec.lock') {
+      return const Component.fragment([]);
+    }
+
+    final directory = workspaceContext.dirname(component.activeFile);
+    return div(classes: 'pubspec-editor-actions', [
+      Button(
+        label: 'Pub get',
+        disabled: _busy,
+        onClick: () => unawaited(_pubGet(directory)),
+      ),
+      Button(
+        label: 'Pub clean',
+        disabled: _busy,
+        onClick: () => unawaited(_pubClean(directory)),
+      ),
+    ]);
+  }
 }
