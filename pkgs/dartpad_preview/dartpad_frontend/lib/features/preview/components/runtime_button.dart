@@ -1,7 +1,12 @@
-import 'package:jaspr/dom.dart';
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+
 import 'package:jaspr/jaspr.dart';
 
-import '../../shared/icons.dart';
+import '../../shared/components/icon_button.dart';
 import '../view_models/preview_view_model.dart';
 
 /// A button component used to trigger preview runtime actions
@@ -82,18 +87,12 @@ class RuntimeButton extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    //final previewViewModel = context.watch<PreviewViewModel>();
-    //final enabled = type.isEnabled(previewViewModel);
-
-    return button(
-      onClick: onClick,
-      [
-        Icon(icon),
-      ],
+    return IconButton(
+      label: title,
+      icon: icon,
+      disabled: !isEnabled,
+      tooltip: title,
+      onClick: (_) => onClick(),
     );
-    // label: type.title,
-    // icon: type.icon,
-    // disabled: !enabled,
-    // tooltip: type.title,
   }
 }
