@@ -20,8 +20,11 @@ import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
+import 'features/preview/view/preview_container.dart';
+import 'features/preview/view_models/preview_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/footer.dart';
+import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
@@ -47,6 +50,7 @@ class AppState extends State<App> {
   late final FileTreeViewModel _fileTree;
   late final DiagnosticsViewModel _diagnostics;
   late final DebugConsoleViewModel _debugConsole;
+  late final PreviewViewModel _preview;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
 
@@ -75,6 +79,8 @@ class AppState extends State<App> {
       workspace: _workspaceRepository.workspaceResourceApi,
     );
     _diagnostics = DiagnosticsViewModel(tabs: _tabs);
+
+    _preview = PreviewViewModel(workspaceRepository: _workspaceRepository, eventBus: _events);
 
     final projectFuture = loadProject();
 
@@ -231,14 +237,18 @@ class AppState extends State<App> {
       listenable: _tabs,
       builder: (context) => div(classes: 'app-shell', [
         div(classes: 'app-workspace', [
-          EditorShell(
-            openTabs: _tabs.openTabs,
-            activeFile: _tabs.activeFile,
-            fileTree: _buildFileTree(),
-            editorOverlay: _buildEditorOverlay(),
-            onSwitchFile: _tabs.switchFile,
-            onCloseFile: _tabs.closeFile,
-            bottomPanel: _buildBottomPanel(),
+          SplitPanel(
+            initialValue: 0.7,
+            left: EditorShell(
+              openTabs: _tabs.openTabs,
+              activeFile: _tabs.activeFile,
+              fileTree: _buildFileTree(),
+              editorOverlay: _buildEditorOverlay(),
+              onSwitchFile: _tabs.switchFile,
+              onCloseFile: _tabs.closeFile,
+              bottomPanel: _buildBottomPanel(),
+            ),
+            right: _buildPreviewPanel(),
           ),
         ]),
         Footer(
@@ -286,6 +296,16 @@ class AppState extends State<App> {
       builder: (context) => FileTreeView(
         state: _fileTree.state,
         actions: _fileTree.actions,
+      ),
+    );
+  }
+
+  Component _buildPreviewPanel() {
+    return ListenableBuilder(
+      listenable: _preview,
+      builder: (context) => PreviewContainer(
+        preview: _preview,
+        activeFile: _tabs.activeFile,
       ),
     );
   }
