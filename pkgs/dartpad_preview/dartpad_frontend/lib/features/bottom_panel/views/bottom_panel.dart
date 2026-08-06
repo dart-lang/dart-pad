@@ -24,6 +24,7 @@ enum BottomPanelTab {
 class BottomPanel extends StatefulComponent {
   const BottomPanel({
     required this.diagnostics,
+    required this.hasMoreDiagnostics,
     required this.activeFile,
     required this.onOpenDiagnostic,
     required this.logs,
@@ -33,6 +34,9 @@ class BottomPanel extends StatefulComponent {
 
   /// All current diagnostics from the language server.
   final List<DiagnosticEntry> diagnostics;
+
+  /// Whether diagnostics are omitted from the problems panel.
+  final bool hasMoreDiagnostics;
 
   /// The currently active editor file path, used to highlight matching rows.
   final String activeFile;
@@ -80,6 +84,7 @@ class _BottomPanelState extends State<BottomPanel> {
       switch (_activeTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
+          hasMoreDiagnostics: component.hasMoreDiagnostics,
           activeFile: component.activeFile,
           onOpenDiagnostic: component.onOpenDiagnostic,
         ),

@@ -132,7 +132,7 @@ void main() {
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
     });
 
-    test('throws Exception if no pubspec.yaml is found in the walk', () async {
+    test('falls back to root folder if no pubspec.yaml is found', () async {
       final Map<String, String> archiveFiles = {
         'my_project/lib/main.dart': 'void main() {}',
       };
@@ -144,17 +144,17 @@ void main() {
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
-      await http.runWithClient(
-        () async {
-          expect(
-            () => loader.loadArchive(api.root),
-            throwsException,
-          );
-        },
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
       );
+
+      expect(result.projectDir, '');
+      expect(result.targetFilePath, 'my_project/lib/main.dart');
+      expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
+      expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
     });
   });
 }
