@@ -69,13 +69,13 @@ class ProblemsPanel extends StatelessComponent {
         flex: const Flex(grow: 1, basis: .zero),
       ),
       css('& .diagnostics-limit-notice').styles(
-        position: .absolute(top: 8.px, right: 12.px),
+        position: .absolute(top: 8.px, right: 20.px),
         zIndex: const ZIndex(1),
         padding: .symmetric(horizontal: 10.px, vertical: 5.px),
         radius: .circular(999.px),
         color: colorOnSurface,
-        backgroundColor: colorWarning.withOpacity(0.2),
         fontSize: 12.px,
+        backgroundColor: colorWarning,
       ),
       css('& .problems-empty').styles(
         display: .flex,
