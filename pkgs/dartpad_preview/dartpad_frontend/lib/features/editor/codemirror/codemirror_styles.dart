@@ -340,12 +340,7 @@ List<StyleRule> get codemirrorStyles => [
     display: .flex,
     padding: .symmetric(vertical: 4.px, horizontal: 6.px),
     gap: .all(6.px),
-    backgroundColor: colorSurface,
-    raw: {
-      'border-radius': '0 0 6px 6px !important',
-      'border-top': '1px solid rgba(255, 255, 255, 0.85) !important',
-      'margin-top': '-1px',
-    },
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-diagnostic-toolbar-btn').styles(
     display: .inlineFlex,
@@ -357,7 +352,7 @@ List<StyleRule> get codemirrorStyles => [
     color: colorPrimary,
     fontSize: 12.px,
     fontWeight: .w500,
-    backgroundColor: Colors.transparent,
+    backgroundColor: colorContainer,
     raw: {
       'background-image': 'none',
     },
@@ -373,6 +368,6 @@ List<StyleRule> get codemirrorStyles => [
     opacity: .5,
     cursor: .notAllowed,
     color: colorOnContainer,
-    backgroundColor: Colors.transparent,
+    backgroundColor: colorContainer,
   ),
 ];

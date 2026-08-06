@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+import 'package:jaspr_content/components/theme_toggle.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
@@ -112,6 +113,7 @@ class _FooterState extends State<Footer> {
             _buildFeedbackLink(),
           ],
         ]),
+        ThemeToggle(),
         div(
           classes: 'app-footer-runtime-versions',
           attributes: {'aria-label': 'Runtime versions'},
@@ -251,6 +253,31 @@ class _FooterState extends State<Footer> {
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
     ),
+    css('.app-footer-icon-button').styles(
+      display: .inlineFlex,
+      width: 24.px,
+      height: 24.px,
+      padding: .zero,
+      border: .none,
+      radius: .circular(4.px),
+      cursor: .pointer,
+      justifyContent: .center,
+      alignItems: .center,
+      color: colorOnSurface,
+      backgroundColor: Colors.transparent,
+    ),
+    css('.app-footer-icon-button:hover').styles(
+      color: colorOnSurface,
+      backgroundColor: colorOnSurface.withOpacity(0.08),
+    ),
+    css('.app-footer-icon-button:focus-visible').styles(
+      outline: Outline(
+        color: colorPrimary,
+        style: OutlineStyle.solid,
+        width: OutlineWidth(2.px),
+        offset: 2.px,
+      ),
+    ),
     css('.app-footer-shortcuts-dialog::backdrop').styles(
       backgroundColor: const Color('rgba(0, 0, 0, 0.55)'),
     ),
@@ -299,7 +326,7 @@ class _FooterState extends State<Footer> {
       padding: .symmetric(vertical: 2.px, horizontal: 6.px),
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(4.px),
-      color: colorOnContainer,
+      color: colorOnSurface,
       fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
       fontSize: 11.px,
       whiteSpace: .noWrap,

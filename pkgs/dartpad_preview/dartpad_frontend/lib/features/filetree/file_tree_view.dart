@@ -392,10 +392,10 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         ),
 
         css('&:hover').styles(
-          backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
         ),
         css('&.active').styles(
-          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
         ),
         css('&.dim .file-tree-name').styles(
           opacity: 0.4,
@@ -465,7 +465,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         width: 12.px,
         height: 12.px,
         flex: const .shrink(0),
-        color: colorOnSurface,
+        color: colorOnContainer,
         raw: const {'vertical-align': 'middle'},
       ),
       css('.file-tree-icon.file-icon-dart').styles(color: colorPrimary),

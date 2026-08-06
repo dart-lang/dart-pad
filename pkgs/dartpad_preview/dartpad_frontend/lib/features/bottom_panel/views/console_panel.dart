@@ -120,6 +120,7 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       margin: .zero,
       overflow: const .only(x: .auto),
       color: colorOnContainer,
+      fontFamily: const .list([FontFamilies.courierNew, FontFamilies.monospace]),
       fontSize: 12.px,
       lineHeight: 18.px,
       whiteSpace: .preWrap,
