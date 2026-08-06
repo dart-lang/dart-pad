@@ -61,7 +61,7 @@ class ProblemsPanel extends StatelessComponent {
         overflow: .hidden,
         flexDirection: .column,
         flex: const .shrink(0),
-        backgroundColor: colorContainerLow,
+        backgroundColor: colorContainer,
       ),
       css('& .problems-list').styles(
         minHeight: .zero,
@@ -82,7 +82,7 @@ class ProblemsPanel extends StatelessComponent {
         minHeight: 48.px,
         padding: .symmetric(horizontal: 12.px),
         alignItems: .center,
-        color: colorOnSurfaceVariant,
+        color: colorOnContainer,
         fontSize: 12.px,
       ),
       css('& .problem-row').styles(

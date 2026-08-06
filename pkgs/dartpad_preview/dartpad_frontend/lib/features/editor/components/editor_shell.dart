@@ -6,6 +6,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../../app_styles.dart';
 import '../../shared/components/split_panel.dart';
 import 'editor_stack.dart';
 import 'editor_tabs.dart';
@@ -96,18 +97,13 @@ class EditorShell extends StatelessComponent {
       minWidth: .zero,
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
-      backgroundColor: const Color('#1e1e1e'),
     ),
     css('.file-tree-pane').styles(
       display: .flex,
       minWidth: 100.px,
       minHeight: .zero,
-      border: .only(
-        right: .solid(color: const Color('#303030'), width: 1.px),
-      ),
       overflow: .hidden,
       flexDirection: .column,
-      backgroundColor: const Color('#181818'),
     ),
     css('.editor-host').styles(
       display: .flex,

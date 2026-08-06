@@ -20,7 +20,7 @@ import {
 } from "@codemirror/state";
 import { EditorView, keymap, showPanel } from "@codemirror/view";
 import { basicSetup } from "codemirror";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { dartpad as dartpadTheme } from "./theme";
 import { indentWithTab, toggleLineComment } from "@codemirror/commands";
 import {
   syntaxHighlighting,
@@ -54,7 +54,7 @@ declare global {
       LSPPlugin: typeof LSPPlugin;
       formatDocument: typeof formatDocument;
       formatDocumentAsync: typeof formatDocumentAsync;
-      oneDark: Extension;
+      dartpadTheme: Extension;
       showPanel: typeof showPanel;
       syntaxHighlighting: (style: any, options?: any) => Extension;
       toggleLineComment: any;
@@ -98,7 +98,7 @@ window._codemirror = {
   LSPPlugin,
   formatDocument,
   formatDocumentAsync,
-  oneDark,
+  dartpadTheme,
   showPanel,
   syntaxHighlighting,
   toggleLineComment,

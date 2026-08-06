@@ -31,7 +31,7 @@ void main() {
       'linter',
       'LSPPlugin',
       'formatDocument',
-      'oneDark',
+      'dartpadTheme',
       'showPanel',
       'syntaxHighlighting',
       'toggleLineComment',

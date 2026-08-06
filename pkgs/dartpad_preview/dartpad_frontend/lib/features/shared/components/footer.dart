@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
-
+import 'package:jaspr_content/components/theme_toggle.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
@@ -101,6 +101,7 @@ class _FooterState extends State<Footer> {
           _buildPrivacyNoticeLink(),
           _buildFeedbackLink(),
         ]),
+        ThemeToggle(),
         div(
           classes: 'app-footer-runtime-versions',
           attributes: {'aria-label': 'Runtime versions'},
@@ -215,9 +216,9 @@ class _FooterState extends State<Footer> {
       alignItems: .center,
       gap: Gap.all(10.px),
       flex: const .shrink(0),
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       fontSize: 11.px,
-      backgroundColor: colorContainerLow,
+      backgroundColor: colorSurface,
     ),
     css('.app-footer-buttons').styles(
       display: .flex,
@@ -233,7 +234,7 @@ class _FooterState extends State<Footer> {
       display: .inlineFlex,
       alignItems: .center,
       gap: Gap.all(4.px),
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       textDecoration: .none,
       whiteSpace: .noWrap,
     ),
@@ -242,7 +243,6 @@ class _FooterState extends State<Footer> {
       minWidth: .zero,
       margin: const Margin.only(left: Unit.auto),
       overflow: .hidden,
-      color: colorOnSurfaceVariant,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
     ),
@@ -251,7 +251,6 @@ class _FooterState extends State<Footer> {
       minWidth: 120.px,
       margin: Margin.only(left: 10.px),
       overflow: .hidden,
-      color: colorOnSurface,
       fontSize: 11.px,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
@@ -266,7 +265,7 @@ class _FooterState extends State<Footer> {
       cursor: .pointer,
       justifyContent: .center,
       alignItems: .center,
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       backgroundColor: Colors.transparent,
     ),
     css('.app-footer-icon-button:hover').styles(
@@ -329,7 +328,7 @@ class _FooterState extends State<Footer> {
       padding: .symmetric(vertical: 2.px, horizontal: 6.px),
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(4.px),
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
       fontSize: 11.px,
       whiteSpace: .noWrap,

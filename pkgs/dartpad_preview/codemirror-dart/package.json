@@ -29,7 +29,6 @@
     "@codemirror/lint": "^6.9.5",
     "@codemirror/lsp-client": "^6.2.3",
     "@codemirror/state": "^6.6.0",
-    "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.41.1",
     "@lezer/common": "^1.2.1",
     "@lezer/highlight": "^1.2.0",
