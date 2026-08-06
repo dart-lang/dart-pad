@@ -118,7 +118,7 @@ void main() {
   testClient('logs failures and resets busy state', (tester) async {
     final logs = <LogEvent>[];
     final logSubscription = events.on<LogEvent>().listen(logs.add);
-    addTearDown(() => logSubscription.cancel());
+    addTearDown(logSubscription.cancel);
 
     tester.pumpComponent(
       PubspecEditorActions(
@@ -144,7 +144,7 @@ void main() {
   testClient('stops after save failure without reporting a Pub failure', (tester) async {
     final logs = <LogEvent>[];
     final logSubscription = events.on<LogEvent>().listen(logs.add);
-    addTearDown(() => logSubscription.cancel());
+    addTearDown(logSubscription.cancel);
 
     final operations = <String>[];
     tester.pumpComponent(
