@@ -10,20 +10,16 @@ import '../../shared/components/split_panel.dart';
 import 'editor_stack.dart';
 import 'editor_tabs.dart';
 
-/// Top-level layout shell that hosts the CodeMirror editor and the bootstrap
-/// status indicator.
+/// Top-level layout shell that hosts the CodeMirror editor.
 class EditorShell extends StatelessComponent {
   /// Creates the top-level editor layout.
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.errorMessage,
-    required this.warningMessage,
     required this.fileTree,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
-    required this.bootstrapLabel,
     required this.bottomPanel,
     super.key,
   }) : assert(
@@ -36,12 +32,6 @@ class EditorShell extends StatelessComponent {
 
   /// The path of the active editor tab.
   final String activeFile;
-
-  /// The latest user-facing editor error, or `null` if there is none.
-  final String? errorMessage;
-
-  /// The latest user-facing editor warning, or `null` if there is none.
-  final String? warningMessage;
 
   /// Switches to the editor tab at the provided path.
   final void Function(String path)? onSwitchFile;
@@ -57,9 +47,6 @@ class EditorShell extends StatelessComponent {
 
   /// Bottom panel (e.g. problems view) rendered below the editor.
   final Component bottomPanel;
-
-  /// Human-readable label for the current status.
-  final String bootstrapLabel;
 
   @override
   Component build(BuildContext context) {
@@ -99,16 +86,6 @@ class EditorShell extends StatelessComponent {
           ]),
         ),
       ]),
-      div(
-        classes: [
-          'status-bar',
-          if (errorMessage != null) 'error',
-          if (errorMessage == null && warningMessage != null) 'warning',
-        ].join(' '),
-        [
-          .text(errorMessage ?? warningMessage ?? bootstrapLabel),
-        ],
-      ),
     ]);
   }
 
@@ -117,8 +94,11 @@ class EditorShell extends StatelessComponent {
     css('.ide-shell').styles(
       display: .flex,
       width: 100.percent,
-      height: 100.vh,
+      height: 100.percent,
+      minWidth: .zero,
+      minHeight: .zero,
       flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: const Color('#1e1e1e'),
     ),
     css('.workspace-shell').styles(
@@ -154,23 +134,5 @@ class EditorShell extends StatelessComponent {
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
     ),
-    css('.status-bar', [
-      css('&').styles(
-        minHeight: 24.px,
-        padding: .symmetric(horizontal: 10.px),
-        border: .only(
-          top: .solid(color: const Color('#303030'), width: 1.px),
-        ),
-        overflow: .hidden,
-        color: const Color('#858585'),
-        fontSize: 11.px,
-        lineHeight: 24.px,
-        textOverflow: .ellipsis,
-        whiteSpace: .noWrap,
-        backgroundColor: const Color('#181818'),
-      ),
-      css('&.error').styles(color: const Color('#ff8a8a')),
-      css('&.warning').styles(color: const Color('#e5c07b')),
-    ]),
   ];
 }

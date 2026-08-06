@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 
@@ -20,6 +21,7 @@ import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/filetree/file_tree_view_model.dart';
 import 'features/shared/app_event_bus.dart';
+import 'features/shared/components/footer.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
@@ -32,6 +34,9 @@ class App extends StatefulComponent {
 
   @override
   State<App> createState() => AppState();
+
+  @css
+  static List<StyleRule> get styles => AppState.styles;
 }
 
 /// Composition root – wires all services and drives the startup lifecycle.
@@ -224,18 +229,22 @@ class AppState extends State<App> {
   Component build(BuildContext context) {
     return ListenableBuilder(
       listenable: _tabs,
-      builder: (context) => EditorShell(
-        openTabs: _tabs.openTabs,
-        activeFile: _tabs.activeFile,
-        errorMessage: _errorMessage ?? _tabs.errorMessage,
-        warningMessage: _tabs.warningMessage,
-        fileTree: _buildFileTree(),
-        editorOverlay: _buildEditorOverlay(),
-        onSwitchFile: _tabs.switchFile,
-        onCloseFile: _tabs.closeFile,
-        bootstrapLabel: loadingStatus,
-        bottomPanel: _buildBottomPanel(),
-      ),
+      builder: (context) => div(classes: 'app-shell', [
+        div(classes: 'app-workspace', [
+          EditorShell(
+            openTabs: _tabs.openTabs,
+            activeFile: _tabs.activeFile,
+            fileTree: _buildFileTree(),
+            editorOverlay: _buildEditorOverlay(),
+            onSwitchFile: _tabs.switchFile,
+            onCloseFile: _tabs.closeFile,
+            bottomPanel: _buildBottomPanel(),
+          ),
+        ]),
+        Footer(
+          statusLabel: _errorMessage ?? _tabs.errorMessage ?? _tabs.warningMessage ?? loadingStatus,
+        ),
+      ]),
     );
   }
 
@@ -295,4 +304,21 @@ class AppState extends State<App> {
     _tabs.dispose();
     await _events.dispose();
   }
+
+  static List<StyleRule> get styles => [
+    css('.app-shell').styles(
+      display: .flex,
+      width: 100.percent,
+      height: 100.percent,
+      minWidth: .zero,
+      minHeight: .zero,
+      flexDirection: .column,
+    ),
+    css('.app-workspace').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+  ];
 }
