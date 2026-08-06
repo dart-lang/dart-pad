@@ -13,6 +13,8 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../models/preview_state.dart';
+import '../models/preview_sandbox.dart';
+import '../models/compiler_session.dart';
 
 /// View model managing compiler sessions, iframe sandbox state, console
 /// stream bindings, and reactive state updates for the application
@@ -21,6 +23,7 @@ class PreviewViewModel extends ChangeNotifier {
   PreviewViewModel({
     required this.workspaceRepository,
     required this.eventBus,
+    this.createSandbox = _createRealSandbox,
   });
 
   /// Repository for working with file systems, compiler sessions, and
@@ -30,8 +33,17 @@ class PreviewViewModel extends ChangeNotifier {
   /// Global event bus for logging and UI command dispatching.
   final AppEventBus eventBus;
 
-  Sandbox? _sandbox;
-  HotReloadCompiler? _hotReloadCompiler;
+  /// Creates a sandboxed environment for execution.
+  final Future<PreviewSandbox> Function(web.Node, {required Uri assetBaseUrl}) createSandbox;
+
+  static Future<PreviewSandbox> _createRealSandbox(web.Node container, {required Uri assetBaseUrl}) async {
+    final sandbox = await Sandbox.createIFrame(container, assetBaseUrl: assetBaseUrl);
+    return RealPreviewSandbox(sandbox);
+  }
+
+  PreviewSandbox? _sandbox;
+  CompilerSession? _hotReloadCompiler;
+  bool _disposed = false;
   StreamSubscription<dynamic>? _sandboxConsoleSubscription;
   StreamSubscription<dynamic>? _sandboxErrorSubscription;
   StreamSubscription<dynamic>? _sandboxRejectionSubscription;
@@ -137,7 +149,7 @@ class PreviewViewModel extends ChangeNotifier {
         if (!_isCurrentOperation(operationId)) {
           return;
         }
-        eventBus.dispatch(LogEvent(result.log));
+        eventBus.dispatch(LogEvent(result.log ?? ''));
         eventBus.dispatch(const LogEvent('Compilation succeeded.'));
         _lastCompiledCode = result.code;
         codeToLoad = result.code!;
@@ -157,7 +169,7 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       eventBus.dispatch(const LogEvent('Creating preview sandbox...'));
-      final sandbox = await Sandbox.createIFrame(
+      final sandbox = await createSandbox(
         _container,
         assetBaseUrl: assetBaseUrl,
       );
@@ -203,7 +215,9 @@ class PreviewViewModel extends ChangeNotifier {
         _state = PreviewCompileError(entrypoint, e.toString());
       }
     } finally {
-      notifyListeners();
+      if (!_disposed) {
+        notifyListeners();
+      }
     }
   }
 
@@ -248,7 +262,7 @@ class PreviewViewModel extends ChangeNotifier {
       if (!_isCurrentOperation(operationId)) {
         return;
       }
-      eventBus.dispatch(LogEvent(result.log));
+      eventBus.dispatch(LogEvent(result.log ?? ''));
 
       eventBus.dispatch(const LogEvent('Applying hot reload...'));
       await sandbox.hotReload(
@@ -277,7 +291,9 @@ class PreviewViewModel extends ChangeNotifier {
         _state = PreviewCompileError(entry, e.toString());
       }
     } finally {
-      notifyListeners();
+      if (!_disposed) {
+        notifyListeners();
+      }
     }
   }
 
@@ -316,10 +332,12 @@ class PreviewViewModel extends ChangeNotifier {
     }
 
     _state = PreviewInitial();
-    notifyListeners();
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
-  Future<void> _attachSandboxConsole(Sandbox sandbox) async {
+  Future<void> _attachSandboxConsole(PreviewSandbox sandbox) async {
     await _detachSandboxConsole();
     _sandboxConsoleSubscription = sandbox.onConsole.listen((event) {
       final level = switch (event.level.name) {
@@ -352,7 +370,7 @@ class PreviewViewModel extends ChangeNotifier {
 
   bool _isCurrentOperation(int operationId) => _operationId == operationId;
 
-  Future<void> _disposeCurrentSandbox(Sandbox sandbox) async {
+  Future<void> _disposeCurrentSandbox(PreviewSandbox sandbox) async {
     if (!identical(_sandbox, sandbox)) {
       return;
     }
@@ -363,6 +381,7 @@ class PreviewViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _operationId++;
     unawaited(_detachSandboxConsole());
     _sandbox?.dispose();
@@ -372,3 +391,4 @@ class PreviewViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
+

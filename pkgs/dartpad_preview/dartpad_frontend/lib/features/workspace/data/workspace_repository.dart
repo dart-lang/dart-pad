@@ -11,10 +11,11 @@ import 'package:web/web.dart' as web;
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/events/workspace_event.dart';
+import '../../preview/models/compiler_session.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
-final class WorkspaceRepository {
-  WorkspaceRepository._({
+class WorkspaceRepository {
+  WorkspaceRepository({
     required this.events,
     required this.workspaceResourceApi,
     required this._workspaceFuture,
@@ -49,7 +50,7 @@ final class WorkspaceRepository {
         events.dispatch(WorkspaceLoadedEvent(ws));
       });
     });
-    return repository = WorkspaceRepository._(
+    return repository = WorkspaceRepository(
       events: events,
       workspaceResourceApi: api,
       workspaceFuture: workspaceFuture,
@@ -94,9 +95,10 @@ final class WorkspaceRepository {
     await dartpad?.dispose();
   }
 
-  Future<HotReloadCompiler> startHotReloadCompiler(Uri uri) async {
+  Future<CompilerSession> startHotReloadCompiler(Uri uri) async {
     final workspace = await _workspaceFuture;
-    return await workspace.startHotReloadCompiler(uri);
+    final compiler = await workspace.startHotReloadCompiler(uri);
+    return RealCompilerSession(compiler);
   }
 
   /// Converts a workspace [filePath] to a `package:` URI based on the nearest
@@ -190,3 +192,4 @@ Future<void> runWorkspacePubGet({
     events.dispatch(LogEvent(log));
   }
 }
+

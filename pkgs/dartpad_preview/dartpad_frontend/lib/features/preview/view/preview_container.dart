@@ -64,7 +64,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
 
     return div(classes: 'preview-container', [
       div(classes: 'preview-toolbar', [
-        div(classes: 'left-controls', [
+        div(classes: 'preview-controls', [
           ButtonGroup(
             children: [
               if (isRunning)
@@ -108,13 +108,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flex: const .grow(1),
         backgroundColor: colorContainerLow,
       ),
-      css('.active-icon-btn').styles(
-        color: colorOnPrimary,
-        backgroundColor: colorPrimary,
-      ),
-      css('.active-icon-btn:not(.disabled):hover').styles(
-        backgroundColor: colorPrimary,
-      ),
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,
@@ -127,21 +120,8 @@ class _PreviewContainerState extends State<PreviewContainer> {
           flex: const .shrink(0),
           backgroundColor: colorContainerLow,
         ),
-        css('.left-controls').styles(
+        css('.preview-controls').styles(
           display: .flex,
-          alignItems: .center,
-          flex: const .grow(1),
-          raw: {'flex-basis': '0%'},
-        ),
-        css('.center-controls').styles(
-          display: .flex,
-          justifyContent: .center,
-          alignItems: .center,
-          raw: {'flex-shrink': '0'},
-        ),
-        css('.right-controls').styles(
-          display: .flex,
-          justifyContent: .end,
           alignItems: .center,
           flex: const .grow(1),
           raw: {'flex-basis': '0%'},
@@ -213,22 +193,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
           css('&.preview-toast-error').styles(
             backgroundColor: const Color('rgba(127, 29, 29, 0.9)'),
           ),
-          css('.preview-toast-action', [
-            css('&').styles(
-              padding: .symmetric(vertical: 4.px, horizontal: 10.px),
-              border: .all(color: const Color('rgba(255, 255, 255, 0.3)'), width: 1.px),
-              radius: .circular(4.px),
-              cursor: .pointer,
-              color: Colors.white,
-              fontSize: 12.px,
-              fontWeight: .w600,
-              backgroundColor: Colors.transparent,
-              raw: {'outline': 'none'},
-            ),
-            css('&:hover').styles(
-              backgroundColor: const Color('rgba(255, 255, 255, 0.15)'),
-            ),
-          ]),
         ]),
         css('.preview-placeholder').styles(
           display: .flex,
