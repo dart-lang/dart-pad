@@ -28,6 +28,8 @@ import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
+import 'features/startup/gist_loader.dart';
+import 'features/startup/project_loader.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 
@@ -89,30 +91,32 @@ class AppState extends State<App> {
         return;
       }
 
-      await projectFuture;
+      final project = await projectFuture;
 
       if (!mounted) {
         return;
       }
 
-      setState(() {
-        loadingStatus = 'Running Pub Get...';
-      });
+      if (project?.packageRoot case final String packageRoot) {
+        setState(() {
+          loadingStatus = 'Running Pub Get...';
+        });
 
-      try {
-        await _workspaceRepository.pubGet(
-          path: _projectDir,
-          projectRoot: _projectDir,
-        );
-      } catch (error, stackTrace) {
-        _events.dispatch(
-          LogEvent(
-            'Pub get failed.',
-            level: Level.SEVERE,
-            error: error,
-            stackTrace: stackTrace,
-          ),
-        );
+        try {
+          await _workspaceRepository.pubGet(
+            path: packageRoot,
+            projectRoot: packageRoot,
+          );
+        } catch (error, stackTrace) {
+          _events.dispatch(
+            LogEvent(
+              'Pub get failed.',
+              level: Level.SEVERE,
+              error: error,
+              stackTrace: stackTrace,
+            ),
+          );
+        }
       }
 
       if (!mounted) {
@@ -157,10 +161,11 @@ class AppState extends State<App> {
     });
   }
 
-  Future<void> loadProject() async {
+  Future<LoadedProject?> loadProject() async {
     final params = Uri.base.queryParameters;
 
     try {
+      final LoadedProject project;
       if (params case {
         'archive': final String archiveUrlParam,
         'path': final String filePathParam,
@@ -172,14 +177,7 @@ class AppState extends State<App> {
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
         final filePath = Uri.decodeComponent(filePathParam);
         final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-        final (:projectDir, :targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
-        setState(() {
-          _projectDir = projectDir;
-        });
-        _fileTree.focusPath(projectDir);
-        if (targetFilePath != null) {
-          unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
-        }
+        project = await loader.loadArchive(_workspaceRepository.root);
       } else if (params case {'package': final String packageName}) {
         setState(() {
           loadingStatus = 'Resolving Package...';
@@ -189,30 +187,47 @@ class AppState extends State<App> {
         setState(() {
           loadingStatus = 'Downloading Package...';
         });
-        final (:projectDir, :targetFilePath) = await loader.loadArchive(_workspaceRepository.root);
+        project = await loader.loadArchive(_workspaceRepository.root);
+      } else if (params['gist'] case final String gistId) {
         setState(() {
-          _projectDir = projectDir;
+          loadingStatus = 'Downloading Gist...';
+          _errorMessage = null;
         });
-        _fileTree.focusPath(projectDir);
-        if (targetFilePath != null) {
-          unawaited(_tabs.openFile(workspaceContext.normalize(targetFilePath)));
-        }
+        final loader = GistLoader(gistId: gistId);
+        project = await loader.loadGist(_workspaceRepository.root);
       } else {
         setState(() {
           loadingStatus = 'Creating Sample Project...';
           _errorMessage = null;
         });
         await createSampleProject(_workspaceRepository.root);
-        setState(() {
-          _projectDir = '';
-        });
-        _fileTree.focusPath('');
-        unawaited(openSampleProject(_tabs.openFile));
+        project = const LoadedProject(
+          projectDir: '',
+          entryPath: sampleProjectEntryPath,
+          packageRoot: '',
+        );
       }
-    } catch (error) {
+
+      if (!mounted) {
+        return project;
+      }
+
       setState(() {
-        _errorMessage = 'Failed to load project: $error';
+        _projectDir = project.projectDir;
       });
+      _fileTree.focusPath(project.projectDir);
+      if (project.entryPath case final String entryPath) {
+        unawaited(_tabs.openFile(entryPath));
+      }
+
+      return project;
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load project: $error';
+        });
+      }
+      return null;
     }
   }
 

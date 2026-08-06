@@ -9,15 +9,17 @@ Future<void> createSampleProject(WorkspaceFolder root) async {
   await root.getFolder('lib').create();
   await root.getFile(_samplePubspecPath).writeContent(samplePubspec.trimLeft());
   await root.getFile(_sampleAnalysisOptionsPath).writeContent(sampleAnalysisOptions.trimLeft());
-  await root.getFile(_sampleMainPath).writeContent(sampleMainDart.trimLeft());
+  await root.getFile(sampleProjectEntryPath).writeContent(sampleMainDart.trimLeft());
 }
+
+/// The first file opened for the default sample project.
+const String sampleProjectEntryPath = 'lib/main.dart';
 
 /// Opens the default sample files and leaves the Dart source active.
-Future<void> openSampleProject(Future<void> Function(String path) openFile) async {
-  await openFile(_sampleMainPath);
+Future<void> openSampleProject(Future<void> Function(String path) openFile) {
+  return openFile(sampleProjectEntryPath);
 }
 
-const String _sampleMainPath = 'lib/main.dart';
 const String _sampleAnalysisOptionsPath = 'analysis_options.yaml';
 const String _samplePubspecPath = 'pubspec.yaml';
 

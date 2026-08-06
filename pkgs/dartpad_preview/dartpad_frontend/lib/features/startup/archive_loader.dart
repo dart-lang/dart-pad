@@ -9,6 +9,8 @@ import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
 
+import 'project_loader.dart';
+
 /// A loader that downloads a (gzipped) tar archive from a remote URL,
 /// extracts all of its files into a virtual workspace folder, and opens a
 /// target file.
@@ -50,12 +52,9 @@ class ArchiveLoader {
   /// Scans the archive files to find the nearest parent directory containing
   /// a `pubspec.yaml` file for the active target file.
   ///
-  /// Returns a record containing:
-  /// - `projectDir`: The path to the project directory relative to the archive root.
-  /// - `targetFilePath`: The path to the file to open after extraction, which is
-  ///   either the provided [filePath] or resolved by searching the archive for
-  ///   well-known example files.
-  Future<({String projectDir, String? targetFilePath})> loadArchive(WorkspaceFolder root) async {
+  /// The returned entrypoint is either [filePath] or a well-known example file
+  /// discovered in package archives.
+  Future<LoadedProject> loadArchive(WorkspaceFolder root) async {
     final Uri uri = Uri.parse(archiveUrl);
     if (!uri.isAbsolute) {
       throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
@@ -75,78 +74,37 @@ class ArchiveLoader {
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
     final targetFilePath = filePath ?? findExampleFile(archive);
-    String projectDir = '';
-
-    if (targetFilePath != null) {
-      final String normalizedFilePath = workspaceContext.normalize(targetFilePath);
-      final Set<String> archivePaths = <String>{};
-      for (final ArchiveFile file in archive.files) {
-        String name = file.name;
-        if (name.startsWith('./')) {
-          name = name.substring(2);
-        } else if (name.startsWith('/')) {
-          name = name.substring(1);
-        }
-        archivePaths.add(name);
-      }
-
-      final List<String> segments = normalizedFilePath.split('/');
-
-      for (int i = segments.length - 1; i >= 0; i--) {
-        final String parentDir = segments.sublist(0, i).join('/');
-        final String pubspecPath = parentDir.isEmpty ? 'pubspec.yaml' : '$parentDir/pubspec.yaml';
-        if (archivePaths.contains(pubspecPath)) {
-          projectDir = parentDir;
-          break;
-        }
-      }
-    }
-
-    final List<ArchiveFile> filesToExtract = <ArchiveFile>[];
-    final Set<String> foldersToCreate = <String>{};
-
+    final files = <ProjectFile>[];
     for (final ArchiveFile file in archive.files) {
       if (!file.isFile) {
         continue;
       }
 
-      String name = file.name;
-      if (name.startsWith('./')) {
-        name = name.substring(2);
-      } else if (name.startsWith('/')) {
-        name = name.substring(1);
-      }
-
-      filesToExtract.add(file);
-
-      String dir = workspaceContext.dirname(name);
-      while (dir.isNotEmpty && dir != '.') {
-        foldersToCreate.add(dir);
-        dir = workspaceContext.dirname(dir);
-      }
+      files.add(
+        ProjectFile(path: _relativePath(file.name), bytes: file.content),
+      );
     }
 
-    final List<String> sortedFolders = foldersToCreate.toList()
-      ..sort((String a, String b) => a.length.compareTo(b.length));
-    for (final String folderPath in sortedFolders) {
-      await root.getFolder(folderPath).create();
+    final entryPath = targetFilePath == null ? null : ProjectLoader.normalizePath(targetFilePath);
+    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(files, entryPath) ?? '';
+
+    await ProjectLoader.writeFiles(root, files);
+
+    return LoadedProject(
+      projectDir: projectDir,
+      entryPath: entryPath,
+      packageRoot: projectDir,
+    );
+  }
+
+  String _relativePath(String path) {
+    if (path.startsWith('./')) {
+      return path.substring(2);
     }
-
-    for (final ArchiveFile file in filesToExtract) {
-      String name = file.name;
-      if (name.startsWith('./')) {
-        name = name.substring(2);
-      } else if (name.startsWith('/')) {
-        name = name.substring(1);
-      }
-
-      final dynamic content = file.content;
-      final Uint8List fileBytes = content is Uint8List ? content : Uint8List.fromList(content as List<int>);
-
-      await root.workspace.writeFileFromBytes(root.getFile(name).path, fileBytes);
+    if (path.startsWith('/')) {
+      return path.substring(1);
     }
-
-    return (projectDir: projectDir, targetFilePath: targetFilePath);
+    return path;
   }
 
   /// Finds the example file in the archive, returning null if not found.
