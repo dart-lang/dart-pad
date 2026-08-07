@@ -368,7 +368,6 @@ void main() {
 
     expect(controller.showFloatingPanel, isFalse);
   });
-
   testClient('quick-fix panel adjusts position above when near screen bottom', (tester) async {
     final mainTab = tabs!.activeTab! as CodeMirrorTab;
     final controller = mainTab.codeActionsController

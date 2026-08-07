@@ -86,6 +86,7 @@ class CodeActionsController {
   Future<void> triggerQuickFixes({int? from, int? to}) => _triggerActions(
     from: from,
     to: to,
+    autoApplySingle: true,
     loader: (plugin, rangeFrom, rangeTo) => _loadActions(
       plugin,
       rangeFrom,
@@ -113,6 +114,7 @@ class CodeActionsController {
   Future<void> _triggerActions({
     int? from,
     int? to,
+    bool autoApplySingle = false,
     required Future<List<cm.LSPCodeAction>> Function(cm.LSPPlugin, int, int) loader,
   }) async {
     if (_disposed) {
@@ -144,6 +146,10 @@ class CodeActionsController {
         return;
       }
 
+      if (autoApplySingle && actions.length == 1) {
+        await applyCodeAction(actions.single);
+        return;
+      }
       codeActions = actions;
       showFloatingPanel = true;
       onStateChanged();
@@ -155,7 +161,26 @@ class CodeActionsController {
       showFloatingPanel = true;
       onStateChanged();
       print('Error fetching code actions: $e');
+
     }
+    final actions = <cm.LSPCodeAction>[];
+    if (result != null) {
+      final array = result as JSArray<JSObject>;
+      actions.addAll(
+        array.toDart.map(cm.LSPCodeAction.new).where((action) {
+          final kind = action.kind?.toDart;
+          return kind == null || kind.startsWith('quickfix');
+        }),
+      );
+    }
+
+    if (loadSerial == _loadSerial) {
+      _cachedDocument = document;
+      _cachedFrom = from;
+      _cachedTo = to;
+      _cachedQuickFixes = actions;
+    }
+    return actions;
   }
 
   Future<List<cm.LSPCodeAction>> _loadActions(
