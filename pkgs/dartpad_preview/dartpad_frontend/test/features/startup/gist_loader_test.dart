@@ -26,7 +26,7 @@ void main() {
       return jsonEncode({'truncated': truncated, 'files': files});
     }
 
-    test('preserves flat Gist files and finds a project root and entrypoint', () async {
+    test('moves flat Dart files into lib and finds a project root and entrypoint', () async {
       final api = MemoryWorkspaceResourceApi();
       const loader = GistLoader(gistId: gistId);
       final response = gistResponse({
@@ -40,7 +40,7 @@ void main() {
         () async {
           final result = await loader.loadGist(api.root);
           expect(result.projectDir, '');
-          expect(result.entryPath, 'main.dart');
+          expect(result.entryPath, 'lib/main.dart');
           expect(result.packageRoot, '');
         },
         () => MockClient((request) async {
@@ -51,10 +51,10 @@ void main() {
       );
 
       expect(await api.readFileAsText('pubspec.yaml'), 'name: gist_project');
-      expect(await api.readFileAsText('main.dart'), "import 'helper.dart'; void main() {}");
-      expect(await api.readFileAsText('helper.dart'), 'class Helper {}');
-      expect(await api.fileExist('lib/main.dart'), isFalse);
-      expect(await api.fileExist('lib/helper.dart'), isFalse);
+      expect(await api.readFileAsText('lib/main.dart'), "import 'helper.dart'; void main() {}");
+      expect(await api.readFileAsText('lib/helper.dart'), 'class Helper {}');
+      expect(await api.fileExist('main.dart'), isFalse);
+      expect(await api.fileExist('helper.dart'), isFalse);
       expect(await api.readFileAsText('README.md'), '# Gist');
     });
 
@@ -62,10 +62,10 @@ void main() {
       final testCases = <({Map<String, String> files, String? entryPath})>[
         (
           files: {'main.dart': 'void main() {}'},
-          entryPath: 'main.dart',
+          entryPath: 'lib/main.dart',
         ),
         (files: {'lib/main.dart': 'void main() {}'}, entryPath: 'lib/main.dart'),
-        (files: {'example.dart': 'void main() {}'}, entryPath: 'example.dart'),
+        (files: {'example.dart': 'void main() {}'}, entryPath: 'lib/example.dart'),
         (files: {'README.md': '# Read me'}, entryPath: 'README.md'),
         (files: {'notes.txt': 'No entrypoint'}, entryPath: null),
       ];
@@ -127,7 +127,7 @@ void main() {
       await http.runWithClient(
         () async {
           final result = await const GistLoader(gistId: gistId).loadGist(api.root);
-          expect(result.entryPath, 'main.dart');
+          expect(result.entryPath, 'lib/main.dart');
         },
         () => MockClient((request) async {
           if (request.url.toString() == gistUrl) {
@@ -138,7 +138,7 @@ void main() {
         }),
       );
 
-      expect(await api.readFileAsBytes('main.dart'), rawBytes);
+      expect(await api.readFileAsBytes('lib/main.dart'), rawBytes);
     });
 
     test('reports a failed raw URL response', () async {

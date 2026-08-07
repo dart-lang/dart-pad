@@ -50,14 +50,16 @@ class GistLoader {
     final fetchedFiles = await Future.wait(
       filesJson.values.map(_loadFile).toList(),
     );
-    final files = fetchedFiles
-        .map(
-          (file) => ProjectFile(
-            path: ProjectLoader.normalizePath(file.path),
-            bytes: file.bytes,
-          ),
-        )
-        .toList();
+    final files = _moveRootDartFilesIntoLib(
+      fetchedFiles
+          .map(
+            (file) => ProjectFile(
+              path: ProjectLoader.normalizePath(file.path),
+              bytes: file.bytes,
+            ),
+          )
+          .toList(),
+    );
     final entryPath = _findEntryPath(files);
     final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(files, entryPath);
 
@@ -105,9 +107,22 @@ class GistLoader {
     );
   }
 
+  /// Converts the flat source layout supplied by GitHub Gists to a Dart
+  /// package layout. Non-Dart files, including pubspec.yaml and assets, stay
+  /// at the package root.
+  List<ProjectFile> _moveRootDartFilesIntoLib(List<ProjectFile> files) {
+    return [
+      for (final file in files)
+        if (workspaceContext.dirname(file.path).isEmpty && file.path.endsWith('.dart'))
+          ProjectFile(path: 'lib/${file.path}', bytes: file.bytes)
+        else
+          file,
+    ];
+  }
+
   String? _findEntryPath(List<ProjectFile> files) {
     final paths = files.map((file) => file.path).toSet();
-    for (final path in const ['main.dart', 'lib/main.dart']) {
+    for (final path in const ['lib/main.dart', 'main.dart']) {
       if (paths.contains(path)) {
         return path;
       }
