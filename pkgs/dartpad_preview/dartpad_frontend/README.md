@@ -62,11 +62,9 @@ http://localhost:8080/?package=material_ui
 
 To load a GitHub gist, provide its ID using the following parameter:
 
-* `gist`: The ID from the GitHub Gist URL. Dart files from the gist's flat
-file list are placed under `lib/`, so `main.dart` becomes `lib/main.dart`;
-non-Dart files such as `pubspec.yaml` remain at the workspace root. The
-resulting `lib/main.dart`, then the sole Dart file, or finally `README.md` is
-opened automatically when present.
+* `gist`: The ID from the GitHub Gist URL. The gist's flat file list is
+preserved at the workspace root. `main.dart`, then the sole Dart file, or
+finally `README.md` is opened automatically when present.
 
 Example:
 ```url
@@ -83,8 +81,8 @@ The generated worker and Flutter SDK artifacts are collected under the single
 ignored directory `web/dartpad/`. They must be built from this exact compatible
 pair:
 
-- Dart SDK `682f45325f17dc10c33dd07c485256154715ddb9`
-- Flutter `d776076fe2f7470f4da43cc6084137e5bbe35b6d`
+- Dart SDK `941e2ec4ff23b3c8f4292ddf802a91c026937195`
+- Flutter `d4e7f9ae4c9d728718871d5929f47c8491df3976`
 
 From this package directory run:
 

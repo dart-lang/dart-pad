@@ -26,20 +26,21 @@ void main() {
       return jsonEncode({'truncated': truncated, 'files': files});
     }
 
-    test('imports all files and finds a project root and lib entrypoint', () async {
+    test('preserves flat Gist files and finds a project root and entrypoint', () async {
       final api = MemoryWorkspaceResourceApi();
       const loader = GistLoader(gistId: gistId);
       final response = gistResponse({
         'pubspec.yaml': {'filename': 'pubspec.yaml', 'content': 'name: gist_project'},
-        'lib/main.dart': {'filename': 'lib/main.dart', 'content': 'void main() {}'},
-        'lib/src/helper.dart': {'filename': 'lib/src/helper.dart', 'content': 'class Helper {}'},
+        'main.dart': {'filename': 'main.dart', 'content': "import 'helper.dart'; void main() {}"},
+        'helper.dart': {'filename': 'helper.dart', 'content': 'class Helper {}'},
+        'README.md': {'filename': 'README.md', 'content': '# Gist'},
       });
 
       await http.runWithClient(
         () async {
           final result = await loader.loadGist(api.root);
           expect(result.projectDir, '');
-          expect(result.entryPath, 'lib/main.dart');
+          expect(result.entryPath, 'main.dart');
           expect(result.packageRoot, '');
         },
         () => MockClient((request) async {
@@ -50,14 +51,17 @@ void main() {
       );
 
       expect(await api.readFileAsText('pubspec.yaml'), 'name: gist_project');
-      expect(await api.readFileAsText('lib/main.dart'), 'void main() {}');
-      expect(await api.readFileAsText('lib/src/helper.dart'), 'class Helper {}');
+      expect(await api.readFileAsText('main.dart'), "import 'helper.dart'; void main() {}");
+      expect(await api.readFileAsText('helper.dart'), 'class Helper {}');
+      expect(await api.fileExist('lib/main.dart'), isFalse);
+      expect(await api.fileExist('lib/helper.dart'), isFalse);
+      expect(await api.readFileAsText('README.md'), '# Gist');
     });
 
     test('uses the configured entrypoint fallbacks', () async {
       final testCases = <({Map<String, String> files, String? entryPath})>[
         (
-          files: {'main.dart': 'void main() {}', 'lib/main.dart': 'void main() {}'},
+          files: {'main.dart': 'void main() {}'},
           entryPath: 'main.dart',
         ),
         (files: {'lib/main.dart': 'void main() {}'}, entryPath: 'lib/main.dart'),
