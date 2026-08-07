@@ -62,9 +62,11 @@ http://localhost:8080/?package=material_ui
 
 To load a GitHub gist, provide its ID using the following parameter:
 
-* `gist`: The ID from the GitHub Gist URL. The gist's flat file list is
-preserved at the workspace root. `main.dart`, then the sole Dart file, or
-finally `README.md` is opened automatically when present.
+* `gist`: The ID from the GitHub Gist URL. Dart files from the gist's flat
+file list are placed under `lib/`, so `main.dart` becomes `lib/main.dart`;
+non-Dart files such as `pubspec.yaml` remain at the workspace root. The
+resulting `lib/main.dart`, then the sole Dart file, or finally `README.md` is
+opened automatically when present.
 
 Example:
 ```url
