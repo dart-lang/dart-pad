@@ -9,6 +9,12 @@ import { forEachDiagnostic, setDiagnosticsEffect } from "@codemirror/lint";
 export interface ToolbarAction {
   label: string;
   run: (view: EditorView, from: number, to: number, diagnostics: any[]) => void;
+  isAvailable?: (
+    view: EditorView,
+    from: number,
+    to: number,
+    diagnostics: any[],
+  ) => boolean | Promise<boolean>;
 }
 
 function hideTooltip(tr: any, tooltip: any) {
@@ -44,7 +50,7 @@ export function diagnosticHoverToolbar(actions: ToolbarAction[]): Extension {
         create(view) {
           const dom = document.createElement("div");
           dom.className = "cm-diagnostic-hover-toolbar";
-          dom.style.display = "flex";
+          dom.style.display = "none";
           dom.style.gap = "6px";
           dom.style.padding = "4px 6px";
 
@@ -64,7 +70,31 @@ export function diagnosticHoverToolbar(actions: ToolbarAction[]): Extension {
                 activeDiagnostics.map((d) => d.diagnostic),
               );
             });
-            dom.appendChild(button);
+
+            const showButton = () => {
+              if (button.parentElement === dom) return;
+              dom.appendChild(button);
+              dom.classList.add("cm-diagnostic-hover-toolbar-available");
+              dom.style.display = "flex";
+              if (dom.isConnected) view.requestMeasure();
+            };
+
+            if (!action.isAvailable) {
+              showButton();
+            } else {
+              Promise.resolve(
+                action.isAvailable(
+                  view,
+                  from,
+                  to,
+                  activeDiagnostics.map((d) => d.diagnostic),
+                ),
+              )
+                .then((available) => {
+                  if (available) showButton();
+                })
+                .catch(() => {});
+            }
           }
 
           return { dom };
