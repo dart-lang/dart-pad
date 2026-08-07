@@ -30,7 +30,7 @@ final class FileTreeFileNode extends FileTreeNode {
     super.isIgnored = false,
   });
 
-  /// Whether the file can be opened in the text editor.
+  /// Whether the file can be opened in an editor or preview tab.
   final bool openable;
 }
 

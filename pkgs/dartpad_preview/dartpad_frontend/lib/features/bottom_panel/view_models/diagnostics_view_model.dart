@@ -37,7 +37,7 @@ class DiagnosticsViewModel extends ChangeNotifier {
 
   /// Opens the file for [diagnostic] and navigates to its source position.
   Future<void> openDiagnostic(String fileName, Diagnostic diagnostic) async {
-    await tabs.openTextFile(fileName);
+    await tabs.openEditorFile(fileName);
     final tab = tabs.getTab(fileName);
     if (tab is CodeMirrorTab) {
       tab.goToPosition(diagnostic.line, diagnostic.character);
