@@ -86,18 +86,20 @@ export const dartpadTheme = EditorView.theme({
   '[data-theme="dark"] & .cm-cursor, [data-theme="dark"] & .cm-dropCursor': {
     borderLeft: "1px solid white",
   },
-  '[data-theme="dark"] & .cm-selectionBackground, [data-theme="dark"] & .cm-content ::selection': {
-    backgroundColor: "#23364D !important",
-  },
+  '[data-theme="dark"] & .cm-selectionBackground, [data-theme="dark"] & .cm-content ::selection':
+    {
+      backgroundColor: "#23364D !important",
+    },
   '[data-theme="dark"] & .cm-gutters': {
     backgroundColor: "#0E161F !important",
     color: "#909090",
     borderRight: "none",
   },
-  '[data-theme="dark"] &.cm-focused .cm-matchingBracket, [data-theme="dark"] &.cm-focused .cm-nonmatchingBracket': {
-    outline: "1px solid #606060",
-    color: "#FF2D64 !important",
-  },
+  '[data-theme="dark"] &.cm-focused .cm-matchingBracket, [data-theme="dark"] &.cm-focused .cm-nonmatchingBracket':
+    {
+      outline: "1px solid #606060",
+      color: "#FF2D64 !important",
+    },
   '[data-theme="dark"] & .cm-activeLine': {
     backgroundColor: "rgba(32, 143, 253, 0.035)",
   },
@@ -117,7 +119,10 @@ export const dartpadTheme = EditorView.theme({
 
 export const dartpadHighlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: "var(--cm-keyword)" },
-  { tag: [tags.comment, tags.lineComment, tags.blockComment], color: "var(--cm-comment)" },
+  {
+    tag: [tags.comment, tags.lineComment, tags.blockComment],
+    color: "var(--cm-comment)",
+  },
   { tag: tags.standard(tags.name), color: "var(--cm-builtin)" },
   { tag: [tags.atom, tags.bool, tags.null], color: "var(--cm-atom)" },
   { tag: tags.variableName, color: "var(--cm-variable)" },
@@ -130,9 +135,15 @@ export const dartpadHighlightStyle = HighlightStyle.define([
   { tag: [tags.meta, tags.annotation], color: "var(--cm-meta)" },
   { tag: tags.heading, color: "var(--cm-header)", fontWeight: "bold" },
   { tag: [tags.operator, tags.operatorKeyword], color: "var(--cm-operator)" },
-  { tag: [tags.definition(tags.name), tags.definition(tags.variableName)], color: "var(--cm-def)" },
+  {
+    tag: [tags.definition(tags.name), tags.definition(tags.variableName)],
+    color: "var(--cm-def)",
+  },
   { tag: tags.tagName, color: "var(--cm-tag)" },
   { tag: tags.propertyName, color: "var(--cm-property)" },
 ]);
 
-export const dartpad = [dartpadTheme, syntaxHighlighting(dartpadHighlightStyle)];
+export const dartpad = [
+  dartpadTheme,
+  syntaxHighlighting(dartpadHighlightStyle),
+];
