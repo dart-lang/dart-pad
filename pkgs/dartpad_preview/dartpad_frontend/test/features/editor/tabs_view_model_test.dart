@@ -6,12 +6,15 @@
 library;
 
 import 'dart:async';
+import 'dart:js_interop';
 import 'dart:typed_data';
 
+import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
+import 'package:dartpad_frontend/features/editor/components/code_action_panel.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tabs.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
@@ -260,5 +263,109 @@ void main() {
     );
 
     expect(web.document.querySelectorAll('.editor-tab-slot').length, 0);
+  });
+
+  testClient('quick-fix panel renders choices and applies the selected action', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..showFloatingPanel = true
+      ..codeActions = [
+        LSPCodeAction({'title': 'Use const', 'kind': 'quickfix'}.jsify() as JSObject),
+        LSPCodeAction({'title': 'Suppress lint', 'kind': 'quickfix'}.jsify() as JSObject),
+      ];
+
+    tester.pumpComponent(mainTab.build());
+    await pumpEventQueue();
+
+    final buttons = web.document.querySelectorAll('.code-action-btn');
+    expect(buttons.length, 2);
+    expect(buttons.item(0)!.textContent, 'Use const');
+    expect(buttons.item(1)!.textContent, 'Suppress lint');
+    expect(web.document.activeElement, same(buttons.item(0)));
+
+    buttons
+        .item(0)!
+        .dispatchEvent(
+          web.KeyboardEvent(
+            'keydown',
+            web.KeyboardEventInit(key: 'ArrowDown', bubbles: true, cancelable: true),
+          ),
+        );
+    expect(web.document.activeElement, same(buttons.item(1)));
+
+    buttons
+        .item(1)!
+        .dispatchEvent(
+          web.KeyboardEvent(
+            'keydown',
+            web.KeyboardEventInit(key: 'ArrowUp', bubbles: true, cancelable: true),
+          ),
+        );
+    expect(web.document.activeElement, same(buttons.item(0)));
+
+    buttons
+        .item(0)!
+        .dispatchEvent(
+          web.KeyboardEvent(
+            'keydown',
+            web.KeyboardEventInit(key: 'ArrowDown', bubbles: true, cancelable: true),
+          ),
+        );
+
+    buttons
+        .item(1)!
+        .dispatchEvent(
+          web.KeyboardEvent(
+            'keydown',
+            web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true),
+          ),
+        );
+    await pumpEventQueue();
+
+    expect(controller.showFloatingPanel, isFalse);
+    expect(controller.codeActions, isNull);
+  });
+
+  testClient('Escape closes the quick-fix panel and restores editor focus', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..showFloatingPanel = true
+      ..codeActions = [
+        LSPCodeAction({'title': 'Use const', 'kind': 'quickfix'}.jsify() as JSObject),
+        LSPCodeAction({'title': 'Suppress lint', 'kind': 'quickfix'}.jsify() as JSObject),
+      ];
+
+    tester.pumpComponent(mainTab.build());
+    await pumpEventQueue();
+
+    web.document.activeElement!.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(controller.showFloatingPanel, isFalse);
+    expect(web.document.activeElement, same(mainTab.editor.view.dom.querySelector('.cm-content')));
+  });
+
+  testClient('quick-fix panel reports no results and closes on outside click', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..showFloatingPanel = true
+      ..codeActions = [];
+
+    tester.pumpComponent(CodeActionPanel(controller: controller));
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.code-action-empty-item')!.textContent, 'No quick fixes available');
+
+    web.document.body!.dispatchEvent(
+      web.MouseEvent('mousedown', web.MouseEventInit(bubbles: true)),
+    );
+    await pumpEventQueue();
+
+    expect(controller.showFloatingPanel, isFalse);
   });
 }

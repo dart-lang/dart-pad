@@ -29,75 +29,153 @@ class CodeActionsController {
   double panelLeft = 0;
   double panelTop = 0;
   List<cm.LSPCodeAction>? codeActions;
+  int _requestSerial = 0;
+  int _loadSerial = 0;
+  bool _disposed = false;
+  cm.Text? _cachedDocument;
+  int? _cachedFrom;
+  int? _cachedTo;
+  List<cm.LSPCodeAction>? _cachedQuickFixes;
 
-  /// Requests the available code actions from the LSP server at the current cursor selection
-  /// and displays them in the floating panel.
+  /// Returns whether the LSP currently offers a quick fix for [from] and [to].
+  /// The result is cached for the matching document and range so activating the
+  /// visible action does not issue the same request again.
+  Future<bool> hasQuickFixes({required int from, required int to}) async {
+    if (_disposed) {
+      return false;
+    }
+    final plugin = cm.LSPPlugin.get(codeEditor.view);
+    if (plugin == null) {
+      return false;
+    }
+    final rangeFrom = from.clamp(0, codeEditor.view.state.doc.length);
+    final rangeTo = to.clamp(rangeFrom, codeEditor.view.state.doc.length);
+    try {
+      final actions = await _loadQuickFixes(plugin, rangeFrom, rangeTo);
+      return actions.isNotEmpty;
+    } catch (e) {
+      print('Error checking code actions: $e');
+      return false;
+    }
+  }
+
+  /// Requests quick fixes from the LSP server for [from] and [to], or for the
+  /// current editor selection when no explicit range is provided.
   ///
-  /// It filters diagnostics to find those overlapping with the selection and sends them as context.
-  Future<void> triggerCodeActions() async {
+  /// A single result is applied immediately. Multiple results are displayed in
+  /// the floating panel so the user can choose one.
+  Future<void> triggerQuickFixes({int? from, int? to}) async {
+    if (_disposed) {
+      return;
+    }
+    final requestSerial = ++_requestSerial;
     CodeMirrorEditor.hideAllTooltips();
     final plugin = cm.LSPPlugin.get(codeEditor.view);
     if (plugin == null) {
       return;
     }
 
-    plugin.client.sync();
-
     final selection = codeEditor.view.state.selection.main;
-    final startPos = plugin.toPosition(selection.from);
-    final endPos = plugin.toPosition(selection.to);
+    final rangeFrom = (from ?? selection.from).clamp(0, codeEditor.view.state.doc.length);
+    final rangeTo = (to ?? selection.to).clamp(rangeFrom, codeEditor.view.state.doc.length);
 
-    final fileDiagnostics = getDiagnostics()
-        .where((entry) => entry.fileName == file)
-        .map((entry) => entry.diagnostic)
-        .toList();
+    final rect = codeEditor.view.coordsAtPos(rangeFrom);
+    panelLeft = rect?.left ?? 100;
+    panelTop = rect?.bottom ?? 100;
+    showFloatingPanel = true;
+    codeActions = null;
+    onStateChanged();
 
+    try {
+      final actions = await _loadQuickFixes(plugin, rangeFrom, rangeTo);
+      if (_disposed || requestSerial != _requestSerial) {
+        return;
+      }
+
+      if (actions.length == 1) {
+        await applyCodeAction(actions.single);
+        return;
+      }
+
+      codeActions = actions;
+      showFloatingPanel = true;
+      onStateChanged();
+    } catch (e) {
+      if (_disposed || requestSerial != _requestSerial) {
+        return;
+      }
+      codeActions = [];
+      showFloatingPanel = true;
+      onStateChanged();
+      print('Error fetching code actions: $e');
+    }
+  }
+
+  Future<List<cm.LSPCodeAction>> _loadQuickFixes(cm.LSPPlugin plugin, int from, int to) async {
+    final document = codeEditor.view.state.doc;
+    if (identical(document, _cachedDocument) && from == _cachedFrom && to == _cachedTo) {
+      return _cachedQuickFixes!;
+    }
+
+    plugin.client.sync();
+    final loadSerial = ++_loadSerial;
     final overlappingDiagnostics = <Object?>[];
-    for (final diag in fileDiagnostics) {
-      final rawRange = diag.raw?['range'] as Map?;
-      if (rawRange != null) {
-        final start = rawRange['start'] as Map?;
-        final end = rawRange['end'] as Map?;
-        if (start != null && end != null) {
-          final startOffset = plugin.fromPosition(start.jsify() as JSObject);
-          final endOffset = plugin.fromPosition(end.jsify() as JSObject);
-          final intersects = startOffset <= selection.to && endOffset >= selection.from;
-          if (intersects && diag.raw != null) {
-            overlappingDiagnostics.add(diag.raw);
-          }
-        }
+    for (final diagnostic
+        in getDiagnostics().where((entry) => entry.fileName == file).map((entry) => entry.diagnostic)) {
+      final rawRange = diagnostic.raw?['range'] as Map?;
+      final start = rawRange?['start'] as Map?;
+      final end = rawRange?['end'] as Map?;
+      if (start == null || end == null) {
+        continue;
+      }
+      final startOffset = plugin.fromPosition(start.jsify() as JSObject);
+      final endOffset = plugin.fromPosition(end.jsify() as JSObject);
+      if (startOffset <= to && endOffset >= from && diagnostic.raw != null) {
+        overlappingDiagnostics.add(diagnostic.raw);
       }
     }
 
     final params = {
       'textDocument': {'uri': plugin.uri.toDart},
-      'range': {'start': startPos, 'end': endPos},
-      'context': {'diagnostics': overlappingDiagnostics},
+      'range': {
+        'start': plugin.toPosition(from),
+        'end': plugin.toPosition(to),
+      },
+      'context': {
+        'diagnostics': overlappingDiagnostics,
+        'only': ['quickfix'],
+        'triggerKind': 1,
+      },
     };
-
-    final rect = codeEditor.view.coordsAtPos(selection.from);
-    panelLeft = rect?.left ?? 100;
-    panelTop = rect?.bottom ?? 100;
-
-    try {
-      final promise = plugin.client.request('textDocument/codeAction'.toJS, params.jsify() as JSObject);
-      final result = await promise.toDart;
-      if (result == null) {
-        codeActions = [];
-      } else {
-        final arr = result as JSArray<JSObject>;
-        codeActions = arr.toDart.map(cm.LSPCodeAction.new).toList();
-      }
-
-      showFloatingPanel = true;
-      onStateChanged();
-    } catch (e) {
-      print('Error fetching code actions: $e');
+    final result = await plugin.client.request('textDocument/codeAction'.toJS, params.jsify() as JSObject).toDart;
+    if (_disposed || !identical(document, codeEditor.view.state.doc)) {
+      return [];
     }
+    final actions = <cm.LSPCodeAction>[];
+    if (result != null) {
+      final array = result as JSArray<JSObject>;
+      actions.addAll(
+        array.toDart.map(cm.LSPCodeAction.new).where((action) {
+          final kind = action.kind?.toDart;
+          return kind == null || kind.startsWith('quickfix');
+        }),
+      );
+    }
+
+    if (loadSerial == _loadSerial) {
+      _cachedDocument = document;
+      _cachedFrom = from;
+      _cachedTo = to;
+      _cachedQuickFixes = actions;
+    }
+    return actions;
   }
 
   /// Applies the selected LSP code action, which may include workspace edits or commands, and hides the panel.
   Future<void> applyCodeAction(cm.LSPCodeAction action) async {
+    if (_disposed) {
+      return;
+    }
     final edit = action.edit;
     if (edit != null) {
       final editMap = (edit.dartify() as Map).cast<String, Object?>();
@@ -112,14 +190,38 @@ class CodeActionsController {
       await codeEditor.languageServerClient?.executeCommand(commandStr, arguments);
     }
 
+    _clearQuickFixCache();
+
     hideCodeActionPanel();
     codeEditor.focus();
   }
 
   /// Hides the floating code action panel and clears the current code actions list.
   void hideCodeActionPanel() {
+    if (_disposed) {
+      return;
+    }
+    _requestSerial++;
     showFloatingPanel = false;
     codeActions = null;
     onStateChanged();
+  }
+
+  /// Cancels pending UI updates when the owning editor tab is destroyed.
+  void dispose() {
+    _disposed = true;
+    _requestSerial++;
+    _loadSerial++;
+    showFloatingPanel = false;
+    codeActions = null;
+    _clearQuickFixCache();
+  }
+
+  void _clearQuickFixCache() {
+    _loadSerial++;
+    _cachedDocument = null;
+    _cachedFrom = null;
+    _cachedTo = null;
+    _cachedQuickFixes = null;
   }
 }

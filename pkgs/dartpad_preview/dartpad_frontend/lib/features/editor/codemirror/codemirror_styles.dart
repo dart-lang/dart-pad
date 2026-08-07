@@ -329,44 +329,50 @@ List<StyleRule> get codemirrorStyles => [
     fontSize: 10.px,
     backgroundColor: const Color.rgba(255, 255, 255, 0.15),
   ),
+  css(
+    '.editor-container:has(.cm-diagnostic-hover-toolbar-available) .cm-tooltip-lint',
+  ).styles(
+    raw: {
+      'border-radius': '6px 6px 0 0 !important',
+    },
+  ),
   css('.editor-container .cm-diagnostic-hover-toolbar').styles(
     display: .flex,
     padding: .symmetric(vertical: 4.px, horizontal: 6.px),
-    radius: .circular(6.px),
     gap: .all(6.px),
-    backgroundColor: colorContainer,
+    backgroundColor: colorSurface,
+    raw: {
+      'border-radius': '0 0 6px 6px !important',
+      'border-top': '1px solid rgba(255, 255, 255, 0.85) !important',
+      'margin-top': '-1px',
+    },
   ),
   css('.editor-container .cm-diagnostic-toolbar-btn').styles(
     display: .inlineFlex,
-    padding: .symmetric(vertical: 4.px, horizontal: 10.px),
-    border: .all(color: colorBorder, width: 1.px),
-    radius: .circular(4.px),
+    padding: .symmetric(vertical: 2.px, horizontal: 4.px),
+    border: .none,
     cursor: .pointer,
-    transition: .combine([
-      Transition('background-color', duration: 150.ms, curve: .ease),
-      Transition('border-color', duration: 150.ms, curve: .ease),
-      Transition('color', duration: 150.ms, curve: .ease),
-      Transition('opacity', duration: 150.ms, curve: .ease),
-    ]),
+    transition: Transition('color', duration: 150.ms, curve: .ease),
     alignItems: .center,
     color: colorPrimary,
     fontSize: 12.px,
     fontWeight: .w500,
-    backgroundColor: colorContainer,
+    backgroundColor: Colors.transparent,
     raw: {
       'background-image': 'none',
     },
   ),
-  css('.editor-container .cm-diagnostic-toolbar-btn:not(:disabled):hover').styles(
-    border: .all(color: colorPrimary, width: 1.px),
-    color: colorOnPrimary,
-    backgroundColor: colorPrimary,
+  css(
+    '.editor-container .cm-diagnostic-toolbar-btn:not(:disabled):hover, '
+    '.editor-container .cm-diagnostic-toolbar-btn:not(:disabled):focus-visible',
+  ).styles(
+    outline: const Outline(style: .none),
+    textDecoration: const TextDecoration(line: .underline),
   ),
   css('.editor-container .cm-diagnostic-toolbar-btn:disabled').styles(
-    border: .all(color: colorBorder, width: 1.px),
     opacity: .5,
     cursor: .notAllowed,
     color: colorOnContainer,
-    backgroundColor: colorContainer,
+    backgroundColor: Colors.transparent,
   ),
 ];

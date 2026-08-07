@@ -128,6 +128,94 @@ void main() {
     expect(view.state.selection.main.anchor, 2);
   });
 
+  test('diagnostic hover renders Apply fix and reports its range', () async {
+    final parent = web.HTMLDivElement()
+      ..style.width = '320px'
+      ..style.height = '120px';
+    web.document.body!.append(parent);
+    int? requestedFrom;
+    int? requestedTo;
+
+    final lintSource = ((EditorView _) {
+      return [
+        {
+          'from': 1,
+          'to': 4,
+          'severity': 'warning',
+          'message': 'Use const',
+        },
+      ].jsify();
+    }).toJS;
+    final state = EditorState.create(
+      EditorStateConfig(
+        doc: 'test'.toJS,
+        extensions: [
+          linter(lintSource, {'delay': 0}.jsify() as JSObject),
+          diagnosticHoverToolbar(
+            <ToolbarAction>[
+              ToolbarAction(
+                label: 'Unavailable fix'.toJS,
+                isAvailable: ((EditorView _, int from, int to, JSArray<JSObject> diagnostics) {
+                  return Future.value(false.toJS).toJS;
+                }).toJS,
+                run: ((EditorView _, int from, int to, JSArray<JSObject> diagnostics) {
+                  expect(
+                    true,
+                    isFalse,
+                    reason: 'Unavailable toolbar actions must not be rendered.',
+                  );
+                }).toJS,
+              ),
+              ToolbarAction(
+                label: 'Apply fix'.toJS,
+                isAvailable: ((EditorView _, int from, int to, JSArray<JSObject> diagnostics) {
+                  return Future.value(true.toJS).toJS;
+                }).toJS,
+                run: ((EditorView _, int from, int to, JSArray<JSObject> diagnostics) {
+                  expect(diagnostics.toDart, hasLength(1));
+                  requestedFrom = from;
+                  requestedTo = to;
+                }).toJS,
+              ),
+            ].toJS,
+          ),
+        ].toJS,
+      ),
+    );
+    final view = EditorView(EditorViewConfig(parent: parent, state: state));
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    expect(view.dom.querySelector('.cm-lintRange'), isNotNull);
+    final rect = view.coordsAtPos(2)!;
+    final content = view.dom.querySelector('.cm-content')!;
+    content.dispatchEvent(
+      web.MouseEvent(
+        'mousemove',
+        web.MouseEventInit(
+          bubbles: true,
+          clientX: ((rect.left + rect.right) / 2).round(),
+          clientY: ((rect.top + rect.bottom) / 2).round(),
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 1000));
+
+    final buttons = web.document.querySelectorAll('.cm-diagnostic-toolbar-btn');
+    expect(buttons.length, 1);
+    final button = buttons.item(0) as web.HTMLButtonElement?;
+    expect(button, isNotNull);
+    expect(button!.textContent, 'Apply fix');
+    button.click();
+
+    expect(requestedFrom, 1);
+    expect(requestedTo, 4);
+  });
+
   test('all language factories produce CodeMirror extensions', () {
     final extensions = <JSAny>[
       dart(),
