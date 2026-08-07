@@ -35395,6 +35395,9 @@
         ])
     ])();
 
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
     const dartpadTheme = EditorView.theme({
         "&": {
             fontFamily: "'Roboto Mono', monospace",
@@ -35502,7 +35505,10 @@
     });
     const dartpadHighlightStyle = HighlightStyle.define([
         { tag: tags$1.keyword, color: "var(--cm-keyword)" },
-        { tag: [tags$1.comment, tags$1.lineComment, tags$1.blockComment], color: "var(--cm-comment)" },
+        {
+            tag: [tags$1.comment, tags$1.lineComment, tags$1.blockComment],
+            color: "var(--cm-comment)",
+        },
         { tag: tags$1.standard(tags$1.name), color: "var(--cm-builtin)" },
         { tag: [tags$1.atom, tags$1.bool, tags$1.null], color: "var(--cm-atom)" },
         { tag: tags$1.variableName, color: "var(--cm-variable)" },
@@ -35515,11 +35521,17 @@
         { tag: [tags$1.meta, tags$1.annotation], color: "var(--cm-meta)" },
         { tag: tags$1.heading, color: "var(--cm-header)", fontWeight: "bold" },
         { tag: [tags$1.operator, tags$1.operatorKeyword], color: "var(--cm-operator)" },
-        { tag: [tags$1.definition(tags$1.name), tags$1.definition(tags$1.variableName)], color: "var(--cm-def)" },
+        {
+            tag: [tags$1.definition(tags$1.name), tags$1.definition(tags$1.variableName)],
+            color: "var(--cm-def)",
+        },
         { tag: tags$1.tagName, color: "var(--cm-tag)" },
         { tag: tags$1.propertyName, color: "var(--cm-property)" },
     ]);
-    const dartpad = [dartpadTheme, syntaxHighlighting(dartpadHighlightStyle)];
+    const dartpad = [
+        dartpadTheme,
+        syntaxHighlighting(dartpadHighlightStyle),
+    ];
 
     /**
      * marked v15.0.12 - a markdown parser
