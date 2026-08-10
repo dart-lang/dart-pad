@@ -35356,113 +35356,143 @@
         ])
     ])();
 
-    // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
-    const chalky = "#e5c07b", coral = "#e06c75", cyan = "#56b6c2", invalid = "#ffffff", ivory = "#abb2bf", stone = "#7d8799", // Brightened compared to original to increase contrast
-    malibu = "#61afef", sage = "#98c379", whiskey = "#d19a66", violet = "#c678dd", darkBackground = "#21252b", highlightBackground = "#2c313a", background = "#282c34", tooltipBackground = "#353a42", selection = "#3E4451", cursor = "#528bff";
-    /**
-    The editor theme styles for One Dark.
-    */
-    const oneDarkTheme = /*@__PURE__*/EditorView.theme({
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
+    const dartpadTheme = EditorView.theme({
         "&": {
-            color: ivory,
-            backgroundColor: background
+            fontFamily: "'Roboto Mono', monospace",
+            fontWeight: "400",
+            // Default to Light Mode variables and styles
+            backgroundColor: "#fff",
+            color: "#4a4a4a",
+            "--cm-builtin": "#4a4a4a",
+            "--cm-comment": "#5F6368",
+            "--cm-keyword": "#007a27",
+            "--cm-atom": "#2f4960",
+            "--cm-variable": "#0E161F",
+            "--cm-variable2": "#a54a78",
+            "--cm-string": "#bc0056",
+            "--cm-string2": "#983ab3",
+            "--cm-number": "#00786d",
+            "--cm-attribute": "#0E161F",
+            "--cm-qualifier": "#d32923",
+            "--cm-meta": "#00786d",
+            "--cm-header": "#0E161F",
+            "--cm-operator": "#4a4a4a",
+            "--cm-def": "#4a4a4a",
+            "--cm-tag": "#007a27",
+            "--cm-property": "#a54a78",
         },
+        // Light Mode Scoped Styles
         ".cm-content": {
-            caretColor: cursor
+            caretColor: "#4a4a4a",
         },
-        ".cm-cursor, .cm-dropCursor": { borderLeftColor: cursor },
-        "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": { backgroundColor: selection },
-        ".cm-panels": { backgroundColor: darkBackground, color: ivory },
-        ".cm-panels.cm-panels-top": { borderBottom: "2px solid black" },
-        ".cm-panels.cm-panels-bottom": { borderTop: "2px solid black" },
-        ".cm-searchMatch": {
-            backgroundColor: "#72a1ff59",
-            outline: "1px solid #457dff"
+        ".cm-cursor, .cm-dropCursor": {
+            borderLeft: "1px solid #4a4a4a",
         },
-        ".cm-searchMatch.cm-searchMatch-selected": {
-            backgroundColor: "#6199ff2f"
-        },
-        ".cm-activeLine": { backgroundColor: "#6699ff0b" },
-        ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
-        "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
-            backgroundColor: "#bad0f847"
+        ".cm-selectionBackground, .cm-content ::selection": {
+            backgroundColor: "#e8e8e8 !important",
         },
         ".cm-gutters": {
-            backgroundColor: background,
-            color: stone,
-            border: "none"
+            backgroundColor: "#fff !important",
+            color: "#d0d0d2",
+            borderRight: "none",
+        },
+        "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
+            outline: "1px solid #606060",
+            color: "#a54a78 !important",
+        },
+        ".cm-activeLine": {
+            backgroundColor: "rgba(27, 134, 245, 0.035)",
         },
         ".cm-activeLineGutter": {
-            backgroundColor: highlightBackground
+            backgroundColor: "rgba(27, 134, 245, 0.07)",
         },
+        // Dark Mode Overrides (triggered by data-theme="dark" on ancestor html or body)
+        '[data-theme="dark"] &': {
+            backgroundColor: "#0E161F",
+            color: "#FFFFFF",
+            "--cm-builtin": "#FFFFFF",
+            "--cm-comment": "#909CC3",
+            "--cm-keyword": "#50E191",
+            "--cm-atom": "#FF916E",
+            "--cm-variable": "#00D2FA",
+            "--cm-variable2": "#FF916E",
+            "--cm-string": "#FA557D",
+            "--cm-string2": "#FF00FA",
+            "--cm-number": "#909090",
+            "--cm-attribute": "#00D2FA",
+            "--cm-qualifier": "#FF9B00",
+            "--cm-meta": "#909090",
+            "--cm-header": "#00D2FA",
+            "--cm-operator": "#FFFFFF",
+            "--cm-def": "#FFFFFF",
+            "--cm-tag": "#50E191",
+            "--cm-property": "#FF2D64",
+        },
+        '[data-theme="dark"] & .cm-content': {
+            caretColor: "white",
+        },
+        '[data-theme="dark"] & .cm-cursor, [data-theme="dark"] & .cm-dropCursor': {
+            borderLeft: "1px solid white",
+        },
+        '[data-theme="dark"] & .cm-selectionBackground, [data-theme="dark"] & .cm-content ::selection': {
+            backgroundColor: "#23364D !important",
+        },
+        '[data-theme="dark"] & .cm-gutters': {
+            backgroundColor: "#0E161F !important",
+            color: "#909090",
+            borderRight: "none",
+        },
+        '[data-theme="dark"] &.cm-focused .cm-matchingBracket, [data-theme="dark"] &.cm-focused .cm-nonmatchingBracket': {
+            outline: "1px solid #606060",
+            color: "#FF2D64 !important",
+        },
+        '[data-theme="dark"] & .cm-activeLine': {
+            backgroundColor: "rgba(32, 143, 253, 0.035)",
+        },
+        '[data-theme="dark"] & .cm-activeLineGutter': {
+            backgroundColor: "rgba(32, 143, 253, 0.07)",
+        },
+        // Shared Styles
         ".cm-foldPlaceholder": {
-            backgroundColor: "transparent",
-            border: "none",
-            color: "#ddd"
-        },
-        ".cm-tooltip": {
-            border: "none",
-            backgroundColor: tooltipBackground
-        },
-        ".cm-tooltip .cm-tooltip-arrow:before": {
-            borderTopColor: "transparent",
-            borderBottomColor: "transparent"
-        },
-        ".cm-tooltip .cm-tooltip-arrow:after": {
-            borderTopColor: tooltipBackground,
-            borderBottomColor: tooltipBackground
-        },
-        ".cm-tooltip-autocomplete": {
-            "& > ul > li[aria-selected]": {
-                backgroundColor: highlightBackground,
-                color: ivory
-            }
-        }
-    }, { dark: true });
-    /**
-    The highlighting style for code in the One Dark theme.
-    */
-    const oneDarkHighlightStyle = /*@__PURE__*/HighlightStyle.define([
-        { tag: tags$1.keyword,
-            color: violet },
-        { tag: [tags$1.name, tags$1.deleted, tags$1.character, tags$1.propertyName, tags$1.macroName],
-            color: coral },
-        { tag: [/*@__PURE__*/tags$1.function(tags$1.variableName), tags$1.labelName],
-            color: malibu },
-        { tag: [tags$1.color, /*@__PURE__*/tags$1.constant(tags$1.name), /*@__PURE__*/tags$1.standard(tags$1.name)],
-            color: whiskey },
-        { tag: [/*@__PURE__*/tags$1.definition(tags$1.name), tags$1.separator],
-            color: ivory },
-        { tag: [tags$1.typeName, tags$1.className, tags$1.number, tags$1.changed, tags$1.annotation, tags$1.modifier, tags$1.self, tags$1.namespace],
-            color: chalky },
-        { tag: [tags$1.operator, tags$1.operatorKeyword, tags$1.url, tags$1.escape, tags$1.regexp, tags$1.link, /*@__PURE__*/tags$1.special(tags$1.string)],
-            color: cyan },
-        { tag: [tags$1.meta, tags$1.comment],
-            color: stone },
-        { tag: tags$1.strong,
-            fontWeight: "bold" },
-        { tag: tags$1.emphasis,
-            fontStyle: "italic" },
-        { tag: tags$1.strikethrough,
-            textDecoration: "line-through" },
-        { tag: tags$1.link,
-            color: stone,
-            textDecoration: "underline" },
-        { tag: tags$1.heading,
+            backgroundColor: "rgb(82, 192, 155)",
+            color: "#000",
             fontWeight: "bold",
-            color: coral },
-        { tag: [tags$1.atom, tags$1.bool, /*@__PURE__*/tags$1.special(tags$1.variableName)],
-            color: whiskey },
-        { tag: [tags$1.processingInstruction, tags$1.string, tags$1.inserted],
-            color: sage },
-        { tag: tags$1.invalid,
-            color: invalid },
+            border: "none",
+            padding: "0 3px",
+        },
+    });
+    const dartpadHighlightStyle = HighlightStyle.define([
+        { tag: tags$1.keyword, color: "var(--cm-keyword)" },
+        {
+            tag: [tags$1.comment, tags$1.lineComment, tags$1.blockComment],
+            color: "var(--cm-comment)",
+        },
+        { tag: tags$1.standard(tags$1.name), color: "var(--cm-builtin)" },
+        { tag: [tags$1.atom, tags$1.bool, tags$1.null], color: "var(--cm-atom)" },
+        { tag: tags$1.variableName, color: "var(--cm-variable)" },
+        { tag: [tags$1.typeName, tags$1.className], color: "var(--cm-variable2)" },
+        { tag: tags$1.string, color: "var(--cm-string)" },
+        { tag: tags$1.special(tags$1.string), color: "var(--cm-string2)" },
+        { tag: tags$1.number, color: "var(--cm-number)" },
+        { tag: tags$1.attributeName, color: "var(--cm-attribute)" },
+        { tag: [tags$1.namespace, tags$1.modifier], color: "var(--cm-qualifier)" },
+        { tag: [tags$1.meta, tags$1.annotation], color: "var(--cm-meta)" },
+        { tag: tags$1.heading, color: "var(--cm-header)", fontWeight: "bold" },
+        { tag: [tags$1.operator, tags$1.operatorKeyword], color: "var(--cm-operator)" },
+        {
+            tag: [tags$1.definition(tags$1.name), tags$1.definition(tags$1.variableName)],
+            color: "var(--cm-def)",
+        },
+        { tag: tags$1.tagName, color: "var(--cm-tag)" },
+        { tag: tags$1.propertyName, color: "var(--cm-property)" },
     ]);
-    /**
-    Extension to enable the One Dark theme (both the editor theme and
-    the highlight style).
-    */
-    const oneDark = [oneDarkTheme, /*@__PURE__*/syntaxHighlighting(oneDarkHighlightStyle)];
+    const dartpad = [
+        dartpadTheme,
+        syntaxHighlighting(dartpadHighlightStyle),
+    ];
 
     /**
      * marked v15.0.12 - a markdown parser
@@ -40131,7 +40161,7 @@ ${text}</tr>
         LSPPlugin,
         formatDocument,
         formatDocumentAsync,
-        oneDark,
+        dartpadTheme: dartpad,
         showPanel,
         syntaxHighlighting,
         toggleLineComment,

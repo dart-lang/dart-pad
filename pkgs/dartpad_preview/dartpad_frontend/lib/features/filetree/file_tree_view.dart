@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
+import '../../app_styles.dart';
 import '../shared/icons.dart';
 import 'components/file_tree_file_item.dart';
 import 'components/file_tree_folder_item.dart';
@@ -314,20 +315,21 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         minHeight: .zero,
         overflow: .hidden,
         flexDirection: .column,
-        backgroundColor: const Color('#181818'),
+        backgroundColor: colorContainer,
       ),
       css('.file-tree-header').styles(
         display: .flex,
         minHeight: 38.px,
         padding: .symmetric(horizontal: 10.px),
         border: .only(
-          bottom: .solid(color: const Color('#303030'), width: 1.px),
+          bottom: .solid(color: colorBorder, width: 1.px),
         ),
         justifyContent: .spaceBetween,
         alignItems: .center,
+        backgroundColor: colorSurface,
       ),
       css('.file-tree-title').styles(
-        color: const Color('#d4d4d4'),
+        color: colorOnSurface,
         fontSize: 11.px,
         fontWeight: FontWeight.w600,
         textTransform: .upperCase,
@@ -342,13 +344,12 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         cursor: .pointer,
         justifyContent: .center,
         alignItems: .center,
-        color: const Color('#a8a8a8'),
+        color: colorOnSurface,
         backgroundColor: Colors.transparent,
       ),
       css('.file-tree-toolbar-button').styles(width: 24.px, height: 24.px),
       css('.file-tree-toolbar-button:hover, .file-tree-action:hover, .file-tree-disclosure:hover').styles(
-        color: const Color('#ffffff'),
-        backgroundColor: const Color('#353535'),
+        backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
       ),
       css('.file-tree-toolbar-button:disabled, .file-tree-action:disabled').styles(
         opacity: 0.45,
@@ -385,14 +386,16 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           userSelect: .none,
           alignItems: .center,
           gap: .all(5.px),
-          color: const Color('#c5c5c5'),
+          color: colorOnContainer,
           fontSize: 12.px,
-          backgroundColor: const Color('#181818'),
+          backgroundColor: colorContainer,
         ),
 
-        css('&:hover').styles(backgroundColor: const Color('#252525')),
+        css('&:hover').styles(
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
+        ),
         css('&.active').styles(
-          backgroundColor: const Color('#333333'),
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
         ),
         css('&.dim .file-tree-name').styles(
           opacity: 0.4,
@@ -405,13 +408,13 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         ),
         css('&.selected').styles(
           outline: Outline(
-            color: const Color('#7aa2f7'),
+            color: colorPrimary,
             style: OutlineStyle.solid,
             width: OutlineWidth(1.px),
             offset: (-1).px,
           ),
-          color: const Color('#ffffff'),
-          backgroundColor: const Color('#303747'),
+          color: colorOnContainer,
+          backgroundColor: colorContainer.highlight(colorPrimary, 0.4),
         ),
 
         css('&.dragging').styles(opacity: 0.45),
@@ -432,21 +435,21 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         ),
         width: 1.px,
         opacity: 0,
-        backgroundColor: const Color('#444444'),
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.3),
         raw: {'z-index': 'calc(100 - var(--tree-depth) - 1)'},
       ),
       css(
         '.file-tree-folder:has(>.file-tree-item.selected, >.file-tree-folder-children >.file-tree-item.selected)::after',
       ).styles(
-        backgroundColor: const Color('#666666'),
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.5),
       ),
       css('.file-tree-folder.drop-target').styles(
         border: .none,
         outline: const Outline(style: .none),
-        backgroundColor: const Color('#333333'),
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
       ),
       css('.file-tree-folder.drop-target .file-tree-item').styles(
-        backgroundColor: const Color('#333333'),
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
       ),
       css('.file-tree-folder.drop-target > .file-tree-item *').styles(
         pointerEvents: .none,
@@ -462,10 +465,10 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         width: 12.px,
         height: 12.px,
         flex: const .shrink(0),
-        color: const Color('#858585'),
+        color: colorOnSurface,
         raw: const {'vertical-align': 'middle'},
       ),
-      css('.file-tree-icon.file-icon-dart').styles(color: const Color('#5da9e9')),
+      css('.file-tree-icon.file-icon-dart').styles(color: colorPrimary),
       css('.file-tree-icon.file-icon-yaml').styles(color: const Color('#c586c0')),
       css('.file-tree-name').styles(
         minWidth: .zero,
@@ -482,14 +485,8 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           height: 20.px,
           flex: const .shrink(0),
         ),
-        css('&.delete:hover').styles(
-          color: const Color('#ff8a8a'),
-          backgroundColor: const Color('#4a2525'),
-        ),
-        css('&.confirm:hover').styles(
-          color: const Color('#9ece6a'),
-          backgroundColor: const Color('#243a2a'),
-        ),
+        css('&.delete:hover').styles(color: colorError, backgroundColor: colorSurface),
+        css('&.confirm:hover').styles(color: colorSuccess, backgroundColor: colorSurface),
       ]),
 
       css('.file-tree-action-icon').styles(
@@ -501,23 +498,23 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         css('&').styles(
           height: 20.px,
           minWidth: .zero,
-          border: .all(color: const Color('#7aa2f7'), width: 1.px),
+          border: .all(color: colorBorder, width: 1.px),
           radius: .circular(2.px),
           outline: const Outline(style: .none),
           flex: const Flex(grow: 1, basis: .zero),
-          color: const Color('#ffffff'),
+          color: colorOnContainer,
           fontSize: 1.em,
-          backgroundColor: const Color('#202020'),
+          backgroundColor: colorContainer,
         ),
         css('&.invalid').styles(
-          border: .all(color: const Color('#ff6b6b'), width: 1.px),
+          border: .all(color: colorError, width: 1.px),
         ),
       ]),
       css('.file-tree-validation, .file-tree-error').styles(
         padding: .symmetric(horizontal: 8.px, vertical: 5.px),
-        color: const Color('#ff9a9a'),
+        color: colorError,
         fontSize: 11.px,
-        backgroundColor: const Color('#351f1f'),
+        backgroundColor: colorErrorSurface,
       ),
       css('.file-tree-validation').styles(
         position: .absolute(top: 24.px, left: 22.px, right: 6.px),

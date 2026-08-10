@@ -61,7 +61,7 @@ class ProblemsPanel extends StatelessComponent {
         overflow: .hidden,
         flexDirection: .column,
         flex: const .shrink(0),
-        backgroundColor: colorContainerLow,
+        backgroundColor: colorContainer,
       ),
       css('& .problems-list').styles(
         minHeight: .zero,
@@ -82,7 +82,7 @@ class ProblemsPanel extends StatelessComponent {
         minHeight: 48.px,
         padding: .symmetric(horizontal: 12.px),
         alignItems: .center,
-        color: colorOnSurfaceVariant,
+        color: colorOnContainer,
         fontSize: 12.px,
       ),
       css('& .problem-row').styles(
@@ -106,7 +106,7 @@ class ProblemsPanel extends StatelessComponent {
       ),
       css('& .problem-row:hover, & .problem-row:focus').styles(
         outline: const Outline(style: .none),
-        backgroundColor: colorContainerHigh,
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
       ),
       css('& .problem-row.error').styles(
         border: .only(
@@ -124,7 +124,7 @@ class ProblemsPanel extends StatelessComponent {
         ),
       ),
       css('& .problem-row.active-file').styles(
-        backgroundColor: colorContainerHigh.withOpacity(0.5),
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
       ),
       css('& .problem-severity-badge').styles(
         display: .inlineFlex,
@@ -161,7 +161,7 @@ class ProblemsPanel extends StatelessComponent {
       ),
       css('& .problem-location').styles(
         display: .inlineBlock,
-        color: colorOnSurfaceVariant,
+        color: colorOnSurface,
         fontFamily: const .list([
           FontFamilies.courierNew,
           FontFamilies.monospace,

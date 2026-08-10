@@ -78,7 +78,7 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
-      backgroundColor: colorContainerLow,
+      backgroundColor: colorContainer,
     ),
     css('.debug-console-list').styles(
       minHeight: .zero,
@@ -90,7 +90,7 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
       minHeight: 48.px,
       padding: .symmetric(horizontal: 12.px),
       alignItems: .center,
-      color: colorOnSurfaceVariant,
+      color: colorOnContainer,
       fontSize: 12.px,
     ),
     css('.log-row').styles(
@@ -118,7 +118,7 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
     css('.log-message').styles(
       margin: .zero,
       overflow: const .only(x: .auto),
-      color: colorOnSurface.withOpacity(0.82),
+      color: colorOnContainer,
       fontFamily: const .list([FontFamilies.courierNew, FontFamilies.monospace]),
       fontSize: 12.px,
       lineHeight: 18.px,

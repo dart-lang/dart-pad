@@ -7,6 +7,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../app_styles.dart';
 import '../../shared/icons.dart';
 
 /// Renders a tab bar for switching between and closing open editor files.
@@ -106,7 +107,7 @@ final class EditorTabs extends StatelessComponent {
         minHeight: 38.px,
         overflow: const .only(x: .auto, y: .hidden),
         flex: const .shrink(0),
-        backgroundColor: const Color('#181818'),
+        backgroundColor: colorSurface,
       ),
       css('.editor-tab', [
         css('&').styles(
@@ -115,24 +116,28 @@ final class EditorTabs extends StatelessComponent {
           maxWidth: 180.px,
           padding: .only(left: 12.px, right: 8.px),
           border: .only(
-            right: .solid(color: const Color('#303030'), width: 1.px),
             top: .solid(color: Colors.transparent, width: 2.px),
           ),
           cursor: .pointer,
           userSelect: .none,
           alignItems: .center,
           gap: .all(6.px),
-          color: const Color('#a8a8a8'),
-          backgroundColor: const Color('#181818'),
+          color: colorOnContainer,
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
+        ),
+        css('&:hover').styles(
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
         ),
         css('&.active').styles(
           border: .only(
-            top: .solid(color: const Color('#7aa2f7'), width: 2.px),
+            top: .solid(color: colorPrimary, width: 2.px),
           ),
-          color: const Color('#e8e8e8'),
-          backgroundColor: const Color('#1e1e1e'),
+          color: colorOnContainer,
+          backgroundColor: colorContainer,
         ),
-        css('&:hover').styles(backgroundColor: const Color('#252525')),
+        css('&.active:hover').styles(
+          backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
+        ),
         css('.editor-tab-name').styles(
           minWidth: .zero,
           overflow: .hidden,
@@ -147,7 +152,7 @@ final class EditorTabs extends StatelessComponent {
           height: 7.px,
           radius: .circular(4.px),
           flex: const .shrink(0),
-          backgroundColor: const Color('#d4d4d4'),
+          backgroundColor: colorPrimary,
         ),
         css('.editor-tab-action', [
           css('&').styles(
@@ -160,7 +165,7 @@ final class EditorTabs extends StatelessComponent {
             cursor: .pointer,
             justifyContent: .center,
             alignItems: .center,
-            color: const Color('#b8b8b8'),
+            color: colorOnSurface,
             fontSize: 11.px,
             backgroundColor: Colors.transparent,
           ),
@@ -169,8 +174,8 @@ final class EditorTabs extends StatelessComponent {
             backgroundColor: const Color('#3a3a3a'),
           ),
           css('&.close:hover').styles(
-            color: const Color('#ff8a8a'),
-            backgroundColor: const Color('#4a2525'),
+            color: colorError,
+            backgroundColor: colorSurface,
           ),
         ]),
       ]),

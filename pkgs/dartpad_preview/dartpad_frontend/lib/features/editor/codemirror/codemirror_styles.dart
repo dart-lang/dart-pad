@@ -24,7 +24,7 @@ List<StyleRule> get codemirrorStyles => [
     minWidth: .zero,
     overflow: .hidden,
     flex: const Flex(grow: 1, basis: .zero),
-    backgroundColor: const Color('#1e1e1e'),
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-editor').styles(
     position: const .relative(),
@@ -55,7 +55,7 @@ List<StyleRule> get codemirrorStyles => [
     color: colorOnSurface,
     fontSize: 13.px,
     fontWeight: .w500,
-    backgroundColor: colorContainerHigh,
+    backgroundColor: colorSurface,
     raw: {
       'background-image': 'none',
     },
@@ -78,7 +78,7 @@ List<StyleRule> get codemirrorStyles => [
     height: 1.px,
     margin: .symmetric(vertical: 8.px, horizontal: (-12).px),
     border: .none,
-    backgroundColor: colorOnSurfaceVariant,
+    backgroundColor: colorOnSurface,
   ),
   css('.editor-container .cm-lsp-hover-tooltip p').styles(
     margin: .only(top: 0.px, right: 0.px, bottom: 8.px, left: 0.px),
@@ -108,7 +108,7 @@ List<StyleRule> get codemirrorStyles => [
       FontFamilies.courierNew,
       FontFamilies.monospace,
     ]),
-    backgroundColor: colorContainerLow,
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-panel.cm-lsp-rename-panel').styles(
     display: .flex,
@@ -116,7 +116,7 @@ List<StyleRule> get codemirrorStyles => [
     flexDirection: .row,
     alignItems: .center,
     gap: .all(10.px),
-    color: colorOnSurface,
+    color: colorOnContainer,
     fontFamily: const .list([FontFamily('Inter'), FontFamilies.sansSerif]),
     fontSize: 13.px,
     backgroundColor: colorContainer,
@@ -146,9 +146,9 @@ List<StyleRule> get codemirrorStyles => [
     border: .all(color: colorBorder, width: 1.px),
     radius: .circular(4.px),
     outline: const Outline(style: .none),
-    color: colorOnSurface,
+    color: colorOnContainer,
     fontSize: 13.px,
-    backgroundColor: colorContainerLow,
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-panel.cm-lsp-rename-panel .cm-textfield:focus').styles(
     border: .all(color: colorPrimary, width: 1.px),
@@ -158,13 +158,13 @@ List<StyleRule> get codemirrorStyles => [
     margin: .zero,
     alignItems: .center,
     gap: .all(6.px),
-    color: colorOnSurfaceVariant,
+    color: colorOnContainer,
     fontWeight: .w500,
   ),
   css('.editor-container .cm-panel.cm-search').styles(
     position: const .relative(),
     padding: .symmetric(vertical: 8.px, horizontal: 12.px),
-    color: colorOnSurface,
+    color: colorOnContainer,
     fontFamily: const .list([FontFamily('Inter'), FontFamilies.sansSerif]),
     fontSize: 13.px,
     backgroundColor: colorContainer,
@@ -183,13 +183,13 @@ List<StyleRule> get codemirrorStyles => [
     ]),
     justifyContent: .center,
     alignItems: .center,
-    color: colorOnSurfaceVariant,
+    color: colorOnContainer,
     fontSize: 16.px,
     backgroundColor: Colors.transparent,
   ),
   css('.editor-container .cm-panel.cm-search [name=close]:hover').styles(
-    color: colorOnSurface,
-    backgroundColor: colorContainerHigh,
+    color: colorOnContainer,
+    backgroundColor: colorContainer,
   ),
   css(
     '.editor-container .cm-panel.cm-search input, .editor-container .cm-panel.cm-search button, .editor-container .cm-panel.cm-search label',
@@ -214,9 +214,9 @@ List<StyleRule> get codemirrorStyles => [
     radius: .circular(4.px),
     outline: const Outline(style: .none),
     transition: Transition('border-color', duration: 200.ms),
-    color: colorOnSurface,
+    color: colorOnContainer,
     fontSize: 13.px,
-    backgroundColor: colorContainerLow,
+    backgroundColor: colorContainer,
   ),
   css(
     '.editor-container .cm-panel.cm-search input[type=text]:focus, .editor-container .cm-panel.cm-search .cm-textfield:focus',
@@ -229,14 +229,14 @@ List<StyleRule> get codemirrorStyles => [
     flexDirection: .row,
     alignItems: .center,
     gap: .all(4.px),
-    color: colorOnSurfaceVariant,
+    color: colorOnSurface,
     fontSize: 12.px,
   ),
   css('.editor-container .cm-panels').styles(
     border: .only(
       top: .solid(color: colorBorder, width: 1.px),
     ),
-    backgroundColor: colorContainerLow,
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-tooltip').styles(
     maxWidth: 450.px,
@@ -259,7 +259,7 @@ List<StyleRule> get codemirrorStyles => [
     ]),
     fontSize: 13.px,
     lineHeight: 1.4.em,
-    backgroundColor: colorContainerHigh,
+    backgroundColor: colorSurface,
   ),
   css('.editor-container .cm-tooltip a').styles(
     color: colorPrimary,
@@ -280,14 +280,14 @@ List<StyleRule> get codemirrorStyles => [
   ),
   css('.editor-container .cm-tooltip-arrow::after').styles(
     raw: {
-      'border-top-color': 'var(--color-container-high)',
-      'border-bottom-color': 'var(--color-container-high)',
+      'border-top-color': colorContainer.value,
+      'border-bottom-color': colorContainer.value,
     },
   ),
   css('.editor-container .cm-tooltip-arrow::before').styles(
     raw: {
-      'border-top-color': 'var(--color-border)',
-      'border-bottom-color': 'var(--color-border)',
+      'border-top-color': colorBorder.value,
+      'border-bottom-color': colorBorder.value,
     },
   ),
   css('.editor-container .cm-selection-action-tooltip').styles(
@@ -334,7 +334,7 @@ List<StyleRule> get codemirrorStyles => [
     padding: .symmetric(vertical: 4.px, horizontal: 6.px),
     radius: .circular(6.px),
     gap: .all(6.px),
-    backgroundColor: colorContainerHigh,
+    backgroundColor: colorContainer,
   ),
   css('.editor-container .cm-diagnostic-toolbar-btn').styles(
     display: .inlineFlex,
@@ -352,7 +352,7 @@ List<StyleRule> get codemirrorStyles => [
     color: colorPrimary,
     fontSize: 12.px,
     fontWeight: .w500,
-    backgroundColor: colorContainerHigh,
+    backgroundColor: colorContainer,
     raw: {
       'background-image': 'none',
     },
@@ -366,7 +366,7 @@ List<StyleRule> get codemirrorStyles => [
     border: .all(color: colorBorder, width: 1.px),
     opacity: .5,
     cursor: .notAllowed,
-    color: colorOnSurfaceVariant,
-    backgroundColor: colorContainerLow,
+    color: colorOnContainer,
+    backgroundColor: colorContainer,
   ),
 ];

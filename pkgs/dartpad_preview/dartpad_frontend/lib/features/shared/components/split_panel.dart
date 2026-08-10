@@ -206,6 +206,8 @@ class _SplitPanelState extends State<SplitPanel> {
     ]);
   }
 
+  static const width = 10;
+
   static List<StyleRule> get styles => [
     css('.drag-handle').styles(
       position: const .relative(),
@@ -216,34 +218,34 @@ class _SplitPanelState extends State<SplitPanel> {
     ),
     // Horizontal Specific Styles
     css('.drag-handle.horizontal').styles(
-      width: 6.px,
-      margin: Margin.symmetric(horizontal: (-3).px),
+      width: width.px,
+      margin: Margin.symmetric(horizontal: (-2).px),
       cursor: .colResize,
     ),
     css('.drag-handle.horizontal::after').styles(
       content: '',
       position: .absolute(top: 0.px, bottom: 0.px, left: 2.px),
-      width: 2.px,
-      transition: Transition('background-color', duration: 150.ms, curve: .ease),
+      width: (width - 4).px,
       backgroundColor: colorBorder,
     ),
     css('.drag-handle.horizontal:hover::after, .drag-handle.horizontal.dragging::after').styles(
+      transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
     // Vertical Specific Styles
     css('.drag-handle.vertical').styles(
-      height: 6.px,
-      margin: Margin.symmetric(vertical: (-3).px),
+      height: width.px,
+      margin: Margin.symmetric(vertical: (-2).px),
       cursor: .rowResize,
     ),
     css('.drag-handle.vertical::after').styles(
       content: '',
       position: .absolute(left: 0.px, right: 0.px, top: 2.px),
-      height: 2.px,
-      transition: Transition('background-color', duration: 150.ms, curve: .ease),
+      height: (width - 4).px,
       backgroundColor: colorBorder,
     ),
     css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
+      transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
   ];

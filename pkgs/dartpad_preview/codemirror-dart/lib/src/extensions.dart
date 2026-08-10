@@ -20,7 +20,7 @@ external JSAny get basicSetup;
 external JSAny get defaultHighlightStyle;
 
 @JS()
-external JSAny get oneDark;
+external JSAny get dartpadTheme;
 
 /// Options for the `syntaxHighlighting` function.
 ///

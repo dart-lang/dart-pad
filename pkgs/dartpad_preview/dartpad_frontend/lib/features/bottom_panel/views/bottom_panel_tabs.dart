@@ -80,7 +80,7 @@ class BottomPanelTabs extends StatelessComponent {
       ]),
       alignItems: .center,
       gap: Gap.all(6.px),
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       fontSize: 12.px,
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
@@ -117,12 +117,12 @@ class BottomPanelTabs extends StatelessComponent {
       justifyContent: .center,
       alignItems: .center,
       alignSelf: .center,
-      color: colorOnSurfaceVariant,
+      color: colorOnSurface,
       backgroundColor: Colors.transparent,
     ),
     css('.bottom-panel-clear-btn:hover').styles(
       color: colorOnSurface,
-      backgroundColor: colorOnSurface.withOpacity(0.08),
+      backgroundColor: colorOnSurface.highlight(colorOnSurface, 0.1),
     ),
   ];
 }

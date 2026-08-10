@@ -106,7 +106,14 @@ class _PreviewContainerState extends State<PreviewContainer> {
         overflow: .hidden,
         flexDirection: .column,
         flex: const .grow(1),
-        backgroundColor: colorContainerLow,
+        backgroundColor: colorContainer,
+      ),
+      css('.active-icon-btn').styles(
+        color: colorOnPrimary,
+        backgroundColor: colorPrimary,
+      ),
+      css('.active-icon-btn:not(.disabled):hover').styles(
+        backgroundColor: colorPrimary,
       ),
       css('.preview-toolbar', [
         css('&').styles(
@@ -118,7 +125,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
           justifyContent: .spaceBetween,
           alignItems: .center,
           flex: const .shrink(0),
-          backgroundColor: colorContainerLow,
+          backgroundColor: colorSurface,
         ),
         css('.preview-controls').styles(
           display: .flex,
@@ -199,7 +206,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
           position: .absolute(top: 0.px, left: 0.px, right: 0.px, bottom: 0.px),
           justifyContent: .center,
           alignItems: .center,
-          color: colorOnSurfaceVariant,
+          color: colorOnSurface,
           fontSize: 14.px,
         ),
       ]),
