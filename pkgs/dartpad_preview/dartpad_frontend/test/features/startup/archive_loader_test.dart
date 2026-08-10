@@ -84,7 +84,10 @@ void main() {
 
       await http.runWithClient(
         () async {
-          await loader.loadArchive(api.root);
+          final result = await loader.loadArchive(api.root);
+          expect(result.projectDir, 'my_project');
+          expect(result.entryPath, 'my_project/lib/main.dart');
+          expect(result.packageRoot, 'my_project');
         },
         () => MockClient((http.Request request) async {
           expect(request.url.toString(), absoluteUrl);
@@ -152,7 +155,8 @@ void main() {
       );
 
       expect(result.projectDir, '');
-      expect(result.targetFilePath, 'my_project/lib/main.dart');
+      expect(result.entryPath, 'my_project/lib/main.dart');
+      expect(result.packageRoot, '');
       expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
       expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
     });

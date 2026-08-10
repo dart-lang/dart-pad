@@ -9,8 +9,8 @@ import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
-const dartRevision = '682f45325f17dc10c33dd07c485256154715ddb9';
-const flutterRevision = 'd776076fe2f7470f4da43cc6084137e5bbe35b6d';
+const dartRevision = '941e2ec4ff23b3c8f4292ddf802a91c026937195';
+const flutterRevision = 'd4e7f9ae4c9d728718871d5929f47c8491df3976';
 
 Future<void> main(List<String> args) async {
   final packageRoot = Directory.current.absolute;
