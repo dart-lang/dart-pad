@@ -160,7 +160,6 @@ class PreviewViewModel extends ChangeNotifier {
         if (!_isCurrentOperation(operationId)) {
           return;
         }
-        print(result.compiledLibraryUris);
         eventBus.dispatch(LogEvent(result.log ?? ''));
         eventBus.dispatch(const LogEvent('Compilation succeeded.'));
         _lastCompiledCode = result.code;
