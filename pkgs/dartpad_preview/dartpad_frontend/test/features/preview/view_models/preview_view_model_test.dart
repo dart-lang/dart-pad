@@ -55,6 +55,7 @@ class FakePreviewSandbox implements PreviewSandbox {
   int disposeCount = 0;
   int loadModuleCount = 0;
   int runAppCount = 0;
+  int runMainCount = 0;
   int hotReloadCount = 0;
 
   final consoleController = StreamController<ConsoleMessage>.broadcast();
@@ -68,6 +69,7 @@ class FakePreviewSandbox implements PreviewSandbox {
 
   Future<void> Function({required String code})? onLoadModule;
   Future<void> Function(Uri libraryUri)? onRunApp;
+  Future<void> Function(Uri libraryUri)? onRunMain;
   Future<void> Function({required String? code, required List<Uri> librariesToReload})? onHotReload;
 
   @override
@@ -93,6 +95,15 @@ class FakePreviewSandbox implements PreviewSandbox {
     runUri = libraryUri;
     if (onRunApp != null) {
       await onRunApp!(libraryUri);
+    }
+  }
+
+  @override
+  Future<void> runMain(Uri libraryUri) async {
+    runMainCount++;
+    runUri = libraryUri;
+    if (onRunMain != null) {
+      await onRunMain!(libraryUri);
     }
   }
 
@@ -126,6 +137,8 @@ class FakeWorkspaceRepository extends WorkspaceRepository {
 
   int startHotReloadCompilerCount = 0;
   int convertToPackageUriCount = 0;
+  int hasFlutterDependencyCount = 0;
+  bool flutterDependency = true;
 
   CompilerSession Function(Uri uri)? onStartHotReloadCompiler;
   Uri Function(String filePath)? onConvertToPackageUri;
@@ -146,6 +159,12 @@ class FakeWorkspaceRepository extends WorkspaceRepository {
       return onConvertToPackageUri!(filePath);
     }
     return Uri.parse('package:app/main.dart');
+  }
+
+  @override
+  Future<bool> hasFlutterDependency(String filePath) async {
+    hasFlutterDependencyCount++;
+    return flutterDependency;
   }
 }
 
@@ -234,6 +253,51 @@ void main() {
           'App is running.',
         ]),
       );
+
+      viewModel.dispose();
+      expect(fakeCompiler.closeCount, 1);
+      expect(fakeSandbox.disposeCount, 1);
+    });
+
+    test('runCode in pure-dart mode (no Flutter dependency) runs runMain successfully', () async {
+      final fakeSandbox = FakePreviewSandbox();
+      final fakeCompiler = FakeCompilerSession();
+
+      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
+      repository.flutterDependency = false;
+
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+      );
+
+      final stateChanges = <PreviewState>[];
+      viewModel.addListener(() {
+        stateChanges.add(viewModel.state);
+      });
+
+      await viewModel.runCode('lib/main.dart');
+      await pump();
+
+      expect(stateChanges, [
+        isA<PreviewStarting>(),
+        isA<PreviewRunning>(),
+      ]);
+
+      expect(viewModel.state, isA<PreviewRunning>());
+      expect(viewModel.canStart, isFalse);
+      expect(viewModel.canRestart, isTrue);
+      expect(viewModel.canHotReload, isTrue);
+      expect(viewModel.canStop, isTrue);
+      expect(viewModel.isRunning, isTrue);
+
+      expect(fakeCompiler.compileCount, 1);
+      expect(fakeSandbox.loadModuleCount, 1);
+      expect(fakeSandbox.loadedCode, 'compiled_code');
+      expect(fakeSandbox.runAppCount, 0);
+      expect(fakeSandbox.runMainCount, 1);
+      expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
 
       viewModel.dispose();
       expect(fakeCompiler.closeCount, 1);

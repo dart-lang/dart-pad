@@ -6,9 +6,9 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../models/debug_console_entry.dart';
+import '../models/console_entry.dart';
 import 'bottom_panel_tabs.dart';
-import 'debug_console_panel.dart';
+import 'console_panel.dart';
 import 'problems_panel.dart';
 
 /// The available tabs in the bottom panel.
@@ -17,7 +17,7 @@ enum BottomPanelTab {
   problems,
 
   /// The debug console tab showing application logs.
-  debugConsole,
+  console,
 }
 
 /// The bottom panel showing tabs with associated content panes.
@@ -45,7 +45,7 @@ class BottomPanel extends StatefulComponent {
   final void Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
 
   /// Application log lines shown in the debug console.
-  final List<DebugConsoleEntry> logs;
+  final List<ConsoleEntry> logs;
 
   /// Clears the debug output.
   final void Function() onClearDebugConsole;
@@ -73,7 +73,7 @@ class _BottomPanelState extends State<BottomPanel> {
         problemsCount: component.diagnostics.length,
         activeTab: _activeTab,
         onSelectTab: _selectTab,
-        onClearDebugConsole: component.onClearDebugConsole,
+        onClearConsole: component.onClearDebugConsole,
       ),
       _buildContent(),
     ]);
@@ -88,7 +88,7 @@ class _BottomPanelState extends State<BottomPanel> {
           activeFile: component.activeFile,
           onOpenDiagnostic: component.onOpenDiagnostic,
         ),
-        BottomPanelTab.debugConsole => DebugConsolePanel(logs: component.logs),
+        BottomPanelTab.console => ConsolePanel(logs: component.logs),
       },
     ]);
   }

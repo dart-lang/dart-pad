@@ -9,7 +9,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 
-import 'features/bottom_panel/view_models/debug_console_view_model.dart';
+import 'features/bottom_panel/view_models/console_view_model.dart';
 import 'features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
@@ -51,7 +51,7 @@ class AppState extends State<App> {
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
   late final DiagnosticsViewModel _diagnostics;
-  late final DebugConsoleViewModel _debugConsole;
+  late final ConsoleViewModel _debugConsole;
   late final PreviewViewModel _preview;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
@@ -65,7 +65,7 @@ class AppState extends State<App> {
     super.initState();
     _events = AppEventBus();
 
-    _debugConsole = DebugConsoleViewModel(events: _events);
+    _debugConsole = ConsoleViewModel(events: _events);
 
     _workspaceRepository = WorkspaceRepository.create(events: _events);
 

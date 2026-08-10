@@ -4,9 +4,9 @@
 
 import 'package:logging/logging.dart';
 
-/// A single rendered line in the debug console.
-final class DebugConsoleEntry {
-  const DebugConsoleEntry({required this.message, required this.level});
+/// A single rendered line in the console.
+final class ConsoleEntry {
+  const ConsoleEntry({required this.message, required this.level});
 
   final String message;
   final Level level;

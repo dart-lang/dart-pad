@@ -8,22 +8,22 @@ import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
-import '../models/debug_console_entry.dart';
+import '../models/console_entry.dart';
 
 /// Displays the application's structured log events.
-class DebugConsolePanel extends StatefulComponent {
-  const DebugConsolePanel({required this.logs, super.key});
+class ConsolePanel extends StatefulComponent {
+  const ConsolePanel({required this.logs, super.key});
 
-  final List<DebugConsoleEntry> logs;
+  final List<ConsoleEntry> logs;
 
   @override
-  State<DebugConsolePanel> createState() => _DebugConsolePanelState();
+  State<ConsolePanel> createState() => _DebugConsolePanelState();
 
   @css
   static List<StyleRule> get styles => _DebugConsolePanelState.styles;
 }
 
-class _DebugConsolePanelState extends State<DebugConsolePanel> {
+class _DebugConsolePanelState extends State<ConsolePanel> {
   final GlobalNodeKey<web.HTMLElement> _listKey = GlobalNodeKey();
 
   @override
@@ -35,7 +35,7 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
   }
 
   @override
-  void didUpdateComponent(covariant DebugConsolePanel oldComponent) {
+  void didUpdateComponent(covariant ConsolePanel oldComponent) {
     super.didUpdateComponent(oldComponent);
     if (component.logs.length != oldComponent.logs.length) {
       context.binding.addPostFrameCallback(_scrollToBottom);
@@ -54,16 +54,16 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'debug-console-panel', [
+    return div(classes: 'console-panel', [
       div(
         key: _listKey,
-        classes: 'debug-console-list',
+        classes: 'console-list',
         [
           if (component.logs.isEmpty)
-            const div(classes: 'debug-console-empty', [.text('No debug output yet')])
+            const div(classes: 'console-empty', [.text('No output yet')])
           else
             for (final log in component.logs)
-              div(classes: 'log-row ${log.level.debugConsoleCssClass}', [
+              div(classes: 'log-row ${log.level.consoleCssClass}', [
                 pre(classes: 'log-message', [.text(log.message)]),
               ]),
         ],
@@ -72,7 +72,7 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
   }
 
   static List<StyleRule> get styles => [
-    css('.debug-console-panel').styles(
+    css('.console-panel').styles(
       display: .flex,
       minHeight: .zero,
       overflow: .hidden,
@@ -80,12 +80,13 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
     ),
-    css('.debug-console-list').styles(
+    css('.console-list').styles(
       minHeight: .zero,
+      padding: .symmetric(vertical: 4.px),
       overflow: const .only(y: .auto),
       flex: const Flex(grow: 1, basis: .zero),
     ),
-    css('.debug-console-empty').styles(
+    css('.console-empty').styles(
       display: .flex,
       minHeight: 48.px,
       padding: .symmetric(horizontal: 12.px),
@@ -119,7 +120,6 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
       margin: .zero,
       overflow: const .only(x: .auto),
       color: colorOnContainer,
-      fontFamily: const .list([FontFamilies.courierNew, FontFamilies.monospace]),
       fontSize: 12.px,
       lineHeight: 18.px,
       whiteSpace: .preWrap,
@@ -127,8 +127,8 @@ class _DebugConsolePanelState extends State<DebugConsolePanel> {
   ];
 }
 
-extension DebugConsoleLevelStyling on Level {
-  String get debugConsoleCssClass {
+extension ConsoleLevelStyling on Level {
+  String get consoleCssClass {
     if (this > Level.WARNING) {
       return 'error';
     }

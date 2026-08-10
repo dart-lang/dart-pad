@@ -5,7 +5,7 @@
 @TestOn('browser')
 library;
 
-import 'package:dartpad_frontend/features/bottom_panel/models/debug_console_entry.dart';
+import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
@@ -19,7 +19,7 @@ void main() {
         diagnostics: const [],
         hasMoreDiagnostics: false,
         activeFile: '',
-        logs: const [DebugConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
+        logs: const [ConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
         onClearDebugConsole: () => clearCalls++,
       ),

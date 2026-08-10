@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import '../../bottom_panel/models/console_entry.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../workspace/data/workspace_repository.dart';
@@ -55,6 +56,14 @@ class PreviewViewModel extends ChangeNotifier {
   /// The current state of compiling, validation, running, or stopping the preview.
   PreviewState get state => _state;
   PreviewState _state = PreviewInitial();
+
+  /// Whether the running app uses Flutter.
+  bool get isFlutter => _isFlutter;
+  bool _isFlutter = true;
+
+  /// Logs collected from the running application (used in pure Dart mode).
+  List<ConsoleEntry> get appLogs => List.unmodifiable(_appLogs);
+  final List<ConsoleEntry> _appLogs = [];
 
   /// Whether the compiler or execution setup can be started.
   bool get canStart => !_busy && (_state is PreviewInitial || _state is PreviewCompileError);
@@ -104,6 +113,8 @@ class PreviewViewModel extends ChangeNotifier {
 
     final operationId = _beginOperation();
 
+    _appLogs.clear();
+
     final compileNeeded = !skipRecompilation || _lastCompiledCode == null;
     eventBus.dispatch(LogEvent('Run $entrypoint'));
     if (compileNeeded) {
@@ -149,6 +160,7 @@ class PreviewViewModel extends ChangeNotifier {
         if (!_isCurrentOperation(operationId)) {
           return;
         }
+        print(result.compiledLibraryUris);
         eventBus.dispatch(LogEvent(result.log ?? ''));
         eventBus.dispatch(const LogEvent('Compilation succeeded.'));
         _lastCompiledCode = result.code;
@@ -192,9 +204,15 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
+      final isFlutter = await workspaceRepository.hasFlutterDependency(entrypoint);
+      _isFlutter = isFlutter;
 
       eventBus.dispatch(const LogEvent('Running application...'));
-      await sandbox.runApp(libraryUri);
+      if (isFlutter) {
+        await sandbox.runApp(libraryUri);
+      } else {
+        await sandbox.runMain(libraryUri);
+      }
       if (!_isCurrentOperation(operationId)) {
         await _disposeCurrentSandbox(sandbox);
         return;
@@ -347,13 +365,32 @@ class PreviewViewModel extends ChangeNotifier {
         _ => Level.INFO,
       };
 
-      eventBus.dispatch(LogEvent('[app] ${event.message}', level: level));
+      final isSystemLog =
+          event.message.startsWith('Starting application from') ||
+          event.message.startsWith('Hot restarting application from');
+
+      if (_isFlutter || isSystemLog) {
+        eventBus.dispatch(LogEvent('[app] ${event.message}', level: level));
+      } else {
+        _appLogs.add(ConsoleEntry(message: event.message, level: level));
+        notifyListeners();
+      }
     });
     _sandboxErrorSubscription = sandbox.onError.listen((event) {
-      eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
+      if (_isFlutter) {
+        eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
+      } else {
+        _appLogs.add(ConsoleEntry(message: event.message, level: Level.SEVERE));
+        notifyListeners();
+      }
     });
     _sandboxRejectionSubscription = sandbox.onUnhandledRejection.listen((event) {
-      eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
+      if (_isFlutter) {
+        eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
+      } else {
+        _appLogs.add(ConsoleEntry(message: event.message, level: Level.SEVERE));
+        notifyListeners();
+      }
     });
   }
 

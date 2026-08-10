@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 
+import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -136,4 +137,102 @@ void main() {
       expect(workspace.folders, containsAll({'build', '.dart_tool'}));
     },
   );
+
+  group('hasFlutterDependency', () {
+    test('returns true when flutter is a dependency in package_config.json', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      final packageConfigContent = '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "flutter",
+            "rootUri": "file:///path/to/flutter",
+            "packageUri": "lib/",
+            "languageVersion": "3.0"
+          }
+        ]
+      }
+      ''';
+
+      await api.root.getFile('.dart_tool/package_config.json').writeContent(packageConfigContent);
+
+      final hasFlutter = await repository.hasFlutterDependency('lib/main.dart');
+      expect(hasFlutter, isTrue);
+    });
+
+    test('returns false when package_config.json does not contain flutter dependency', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      final packageConfigContent = '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "path",
+            "rootUri": "file:///path/to/path",
+            "packageUri": "lib/",
+            "languageVersion": "3.0"
+          }
+        ]
+      }
+      ''';
+
+      await api.root.getFile('.dart_tool/package_config.json').writeContent(packageConfigContent);
+
+      final hasFlutter = await repository.hasFlutterDependency('lib/main.dart');
+      expect(hasFlutter, isFalse);
+    });
+
+    test('returns false when package_config.json is missing', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      final hasFlutter = await repository.hasFlutterDependency('lib/main.dart');
+      expect(hasFlutter, isFalse);
+    });
+
+    test('traverses up the directory tree to find package_config.json', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      final packageConfigContent = '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "flutter",
+            "rootUri": "file:///path/to/flutter",
+            "packageUri": "lib/",
+            "languageVersion": "3.0"
+          }
+        ]
+      }
+      ''';
+
+      await api.root.getFile('.dart_tool/package_config.json').writeContent(packageConfigContent);
+
+      final hasFlutter = await repository.hasFlutterDependency('subproject/lib/src/helpers/util.dart');
+      expect(hasFlutter, isTrue);
+    });
+  });
 }

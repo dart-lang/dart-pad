@@ -15,7 +15,7 @@ class BottomPanelTabs extends StatelessComponent {
     required this.problemsCount,
     required this.activeTab,
     required this.onSelectTab,
-    required this.onClearDebugConsole,
+    required this.onClearConsole,
     super.key,
   });
 
@@ -28,8 +28,8 @@ class BottomPanelTabs extends StatelessComponent {
   /// Called when a tab is clicked.
   final void Function(BottomPanelTab tab) onSelectTab;
 
-  /// Clears the debug console's output.
-  final void Function() onClearDebugConsole;
+  /// Clears the console's output.
+  final void Function() onClearConsole;
 
   @override
   Component build(BuildContext context) {
@@ -41,16 +41,16 @@ class BottomPanelTabs extends StatelessComponent {
         onClick: () => onSelectTab(BottomPanelTab.problems),
       ),
       _BottomPanelTabButton(
-        label: 'Debug Console',
-        active: activeTab == BottomPanelTab.debugConsole,
-        onClick: () => onSelectTab(BottomPanelTab.debugConsole),
+        label: 'Console',
+        active: activeTab == BottomPanelTab.console,
+        onClick: () => onSelectTab(BottomPanelTab.console),
       ),
       const div(classes: 'bottom-panel-tabs-spacer', []),
-      if (activeTab == BottomPanelTab.debugConsole)
+      if (activeTab == BottomPanelTab.console)
         button(
           classes: 'bottom-panel-clear-btn',
           attributes: const {'title': 'Clear console', 'aria-label': 'Clear console'},
-          onClick: onClearDebugConsole,
+          onClick: onClearConsole,
           [const Icon('playlist_remove', size: 20)],
         ),
     ]);

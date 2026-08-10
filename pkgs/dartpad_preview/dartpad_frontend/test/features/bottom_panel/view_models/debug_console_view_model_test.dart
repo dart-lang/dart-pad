@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dartpad_frontend/features/bottom_panel/view_models/debug_console_view_model.dart';
+import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:logging/logging.dart';
@@ -13,11 +13,11 @@ import 'package:test/test.dart';
 void main() {
   group('DebugConsoleViewModel', () {
     late AppEventBus events;
-    late DebugConsoleViewModel viewModel;
+    late ConsoleViewModel viewModel;
 
     setUp(() {
       events = AppEventBus();
-      viewModel = DebugConsoleViewModel(events: events);
+      viewModel = ConsoleViewModel(events: events);
     });
 
     tearDown(() async {
