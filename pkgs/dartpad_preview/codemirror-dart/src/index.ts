@@ -34,6 +34,7 @@ import { gotoDefinitionOnClick } from "./gotoDefinition";
 import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
 import { formatDocument, formatDocumentAsync } from "./formatting";
+import { selectionAction } from "./selectionAction";
 
 declare global {
   interface Window {
@@ -72,6 +73,7 @@ declare global {
       sql: typeof sql;
       createLspClient: typeof createLspClient;
       gotoDefinitionOnClick: typeof gotoDefinitionOnClick;
+      selectionAction: typeof selectionAction;
       diagnosticHoverToolbar: typeof diagnosticHoverToolbar;
       forceSemanticTokensRefresh: typeof forceSemanticTokensRefresh;
     };
@@ -116,6 +118,7 @@ window._codemirror = {
   sql,
   createLspClient,
   gotoDefinitionOnClick,
+  selectionAction,
   diagnosticHoverToolbar,
   forceSemanticTokensRefresh,
 };

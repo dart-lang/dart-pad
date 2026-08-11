@@ -38,6 +38,7 @@ final class CodeMirrorEditor {
   /// - [onSave] is triggered on Cmd/Ctrl+S keypress.
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
   /// - [onFixDiagnostic] is triggered when applying diagnostic fixes.
+  /// - [selectionActionConfig] is shown as a tooltip when selecting text in the editor.
   factory CodeMirrorEditor(
     web.HTMLElement element, {
     required String file,
@@ -46,6 +47,7 @@ final class CodeMirrorEditor {
     void Function()? onSave,
     void Function()? onCodeActionRequested,
     void Function(int from, int to, String message)? onFixDiagnostic,
+    cm.SelectionActionConfig? selectionActionConfig,
     LanguageServerClient? languageServerClient,
   }) {
     final langCompartment = cm.Compartment();
@@ -103,6 +105,7 @@ final class CodeMirrorEditor {
                 ),
               ].toJS,
             ),
+          if (selectionActionConfig != null) cm.selectionAction(selectionActionConfig),
           if (onFixDiagnostic != null)
             cm.diagnosticHoverToolbar(
               [
