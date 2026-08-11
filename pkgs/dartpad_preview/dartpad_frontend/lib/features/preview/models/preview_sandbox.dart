@@ -9,6 +9,7 @@ abstract interface class PreviewSandbox {
   void dispose();
   Future<void> loadModule({required String code});
   Future<void> runApp(Uri libraryUri);
+  Future<void> runMain(Uri libraryUri);
   Future<void> hotReload({required String? code, required List<Uri> librariesToReload});
   Stream<ConsoleMessage> get onConsole;
   Stream<({String message})> get onError;
@@ -29,6 +30,9 @@ class RealPreviewSandbox implements PreviewSandbox {
 
   @override
   Future<void> runApp(Uri libraryUri) => _sandbox.runApp(libraryUri);
+
+  @override
+  Future<void> runMain(Uri libraryUri) => _sandbox.runMain(libraryUri);
 
   @override
   Future<void> hotReload({required String? code, required List<Uri> librariesToReload}) =>

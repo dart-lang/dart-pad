@@ -6,6 +6,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../bottom_panel/views/console_panel.dart';
 import '../../shared/components/button_group.dart';
 import '../../shared/node_container.dart';
 import '../components/runtime_button.dart';
@@ -81,13 +82,14 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ]),
       ]),
       div(
-        classes: 'preview-content ${!isRunning ? 'status-stopped' : ''}',
+        classes: 'preview-content ${!isRunning ? 'status-stopped' : ''} ${!viewModel.isFlutter ? 'is-dart' : ''}',
         [
           NodeContainer(viewModel.containerElement),
           if (state is PreviewInitial)
             const div(classes: 'preview-placeholder', [
               span([.text('Start your app to see the preview.')]),
             ]),
+          if (isRunning && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
           ?statusToast,
         ],
       ),
@@ -151,6 +153,16 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('&.status-stopped > .preview').styles(
           visibility: .hidden,
+        ),
+        css('&.is-dart > .preview').styles(
+          position: const .absolute(),
+          width: .zero,
+          height: .zero,
+          visibility: .hidden,
+        ),
+        css('&.is-dart > .console-panel').styles(
+          width: 100.percent,
+          height: 100.percent,
         ),
         css('& > .preview').styles(
           width: 100.percent,

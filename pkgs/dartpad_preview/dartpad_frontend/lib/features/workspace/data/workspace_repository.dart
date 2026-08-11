@@ -166,11 +166,49 @@ class WorkspaceRepository {
     final packageFolder = resolvedFolder ?? root;
 
     final libFolder = workspaceContext.join(packageFolder.path, 'lib');
-    final relativePath = workspacePath.relative(filePath, from: libFolder);
-    return Uri(
-      scheme: 'package',
-      path: workspacePath.join(packageName, relativePath),
-    );
+    if (workspacePath.isWithin(libFolder, filePath)) {
+      final relativePath = workspacePath.relative(filePath, from: libFolder);
+      return Uri(
+        scheme: 'package',
+        path: workspacePath.join(packageName, relativePath),
+      );
+    } else {
+      final ws = await _workspaceFuture;
+      return ws.workspaceFolder.resolve(filePath);
+    }
+  }
+
+  /// Checks if the project containing [filePath] has a dependency on the
+  /// flutter framework by reading its resolved `.dart_tool/package_config.json`.
+  Future<bool> hasFlutterDependency(String filePath) async {
+    WorkspaceFolder folder = root.getFile(filePath).parent;
+    while (true) {
+      final config = folder.getFile('.dart_tool/package_config.json');
+      if (await config.exists()) {
+        try {
+          final content = await config.readContent();
+          final configJson = json.decode(content) as Map<String, dynamic>;
+          final packages = configJson['packages'] as List<dynamic>?;
+          if (packages != null) {
+            for (final pkg in packages) {
+              final map = pkg as Map<String, dynamic>;
+              if (map['name'] == 'flutter') {
+                return true;
+              }
+            }
+            return false;
+          }
+        } catch (_) {
+          // Fall through.
+        }
+      }
+
+      if (folder.isRoot) {
+        break;
+      }
+      folder = folder.parent;
+    }
+    return false;
   }
 }
 

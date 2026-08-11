@@ -9,19 +9,19 @@ import 'package:logging/logging.dart';
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
-import '../models/debug_console_entry.dart';
+import '../models/console_entry.dart';
 
-/// Collects application log events for display in the debug console.
-class DebugConsoleViewModel extends ChangeNotifier {
-  DebugConsoleViewModel({required AppEventBus events}) {
+/// Collects application log events for display in the console.
+class ConsoleViewModel extends ChangeNotifier {
+  ConsoleViewModel({required AppEventBus events}) {
     _subscription = events.on<LogEvent>().listen(_handleLog);
   }
 
-  final List<DebugConsoleEntry> _logs = [];
+  final List<ConsoleEntry> _logs = [];
   late final StreamSubscription<LogEvent> _subscription;
 
   /// The collected log lines, in arrival order.
-  List<DebugConsoleEntry> get logs => List.unmodifiable(_logs);
+  List<ConsoleEntry> get logs => List.unmodifiable(_logs);
 
   void _handleLog(LogEvent event) {
     var changed = _appendLogText(event.message, event.level);
@@ -41,7 +41,7 @@ class DebugConsoleViewModel extends ChangeNotifier {
   bool _appendLogText(String text, Level level) {
     var changed = false;
     for (final line in _splitLogLines(text)) {
-      _logs.add(DebugConsoleEntry(message: line, level: level));
+      _logs.add(ConsoleEntry(message: line, level: level));
       changed = true;
     }
     return changed;
