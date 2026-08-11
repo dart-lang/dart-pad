@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DebugConsoleViewModel', () {
+  group('ConsoleViewModel', () {
     late AppEventBus events;
     late ConsoleViewModel viewModel;
 

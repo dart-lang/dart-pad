@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  testClient('switches to the debug console and invokes clear', (tester) async {
+  testClient('switches to the console and invokes clear', (tester) async {
     var clearCalls = 0;
     tester.pumpComponent(
       BottomPanel(
@@ -21,18 +21,18 @@ void main() {
         activeFile: '',
         logs: const [ConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
-        onClearDebugConsole: () => clearCalls++,
+        onClearConsole: () => clearCalls++,
       ),
     );
 
-    expect(web.document.querySelector('.debug-console-panel'), isNull);
+    expect(web.document.querySelector('.console-panel'), isNull);
     expect(web.document.querySelector('.bottom-panel-clear-btn'), isNull);
 
-    final debugTab = web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement;
-    debugTab.click();
+    final consoleTab = web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement;
+    consoleTab.click();
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.debug-console-panel')!.textContent, contains('Running pub get in /'));
+    expect(web.document.querySelector('.console-panel')!.textContent, contains('Running pub get in /'));
     final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
 
@@ -41,7 +41,7 @@ void main() {
     expect(clearCalls, 1);
   });
 
-  testClient('keeps clear enabled when the debug console is empty', (tester) async {
+  testClient('keeps clear enabled when the console is empty', (tester) async {
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
@@ -49,12 +49,12 @@ void main() {
         activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
-        onClearDebugConsole: () {},
+        onClearConsole: () {},
       ),
     );
 
-    final debugTab = web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement;
-    debugTab.click();
+    final consoleTab = web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement;
+    consoleTab.click();
     await pumpEventQueue();
 
     final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
@@ -69,7 +69,7 @@ void main() {
         activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
-        onClearDebugConsole: () {},
+        onClearConsole: () {},
       ),
     );
 

@@ -28,7 +28,7 @@ class BottomPanel extends StatefulComponent {
     required this.activeFile,
     required this.onOpenDiagnostic,
     required this.logs,
-    required this.onClearDebugConsole,
+    required this.onClearConsole,
     super.key,
   });
 
@@ -48,7 +48,7 @@ class BottomPanel extends StatefulComponent {
   final List<ConsoleEntry> logs;
 
   /// Clears the debug output.
-  final void Function() onClearDebugConsole;
+  final void Function() onClearConsole;
 
   @override
   State<BottomPanel> createState() => _BottomPanelState();
@@ -73,7 +73,7 @@ class _BottomPanelState extends State<BottomPanel> {
         problemsCount: component.diagnostics.length,
         activeTab: _activeTab,
         onSelectTab: _selectTab,
-        onClearConsole: component.onClearDebugConsole,
+        onClearConsole: component.onClearConsole,
       ),
       _buildContent(),
     ]);

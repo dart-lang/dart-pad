@@ -51,7 +51,7 @@ class AppState extends State<App> {
   late final TabsViewModel _tabs;
   late final FileTreeViewModel _fileTree;
   late final DiagnosticsViewModel _diagnostics;
-  late final ConsoleViewModel _debugConsole;
+  late final ConsoleViewModel _console;
   late final PreviewViewModel _preview;
 
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
@@ -65,7 +65,7 @@ class AppState extends State<App> {
     super.initState();
     _events = AppEventBus();
 
-    _debugConsole = ConsoleViewModel(events: _events);
+    _console = ConsoleViewModel(events: _events);
 
     _workspaceRepository = WorkspaceRepository.create(events: _events);
 
@@ -275,15 +275,15 @@ class AppState extends State<App> {
 
   Component _buildBottomPanel() {
     return ListenableBuilder(
-      listenable: _debugConsole,
+      listenable: _console,
       builder: (context) => ListenableBuilder(
         listenable: _diagnostics,
         builder: (context) => BottomPanel(
           diagnostics: _diagnostics.diagnostics,
           hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
           activeFile: _tabs.activeFile,
-          logs: _debugConsole.logs,
-          onClearDebugConsole: _debugConsole.clear,
+          logs: _console.logs,
+          onClearConsole: _console.clear,
           onOpenDiagnostic: (fileName, diagnostic) {
             unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
           },
@@ -333,7 +333,7 @@ class AppState extends State<App> {
 
   Future<void> _disposeResources() async {
     await _analyzerSubscription?.cancel();
-    _debugConsole.dispose();
+    _console.dispose();
     _diagnostics.dispose();
     _fileTree.dispose();
     _tabs.dispose();
