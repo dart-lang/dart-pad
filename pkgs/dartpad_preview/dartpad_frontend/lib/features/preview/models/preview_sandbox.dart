@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:dartpad/dartpad.dart';
 
 /// A sandboxed environment for code preview.
@@ -14,16 +15,32 @@ abstract interface class PreviewSandbox {
   Stream<ConsoleMessage> get onConsole;
   Stream<({String message})> get onError;
   Stream<({String message})> get onUnhandledRejection;
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent;
+  Future<String> invokeExtension(String method, Map<String, String> args);
 }
 
-/// A wrapper around [Sandbox] implementing [PreviewSandbox].
+/// A wrapper around [Sandbox] implementing [PreviewSandbox] with dynamic event buffering.
 class RealPreviewSandbox implements PreviewSandbox {
-  RealPreviewSandbox(this._sandbox);
+  RealPreviewSandbox(this._sandbox) {
+    _subscription = _sandbox.onExtensionEvent.listen((e) {
+      _bufferedEvents.add(e);
+      if (!_extensionEventController.isClosed) {
+        _extensionEventController.add(e);
+      }
+    });
+  }
 
   final Sandbox _sandbox;
+  late final StreamSubscription<dynamic> _subscription;
+  final _bufferedEvents = <({String kind, Map<String, Object?> data})>[];
+  final _extensionEventController = StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
   @override
-  void dispose() => _sandbox.dispose();
+  void dispose() {
+    _subscription.cancel();
+    _extensionEventController.close();
+    _sandbox.dispose();
+  }
 
   @override
   Future<void> loadModule({required String code}) => _sandbox.loadModule(code: code);
@@ -46,4 +63,27 @@ class RealPreviewSandbox implements PreviewSandbox {
 
   @override
   Stream<({String message})> get onUnhandledRejection => _sandbox.onUnhandledRejection;
+
+  @override
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent {
+    final controller = StreamController<({String kind, Map<String, Object?> data})>();
+
+    // Immediately yield all buffered events to the new listener
+    for (final e in _bufferedEvents) {
+      controller.add(e);
+    }
+
+    // Listen to new events
+    final sub = _extensionEventController.stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: controller.close,
+    );
+
+    controller.onCancel = sub.cancel;
+    return controller.stream;
+  }
+
+  @override
+  Future<String> invokeExtension(String method, Map<String, String> args) => _sandbox.invokeExtension(method, args);
 }

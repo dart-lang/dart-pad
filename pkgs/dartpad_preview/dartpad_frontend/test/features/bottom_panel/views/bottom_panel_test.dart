@@ -5,17 +5,58 @@
 @TestOn('browser')
 library;
 
+import 'dart:async';
+
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/bottom_panel/views/inspector_panel.dart';
+import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/events/sandbox_event.dart';
+import 'package:devtools_app/src/shared/globals.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+class FakePreviewSandbox implements PreviewSandbox {
+  final _extensionEventController = StreamController<({String kind, Map<String, Object?> data})>.broadcast();
+
+  @override
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent => _extensionEventController.stream;
+
+  @override
+  Future<String> invokeExtension(String method, Map<String, String> args) async {
+    if (method == 'getRegisteredExtensions') {
+      return '[]';
+    }
+    return '';
+  }
+
+  @override
+  void dispose() {
+    _extensionEventController.close();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 void main() {
+  late AppEventBus events;
+
+  setUp(() {
+    events = AppEventBus();
+  });
+
+  tearDown(() async {
+    await events.dispose();
+  });
+
   testClient('switches to the console and invokes clear', (tester) async {
     var clearCalls = 0;
     tester.pumpComponent(
       BottomPanel(
+        events: events,
         diagnostics: const [],
         hasMoreDiagnostics: false,
         activeFile: '',
@@ -44,6 +85,7 @@ void main() {
   testClient('keeps clear enabled when the console is empty', (tester) async {
     tester.pumpComponent(
       BottomPanel(
+        events: events,
         diagnostics: const [],
         hasMoreDiagnostics: false,
         activeFile: '',
@@ -64,6 +106,7 @@ void main() {
   testClient('shows a diagnostic limit notice in the problems panel', (tester) async {
     tester.pumpComponent(
       BottomPanel(
+        events: events,
         diagnostics: const [],
         hasMoreDiagnostics: true,
         activeFile: '',
@@ -77,5 +120,66 @@ void main() {
       web.document.querySelector('.diagnostics-limit-notice')!.textContent,
       contains('Only the first 1,000 problems are shown.'),
     );
+  });
+
+  testClient('disables inspector tab when no sandbox or no flutter app is running', (tester) async {
+    tester.pumpComponent(
+      BottomPanel(
+        events: events,
+        diagnostics: const [],
+        hasMoreDiagnostics: false,
+        activeFile: '',
+        logs: const [],
+        onOpenDiagnostic: (_, _) {},
+        onClearConsole: () {},
+      ),
+    );
+
+    final inspectorTab = web.document.querySelector('.bottom-panel-tab:nth-child(3)')! as web.HTMLButtonElement;
+    expect(inspectorTab.disabled, isTrue);
+
+    final fakeSandbox = FakePreviewSandbox();
+    events.dispatch(SandboxChangedEvent(fakeSandbox, isFlutterApp: true));
+    await pumpEventQueue();
+
+    expect(inspectorTab.disabled, isFalse);
+
+    events.dispatch(const SandboxChangedEvent(null, isFlutterApp: false));
+    await pumpEventQueue();
+
+    expect(inspectorTab.disabled, isTrue);
+    fakeSandbox.dispose();
+  });
+
+  testClient('renders the inspector panel and manages VM service connection', (tester) async {
+    tester.pumpComponent(
+      InspectorPanel(events: events),
+    );
+
+    // Verifies it renders the debug console panel container
+    expect(web.document.querySelector('.debug-console-panel'), isNotNull);
+
+    // Initially, there should be no VM service connection
+    expect(serviceConnection.serviceManager.connectedState.value.connected, isFalse);
+
+    // Fire sandbox changed event with a flutter app running
+    final fakeSandbox = FakePreviewSandbox();
+    events.dispatch(SandboxChangedEvent(fakeSandbox, isFlutterApp: true));
+
+    // Wait for SandboxVmService to establish connection (ready completer)
+    await pumpEventQueue();
+
+    // Since the connection setup is async, let's wait a small delay
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await pumpEventQueue();
+
+    expect(serviceConnection.serviceManager.connectedState.value.connected, isTrue);
+
+    // Disconnect by firing a destroyed sandbox event
+    events.dispatch(const SandboxChangedEvent(null, isFlutterApp: false));
+    await pumpEventQueue();
+
+    expect(serviceConnection.serviceManager.connectedState.value.connected, isFalse);
+    fakeSandbox.dispose();
   });
 }
