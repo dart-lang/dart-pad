@@ -47,7 +47,7 @@ function mockView(state: EditorState, dispatch: (tr: any) => void): EditorView {
 // Helper to run code with mocked document and navigator
 function runWithMocks(
   navigatorValue: { userAgent: string; userAgentData?: { platform: string } },
-  fn: () => void
+  fn: () => void,
 ) {
   const originalDocument = (globalThis as any).document;
   const originalNavigator = (globalThis as any).navigator;
@@ -55,7 +55,7 @@ function runWithMocks(
   (globalThis as any).document = {
     createElement(tag: string) {
       return new MockElement();
-    }
+    },
   };
 
   Object.defineProperty(globalThis, "navigator", {
@@ -94,7 +94,7 @@ test("tooltip is null when selection is empty", () => {
     doc: "line one\nline two\nline three",
     extensions,
   });
-  
+
   // Initial state is null
   let tooltip = state.field(field);
   assert.equal(tooltip, null);
@@ -209,29 +209,32 @@ test("tooltip DOM is created correctly for Mac shortcuts", () => {
 });
 
 test("tooltip DOM is created correctly for non-Mac shortcuts", () => {
-  runWithMocks({ userAgent: "Windows NT 10.0", userAgentData: { platform: "Windows" } }, () => {
-    const extensions = selectionAction({
-      key: "Mod-/",
-      label: "Test Action",
-      run: () => {},
-    });
-    const field = extensions[0] as StateField<any>;
-    let state = EditorState.create({
-      doc: "hello world",
-      extensions,
-    });
-    state = state.update({ selection: { anchor: 0, head: 5 } }).state;
+  runWithMocks(
+    { userAgent: "Windows NT 10.0", userAgentData: { platform: "Windows" } },
+    () => {
+      const extensions = selectionAction({
+        key: "Mod-/",
+        label: "Test Action",
+        run: () => {},
+      });
+      const field = extensions[0] as StateField<any>;
+      let state = EditorState.create({
+        doc: "hello world",
+        extensions,
+      });
+      state = state.update({ selection: { anchor: 0, head: 5 } }).state;
 
-    const tooltip = state.field(field);
-    assert.ok(tooltip);
+      const tooltip = state.field(field);
+      assert.ok(tooltip);
 
-    const view = mockView(state, () => {});
-    const { dom } = tooltip.create(view);
+      const view = mockView(state, () => {});
+      const { dom } = tooltip.create(view);
 
-    const button = (dom as any).children[0];
-    const shortcutEl = button.children[1];
-    assert.equal(shortcutEl.textContent, "Ctrl+/");
-  });
+      const button = (dom as any).children[0];
+      const shortcutEl = button.children[1];
+      assert.equal(shortcutEl.textContent, "Ctrl+/");
+    },
+  );
 });
 
 test("tooltip button click executes callback and collapses selection", () => {
