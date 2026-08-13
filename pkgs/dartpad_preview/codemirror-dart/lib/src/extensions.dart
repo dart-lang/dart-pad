@@ -59,6 +59,23 @@ external JSPromise<JSBoolean> formatDocumentAsync(EditorView view);
 @JS()
 external JSAny gotoDefinitionOnClick();
 
+@JS()
+external JSAny selectionAction(SelectionActionConfig config);
+
+extension type SelectionActionConfig._(JSObject _) implements JSObject {
+  external factory SelectionActionConfig.js({
+    JSString key,
+    JSString label,
+    JSFunction run,
+  });
+
+  factory SelectionActionConfig({
+    required String key,
+    required String label,
+    required void Function(int from, int to, String text) run,
+  }) => SelectionActionConfig.js(key: key.toJS, label: label.toJS, run: run.toJS);
+}
+
 // =============================================================================
 // Linting & Diagnostics
 // =============================================================================
