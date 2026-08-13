@@ -72,7 +72,7 @@ class BottomPanel extends StatefulComponent {
 class _BottomPanelState extends State<BottomPanel> {
   BottomPanelTab _activeTab = BottomPanelTab.problems;
 
-  bool _isFlutterApp = false;
+  bool _isInspectorEnabled = false;
   StreamSubscription<SandboxChangedEvent>? _eventsSubscription;
 
   @override
@@ -81,7 +81,7 @@ class _BottomPanelState extends State<BottomPanel> {
 
     _eventsSubscription = component.events.on<SandboxChangedEvent>().listen((e) {
       setState(() {
-        _isFlutterApp = e.isFlutterApp;
+        _isInspectorEnabled = e.sandbox != null && e.isFlutterApp;
       });
     });
   }
@@ -93,7 +93,7 @@ class _BottomPanelState extends State<BottomPanel> {
   }
 
   void _selectTab(BottomPanelTab tab) {
-    if (tab == BottomPanelTab.inspector && !_isFlutterApp) {
+    if (tab == BottomPanelTab.inspector && !_isInspectorEnabled) {
       return;
     }
     setState(() {
@@ -104,14 +104,14 @@ class _BottomPanelState extends State<BottomPanel> {
   @override
   Component build(BuildContext context) {
     var activeTab = _activeTab;
-    if (activeTab == BottomPanelTab.inspector && !_isFlutterApp) {
+    if (activeTab == BottomPanelTab.inspector && !_isInspectorEnabled) {
       activeTab = BottomPanelTab.problems;
     }
     return div(classes: 'bottom-panel', [
       BottomPanelTabs(
         problemsCount: component.diagnostics.length,
         activeTab: activeTab,
-        isInspectorEnabled: _isFlutterApp,
+        isInspectorEnabled: _isInspectorEnabled,
         onSelectTab: _selectTab,
         onClearConsole: component.onClearConsole,
       ),

@@ -13,7 +13,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^12.1.0
+  analyzer: ^13.3.0
   codemirror_dart: any
   dartpad: any
   meta: ^1.19.0

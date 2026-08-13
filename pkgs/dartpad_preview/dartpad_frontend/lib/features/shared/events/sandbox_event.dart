@@ -15,3 +15,7 @@ final class SandboxChangedEvent extends AppEvent {
   /// Whether the sandbox is running a Flutter application.
   final bool isFlutterApp;
 }
+
+final class RequestSandboxEvent extends AsyncEvent<SandboxChangedEvent> {
+  RequestSandboxEvent();
+}

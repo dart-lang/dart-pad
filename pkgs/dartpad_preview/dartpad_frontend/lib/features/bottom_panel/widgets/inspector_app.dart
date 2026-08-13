@@ -12,6 +12,7 @@ import 'package:devtools_app/src/shared/globals.dart';
 import 'package:devtools_app/src/shared/ui/hover.dart';
 import 'package:devtools_app_shared/ui.dart';
 import 'package:devtools_app_shared/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -105,11 +106,10 @@ class DevToolsAssetBundle extends PlatformAssetBundle {
   @override
   Future<ByteData> load(String key) async {
     if (key.startsWith('assets/') || key.startsWith('icons/')) {
-      final String rewrittenKey = key.startsWith('assets/')
-          ? 'packages/devtools_app/$key'
-          : 'packages/devtools_app/assets/$key';
+      final String rewrittenKey = 'packages/devtools_app/$key';
       try {
-        final response = await http.get(Uri.parse('/$rewrittenKey'));
+        final prefix = kDebugMode ? '' : 'assets/';
+        final response = await http.get(Uri.parse('/$prefix$rewrittenKey'));
         if (response.statusCode == 200) {
           final bytes = response.bodyBytes;
           return ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes);

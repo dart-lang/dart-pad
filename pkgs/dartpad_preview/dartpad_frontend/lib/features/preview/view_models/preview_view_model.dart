@@ -26,7 +26,11 @@ class PreviewViewModel extends ChangeNotifier {
     required this.workspaceRepository,
     required this.eventBus,
     this.createSandbox = _createRealSandbox,
-  });
+  }) {
+    eventBus.on<RequestSandboxEvent>().listen((event) {
+      event.complete(SandboxChangedEvent(_sandbox, isFlutterApp: _isFlutter));
+    });
+  }
 
   /// Repository for working with file systems, compiler sessions, and
   /// package properties.

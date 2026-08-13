@@ -44,6 +44,24 @@ class SandboxVmService extends VmServiceWrapper {
           _addRegisteredExtension(methodStr);
         }
       } else {
+        if (e.kind == 'navigate') {
+          var fileUri = e.data['fileUri'] as String?;
+          final line = e.data['line'] as int?;
+          final column = e.data['column'] as int?;
+          if (fileUri != null && line != null && column != null) {
+            final workspacePadRegex = RegExp(r'^file:///workspace/pad_\d+/');
+            if (workspacePadRegex.hasMatch(fileUri)) {
+              fileUri = fileUri.replaceFirst(workspacePadRegex, '');
+            }
+            eventBus.dispatch(
+              OpenFileEvent(
+                fileUri,
+                line: line - 1,
+                column: column - 1,
+              ),
+            );
+          }
+        }
         _extensionEventController.add(
           Event.parse({
             'kind': EventKind.kExtension,
@@ -252,33 +270,6 @@ class SandboxVmService extends VmServiceWrapper {
     if (method == 'setFlag') {
       return Success();
     }
-    if (method == 'postEvent') {
-      final eventKind = args?['eventKind'] as String?;
-      final eventData = args?['eventData'] as Map<dynamic, dynamic>?;
-      if (eventKind == 'ToolEvent' && eventData != null) {
-        final innerEventKind = eventData['eventKind'] as String?;
-        final innerEventData = eventData['eventData'] as Map<dynamic, dynamic>?;
-        if (innerEventKind == 'navigate' && innerEventData != null) {
-          var fileUri = innerEventData['fileUri'] as String?;
-          final line = innerEventData['line'] as int?;
-          final column = innerEventData['column'] as int?;
-          if (fileUri != null && line != null && column != null) {
-            final workspacePadRegex = RegExp(r'^file:///workspace/pad_\d+/');
-            if (workspacePadRegex.hasMatch(fileUri)) {
-              fileUri = fileUri.replaceFirst(workspacePadRegex, '');
-            }
-            eventBus.dispatch(
-              OpenFileEvent(
-                fileUri,
-                line: line - 1,
-                column: column - 1,
-              ),
-            );
-          }
-        }
-      }
-      return Success();
-    }
     if (method == 'requirePermissionToResume') {
       return Success();
     }
@@ -380,6 +371,7 @@ class SandboxVmServiceManager {
       },
     );
     _sandboxSubscription = events.on<SandboxChangedEvent>().listen(_onSandboxChanged, onDone: _disconnect);
+    events.dispatchAsync(RequestSandboxEvent()).then(_onSandboxChanged);
   }
 
   final AppEventBus events;

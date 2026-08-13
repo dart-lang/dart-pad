@@ -11,6 +11,8 @@ import 'package:analyzer/error/listener.dart';
 // ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 // ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
+import 'package:analyzer/src/error/listener.dart';
+// ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
 import 'package:analyzer/src/string_source.dart';
 
 @JS('window._codemirror')
@@ -167,7 +169,7 @@ JSInt32Array parseCodeCallback(JSString codeStr, [JSArray<JSNumber>? cleanRanges
       var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
 
       // Initialize the Dart token scanner isolated to just this dirty substring.
-      var scanner = Scanner(substring, diagnosticReporter)
+      var scanner = Scanner(inputText: substring, reportError: diagnosticReporter.report)
         ..configureFeatures(
           featureSetForOverriding: FeatureSet.latestLanguageVersion(),
           featureSet: FeatureSet.latestLanguageVersion(),

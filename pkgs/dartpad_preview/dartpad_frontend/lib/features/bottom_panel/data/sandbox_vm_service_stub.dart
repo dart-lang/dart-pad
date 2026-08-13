@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../preview/view_models/preview_view_model.dart';
+import '../../shared/app_event_bus.dart';
 
 /// Stub class of SandboxVmServiceManager used during server-side compilation
 /// where Flutter/DevTools web dependencies are not available.
 class SandboxVmServiceManager {
-  SandboxVmServiceManager(PreviewViewModel previewViewModel);
+  SandboxVmServiceManager(AppEventBus events);
   void dispose() {}
 }

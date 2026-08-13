@@ -9,5 +9,5 @@ environment:
 resolution: workspace
 
 dependencies:
-  analyzer: ^12.1.0
+  analyzer: ^13.3.0
   web: ^1.1.1
