@@ -59,21 +59,21 @@ dependency_overrides:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   jaspr_builder:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_builder
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   jaspr_cli:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_cli
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   jaspr_flutter_embed:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_flutter_embed
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   # TODO: Remove once flutter/devtools uses this version.
   json_rpc_2: ^4.0.0
