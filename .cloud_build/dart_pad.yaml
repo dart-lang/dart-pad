@@ -4,7 +4,7 @@
 
 steps:
   # Build dartpad_ui
-  - name: gcr.io/$PROJECT_ID/flutter:main
+  - name: gcr.io/$PROJECT_ID/flutter:stable
     args: ['build', 'web', '--wasm']
     dir: pkgs/dartpad_ui
 
@@ -14,7 +14,7 @@ steps:
     dir: pkgs/dartpad_ui
 
   # Build dartpad_preview
-  - name: gcr.io/$PROJECT_ID/flutter:main
+  - name: gcr.io/$PROJECT_ID/flutter:stable
     entrypoint: bash
     args:
       - -c
