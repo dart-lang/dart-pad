@@ -71,49 +71,43 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   late final ResourceWatcher _rpWatcher = _root.watch();
 
   @override
-  Future<bool> fileExist(String uri) => Future.value(_root.getChildAssumingFile(uri).exists);
+  Future<bool> fileExist(String uri) => Future.value(_root.getFile(uri).exists);
 
   @override
-  Future<bool> folderExist(String uri) => Future.value(_root.getChildAssumingFolder(uri).exists);
+  Future<bool> folderExist(String uri) => Future.value(_root.getFolder(uri).exists);
 
   @override
-  Future<String> readFileAsText(String uri) => Future.value(_root.getChildAssumingFile(uri).readAsStringSync());
+  Future<String> readFileAsText(String uri) => Future.value(_root.getFile(uri).readAsStringSync());
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) => Future.value(_root.getChildAssumingFile(uri).readAsBytesSync());
+  Future<Uint8List> readFileAsBytes(String uri) => Future.value(_root.getFile(uri).readAsBytesSync());
 
   @override
   Future<void> writeFileFromText(String uri, String content) async {
-    _root.getChildAssumingFile(uri).writeAsStringSync(content);
+    _root.getFile(uri).writeAsStringSync(content);
   }
 
   @override
   Future<void> writeFileFromBytes(String uri, Uint8List bytes) async {
-    _root.getChildAssumingFile(uri).writeAsBytesSync(bytes);
+    _root.getFile(uri).writeAsBytesSync(bytes);
   }
 
   @override
   Future<void> createFolder(String uri) async {
-    _root.getChildAssumingFolder(uri).create();
+    _root.getFolder(uri).create();
   }
 
   @override
   Future<void> deleteFileSystemEntity(String uri) async {
-    final file = _root.getChildAssumingFile(uri);
-    if (file.exists) {
-      file.delete();
-      return;
-    }
-    final folder = _root.getChildAssumingFolder(uri);
-    if (folder.exists) {
-      folder.delete();
-      return;
+    final resource = _root.getChild(uri);
+    if (resource.exists) {
+      resource.delete();
     }
   }
 
   @override
   Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false}) async {
-    final folder = _root.getChildAssumingFolder(uri);
+    final folder = _root.getFolder(uri);
     if (!folder.exists) {
       return [];
     }

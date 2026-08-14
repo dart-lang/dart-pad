@@ -176,9 +176,26 @@ JSInt32Array parseCodeCallback(JSString codeStr, [JSArray<JSNumber>? cleanRanges
         );
       var token = scanner.tokenize();
 
+      bool hasScanError = false;
+
       while (token.type != TokenType.EOF) {
         int absOffset = token.offset + dirtyStart;
         int absEnd = token.end + dirtyStart;
+
+        // Lexical scan errors (such as unterminated comments or strings) produce
+        // TokenType.BAD_INPUT tokens. Track the error so chunkBleeds can invalidate
+        // reusable clean ranges, and skip starting a TopLevel node for invalid tokens.
+        if (token.type == TokenType.BAD_INPUT) {
+          hasScanError = true;
+          addCommentsBetween(token.precedingComments, lastValidOffset, absOffset, dirtyStart);
+          lastValidOffset = absEnd;
+          if (token.next != null) {
+            token = token.next!;
+            continue;
+          } else {
+            break;
+          }
+        }
 
         if (stack.isEmpty && currentTopLevel == null) {
           int startOffset = absOffset;
@@ -275,7 +292,7 @@ JSInt32Array parseCodeCallback(JSString codeStr, [JSArray<JSNumber>? cleanRanges
       bool chunkBleeds = false;
 
       // If the scanner emitted any lexical errors (like an unclosed multi-line comment), it bleeds.
-      if (diagnosticCollector.diagnostics.isNotEmpty) {
+      if (hasScanError || diagnosticCollector.diagnostics.isNotEmpty) {
         chunkBleeds = true;
       }
       // If we crossed into a clean range while holding an open parenthesis or unresolved top-level bracket, it bleeds!

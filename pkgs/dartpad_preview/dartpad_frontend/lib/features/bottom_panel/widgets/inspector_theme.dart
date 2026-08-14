@@ -24,7 +24,7 @@ class DartPadInspectorTheme {
         if (isDark != _isDark) {
           _isDark = isDark;
           preferences.darkModeEnabled.value = isDark;
-          onThemeChanged(isDark);
+          onThemeChanged();
         }
       }.toJS,
     );
@@ -38,7 +38,7 @@ class DartPadInspectorTheme {
     );
   }
 
-  final void Function(bool isDark) onThemeChanged;
+  final void Function() onThemeChanged;
   late final web.MutationObserver _observer;
   late bool _isDark;
 

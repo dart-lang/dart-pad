@@ -18,7 +18,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import 'theme.dart';
+import 'inspector_theme.dart';
 
 class DevToolsInspectorApp extends StatefulWidget {
   const DevToolsInspectorApp({super.key});
@@ -37,7 +37,7 @@ class _DevToolsInspectorAppState extends State<DevToolsInspectorApp> {
     super.initState();
     _hoverCardController = HoverCardController();
     _theme = DartPadInspectorTheme(
-      onThemeChanged: (_) {
+      onThemeChanged: () {
         if (mounted) {
           setState(() {});
         }
