@@ -18,10 +18,14 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import '../../shared/app_event_bus.dart';
+import '../data/sandbox_vm_service.dart';
 import 'inspector_theme.dart';
 
 class DevToolsInspectorApp extends StatefulWidget {
-  const DevToolsInspectorApp({super.key});
+  const DevToolsInspectorApp({required this.events, super.key});
+
+  final AppEventBus events;
 
   @override
   State<DevToolsInspectorApp> createState() => _DevToolsInspectorAppState();
@@ -31,10 +35,12 @@ class _DevToolsInspectorAppState extends State<DevToolsInspectorApp> {
   InspectorController? _controller;
   late final HoverCardController _hoverCardController;
   late final DartPadInspectorTheme _theme;
+  late final SandboxVmServiceManager _sandboxVmServiceManager;
 
   @override
   void initState() {
     super.initState();
+    _sandboxVmServiceManager = SandboxVmServiceManager(widget.events);
     _hoverCardController = HoverCardController();
     _theme = DartPadInspectorTheme(
       onThemeChanged: () {
@@ -47,6 +53,7 @@ class _DevToolsInspectorAppState extends State<DevToolsInspectorApp> {
 
   @override
   void dispose() {
+    _sandboxVmServiceManager.dispose();
     _theme.dispose();
     _controller?.dispose();
     super.dispose();

@@ -9,11 +9,9 @@ import 'dart:async';
 
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
-import 'package:dartpad_frontend/features/bottom_panel/views/inspector_panel.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/sandbox_event.dart';
-import 'package:devtools_app/src/shared/globals.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -151,35 +149,32 @@ void main() {
     fakeSandbox.dispose();
   });
 
-  testClient('renders the inspector panel and manages VM service connection', (tester) async {
+  testClient('switches to inspector tab when enabled and renders inspector panel', (tester) async {
     tester.pumpComponent(
-      InspectorPanel(events: events),
+      BottomPanel(
+        events: events,
+        diagnostics: const [],
+        hasMoreDiagnostics: false,
+        activeFile: '',
+        logs: const [],
+        onOpenDiagnostic: (_, _) {},
+        onClearConsole: () {},
+      ),
     );
 
-    // Verifies it renders the debug console panel container
-    expect(web.document.querySelector('.debug-console-panel'), isNotNull);
+    final inspectorTab = web.document.querySelector('.bottom-panel-tab:nth-child(3)')! as web.HTMLButtonElement;
+    expect(inspectorTab.disabled, isTrue);
 
-    // Initially, there should be no VM service connection
-    expect(serviceConnection.serviceManager.connectedState.value.connected, isFalse);
-
-    // Fire sandbox changed event with a flutter app running
     final fakeSandbox = FakePreviewSandbox();
     events.dispatch(SandboxChangedEvent(fakeSandbox, isFlutterApp: true));
-
-    // Wait for SandboxVmService to establish connection (ready completer)
     await pumpEventQueue();
 
-    // Since the connection setup is async, let's wait a small delay
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(inspectorTab.disabled, isFalse);
+    inspectorTab.click();
     await pumpEventQueue();
 
-    expect(serviceConnection.serviceManager.connectedState.value.connected, isTrue);
+    expect(web.document.querySelector('.debug-console-panel'), isNotNull);
 
-    // Disconnect by firing a destroyed sandbox event
-    events.dispatch(const SandboxChangedEvent(null, isFlutterApp: false));
-    await pumpEventQueue();
-
-    expect(serviceConnection.serviceManager.connectedState.value.connected, isFalse);
     fakeSandbox.dispose();
   });
 }

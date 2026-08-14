@@ -165,6 +165,7 @@ class _BottomPanelTabButton extends StatelessComponent {
 
     return button(
       classes: classes,
+      disabled: disabled,
       onClick: disabled ? null : onClick,
       [
         span(classes: 'bottom-panel-tab-label', [.text(label)]),
