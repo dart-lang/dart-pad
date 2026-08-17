@@ -161,26 +161,7 @@ class CodeActionsController {
       showFloatingPanel = true;
       onStateChanged();
       print('Error fetching code actions: $e');
-
     }
-    final actions = <cm.LSPCodeAction>[];
-    if (result != null) {
-      final array = result as JSArray<JSObject>;
-      actions.addAll(
-        array.toDart.map(cm.LSPCodeAction.new).where((action) {
-          final kind = action.kind?.toDart;
-          return kind == null || kind.startsWith('quickfix');
-        }),
-      );
-    }
-
-    if (loadSerial == _loadSerial) {
-      _cachedDocument = document;
-      _cachedFrom = from;
-      _cachedTo = to;
-      _cachedQuickFixes = actions;
-    }
-    return actions;
   }
 
   Future<List<cm.LSPCodeAction>> _loadActions(

@@ -254,6 +254,7 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
     }
     return 'Other';
   }
+
   static List<StyleRule> get styles => [
     css('.code-action-floating-panel').styles(
       display: .flex,

@@ -212,7 +212,7 @@ void main() {
     expect(context.containsKey('only'), isFalse);
   });
 
-  test('applies a single quick fix edit and command immediately', () async {
+  test('shows a single quick fix in the panel without auto-applying', () async {
     responseActions = [
       {
         'title': 'Use const',
@@ -239,12 +239,11 @@ void main() {
 
     await controller.triggerQuickFixes(from: 14, to: 22);
 
-    expect(languageServerClient.appliedEdits, hasLength(1));
-    expect(languageServerClient.executedCommands, hasLength(1));
-    expect(languageServerClient.executedCommands.single.$1, 'dart.logAction');
-    expect(languageServerClient.executedCommands.single.$2, ['useConst']);
-    expect(controller.showFloatingPanel, isFalse);
-    expect(controller.codeActions, isNull);
+    expect(controller.showFloatingPanel, isTrue);
+    expect(controller.codeActions, hasLength(1));
+    expect(controller.codeActions!.single.title.toDart, 'Use const');
+    expect(languageServerClient.appliedEdits, isEmpty);
+    expect(languageServerClient.executedCommands, isEmpty);
   });
 
   test('shows multiple quick fixes without applying one', () async {
@@ -290,6 +289,7 @@ void main() {
       ['Current fix A', 'Current fix B'],
     );
   });
+
   test('triggerCodeActions returns all action kinds without filtering', () async {
     responseActions = [
       {'title': 'Use const', 'kind': 'quickfix'},
