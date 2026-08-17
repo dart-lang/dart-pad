@@ -242,9 +242,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('.preview-controls').styles(
           display: .flex,
-          alignItems: .center,
-          justifyContent: .center,
           flexWrap: .wrap,
+          justifyContent: .center,
+          alignItems: .center,
           flex: const .grow(1),
           raw: {'flex-basis': '0%'},
         ),

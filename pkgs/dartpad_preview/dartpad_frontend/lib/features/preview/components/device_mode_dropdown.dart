@@ -179,8 +179,8 @@ class _DeviceModeDropdownState extends State<DeviceModeDropdown> {
         backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
       ),
       css('.device-dropdown-item.active').styles(
-        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
         fontWeight: .w500,
+        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
       ),
     ]),
   ];
