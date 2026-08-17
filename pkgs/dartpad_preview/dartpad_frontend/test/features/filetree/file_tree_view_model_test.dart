@@ -37,7 +37,7 @@ final class FakeTabs extends ChangeNotifier implements FileTreeEditorDelegate {
   void clearMessages() {}
 
   @override
-  Future<void> openTextFile(String path) async {
+  Future<void> openFile(String path) async {
     openedFiles.add(path);
     currentFile = path;
     notifyListeners();
@@ -219,8 +219,13 @@ void main() {
     expect(files.map((node) => node.resource.path), ['pubspec.yaml']);
   });
 
-  test('exposes presentation metadata without requiring view-model queries', () async {
-    workspace.addTextFile('assets/logo.png', 'binary');
+  test('marks text files and supported images as openable', () async {
+    for (final fileName in ['logo.png', 'photo.JPG', 'animation.gif', 'favicon.ico', 'logo.svg', 'image.webp']) {
+      workspace.addTextFile('assets/$fileName', 'binary');
+    }
+    workspace
+      ..addTextFile('assets/photo.bmp', 'binary')
+      ..addTextFile('assets/photo.avif', 'binary');
     tabs.dirty = ['lib/main.dart'];
     tabs.notifyListeners();
     await viewModel.refresh();
@@ -228,9 +233,15 @@ void main() {
     final assets = viewModel.state.root.children.whereType<FileTreeFolderNode>().singleWhere(
       (node) => node.resource.path == 'assets',
     );
-    final logo = assets.children.whereType<FileTreeFileNode>().single;
+    final files = assets.children.whereType<FileTreeFileNode>();
 
-    expect(logo.openable, isFalse);
+    for (final file in files.where(
+      (file) => !file.resource.path.endsWith('.bmp') && !file.resource.path.endsWith('.avif'),
+    )) {
+      expect(file.openable, isTrue, reason: file.resource.path);
+    }
+    expect(files.singleWhere((file) => file.resource.path.endsWith('.bmp')).openable, isFalse);
+    expect(files.singleWhere((file) => file.resource.path.endsWith('.avif')).openable, isFalse);
     expect(viewModel.state.protectedEntries, containsAll(['lib', 'lib/main.dart', 'pubspec.yaml']));
     expect(viewModel.state.dirtyEntries, containsAll(['lib', 'lib/main.dart']));
   });

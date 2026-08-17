@@ -78,7 +78,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     deleteFile: deleteFile,
     deleteFolder: deleteFolder,
     moveEntry: moveEntry,
-    openFile: tabs.openTextFile,
+    openFile: tabs.openFile,
     clearOperationError: clearOperationError,
     navigateUp: navigateUp,
   );
@@ -113,7 +113,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       final parent = workspace.root.getFolder(parentPath);
       await parent.getFile(name).writeContent('');
       await refresh();
-      await tabs.openTextFile(targetPath);
+      await tabs.openFile(targetPath);
     });
   }
 
@@ -309,7 +309,7 @@ final class FileTreeViewModel extends ChangeNotifier {
             .add(
               FileTreeFileNode(
                 resource,
-                openable: isEditableTextFile(resource.path),
+                openable: isSupportedFile(resource.path),
                 isIgnored: isIgnored,
               ),
             );

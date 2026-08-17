@@ -16,6 +16,7 @@ import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
+import 'features/editor/image/image_tab.dart';
 import 'features/editor/view_models/tabs_view_model.dart';
 import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
@@ -73,7 +74,10 @@ class AppState extends State<App> {
 
     _tabs = TabsViewModel(
       workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
-      adapters: [codemirrorAdapter],
+      adapters: [
+        ImageTabAdapter(workspaceResourceApi: _workspaceRepository.workspaceResourceApi),
+        codemirrorAdapter,
+      ],
     );
 
     _fileTree = FileTreeViewModel(

@@ -44,6 +44,35 @@ const Set<String> _binaryExtensions = {
   '.sqlite',
 };
 
+/// Browser MIME types for image extensions rendered in an editor preview tab.
+const Map<String, String> _imageMimeTypesByExtension = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+};
+
+/// Image extensions that can be rendered in an editor preview tab.
+final Set<String> supportedImageExtensions = Set.unmodifiable(
+  _imageMimeTypesByExtension.keys,
+);
+
+/// Returns the browser MIME type for a supported image file, if any.
+String? imageMimeTypeForPath(String path) {
+  final lower = path.toLowerCase();
+  final dot = lower.lastIndexOf('.');
+  if (dot == -1 || dot == lower.length - 1) {
+    return null;
+  }
+  return _imageMimeTypesByExtension[lower.substring(dot)];
+}
+
+/// Whether [path] can be displayed as an image preview in the editor.
+bool isPreviewableImageFile(String path) => imageMimeTypeForPath(path) != null;
+
 /// Whether [path] can be represented as editable text.
 bool isEditableTextFile(String path) {
   final lower = path.toLowerCase();
@@ -53,3 +82,7 @@ bool isEditableTextFile(String path) {
   }
   return !_binaryExtensions.contains(lower.substring(dot));
 }
+
+/// Whether [path] can be opened in a tab, either as editable text or
+/// as a read-only image preview.
+bool isSupportedFile(String path) => isEditableTextFile(path) || isPreviewableImageFile(path);

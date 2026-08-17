@@ -60,8 +60,12 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     }
   }
 
-  /// Opens the text file at [path] and reports failures to the user.
-  Future<void> openTextFile(String path) async {
+  /// Opens the file at [path], reporting any failure as a user-facing error.
+  ///
+  /// This wraps [openFile] with error handling: on success the current
+  /// error/warning messages are cleared; on failure a message is shown to
+  /// the user.
+  Future<void> openFileWithErrorReporting(String path) async {
     try {
       await openFile(path);
       clearMessages();

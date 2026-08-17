@@ -32,12 +32,12 @@ final class FileTreeTabsAdapter implements FileTreeEditorDelegate {
   void clearMessages() => tabs.clearMessages();
 
   @override
-  Future<void> openTextFile(String path) {
-    if (!isEditableTextFile(path)) {
+  Future<void> openFile(String path) {
+    if (!isSupportedFile(path)) {
       tabs.reportWarning('Binary preview is not available for $path.');
       return Future.value();
     }
-    return tabs.openTextFile(path);
+    return tabs.openFileWithErrorReporting(path);
   }
 
   @override
