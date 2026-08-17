@@ -32,7 +32,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
       onUpdate: _handleEditorUpdate,
       onSave: onSaveAll,
       onCodeActionRequested: () {
-        unawaited(codeActionsController.triggerQuickFixes());
+        unawaited(codeActionsController.triggerCodeActions());
       },
       onQuickFixRequested: (from, to) {
         unawaited(codeActionsController.triggerQuickFixes(from: from, to: to));
