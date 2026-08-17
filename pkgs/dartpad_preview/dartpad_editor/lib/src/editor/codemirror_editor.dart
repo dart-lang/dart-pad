@@ -109,7 +109,7 @@ final class CodeMirrorEditor {
             cm.diagnosticHoverToolbar(
               [
                 cm.ToolbarAction(
-                  label: 'Apply fix'.toJS,
+                  label: 'Show Quick Fix'.toJS,
                   isAvailable: onQuickFixAvailabilityRequested == null
                       ? null
                       : ((cm.EditorView view, int from, int to, JSArray<JSObject> _) {
