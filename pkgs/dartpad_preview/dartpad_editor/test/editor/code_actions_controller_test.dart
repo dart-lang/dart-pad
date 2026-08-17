@@ -74,7 +74,7 @@ void main() {
       file: 'lib/main.dart',
       initialDoc: 'final value = Widget();',
       onCodeActionRequested: () {
-        unawaited(controller.triggerQuickFixes());
+        unawaited(controller.triggerCodeActions());
       },
       languageServerClient: languageServerClient,
     );
@@ -186,7 +186,7 @@ void main() {
     expect(controller.codeActions, hasLength(2));
   });
 
-  test('Ctrl+. requests quick fixes at the cursor', () async {
+  test('Ctrl+. requests all code actions at the cursor', () async {
     editor.view.dom
         .querySelector('.cm-content')!
         .dispatchEvent(
@@ -208,9 +208,11 @@ void main() {
       'start': {'line': 0, 'character': 0},
       'end': {'line': 0, 'character': 0},
     });
+    final context = requestedParams['context'] as Map;
+    expect(context.containsKey('only'), isFalse);
   });
 
-  test('applies a single quick fix edit and command immediately', () async {
+  test('shows a single quick fix in the panel without auto-applying', () async {
     responseActions = [
       {
         'title': 'Use const',
@@ -237,12 +239,11 @@ void main() {
 
     await controller.triggerQuickFixes(from: 14, to: 22);
 
-    expect(languageServerClient.appliedEdits, hasLength(1));
-    expect(languageServerClient.executedCommands, hasLength(1));
-    expect(languageServerClient.executedCommands.single.$1, 'dart.logAction');
-    expect(languageServerClient.executedCommands.single.$2, ['useConst']);
-    expect(controller.showFloatingPanel, isFalse);
-    expect(controller.codeActions, isNull);
+    expect(controller.showFloatingPanel, isTrue);
+    expect(controller.codeActions, hasLength(1));
+    expect(controller.codeActions!.single.title.toDart, 'Use const');
+    expect(languageServerClient.appliedEdits, isEmpty);
+    expect(languageServerClient.executedCommands, isEmpty);
   });
 
   test('shows multiple quick fixes without applying one', () async {
@@ -287,5 +288,23 @@ void main() {
       controller.codeActions!.map((action) => action.title.toDart),
       ['Current fix A', 'Current fix B'],
     );
+  });
+
+  test('triggerCodeActions returns all action kinds without filtering', () async {
+    responseActions = [
+      {'title': 'Use const', 'kind': 'quickfix'},
+      {'title': 'Extract method', 'kind': 'refactor.extract'},
+      {'title': 'Sort members', 'kind': 'source.sortMembers'},
+    ];
+
+    await controller.triggerCodeActions();
+
+    expect(controller.showFloatingPanel, isTrue);
+    expect(
+      controller.codeActions!.map((action) => action.title.toDart),
+      ['Use const', 'Extract method', 'Sort members'],
+    );
+    final context = requestedParams['context'] as Map;
+    expect(context.containsKey('only'), isFalse);
   });
 }

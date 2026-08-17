@@ -126,27 +126,12 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
     final actions = component.controller.codeActions;
     final children = switch (actions) {
       null => const <Component>[
-        div(classes: 'code-action-empty-item', [.text('Loading quick fixes...')]),
+        div(classes: 'code-action-empty-item', [.text('Loading code actions...')]),
       ],
       [] => const <Component>[
-        div(classes: 'code-action-empty-item', [.text('No quick fixes available')]),
+        div(classes: 'code-action-empty-item', [.text('No code actions available')]),
       ],
-      _ => <Component>[
-        const div(classes: 'code-action-group-header', [.text('Quick Fix')]),
-        div(
-          classes: 'code-action-group-list',
-          events: {'keydown': _handleKeyDown},
-          [
-            for (final action in actions)
-              button(
-                classes: 'code-action-btn',
-                type: .button,
-                onClick: () => unawaited(component.controller.applyCodeAction(action)),
-                [.text(action.title.toDart)],
-              ),
-          ],
-        ),
-      ],
+      _ => _buildGroupedActions(actions),
     };
 
     return div(
@@ -160,6 +145,54 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       ),
       children,
     );
+  }
+
+  List<Component> _buildGroupedActions(List<LSPCodeAction> actions) {
+    final groups = <String, List<LSPCodeAction>>{};
+    for (final action in actions) {
+      final group = _kindGroup(action.kind?.toDart);
+      (groups[group] ??= []).add(action);
+    }
+
+    // Stable display order: Quick Fix first, then Refactor, Source, Other.
+    const order = ['Quick Fix', 'Refactor', 'Source', 'Other'];
+    final sortedKeys = groups.keys.toList()..sort((groupA, groupB) {
+      final indexA = order.indexOf(groupA);
+      final indexB = order.indexOf(groupB);
+      return (indexA == -1 ? order.length : indexA).compareTo(indexB == -1 ? order.length : indexB);
+      });
+
+    return <Component>[
+      for (final group in sortedKeys) ...[
+        div(classes: 'code-action-group-header', [.text(group)]),
+        div(
+          classes: 'code-action-group-list',
+          events: {'keydown': _handleKeyDown},
+          [
+            for (final action in groups[group]!)
+              button(
+                classes: 'code-action-btn',
+                type: .button,
+                onClick: () => unawaited(component.controller.applyCodeAction(action)),
+                [.text(action.title.toDart)],
+              ),
+          ],
+        ),
+      ],
+    ];
+  }
+
+  static String _kindGroup(String? kind) {
+    if (kind == null || kind.startsWith('quickfix')) {
+      return 'Quick Fix';
+    }
+    if (kind.startsWith('refactor')) {
+      return 'Refactor';
+    }
+    if (kind.startsWith('source')) {
+      return 'Source';
+    }
+    return 'Other';
   }
 
   static List<StyleRule> get styles => [

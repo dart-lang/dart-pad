@@ -32,10 +32,8 @@ class CodeActionsController {
   int _requestSerial = 0;
   int _loadSerial = 0;
   bool _disposed = false;
-  cm.Text? _cachedDocument;
-  int? _cachedFrom;
-  int? _cachedTo;
-  List<cm.LSPCodeAction>? _cachedQuickFixes;
+  final _quickFixCache = _ActionsCacheSlot();
+  final _allActionsCache = _ActionsCacheSlot();
 
   /// Returns whether the LSP currently offers a quick fix for [from] and [to].
   /// The result is cached for the matching document and range so activating the
@@ -51,7 +49,14 @@ class CodeActionsController {
     final rangeFrom = from.clamp(0, codeEditor.view.state.doc.length);
     final rangeTo = to.clamp(rangeFrom, codeEditor.view.state.doc.length);
     try {
-      final actions = await _loadQuickFixes(plugin, rangeFrom, rangeTo);
+      final actions = await _loadActions(
+        plugin,
+        rangeFrom,
+        rangeTo,
+        only: const ['quickfix'],
+        kindFilter: _quickFixKindFilter,
+        cache: _quickFixCache,
+      );
       return actions.isNotEmpty;
     } catch (e) {
       print('Error checking code actions: $e');
@@ -64,7 +69,38 @@ class CodeActionsController {
   ///
   /// A single result is applied immediately. Multiple results are displayed in
   /// the floating panel so the user can choose one.
-  Future<void> triggerQuickFixes({int? from, int? to}) async {
+  Future<void> triggerQuickFixes({int? from, int? to}) => _triggerActions(
+    from: from,
+    to: to,
+    loader: (plugin, rangeFrom, rangeTo) => _loadActions(
+      plugin,
+      rangeFrom,
+      rangeTo,
+      only: const ['quickfix'],
+      kindFilter: _quickFixKindFilter,
+      cache: _quickFixCache,
+    ),
+  );
+
+  /// Requests all code actions (quick fixes, refactorings, source actions, etc.)
+  /// from the LSP server for the current editor selection.
+  ///
+  /// Unlike [triggerQuickFixes], this does not filter by kind and is intended
+  /// for the Cmd/Ctrl+. shortcut.
+  Future<void> triggerCodeActions() => _triggerActions(
+    loader: (plugin, rangeFrom, rangeTo) => _loadActions(
+      plugin,
+      rangeFrom,
+      rangeTo,
+      cache: _allActionsCache,
+    ),
+  );
+
+  Future<void> _triggerActions({
+    int? from,
+    int? to,
+    required Future<List<cm.LSPCodeAction>> Function(cm.LSPPlugin, int, int) loader,
+  }) async {
     if (_disposed) {
       return;
     }
@@ -87,13 +123,8 @@ class CodeActionsController {
     onStateChanged();
 
     try {
-      final actions = await _loadQuickFixes(plugin, rangeFrom, rangeTo);
+      final actions = await loader(plugin, rangeFrom, rangeTo);
       if (_disposed || requestSerial != _requestSerial) {
-        return;
-      }
-
-      if (actions.length == 1) {
-        await applyCodeAction(actions.single);
         return;
       }
 
@@ -111,10 +142,17 @@ class CodeActionsController {
     }
   }
 
-  Future<List<cm.LSPCodeAction>> _loadQuickFixes(cm.LSPPlugin plugin, int from, int to) async {
+  Future<List<cm.LSPCodeAction>> _loadActions(
+    cm.LSPPlugin plugin,
+    int from,
+    int to, {
+    List<String>? only,
+    bool Function(cm.LSPCodeAction)? kindFilter,
+    required _ActionsCacheSlot cache,
+  }) async {
     final document = codeEditor.view.state.doc;
-    if (identical(document, _cachedDocument) && from == _cachedFrom && to == _cachedTo) {
-      return _cachedQuickFixes!;
+    if (identical(document, cache.document) && from == cache.from && to == cache.to) {
+      return cache.actions!;
     }
 
     plugin.client.sync();
@@ -135,17 +173,20 @@ class CodeActionsController {
       }
     }
 
+    final context = <String, Object?>{
+      'diagnostics': overlappingDiagnostics,
+      'triggerKind': 1,
+    };
+    if (only != null) {
+      context['only'] = only;
+    }
     final params = {
       'textDocument': {'uri': plugin.uri.toDart},
       'range': {
         'start': plugin.toPosition(from),
         'end': plugin.toPosition(to),
       },
-      'context': {
-        'diagnostics': overlappingDiagnostics,
-        'only': ['quickfix'],
-        'triggerKind': 1,
-      },
+      'context': context,
     };
     final result = await plugin.client.request('textDocument/codeAction'.toJS, params.jsify() as JSObject).toDart;
     if (_disposed || !identical(document, codeEditor.view.state.doc)) {
@@ -154,21 +195,22 @@ class CodeActionsController {
     final actions = <cm.LSPCodeAction>[];
     if (result != null) {
       final array = result as JSArray<JSObject>;
-      actions.addAll(
-        array.toDart.map(cm.LSPCodeAction.new).where((action) {
-          final kind = action.kind?.toDart;
-          return kind == null || kind.startsWith('quickfix');
-        }),
-      );
+      final mapped = array.toDart.map(cm.LSPCodeAction.new);
+      actions.addAll(kindFilter != null ? mapped.where(kindFilter) : mapped);
     }
 
     if (loadSerial == _loadSerial) {
-      _cachedDocument = document;
-      _cachedFrom = from;
-      _cachedTo = to;
-      _cachedQuickFixes = actions;
+      cache.document = document;
+      cache.from = from;
+      cache.to = to;
+      cache.actions = actions;
     }
     return actions;
+  }
+
+  static bool _quickFixKindFilter(cm.LSPCodeAction action) {
+    final kind = action.kind?.toDart;
+    return kind == null || kind.startsWith('quickfix');
   }
 
   /// Applies the selected LSP code action, which may include workspace edits or commands, and hides the panel.
@@ -190,7 +232,7 @@ class CodeActionsController {
       await codeEditor.languageServerClient?.executeCommand(commandStr, arguments);
     }
 
-    _clearQuickFixCache();
+    _clearCache();
 
     hideCodeActionPanel();
     codeEditor.focus();
@@ -214,14 +256,27 @@ class CodeActionsController {
     _loadSerial++;
     showFloatingPanel = false;
     codeActions = null;
-    _clearQuickFixCache();
+    _clearCache();
   }
 
-  void _clearQuickFixCache() {
+  void _clearCache() {
     _loadSerial++;
-    _cachedDocument = null;
-    _cachedFrom = null;
-    _cachedTo = null;
-    _cachedQuickFixes = null;
+    _quickFixCache.clear();
+    _allActionsCache.clear();
+  }
+}
+
+/// Holds the cached result of a single code-action LSP request.
+class _ActionsCacheSlot {
+  cm.Text? document;
+  int? from;
+  int? to;
+  List<cm.LSPCodeAction>? actions;
+
+  void clear() {
+    document = null;
+    from = null;
+    to = null;
+    actions = null;
   }
 }
