@@ -206,10 +206,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         'click': (web.Event event) {
           event.stopPropagation();
           component.onSelect(path);
-        },
-        'dblclick': (web.Event event) {
-          event.stopPropagation();
-          component.onSelect(path);
           _toggleCollapsed();
         },
         'keydown': (web.Event event) {

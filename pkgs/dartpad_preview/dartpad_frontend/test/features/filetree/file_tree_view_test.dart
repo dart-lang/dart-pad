@@ -39,6 +39,33 @@ void main() {
     expect(file.classList.contains('binary'), isTrue);
   });
 
+  testClient('single click on a folder selects it and toggles collapsed state', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final folder = web.document.querySelector('.file-tree-item.folder')!;
+
+    // The folder starts collapsed (aria-expanded="false") because it is not
+    // 'lib' and not a parent of the active file.
+    expect(folder.getAttribute('aria-expanded'), 'false');
+
+    // A single click should expand the folder.
+    (folder as web.HTMLElement).click();
+    await pumpEventQueue();
+
+    expect(folder.getAttribute('aria-expanded'), 'true');
+
+    // A second click should collapse the folder again.
+    folder.click();
+    await pumpEventQueue();
+
+    expect(folder.getAttribute('aria-expanded'), 'false');
+  });
+
   testClient('uses the injected delete confirmation callback', (tester) async {
     String? confirmationMessage;
     String? deletedPath;
@@ -92,6 +119,31 @@ FileTreeState _state(
     busy: false,
     protectedEntries: const {},
     dirtyEntries: dirty ? const {path} : const {},
+    focusedPath: '',
+  );
+}
+
+FileTreeState _stateWithFolder(WorkspaceResourceApi workspace) {
+  return FileTreeState(
+    root: FileTreeFolderNode(
+      WorkspaceFolder(workspace: workspace, path: ''),
+      children: [
+        FileTreeFolderNode(
+          WorkspaceFolder(workspace: workspace, path: 'src'),
+          children: [
+            FileTreeFileNode(
+              WorkspaceFile(workspace: workspace, path: 'src/utils.dart'),
+              openable: true,
+            ),
+          ],
+        ),
+      ],
+    ),
+    activeFile: '',
+    operationError: null,
+    busy: false,
+    protectedEntries: const {},
+    dirtyEntries: const {},
     focusedPath: '',
   );
 }
