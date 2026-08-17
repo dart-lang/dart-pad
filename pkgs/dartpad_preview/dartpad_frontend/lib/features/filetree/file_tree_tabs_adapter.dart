@@ -33,11 +33,11 @@ final class FileTreeTabsAdapter implements FileTreeEditorDelegate {
 
   @override
   Future<void> openFile(String path) {
-    if (!isEditorOpenableFile(path)) {
+    if (!isSupportedFile(path)) {
       tabs.reportWarning('Binary preview is not available for $path.');
       return Future.value();
     }
-    return tabs.openEditorFile(path);
+    return tabs.openFileWithErrorReporting(path);
   }
 
   @override

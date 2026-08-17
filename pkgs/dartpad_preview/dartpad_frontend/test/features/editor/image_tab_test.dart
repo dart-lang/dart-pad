@@ -45,13 +45,13 @@ void main() {
 
     for (final entry in supportedFormats.entries) {
       expect(isPreviewableImageFile(entry.key), isTrue, reason: entry.key);
-      expect(isEditorOpenableFile(entry.key), isTrue, reason: entry.key);
+      expect(isSupportedFile(entry.key), isTrue, reason: entry.key);
       expect(imageMimeTypeForPath(entry.key), entry.value);
     }
 
     for (final path in ['logo.bmp', 'logo.avif', 'logo.pdf']) {
       expect(isPreviewableImageFile(path), isFalse, reason: path);
-      expect(isEditorOpenableFile(path), isFalse, reason: path);
+      expect(isSupportedFile(path), isFalse, reason: path);
       expect(imageMimeTypeForPath(path), isNull);
     }
   });

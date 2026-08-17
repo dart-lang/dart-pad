@@ -12,7 +12,8 @@ abstract interface class FileTreeEditorDelegate implements Listenable {
   /// The paths of open files with unsaved changes.
   List<String> get dirtyFiles;
 
-  /// Opens the supported editor file at [path].
+  /// Opens the file at [path] in the appropriate tab, or reports a warning
+  /// if the file type is not supported for viewing.
   Future<void> openFile(String path);
 
   /// Persists all unsaved editor tabs.

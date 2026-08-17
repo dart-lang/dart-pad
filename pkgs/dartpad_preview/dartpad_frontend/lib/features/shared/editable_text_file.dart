@@ -83,5 +83,6 @@ bool isEditableTextFile(String path) {
   return !_binaryExtensions.contains(lower.substring(dot));
 }
 
-/// Whether [path] can be opened in either an editor or a preview tab.
-bool isEditorOpenableFile(String path) => isEditableTextFile(path) || isPreviewableImageFile(path);
+/// Whether [path] can be opened in a tab, either as editable text or
+/// as a read-only image preview.
+bool isSupportedFile(String path) => isEditableTextFile(path) || isPreviewableImageFile(path);

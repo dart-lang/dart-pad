@@ -309,7 +309,7 @@ final class FileTreeViewModel extends ChangeNotifier {
             .add(
               FileTreeFileNode(
                 resource,
-                openable: isEditorOpenableFile(resource.path),
+                openable: isSupportedFile(resource.path),
                 isIgnored: isIgnored,
               ),
             );
