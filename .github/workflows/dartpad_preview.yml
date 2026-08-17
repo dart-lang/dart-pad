@@ -29,7 +29,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -77,7 +77,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
 
       - name: Install dependencies
         working-directory: pkgs/dartpad_preview
@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
 
       - name: Install dependencies
         working-directory: pkgs/dartpad_preview

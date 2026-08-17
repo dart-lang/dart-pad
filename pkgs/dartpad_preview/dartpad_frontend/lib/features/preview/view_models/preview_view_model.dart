@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 import '../../bottom_panel/models/console_entry.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/events/sandbox_event.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../models/compiler_session.dart';
 import '../models/preview_sandbox.dart';
@@ -25,7 +26,11 @@ class PreviewViewModel extends ChangeNotifier {
     required this.workspaceRepository,
     required this.eventBus,
     this.createSandbox = _createRealSandbox,
-  });
+  }) {
+    eventBus.on<RequestSandboxEvent>().listen((event) {
+      event.complete(SandboxChangedEvent(_sandbox, isFlutterApp: _isFlutter));
+    });
+  }
 
   /// Repository for working with file systems, compiler sessions, and
   /// package properties.
@@ -43,7 +48,9 @@ class PreviewViewModel extends ChangeNotifier {
   }
 
   PreviewSandbox? _sandbox;
+  PreviewSandbox? get sandbox => _sandbox;
   CompilerSession? _hotReloadCompiler;
+
   bool _disposed = false;
   StreamSubscription<dynamic>? _sandboxConsoleSubscription;
   StreamSubscription<dynamic>? _sandboxErrorSubscription;
@@ -179,6 +186,10 @@ class PreviewViewModel extends ChangeNotifier {
         }
       }
 
+      final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
+      final isFlutter = await workspaceRepository.hasFlutterDependency(entrypoint);
+      _isFlutter = isFlutter;
+
       eventBus.dispatch(const LogEvent('Creating preview sandbox...'));
       final sandbox = await createSandbox(
         _container,
@@ -195,16 +206,14 @@ class PreviewViewModel extends ChangeNotifier {
         return;
       }
 
+      eventBus.dispatch(SandboxChangedEvent(sandbox, isFlutterApp: isFlutter));
+
       eventBus.dispatch(const LogEvent('Loading compiled module...'));
       await sandbox.loadModule(code: codeToLoad);
       if (!_isCurrentOperation(operationId)) {
         await _disposeCurrentSandbox(sandbox);
         return;
       }
-
-      final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
-      final isFlutter = await workspaceRepository.hasFlutterDependency(entrypoint);
-      _isFlutter = isFlutter;
 
       eventBus.dispatch(const LogEvent('Running application...'));
       if (isFlutter) {
@@ -413,6 +422,7 @@ class PreviewViewModel extends ChangeNotifier {
     await _detachSandboxConsole();
     _sandbox = null;
     sandbox.dispose();
+    eventBus.dispatch(const SandboxChangedEvent(null, isFlutterApp: false));
   }
 
   @override

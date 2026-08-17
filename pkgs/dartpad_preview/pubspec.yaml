@@ -26,25 +26,54 @@ dependency_overrides:
       url: https://github.com/dart-lang/sdk
       path: pkg/dartpad
       ref: 941e2ec4ff23b3c8f4292ddf802a91c026937195
+  devtools_app:
+    git:
+      url: https://github.com/flutter/devtools.git
+      path: packages/devtools_app
+      ref: v2.60.0
+  devtools_app_shared:
+    git:
+      url: https://github.com/flutter/devtools.git
+      path: packages/devtools_app_shared
+      ref: v2.60.0
+  devtools_extensions:
+    git:
+      url: https://github.com/flutter/devtools.git
+      path: packages/devtools_extensions
+      ref: v2.60.0
+  devtools_shared:
+    git:
+      url: https://github.com/flutter/devtools.git
+      path: packages/devtools_shared
+      ref: v2.60.0
   # TODO: Remove once https://github.com/dart-lang/webdev/issues/2854 is resolved.
   frontend_server_client:
     git:
       url: https://github.com/schultek/webdev.git
       path: frontend_server_client
       ref: frontend-server-client-libraries
+  # TODO: Remove once flutter/devtools uses this version.
+  intl: ^0.20.0
   # TODO: Remove once Jaspr v0.24.0 is released.
   jaspr:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   jaspr_builder:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_builder
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
   jaspr_cli:
     git:
       url: https://github.com/schultek/jaspr
       path: packages/jaspr_cli
-      ref: 296b4001a28d23981cdc5242d1815f9e7b3f4a86
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
+  jaspr_flutter_embed:
+    git:
+      url: https://github.com/schultek/jaspr
+      path: packages/jaspr_flutter_embed
+      ref: 49d89d6b86c68c5fb498e230e8bd9d90359931d3
+  # TODO: Remove once flutter/devtools uses this version.
+  json_rpc_2: ^4.0.0
