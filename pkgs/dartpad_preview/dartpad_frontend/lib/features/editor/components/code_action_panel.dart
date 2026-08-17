@@ -156,10 +156,11 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
 
     // Stable display order: Quick Fix first, then Refactor, Source, Other.
     const order = ['Quick Fix', 'Refactor', 'Source', 'Other'];
-    final sortedKeys = groups.keys.toList()..sort((groupA, groupB) {
-      final indexA = order.indexOf(groupA);
-      final indexB = order.indexOf(groupB);
-      return (indexA == -1 ? order.length : indexA).compareTo(indexB == -1 ? order.length : indexB);
+    final sortedKeys = groups.keys.toList()
+      ..sort((groupA, groupB) {
+        final indexA = order.indexOf(groupA);
+        final indexB = order.indexOf(groupB);
+        return (indexA == -1 ? order.length : indexA).compareTo(indexB == -1 ? order.length : indexB);
       });
 
     return <Component>[
