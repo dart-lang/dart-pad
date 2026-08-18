@@ -300,6 +300,8 @@ void main() {
     await controller.triggerCodeActions();
 
     expect(controller.showFloatingPanel, isTrue);
+    expect(controller.anchorTop, isPositive);
+    expect(controller.anchorBottom, isPositive);
     expect(
       controller.codeActions!.map((action) => action.title.toDart),
       ['Use const', 'Extract method', 'Sort members'],

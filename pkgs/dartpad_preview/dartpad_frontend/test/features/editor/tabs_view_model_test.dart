@@ -359,7 +359,7 @@ void main() {
     tester.pumpComponent(CodeActionPanel(controller: controller));
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.code-action-empty-item')!.textContent, 'No quick fixes available');
+    expect(web.document.querySelector('.code-action-empty-item')!.textContent, 'No code actions available');
 
     web.document.body!.dispatchEvent(
       web.MouseEvent('mousedown', web.MouseEventInit(bubbles: true)),
@@ -367,5 +367,28 @@ void main() {
     await pumpEventQueue();
 
     expect(controller.showFloatingPanel, isFalse);
+  });
+
+  testClient('quick-fix panel adjusts position above when near screen bottom', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..showFloatingPanel = true
+      ..panelLeft = 50
+      ..panelTop = (web.window.innerHeight - 20).toDouble()
+      ..anchorTop = (web.window.innerHeight - 40).toDouble()
+      ..anchorBottom = (web.window.innerHeight - 20).toDouble()
+      ..codeActions = [
+        LSPCodeAction({'title': 'Wrap with Center', 'kind': 'refactor'}.jsify() as JSObject),
+        LSPCodeAction({'title': 'Wrap with Container', 'kind': 'refactor'}.jsify() as JSObject),
+      ];
+
+    tester.pumpComponent(CodeActionPanel(controller: controller));
+    await pumpEventQueue();
+
+    final panel = web.document.querySelector('.code-action-floating-panel') as web.HTMLElement;
+    final topStyle = panel.style.top;
+    expect(topStyle, isNotEmpty);
+    final topValue = double.parse(topStyle.replaceAll('px', ''));
+    expect(topValue, lessThan(controller.anchorTop));
   });
 }
