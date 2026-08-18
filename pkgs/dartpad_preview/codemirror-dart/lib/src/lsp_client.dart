@@ -9,6 +9,7 @@ import 'package:web/web.dart' as web;
 extension type _LspClientHandle(JSObject _) implements JSObject {
   external JSObject createExtension(JSString uri);
   external void receiveFromServer(JSString msg);
+  external void dispose();
 }
 
 @JS('window._codemirror.createLspClient')
@@ -48,6 +49,7 @@ class CodeMirrorLspClient {
   final _LspClientHandle _handle;
   final Completer<void> _initializedCompleter = Completer<void>();
   final StreamController<bool> _analysisStatusController = StreamController<bool>.broadcast();
+  bool _disposed = false;
 
   CodeMirrorLspClient._(this._handle);
 
@@ -81,6 +83,9 @@ class CodeMirrorLspClient {
       NotificationHandler(
         method: r'$/analyzerStatus'.toJS,
         callback: ((JSObject client, AnalyzerStatusParams params) {
+          if (instance._disposed) {
+            return true.toJS;
+          }
           final isAnalyzing = params.isAnalyzing;
 
           client.isAnalyzing = isAnalyzing;
@@ -151,6 +156,19 @@ class CodeMirrorLspClient {
   /// Pipes inbound JSON-RPC responses retrieved from the backend language
   /// server straight into the frontend CodeMirror evaluator.
   void receiveFromServer(String msg) {
+    if (_disposed) {
+      return;
+    }
     _handle.receiveFromServer(msg.toJS);
+  }
+
+  /// Disconnects the JS client and clears its pending request timers.
+  Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _handle.dispose();
+    await _analysisStatusController.close();
   }
 }

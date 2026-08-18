@@ -73,7 +73,12 @@ class LanguageServerClient {
     Stream<Object?>? languageServerMessages,
     CodeMirrorLspClient Function(void Function(String) sendToServer, String rootUri)? createCodeMirrorLspClient,
   }) {
-    _sendToLanguageServer = sendToLanguageServer ?? languageServer!.languageServerChannel.sink.add;
+    final sendMessage = sendToLanguageServer ?? languageServer!.languageServerChannel.sink.add;
+    _sendToLanguageServer = (message) {
+      if (!_isDisposed) {
+        sendMessage(message);
+      }
+    };
     if (createCodeMirrorLspClient != null) {
       _codeMirrorLspClient = createCodeMirrorLspClient(
         (String msg) => _sendToLanguageServer(jsonDecode(msg)),
@@ -162,10 +167,16 @@ class LanguageServerClient {
     _diagnostics.remove(file);
   }
 
-  int _nextRequestId = 1;
+  // CodeMirror uses positive request IDs on the same LSP connection. Keep
+  // application-owned requests negative so responses cannot collide.
+  int _nextRequestId = -1;
   final Map<int, Completer<Map<String, Object?>?>> _pendingRequests = {};
+  bool _isDisposed = false;
 
   void _handleMessage(Object? message) {
+    if (_isDisposed) {
+      return;
+    }
     if (message is Map) {
       if (message.containsKey('id')) {
         final id = message['id'];
@@ -198,6 +209,7 @@ class LanguageServerClient {
         if (id is int && _pendingRequests.containsKey(id)) {
           final completer = _pendingRequests.remove(id)!;
           completer.complete(Map<String, Object?>.from(message));
+          return;
         }
       } else {
         final method = message['method'];
@@ -260,8 +272,21 @@ class LanguageServerClient {
     return _sendLspRequest(method, params);
   }
 
+  /// Gracefully asks the analysis server to stop accepting new requests.
+  ///
+  /// The worker-side server handle still needs to be stopped afterwards.
+  Future<void> shutdown() async {
+    final response = await _sendLspRequest('shutdown', null);
+    if (response?['error'] case final error?) {
+      throw StateError('LSP shutdown failed: $error');
+    }
+  }
+
   Future<Map<String, Object?>?> _sendLspRequest(String method, Object? params) {
-    final id = _nextRequestId++;
+    if (_isDisposed) {
+      return Future.error(StateError('LanguageServerClient is disposed.'));
+    }
+    final id = _nextRequestId--;
     final completer = Completer<Map<String, Object?>?>();
     _pendingRequests[id] = completer;
 
@@ -395,6 +420,9 @@ class LanguageServerClient {
   }
 
   Future<void> _handlePublishDiagnostics(Map<String, Object?> map) async {
+    if (_isDisposed) {
+      return;
+    }
     try {
       final uri = map['uri'] as String? ?? '';
       final fileName = pathFromDiagnosticUri(uri, workspaceFolder: rootWorkspaceUri);
@@ -430,6 +458,9 @@ class LanguageServerClient {
   }
 
   void _recordAnalysisStatus(bool isAnalyzing) {
+    if (_isDisposed) {
+      return;
+    }
     _isAnalyzing = isAnalyzing;
     _analyzerActivityController.add(
       AnalyzerStatusActivity(isAnalyzing: isAnalyzing),
@@ -473,12 +504,44 @@ class LanguageServerClient {
     return null;
   }
 
-  /// Cancels all subscriptions and closes the diagnostic and activity stream controllers.
+  /// Cancels subscriptions and closes internal diagnostic and activity stream controllers.
   Future<void> dispose() async {
-    await _languageServerSubscription.cancel();
-    await _workspaceSubscription.cancel();
-    await _diagnosticsController.close();
-    await _analyzerActivityController.close();
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
+    final pendingError = StateError('LanguageServerClient was disposed before the request completed.');
+    for (final completer in _pendingRequests.values) {
+      if (!completer.isCompleted) {
+        completer.completeError(pendingError);
+      }
+    }
+    _pendingRequests.clear();
+
+    Object? cleanupError;
+    StackTrace? cleanupStackTrace;
+    Future<void> cleanup(Future<void> Function() action) async {
+      try {
+        await action();
+      } catch (error, stackTrace) {
+        cleanupError ??= error;
+        cleanupStackTrace ??= stackTrace;
+      }
+    }
+
+    await cleanup(_codeMirrorLspClient.dispose);
+    await cleanup(_languageServerSubscription.cancel);
+    await cleanup(_workspaceSubscription.cancel);
+    if (!_diagnosticsController.isClosed) {
+      await cleanup(_diagnosticsController.close);
+    }
+    if (!_analyzerActivityController.isClosed) {
+      await cleanup(_analyzerActivityController.close);
+    }
+
+    if (cleanupError case final error?) {
+      Error.throwWithStackTrace(error, cleanupStackTrace!);
+    }
   }
 
   JSObject createCodeMirrorExtension(String fileName) {
