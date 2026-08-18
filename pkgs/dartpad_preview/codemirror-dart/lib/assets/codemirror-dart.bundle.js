@@ -39701,9 +39701,11 @@ ${text}</tr>
     // BSD-style license that can be found in the LICENSE file.
     function createLspClient(sendToServer, rootUri, onInitialized, onDisplayFile, notificationHandlers, language) {
         let handlers = [];
+        let disposed = false;
         const transport = {
             send(message) {
-                sendToServer(message);
+                if (!disposed)
+                    sendToServer(message);
             },
             subscribe(callback) {
                 handlers.push(callback);
@@ -39779,7 +39781,27 @@ ${text}</tr>
                 semanticHighlightingPlugin(client, uri),
             ],
             receiveFromServer: (msg) => {
+                if (disposed)
+                    return;
                 handlers.forEach((h) => h(msg));
+            },
+            dispose: () => {
+                var _a, _b;
+                if (disposed)
+                    return;
+                disposed = true;
+                handlers = [];
+                client.disconnect();
+                // The upstream client does not clear in-flight request timers when it
+                // disconnects. Resolve non-initialize requests with an empty result so
+                // editor features such as hover do not report a timeout after unmount.
+                const requests = client.requests.splice(0);
+                for (const request of requests) {
+                    clearTimeout(request.timeout);
+                    const isInitializeRequest = ((_b = (_a = request.params) === null || _a === void 0 ? void 0 : _a.clientInfo) === null || _b === void 0 ? void 0 : _b.name) === "@codemirror/lsp-client";
+                    if (!isInitializeRequest)
+                        request.resolve(null);
+                }
             },
         };
     }

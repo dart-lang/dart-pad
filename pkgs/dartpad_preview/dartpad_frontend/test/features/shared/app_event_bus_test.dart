@@ -40,6 +40,24 @@ void main() {
 
     expect(await typedEvents, hasLength(1));
   });
+
+  test('late events are ignored after dispose', () async {
+    final events = AppEventBus();
+
+    await events.dispose();
+    events.dispatch(const _TypedEvent());
+    await events.dispose();
+  });
+
+  test('late async events complete with an error after dispose', () async {
+    final events = AppEventBus();
+    await events.dispose();
+
+    await expectLater(
+      events.dispatchAsync(_TestEvent()),
+      throwsA(isA<StateError>()),
+    );
+  });
 }
 
 final class _TypedEvent extends AppEvent {

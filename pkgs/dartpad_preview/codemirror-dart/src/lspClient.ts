@@ -27,6 +27,7 @@ import { LanguageSupport } from "@codemirror/language";
 export type LspClientBindings = {
   createExtension: (uri: string) => Extension;
   receiveFromServer: (msg: string) => void;
+  dispose: () => void;
 };
 
 export type NotificationHandler = {
@@ -43,9 +44,10 @@ export function createLspClient(
   language: LanguageSupport,
 ): LspClientBindings {
   let handlers: ((msg: string) => void)[] = [];
+  let disposed = false;
   const transport = {
     send(message: string) {
-      sendToServer(message);
+      if (!disposed) sendToServer(message);
     },
     subscribe(callback: (message: string) => void) {
       handlers.push(callback);
@@ -126,7 +128,25 @@ export function createLspClient(
       semanticHighlightingPlugin(client, uri),
     ],
     receiveFromServer: (msg: string) => {
+      if (disposed) return;
       handlers.forEach((h) => h(msg));
+    },
+    dispose: () => {
+      if (disposed) return;
+      disposed = true;
+      handlers = [];
+      client.disconnect();
+
+      // The upstream client does not clear in-flight request timers when it
+      // disconnects. Resolve non-initialize requests with an empty result so
+      // editor features such as hover do not report a timeout after unmount.
+      const requests = (client as any).requests.splice(0);
+      for (const request of requests) {
+        clearTimeout(request.timeout);
+        const isInitializeRequest =
+          request.params?.clientInfo?.name === "@codemirror/lsp-client";
+        if (!isInitializeRequest) request.resolve(null);
+      }
     },
   };
 }
