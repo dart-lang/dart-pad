@@ -46,19 +46,72 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
         }
       });
       _focusFirstAction();
+      _adjustPosition();
     });
   }
 
   @override
   void didUpdateComponent(CodeActionPanel oldComponent) {
     super.didUpdateComponent(oldComponent);
-    Timer.run(_focusFirstAction);
+    Timer.run(() {
+      _focusFirstAction();
+      _adjustPosition();
+    });
   }
 
   @override
   void dispose() {
     unawaited(_clickSubscription?.cancel());
     super.dispose();
+  }
+
+  void _adjustPosition() {
+    if (!mounted) {
+      return;
+    }
+    final panel = _panelKey.currentNode as web.HTMLElement?;
+    if (panel == null) {
+      return;
+    }
+
+    final rect = panel.getBoundingClientRect();
+    final panelHeight = rect.height;
+    final panelWidth = rect.width;
+    final viewportHeight = web.window.innerHeight;
+    final viewportWidth = web.window.innerWidth;
+
+    final anchorTop = component.controller.anchorTop != 0
+        ? component.controller.anchorTop
+        : component.controller.panelTop;
+    final anchorBottom = component.controller.anchorBottom != 0
+        ? component.controller.anchorBottom
+        : component.controller.panelTop;
+    final anchorLeft = component.controller.panelLeft;
+
+    const margin = 8.0;
+    final spaceBelow = viewportHeight - anchorBottom - margin;
+    final spaceAbove = anchorTop - margin;
+
+    double top;
+    if (anchorBottom + panelHeight > viewportHeight - margin && spaceAbove > spaceBelow) {
+      top = (anchorTop - panelHeight).clamp(
+        margin,
+        (viewportHeight - panelHeight - margin).clamp(margin, viewportHeight.toDouble()),
+      );
+    } else {
+      top = anchorBottom.clamp(
+        margin,
+        (viewportHeight - panelHeight - margin).clamp(margin, viewportHeight.toDouble()),
+      );
+    }
+
+    final left = anchorLeft.clamp(
+      margin,
+      (viewportWidth - panelWidth - margin).clamp(margin, viewportWidth.toDouble()),
+    );
+
+    panel.style.top = '${top}px';
+    panel.style.left = '${left}px';
   }
 
   void _focusFirstAction() {
@@ -203,6 +256,7 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       zIndex: const ZIndex(100),
       minWidth: 180.px,
       maxWidth: 320.px,
+      maxHeight: const Unit.expression('min(360px, calc(100vh - 32px))'),
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(8.px),
       shadow: BoxShadow(
@@ -216,6 +270,9 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       fontFamily: const .list([FontFamily('Inter'), FontFamilies.sansSerif]),
       fontSize: 12.px,
       backgroundColor: colorSurface,
+      raw: {
+        'overflow-y': 'auto',
+      },
     ),
     css('.code-action-group-header').styles(
       padding: .only(top: 8.px, right: 12.px, bottom: 4.px, left: 12.px),

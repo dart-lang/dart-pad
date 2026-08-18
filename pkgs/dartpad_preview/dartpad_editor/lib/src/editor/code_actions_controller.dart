@@ -28,6 +28,8 @@ class CodeActionsController {
   bool showFloatingPanel = false;
   double panelLeft = 0;
   double panelTop = 0;
+  double anchorTop = 0;
+  double anchorBottom = 0;
   List<cm.LSPCodeAction>? codeActions;
   int _requestSerial = 0;
   int _loadSerial = 0;
@@ -118,6 +120,8 @@ class CodeActionsController {
     final rect = codeEditor.view.coordsAtPos(rangeFrom);
     panelLeft = rect?.left ?? 100;
     panelTop = rect?.bottom ?? 100;
+    anchorTop = rect?.top ?? 100;
+    anchorBottom = rect?.bottom ?? 100;
     showFloatingPanel = true;
     codeActions = null;
     onStateChanged();
