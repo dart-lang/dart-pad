@@ -23,6 +23,7 @@ steps:
         export PATH="$$PATH":"$$HOME/.pub-cache/bin"
         dart pub global activate jaspr_cli
         dart pub get
+        dart run tool/copy_assets.dart
         dart pub global run jaspr_cli:jaspr build
     dir: pkgs/dartpad_preview/dartpad_frontend
 

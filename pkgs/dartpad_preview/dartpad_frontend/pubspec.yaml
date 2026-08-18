@@ -11,7 +11,7 @@ resolution: workspace
 dependencies:
   archive: ^4.0.9
   codemirror_dart: any
-  dartpad: any
+  dartpad: 0.0.5
   dartpad_editor: any
   http: ^1.6.0
   jaspr: ^0.23.2

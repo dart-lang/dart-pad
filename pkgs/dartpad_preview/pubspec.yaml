@@ -21,11 +21,6 @@ dev_dependencies:
   dart_flutter_team_lints: ^3.5.2
 
 dependency_overrides:
-  dartpad:
-    git:
-      url: https://github.com/dart-lang/sdk
-      path: pkg/dartpad
-      ref: 941e2ec4ff23b3c8f4292ddf802a91c026937195
   # TODO: Remove once https://github.com/dart-lang/webdev/issues/2854 is resolved.
   frontend_server_client:
     git:
