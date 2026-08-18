@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<!--
+Copyright 2025 The Flutter Authors
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file or at https://developers.google.com/open-source/licenses/bsd.
+-->
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Note: This tag is replaced when served through DDS! -->
+  <base href="/devtools/">
+
+  <title></title>
+  <link href="favicon.png" rel="icon" sizes="64x64">
+
+  <!-- DO NOT REMOVE: -->
+  <!-- OBSERVER SCRIPT PLACEHOLDER -->
+
+  <script src="ws_message_port_adapter.js"></script>
+
+  <script>
+    function supportsES6Classes() {
+      "use strict";
+      try { eval("class Foo {}"); }
+      catch (e) { return false; }
+      return true;
+    }
+
+    if (!supportsES6Classes()) {
+      window.location.href = '/unsupported-browser.html';
+    }
+  </script>
+
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

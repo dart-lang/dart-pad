@@ -14,6 +14,8 @@ abstract interface class PreviewSandbox {
   Stream<ConsoleMessage> get onConsole;
   Stream<({String message})> get onError;
   Stream<({String message})> get onUnhandledRejection;
+  Future<String> invokeExtension(String method, Map<String, String> args);
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent;
 }
 
 /// A wrapper around [Sandbox] implementing [PreviewSandbox].
@@ -46,4 +48,12 @@ class RealPreviewSandbox implements PreviewSandbox {
 
   @override
   Stream<({String message})> get onUnhandledRejection => _sandbox.onUnhandledRejection;
+
+  @override
+  Future<String> invokeExtension(String method, Map<String, String> args) =>
+      _sandbox.invokeExtension(method, args);
+
+  @override
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
+      _sandbox.onExtensionEvent;
 }

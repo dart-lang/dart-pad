@@ -27,6 +27,7 @@ import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
+import 'features/shared/events/open_file_event.dart';
 import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/gist_loader.dart';
@@ -87,6 +88,18 @@ class AppState extends State<App> {
     _diagnostics = DiagnosticsViewModel(tabs: _tabs);
 
     _preview = PreviewViewModel(workspaceRepository: _workspaceRepository, eventBus: _events);
+
+    _events.on<OpenFileEvent>().listen((event) async {
+      await _tabs.openFileWithErrorReporting(event.path);
+      if (event.line != null) {
+        final tab = _tabs.getTab(event.path);
+        if (tab is CodeMirrorTab) {
+          final line = event.line! > 0 ? event.line! - 1 : 0;
+          final column = (event.column != null && event.column! > 0) ? event.column! - 1 : 0;
+          tab.goToPosition(line, column);
+        }
+      }
+    });
 
     final projectFuture = loadProject();
 
@@ -279,18 +292,22 @@ class AppState extends State<App> {
 
   Component _buildBottomPanel() {
     return ListenableBuilder(
-      listenable: _console,
+      listenable: _preview,
       builder: (context) => ListenableBuilder(
-        listenable: _diagnostics,
-        builder: (context) => BottomPanel(
-          diagnostics: _diagnostics.diagnostics,
-          hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
-          activeFile: _tabs.activeFile,
-          logs: _console.logs,
-          onClearConsole: _console.clear,
-          onOpenDiagnostic: (fileName, diagnostic) {
-            unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
-          },
+        listenable: _console,
+        builder: (context) => ListenableBuilder(
+          listenable: _diagnostics,
+          builder: (context) => BottomPanel(
+            diagnostics: _diagnostics.diagnostics,
+            hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
+            activeFile: _tabs.activeFile,
+            logs: _console.logs,
+            onClearConsole: _console.clear,
+            previewViewModel: _preview,
+            onOpenDiagnostic: (fileName, diagnostic) {
+              unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
+            },
+          ),
         ),
       ),
     );

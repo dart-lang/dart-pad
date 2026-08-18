@@ -7,7 +7,6 @@ library;
 
 import 'dart:async';
 
-import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -144,7 +143,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
-        workspaceFuture: Completer<Workspace>().future,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
       );
 
       final packageConfigContent = '''
@@ -172,7 +171,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
-        workspaceFuture: Completer<Workspace>().future,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
       );
 
       final packageConfigContent = '''
@@ -200,7 +199,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
-        workspaceFuture: Completer<Workspace>().future,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
       );
 
       final hasFlutter = await repository.hasFlutterDependency('lib/main.dart');
@@ -212,7 +211,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
-        workspaceFuture: Completer<Workspace>().future,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
       );
 
       final packageConfigContent = '''
@@ -233,6 +232,99 @@ void main() {
 
       final hasFlutter = await repository.hasFlutterDependency('subproject/lib/src/helpers/util.dart');
       expect(hasFlutter, isTrue);
+    });
+  });
+
+  group('getPackageMappings', () {
+    test('reads all package definitions from package_config.json', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
+      );
+
+      final packageConfigContent = '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "my_app",
+            "rootUri": "../",
+            "packageUri": "lib/"
+          },
+          {
+            "name": "flutter",
+            "rootUri": "file:///path/to/flutter",
+            "packageUri": "lib/"
+          },
+          {
+            "name": "path",
+            "rootUri": "file:///path/to/path-1.8.0",
+            "packageUri": "lib/"
+          }
+        ]
+      }
+      ''';
+
+      await api.root.getFile('.dart_tool/package_config.json').writeContent(packageConfigContent);
+
+      final mappings = await repository.getPackageMappings();
+      expect(mappings, hasLength(3));
+      expect(mappings[0].name, 'my_app');
+      expect(mappings[0].packageUriRoot.toString(), 'file:///root/lib/');
+      expect(mappings[1].name, 'flutter');
+      expect(mappings[1].packageUriRoot.toString(), 'file:///path/to/flutter/lib/');
+      expect(mappings[2].name, 'path');
+      expect(mappings[2].packageUriRoot.toString(), 'file:///path/to/path-1.8.0/lib/');
+    });
+
+    test('falls back to pubspec.yaml if package_config.json is absent', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
+      );
+
+      await api.root.getFile('pubspec.yaml').writeContent('name: custom_pkg\n');
+
+      final mappings = await repository.getPackageMappings();
+      expect(mappings, hasLength(1));
+      expect(mappings.first.name, 'custom_pkg');
+      expect(mappings.first.packageUriRoot.toString(), 'file:///root/lib/');
+    });
+  });
+
+  group('convertToPackageUri', () {
+    test('converts lib files according to package_config mappings', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: api,
+        workspaceFolderFuture: Future.value(Uri.parse('file:///root/')),
+      );
+
+      final packageConfigContent = '''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "my_app",
+            "rootUri": "../",
+            "packageUri": "lib/"
+          }
+        ]
+      }
+      ''';
+
+      await api.root.getFile('.dart_tool/package_config.json').writeContent(packageConfigContent);
+
+      final uri = await repository.convertToPackageUri('lib/main.dart');
+      expect(uri.toString(), 'package:my_app/main.dart');
+
+      final nonLibUri = await repository.convertToPackageUri('test/app_test.dart');
+      expect(nonLibUri.toString(), 'file:///root/test/app_test.dart');
     });
   });
 }

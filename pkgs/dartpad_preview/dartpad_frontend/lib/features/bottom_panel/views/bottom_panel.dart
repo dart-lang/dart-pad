@@ -6,9 +6,11 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../preview/view_models/preview_view_model.dart';
 import '../models/console_entry.dart';
 import 'bottom_panel_tabs.dart';
 import 'console_panel.dart';
+import 'devtools_panel.dart';
 import 'problems_panel.dart';
 
 /// The available tabs in the bottom panel.
@@ -18,6 +20,9 @@ enum BottomPanelTab {
 
   /// The debug console tab showing application logs.
   console,
+
+  /// The DevTools tab embedding Flutter DevTools.
+  devtools,
 }
 
 /// The bottom panel showing tabs with associated content panes.
@@ -29,6 +34,7 @@ class BottomPanel extends StatefulComponent {
     required this.onOpenDiagnostic,
     required this.logs,
     required this.onClearConsole,
+    this.previewViewModel,
     super.key,
   });
 
@@ -50,6 +56,9 @@ class BottomPanel extends StatefulComponent {
   /// Clears the debug output.
   final void Function() onClearConsole;
 
+  /// The preview view model to communicate with the running sandbox.
+  final PreviewViewModel? previewViewModel;
+
   @override
   State<BottomPanel> createState() => _BottomPanelState();
 
@@ -60,7 +69,41 @@ class BottomPanel extends StatefulComponent {
 class _BottomPanelState extends State<BottomPanel> {
   BottomPanelTab _activeTab = BottomPanelTab.problems;
 
+  bool get _isDevToolsEnabled => component.previewViewModel?.isRunning ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+    component.previewViewModel?.addListener(_onPreviewChanged);
+  }
+
+  @override
+  void didUpdateComponent(BottomPanel oldComponent) {
+    super.didUpdateComponent(oldComponent);
+    if (oldComponent.previewViewModel != component.previewViewModel) {
+      oldComponent.previewViewModel?.removeListener(_onPreviewChanged);
+      component.previewViewModel?.addListener(_onPreviewChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    component.previewViewModel?.removeListener(_onPreviewChanged);
+    super.dispose();
+  }
+
+  void _onPreviewChanged() {
+    if (!_isDevToolsEnabled && _activeTab == BottomPanelTab.devtools) {
+      _selectTab(BottomPanelTab.problems);
+    } else {
+      setState(() {});
+    }
+  }
+
   void _selectTab(BottomPanelTab tab) {
+    if (tab == BottomPanelTab.devtools && !_isDevToolsEnabled) {
+      return;
+    }
     setState(() {
       _activeTab = tab;
     });
@@ -74,6 +117,7 @@ class _BottomPanelState extends State<BottomPanel> {
         activeTab: _activeTab,
         onSelectTab: _selectTab,
         onClearConsole: component.onClearConsole,
+        isDevToolsEnabled: _isDevToolsEnabled,
       ),
       _buildContent(),
     ]);
@@ -81,15 +125,32 @@ class _BottomPanelState extends State<BottomPanel> {
 
   Component _buildContent() {
     return div(classes: 'bottom-panel-content', [
-      switch (_activeTab) {
-        BottomPanelTab.problems => ProblemsPanel(
-          diagnostics: component.diagnostics,
-          hasMoreDiagnostics: component.hasMoreDiagnostics,
-          activeFile: component.activeFile,
-          onOpenDiagnostic: component.onOpenDiagnostic,
-        ),
-        BottomPanelTab.console => ConsolePanel(logs: component.logs),
-      },
+      div(
+        classes: 'bottom-panel-tab-pane',
+        styles: _activeTab == BottomPanelTab.problems ? null : const Styles(display: Display.none),
+        [
+          ProblemsPanel(
+            diagnostics: component.diagnostics,
+            hasMoreDiagnostics: component.hasMoreDiagnostics,
+            activeFile: component.activeFile,
+            onOpenDiagnostic: component.onOpenDiagnostic,
+          ),
+        ],
+      ),
+      div(
+        classes: 'bottom-panel-tab-pane',
+        styles: _activeTab == BottomPanelTab.console ? null : const Styles(display: Display.none),
+        [
+          ConsolePanel(logs: component.logs),
+        ],
+      ),
+      div(
+        classes: 'bottom-panel-tab-pane',
+        styles: _activeTab == BottomPanelTab.devtools ? null : const Styles(display: Display.none),
+        [
+          DevToolsPanel(previewViewModel: component.previewViewModel),
+        ],
+      ),
     ]);
   }
 
@@ -106,7 +167,16 @@ class _BottomPanelState extends State<BottomPanel> {
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
     ),
-    css('.bottom-panel .debug-console-panel, .bottom-panel .problems-panel').styles(
+    css('.bottom-panel .bottom-panel-tab-pane').styles(
+      display: .flex,
+      height: 100.percent,
+      minHeight: .zero,
+      maxHeight: 100.percent,
+      overflow: .hidden,
+      flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('.bottom-panel .debug-console-panel, .bottom-panel .problems-panel, .bottom-panel .devtools-panel').styles(
       height: 100.percent,
       minHeight: .zero,
       maxHeight: 100.percent,

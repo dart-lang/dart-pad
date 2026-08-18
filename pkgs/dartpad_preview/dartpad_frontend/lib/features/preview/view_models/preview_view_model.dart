@@ -25,7 +25,15 @@ class PreviewViewModel extends ChangeNotifier {
     required this.workspaceRepository,
     required this.eventBus,
     this.createSandbox = _createRealSandbox,
-  });
+  }) {
+    unawaited(
+      workspaceRepository.convertToPackageUri('lib/main.dart').then((uri) {
+        if (!_disposed && _packageUri == null) {
+          _packageUri = uri;
+        }
+      }).catchError((_) {}),
+    );
+  }
 
   /// Repository for working with file systems, compiler sessions, and
   /// package properties.
@@ -42,6 +50,7 @@ class PreviewViewModel extends ChangeNotifier {
     return RealPreviewSandbox(sandbox);
   }
 
+  PreviewSandbox? get sandbox => _sandbox;
   PreviewSandbox? _sandbox;
   CompilerSession? _hotReloadCompiler;
   bool _disposed = false;
@@ -56,6 +65,10 @@ class PreviewViewModel extends ChangeNotifier {
   /// The current state of compiling, validation, running, or stopping the preview.
   PreviewState get state => _state;
   PreviewState _state = PreviewInitial();
+
+  /// The package URI resolved for the active entrypoint.
+  Uri? get packageUri => _packageUri;
+  Uri? _packageUri;
 
   /// Whether the running app uses Flutter.
   bool get isFlutter => _isFlutter;
@@ -203,6 +216,7 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
+      _packageUri = libraryUri;
       final isFlutter = await workspaceRepository.hasFlutterDependency(entrypoint);
       _isFlutter = isFlutter;
 

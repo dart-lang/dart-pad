@@ -16,6 +16,7 @@ class BottomPanelTabs extends StatelessComponent {
     required this.activeTab,
     required this.onSelectTab,
     required this.onClearConsole,
+    this.isDevToolsEnabled = false,
     super.key,
   });
 
@@ -31,6 +32,9 @@ class BottomPanelTabs extends StatelessComponent {
   /// Clears the console's output.
   final void Function() onClearConsole;
 
+  /// Whether the DevTools tab is enabled (i.e. sandbox is running).
+  final bool isDevToolsEnabled;
+
   @override
   Component build(BuildContext context) {
     return div(classes: 'bottom-panel-tabs', [
@@ -44,6 +48,12 @@ class BottomPanelTabs extends StatelessComponent {
         label: 'Console',
         active: activeTab == BottomPanelTab.console,
         onClick: () => onSelectTab(BottomPanelTab.console),
+      ),
+      _BottomPanelTabButton(
+        label: 'DevTools',
+        active: activeTab == BottomPanelTab.devtools,
+        disabled: !isDevToolsEnabled,
+        onClick: isDevToolsEnabled ? () => onSelectTab(BottomPanelTab.devtools) : null,
       ),
       const div(classes: 'bottom-panel-tabs-spacer', []),
       if (activeTab == BottomPanelTab.console)
@@ -85,13 +95,17 @@ class BottomPanelTabs extends StatelessComponent {
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
     ),
-    css('.bottom-panel-tab:hover').styles(
+    css('.bottom-panel-tab:hover:not(:disabled)').styles(
       color: colorOnSurface,
       backgroundColor: colorOnSurface.withOpacity(0.06),
     ),
     css('.bottom-panel-tab.active').styles(
       color: colorOnSurface,
       backgroundColor: colorOnSurface.withOpacity(0.08),
+    ),
+    css('.bottom-panel-tab:disabled, .bottom-panel-tab.disabled').styles(
+      opacity: 0.5,
+      cursor: .notAllowed,
     ),
     css('.bottom-panel-tab-count').styles(
       display: .inlineFlex,
@@ -132,21 +146,30 @@ class _BottomPanelTabButton extends StatelessComponent {
     required this.label,
     this.countLabel,
     required this.active,
+    this.disabled = false,
     this.onClick,
   });
 
   final String label;
   final String? countLabel;
   final bool active;
+  final bool disabled;
   final void Function()? onClick;
 
   @override
   Component build(BuildContext context) {
-    final classes = active ? 'bottom-panel-tab active' : 'bottom-panel-tab';
+    var classes = 'bottom-panel-tab';
+    if (active) {
+      classes += ' active';
+    }
+    if (disabled) {
+      classes += ' disabled';
+    }
 
     return button(
       classes: classes,
-      onClick: onClick,
+      attributes: disabled ? const {'disabled': ''} : null,
+      onClick: disabled ? null : onClick,
       [
         span(classes: 'bottom-panel-tab-label', [.text(label)]),
         if (countLabel case final countLabel?) span(classes: 'bottom-panel-tab-count', [.text(countLabel)]),

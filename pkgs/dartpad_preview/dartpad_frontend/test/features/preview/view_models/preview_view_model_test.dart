@@ -125,6 +125,14 @@ class FakePreviewSandbox implements PreviewSandbox {
 
   @override
   Stream<({String message})> get onUnhandledRejection => rejectionController.stream;
+
+  final extensionEventController = StreamController<({String kind, Map<String, Object?> data})>.broadcast();
+
+  @override
+  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent => extensionEventController.stream;
+
+  @override
+  Future<String> invokeExtension(String method, Map<String, String> args) async => '{}';
 }
 
 class FakeWorkspaceRepository extends WorkspaceRepository {
