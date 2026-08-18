@@ -17,6 +17,8 @@ import 'package:test/test.dart';
 final class _Workspace implements WorkspaceResourceApi {
   final Set<String> folders = {''};
   final List<String> deletedPaths = [];
+  Error? disposeError;
+  int disposeCount = 0;
 
   @override
   Stream<WorkspaceChangeEvent> get changeEvents => const Stream.empty();
@@ -34,7 +36,12 @@ final class _Workspace implements WorkspaceResourceApi {
   }
 
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    disposeCount++;
+    if (disposeError case final error?) {
+      throw error;
+    }
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -137,6 +144,37 @@ void main() {
       expect(workspace.folders, containsAll({'build', '.dart_tool'}));
     },
   );
+
+  group('workspace reset cleanup', () {
+    test('disposes the workspace without disposing the worker', () async {
+      final workspace = _Workspace();
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: workspace,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      await repository.closeWorkspaceOnly();
+
+      expect(workspace.disposeCount, 1);
+      expect(repository.dartpad, isNull);
+    });
+
+    test('propagates workspace cleanup failures', () async {
+      final workspace = _Workspace()..disposeError = StateError('workspace already removed');
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        workspaceResourceApi: workspace,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      await expectLater(
+        repository.closeWorkspaceOnly(),
+        throwsA(isA<StateError>()),
+      );
+      expect(workspace.disposeCount, 1);
+    });
+  });
 
   group('hasFlutterDependency', () {
     test('returns true when flutter is a dependency in package_config.json', () async {
