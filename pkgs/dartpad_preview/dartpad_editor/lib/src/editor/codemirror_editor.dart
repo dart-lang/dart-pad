@@ -64,6 +64,7 @@ final class CodeMirrorEditor {
             ].toJS,
           ),
           cm.basicSetup,
+          cm.indentUnitOf('  '.toJS),
           cm.gotoDefinitionOnClick(),
           cm.keymapOf([cm.indentWithTab as cm.KeyBinding].toJS),
           cm.dartpadTheme,

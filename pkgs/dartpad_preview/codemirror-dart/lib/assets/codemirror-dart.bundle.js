@@ -21005,17 +21005,26 @@
         NodeType.define({
             id: 9,
             name: "Block",
-            props: [[foldNodeProp, foldInside]],
+            props: [
+                [foldNodeProp, foldInside],
+                [indentNodeProp, delimitedIndent({ closing: "}" })],
+            ],
         }),
         NodeType.define({
             id: 10,
             name: "List",
-            props: [[foldNodeProp, foldInside]],
+            props: [
+                [foldNodeProp, foldInside],
+                [indentNodeProp, delimitedIndent({ closing: "]" })],
+            ],
         }),
         NodeType.define({
             id: 11,
             name: "ArgumentList",
-            props: [[foldNodeProp, foldInside]],
+            props: [
+                [foldNodeProp, foldInside],
+                [indentNodeProp, delimitedIndent({ closing: ")" })],
+            ],
         }),
         NodeType.define({ id: 12, name: "TopLevel" }),
     ]);
@@ -21116,14 +21125,44 @@
      */
     const dataFacet = Facet.define();
     /**
+     * Computes the auto-indentation column for Dart code on newlines.
+     * Automatically adds indentation after opening brackets/braces/parens/arrows,
+     * outdents closing delimiters, and retains indentation across statements.
+     */
+    function dartIndent(context, pos) {
+        const prevLine = context.lineAt(pos, -1);
+        const nextText = context.textAfterPos(pos, 1).trimStart();
+        const isClosing = /^[\}\]\)]/.test(nextText);
+        // Find previous non-empty line
+        let line = prevLine;
+        while (line.from > 0 && line.text.trim().length === 0) {
+            line = context.lineAt(line.from - 1, -1);
+        }
+        const cleanText = line.text.replace(/\/\/.*/, "").trimEnd();
+        const baseIndent = context.lineIndent(line.from);
+        const isOpening = /(=>|[\{\[\(])\s*$/.test(cleanText);
+        if (isOpening) {
+            return baseIndent + context.unit;
+        }
+        if (isClosing) {
+            return Math.max(0, baseIndent - context.unit);
+        }
+        return baseIndent;
+    }
+    /**
      * Instantiates the Dart language support extension for CodeMirror.
      * @param parseCallback A function interfacing with the Dart `analyzer` token scanner to generate trees.
      * @returns An initialized `LanguageSupport` object configuring the editor environment.
      */
     function dartLanguage(parseCallback) {
         const customParser = new DartParser(parseCallback);
-        const dartLanguage = new Language(dataFacet, customParser, []);
-        return new LanguageSupport(dartLanguage, []);
+        const dartLanguage = new Language(dataFacet, customParser, [
+            indentUnit.of("  "),
+            indentService.of(dartIndent),
+        ]);
+        return new LanguageSupport(dartLanguage, [
+            indentUnit.of("  "),
+        ]);
     }
 
     /**
@@ -40265,6 +40304,7 @@ ${text}</tr>
         // codemirror extensions
         basicSetup,
         defaultHighlightStyle,
+        indentUnit,
         indentWithTab,
         keymap,
         lintGutter,

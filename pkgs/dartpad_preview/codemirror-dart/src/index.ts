@@ -26,6 +26,7 @@ import {
   syntaxHighlighting,
   defaultHighlightStyle,
   HighlightStyle,
+  indentUnit,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
 import { LSPPlugin } from "@codemirror/lsp-client";
@@ -48,6 +49,7 @@ declare global {
       // codemirror extensions
       basicSetup: Extension;
       defaultHighlightStyle: HighlightStyle;
+      indentUnit: typeof indentUnit;
       indentWithTab: any;
       keymap: typeof keymap;
       lintGutter: () => Extension;
@@ -93,6 +95,7 @@ window._codemirror = {
   // codemirror extensions
   basicSetup,
   defaultHighlightStyle,
+  indentUnit,
   indentWithTab,
   keymap,
   lintGutter,
