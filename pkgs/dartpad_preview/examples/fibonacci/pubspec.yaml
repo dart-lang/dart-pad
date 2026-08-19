@@ -1,0 +1,1 @@
+name: fibonaccidescription: A simple Dart sample computing Fibonacci numbers.publish_to: noneversion: 1.0.0+1environment:  sdk: ^3.12.0dev_dependencies:  lints: ^6.0.0

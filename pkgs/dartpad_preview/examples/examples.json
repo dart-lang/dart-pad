@@ -1,20 +1,51 @@
 [
   {
     "category": "Snippet",
-    "name": "Dart snippet",
     "id": "dart",
-    "projectDir": "snippet_dart"
+    "name": "Dart snippet",
+    "projectDir": "snippet_dart",
+    "entryPath": "lib/main.dart"
   },
   {
     "category": "Snippet",
-    "name": "Flutter snippet",
     "id": "flutter",
-    "projectDir": "snippet_flutter"
+    "name": "Flutter snippet",
+    "projectDir": "snippet_flutter",
+    "entryPath": "lib/main.dart"
   },
   {
     "category": "Sample",
-    "name": "Counter",
     "id": "counter",
-    "projectDir": "counter"
+    "name": "Counter",
+    "projectDir": "counter",
+    "entryPath": "lib/main.dart"
+  },
+  {
+    "category": "Sample",
+    "id": "hello-world",
+    "name": "Hello world",
+    "projectDir": "hello_world",
+    "entryPath": "lib/main.dart"
+  },
+  {
+    "category": "Sample",
+    "id": "fibonacci",
+    "name": "Fibonacci",
+    "projectDir": "fibonacci",
+    "entryPath": "lib/main.dart"
+  },
+  {
+    "category": "Sample",
+    "id": "sunflower",
+    "name": "Sunflower",
+    "projectDir": "sunflower",
+    "entryPath": "lib/main.dart"
+  },
+  {
+    "category": "Sample",
+    "id": "flame-game",
+    "name": "Flame game",
+    "projectDir": "flame_game",
+    "entryPath": "lib/main.dart"
   }
 ]
