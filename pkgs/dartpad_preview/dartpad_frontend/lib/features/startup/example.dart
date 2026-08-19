@@ -6,12 +6,16 @@
 class Example {
   final String name;
   final String id;
+  final String? subcategory;
+  final String? icon;
   final String archivePath;
   final String entryPath;
 
   const Example({
     required this.name,
     required this.id,
+    this.subcategory,
+    this.icon,
     required this.archivePath,
     required this.entryPath,
   });
