@@ -125,9 +125,7 @@ final class WorkspaceSession {
     _languageServer = null;
 
     await _safeAwait(
-      closeWorker
-          ? repository.close()
-          : repository.closeWorkspaceOnly(),
+      closeWorker ? repository.close() : repository.closeWorkspaceOnly(),
     );
     await _safeAwait(events.dispose());
   }
