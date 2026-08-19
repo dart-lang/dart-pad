@@ -85,7 +85,8 @@ class _DropdownMenuState extends State<DropdownMenu> {
       // Trigger button.
       Component.apply(
         events: {'click': (_) => _toggleMenu()},
-        child: component.trigger ??
+        child:
+            component.trigger ??
             const button(
               classes: 'dropdown-menu-default-trigger',
               attributes: {'aria-label': 'More options'},
