@@ -109,9 +109,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
       if (!mounted || !_menuOpen) {
         return;
       }
-      _dismissSubscription = web.EventStreamProviders.mouseDownEvent
-          .forTarget(web.document)
-          .listen((event) {
+      _dismissSubscription = web.EventStreamProviders.mouseDownEvent.forTarget(web.document).listen((event) {
         final anchor = _anchorKey.currentNode;
         final target = event.target as web.Node?;
         if (anchor != null && target != null && !anchor.contains(target)) {
@@ -159,26 +157,28 @@ class _DropdownMenuState extends State<DropdownMenu> {
             for (final entry in component.items)
               switch (entry) {
                 DropdownMenuDivider(:final label) => div(
-                    classes: 'dropdown-menu-divider',
-                    [span([.text(label)])],
-                  ),
+                  classes: 'dropdown-menu-divider',
+                  [
+                    span([.text(label)]),
+                  ],
+                ),
                 DropdownMenuItem() => button(
-                    classes: 'dropdown-menu-item',
-                    onClick: () {
-                      _closeMenu();
-                      entry.onPressed();
-                    },
-                    [
-                      if (entry.leadingImage != null)
-                        img(
-                          src: entry.leadingImage!,
-                          alt: '',
-                          classes: 'dropdown-menu-item-image',
-                        ),
-                      span([.text(entry.label)]),
-                      if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
-                    ],
-                  ),
+                  classes: 'dropdown-menu-item',
+                  onClick: () {
+                    _closeMenu();
+                    entry.onPressed();
+                  },
+                  [
+                    if (entry.leadingImage != null)
+                      img(
+                        src: entry.leadingImage!,
+                        alt: '',
+                        classes: 'dropdown-menu-item-image',
+                      ),
+                    span([.text(entry.label)]),
+                    if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
+                  ],
+                ),
               },
           ],
         ),

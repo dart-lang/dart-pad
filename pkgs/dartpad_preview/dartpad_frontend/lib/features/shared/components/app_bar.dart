@@ -49,11 +49,13 @@ class _AppBarState extends State<AppBar> {
         entries.add(DropdownMenuDivider(label: sample.subcategory!));
         lastSubcategory = sample.subcategory;
       }
-      entries.add(DropdownMenuItem(
-        label: sample.name,
-        leadingImage: sample.icon,
-        onPressed: () => component.onSelectExample?.call(sample),
-      ));
+      entries.add(
+        DropdownMenuItem(
+          label: sample.name,
+          leadingImage: sample.icon,
+          onPressed: () => component.onSelectExample?.call(sample),
+        ),
+      );
     }
 
     return entries;
