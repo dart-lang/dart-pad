@@ -21,10 +21,9 @@ steps:
       - |
         export PATH="/opt/flutter/bin:$$PATH"
         export PATH="$$PATH":"$$HOME/.pub-cache/bin"
-        dart pub global activate jaspr_cli
         dart pub get
         dart run tool/copy_assets.dart
-        dart pub global run jaspr_cli:jaspr build
+        dart run jaspr_cli:jaspr build -v
     dir: pkgs/dartpad_preview/dartpad_frontend
 
   # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)
