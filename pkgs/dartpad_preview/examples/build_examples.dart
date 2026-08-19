@@ -40,31 +40,58 @@ enum ExampleCategory {
 
 class ExampleConfig implements Comparable<ExampleConfig> {
   final ExampleCategory category;
+
+  /// Optional sub-grouping within [category], used as a divider label in the
+  /// dropdown menu (e.g. `"Dart"`, `"Flutter"`, `"Ecosystem"`).
+  final String? subcategory;
+
+  /// Unique kebab-case identifier for the sample (e.g. `"hello-world"`).
   final String id;
+
+  /// Human-readable display name shown in the UI.
   final String name;
+
+  /// Directory name under `lib/projects/` that contains the sample source.
   final String projectDir;
+
+  /// Relative path to the main entry file within the project archive.
   final String entryPath;
+
+  /// Optional path to a logo image served from the web root
+  /// (e.g. `"images/flutter_logo_192.png"`).
+  final String? icon;
+
+  /// Original position in `examples.json`, used to preserve declaration order
+  /// when sorting within a [category].
+  final int index;
 
   ExampleConfig({
     required this.category,
+    this.subcategory,
     required this.id,
     required this.name,
     required this.projectDir,
     required this.entryPath,
+    this.icon,
+    this.index = 0,
   });
 
-  factory ExampleConfig.fromJson(Map<String, Object?> json) {
+  factory ExampleConfig.fromJson(Map<String, Object?> json, {int index = 0}) {
     return ExampleConfig(
       category: ExampleCategory.values.firstWhere(
         (c) => c.label == json['category'] as String,
         orElse: () => throw FormatException('Unknown category: ${json['category']}'),
       ),
+      subcategory: json['subcategory'] as String?,
       id: json['id'] as String,
       name: json['name'] as String,
       projectDir: json['projectDir'] as String,
       entryPath: json['entryPath'] as String? ?? 'lib/main.dart',
+      icon: json['icon'] as String?,
+      index: index,
     );
   }
+
 
   String get archiveFileName => '$id.tar.gz';
   String get archiveRelativeUrl => 'examples/$archiveFileName';
@@ -79,23 +106,27 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   }
 
   String get sourceDef {
-    return '''
-const $varName = Example(
-  name: '$name',
-  id: '$id',
-  archivePath: '$archiveRelativeUrl',
-  entryPath: '$entryPath',
-);
-''';
+    final buf = StringBuffer('const $varName = Example(\n');
+    buf.writeln("  name: '$name',");
+    buf.writeln("  id: '$id',");
+    if (subcategory != null) {
+      buf.writeln("  subcategory: '$subcategory',");
+    }
+    if (icon != null) {
+      buf.writeln("  icon: '$icon',");
+    }
+    buf.writeln("  archivePath: '$archiveRelativeUrl',");
+    buf.writeln("  entryPath: '$entryPath',");
+    buf.write(');');
+    return buf.toString();
   }
 
   @override
   int compareTo(ExampleConfig other) {
-    if (category == other.category) {
-      return name.compareTo(other.name);
-    } else {
+    if (category != other.category) {
       return category.label.compareTo(other.category.label);
     }
+    return index.compareTo(other.index);
   }
 }
 
@@ -112,7 +143,10 @@ class ExamplesBuilder {
     }
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
-    examples = json.map((j) => ExampleConfig.fromJson(j as Map<String, Object?>)).toList();
+    examples = [
+      for (final (i, j) in json.indexed)
+        ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
+    ];
 
     var hadFailure = false;
     void fail(String message) {
