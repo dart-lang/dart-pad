@@ -1,1 +1,17 @@
-name: sunflowerdescription: A Flutter Sunflower simulation.publish_to: noneversion: 1.0.0+1environment:  sdk: ^3.12.0dependencies:  flutter:    sdk: flutterdev_dependencies:  flutter_lints: ^6.0.0flutter:  uses-material-design: true
+name: sunflower
+description: A Flutter Sunflower simulation.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
