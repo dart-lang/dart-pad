@@ -86,7 +86,7 @@ class CodeActionsController {
   Future<void> triggerQuickFixes({int? from, int? to}) => _triggerActions(
     from: from,
     to: to,
-    autoApplySingle: true,
+    autoApplySingle: false,
     loader: (plugin, rangeFrom, rangeTo) => _loadActions(
       plugin,
       rangeFrom,

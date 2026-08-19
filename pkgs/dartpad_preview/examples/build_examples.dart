@@ -92,7 +92,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
     );
   }
 
-
   String get archiveFileName => '$id.tar.gz';
   String get archiveRelativeUrl => 'examples/$archiveFileName';
 
@@ -249,6 +248,7 @@ abstract final class Examples {
 ''');
 
     buf.write(examples.map((e) => e.sourceDef).join('\n'));
+    buf.writeln();
     return _normalizeLineEndings(buf.toString());
   }
 
