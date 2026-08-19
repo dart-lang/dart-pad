@@ -1,0 +1,1 @@
+name: sunflowerdescription: A Flutter Sunflower simulation.publish_to: noneversion: 1.0.0+1environment:  sdk: ^3.12.0dependencies:  flutter:    sdk: flutterdev_dependencies:  flutter_lints: ^6.0.0flutter:  uses-material-design: true

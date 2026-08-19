@@ -1,0 +1,69 @@
+// Copyright 2024 the Dart project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license
+// that can be found in the LICENSE file.
+
+/// A simplified brick-breaker game,
+/// built using the Flame game engine for Flutter.
+///
+/// To learn how to build a more complete version of this game yourself,
+/// check out the codelab at https://flutter.dev/to/brick-breaker.
+library;
+
+import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
+
+import 'config.dart';
+import 'game.dart';
+
+void main() {
+  runApp(const GameApp());
+}
+
+class GameApp extends StatefulWidget {
+  const GameApp({super.key});
+
+  @override
+  State<GameApp> createState() => _GameAppState();
+}
+
+class _GameAppState extends State<GameApp> {
+  late final BrickBreaker game;
+
+  @override
+  void initState() {
+    super.initState();
+    game = BrickBreaker();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: FittedBox(
+                  child: SizedBox(
+                    width: gameWidth,
+                    height: gameHeight,
+                    child: GameWidget(game: game),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -16,12 +16,20 @@ abstract final class Examples {
 
   static const List<Example> samples = [
     _counter,
+    _fibonacci,
+    _flameGame,
+    _helloWorld,
+    _sunflower,
   ];
 
   static const List<Example> all = [
-    _counter,
     _dart,
     _flutter,
+    _counter,
+    _fibonacci,
+    _flameGame,
+    _helloWorld,
+    _sunflower,
   ];
 
   static Example? getById(String id) {
@@ -36,13 +44,6 @@ abstract final class Examples {
   static const Example defaultExample = _counter;
 }
 
-const _counter = Example(
-  name: 'Counter',
-  id: 'counter',
-  archivePath: 'examples/counter.tar.gz',
-  entryPath: 'lib/main.dart',
-);
-
 const _dart = Example(
   name: 'Dart snippet',
   id: 'dart',
@@ -54,5 +55,40 @@ const _flutter = Example(
   name: 'Flutter snippet',
   id: 'flutter',
   archivePath: 'examples/flutter.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _counter = Example(
+  name: 'Counter',
+  id: 'counter',
+  archivePath: 'examples/counter.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _fibonacci = Example(
+  name: 'Fibonacci',
+  id: 'fibonacci',
+  archivePath: 'examples/fibonacci.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _flameGame = Example(
+  name: 'Flame game',
+  id: 'flame-game',
+  archivePath: 'examples/flame-game.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _helloWorld = Example(
+  name: 'Hello world',
+  id: 'hello-world',
+  archivePath: 'examples/hello-world.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _sunflower = Example(
+  name: 'Sunflower',
+  id: 'sunflower',
+  archivePath: 'examples/sunflower.tar.gz',
   entryPath: 'lib/main.dart',
 );
