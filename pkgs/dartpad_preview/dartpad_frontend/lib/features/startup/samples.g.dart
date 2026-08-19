@@ -29,12 +29,20 @@ abstract final class Samples {
 
   static const List<Sample> examples = [
     _counter,
+    _fibonacci,
+    _flameGame,
+    _helloWorld,
+    _sunflower,
   ];
 
   static const List<Sample> all = [
     _dart,
     _flutter,
     _counter,
+    _fibonacci,
+    _flameGame,
+    _helloWorld,
+    _sunflower,
   ];
 
   static Sample? getById(String? id) {
@@ -67,5 +75,33 @@ const _counter = Sample(
   name: 'Counter',
   id: 'counter',
   archivePath: 'samples/counter.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _fibonacci = Sample(
+  name: 'Fibonacci',
+  id: 'fibonacci',
+  archivePath: 'samples/fibonacci.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _flameGame = Sample(
+  name: 'Flame game',
+  id: 'flame-game',
+  archivePath: 'samples/flame-game.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _helloWorld = Sample(
+  name: 'Hello world',
+  id: 'hello-world',
+  archivePath: 'samples/hello-world.tar.gz',
+  entryPath: 'lib/main.dart',
+);
+
+const _sunflower = Sample(
+  name: 'Sunflower',
+  id: 'sunflower',
+  archivePath: 'samples/sunflower.tar.gz',
   entryPath: 'lib/main.dart',
 );
