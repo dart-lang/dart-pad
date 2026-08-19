@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:jaspr/jaspr.dart' show kDebugMode;
 
 import '../bottom_panel/view_models/console_view_model.dart';
 import '../bottom_panel/view_models/diagnostics_view_model.dart';
@@ -106,44 +107,52 @@ final class WorkspaceSession {
     }
     _disposed = true;
 
-    await _ignoreCleanupError(() async {
-      await _analyzerSubscription?.cancel();
-    });
+    await _safeAwait(_analyzerSubscription?.cancel());
     _analyzerSubscription = null;
-    await _ignoreCleanupError(diagnostics.dispose);
-    await _ignoreCleanupError(fileTree.dispose);
-    await _ignoreCleanupError(tabs.dispose);
-    await _ignoreCleanupError(preview.dispose);
-    await _ignoreCleanupError(console.dispose);
-    await _ignoreCleanupError(() async {
-      await _languageServerClient?.shutdown().timeout(
+    await _safeCall(diagnostics.dispose);
+    await _safeCall(fileTree.dispose);
+    await _safeCall(tabs.dispose);
+    await _safeCall(preview.dispose);
+    await _safeCall(console.dispose);
+    await _safeAwait(
+      _languageServerClient?.shutdown().timeout(
         const Duration(seconds: 2),
-      );
-    });
-    await _ignoreCleanupError(() async {
-      await _languageServerClient?.dispose();
-    });
+      ),
+    );
+    await _safeAwait(_languageServerClient?.dispose());
     _languageServerClient = null;
-    await _ignoreCleanupError(() async {
-      await _languageServer?.stop();
-    });
+    await _safeAwait(_languageServer?.stop());
     _languageServer = null;
 
-    await _ignoreCleanupError(() async {
-      if (closeWorker) {
-        await repository.close();
-      } else {
-        await repository.closeWorkspaceOnly();
-      }
-    });
-    await _ignoreCleanupError(events.dispose);
+    await _safeAwait(
+      closeWorker
+          ? repository.close()
+          : repository.closeWorkspaceOnly(),
+    );
+    await _safeAwait(events.dispose());
   }
 
-  Future<void> _ignoreCleanupError(FutureOr<void> Function() cleanup) async {
+  /// Awaits a (possibly null) [future] and swallows errors so that a
+  /// discarded session never affects its replacement.
+  Future<void> _safeAwait(FutureOr<void>? future) async {
     try {
-      await cleanup();
-    } catch (_) {
-      // A discarded session must never affect its replacement.
+      await future;
+    } catch (e) {
+      if (kDebugMode) {
+        print('WorkspaceSession cleanup error: $e');
+      }
+    }
+  }
+
+  /// Calls [fn] and swallows errors. Use this for tear-offs of methods
+  /// that return `void` (which cannot be passed to [_safeAwait]).
+  Future<void> _safeCall(FutureOr<void> Function() fn) async {
+    try {
+      await fn();
+    } catch (e) {
+      if (kDebugMode) {
+        print('WorkspaceSession cleanup error: $e');
+      }
     }
   }
 }
