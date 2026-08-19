@@ -7,6 +7,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../startup/samples.g.dart';
 import '../icons.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
@@ -15,10 +16,17 @@ import 'theme_toggle.dart';
 /// The main application bar with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 class AppBar extends StatefulComponent {
-  const AppBar({this.onCreateNew, super.key});
+  const AppBar({
+    this.onCreateSample,
+    this.onSelectExample,
+    super.key,
+  });
 
-  /// Called when the user wants to create a new project.
-  final VoidCallback? onCreateNew;
+  /// Called when the user selects a snippet from the Create menu.
+  final void Function(Sample sample)? onCreateSample;
+
+  /// Called when the user selects an example.
+  final void Function(Sample sample)? onSelectExample;
 
   @override
   State<AppBar> createState() => _AppBarState();
@@ -34,9 +42,11 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
-    final isCreateDisabled = component.onCreateNew == null;
+    final isCreateDisabled = component.onCreateSample == null;
+    final isExamplesDisabled = component.onSelectExample == null;
+
     return div(classes: 'app-bar', [
-      // Left section: logo + title + create.
+      // Left section: logo + title + create + examples.
       div(classes: 'app-bar-left', [
         const img(
           src: 'images/dart_logo_192.png',
@@ -45,21 +55,53 @@ class _AppBarState extends State<AppBar> {
         ),
         const span(classes: 'app-bar-title', [.text('DartPad')]),
         const div(classes: 'app-bar-divider', []),
-        button(
-          classes: 'app-bar-text-button',
+        DropdownMenu(
+          alignLeft: true,
           disabled: isCreateDisabled,
-          attributes: {
-            'aria-label': 'Create a new snippet',
-            'title': 'Create a new snippet',
-          },
-          onClick: isCreateDisabled
-              ? null
-              : () {
-                  component.onCreateNew?.call();
-                },
-          [
-            const Icon('add_circle', size: 18),
-            const span(classes: 'app-bar-button-label', [.text('Create')]),
+          trigger: button(
+            classes: 'app-bar-text-button',
+            disabled: isCreateDisabled,
+            attributes: {
+              'aria-label': 'Create a new snippet',
+              'title': 'Create a new snippet',
+            },
+            [
+              const Icon('add_circle', size: 18),
+              const span(classes: 'app-bar-button-label', [.text('Create')]),
+            ],
+          ),
+          items: [
+            for (final sample in Samples.create)
+              DropdownMenuItem(
+                label: sample.name,
+                leadingImage: sample.id == 'flutter'
+                    ? 'images/flutter_logo_192.png'
+                    : 'images/dart_logo_192.png',
+                onPressed: () => component.onCreateSample?.call(sample),
+              ),
+          ],
+        ),
+        DropdownMenu(
+          alignLeft: true,
+          disabled: isExamplesDisabled,
+          trigger: button(
+            classes: 'app-bar-text-button',
+            disabled: isExamplesDisabled,
+            attributes: {
+              'aria-label': 'Examples',
+              'title': 'Try an example',
+            },
+            [
+              const Icon('playlist_add', size: 18),
+              const span(classes: 'app-bar-button-label', [.text('Examples')]),
+            ],
+          ),
+          items: [
+            for (final sample in Samples.examples)
+              DropdownMenuItem(
+                label: sample.name,
+                onPressed: () => component.onSelectExample?.call(sample),
+              ),
           ],
         ),
       ]),
@@ -96,6 +138,11 @@ class _AppBarState extends State<AppBar> {
   static List<StyleRule> get styles => [
     css('.app-bar').styles(
       display: .flex,
+      position: const .relative(),
+      // File-tree folder rows are sticky and use z-indices up to 100. Keep
+      // the whole app bar above that stacking context so dropdowns are never
+      // painted behind the workspace.
+      zIndex: const ZIndex(200),
       height: 48.px,
       minHeight: 48.px,
       padding: .symmetric(horizontal: 12.px),
@@ -109,6 +156,8 @@ class _AppBarState extends State<AppBar> {
     ),
     css('.app-bar-left').styles(
       display: .flex,
+      position: const .relative(),
+      zIndex: const ZIndex(99),
       alignItems: .center,
       gap: Gap.all(8.px),
     ),
@@ -117,6 +166,8 @@ class _AppBarState extends State<AppBar> {
     ),
     css('.app-bar-right').styles(
       display: .flex,
+      position: const .relative(),
+      zIndex: const ZIndex(99),
       alignItems: .center,
       gap: Gap.all(4.px),
     ),
@@ -136,7 +187,7 @@ class _AppBarState extends State<AppBar> {
       backgroundColor: colorBorder,
     ),
 
-    // -- Text button (Create) --
+    // -- Text button (Create / Examples) --
     css('.app-bar-text-button').styles(
       display: .flex,
       padding: .symmetric(horizontal: 10.px, vertical: 6.px),

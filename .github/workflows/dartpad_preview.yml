@@ -104,6 +104,15 @@ jobs:
         working-directory: pkgs/dartpad_preview
         run: dart pub get
 
+      - name: Generate sample assets
+        working-directory: pkgs/dartpad_preview/samples
+        run: dart run tool/build_samples.dart
+
+      - name: Verify generated sample definition is checked in
+        run: |
+          git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/samples.g.dart
+          git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/samples.g.dart
+
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |

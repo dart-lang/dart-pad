@@ -55,9 +55,9 @@ class ArchiveLoader {
   /// The returned entrypoint is either [filePath] or a well-known example file
   /// discovered in package archives.
   Future<LoadedProject> loadArchive(WorkspaceFolder root) async {
-    final Uri uri = Uri.parse(archiveUrl);
+    final Uri uri = Uri.base.resolve(archiveUrl);
     if (!uri.isAbsolute) {
-      throw ArgumentError('archiveUrl must be absolute: $archiveUrl');
+      throw ArgumentError('archiveUrl must resolve to an absolute URI: $archiveUrl');
     }
 
     final http.Response response = await http.get(uri);
