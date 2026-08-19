@@ -87,7 +87,7 @@ dart run tool/copy_assets.dart
 ```
 
 This copies the assets from the resolved `dartpad` package into `web/dartpad/` and
-generates `web/dartpad/dartpad-assets.json`.
+generates `versions.json` in each SDK folder.
 
 Build the client with `dart run jaspr_cli:jaspr build` after the assets have
 been copied.

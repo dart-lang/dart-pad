@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:archive/archive.dart';
-import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> args) async {
@@ -42,8 +41,8 @@ Future<void> main(List<String> args) async {
 
   await _copyDirectory(sourceWebDir, targetAssetDir);
 
-  // Generate dartpad-assets.json manifest for runtime version inspection
-  await _writeManifest(targetAssetDir);
+  // Generate versions.json file in each sdk directory (e.g. dart/ and flutter/)
+  await _writeSdkVersions(targetAssetDir);
 
   stdout.writeln('Successfully copied DartPad assets to ${targetAssetDir.path}');
 }
@@ -60,44 +59,22 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
   }
 }
 
-Future<List<File>> _assetFiles(Directory root) async {
-  final files = <File>[];
-  await for (final entity in root.list(recursive: true, followLinks: false)) {
-    if (entity is File && p.basename(entity.path) != 'dartpad-assets.json') {
-      files.add(entity);
+Future<void> _writeSdkVersions(Directory assetRoot) async {
+  await for (final entity in assetRoot.list(recursive: false)) {
+    if (entity is Directory) {
+      final versions = await _readSdkVersions(entity);
+      if (versions != null) {
+        final versionsFile = File(p.join(entity.path, 'versions.json'));
+        final encoder = const JsonEncoder.withIndent('  ');
+        await versionsFile.writeAsString('${encoder.convert(versions)}\n');
+        stdout.writeln('Generated ${p.relative(versionsFile.path, from: assetRoot.path)}');
+      }
     }
   }
-  files.sort((a, b) => a.path.compareTo(b.path));
-  return files;
 }
 
-Future<void> _writeManifest(Directory assetRoot) async {
-  final entries = <String, Object>{};
-  for (final file in await _assetFiles(assetRoot)) {
-    final relative = p.posix.joinAll(p.split(p.relative(file.path, from: assetRoot.path)));
-    entries[relative] = {
-      'bytes': await file.length(),
-      'sha256': (await sha256.bind(file.openRead()).first).toString(),
-    };
-  }
-
-  final runtimeVersions = await _readRuntimeVersions(assetRoot);
-  final manifest = {
-    'schemaVersion': 1,
-    if (runtimeVersions != null) ...{
-      'dartVersion': runtimeVersions.dartVersion,
-      'flutterVersion': runtimeVersions.flutterVersion,
-    },
-    'files': entries,
-  };
-  final encoder = const JsonEncoder.withIndent('  ');
-  await File(p.join(assetRoot.path, 'dartpad-assets.json')).writeAsString('${encoder.convert(manifest)}\n');
-}
-
-Future<({String dartVersion, String flutterVersion})?> _readRuntimeVersions(
-  Directory assetRoot,
-) async {
-  final sdkTarFile = File(p.join(assetRoot.path, 'flutter', 'sdk.tar'));
+Future<Map<String, dynamic>?> _readSdkVersions(Directory sdkDir) async {
+  final sdkTarFile = File(p.join(sdkDir.path, 'sdk.tar'));
   if (!sdkTarFile.existsSync()) {
     return null;
   }
@@ -105,24 +82,43 @@ Future<({String dartVersion, String flutterVersion})?> _readRuntimeVersions(
     final archiveBytes = await sdkTarFile.readAsBytes();
     final archive = TarDecoder().decodeBytes(archiveBytes);
 
-    String readEntry(String path) {
-      final file = archive.files.firstWhere(
-        (file) => file.name == path || file.name == '/$path',
-      );
-      return utf8.decode(file.content);
+    ArchiveFile? findFile(bool Function(ArchiveFile file) predicate) {
+      for (final file in archive.files) {
+        if (predicate(file)) {
+          return file;
+        }
+      }
+      return null;
     }
 
-    final flutterVersion =
-        jsonDecode(
-              readEntry('sdk/bin/cache/flutter.version.json'),
-            )
-            as Map<String, dynamic>;
-    return (
-      dartVersion: flutterVersion['dartSdkVersion'] as String,
-      flutterVersion: flutterVersion['flutterVersion'] as String,
+    final flutterVersionFile = findFile(
+      (f) => f.name.endsWith('flutter.version.json'),
     );
+
+    if (flutterVersionFile != null) {
+      final json = jsonDecode(utf8.decode(flutterVersionFile.content)) as Map<String, dynamic>;
+      final dartVersion = (json['dartSdkVersion'] ?? json['dartVersion']) as String?;
+      final flutterVersion = (json['flutterVersion'] ?? json['frameworkVersion']) as String?;
+      return {
+        'dartVersion': ?dartVersion,
+        'flutterVersion': ?flutterVersion,
+      };
+    }
+
+    final dartVersionFile = findFile(
+      (f) => f.name == 'sdk/version' || f.name == '/sdk/version',
+    );
+
+    if (dartVersionFile != null) {
+      final dartVersion = utf8.decode(dartVersionFile.content).trim();
+      return {
+        'dartVersion': dartVersion,
+      };
+    }
+
+    return null;
   } catch (e) {
-    stdout.writeln('Warning: Failed to read runtime versions from sdk.tar: $e');
+    stdout.writeln('Warning: Failed to read SDK versions for ${sdkDir.path}: $e');
     return null;
   }
 }

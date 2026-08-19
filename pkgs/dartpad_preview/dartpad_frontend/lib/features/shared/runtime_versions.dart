@@ -20,7 +20,7 @@ final class RuntimeVersions {
   static Future<RuntimeVersions?> load() async {
     try {
       final response = await http.get(
-        Uri.base.resolve('dartpad/dartpad-assets.json'),
+        Uri.base.resolve('dartpad/flutter/versions.json'),
       );
       if (response.statusCode != 200) {
         return null;
