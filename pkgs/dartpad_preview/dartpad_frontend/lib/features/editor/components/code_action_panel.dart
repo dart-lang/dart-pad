@@ -207,8 +207,8 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       (groups[group] ??= []).add(action);
     }
 
-    // Stable display order: Quick Fix first, then Refactor, Source, Other.
-    const order = ['Quick Fix', 'Refactor', 'Source', 'Other'];
+    // Stable display order: Quick Fix first, then Flutter, Extract, Refactor, Source, Other.
+    const order = ['Quick Fix', 'Flutter', 'Extract', 'Refactor', 'Source', 'Other'];
     final sortedKeys = groups.keys.toList()
       ..sort((groupA, groupB) {
         final indexA = order.indexOf(groupA);
@@ -239,6 +239,12 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
   static String _kindGroup(String? kind) {
     if (kind == null || kind.startsWith('quickfix')) {
       return 'Quick Fix';
+    }
+    if (kind.startsWith('refactor.extract')) {
+      return 'Extract';
+    }
+    if (kind.startsWith('refactor.flutter')) {
+      return 'Flutter';
     }
     if (kind.startsWith('refactor')) {
       return 'Refactor';
