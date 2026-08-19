@@ -1,0 +1,1 @@
+name: brick_breakerdescription: A simplified brick-breaker game built using Flame for Flutter.publish_to: noneversion: 1.0.0+1environment:  sdk: ^3.12.0dependencies:  flame: ^1.37.0  flutter:    sdk: flutterdev_dependencies:  flutter_lints: ^6.0.0flutter:  uses-material-design: true
