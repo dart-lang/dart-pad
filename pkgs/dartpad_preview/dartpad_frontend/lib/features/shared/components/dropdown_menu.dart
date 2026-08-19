@@ -112,9 +112,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
       // Dropdown panel.
       if (_menuOpen)
         div(
-          classes: component.alignLeft
-              ? 'dropdown-menu-panel dropdown-menu-panel-left'
-              : 'dropdown-menu-panel',
+          classes: component.alignLeft ? 'dropdown-menu-panel dropdown-menu-panel-left' : 'dropdown-menu-panel',
           [
             for (final item in component.items)
               button(

@@ -74,9 +74,7 @@ class _AppBarState extends State<AppBar> {
             for (final sample in Samples.create)
               DropdownMenuItem(
                 label: sample.name,
-                leadingImage: sample.id == 'flutter'
-                    ? 'images/flutter_logo_192.png'
-                    : 'images/dart_logo_192.png',
+                leadingImage: sample.id == 'flutter' ? 'images/flutter_logo_192.png' : 'images/dart_logo_192.png',
                 onPressed: () => component.onCreateSample?.call(sample),
               ),
           ],
