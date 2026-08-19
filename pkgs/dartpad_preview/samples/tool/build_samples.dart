@@ -33,29 +33,57 @@ void main(List<String> args) {
 const Set<String> validCategories = {'Create', 'Examples'};
 
 class SampleConfig implements Comparable<SampleConfig> {
+  /// Top-level grouping, e.g. `"Create"` or `"Examples"`.
   final String category;
+
+  /// Optional sub-grouping within [category], used as a divider label in the
+  /// dropdown menu (e.g. `"Dart"`, `"Flutter"`, `"Ecosystem"`).
+  final String? subcategory;
+
+  /// Unique kebab-case identifier for the sample (e.g. `"hello-world"`).
   final String id;
+
+  /// Human-readable display name shown in the UI.
   final String name;
+
+  /// Directory name under `lib/projects/` that contains the sample source.
   final String projectDir;
+
+  /// Relative path to the main entry file within the project archive.
   final String entryPath;
+
+  /// Optional path to a logo image served from the web root
+  /// (e.g. `"images/flutter_logo_192.png"`).
+  final String? icon;
+
+  /// Original position in `samples.json`, used to preserve declaration order
+  /// when sorting within a [category].
+  final int index;
 
   SampleConfig({
     required this.category,
+    this.subcategory,
     required this.id,
     required this.name,
     required this.projectDir,
     required this.entryPath,
+    this.icon,
+    this.index = 0,
   });
 
-  factory SampleConfig.fromJson(Map<String, Object?> json) {
+  factory SampleConfig.fromJson(Map<String, Object?> json, {int index = 0}) {
     return SampleConfig(
       category: json['category'] as String,
+      subcategory: json['subcategory'] as String?,
       id: json['id'] as String,
       name: json['name'] as String,
       projectDir: json['projectDir'] as String,
       entryPath: json['entryPath'] as String? ?? 'lib/main.dart',
+      icon: json['icon'] as String?,
+      index: index,
     );
   }
+
 
   String get archiveFileName => '$id.tar.gz';
   String get archiveRelativeUrl => 'samples/$archiveFileName';
@@ -70,23 +98,27 @@ class SampleConfig implements Comparable<SampleConfig> {
   }
 
   String get sourceDef {
-    return '''
-const $varName = Sample(
-  name: '$name',
-  id: '$id',
-  archivePath: '$archiveRelativeUrl',
-  entryPath: '$entryPath',
-);
-''';
+    final buf = StringBuffer('const $varName = Sample(\n');
+    buf.writeln("  name: '$name',");
+    buf.writeln("  id: '$id',");
+    if (subcategory != null) {
+      buf.writeln("  subcategory: '$subcategory',");
+    }
+    if (icon != null) {
+      buf.writeln("  icon: '$icon',");
+    }
+    buf.writeln("  archivePath: '$archiveRelativeUrl',");
+    buf.writeln("  entryPath: '$entryPath',");
+    buf.write(');');
+    return buf.toString();
   }
 
   @override
   int compareTo(SampleConfig other) {
-    if (category == other.category) {
-      return name.compareTo(other.name);
-    } else {
+    if (category != other.category) {
       return category.compareTo(other.category);
     }
+    return index.compareTo(other.index);
   }
 }
 
@@ -103,7 +135,10 @@ class SamplesBuilder {
     }
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
-    samples = json.map((j) => SampleConfig.fromJson(j as Map<String, Object?>)).toList();
+    samples = [
+      for (final (i, j) in json.indexed)
+        SampleConfig.fromJson(j as Map<String, Object?>, index: i),
+    ];
 
     var hadFailure = false;
     void fail(String message) {
@@ -183,12 +218,16 @@ class SamplesBuilder {
 class Sample {
   final String name;
   final String id;
+  final String? subcategory;
+  final String? icon;
   final String archivePath;
   final String entryPath;
 
   const Sample({
     required this.name,
     required this.id,
+    this.subcategory,
+    this.icon,
     required this.archivePath,
     required this.entryPath,
   });
