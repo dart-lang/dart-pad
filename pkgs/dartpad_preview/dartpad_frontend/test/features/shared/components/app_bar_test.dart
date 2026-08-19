@@ -10,7 +10,7 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  testClient('disables Create while workspace initialization is pending', (
+  testClient('disables sample menus while workspace initialization is pending', (
     tester,
   ) {
     tester.pumpComponent(const AppBar());
@@ -20,14 +20,16 @@ void main() {
               '[aria-label="Create a new snippet"]',
             )!
             as web.HTMLButtonElement;
+    final examples = web.document.querySelector('[aria-label="Examples"]')! as web.HTMLButtonElement;
     expect(create.disabled, isTrue);
+    expect(examples.disabled, isTrue);
   });
 
-  testClient('enables Create when workspace initialization completes', (
-    tester,
-  ) async {
-    var createCalls = 0;
-    tester.pumpComponent(AppBar(onCreateNew: () => createCalls++));
+  testClient('opens Create and selects a snippet', (tester) async {
+    String? selectedSampleId;
+    tester.pumpComponent(
+      AppBar(onCreateSample: (sample) => selectedSampleId = sample.id),
+    );
 
     final create =
         web.document.querySelector(
@@ -38,6 +40,33 @@ void main() {
 
     create.click();
     await pumpEventQueue();
-    expect(createCalls, 1);
+    final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
+    expect(items.length, 2);
+    (items.item(0)! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(selectedSampleId, 'dart');
+    expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
+  });
+
+  testClient('opens Examples and selects Counter', (tester) async {
+    String? selectedSampleId;
+    tester.pumpComponent(
+      AppBar(onSelectExample: (sample) => selectedSampleId = sample.id),
+    );
+
+    final examples = web.document.querySelector('[aria-label="Examples"]')! as web.HTMLButtonElement;
+    expect(examples.disabled, isFalse);
+
+    examples.click();
+    await pumpEventQueue();
+
+    final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
+    expect(items.length, greaterThan(0));
+    (items.item(0)! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(selectedSampleId, 'counter');
+    expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 }
