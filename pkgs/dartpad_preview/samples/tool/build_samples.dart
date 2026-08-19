@@ -84,7 +84,6 @@ class SampleConfig implements Comparable<SampleConfig> {
     );
   }
 
-
   String get archiveFileName => '$id.tar.gz';
   String get archiveRelativeUrl => 'samples/$archiveFileName';
 
@@ -136,8 +135,7 @@ class SamplesBuilder {
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
     samples = [
-      for (final (i, j) in json.indexed)
-        SampleConfig.fromJson(j as Map<String, Object?>, index: i),
+      for (final (i, j) in json.indexed) SampleConfig.fromJson(j as Map<String, Object?>, index: i),
     ];
 
     var hadFailure = false;
@@ -264,6 +262,7 @@ abstract final class Samples {
 ''');
 
     buf.write(samples.map((sample) => sample.sourceDef).join('\n'));
+    buf.writeln();
     return _normalizeLineEndings(buf.toString());
   }
 
