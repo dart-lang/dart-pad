@@ -18,11 +18,15 @@ final class Footer extends StatefulComponent {
   /// Creates the application footer.
   const Footer({
     required this.statusLabel,
+    this.isMobile = false,
     super.key,
   });
 
   /// Human-readable label for the current application status.
   final String statusLabel;
+
+  /// Whether the footer is rendered in mobile layout mode.
+  final bool isMobile;
 
   @override
   State<Footer> createState() => _FooterState();
@@ -103,8 +107,10 @@ class _FooterState extends State<Footer> {
             tooltip: 'Keyboard shortcuts',
             onClick: (_) => _openShortcuts(),
           ),
-          _buildPrivacyNoticeLink(),
-          _buildFeedbackLink(),
+          if (!component.isMobile) ...[
+            _buildPrivacyNoticeLink(),
+            _buildFeedbackLink(),
+          ],
         ]),
         div(
           classes: 'app-footer-runtime-versions',
