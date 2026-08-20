@@ -162,8 +162,59 @@ void main() {
       expect(result.projectDir, '');
       expect(result.entryPath, 'my_project/lib/main.dart');
       expect(result.packageRoot, '');
+      expect(result.pathToMain, 'my_project/lib/main.dart');
       expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
       expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
+    });
+
+    test('defaults pathToMain to filePath when pathToMain is not specified', () async {
+      final Map<String, String> archiveFiles = {
+        'my_project/pubspec.yaml': 'name: my_project\n',
+        'my_project/example/hello.dart': 'void main() {}',
+      };
+      final Uint8List archiveBytes = createTarArchive(archiveFiles);
+
+      const ArchiveLoader loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'my_project/example/hello.dart',
+      );
+      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
+
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(result.entryPath, 'my_project/example/hello.dart');
+      expect(result.pathToMain, 'my_project/example/hello.dart');
+    });
+
+    test('sets explicit pathToMain when specified', () async {
+      final Map<String, String> archiveFiles = {
+        'my_project/pubspec.yaml': 'name: my_project\n',
+        'my_project/example/hello.dart': 'void hello() {}',
+        'my_project/example/main.dart': 'void main() {}',
+      };
+      final Uint8List archiveBytes = createTarArchive(archiveFiles);
+
+      const ArchiveLoader loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'my_project/example/hello.dart',
+        pathToMain: 'my_project/example/main.dart',
+      );
+      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
+
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(result.entryPath, 'my_project/example/hello.dart');
+      expect(result.pathToMain, 'my_project/example/main.dart');
     });
   });
 }

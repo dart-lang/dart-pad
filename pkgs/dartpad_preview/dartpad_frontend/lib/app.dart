@@ -101,6 +101,7 @@ class AppState extends State<App> {
   bool _isInitializingWorkspace = true;
   String loadingStatus = 'Loading Workspace...';
   String _projectDir = '';
+  String? _pathToMain;
   String? _errorMessage;
 
   bool _isLargeScreen = true;
@@ -222,6 +223,12 @@ class AppState extends State<App> {
       if (!_isCurrent(session)) {
         return;
       }
+
+      if (project?.pathToMain case final String pathToMain
+          when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
+        unawaited(session.preview.runCode(pathToMain));
+      }
+
       setState(() {
         loadingStatus = 'Initializing Analyzer...';
       });
@@ -359,14 +366,25 @@ class AppState extends State<App> {
         _updateLoadingStatus(session, 'Downloading Archive...', clearError: true);
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
         final filePath = Uri.decodeComponent(filePathParam);
-        final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
+        final pathToMainParam = params['main'];
+        final pathToMain = pathToMainParam != null ? Uri.decodeComponent(pathToMainParam) : null;
+        final loader = ArchiveLoader(
+          archiveUrl: archiveUrl,
+          filePath: filePath,
+          pathToMain: pathToMain,
+        );
         project = await loader.loadArchive(session.repository.root);
       } else if (params case {'package': final String packageName}) {
         userErrorMessage =
             'The package "$packageName" could not be resolved from pub.dev. '
             'Please verify the package name in the URL.';
         _updateLoadingStatus(session, 'Resolving Package...', clearError: true);
-        final loader = await ArchiveLoader.forPackage(packageName);
+        final pathToMainParam = params['main'];
+        final pathToMain = pathToMainParam != null ? Uri.decodeComponent(pathToMainParam) : null;
+        final loader = await ArchiveLoader.forPackage(
+          packageName,
+          pathToMain: pathToMain,
+        );
         _updateLoadingStatus(session, 'Downloading Package...');
         project = await loader.loadArchive(session.repository.root);
       } else if (params['gist'] case final String gistId) {
@@ -397,6 +415,7 @@ class AppState extends State<App> {
 
       setState(() {
         _projectDir = project.projectDir;
+        _pathToMain = project.pathToMain;
       });
       session.fileTree.focusPath(project.projectDir);
       if (project.entryPath case final String entryPath) {
@@ -579,6 +598,7 @@ class AppState extends State<App> {
       builder: (context) => PreviewContainer(
         preview: session.preview,
         activeFile: session.tabs.activeFile,
+        pathToMain: _pathToMain,
       ),
     );
   }

@@ -20,9 +20,13 @@ class ArchiveLoader {
     required this.archiveUrl,
     this.packageName,
     this.filePath,
+    this.pathToMain,
   });
 
-  static Future<ArchiveLoader> forPackage(String packageName) async {
+  static Future<ArchiveLoader> forPackage(
+    String packageName, {
+    String? pathToMain,
+  }) async {
     final String url = 'https://pub.dev/api/packages/$packageName';
     final http.Response response = await http.get(Uri.parse(url));
     if (response.statusCode != 200) {
@@ -31,7 +35,11 @@ class ArchiveLoader {
 
     final Map<String, Object?> json = jsonDecode(response.body) as Map<String, Object?>;
     if (json case {'latest': {'archive_url': final String archiveUrl}}) {
-      return ArchiveLoader(archiveUrl: archiveUrl, packageName: packageName);
+      return ArchiveLoader(
+        archiveUrl: archiveUrl,
+        packageName: packageName,
+        pathToMain: pathToMain,
+      );
     }
 
     throw Exception('Failed to load package $packageName: Unexpected JSON response.');
@@ -45,6 +53,9 @@ class ArchiveLoader {
 
   /// The workspace-relative file path within the project to open after extraction.
   final String? filePath;
+
+  /// The entrypoint file to be executed. Defaults to [filePath].
+  final String? pathToMain;
 
   /// Downloads, decompresses, and extracts all files from the [archiveUrl]
   /// into the workspace [root].
@@ -86,6 +97,7 @@ class ArchiveLoader {
     }
 
     final entryPath = targetFilePath == null ? null : ProjectLoader.normalizePath(targetFilePath);
+    final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
     final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(files, entryPath) ?? '';
 
     await ProjectLoader.writeFiles(root, files);
@@ -94,6 +106,7 @@ class ArchiveLoader {
       projectDir: projectDir,
       entryPath: entryPath,
       packageRoot: projectDir,
+      pathToMain: mainPath,
     );
   }
 
