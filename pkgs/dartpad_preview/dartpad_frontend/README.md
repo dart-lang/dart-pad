@@ -26,13 +26,15 @@ parameters.
 
 ### Loading from Archive
 
-To load a project from an arbitrary archive URL, you must provide both of the
+To load a project from an arbitrary archive URL, you must provide the
 following parameters:
 
 * `archive`: A URI-encoded URL of a `.tar` or `.tar.gz` archive containing the
 project files. The frontend downloads and extracts this project into the workspace.
 * `path`: A URI-encoded relative path of the file to open in the editor workspace
 once the project is loaded (e.g., `lib/main.dart`).
+* `main` (optional): A URI-encoded relative path of the entrypoint file to be
+executed (defaults to `path`).
 
 > [!NOTE]
 > Both `archive` and `path` query parameters must be provided together. If
@@ -41,7 +43,7 @@ once the project is loaded (e.g., `lib/main.dart`).
 
 Example:
 ```url
-http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md
+http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart
 ```
 
 ### Loading from Package Name
