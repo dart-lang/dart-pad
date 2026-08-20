@@ -103,7 +103,6 @@ class AppState extends State<App> {
   bool _isInitializingWorkspace = true;
   String loadingStatus = 'Loading Workspace...';
   String _projectDir = '';
-  String? _pathToMain;
   String? _errorMessage;
 
   bool _isLargeScreen = true;
@@ -226,8 +225,7 @@ class AppState extends State<App> {
         return;
       }
 
-      if (project?.pathToMain case final String pathToMain
-          when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
+      if (project?.pathToMain case final String pathToMain when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
         unawaited(session.preview.runCode(pathToMain));
       }
 
@@ -417,7 +415,6 @@ class AppState extends State<App> {
 
       setState(() {
         _projectDir = project.projectDir;
-        _pathToMain = project.pathToMain;
       });
       session.fileTree.focusPath(project.projectDir);
       if (project.entryPath case final String entryPath) {
@@ -584,7 +581,6 @@ class AppState extends State<App> {
       builder: (context) => PreviewContainer(
         preview: session.preview,
         activeFile: session.tabs.activeFile,
-        pathToMain: _pathToMain,
       ),
     );
   }
