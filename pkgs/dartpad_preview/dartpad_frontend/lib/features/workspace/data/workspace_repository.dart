@@ -6,12 +6,11 @@ import 'dart:convert';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:web/web.dart' as web;
-
 import '../../preview/models/compiler_session.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/error_toast_event.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/sdk_info.dart';
 import 'synced_workspace_resource_api.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
@@ -19,6 +18,7 @@ class WorkspaceRepository {
   WorkspaceRepository({
     required this.events,
     required this.workspaceResourceApi,
+    required this.sdk,
     required Future<Workspace> workspaceFuture,
     Future<Workspace>? readyWorkspaceFuture,
   }) : _workspaceFuture = workspaceFuture,
@@ -27,6 +27,7 @@ class WorkspaceRepository {
   /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
   final WorkspaceResourceApi workspaceResourceApi;
+  final SdkInfo sdk;
   final Future<Workspace> _workspaceFuture;
   final Future<Workspace> _readyWorkspaceFuture;
 
@@ -35,22 +36,32 @@ class WorkspaceRepository {
 
   WorkspaceFolder get root => workspaceResourceApi.root;
 
+  /// Base URL where worker and sandbox assets are hosted.
+  Uri get assetBaseUrl => sdk.assetBaseUrl;
+
   /// Completes once the worker workspace is ready and all writes buffered in
   /// the fallback resource API have been copied into it.
   Future<Workspace> get readyWorkspace => _readyWorkspaceFuture;
 
-  factory WorkspaceRepository.create({required AppEventBus events}) {
+  /// Whether the active worker/sandbox runtime is Flutter (using Flutter engine & bootstrap wrapper).
+  bool get isFlutterSdk => sdk.isFlutter;
+
+  factory WorkspaceRepository.create({
+    required AppEventBus events,
+    required SdkInfo sdk,
+    WorkspaceResourceApi? localApi,
+  }) {
     late final WorkspaceRepository repository;
 
     final workspaceFuture = (() async {
-      final sdk = DartPadSdk(assetBaseUrl: Uri.parse(web.document.baseURI).resolve('dartpad/flutter/'));
-      final dartpad = await sdk.dedicatedWorker();
+      final dartpadSdk = DartPadSdk(assetBaseUrl: sdk.assetBaseUrl);
+      final dartpad = await dartpadSdk.dedicatedWorker();
       repository.dartpad = dartpad;
       final workspace = await dartpad.createWorkspace();
       return workspace;
     })();
     final api = SyncedWorkspaceResourceApi(
-      localApi: MemoryWorkspaceResourceApi(),
+      localApi: localApi ?? MemoryWorkspaceResourceApi(),
       remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
       onLocalToRemoteSyncError: (_, _) {
         events.dispatch(const ErrorToastEvent('Saving failed, try again'));
@@ -63,6 +74,7 @@ class WorkspaceRepository {
     return repository = WorkspaceRepository(
       events: events,
       workspaceResourceApi: api,
+      sdk: sdk,
       workspaceFuture: workspaceFuture,
       readyWorkspaceFuture: readyWorkspaceFuture,
     );
@@ -134,7 +146,9 @@ class WorkspaceRepository {
   static WorkspaceRepository resetAndCreate({
     required AppEventBus events,
     required DartPad worker,
+    required SdkInfo sdk,
     required Future<void> previousWorkspaceDisposed,
+    WorkspaceResourceApi? localApi,
   }) {
     final workspaceFuture = (() async {
       await previousWorkspaceDisposed;
@@ -143,7 +157,7 @@ class WorkspaceRepository {
     })();
 
     final api = SyncedWorkspaceResourceApi(
-      localApi: MemoryWorkspaceResourceApi(),
+      localApi: localApi ?? MemoryWorkspaceResourceApi(),
       remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
       onLocalToRemoteSyncError: (_, _) {
         events.dispatch(const ErrorToastEvent('Saving failed, try again'));
@@ -156,6 +170,7 @@ class WorkspaceRepository {
     return WorkspaceRepository(
       events: events,
       workspaceResourceApi: api,
+      sdk: sdk,
       workspaceFuture: workspaceFuture,
       readyWorkspaceFuture: readyWorkspaceFuture,
     )..dartpad = worker;

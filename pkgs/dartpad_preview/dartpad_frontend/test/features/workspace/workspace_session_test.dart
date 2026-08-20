@@ -13,6 +13,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_session.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 
 final class _Workspace implements WorkspaceResourceApi {
@@ -74,6 +75,7 @@ void main() {
     final repository = WorkspaceRepository(
       events: events,
       workspaceResourceApi: workspace,
+      sdk: defaultSdk,
       workspaceFuture: Completer<Workspace>().future,
     );
     final session = WorkspaceSession.create(repository);
