@@ -69,4 +69,63 @@ void main() {
     expect(selectedExampleId, 'fibonacci');
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
+
+  testClient('renders desktop layout with button labels and without mobile tabs', (tester) {
+    tester.pumpComponent(const AppBar(isMobile: false));
+
+    final labels = web.document.querySelectorAll('.app-bar-button-label');
+    expect(labels.length, 2);
+    expect((labels.item(0)! as web.HTMLElement).textContent, 'Create');
+    expect((labels.item(1)! as web.HTMLElement).textContent, 'Examples');
+
+    final mobileTabs = web.document.querySelector('.app-bar-tab-bar');
+    expect(mobileTabs, isNull);
+  });
+
+  testClient('renders mobile layout without button labels and with mobile tabs', (tester) async {
+    int? activeTab;
+    tester.pumpComponent(
+      AppBar(
+        isMobile: true,
+        selectedTab: 0,
+        onTabSelected: (tab) => activeTab = tab,
+      ),
+    );
+
+    final labels = web.document.querySelectorAll('.app-bar-button-label');
+    expect(labels.length, 0);
+
+    final mobileTabs = web.document.querySelector('.app-bar-tab-bar');
+    expect(mobileTabs, isNotNull);
+
+    final tabs = web.document.querySelectorAll('.app-bar-tab');
+    expect(tabs.length, 2);
+    expect((tabs.item(0)! as web.HTMLButtonElement).textContent, 'Code');
+    expect((tabs.item(0)! as web.HTMLButtonElement).classList.contains('active'), isTrue);
+    expect((tabs.item(1)! as web.HTMLButtonElement).textContent, 'Output');
+    expect((tabs.item(1)! as web.HTMLButtonElement).classList.contains('active'), isFalse);
+
+    (tabs.item(1)! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(activeTab, 1);
+  });
+
+  testClient('renders nothing in desktop embed mode', (tester) {
+    tester.pumpComponent(const AppBar(isMobile: false, isEmbedMode: true));
+
+    expect(web.document.querySelector('.app-bar'), isNull);
+    expect(web.document.querySelector('.app-bar-tab-bar'), isNull);
+  });
+
+  testClient('renders only tab bar in mobile embed mode', (tester) {
+    tester.pumpComponent(const AppBar(isMobile: true, isEmbedMode: true));
+
+    expect(web.document.querySelector('.app-bar'), isNull);
+    expect(web.document.querySelector('.app-bar-tab-bar'), isNotNull);
+
+    final tabs = web.document.querySelectorAll('.app-bar-tab');
+    expect(tabs.length, 2);
+  });
 }
+
+
