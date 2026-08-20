@@ -12,12 +12,16 @@ abstract interface class CompilerSession {
 
 /// A wrapper around [HotReloadCompiler] implementing [CompilerSession].
 class RealCompilerSession implements CompilerSession {
-  RealCompilerSession(this._compiler);
+  RealCompilerSession(this._compiler, {this.onBeforeCompile});
 
   final HotReloadCompiler _compiler;
+  final Future<void> Function()? onBeforeCompile;
 
   @override
-  Future<({String? code, List<String> compiledLibraryUris, String? log})> compile() => _compiler.compile();
+  Future<({String? code, List<String> compiledLibraryUris, String? log})> compile() async {
+    await onBeforeCompile?.call();
+    return _compiler.compile();
+  }
 
   @override
   Future<void> close() => _compiler.close();
