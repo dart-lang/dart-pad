@@ -68,6 +68,7 @@ class GistLoader {
       projectDir: packageRoot ?? '',
       entryPath: entryPath,
       packageRoot: packageRoot,
+      pathToMain: entryPath,
     );
   }
 
