@@ -14,6 +14,7 @@ import 'package:web/web.dart' as web;
 import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/components/editor_shell.dart';
+import 'features/editor/components/error_toast.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/preview/view/preview_container.dart';
@@ -473,16 +474,19 @@ class AppState extends State<App> {
   }
 
   Component _buildEditorOverlay(WorkspaceSession session) {
-    return PubspecEditorActions(
-      activeFile: session.tabs.activeFile,
-      saveAllFiles: session.tabs.saveAllTabs,
-      events: session.events,
-      onPubGet: (workspacePath) => session.repository.pubGet(
-        path: workspacePath,
-        projectRoot: _projectDir,
+    return .fragment([
+      PubspecEditorActions(
+        activeFile: session.tabs.activeFile,
+        saveAllFiles: session.tabs.saveAllTabs,
+        events: session.events,
+        onPubGet: (workspacePath) => session.repository.pubGet(
+          path: workspacePath,
+          projectRoot: _projectDir,
+        ),
+        onPubClean: (workspacePath) => session.repository.pubClean(path: workspacePath),
       ),
-      onPubClean: (workspacePath) => session.repository.pubClean(path: workspacePath),
-    );
+      ErrorToast(events: session.events),
+    ]);
   }
 
   Component _buildFileTree(WorkspaceSession session) {
