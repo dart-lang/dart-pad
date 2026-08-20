@@ -19,6 +19,7 @@ import 'features/filetree/file_tree_view.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
+import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
@@ -138,7 +139,7 @@ class AppState extends State<App> {
       }
       setState(() {
         _isInitializingWorkspace = false;
-        _errorMessage = 'Failed to initialize workspace: $error';
+        _errorMessage = 'The workspace could not be initialized.';
       });
     }
   }
@@ -300,6 +301,7 @@ class AppState extends State<App> {
     required ProjectSource source,
   }) async {
     final params = source.queryParameters;
+    var userErrorMessage = 'The project could not be loaded.';
 
     try {
       final LoadedProject project;
@@ -307,32 +309,41 @@ class AppState extends State<App> {
         'archive': final String archiveUrlParam,
         'path': final String filePathParam,
       }) {
+        userErrorMessage =
+            'The project archive could not be downloaded. '
+            'Please check that the URL is correct and accessible.';
         _updateLoadingStatus(session, 'Downloading Archive...', clearError: true);
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
         final filePath = Uri.decodeComponent(filePathParam);
         final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
         project = await loader.loadArchive(session.repository.root);
       } else if (params case {'package': final String packageName}) {
+        userErrorMessage =
+            'The package "$packageName" could not be resolved from pub.dev. '
+            'Please verify the package name in the URL.';
         _updateLoadingStatus(session, 'Resolving Package...', clearError: true);
         final loader = await ArchiveLoader.forPackage(packageName);
         _updateLoadingStatus(session, 'Downloading Package...');
         project = await loader.loadArchive(session.repository.root);
       } else if (params['gist'] case final String gistId) {
+        userErrorMessage =
+            'The GitHub Gist could not be loaded. '
+            'Please check that the Gist ID "$gistId" in the URL is correct.';
         _updateLoadingStatus(session, 'Downloading Gist...', clearError: true);
         final loader = GistLoader(gistId: gistId);
         project = await loader.loadGist(session.repository.root);
       } else if (params['sample'] case final String sampleId) {
+        userErrorMessage = 'The requested sample "$sampleId" could not be loaded.';
         _updateLoadingStatus(session, 'Loading Sample...', clearError: true);
         project = await loadSampleProject(
           session.repository.root,
           sampleId: sampleId,
-          onFailure: (failure) => _reportSampleLoadFailure(session, failure),
         );
       } else {
+        userErrorMessage = 'The default project could not be loaded.';
         _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
         project = await loadSampleProject(
           session.repository.root,
-          onFailure: (failure) => _reportSampleLoadFailure(session, failure),
         );
       }
 
@@ -352,32 +363,11 @@ class AppState extends State<App> {
     } catch (error) {
       if (_isCurrent(session)) {
         setState(() {
-          _errorMessage = 'Failed to load project: $error';
+          _errorMessage = userErrorMessage;
         });
       }
       return null;
     }
-  }
-
-  void _reportSampleLoadFailure(
-    WorkspaceSession session,
-    SampleLoadFailure failure,
-  ) {
-    if (!_isCurrent(session)) {
-      return;
-    }
-
-    session.events.dispatch(
-      LogEvent(
-        failure.message,
-        level: Level.WARNING,
-        error: failure.error,
-        stackTrace: failure.stackTrace,
-      ),
-    );
-    setState(() {
-      _errorMessage = failure.message;
-    });
   }
 
   void _updateLoadingStatus(
@@ -446,10 +436,11 @@ class AppState extends State<App> {
             ),
           ]),
           Footer(
-            statusLabel: _errorMessage ?? session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
+            statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
           ),
         ]),
       ),
+      if (_errorMessage case final String message) ErrorDialog(errorMessage: message),
     ]);
   }
 
