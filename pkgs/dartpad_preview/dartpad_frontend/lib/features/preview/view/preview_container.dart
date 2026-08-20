@@ -19,7 +19,6 @@ class PreviewContainer extends StatefulComponent {
   const PreviewContainer({
     required this.preview,
     required this.activeFile,
-    this.pathToMain,
     super.key,
   });
 
@@ -28,9 +27,6 @@ class PreviewContainer extends StatefulComponent {
 
   /// The path of the currently active file in the editor workspace.
   final String activeFile;
-
-  /// The entrypoint file to be executed in preview.
-  final String? pathToMain;
 
   @override
   State<PreviewContainer> createState() => _PreviewContainerState();
@@ -78,7 +74,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
                 RuntimeButton.start(
                   previewViewModel: viewModel,
                   activeFile: component.activeFile,
-                  pathToMain: component.pathToMain,
                 ),
               RuntimeButton.hotReload(previewViewModel: viewModel),
               RuntimeButton.stop(previewViewModel: viewModel),
