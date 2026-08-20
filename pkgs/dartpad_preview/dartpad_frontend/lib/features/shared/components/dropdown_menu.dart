@@ -59,6 +59,7 @@ class DropdownMenu extends StatefulComponent {
     required this.items,
     this.trigger,
     this.alignLeft = false,
+    this.openUp = false,
     this.disabled = false,
     super.key,
   });
@@ -73,6 +74,9 @@ class DropdownMenu extends StatefulComponent {
   /// When `true`, the dropdown panel aligns to the left edge of the anchor
   /// instead of the right edge.
   final bool alignLeft;
+
+  /// When `true`, the dropdown panel opens upwards above the anchor.
+  final bool openUp;
 
   /// When `true`, the trigger is not interactive and the menu cannot be opened.
   final bool disabled;
@@ -152,7 +156,11 @@ class _DropdownMenuState extends State<DropdownMenu> {
       // Dropdown panel.
       if (_menuOpen)
         div(
-          classes: component.alignLeft ? 'dropdown-menu-panel dropdown-menu-panel-left' : 'dropdown-menu-panel',
+          classes: [
+            'dropdown-menu-panel',
+            if (component.alignLeft) 'dropdown-menu-panel-left',
+            if (component.openUp) 'dropdown-menu-panel-up',
+          ].join(' '),
           [
             for (final entry in component.items)
               switch (entry) {
@@ -207,6 +215,10 @@ class _DropdownMenuState extends State<DropdownMenu> {
     ),
     css('.dropdown-menu-panel-left').styles(
       raw: {'left': '0', 'right': 'auto'},
+    ),
+    css('.dropdown-menu-panel-up').styles(
+      position: .absolute(bottom: 100.percent),
+      raw: {'top': 'auto', 'margin-bottom': '4px'},
     ),
     css('.dropdown-menu-divider').styles(
       padding: .only(left: 12.px, right: 12.px, top: 12.px, bottom: 4.px),

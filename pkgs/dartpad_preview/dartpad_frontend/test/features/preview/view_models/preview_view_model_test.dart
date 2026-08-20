@@ -15,7 +15,9 @@ import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
@@ -128,12 +130,16 @@ class FakePreviewSandbox implements PreviewSandbox {
 }
 
 class FakeWorkspaceRepository extends WorkspaceRepository {
-  FakeWorkspaceRepository(AppEventBus events, WorkspaceResourceApi workspaceResourceApi)
-    : super(
-        events: events,
-        workspaceResourceApi: workspaceResourceApi,
-        workspaceFuture: Completer<Workspace>().future,
-      );
+  FakeWorkspaceRepository(
+    AppEventBus events,
+    WorkspaceResourceApi workspaceResourceApi, {
+    SdkInfo? sdk,
+  }) : super(
+         events: events,
+         workspaceResourceApi: workspaceResourceApi,
+         sdk: sdk ?? defaultSdk,
+         workspaceFuture: Completer<Workspace>().future,
+       );
 
   int startHotReloadCompilerCount = 0;
   int convertToPackageUriCount = 0;
@@ -259,7 +265,7 @@ void main() {
       expect(fakeSandbox.disposeCount, 1);
     });
 
-    test('runCode in pure-dart mode (no Flutter dependency) runs runMain successfully', () async {
+    test('runCode in pure-dart mode (no Flutter dependency) on Flutter SDK runs runApp', () async {
       final fakeSandbox = FakePreviewSandbox();
       final fakeCompiler = FakeCompilerSession();
 
@@ -291,17 +297,49 @@ void main() {
       expect(viewModel.canHotReload, isTrue);
       expect(viewModel.canStop, isTrue);
       expect(viewModel.isRunning, isTrue);
+      expect(viewModel.isFlutter, isFalse);
 
       expect(fakeCompiler.compileCount, 1);
       expect(fakeSandbox.loadModuleCount, 1);
       expect(fakeSandbox.loadedCode, 'compiled_code');
-      expect(fakeSandbox.runAppCount, 0);
-      expect(fakeSandbox.runMainCount, 1);
+      expect(fakeSandbox.runAppCount, 1);
+      expect(fakeSandbox.runMainCount, 0);
       expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
 
       viewModel.dispose();
       expect(fakeCompiler.closeCount, 1);
       expect(fakeSandbox.disposeCount, 1);
+    });
+
+    test('runCode in pure-dart mode on Dart SDK runs runMain directly', () async {
+      final dartSdk = availableSdks.firstWhere((s) => !s.isFlutter);
+      final dartRepository = FakeWorkspaceRepository(
+        events,
+        FakeWorkspaceResourceApi(),
+        sdk: dartSdk,
+      );
+      final fakeSandbox = FakePreviewSandbox();
+      final fakeCompiler = FakeCompilerSession();
+
+      dartRepository.onStartHotReloadCompiler = (_) => fakeCompiler;
+      dartRepository.flutterDependency = false;
+
+      final viewModel = PreviewViewModel(
+        workspaceRepository: dartRepository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      await pump();
+
+      expect(viewModel.state, isA<PreviewRunning>());
+      expect(fakeSandbox.runAppCount, 0);
+      expect(fakeSandbox.runMainCount, 1);
+      expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
+      expect(viewModel.isFlutter, isFalse);
+
+      viewModel.dispose();
     });
 
     test('runCode fails compilation with CompilationFailedException', () async {

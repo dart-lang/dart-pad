@@ -41,8 +41,8 @@ Future<void> main(List<String> args) async {
 
   await _copyDirectory(sourceWebDir, targetAssetDir);
 
-  // Generate versions.json file in each sdk directory (e.g. dart/ and flutter/)
-  await _writeSdkVersions(targetAssetDir);
+  // Generate a synchronous sdks.g.dart manifest in lib/features/shared/
+  await _writeSdkManifest(targetAssetDir, frontendRoot);
 
   stdout.writeln('Successfully copied DartPad assets to ${targetAssetDir.path}');
 }
@@ -59,17 +59,89 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
   }
 }
 
-Future<void> _writeSdkVersions(Directory assetRoot) async {
-  await for (final entity in assetRoot.list(recursive: false)) {
+Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) async {
+  final sdks = <Map<String, dynamic>>[];
+
+  final entries = await assetRoot.list(recursive: false).toList();
+  // Sort so flutter comes first by default, then dart, then others
+  entries.sort((a, b) {
+    if (p.basename(a.path) == 'flutter') return -1;
+    if (p.basename(b.path) == 'flutter') return 1;
+    return a.path.compareTo(b.path);
+  });
+
+  for (final entity in entries) {
     if (entity is Directory) {
+      final sdkId = p.basename(entity.path);
       final versions = await _readSdkVersions(entity);
       if (versions != null) {
-        final versionsFile = File(p.join(entity.path, 'versions.json'));
-        final encoder = const JsonEncoder.withIndent('  ');
-        await versionsFile.writeAsString('${encoder.convert(versions)}\n');
-        stdout.writeln('Generated ${p.relative(versionsFile.path, from: assetRoot.path)}');
+        final dartVersion = versions['dartVersion'] as String?;
+        final flutterVersion = versions['flutterVersion'] as String?;
+        if (dartVersion != null) {
+          final isFlutter = flutterVersion != null;
+          sdks.add({
+            'id': sdkId,
+            'name': isFlutter ? 'Flutter' : 'Dart',
+            'path': 'dartpad/$sdkId/',
+            'dartVersion': dartVersion,
+            if (flutterVersion != null) 'flutterVersion': flutterVersion,
+          });
+        }
       }
     }
+  }
+
+  final defaultSdkId = sdks.any((s) => s['id'] == 'flutter')
+      ? 'flutter'
+      : (sdks.isNotEmpty ? sdks.first['id'] as String : 'default');
+
+  final buffer = StringBuffer()
+    ..writeln('// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file')
+    ..writeln('// for details. All rights reserved. Use of this source code is governed by a')
+    ..writeln('// BSD-style license that can be found in the LICENSE file.')
+    ..writeln('//')
+    ..writeln('// Generated file. Do not edit directly.')
+    ..writeln('// Run `dart tool/copy_assets.dart` to regenerate.')
+    ..writeln()
+    ..writeln("import 'features/shared/sdk_info.dart';")
+    ..writeln()
+    ..writeln("const defaultSdkId = '$defaultSdkId';")
+    ..writeln()
+    ..writeln('const availableSdks = <SdkInfo>[');
+
+  for (final sdk in sdks) {
+    buffer.writeln('  SdkInfo(');
+    buffer.writeln("    id: '${sdk['id']}',");
+    buffer.writeln("    name: '${sdk['name']}',");
+    buffer.writeln("    path: '${sdk['path']}',");
+    buffer.writeln("    dartVersion: '${sdk['dartVersion']}',");
+    if (sdk['flutterVersion'] != null) {
+      buffer.writeln("    flutterVersion: '${sdk['flutterVersion']}',");
+    }
+    buffer.writeln('  ),');
+  }
+
+  buffer.writeln('];');
+  buffer.writeln();
+  buffer.writeln('final defaultSdk = availableSdks.firstWhere(');
+  buffer.writeln('  (sdk) => sdk.id == defaultSdkId,');
+  buffer.writeln('  orElse: () => availableSdks.first,');
+  buffer.writeln(');');
+
+  final targetFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
+  await targetFile.writeAsString('$buffer\n');
+  stdout.writeln('Generated ${targetFile.path}');
+
+  // Remove any legacy sdks.g.dart in features/shared/ if present
+  final oldGeneratedFile = File(p.join(frontendRoot.path, 'lib', 'features', 'shared', 'sdks.g.dart'));
+  if (oldGeneratedFile.existsSync()) {
+    oldGeneratedFile.deleteSync();
+  }
+
+  // Remove any legacy sdks.json if present
+  final legacyJson = File(p.join(assetRoot.path, 'sdks.json'));
+  if (legacyJson.existsSync()) {
+    legacyJson.deleteSync();
   }
 }
 

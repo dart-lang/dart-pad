@@ -168,8 +168,6 @@ class PreviewViewModel extends ChangeNotifier {
         codeToLoad = _lastCompiledCode!;
       }
 
-      final assetBaseUrl = Uri.parse(web.document.baseURI).resolve('dartpad/flutter/');
-
       final previousSandbox = _sandbox;
       if (previousSandbox != null) {
         eventBus.dispatch(const LogEvent('Disposing previous preview sandbox...'));
@@ -182,7 +180,7 @@ class PreviewViewModel extends ChangeNotifier {
       eventBus.dispatch(const LogEvent('Creating preview sandbox...'));
       final sandbox = await createSandbox(
         _container,
-        assetBaseUrl: assetBaseUrl,
+        assetBaseUrl: workspaceRepository.assetBaseUrl,
       );
       if (!_isCurrentOperation(operationId)) {
         sandbox.dispose();
@@ -203,11 +201,11 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
-      final isFlutter = await workspaceRepository.hasFlutterDependency(entrypoint);
-      _isFlutter = isFlutter;
+      final isFlutterSdk = workspaceRepository.isFlutterSdk;
+      _isFlutter = isFlutterSdk && await workspaceRepository.hasFlutterDependency(entrypoint);
 
       eventBus.dispatch(const LogEvent('Running application...'));
-      if (isFlutter) {
+      if (isFlutterSdk) {
         await sandbox.runApp(libraryUri);
       } else {
         await sandbox.runMain(libraryUri);
