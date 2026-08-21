@@ -12,6 +12,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 
 final class _Workspace implements WorkspaceResourceApi {
@@ -151,6 +152,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: workspace,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 
@@ -165,6 +167,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: workspace,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 
@@ -182,6 +185,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 
@@ -210,6 +214,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 
@@ -238,6 +243,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 
@@ -250,6 +256,7 @@ void main() {
       final repository = WorkspaceRepository(
         events: AppEventBus(),
         workspaceResourceApi: api,
+        sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
 

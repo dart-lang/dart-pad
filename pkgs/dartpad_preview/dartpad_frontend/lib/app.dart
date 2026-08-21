@@ -24,13 +24,16 @@ import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
+import 'features/shared/sdk_info.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/gist_loader.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/sample_project.dart';
+import 'features/workspace/data/synced_workspace_resource_api.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
+import 'sdks.g.dart';
 
 /// Whether the application is running in embed mode (`?embed=true`).
 ///
@@ -107,6 +110,8 @@ class AppState extends State<App> {
   int _mobileTabIndex = 0;
   StreamSubscription<web.Event>? _resizeSubscription;
 
+  SdkInfo _currentSdk = defaultSdk;
+
   @override
   void initState() {
     super.initState();
@@ -117,7 +122,10 @@ class AppState extends State<App> {
 
     final events = AppEventBus();
     _session = WorkspaceSession.create(
-      WorkspaceRepository.create(events: events),
+      WorkspaceRepository.create(
+        events: events,
+        sdk: _currentSdk,
+      ),
     );
     _session.preview.addListener(_onPreviewStateChanged);
     unawaited(
@@ -223,8 +231,7 @@ class AppState extends State<App> {
         return;
       }
 
-      if (project?.pathToMain case final String pathToMain
-          when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
+      if (project?.pathToMain case final String pathToMain when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
         unawaited(session.preview.runCode(pathToMain));
       }
 
@@ -304,6 +311,7 @@ class AppState extends State<App> {
       WorkspaceRepository.resetAndCreate(
         events: events,
         worker: worker,
+        sdk: _currentSdk,
         previousWorkspaceDisposed: previousWorkspaceDisposed.future,
       ),
     );
@@ -344,6 +352,77 @@ class AppState extends State<App> {
         }
       },
     );
+  }
+
+  /// Switches the active SDK and creates a fresh worker while preserving the
+  /// in-memory workspace file system.
+  void switchSdk(SdkInfo newSdk) {
+    final oldSession = _session;
+    if (_isInitializingWorkspace || newSdk == _currentSdk) {
+      return;
+    }
+
+    final oldLocalApi = switch (oldSession.repository.workspaceResourceApi) {
+      SyncedWorkspaceResourceApi(:final localApi) => localApi,
+      _ => null,
+    };
+
+    final events = AppEventBus();
+    final nextSession = WorkspaceSession.create(
+      WorkspaceRepository.create(
+        events: events,
+        sdk: newSdk,
+        localApi: oldLocalApi,
+      ),
+    );
+
+    setState(() {
+      _workspaceGeneration++;
+      _session = nextSession;
+      _currentSdk = newSdk;
+      _isInitializingWorkspace = true;
+      loadingStatus = 'Switching to ${newSdk.name}...';
+      _errorMessage = null;
+    });
+
+    unawaited(_initializeSwitchSdkWorkspace(nextSession));
+
+    disposeAfterWorkspaceUnmount(
+      context,
+      () async {
+        await oldSession.dispose(closeWorker: true);
+      },
+    );
+  }
+
+  Future<void> _initializeSwitchSdkWorkspace(WorkspaceSession session) async {
+    try {
+      final workspace = await session.repository.readyWorkspace;
+      if (!_isCurrent(session)) {
+        return;
+      }
+
+      setState(() {
+        _isInitializingWorkspace = false;
+      });
+
+      final project = _projectDir.isNotEmpty
+          ? LoadedProject(
+              projectDir: _projectDir,
+              packageRoot: _projectDir,
+              entryPath: null,
+            )
+          : null;
+      unawaited(_initializeWorkspaceTools(session, workspace, project));
+    } catch (error) {
+      if (!_isCurrent(session)) {
+        return;
+      }
+      setState(() {
+        _isInitializingWorkspace = false;
+        _errorMessage = 'The workspace could not be initialized for the selected SDK.';
+      });
+    }
   }
 
   Future<LoadedProject?> _loadProject(
@@ -530,6 +609,8 @@ class AppState extends State<App> {
             Footer(
               statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
               isMobile: !_isLargeScreen,
+              currentSdk: _currentSdk,
+              onSelectSdk: _isInitializingWorkspace ? null : switchSdk,
             ),
         ]),
       ),
