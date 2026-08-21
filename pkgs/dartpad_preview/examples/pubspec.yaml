@@ -1,0 +1,18 @@
+name: dartpad_preview_examples
+description: >-
+  Example projects that are packaged into .tar.gz archives and served
+  alongside the DartPad preview frontend.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0-0
+
+dependencies:
+  archive: ^4.0.9
+  args: ^2.6.0
+  path: ^1.9.0
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.5.2
