@@ -7,6 +7,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../icons.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
@@ -14,7 +15,10 @@ import 'theme_toggle.dart';
 /// The main application bar with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 class AppBar extends StatefulComponent {
-  const AppBar({super.key});
+  const AppBar({this.onCreateNew, super.key});
+
+  /// Called when the user wants to create a new project.
+  final VoidCallback? onCreateNew;
 
   @override
   State<AppBar> createState() => _AppBarState();
@@ -30,15 +34,34 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
+    final isCreateDisabled = component.onCreateNew == null;
     return div(classes: 'app-bar', [
-      // Left section: logo + title.
-      const div(classes: 'app-bar-left', [
-        img(
+      // Left section: logo + title + create.
+      div(classes: 'app-bar-left', [
+        const img(
           src: 'images/dart_logo_192.png',
           alt: 'Dart',
           classes: 'app-bar-logo',
         ),
-        span(classes: 'app-bar-title', [.text('DartPad')]),
+        const span(classes: 'app-bar-title', [.text('DartPad')]),
+        const div(classes: 'app-bar-divider', []),
+        button(
+          classes: 'app-bar-text-button',
+          disabled: isCreateDisabled,
+          attributes: {
+            'aria-label': 'Create a new snippet',
+            'title': 'Create a new snippet',
+          },
+          onClick: isCreateDisabled
+              ? null
+              : () {
+                  component.onCreateNew?.call();
+                },
+          [
+            const Icon('add_circle', size: 18),
+            const span(classes: 'app-bar-button-label', [.text('Create')]),
+          ],
+        ),
       ]),
       // Spacer.
       const div(classes: 'app-bar-spacer', []),
@@ -105,6 +128,38 @@ class _AppBarState extends State<AppBar> {
       fontSize: 16.px,
       fontWeight: .w600,
       letterSpacing: const .em(0.02),
+    ),
+    css('.app-bar-divider').styles(
+      width: 1.px,
+      height: 24.px,
+      margin: .symmetric(horizontal: 4.px),
+      backgroundColor: colorBorder,
+    ),
+
+    // -- Text button (Create) --
+    css('.app-bar-text-button').styles(
+      display: .flex,
+      padding: .symmetric(horizontal: 10.px, vertical: 6.px),
+      border: .none,
+      radius: .circular(6.px),
+      cursor: .pointer,
+      alignItems: .center,
+      gap: Gap.all(6.px),
+      color: colorOnSurface,
+      fontSize: 13.px,
+      fontWeight: .w500,
+      backgroundColor: Colors.transparent,
+    ),
+    css('.app-bar-text-button:hover').styles(
+      backgroundColor: colorBorder,
+    ),
+    css('.app-bar-text-button:disabled').styles(
+      opacity: 0.5,
+      cursor: .defaultCursor,
+      raw: {'pointer-events': 'none'},
+    ),
+    css('.app-bar-button-label').styles(
+      whiteSpace: .noWrap,
     ),
   ];
 }
