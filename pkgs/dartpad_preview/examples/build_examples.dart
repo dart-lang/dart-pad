@@ -30,10 +30,16 @@ void main(List<String> args) {
   builder.generate();
 }
 
-const Set<String> validCategories = {'Snippet', 'Sample'};
+enum ExampleCategory {
+  snippet('Snippet'),
+  sample('Sample');
+
+  const ExampleCategory(this.label);
+  final String label;
+}
 
 class ExampleConfig implements Comparable<ExampleConfig> {
-  final String category;
+  final ExampleCategory category;
   final String id;
   final String name;
   final String projectDir;
@@ -49,7 +55,10 @@ class ExampleConfig implements Comparable<ExampleConfig> {
 
   factory ExampleConfig.fromJson(Map<String, Object?> json) {
     return ExampleConfig(
-      category: json['category'] as String,
+      category: ExampleCategory.values.firstWhere(
+        (c) => c.label == json['category'] as String,
+        orElse: () => throw FormatException('Unknown category: ${json['category']}'),
+      ),
       id: json['id'] as String,
       name: json['name'] as String,
       projectDir: json['projectDir'] as String,
@@ -85,25 +94,25 @@ const $varName = Example(
     if (category == other.category) {
       return name.compareTo(other.name);
     } else {
-      return category.compareTo(other.category);
+      return category.label.compareTo(other.category.label);
     }
   }
 }
 
 class ExamplesBuilder {
-  late final List<ExampleConfig> samples;
+  late final List<ExampleConfig> examples;
   static const _webExamplesDir = '../dartpad_frontend/web/examples';
   static const _generatedCodePath = '../dartpad_frontend/lib/features/startup/examples.g.dart';
 
   void parse() {
-    final jsonFile = File(p.join('lib', 'examples.json'));
+    final jsonFile = File('examples.json');
     if (!jsonFile.existsSync()) {
-      stderr.writeln('lib/examples.json not found.');
+      stderr.writeln('examples.json not found.');
       exit(1);
     }
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
-    samples = json.map((j) => ExampleConfig.fromJson(j as Map<String, Object?>)).toList();
+    examples = json.map((j) => ExampleConfig.fromJson(j as Map<String, Object?>)).toList();
 
     var hadFailure = false;
     void fail(String message) {
@@ -112,18 +121,14 @@ class ExamplesBuilder {
     }
 
     final ids = <String>{};
-    for (final sample in samples) {
-      if (!RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$').hasMatch(sample.id)) {
-        fail('Illegal example ID: ${sample.id}');
-      } else if (!ids.add(sample.id)) {
-        fail('Duplicate example ID: ${sample.id}');
+    for (final example in examples) {
+      if (!RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$').hasMatch(example.id)) {
+        fail('Illegal example ID: ${example.id}');
+      } else if (!ids.add(example.id)) {
+        fail('Duplicate example ID: ${example.id}');
       }
 
-      if (!validCategories.contains(sample.category)) {
-        fail('Unknown category: ${sample.category}');
-      }
-
-      final projectPath = p.join('lib', 'projects', sample.projectDir);
+      final projectPath = example.projectDir;
       if (!Directory(projectPath).existsSync()) {
         fail('Project directory $projectPath not found.');
       }
@@ -133,9 +138,9 @@ class ExamplesBuilder {
         fail('pubspec.yaml missing in $projectPath.');
       }
 
-      final entryFullPath = p.join(projectPath, sample.entryPath);
+      final entryFullPath = p.join(projectPath, example.entryPath);
       if (!File(entryFullPath).existsSync()) {
-        fail('Entry file ${sample.entryPath} missing in $projectPath.');
+        fail('Entry file ${example.entryPath} missing in $projectPath.');
       }
     }
 
@@ -149,7 +154,7 @@ class ExamplesBuilder {
       exit(1);
     }
 
-    samples.sort();
+    examples.sort();
   }
 
   void generate() {
@@ -159,10 +164,10 @@ class ExamplesBuilder {
       outputDir.createSync(recursive: true);
     }
 
-    for (final sample in samples) {
-      final tarGzFile = File(p.join(outputDir.path, sample.archiveFileName));
-      tarGzFile.writeAsBytesSync(_archiveBytes(sample));
-      print('Packaged ${sample.id} -> ${tarGzFile.path}');
+    for (final example in examples) {
+      final tarGzFile = File(p.join(outputDir.path, example.archiveFileName));
+      tarGzFile.writeAsBytesSync(_archiveBytes(example));
+      print('Packaged ${example.id} -> ${tarGzFile.path}');
     }
 
     // 2. Generate examples.g.dart
@@ -180,40 +185,25 @@ class ExamplesBuilder {
 
 // This file has been automatically generated - please do not edit it manually.
 
-class Example {
-  final String name;
-  final String id;
-  final String archivePath;
-  final String entryPath;
-
-  const Example({
-    required this.name,
-    required this.id,
-    required this.archivePath,
-    required this.entryPath,
-  });
-
-  @override
-  String toString() => '\$name (\$id)';
-}
+import 'example.dart';
 
 abstract final class Examples {
   static const List<Example> snippets = [
-    ${_itemsForCategory('Snippet')},
+    ${_itemsForCategory(ExampleCategory.snippet)},
   ];
 
   static const List<Example> samples = [
-    ${_itemsForCategory('Sample')},
+    ${_itemsForCategory(ExampleCategory.sample)},
   ];
 
   static const List<Example> all = [
-    ${samples.map((s) => s.varName).join(',\n    ')},
+    ${examples.map((s) => s.varName).join(',\n    ')},
   ];
 
-  static Example? getById(String? id) {
-    for (final sample in all) {
-      if (sample.id == id) {
-        return sample;
+  static Example? getById(String id) {
+    for (final example in all) {
+      if (example.id == id) {
+        return example;
       }
     }
     return null;
@@ -224,17 +214,17 @@ abstract final class Examples {
 
 ''');
 
-    buf.write(samples.map((sample) => sample.sourceDef).join('\n'));
+    buf.write(examples.map((e) => e.sourceDef).join('\n'));
     return _normalizeLineEndings(buf.toString());
   }
 
-  String _itemsForCategory(String category) {
-    final items = samples.where((s) => s.category == category).toList();
+  String _itemsForCategory(ExampleCategory category) {
+    final items = examples.where((s) => s.category == category).toList();
     return items.map((item) => item.varName).join(',\n    ');
   }
 
-  List<int> _archiveBytes(ExampleConfig sample) {
-    final projectDir = Directory(p.join('lib', 'projects', sample.projectDir));
+  List<int> _archiveBytes(ExampleConfig example) {
+    final projectDir = Directory(example.projectDir);
     final archive = Archive();
 
     for (final file in _projectFiles(projectDir)) {
