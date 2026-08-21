@@ -25,6 +25,7 @@ void main() {
       'EditorView',
       'basicSetup',
       'defaultHighlightStyle',
+      'indentUnit',
       'indentWithTab',
       'keymap',
       'lintGutter',

@@ -32,6 +32,9 @@ extension type SyntaxHighlightingOptions._(JSObject _) implements JSObject {
 @JS()
 external JSAny syntaxHighlighting(JSAny style, [SyntaxHighlightingOptions? options]);
 
+@JS('indentUnit.of')
+external JSAny indentUnitOf(JSString value);
+
 // =============================================================================
 // Keymaps & Commands
 // =============================================================================
