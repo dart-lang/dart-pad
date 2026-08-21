@@ -31,6 +31,12 @@ import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
 
+/// Whether the application is running in embed mode (`?embed=true`).
+///
+/// When `true`, the app bar and footer are hidden and the file tree starts
+/// collapsed into a narrow rail with a toggle button.
+final bool isEmbedMode = Uri.base.queryParameters['embed'] == 'true';
+
 /// The deliberately small first production slice of DartPad.
 class App extends StatefulComponent {
   const App({super.key});
@@ -408,14 +414,15 @@ class AppState extends State<App> {
   Component build(BuildContext context) {
     final session = _session;
     return div(classes: 'app-shell', [
-      AppBar(
-        onCreateSample: _isInitializingWorkspace || session.repository.dartpad == null
-            ? null
-            : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
-        onSelectExample: _isInitializingWorkspace || session.repository.dartpad == null
-            ? null
-            : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
-      ),
+      if (!isEmbedMode)
+        AppBar(
+          onCreateSample: _isInitializingWorkspace || session.repository.dartpad == null
+              ? null
+              : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
+          onSelectExample: _isInitializingWorkspace || session.repository.dartpad == null
+              ? null
+              : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
+        ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),
         listenable: session.tabs,
@@ -431,13 +438,15 @@ class AppState extends State<App> {
                 onSwitchFile: session.tabs.switchFile,
                 onCloseFile: session.tabs.closeFile,
                 bottomPanel: _buildBottomPanel(session),
+                isEmbedMode: isEmbedMode,
               ),
               right: _buildPreviewPanel(session),
             ),
           ]),
-          Footer(
-            statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
-          ),
+          if (!isEmbedMode)
+            Footer(
+              statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
+            ),
         ]),
       ),
       if (_errorMessage case final String message) ErrorDialog(errorMessage: message),
