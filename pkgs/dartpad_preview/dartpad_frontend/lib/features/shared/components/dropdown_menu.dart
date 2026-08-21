@@ -13,6 +13,7 @@ class DropdownMenuItem {
   const DropdownMenuItem({
     required this.label,
     required this.onPressed,
+    this.leadingImage,
     this.trailingIcon,
     this.trailingIconSize = 16,
   });
@@ -22,6 +23,9 @@ class DropdownMenuItem {
 
   /// Called when the item is tapped.
   final VoidCallback onPressed;
+
+  /// Optional leading image URL (e.g. a logo).
+  final String? leadingImage;
 
   /// Optional trailing icon name (Material Symbol).
   final String? trailingIcon;
@@ -38,6 +42,8 @@ class DropdownMenu extends StatefulComponent {
   const DropdownMenu({
     required this.items,
     this.trigger,
+    this.alignLeft = false,
+    this.disabled = false,
     super.key,
   });
 
@@ -47,6 +53,13 @@ class DropdownMenu extends StatefulComponent {
   /// An optional trigger component. If `null`, a default "more_vert" icon
   /// button is rendered.
   final Component? trigger;
+
+  /// When `true`, the dropdown panel aligns to the left edge of the anchor
+  /// instead of the right edge.
+  final bool alignLeft;
+
+  /// When `true`, the trigger is not interactive and the menu cannot be opened.
+  final bool disabled;
 
   @override
   State<DropdownMenu> createState() => _DropdownMenuState();
@@ -59,6 +72,9 @@ class _DropdownMenuState extends State<DropdownMenu> {
   bool _menuOpen = false;
 
   void _toggleMenu() {
+    if (component.disabled) {
+      return;
+    }
     setState(() {
       _menuOpen = !_menuOpen;
     });
@@ -79,7 +95,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
       if (_menuOpen)
         div(
           classes: 'dropdown-menu-dismiss-overlay',
-          events: {'click': (_) => _closeMenu()},
+          events: {'pointerdown': (_) => _closeMenu()},
           [],
         ),
       // Trigger button.
@@ -95,20 +111,29 @@ class _DropdownMenuState extends State<DropdownMenu> {
       ),
       // Dropdown panel.
       if (_menuOpen)
-        div(classes: 'dropdown-menu-panel', [
-          for (final item in component.items)
-            button(
-              classes: 'dropdown-menu-item',
-              onClick: () {
-                _closeMenu();
-                item.onPressed();
-              },
-              [
-                span([.text(item.label)]),
-                if (item.trailingIcon != null) Icon(item.trailingIcon!, size: item.trailingIconSize),
-              ],
-            ),
-        ]),
+        div(
+          classes: component.alignLeft ? 'dropdown-menu-panel dropdown-menu-panel-left' : 'dropdown-menu-panel',
+          [
+            for (final item in component.items)
+              button(
+                classes: 'dropdown-menu-item',
+                onClick: () {
+                  _closeMenu();
+                  item.onPressed();
+                },
+                [
+                  if (item.leadingImage != null)
+                    img(
+                      src: item.leadingImage!,
+                      alt: '',
+                      classes: 'dropdown-menu-item-image',
+                    ),
+                  span([.text(item.label)]),
+                  if (item.trailingIcon != null) Icon(item.trailingIcon!, size: item.trailingIconSize),
+                ],
+              ),
+          ],
+        ),
     ]);
   }
 
@@ -138,6 +163,9 @@ class _DropdownMenuState extends State<DropdownMenu> {
       backgroundColor: colorContainer,
       raw: {'right': '0'},
     ),
+    css('.dropdown-menu-panel-left').styles(
+      raw: {'left': '0', 'right': 'auto'},
+    ),
     css('.dropdown-menu-item').styles(
       display: .flex,
       width: 100.percent,
@@ -154,6 +182,10 @@ class _DropdownMenuState extends State<DropdownMenu> {
     ),
     css('.dropdown-menu-item:hover').styles(
       backgroundColor: colorBorder,
+    ),
+    css('.dropdown-menu-item-image').styles(
+      width: 24.px,
+      height: 24.px,
     ),
   ];
 }

@@ -1,0 +1,20 @@
+[
+  {
+    "category": "Create",
+    "name": "Dart snippet",
+    "id": "dart",
+    "projectDir": "snippet_dart"
+  },
+  {
+    "category": "Create",
+    "name": "Flutter snippet",
+    "id": "flutter",
+    "projectDir": "snippet_flutter"
+  },
+  {
+    "category": "Examples",
+    "name": "Counter",
+    "id": "counter",
+    "projectDir": "counter"
+  }
+]
