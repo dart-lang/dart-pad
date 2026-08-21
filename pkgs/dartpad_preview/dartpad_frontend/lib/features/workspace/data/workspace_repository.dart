@@ -11,25 +11,31 @@ import 'package:web/web.dart' as web;
 import '../../preview/models/compiler_session.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
-import '../../shared/events/workspace_event.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 class WorkspaceRepository {
   WorkspaceRepository({
     required this.events,
     required this.workspaceResourceApi,
-    required this._workspaceFuture,
-  });
+    required Future<Workspace> workspaceFuture,
+    Future<Workspace>? readyWorkspaceFuture,
+  }) : _workspaceFuture = workspaceFuture,
+       _readyWorkspaceFuture = readyWorkspaceFuture ?? workspaceFuture;
 
   /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
   final WorkspaceResourceApi workspaceResourceApi;
   final Future<Workspace> _workspaceFuture;
+  final Future<Workspace> _readyWorkspaceFuture;
 
   /// The DartPad runtime instance that owns the WASM worker.
   DartPad? dartpad;
 
   WorkspaceFolder get root => workspaceResourceApi.root;
+
+  /// Completes once the worker workspace is ready and all writes buffered in
+  /// the fallback resource API have been copied into it.
+  Future<Workspace> get readyWorkspace => _readyWorkspaceFuture;
 
   factory WorkspaceRepository.create({required AppEventBus events}) {
     late final WorkspaceRepository repository;
@@ -45,15 +51,12 @@ class WorkspaceRepository {
       workspaceFuture.then(WorkerWorkspaceResourceApi.new),
       MemoryWorkspaceResourceApi(),
     );
-    api.apiReady.then((_) {
-      workspaceFuture.then((ws) {
-        events.dispatch(WorkspaceLoadedEvent(ws));
-      });
-    });
+    final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
     return repository = WorkspaceRepository(
       events: events,
       workspaceResourceApi: api,
       workspaceFuture: workspaceFuture,
+      readyWorkspaceFuture: readyWorkspaceFuture,
     );
   }
 
@@ -91,8 +94,49 @@ class WorkspaceRepository {
   }
 
   Future<void> close() async {
-    await workspaceResourceApi.dispose();
-    await dartpad?.dispose();
+    try {
+      await workspaceResourceApi.dispose();
+    } finally {
+      await dartpad?.dispose();
+    }
+  }
+
+  /// Disposes the current workspace API **without** terminating the worker.
+  ///
+  /// During a reset, complete the [resetAndCreate] disposal barrier only after
+  /// this cleanup finishes.
+  Future<void> closeWorkspaceOnly() => workspaceResourceApi.dispose();
+
+  /// Creates a fresh [WorkspaceRepository] reusing the existing DartPad
+  /// [worker].
+  ///
+  /// The caller remains responsible for disposing the previous repository via
+  /// [closeWorkspaceOnly] once its UI subtree has unmounted. The worker is
+  /// shared with the new repository (its [dartpad] field is set), but the new
+  /// worker workspace is not created until [previousWorkspaceDisposed]
+  /// completes. Readiness is exposed through [readyWorkspace].
+  static WorkspaceRepository resetAndCreate({
+    required AppEventBus events,
+    required DartPad worker,
+    required Future<void> previousWorkspaceDisposed,
+  }) {
+    final workspaceFuture = (() async {
+      await previousWorkspaceDisposed;
+      final workspace = await worker.createWorkspace();
+      return workspace;
+    })();
+
+    final api = DeferredWorkspaceResourceApi.fromFutureAndFallback(
+      workspaceFuture.then(WorkerWorkspaceResourceApi.new),
+      MemoryWorkspaceResourceApi(),
+    );
+    final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
+    return WorkspaceRepository(
+      events: events,
+      workspaceResourceApi: api,
+      workspaceFuture: workspaceFuture,
+      readyWorkspaceFuture: readyWorkspaceFuture,
+    )..dartpad = worker;
   }
 
   Future<CompilerSession> startHotReloadCompiler(Uri uri) async {

@@ -50,6 +50,9 @@ class FakeCodeMirrorLspClient implements CodeMirrorLspClient {
   final List<String> receivedMessages = [];
 
   @override
+  Future<void> dispose() async {}
+
+  @override
   void receiveFromServer(String msg) => receivedMessages.add(msg);
 
   @override
@@ -252,7 +255,7 @@ void main() {
 
       serverMessages.add({
         'jsonrpc': '2.0',
-        'id': 1,
+        'id': -1,
         'result': {
           'changes': {
             'file:///workspace/consumer.dart': [
@@ -268,7 +271,7 @@ void main() {
       final failedRename = client.willRenameFiles('new.dart', 'other.dart');
       serverMessages.add({
         'jsonrpc': '2.0',
-        'id': 2,
+        'id': -2,
         'error': {'code': -32603, 'message': 'rename failed'},
       });
       await expectLater(failedRename, throwsA(isA<StateError>()));
@@ -289,16 +292,57 @@ void main() {
       final responseFuture = client.sendLspRequest('example/request', {'value': 1});
       expect(sentMessages.single, {
         'jsonrpc': '2.0',
-        'id': 1,
+        'id': -1,
         'method': 'example/request',
         'params': {'value': 1},
       });
       serverMessages.add({
         'jsonrpc': '2.0',
-        'id': 1,
+        'id': -1,
         'result': {'ok': true},
       });
       expect(await responseFuture, containsPair('result', {'ok': true}));
+      expect(codeMirrorClient.receivedMessages, isEmpty);
+    });
+
+    test('gracefully shuts down with an application-owned request ID', () async {
+      final shutdownFuture = client.shutdown();
+
+      expect(sentMessages.single, {
+        'jsonrpc': '2.0',
+        'id': -1,
+        'method': 'shutdown',
+      });
+      serverMessages.add({
+        'jsonrpc': '2.0',
+        'id': -1,
+        'result': null,
+      });
+
+      await shutdownFuture;
+      expect(codeMirrorClient.receivedMessages, isEmpty);
+    });
+
+    test('dispose cancels subscriptions and fails pending requests', () async {
+      final responseFuture = client.sendLspRequest('example/request', {'value': 1});
+      final responseExpectation = expectLater(
+        responseFuture,
+        throwsA(isA<StateError>()),
+      );
+
+      expect(serverMessages.hasListener, isTrue);
+      expect(workspaceEvents.hasListener, isTrue);
+
+      await client.dispose();
+      await responseExpectation;
+
+      expect(serverMessages.hasListener, isFalse);
+      expect(workspaceEvents.hasListener, isFalse);
+      await client.dispose();
+      await expectLater(
+        client.sendLspRequest('example/request', const {}),
+        throwsA(isA<StateError>()),
+      );
     });
 
     test('answers server-initiated workspace edit requests', () async {

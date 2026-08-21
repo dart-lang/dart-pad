@@ -26,10 +26,12 @@ void main() {
   late String capturedRootUri;
   late String createdExtensionUri;
   late String receivedMessage;
+  late int disposeCalls;
 
   setUpAll(verifyCodeMirrorBundleLoaded);
 
   setUp(() {
+    disposeCalls = 0;
     originalCreateLspClient = codeMirrorNamespace.getProperty<JSFunction>(
       'createLspClient'.toJS,
     );
@@ -45,6 +47,12 @@ void main() {
         'receiveFromServer'.toJS,
         ((JSString message) {
           receivedMessage = message.toDart;
+        }).toJS,
+      )
+      ..setProperty(
+        'dispose'.toJS,
+        (() {
+          disposeCalls++;
         }).toJS,
       );
     language = JSObject();
@@ -137,6 +145,12 @@ void main() {
     );
 
     client.receiveFromServer('inbound');
+    expect(receivedMessage, 'inbound');
+
+    await client.dispose();
+    await client.dispose();
+    client.receiveFromServer('ignored');
+    expect(disposeCalls, 1);
     expect(receivedMessage, 'inbound');
   });
 

@@ -8,10 +8,19 @@ import 'dart:async';
 /// between application components.
 final class AppEventBus {
   final StreamController<AppEvent> _controller = StreamController<AppEvent>.broadcast();
+  bool _disposed = false;
 
   Stream<T> on<T extends AppEvent>() => _controller.stream.where((event) => event is T).cast<T>();
 
-  void dispatch(AppEvent event) => _controller.add(event);
+  void dispatch(AppEvent event) {
+    if (_disposed) {
+      if (event is AsyncEventBase<Object?>) {
+        event.completeError(StateError('AppEventBus is disposed.'));
+      }
+      return;
+    }
+    _controller.add(event);
+  }
 
   Future<T> dispatchAsync<T>(AsyncEventBase<T> command) {
     dispatch(command);
@@ -19,6 +28,10 @@ final class AppEventBus {
   }
 
   Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     await _controller.close();
   }
 }
