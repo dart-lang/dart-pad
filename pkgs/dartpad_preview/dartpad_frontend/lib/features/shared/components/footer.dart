@@ -180,6 +180,7 @@ class _FooterState extends State<Footer> {
         div(classes: 'app-footer-shortcuts-list', [
           _shortcutRow('Save files', 'Ctrl/Cmd + S'),
           _shortcutRow('Format Dart files', 'Shift + Alt + F'),
+          _shortcutRow('Quick fix', 'Ctrl/Cmd + .'),
           _shortcutRow('Toggle line comment', 'Ctrl/Cmd + /'),
           _shortcutRow('Indent', 'Tab'),
         ]),
