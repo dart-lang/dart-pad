@@ -37,9 +37,16 @@ class CodeActionsController {
   final _quickFixCache = _ActionsCacheSlot();
   final _allActionsCache = _ActionsCacheSlot();
 
-  /// Returns whether the LSP currently offers a quick fix for [from] and [to].
+  /// Returns whether the LSP currently offers a quick fix for the specified
+  /// range.
+  ///
   /// The result is cached for the matching document and range so activating the
   /// visible action does not issue the same request again.
+  ///
+  /// - [from]: The 0-based character offset at the start of the range in the
+  ///   document.
+  /// - [to]: The 0-based character offset at the end of the range in the
+  ///   document.
   Future<bool> hasQuickFixes({required int from, required int to}) async {
     if (_disposed) {
       return false;
@@ -66,11 +73,16 @@ class CodeActionsController {
     }
   }
 
-  /// Requests quick fixes from the LSP server for [from] and [to], or for the
-  /// current editor selection when no explicit range is provided.
+  /// Requests quick fixes from the LSP server for the specified range, or for
+  /// the current editor selection when no explicit range is provided.
   ///
   /// A single result is applied immediately. Multiple results are displayed in
   /// the floating panel so the user can choose one.
+  ///
+  /// - [from]: The optional 0-based character offset at the start of the range
+  ///   in the document.
+  /// - [to]: The optional 0-based character offset at the end of the range in
+  ///   the document.
   Future<void> triggerQuickFixes({int? from, int? to}) => _triggerActions(
     from: from,
     to: to,
