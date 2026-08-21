@@ -5,8 +5,9 @@
 import 'package:dartpad_editor/dartpad_editor.dart';
 
 import 'archive_loader.dart';
-import 'project_loader.dart';
+import 'example.dart';
 import 'examples.g.dart';
+import 'project_loader.dart';
 
 final class ExampleLoadFailure {
   const ExampleLoadFailure({
@@ -28,8 +29,12 @@ Future<LoadedProject> loadExampleProject(
   String? sampleId,
   ExampleLoadFailureHandler? onFailure,
 }) async {
-  final requestedSample = Examples.getById(sampleId);
-  if (sampleId != null && requestedSample == null) {
+  if (sampleId == null) {
+    return _loadExample(root, Examples.defaultExample, onFailure: onFailure);
+  }
+
+  final example = Examples.getById(sampleId);
+  if (example == null) {
     onFailure?.call(
       ExampleLoadFailure(
         message: 'Error while loading $sampleId example, falling back to counter example.',
@@ -37,12 +42,20 @@ Future<LoadedProject> loadExampleProject(
         stackTrace: StackTrace.current,
       ),
     );
+    return _loadExample(root, Examples.defaultExample, onFailure: onFailure);
   }
 
-  final sample = requestedSample ?? Examples.defaultExample;
+  return _loadExample(root, example, onFailure: onFailure);
+}
+
+Future<LoadedProject> _loadExample(
+  WorkspaceFolder root,
+  Example example, {
+  ExampleLoadFailureHandler? onFailure,
+}) async {
   final loader = ArchiveLoader(
-    archiveUrl: sample.archivePath,
-    filePath: sample.entryPath,
+    archiveUrl: example.archivePath,
+    filePath: example.entryPath,
   );
 
   try {
@@ -50,7 +63,7 @@ Future<LoadedProject> loadExampleProject(
   } catch (error, stackTrace) {
     onFailure?.call(
       ExampleLoadFailure(
-        message: 'Error while loading ${sample.id} example, falling back to counter example.',
+        message: 'Error while loading ${example.id} example, falling back to counter example.',
         error: error,
         stackTrace: stackTrace,
       ),
