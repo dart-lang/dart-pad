@@ -1,0 +1,11 @@
+name: Report DartPad Preview Issue or Suggestion
+description: Report an issue or suggestion for the DartPad Preview.
+labels: ["area-clientside-dartpad"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue you encountered.
+    validations:
+      required: true
