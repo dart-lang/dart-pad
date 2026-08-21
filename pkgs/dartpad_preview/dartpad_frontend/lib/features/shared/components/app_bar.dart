@@ -7,7 +7,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
-import '../../startup/samples.g.dart';
+import '../../startup/examples.g.dart';
 import '../icons.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
@@ -17,16 +17,16 @@ import 'theme_toggle.dart';
 /// overflow menu.
 class AppBar extends StatefulComponent {
   const AppBar({
-    this.onCreateSample,
-    this.onSelectExample,
+    this.onCreateNewSnippet,
+    this.onLoadSample,
     super.key,
   });
 
   /// Called when the user selects a snippet from the Create menu.
-  final void Function(Sample sample)? onCreateSample;
+  final void Function(Example example)? onCreateNewSnippet;
 
-  /// Called when the user selects an example.
-  final void Function(Sample sample)? onSelectExample;
+  /// Called when the user selects a sample from the sample menu.
+  final void Function(Example example)? onLoadSample;
 
   @override
   State<AppBar> createState() => _AppBarState();
@@ -42,11 +42,11 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
-    final isCreateDisabled = component.onCreateSample == null;
-    final isExamplesDisabled = component.onSelectExample == null;
+    final isCreateDisabled = component.onCreateNewSnippet == null;
+    final isSamplesDisabled = component.onLoadSample == null;
 
     return div(classes: 'app-bar', [
-      // Left section: logo + title + create + examples.
+      // Left section: logo + title + create + samples.
       div(classes: 'app-bar-left', [
         const img(
           src: 'images/dart_logo_192.png',
@@ -71,34 +71,34 @@ class _AppBarState extends State<AppBar> {
             ],
           ),
           items: [
-            for (final sample in Samples.create)
+            for (final example in Examples.snippets)
               DropdownMenuItem(
-                label: sample.name,
-                leadingImage: sample.id == 'flutter' ? 'images/flutter_logo_192.png' : 'images/dart_logo_192.png',
-                onPressed: () => component.onCreateSample?.call(sample),
+                label: example.name,
+                leadingImage: example.id == 'flutter' ? 'images/flutter_logo_192.png' : 'images/dart_logo_192.png',
+                onPressed: () => component.onCreateNewSnippet?.call(example),
               ),
           ],
         ),
         DropdownMenu(
           alignLeft: true,
-          disabled: isExamplesDisabled,
+          disabled: isSamplesDisabled,
           trigger: button(
             classes: 'app-bar-text-button',
-            disabled: isExamplesDisabled,
+            disabled: isSamplesDisabled,
             attributes: {
-              'aria-label': 'Examples',
-              'title': 'Try an example',
+              'aria-label': 'Samples',
+              'title': 'Try a sample',
             },
             [
               const Icon('playlist_add', size: 18),
-              const span(classes: 'app-bar-button-label', [.text('Examples')]),
+              const span(classes: 'app-bar-button-label', [.text('Samples')]),
             ],
           ),
           items: [
-            for (final sample in Samples.examples)
+            for (final example in Examples.samples)
               DropdownMenuItem(
-                label: sample.name,
-                onPressed: () => component.onSelectExample?.call(sample),
+                label: example.name,
+                onPressed: () => component.onLoadSample?.call(example),
               ),
           ],
         ),
@@ -185,7 +185,7 @@ class _AppBarState extends State<AppBar> {
       backgroundColor: colorBorder,
     ),
 
-    // -- Text button (Create / Examples) --
+    // -- Text button (Create / Samples) --
     css('.app-bar-text-button').styles(
       display: .flex,
       padding: .symmetric(horizontal: 10.px, vertical: 6.px),

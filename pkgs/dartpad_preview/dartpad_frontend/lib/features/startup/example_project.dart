@@ -6,10 +6,10 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 
 import 'archive_loader.dart';
 import 'project_loader.dart';
-import 'samples.g.dart';
+import 'examples.g.dart';
 
-final class SampleLoadFailure {
-  const SampleLoadFailure({
+final class ExampleLoadFailure {
+  const ExampleLoadFailure({
     required this.message,
     required this.error,
     required this.stackTrace,
@@ -20,26 +20,26 @@ final class SampleLoadFailure {
   final StackTrace stackTrace;
 }
 
-typedef SampleLoadFailureHandler = void Function(SampleLoadFailure failure);
+typedef ExampleLoadFailureHandler = void Function(ExampleLoadFailure failure);
 
-/// Loads a sample project from its packaged archive into [root].
-Future<LoadedProject> loadSampleProject(
+/// Loads an example project from its packaged archive into [root].
+Future<LoadedProject> loadExampleProject(
   WorkspaceFolder root, {
   String? sampleId,
-  SampleLoadFailureHandler? onFailure,
+  ExampleLoadFailureHandler? onFailure,
 }) async {
-  final requestedSample = Samples.getById(sampleId);
+  final requestedSample = Examples.getById(sampleId);
   if (sampleId != null && requestedSample == null) {
     onFailure?.call(
-      SampleLoadFailure(
-        message: 'Error while loading $sampleId sample, falling back to counter sample.',
-        error: ArgumentError.value(sampleId, 'sampleId', 'Unknown sample ID'),
+      ExampleLoadFailure(
+        message: 'Error while loading $sampleId example, falling back to counter example.',
+        error: ArgumentError.value(sampleId, 'sampleId', 'Unknown example ID'),
         stackTrace: StackTrace.current,
       ),
     );
   }
 
-  final sample = requestedSample ?? Samples.defaultSample;
+  final sample = requestedSample ?? Examples.defaultExample;
   final loader = ArchiveLoader(
     archiveUrl: sample.archivePath,
     filePath: sample.entryPath,
@@ -49,42 +49,42 @@ Future<LoadedProject> loadSampleProject(
     return await loader.loadArchive(root);
   } catch (error, stackTrace) {
     onFailure?.call(
-      SampleLoadFailure(
-        message: 'Error while loading ${sample.id} sample, falling back to counter sample.',
+      ExampleLoadFailure(
+        message: 'Error while loading ${sample.id} example, falling back to counter example.',
         error: error,
         stackTrace: stackTrace,
       ),
     );
-    await createFallbackSampleProject(root);
+    await createFallbackExampleProject(root);
     return const LoadedProject(
       projectDir: '',
-      entryPath: sampleProjectEntryPath,
+      entryPath: exampleProjectEntryPath,
       packageRoot: '',
     );
   }
 }
 
-/// The default entry path for sample projects.
-const String sampleProjectEntryPath = 'lib/main.dart';
+/// The default entry path for example projects.
+const String exampleProjectEntryPath = 'lib/main.dart';
 
-/// Opens the default sample files and leaves the Dart source active.
-Future<void> openSampleProject(Future<void> Function(String path) openFile) {
-  return openFile(sampleProjectEntryPath);
+/// Opens the default example files and leaves the Dart source active.
+Future<void> openExampleProject(Future<void> Function(String path) openFile) {
+  return openFile(exampleProjectEntryPath);
 }
 
-/// Creates the files for the default DartPad sample project (fallback).
-Future<void> createFallbackSampleProject(WorkspaceFolder root) async {
+/// Creates the files for the default DartPad example project (fallback).
+Future<void> createFallbackExampleProject(WorkspaceFolder root) async {
   await root.getFolder('lib').create();
-  await root.getFile(_samplePubspecPath).writeContent(samplePubspec.trimLeft());
-  await root.getFile(_sampleAnalysisOptionsPath).writeContent(sampleAnalysisOptions.trimLeft());
-  await root.getFile(sampleProjectEntryPath).writeContent(sampleMainDart.trimLeft());
+  await root.getFile(_fallbackPubspecPath).writeContent(fallbackPubspec.trimLeft());
+  await root.getFile(_fallbackAnalysisOptionsPath).writeContent(fallbackAnalysisOptions.trimLeft());
+  await root.getFile(exampleProjectEntryPath).writeContent(fallbackMainDart.trimLeft());
 }
 
-const String _sampleAnalysisOptionsPath = 'analysis_options.yaml';
-const String _samplePubspecPath = 'pubspec.yaml';
+const String _fallbackAnalysisOptionsPath = 'analysis_options.yaml';
+const String _fallbackPubspecPath = 'pubspec.yaml';
 
-/// The initial Dart source for the default sample project fallback.
-const String sampleMainDart = r'''
+/// The initial Dart source for the default example project fallback.
+const String fallbackMainDart = r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -154,8 +154,8 @@ class _CounterPageState extends State<CounterPage> {
 }
 ''';
 
-/// The initial pubspec for the default sample project fallback.
-const String samplePubspec = '''
+/// The initial pubspec for the default example project fallback.
+const String fallbackPubspec = '''
 name: counter_app
 description: A simple counter app.
 publish_to: none
@@ -175,7 +175,7 @@ flutter:
   uses-material-design: true
 ''';
 
-const String sampleAnalysisOptions = '''
+const String fallbackAnalysisOptions = '''
 # This file configures the analyzer, which statically analyzes Dart code to
 # check for errors, warnings, and lints.
 #
