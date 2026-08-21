@@ -10,7 +10,7 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  testClient('disables sample menus while workspace initialization is pending', (
+  testClient('disables example menus while workspace initialization is pending', (
     tester,
   ) {
     tester.pumpComponent(const AppBar());
@@ -20,15 +20,15 @@ void main() {
               '[aria-label="Create a new snippet"]',
             )!
             as web.HTMLButtonElement;
-    final examples = web.document.querySelector('[aria-label="Examples"]')! as web.HTMLButtonElement;
+    final samples = web.document.querySelector('[aria-label="Samples"]')! as web.HTMLButtonElement;
     expect(create.disabled, isTrue);
-    expect(examples.disabled, isTrue);
+    expect(samples.disabled, isTrue);
   });
 
   testClient('opens Create and selects a snippet', (tester) async {
-    String? selectedSampleId;
+    String? selectedExampleId;
     tester.pumpComponent(
-      AppBar(onCreateSample: (sample) => selectedSampleId = sample.id),
+      AppBar(onCreateNewSnippet: (example) => selectedExampleId = example.id),
     );
 
     final create =
@@ -45,20 +45,20 @@ void main() {
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(selectedSampleId, 'dart');
+    expect(selectedExampleId, 'dart');
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 
-  testClient('opens Examples and selects Counter', (tester) async {
-    String? selectedSampleId;
+  testClient('opens Samples and selects Counter', (tester) async {
+    String? selectedExampleId;
     tester.pumpComponent(
-      AppBar(onSelectExample: (sample) => selectedSampleId = sample.id),
+      AppBar(onLoadSample: (example) => selectedExampleId = example.id),
     );
 
-    final examples = web.document.querySelector('[aria-label="Examples"]')! as web.HTMLButtonElement;
-    expect(examples.disabled, isFalse);
+    final samples = web.document.querySelector('[aria-label="Samples"]')! as web.HTMLButtonElement;
+    expect(samples.disabled, isFalse);
 
-    examples.click();
+    samples.click();
     await pumpEventQueue();
 
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
@@ -66,7 +66,7 @@ void main() {
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(selectedSampleId, 'counter');
+    expect(selectedExampleId, 'counter');
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 }

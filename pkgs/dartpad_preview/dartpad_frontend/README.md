@@ -37,7 +37,7 @@ once the project is loaded (e.g., `lib/main.dart`).
 > [!NOTE]
 > Both `archive` and `path` query parameters must be provided together. If
 > either is missing, the application will fall back to loading the default
-> sample project unless a `package` or `gist` parameter is provided.
+> example project unless a `package` or `gist` parameter is provided.
 
 Example:
 ```url
@@ -75,7 +75,7 @@ http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc
 
 > [!NOTE]
 > If none of these parameter combinations is matched at startup, the
-application falls back to loading the default sample project.
+application falls back to loading the default example project.
 
 ## SDK assets
 
