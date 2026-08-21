@@ -40097,7 +40097,7 @@ ${text}</tr>
                 create(view) {
                     const dom = document.createElement("div");
                     dom.className = "cm-diagnostic-hover-toolbar";
-                    dom.style.display = "flex";
+                    dom.style.display = "none";
                     dom.style.gap = "6px";
                     dom.style.padding = "4px 6px";
                     for (const action of actions) {
@@ -40110,7 +40110,26 @@ ${text}</tr>
                             e.stopPropagation();
                             action.run(view, from, to, activeDiagnostics.map((d) => d.diagnostic));
                         });
-                        dom.appendChild(button);
+                        const showButton = () => {
+                            if (button.parentElement === dom)
+                                return;
+                            dom.appendChild(button);
+                            dom.classList.add("cm-diagnostic-hover-toolbar-available");
+                            dom.style.display = "flex";
+                            if (dom.isConnected)
+                                view.requestMeasure();
+                        };
+                        if (!action.isAvailable) {
+                            showButton();
+                        }
+                        else {
+                            Promise.resolve(action.isAvailable(view, from, to, activeDiagnostics.map((d) => d.diagnostic)))
+                                .then((available) => {
+                                if (available)
+                                    showButton();
+                            })
+                                .catch(() => { });
+                        }
                     }
                     return { dom };
                 },

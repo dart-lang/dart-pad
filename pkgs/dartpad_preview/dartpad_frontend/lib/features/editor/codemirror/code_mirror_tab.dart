@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../shared/node_container.dart';
+import '../components/code_action_panel.dart';
 
 /// A workspace-backed text editor tab that preserves its editor state while
 /// switching between files.
@@ -30,7 +31,22 @@ final class CodeMirrorTab extends EditorTab<Component> {
       initialDoc: content,
       onUpdate: _handleEditorUpdate,
       onSave: onSaveAll,
+      onCodeActionRequested: () {
+        unawaited(codeActionsController.triggerCodeActions());
+      },
+      onQuickFixRequested: (from, to) {
+        unawaited(codeActionsController.triggerQuickFixes(from: from, to: to));
+      },
+      onQuickFixAvailabilityRequested: (from, to) {
+        return codeActionsController.hasQuickFixes(from: from, to: to);
+      },
       languageServerClient: languageServerClient,
+    );
+    codeActionsController = CodeActionsController(
+      codeEditor: editor,
+      file: path,
+      getDiagnostics: () => editor.languageServerClient?.allDiagnostics ?? const [],
+      onStateChanged: _notifyUpdate,
     );
   }
 
@@ -44,6 +60,9 @@ final class CodeMirrorTab extends EditorTab<Component> {
 
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
+
+  /// Coordinates LSP quick-fix requests and the optional action chooser.
+  late final CodeActionsController codeActionsController;
 
   final StreamController<void> _updates = StreamController<void>.broadcast();
   EditorViewState? _savedViewState;
@@ -138,21 +157,16 @@ final class CodeMirrorTab extends EditorTab<Component> {
     _notifyUpdate();
   }
 
-  /// Applies LSP edits and persists them when the document was previously
-  /// clean. Dirty documents keep the combined user and LSP edits in memory.
+  /// Applies LSP edits in memory. The editor update listener marks the tab as
+  /// dirty, and the changes are persisted through the normal save flow.
   Future<void> applyEdits(List<dynamic> edits) async {
-    final wasDirty = _isDirty;
     editor.applyEdits(edits);
-    if (!wasDirty) {
-      await _persistCurrentContent();
-    } else {
-      _notifyUpdate();
-    }
   }
 
   @override
   void rename(String newPath) {
     super.rename(newPath);
+    codeActionsController.file = newPath;
     editor.applyRename(newPath);
   }
 
@@ -168,10 +182,13 @@ final class CodeMirrorTab extends EditorTab<Component> {
   }
 
   @override
-  Component build() => NodeContainer(
-    container,
-    onAttached: _scheduleMeasureAndRestore,
-  );
+  Component build() => Component.fragment([
+    NodeContainer(
+      container,
+      onAttached: _scheduleMeasureAndRestore,
+    ),
+    if (codeActionsController.showFloatingPanel) CodeActionPanel(controller: codeActionsController),
+  ]);
 
   @override
   void dispose() {
@@ -182,6 +199,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
+    codeActionsController.dispose();
     editor.destroy();
     unawaited(_updates.close());
   }
