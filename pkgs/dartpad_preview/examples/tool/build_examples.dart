@@ -25,21 +25,21 @@ void main(List<String> args) {
     exit(0);
   }
 
-  final builder = SamplesBuilder();
+  final builder = ExamplesBuilder();
   builder.parse();
   builder.generate();
 }
 
-const Set<String> validCategories = {'Create', 'Examples'};
+const Set<String> validCategories = {'Snippet', 'Sample'};
 
-class SampleConfig implements Comparable<SampleConfig> {
+class ExampleConfig implements Comparable<ExampleConfig> {
   final String category;
   final String id;
   final String name;
   final String projectDir;
   final String entryPath;
 
-  SampleConfig({
+  ExampleConfig({
     required this.category,
     required this.id,
     required this.name,
@@ -47,8 +47,8 @@ class SampleConfig implements Comparable<SampleConfig> {
     required this.entryPath,
   });
 
-  factory SampleConfig.fromJson(Map<String, Object?> json) {
-    return SampleConfig(
+  factory ExampleConfig.fromJson(Map<String, Object?> json) {
+    return ExampleConfig(
       category: json['category'] as String,
       id: json['id'] as String,
       name: json['name'] as String,
@@ -58,7 +58,7 @@ class SampleConfig implements Comparable<SampleConfig> {
   }
 
   String get archiveFileName => '$id.tar.gz';
-  String get archiveRelativeUrl => 'samples/$archiveFileName';
+  String get archiveRelativeUrl => 'examples/$archiveFileName';
 
   String get varName {
     var gen = id;
@@ -71,7 +71,7 @@ class SampleConfig implements Comparable<SampleConfig> {
 
   String get sourceDef {
     return '''
-const $varName = Sample(
+const $varName = Example(
   name: '$name',
   id: '$id',
   archivePath: '$archiveRelativeUrl',
@@ -81,7 +81,7 @@ const $varName = Sample(
   }
 
   @override
-  int compareTo(SampleConfig other) {
+  int compareTo(ExampleConfig other) {
     if (category == other.category) {
       return name.compareTo(other.name);
     } else {
@@ -90,20 +90,20 @@ const $varName = Sample(
   }
 }
 
-class SamplesBuilder {
-  late final List<SampleConfig> samples;
-  static const _webSamplesDir = '../dartpad_frontend/web/samples';
-  static const _generatedCodePath = '../dartpad_frontend/lib/features/startup/samples.g.dart';
+class ExamplesBuilder {
+  late final List<ExampleConfig> samples;
+  static const _webExamplesDir = '../dartpad_frontend/web/examples';
+  static const _generatedCodePath = '../dartpad_frontend/lib/features/startup/examples.g.dart';
 
   void parse() {
-    final jsonFile = File(p.join('lib', 'samples.json'));
+    final jsonFile = File(p.join('lib', 'examples.json'));
     if (!jsonFile.existsSync()) {
-      stderr.writeln('lib/samples.json not found.');
+      stderr.writeln('lib/examples.json not found.');
       exit(1);
     }
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
-    samples = json.map((j) => SampleConfig.fromJson(j as Map<String, Object?>)).toList();
+    samples = json.map((j) => ExampleConfig.fromJson(j as Map<String, Object?>)).toList();
 
     var hadFailure = false;
     void fail(String message) {
@@ -114,9 +114,9 @@ class SamplesBuilder {
     final ids = <String>{};
     for (final sample in samples) {
       if (!RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$').hasMatch(sample.id)) {
-        fail('Illegal sample ID: ${sample.id}');
+        fail('Illegal example ID: ${sample.id}');
       } else if (!ids.add(sample.id)) {
-        fail('Duplicate sample ID: ${sample.id}');
+        fail('Duplicate example ID: ${sample.id}');
       }
 
       if (!validCategories.contains(sample.category)) {
@@ -141,7 +141,7 @@ class SamplesBuilder {
 
     for (final requiredId in ['dart', 'flutter', 'counter']) {
       if (!ids.contains(requiredId)) {
-        fail('The $requiredId sample is required.');
+        fail('The $requiredId example is required.');
       }
     }
 
@@ -154,7 +154,7 @@ class SamplesBuilder {
 
   void generate() {
     // 1. Pack tar.gz files
-    final outputDir = Directory(_webSamplesDir);
+    final outputDir = Directory(_webExamplesDir);
     if (!outputDir.existsSync()) {
       outputDir.createSync(recursive: true);
     }
@@ -165,7 +165,7 @@ class SamplesBuilder {
       print('Packaged ${sample.id} -> ${tarGzFile.path}');
     }
 
-    // 2. Generate samples.g.dart
+    // 2. Generate examples.g.dart
     final codeFile = File(_generatedCodePath);
     codeFile.parent.createSync(recursive: true);
     codeFile.writeAsStringSync(_generateSourceContent());
@@ -180,13 +180,13 @@ class SamplesBuilder {
 
 // This file has been automatically generated - please do not edit it manually.
 
-class Sample {
+class Example {
   final String name;
   final String id;
   final String archivePath;
   final String entryPath;
 
-  const Sample({
+  const Example({
     required this.name,
     required this.id,
     required this.archivePath,
@@ -197,20 +197,20 @@ class Sample {
   String toString() => '\$name (\$id)';
 }
 
-abstract final class Samples {
-  static const List<Sample> create = [
-    ${_itemsForCategory('Create')},
+abstract final class Examples {
+  static const List<Example> snippets = [
+    ${_itemsForCategory('Snippet')},
   ];
 
-  static const List<Sample> examples = [
-    ${_itemsForCategory('Examples')},
+  static const List<Example> samples = [
+    ${_itemsForCategory('Sample')},
   ];
 
-  static const List<Sample> all = [
+  static const List<Example> all = [
     ${samples.map((s) => s.varName).join(',\n    ')},
   ];
 
-  static Sample? getById(String? id) {
+  static Example? getById(String? id) {
     for (final sample in all) {
       if (sample.id == id) {
         return sample;
@@ -219,7 +219,7 @@ abstract final class Samples {
     return null;
   }
 
-  static const Sample defaultSample = _counter;
+  static const Example defaultExample = _counter;
 }
 
 ''');
@@ -233,7 +233,7 @@ abstract final class Samples {
     return items.map((item) => item.varName).join(',\n    ');
   }
 
-  List<int> _archiveBytes(SampleConfig sample) {
+  List<int> _archiveBytes(ExampleConfig sample) {
     final projectDir = Directory(p.join('lib', 'projects', sample.projectDir));
     final archive = Archive();
 

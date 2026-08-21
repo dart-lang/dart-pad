@@ -4,13 +4,13 @@
 
 // This file has been automatically generated - please do not edit it manually.
 
-class Sample {
+class Example {
   final String name;
   final String id;
   final String archivePath;
   final String entryPath;
 
-  const Sample({
+  const Example({
     required this.name,
     required this.id,
     required this.archivePath,
@@ -21,51 +21,51 @@ class Sample {
   String toString() => '$name ($id)';
 }
 
-abstract final class Samples {
-  static const List<Sample> create = [
+abstract final class Examples {
+  static const List<Example> snippets = [
     _dart,
     _flutter,
   ];
 
-  static const List<Sample> examples = [
+  static const List<Example> samples = [
     _counter,
   ];
 
-  static const List<Sample> all = [
+  static const List<Example> all = [
     _dart,
     _flutter,
     _counter,
   ];
 
-  static Sample? getById(String? id) {
-    for (final sample in all) {
-      if (sample.id == id) {
-        return sample;
+  static Example? getById(String? id) {
+    for (final example in all) {
+      if (example.id == id) {
+        return example;
       }
     }
     return null;
   }
 
-  static const Sample defaultSample = _counter;
+  static const Example defaultExample = _counter;
 }
 
-const _dart = Sample(
+const _dart = Example(
   name: 'Dart snippet',
   id: 'dart',
-  archivePath: 'samples/dart.tar.gz',
+  archivePath: 'examples/dart.tar.gz',
   entryPath: 'lib/main.dart',
 );
 
-const _flutter = Sample(
+const _flutter = Example(
   name: 'Flutter snippet',
   id: 'flutter',
-  archivePath: 'samples/flutter.tar.gz',
+  archivePath: 'examples/flutter.tar.gz',
   entryPath: 'lib/main.dart',
 );
 
-const _counter = Sample(
+const _counter = Example(
   name: 'Counter',
   id: 'counter',
-  archivePath: 'samples/counter.tar.gz',
+  archivePath: 'examples/counter.tar.gz',
   entryPath: 'lib/main.dart',
 );

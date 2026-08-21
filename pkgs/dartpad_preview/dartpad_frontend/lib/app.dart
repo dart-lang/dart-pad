@@ -25,7 +25,7 @@ import 'features/shared/events/log_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/gist_loader.dart';
 import 'features/startup/project_loader.dart';
-import 'features/startup/sample_project.dart';
+import 'features/startup/example_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
@@ -45,8 +45,8 @@ class App extends StatefulComponent {
 sealed class ProjectSource {
   const ProjectSource();
 
-  /// Loads a sample, or the default sample when [sampleId] is omitted.
-  const factory ProjectSource.sample([String? sampleId]) = SampleProjectSource;
+  /// Loads an example, or the default example when [sampleId] is omitted.
+  const factory ProjectSource.example([String? sampleId]) = ExampleProjectSource;
 
   /// Captures the startup query parameters from [uri].
   factory ProjectSource.fromUri(Uri uri) => UrlProjectSource(uri.queryParameters);
@@ -68,9 +68,9 @@ final class UrlProjectSource extends ProjectSource {
   final Map<String, String> queryParameters;
 }
 
-/// A project source that always loads a packaged sample.
-final class SampleProjectSource extends ProjectSource {
-  const SampleProjectSource([this.sampleId]);
+/// A project source that always loads a packaged example.
+final class ExampleProjectSource extends ProjectSource {
+  const ExampleProjectSource([this.sampleId]);
 
   final String? sampleId;
 
@@ -239,7 +239,7 @@ class AppState extends State<App> {
     }
   }
 
-  /// Replaces the current workspace with a fresh sample workspace on the same
+  /// Replaces the current workspace with a fresh example workspace on the same
   /// worker. The old session is disposed only after Jaspr has unmounted its
   /// keyed subtree.
   void resetWorkspace(ProjectSource source) {
@@ -322,17 +322,17 @@ class AppState extends State<App> {
         final loader = GistLoader(gistId: gistId);
         project = await loader.loadGist(session.repository.root);
       } else if (params['sample'] case final String sampleId) {
-        _updateLoadingStatus(session, 'Loading Sample...', clearError: true);
-        project = await loadSampleProject(
+        _updateLoadingStatus(session, 'Loading Example...', clearError: true);
+        project = await loadExampleProject(
           session.repository.root,
           sampleId: sampleId,
-          onFailure: (failure) => _reportSampleLoadFailure(session, failure),
+          onFailure: (failure) => _reportExampleLoadFailure(session, failure),
         );
       } else {
         _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
-        project = await loadSampleProject(
+        project = await loadExampleProject(
           session.repository.root,
-          onFailure: (failure) => _reportSampleLoadFailure(session, failure),
+          onFailure: (failure) => _reportExampleLoadFailure(session, failure),
         );
       }
 
@@ -359,9 +359,9 @@ class AppState extends State<App> {
     }
   }
 
-  void _reportSampleLoadFailure(
+  void _reportExampleLoadFailure(
     WorkspaceSession session,
-    SampleLoadFailure failure,
+    ExampleLoadFailure failure,
   ) {
     if (!_isCurrent(session)) {
       return;
@@ -419,12 +419,12 @@ class AppState extends State<App> {
     final session = _session;
     return div(classes: 'app-shell', [
       AppBar(
-        onCreateSample: _isInitializingWorkspace || session.repository.dartpad == null
+        onCreateNewSnippet: _isInitializingWorkspace || session.repository.dartpad == null
             ? null
-            : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
-        onSelectExample: _isInitializingWorkspace || session.repository.dartpad == null
+            : (example) => resetWorkspace(ProjectSource.example(example.id)),
+        onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
             ? null
-            : (sample) => resetWorkspace(ProjectSource.sample(sample.id)),
+            : (example) => resetWorkspace(ProjectSource.example(example.id)),
       ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),

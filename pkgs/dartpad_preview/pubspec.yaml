@@ -13,7 +13,7 @@ workspace:
   - codemirror-dart
   - dartpad_editor
   - dartpad_frontend
-  - samples
+  - examples
 
 environment:
   sdk: ^3.12.0-0

@@ -1,6 +1,6 @@
-name: dartpad_preview_samples
+name: dartpad_preview_examples
 description: >-
-  Sample projects that are packaged into .tar.gz archives and served
+  Example projects that are packaged into .tar.gz archives and served
   alongside the DartPad preview frontend.
 version: 0.1.0
 publish_to: none

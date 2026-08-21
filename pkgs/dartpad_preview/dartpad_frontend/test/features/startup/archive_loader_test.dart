@@ -36,7 +36,7 @@ void main() {
 
     test('resolves a relative URL against the page URL', () async {
       const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: 'samples/counter.tar.gz',
+        archiveUrl: 'examples/counter.tar.gz',
         filePath: 'lib/main.dart',
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
@@ -46,7 +46,7 @@ void main() {
           await expectLater(loader.loadArchive(api.root), throwsException);
         },
         () => MockClient((http.Request request) async {
-          expect(request.url, Uri.base.resolve('samples/counter.tar.gz'));
+          expect(request.url, Uri.base.resolve('examples/counter.tar.gz'));
           return http.Response('Not Found', 404);
         }),
       );
