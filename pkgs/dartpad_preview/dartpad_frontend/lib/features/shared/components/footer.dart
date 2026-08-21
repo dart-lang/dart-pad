@@ -12,7 +12,6 @@ import '../../../app_styles.dart';
 import '../icons.dart';
 import '../runtime_versions.dart';
 import 'icon_button.dart';
-import 'theme_toggle.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
 final class Footer extends StatefulComponent {
@@ -104,7 +103,6 @@ class _FooterState extends State<Footer> {
             tooltip: 'Keyboard shortcuts',
             onClick: (_) => _openShortcuts(),
           ),
-          const ThemeToggle(),
           _buildPrivacyNoticeLink(),
           _buildFeedbackLink(),
         ]),
