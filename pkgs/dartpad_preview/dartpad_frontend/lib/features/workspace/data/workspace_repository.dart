@@ -11,6 +11,7 @@ import 'package:web/web.dart' as web;
 import '../../preview/models/compiler_session.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import 'synced_workspace_resource_api.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 class WorkspaceRepository {
@@ -47,9 +48,9 @@ class WorkspaceRepository {
       final workspace = await dartpad.createWorkspace();
       return workspace;
     })();
-    final api = DeferredWorkspaceResourceApi.fromFutureAndFallback(
-      workspaceFuture.then(WorkerWorkspaceResourceApi.new),
-      MemoryWorkspaceResourceApi(),
+    final api = SyncedWorkspaceResourceApi(
+      localApi: MemoryWorkspaceResourceApi(),
+      remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
     );
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
     return repository = WorkspaceRepository(
@@ -66,6 +67,10 @@ class WorkspaceRepository {
     projectRoot: projectRoot,
     command: (normalizedPath) async {
       final workspace = await _workspaceFuture;
+      final api = workspaceResourceApi;
+      if (api is SyncedWorkspaceResourceApi) {
+        await api.flush();
+      }
       final result = await workspace.pub(uri: normalizedPath, command: 'get');
       return result.log;
     },
@@ -74,6 +79,10 @@ class WorkspaceRepository {
   /// Removes generated Pub and build output from the workspace.
   Future<void> pubClean({String path = ''}) async {
     events.dispatch(const LogEvent('Cleaning workspace...'));
+    final api = workspaceResourceApi;
+    if (api is SyncedWorkspaceResourceApi) {
+      await api.flush();
+    }
     await cleanGeneratedOutput(workspaceResourceApi, path: path);
     events.dispatch(const LogEvent('Cleaning workspace... Done'));
   }
@@ -126,9 +135,9 @@ class WorkspaceRepository {
       return workspace;
     })();
 
-    final api = DeferredWorkspaceResourceApi.fromFutureAndFallback(
-      workspaceFuture.then(WorkerWorkspaceResourceApi.new),
-      MemoryWorkspaceResourceApi(),
+    final api = SyncedWorkspaceResourceApi(
+      localApi: MemoryWorkspaceResourceApi(),
+      remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
     );
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
     return WorkspaceRepository(
@@ -141,8 +150,12 @@ class WorkspaceRepository {
 
   Future<CompilerSession> startHotReloadCompiler(Uri uri) async {
     final workspace = await _workspaceFuture;
+    final api = workspaceResourceApi;
     final compiler = await workspace.startHotReloadCompiler(uri);
-    return RealCompilerSession(compiler);
+    return RealCompilerSession(
+      compiler,
+      onBeforeCompile: api is SyncedWorkspaceResourceApi ? api.flush : null,
+    );
   }
 
   /// Converts a workspace [filePath] to a `package:` URI based on the nearest
