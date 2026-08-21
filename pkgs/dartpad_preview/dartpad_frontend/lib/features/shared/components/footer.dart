@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js_interop';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
 import '../../../sdks.g.dart';
@@ -14,6 +13,7 @@ import '../icons.dart';
 import '../sdk_info.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart';
+import 'shortcuts_dialog.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
 final class Footer extends StatefulComponent {
@@ -52,35 +52,11 @@ class _FooterState extends State<Footer> {
     setState(() {
       _showShortcuts = true;
     });
-    Timer.run(() {
-      if (!_showShortcuts) {
-        return;
-      }
-      final dialog = web.document.querySelector('.app-footer-shortcuts-dialog');
-      if (dialog != null && dialog.isA<web.HTMLDialogElement>()) {
-        final htmlDialog = dialog as web.HTMLDialogElement;
-        if (htmlDialog.open) {
-          return;
-        }
-        htmlDialog.showModal();
-        final closeButton = htmlDialog.querySelector('[aria-label="Close shortcuts dialog"]');
-        if (closeButton != null && closeButton.isA<web.HTMLElement>()) {
-          (closeButton as web.HTMLElement).focus();
-        }
-      }
-    });
   }
 
   void _closeShortcuts() {
     if (!_showShortcuts) {
       return;
-    }
-    final dialog = web.document.querySelector('.app-footer-shortcuts-dialog');
-    if (dialog != null && dialog.isA<web.HTMLDialogElement>()) {
-      final htmlDialog = dialog as web.HTMLDialogElement;
-      if (htmlDialog.open) {
-        htmlDialog.close();
-      }
     }
     setState(() {
       _showShortcuts = false;
@@ -108,7 +84,11 @@ class _FooterState extends State<Footer> {
         ]),
         _buildRuntimeVersions(),
       ]),
-      if (_showShortcuts) _buildShortcutsDialog(),
+      if (_showShortcuts)
+        ShortcutsDialog(
+          key: const ValueKey('footer-shortcuts-dialog'),
+          onClose: _closeShortcuts,
+        ),
     ]);
   }
 
@@ -178,52 +158,6 @@ class _FooterState extends State<Footer> {
         Icon('open_in_new', size: 14),
       ],
     );
-  }
-
-  Component _buildShortcutsDialog() {
-    return dialog(
-      classes: 'app-footer-shortcuts-dialog',
-      events: {
-        'cancel': (event) {
-          event.preventDefault();
-          _closeShortcuts();
-        },
-        'click': (event) {
-          if (event.target == event.currentTarget) {
-            _closeShortcuts();
-          }
-        },
-      },
-      attributes: const {
-        'aria-labelledby': 'app-footer-shortcuts-title',
-      },
-      [
-        div(classes: 'app-footer-dialog-header', [
-          const h2(id: 'app-footer-shortcuts-title', [
-            .text('Keyboard shortcuts'),
-          ]),
-          IconButton(
-            icon: 'close',
-            label: 'Close shortcuts dialog',
-            onClick: (_) => _closeShortcuts(),
-          ),
-        ]),
-        div(classes: 'app-footer-shortcuts-list', [
-          _shortcutRow('Save files', 'Ctrl/Cmd + S'),
-          _shortcutRow('Format Dart files', 'Shift + Alt + F'),
-          _shortcutRow('Quick fix', 'Ctrl/Cmd + .'),
-          _shortcutRow('Toggle line comment', 'Ctrl/Cmd + /'),
-          _shortcutRow('Indent', 'Tab'),
-        ]),
-      ],
-    );
-  }
-
-  Component _shortcutRow(String command, String shortcut) {
-    return div(classes: 'app-footer-shortcut-row', [
-      span(classes: 'app-footer-shortcut-command', [.text(command)]),
-      span(classes: 'app-footer-shortcut-key', [.text(shortcut)]),
-    ]);
   }
 
   static List<StyleRule> get styles => [
@@ -302,60 +236,6 @@ class _FooterState extends State<Footer> {
       fontSize: 11.px,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
-    ),
-    css('.app-footer-shortcuts-dialog::backdrop').styles(
-      backgroundColor: const Color('rgba(0, 0, 0, 0.55)'),
-    ),
-    css('.app-footer-shortcuts-dialog').styles(
-      minWidth: 320.px,
-      maxWidth: 90.percent,
-      padding: .zero,
-      border: .all(color: colorBorder, width: 1.px),
-      radius: .circular(6.px),
-      color: colorOnSurface,
-      backgroundColor: colorSurface,
-    ),
-    css('.app-footer-dialog-header').styles(
-      display: .flex,
-      padding: .symmetric(vertical: 10.px, horizontal: 14.px),
-      border: .only(
-        bottom: .solid(color: colorBorder, width: 1.px),
-      ),
-      justifyContent: .spaceBetween,
-      alignItems: .center,
-      gap: Gap.all(10.px),
-    ),
-    css('.app-footer-dialog-header h2').styles(
-      margin: .zero,
-      fontSize: 15.px,
-      fontWeight: .w500,
-    ),
-    css('.app-footer-shortcuts-list').styles(
-      display: .flex,
-      padding: .symmetric(vertical: 8.px, horizontal: 14.px),
-      flexDirection: .column,
-      gap: Gap.all(2.px),
-    ),
-    css('.app-footer-shortcut-row').styles(
-      display: .flex,
-      padding: .symmetric(vertical: 6.px),
-      justifyContent: .spaceBetween,
-      alignItems: .center,
-      gap: Gap.all(20.px),
-    ),
-    css('.app-footer-shortcut-command').styles(
-      color: colorOnSurface,
-      fontSize: 12.px,
-    ),
-    css('.app-footer-shortcut-key').styles(
-      padding: .symmetric(vertical: 2.px, horizontal: 6.px),
-      border: .all(color: colorBorder, width: 1.px),
-      radius: .circular(4.px),
-      color: colorOnContainer,
-      fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
-      fontSize: 11.px,
-      whiteSpace: .noWrap,
-      backgroundColor: colorContainer,
     ),
   ];
 }
