@@ -40,6 +40,27 @@ class _AppBarState extends State<AppBar> {
     web.window.open(uri, '_blank');
   }
 
+  List<DropdownMenuEntry> _buildExampleItems() {
+    final entries = <DropdownMenuEntry>[];
+    String? lastSubcategory;
+
+    for (final sample in Samples.examples) {
+      if (sample.subcategory != null && sample.subcategory != lastSubcategory) {
+        entries.add(DropdownMenuDivider(label: sample.subcategory!));
+        lastSubcategory = sample.subcategory;
+      }
+      entries.add(
+        DropdownMenuItem(
+          label: sample.name,
+          leadingImage: sample.icon,
+          onPressed: () => component.onSelectExample?.call(sample),
+        ),
+      );
+    }
+
+    return entries;
+  }
+
   @override
   Component build(BuildContext context) {
     final isCreateDisabled = component.onCreateSample == null;
@@ -74,7 +95,7 @@ class _AppBarState extends State<AppBar> {
             for (final sample in Samples.create)
               DropdownMenuItem(
                 label: sample.name,
-                leadingImage: sample.id == 'flutter' ? 'images/flutter_logo_192.png' : 'images/dart_logo_192.png',
+                leadingImage: sample.icon,
                 onPressed: () => component.onCreateSample?.call(sample),
               ),
           ],
@@ -94,13 +115,7 @@ class _AppBarState extends State<AppBar> {
               const span(classes: 'app-bar-button-label', [.text('Examples')]),
             ],
           ),
-          items: [
-            for (final sample in Samples.examples)
-              DropdownMenuItem(
-                label: sample.name,
-                onPressed: () => component.onSelectExample?.call(sample),
-              ),
-          ],
+          items: _buildExampleItems(),
         ),
       ]),
       // Spacer.

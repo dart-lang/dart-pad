@@ -49,7 +49,7 @@ void main() {
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 
-  testClient('opens Examples and selects Counter', (tester) async {
+  testClient('opens Examples and selects Fibonacci', (tester) async {
     String? selectedSampleId;
     tester.pumpComponent(
       AppBar(onSelectExample: (sample) => selectedSampleId = sample.id),
@@ -66,7 +66,7 @@ void main() {
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(selectedSampleId, 'counter');
+    expect(selectedSampleId, 'fibonacci');
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 }
