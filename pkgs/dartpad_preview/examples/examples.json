@@ -1,20 +1,63 @@
 [
   {
     "category": "Snippet",
-    "name": "Dart snippet",
     "id": "dart",
-    "projectDir": "snippet_dart"
+    "name": "Dart snippet",
+    "projectDir": "snippet_dart",
+    "entryPath": "lib/main.dart",
+    "icon": "images/dart_logo_192.png"
   },
   {
     "category": "Snippet",
-    "name": "Flutter snippet",
     "id": "flutter",
-    "projectDir": "snippet_flutter"
+    "name": "Flutter snippet",
+    "projectDir": "snippet_flutter",
+    "entryPath": "lib/main.dart",
+    "icon": "images/flutter_logo_192.png"
   },
   {
     "category": "Sample",
-    "name": "Counter",
+    "subcategory": "Dart",
+    "id": "fibonacci",
+    "name": "Fibonacci",
+    "projectDir": "fibonacci",
+    "entryPath": "lib/main.dart",
+    "icon": "images/dart_logo_192.png"
+  },
+  {
+    "category": "Sample",
+    "subcategory": "Dart",
+    "id": "hello-world",
+    "name": "Hello world",
+    "projectDir": "hello_world",
+    "entryPath": "lib/main.dart",
+    "icon": "images/dart_logo_192.png"
+  },
+  {
+    "category": "Sample",
+    "subcategory": "Flutter",
     "id": "counter",
-    "projectDir": "counter"
+    "name": "Counter",
+    "projectDir": "counter",
+    "entryPath": "lib/main.dart",
+    "icon": "images/flutter_logo_192.png"
+  },
+  {
+    "category": "Sample",
+    "subcategory": "Flutter",
+    "id": "sunflower",
+    "name": "Sunflower",
+    "projectDir": "sunflower",
+    "entryPath": "lib/main.dart",
+    "icon": "images/flutter_logo_192.png"
+  },
+  {
+    "category": "Sample",
+    "subcategory": "Ecosystem",
+    "id": "flame-game",
+    "name": "Flame game",
+    "projectDir": "flame_game",
+    "entryPath": "lib/main.dart",
+    "icon": "images/flame_logo_192.png"
   }
 ]

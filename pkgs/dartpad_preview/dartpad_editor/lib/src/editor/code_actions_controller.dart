@@ -86,6 +86,7 @@ class CodeActionsController {
   Future<void> triggerQuickFixes({int? from, int? to}) => _triggerActions(
     from: from,
     to: to,
+    autoApplySingle: false,
     loader: (plugin, rangeFrom, rangeTo) => _loadActions(
       plugin,
       rangeFrom,
@@ -113,6 +114,7 @@ class CodeActionsController {
   Future<void> _triggerActions({
     int? from,
     int? to,
+    bool autoApplySingle = false,
     required Future<List<cm.LSPCodeAction>> Function(cm.LSPPlugin, int, int) loader,
   }) async {
     if (_disposed) {
@@ -144,6 +146,10 @@ class CodeActionsController {
         return;
       }
 
+      if (autoApplySingle && actions.length == 1) {
+        await applyCodeAction(actions.single);
+        return;
+      }
       codeActions = actions;
       showFloatingPanel = true;
       onStateChanged();
