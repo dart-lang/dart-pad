@@ -26,4 +26,4 @@ pubspec.lock
 **/*_testImage.png
 
 # Generated sample archives are build inputs for the preview frontend.
-pkgs/dartpad_preview/dartpad_frontend/web/samples/
+pkgs/dartpad_preview/dartpad_frontend/web/examples/
