@@ -24,6 +24,7 @@ import 'features/filetree/file_tree_view_model.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/preview/view_models/preview_view_model.dart';
 import 'features/shared/app_event_bus.dart';
+import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
@@ -255,6 +256,7 @@ class AppState extends State<App> {
     return ListenableBuilder(
       listenable: _tabs,
       builder: (context) => div(classes: 'app-shell', [
+        const AppBar(),
         div(classes: 'app-workspace', [
           SplitPanel(
             initialValue: 0.7,
