@@ -127,5 +127,3 @@ void main() {
     expect(tabs.length, 2);
   });
 }
-
-
