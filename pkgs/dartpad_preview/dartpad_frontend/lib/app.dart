@@ -497,9 +497,7 @@ class AppState extends State<App> {
                 bottomPanel: _buildBottomPanel(session),
                 isEmbedMode: isEmbedMode,
                 mobileTabBar: isEmbedMode ? null : _buildMobileTabBar(),
-                mobilePreviewPanel: _mobileTabIndex == 1
-                    ? _buildPreviewPanel(session)
-                    : null,
+                mobilePreviewPanel: _mobileTabIndex == 1 ? _buildPreviewPanel(session) : null,
               ),
           ]),
           if (!isEmbedMode)
