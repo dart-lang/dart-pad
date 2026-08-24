@@ -81,7 +81,7 @@ class _EditorShellState extends State<EditorShell> {
   @override
   void initState() {
     super.initState();
-    _fileTreeCollapsed = component.isEmbedMode;
+    _fileTreeCollapsed = component.isEmbedMode || component.mobileTabBar != null;
   }
 
   void _toggleFileTree() {
@@ -119,10 +119,25 @@ class _EditorShellState extends State<EditorShell> {
         right: component.bottomPanel,
       ),
     ]);
+    // Determine the right-hand content: in mobile mode wrap with the tab bar,
+    // otherwise just the editor.
+    final Component rightContent;
+    if (component.mobileTabBar != null) {
+      rightContent = div(classes: 'editor-shell-mobile-content', [
+        component.mobileTabBar!,
+        if (component.mobilePreviewPanel != null)
+          component.mobilePreviewPanel!
+        else
+          editorContent,
+      ]);
+    } else if (component.mobilePreviewPanel != null) {
+      rightContent = component.mobilePreviewPanel!;
+    } else {
+      rightContent = editorContent;
+    }
 
-    // In embed mode with collapsed file tree, show a narrow rail instead of
-    // the full SplitPanel with file tree.
-    if (component.isEmbedMode && _fileTreeCollapsed) {
+    // Collapsed file tree: show a narrow rail with a toggle button.
+    if (_fileTreeCollapsed) {
       return div(classes: 'editor-shell', [
         aside(classes: 'file-tree-rail', [
           button(
@@ -135,65 +150,31 @@ class _EditorShellState extends State<EditorShell> {
             [const Icon('folder_open', size: 18)],
           ),
         ]),
-        editorContent,
+        rightContent,
       ]);
     }
 
-    // In embed mode with expanded file tree, show the file tree with a
-    // collapse button in its header area.
-    if (component.isEmbedMode) {
-      return div(classes: 'editor-shell', [
-        SplitPanel(
-          initialValue: 200,
-          useRatio: false,
-          minValue: 150,
-          maxValue: 300,
-          left: aside(classes: 'file-tree-pane', [
-            div(classes: 'file-tree-collapse-bar', [
-              button(
-                classes: 'file-tree-rail-button',
-                attributes: {
-                  'title': 'Hide file tree',
-                  'aria-label': 'Hide file tree',
-                },
-                onClick: _toggleFileTree,
-                [const Icon('chevron_left', size: 18)],
-              ),
-            ]),
-            component.fileTree,
-          ]),
-          right: editorContent,
-        ),
-      ]);
-    }
-
-    // Standard (non-embed) layout.
-    // When a mobile tab bar is provided, wrap the right-hand content in a
-    // column so the tab bar sits above the editor/preview area – but only
-    // spans the editor width, not the file tree.
-    final Component rightContent;
-    if (component.mobileTabBar != null) {
-      rightContent = div(classes: 'editor-shell-mobile-content', [
-        component.mobileTabBar!,
-        if (component.mobilePreviewPanel != null)
-          component.mobilePreviewPanel!
-        else
-          editorContent,
-      ]);
-    } else if (component.mobilePreviewPanel != null) {
-      // Embed mode: no tab bar, but preview replaces the editor when selected.
-      rightContent = component.mobilePreviewPanel!;
-    } else {
-      rightContent = editorContent;
-    }
-
+    // Expanded file tree with collapse button.
     return div(classes: 'editor-shell', [
       SplitPanel(
         initialValue: 200,
         useRatio: false,
         minValue: 150,
         maxValue: 300,
-        left: aside(classes: 'file-tree-pane', [component.fileTree]),
+        left: aside(classes: 'file-tree-pane', [
+          div(classes: 'file-tree-collapse-bar', [
+            button(
+              classes: 'file-tree-rail-button',
+              attributes: {
+                'title': 'Hide file tree',
+                'aria-label': 'Hide file tree',
+              },
+              onClick: _toggleFileTree,
+              [const Icon('chevron_left', size: 18)],
+            ),
+          ]),
+          component.fileTree,
+        ]),
         right: rightContent,
       ),
     ]);

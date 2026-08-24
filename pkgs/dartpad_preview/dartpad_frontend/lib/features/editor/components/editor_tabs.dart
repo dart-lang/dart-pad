@@ -129,9 +129,6 @@ final class EditorTabs extends StatelessComponent {
           backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
         ),
         css('&.active').styles(
-          border: .only(
-            top: .solid(color: colorPrimary, width: 2.px),
-          ),
           color: colorOnContainer,
           backgroundColor: colorContainer,
         ),

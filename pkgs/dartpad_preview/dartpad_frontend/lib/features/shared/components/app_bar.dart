@@ -231,9 +231,7 @@ class _AppBarState extends State<AppBar> {
       display: .flex,
       height: 40.px,
       minHeight: 40.px,
-      border: .only(
-        bottom: .solid(color: colorBorder, width: 2.px),
-      ),
+      padding: .only(bottom: 4.px),
       alignItems: .center,
       backgroundColor: colorSurface,
     ),
