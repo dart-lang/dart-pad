@@ -24,6 +24,8 @@ class EditorShell extends StatefulComponent {
     required this.onCloseFile,
     required this.bottomPanel,
     this.isEmbedMode = false,
+    this.mobileTabBar,
+    this.mobilePreviewPanel,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -56,6 +58,15 @@ class EditorShell extends StatefulComponent {
   /// When `true`, the file tree starts collapsed into a narrow rail with a
   /// toggle button.
   final bool isEmbedMode;
+
+  /// Optional tab bar (Code / Output) rendered above the editor in mobile
+  /// layout. When provided, the tab bar is placed to the right of the file
+  /// tree so it does not span the full screen width.
+  final Component? mobileTabBar;
+
+  /// The preview panel to show when the Output tab is active in mobile layout.
+  /// When non-null, the preview panel replaces the editor content.
+  final Component? mobilePreviewPanel;
 
   @override
   State<EditorShell> createState() => _EditorShellState();
@@ -157,6 +168,25 @@ class _EditorShellState extends State<EditorShell> {
     }
 
     // Standard (non-embed) layout.
+    // When a mobile tab bar is provided, wrap the right-hand content in a
+    // column so the tab bar sits above the editor/preview area – but only
+    // spans the editor width, not the file tree.
+    final Component rightContent;
+    if (component.mobileTabBar != null) {
+      rightContent = div(classes: 'editor-shell-mobile-content', [
+        component.mobileTabBar!,
+        if (component.mobilePreviewPanel != null)
+          component.mobilePreviewPanel!
+        else
+          editorContent,
+      ]);
+    } else if (component.mobilePreviewPanel != null) {
+      // Embed mode: no tab bar, but preview replaces the editor when selected.
+      rightContent = component.mobilePreviewPanel!;
+    } else {
+      rightContent = editorContent;
+    }
+
     return div(classes: 'editor-shell', [
       SplitPanel(
         initialValue: 200,
@@ -164,7 +194,7 @@ class _EditorShellState extends State<EditorShell> {
         minValue: 150,
         maxValue: 300,
         left: aside(classes: 'file-tree-pane', [component.fileTree]),
-        right: editorContent,
+        right: rightContent,
       ),
     ]);
   }
@@ -199,6 +229,15 @@ class _EditorShellState extends State<EditorShell> {
       minWidth: .zero,
       minHeight: .zero,
       overflow: .hidden,
+      flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+
+    // -- Mobile layout: content column to the right of the file tree --
+    css('.editor-shell-mobile-content').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
     ),
