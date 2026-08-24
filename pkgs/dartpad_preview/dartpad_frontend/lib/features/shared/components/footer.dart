@@ -136,7 +136,7 @@ class _FooterState extends State<Footer> {
 
   Component _buildFeedbackLink() {
     return const a(
-      href: 'https://github.com/dart-lang/dart-pad/issues',
+      href: 'https://github.com/dart-lang/dart-pad/issues/new?template=4-dartpad-preview-issue.yml',
       target: Target.blank,
       classes: 'app-footer-link',
       attributes: {'rel': 'noopener noreferrer'},
