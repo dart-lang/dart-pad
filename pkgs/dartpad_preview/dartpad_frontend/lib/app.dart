@@ -342,7 +342,7 @@ class AppState extends State<App> {
       } else {
         userErrorMessage = 'The default project could not be loaded.';
         _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
-        project = await loadExampleProject(
+        project = await loadSampleProject(
           session.repository.root,
         );
       }
