@@ -22,14 +22,7 @@ Future<LoadedProject> loadSampleProject(
     throw ArgumentError.value(sampleId, 'sampleId', 'Unknown example ID');
   }
 
-  return _loadExample(root, example, onFailure: onFailure);
-}
-
-Future<LoadedProject> _loadExample(
-  WorkspaceFolder root,
-  Example example, {
-  ExampleLoadFailureHandler? onFailure,
-}) async {
+  final example = requestedExample ?? Examples.defaultExample;
   final loader = ArchiveLoader(
     archiveUrl: example.archivePath,
     filePath: example.entryPath,
