@@ -5,7 +5,6 @@
 import 'package:dartpad_editor/dartpad_editor.dart';
 
 import 'archive_loader.dart';
-import 'example.dart';
 import 'examples.g.dart';
 import 'project_loader.dart';
 
@@ -17,9 +16,10 @@ Future<LoadedProject> loadSampleProject(
   WorkspaceFolder root, {
   String? sampleId,
 }) async {
-  final requestedSample = Samples.getById(sampleId);
-  if (sampleId != null && requestedSample == null) {
-    throw ArgumentError.value(sampleId, 'sampleId', 'Unknown sample ID');
+  final requestedExample =
+      sampleId != null ? Examples.getById(sampleId) : null;
+  if (sampleId != null && requestedExample == null) {
+    throw ArgumentError.value(sampleId, 'sampleId', 'Unknown example ID');
   }
 
   return _loadExample(root, example, onFailure: onFailure);
