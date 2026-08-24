@@ -125,10 +125,7 @@ class _EditorShellState extends State<EditorShell> {
     if (component.mobileTabBar != null) {
       rightContent = div(classes: 'editor-shell-mobile-content', [
         component.mobileTabBar!,
-        if (component.mobilePreviewPanel != null)
-          component.mobilePreviewPanel!
-        else
-          editorContent,
+        if (component.mobilePreviewPanel != null) component.mobilePreviewPanel! else editorContent,
       ]);
     } else if (component.mobilePreviewPanel != null) {
       rightContent = component.mobilePreviewPanel!;
