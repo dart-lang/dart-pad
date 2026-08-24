@@ -11,6 +11,7 @@ import 'package:web/web.dart' as web;
 import '../../../app_styles.dart';
 import '../icons.dart';
 import 'icon_button.dart';
+import 'shortcut_definitions.dart';
 
 /// Selector for all focusable elements inside the dialog.
 const _focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -100,6 +101,31 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
 
   @override
   Component build(BuildContext context) {
+    // Group shortcuts by category, preserving the order of first appearance.
+    final categories = <ShortcutCategory, List<ShortcutDefinition>>{};
+    for (final shortcut in shortcutDefinitions) {
+      categories.putIfAbsent(shortcut.category, () => []).add(shortcut);
+    }
+
+    final shortcutRows = <Component>[];
+    for (final MapEntry(key: category, value: shortcuts) in categories.entries) {
+      final primary = shortcuts.where((shortcut) => shortcut.isPrimary).toList();
+      final extended = shortcuts.where((shortcut) => !shortcut.isPrimary).toList();
+
+      // Only show the category header if it has visible shortcuts.
+      if (primary.isNotEmpty || (_showMoreShortcuts && extended.isNotEmpty)) {
+        shortcutRows.add(_categoryHeader(category.label));
+      }
+      for (final shortcut in primary) {
+        shortcutRows.add(_shortcutRow(shortcut.label, resolveDisplayKey(shortcut.displayKey)));
+      }
+      if (_showMoreShortcuts) {
+        for (final shortcut in extended) {
+          shortcutRows.add(_shortcutRow(shortcut.label, resolveDisplayKey(shortcut.displayKey)));
+        }
+      }
+    }
+
     return div(
       classes: 'shortcuts-dialog-backdrop',
       events: {
@@ -127,44 +153,7 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
             ),
           ]),
           div(classes: 'shortcuts-dialog-list', [
-            _categoryHeader('Refactoring & code intelligence'),
-            _shortcutRow('Quick fix', 'Ctrl/Cmd + .'),
-            _shortcutRow('Rename symbol', 'F2'),
-            _shortcutRow('Go to definition', 'F12'),
-            _shortcutRow('Find references', 'Shift + F12'),
-            _shortcutRow('Format Dart files', 'Shift + Alt + F'),
-            if (_showMoreShortcuts) ...[
-              _shortcutRow('Next problem', 'F8'),
-            ],
-            _categoryHeader('Editing'),
-            _shortcutRow('Toggle line comment', 'Ctrl/Cmd + /'),
-            _shortcutRow('Toggle block comment', 'Shift + Alt + A'),
-            _shortcutRow('Move line up / down', 'Alt + ↑ / ↓'),
-            _shortcutRow('Delete line', 'Ctrl/Cmd + Shift + K'),
-            if (_showMoreShortcuts) ...[
-              _shortcutRow('Indent', 'Tab'),
-              _shortcutRow('Outdent', 'Shift + Tab'),
-              _shortcutRow('Copy line up / down', 'Shift + Alt + ↑ / ↓'),
-              _shortcutRow('Insert blank line', 'Ctrl/Cmd + Enter'),
-              _shortcutRow('Jump to matching bracket', 'Ctrl/Cmd + Shift + \\'),
-            ],
-            _categoryHeader('Search'),
-            _shortcutRow('Find', 'Ctrl/Cmd + F'),
-            _shortcutRow('Select next occurrence', 'Ctrl/Cmd + D'),
-            if (_showMoreShortcuts) ...[
-              _shortcutRow('Find next', 'F3 / Ctrl/Cmd + G'),
-              _shortcutRow('Find previous', 'Shift + F3 / Ctrl/Cmd + Shift + G'),
-              _shortcutRow('Select all occurrences', 'Ctrl/Cmd + Shift + L'),
-              _shortcutRow('Go to line', 'Ctrl/Cmd + Alt + G'),
-            ],
-            if (_showMoreShortcuts) ...[
-              _categoryHeader('Autocomplete & folding'),
-              _shortcutRow('Trigger autocomplete', 'Ctrl + Space'),
-              _shortcutRow('Fold code', 'Ctrl + Shift + ['),
-              _shortcutRow('Unfold code', 'Ctrl + Shift + ]'),
-              _shortcutRow('Fold all', 'Ctrl + Alt + ['),
-              _shortcutRow('Unfold all', 'Ctrl + Alt + ]'),
-            ],
+            ...shortcutRows,
             button(
               classes: 'shortcuts-dialog-toggle-btn',
               events: {

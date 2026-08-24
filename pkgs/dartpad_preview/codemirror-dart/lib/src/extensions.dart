@@ -126,3 +126,28 @@ external ShowPanel get showPanel;
 
 @JS()
 external StateEffectType get forceSemanticTokensRefresh;
+
+// =============================================================================
+// Test Utilities
+// =============================================================================
+
+/// Returns all key binding strings registered in the given [state].
+///
+/// Used by tests to verify that every shortcut listed in the shortcuts
+/// dialog is actually registered in CodeMirror.
+@JS()
+external JSArray<JSString> getRegisteredKeys(EditorState state);
+
+/// LSP keymaps exported individually so tests can register them
+/// without creating a full LSP client.
+@JS()
+external JSArray<KeyBinding> get formatKeymap;
+
+@JS()
+external JSArray<KeyBinding> get renameKeymap;
+
+@JS()
+external JSArray<KeyBinding> get jumpToDefinitionKeymap;
+
+@JS()
+external JSArray<KeyBinding> get findReferencesKeymap;

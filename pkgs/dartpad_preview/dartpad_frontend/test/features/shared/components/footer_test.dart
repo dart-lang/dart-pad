@@ -6,6 +6,7 @@
 library;
 
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
+import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -46,10 +47,9 @@ void main() {
     final dialog = web.document.querySelector('.shortcuts-dialog');
     expect(dialog, isNotNull);
 
-    // Verify primary shortcuts are present
-    // (5 refactoring + 4 editing + 2 search = 11 rows).
+    // Verify primary shortcuts are present.
     var rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, 11);
+    expect(rows.length, primaryShortcutCount);
 
     // Toggle button is present.
     final toggleBtn = web.document.querySelector('.shortcuts-dialog-toggle-btn') as web.HTMLButtonElement?;
@@ -60,10 +60,9 @@ void main() {
     toggleBtn?.click();
     await pumpEventQueue();
 
-    // All shortcut rows are visible
-    // (11 primary + 1 refactoring + 5 editing + 4 search + 5 autocomplete = 26).
+    // All shortcut rows are visible.
     rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, 26);
+    expect(rows.length, allShortcutCount);
     expect(toggleBtn?.textContent, contains('Show fewer shortcuts'));
 
     // Collapse show more.
@@ -71,7 +70,7 @@ void main() {
     await pumpEventQueue();
 
     rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, 11);
+    expect(rows.length, primaryShortcutCount);
   });
 
   testClient('footer status update does not dismiss active shortcuts dialog', (tester) async {

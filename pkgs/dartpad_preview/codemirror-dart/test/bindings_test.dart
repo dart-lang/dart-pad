@@ -50,6 +50,11 @@ void main() {
       'gotoDefinitionOnClick',
       'diagnosticHoverToolbar',
       'forceSemanticTokensRefresh',
+      'getRegisteredKeys',
+      'formatKeymap',
+      'renameKeymap',
+      'jumpToDefinitionKeymap',
+      'findReferencesKeymap',
     ];
 
     for (final name in expectedExports) {
