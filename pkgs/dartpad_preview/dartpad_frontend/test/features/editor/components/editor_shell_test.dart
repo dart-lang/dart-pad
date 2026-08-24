@@ -50,11 +50,12 @@ void main() {
       expect(web.document.querySelector('#file-tree'), isNotNull);
     });
 
-    testClient('does not render embed-mode elements', (tester) {
+    testClient('does not render collapsed rail in standard mode', (tester) {
       tester.pumpComponent(_createShell());
 
       expect(web.document.querySelector('.file-tree-rail'), isNull);
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNull);
+      // Collapse bar is always shown when the file tree is expanded.
+      expect(web.document.querySelector('.file-tree-collapse-bar'), isNotNull);
     });
 
     testClient('renders without open tabs', (tester) {
