@@ -16,8 +16,7 @@ Future<LoadedProject> loadSampleProject(
   WorkspaceFolder root, {
   String? sampleId,
 }) async {
-  final requestedExample =
-      sampleId != null ? Examples.getById(sampleId) : null;
+  final requestedExample = sampleId != null ? Examples.getById(sampleId) : null;
   if (sampleId != null && requestedExample == null) {
     throw ArgumentError.value(sampleId, 'sampleId', 'Unknown example ID');
   }
