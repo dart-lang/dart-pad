@@ -463,7 +463,7 @@ class AppState extends State<App> {
           isMobile: !_isLargeScreen,
           isEmbedMode: isEmbedMode,
           selectedTab: _mobileTabIndex,
-          onTabSelected: (tab) => setState(() => _mobileTabIndex = tab),
+          onTabSelected: isEmbedMode ? (tab) => setState(() => _mobileTabIndex = tab) : null,
         ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),
@@ -485,29 +485,21 @@ class AppState extends State<App> {
                 ),
                 right: _buildPreviewPanel(session),
               )
-            else ...[
-              div(
-                classes: 'app-workspace-mobile-pane ${_mobileTabIndex == 0 ? 'active' : 'hidden'}',
-                [
-                  EditorShell(
-                    openTabs: session.tabs.openTabs,
-                    activeFile: session.tabs.activeFile,
-                    fileTree: _buildFileTree(session),
-                    editorOverlay: _buildEditorOverlay(session),
-                    onSwitchFile: session.tabs.switchFile,
-                    onCloseFile: session.tabs.closeFile,
-                    bottomPanel: _buildBottomPanel(session),
-                    isEmbedMode: isEmbedMode,
-                  ),
-                ],
+            else
+              EditorShell(
+                openTabs: session.tabs.openTabs,
+                activeFile: session.tabs.activeFile,
+                fileTree: _buildFileTree(session),
+                editorOverlay: _buildEditorOverlay(session),
+                onSwitchFile: session.tabs.switchFile,
+                onCloseFile: session.tabs.closeFile,
+                bottomPanel: _buildBottomPanel(session),
+                isEmbedMode: isEmbedMode,
+                mobileTabBar: isEmbedMode ? null : _buildMobileTabBar(),
+                mobilePreviewPanel: _mobileTabIndex == 1
+                    ? _buildPreviewPanel(session)
+                    : null,
               ),
-              div(
-                classes: 'app-workspace-mobile-pane ${_mobileTabIndex == 1 ? 'active' : 'hidden'}',
-                [
-                  _buildPreviewPanel(session),
-                ],
-              ),
-            ],
           ]),
           if (!isEmbedMode)
             Footer(
@@ -562,6 +554,27 @@ class AppState extends State<App> {
     );
   }
 
+  Component _buildMobileTabBar() {
+    return div(classes: 'app-bar-tab-bar', [
+      button(
+        classes: 'app-bar-tab ${_mobileTabIndex == 0 ? 'active' : ''}',
+        events: {'click': (_) => setState(() => _mobileTabIndex = 0)},
+        attributes: const {'type': 'button'},
+        const [
+          span(classes: 'app-bar-tab-label', [Component.text('Code')]),
+        ],
+      ),
+      button(
+        classes: 'app-bar-tab ${_mobileTabIndex == 1 ? 'active' : ''}',
+        events: {'click': (_) => setState(() => _mobileTabIndex = 1)},
+        attributes: const {'type': 'button'},
+        const [
+          span(classes: 'app-bar-tab-label', [Component.text('Output')]),
+        ],
+      ),
+    ]);
+  }
+
   Component _buildPreviewPanel(WorkspaceSession session) {
     return ListenableBuilder(
       listenable: session.preview,
@@ -601,18 +614,6 @@ class AppState extends State<App> {
       minWidth: .zero,
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
-    ),
-    css('.app-workspace-mobile-pane').styles(
-      display: .flex,
-      width: 100.percent,
-      height: 100.percent,
-      minWidth: .zero,
-      minHeight: .zero,
-      flexDirection: .column,
-      flex: const Flex(grow: 1, basis: .zero),
-    ),
-    css('.app-workspace-mobile-pane.hidden').styles(
-      display: .none,
     ),
   ];
 }

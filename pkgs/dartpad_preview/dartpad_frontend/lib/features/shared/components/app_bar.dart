@@ -192,8 +192,6 @@ class _AppBarState extends State<AppBar> {
           ),
         ]),
       ]),
-      // Mobile Tab bar placed under header bar.
-      if (isMobile) tabBar,
     ]);
   }
 
