@@ -16,6 +16,7 @@ import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/error_toast.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
+import 'features/editor/components/small_screen_tab_bar.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/view/preview_container.dart';
@@ -35,7 +36,7 @@ import 'features/workspace/workspace_session.dart';
 
 /// Whether the application is running in embed mode (`?embed=true`).
 ///
-/// When `true`, the app bar and footer are hidden and the file tree starts
+/// When `true`, the [AppBar] and footer are hidden and the file tree starts
 /// collapsed into a narrow rail with a toggle button.
 final bool isEmbedMode = Uri.base.queryParameters['embed'] == 'true';
 
@@ -105,7 +106,7 @@ class AppState extends State<App> {
   String? _errorMessage;
 
   bool _isLargeScreen = true;
-  int _mobileTabIndex = 0;
+  SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
 
   @override
@@ -142,9 +143,9 @@ class AppState extends State<App> {
     if (!_isLargeScreen) {
       final state = _session.preview.state;
       if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
-        if (_mobileTabIndex != 1) {
+        if (_selectedSmallScreenTab != .output) {
           setState(() {
-            _mobileTabIndex = 1;
+            _selectedSmallScreenTab = .output;
           });
         }
       }
@@ -461,10 +462,14 @@ class AppState extends State<App> {
           onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
               ? null
               : (example) => resetWorkspace(ProjectSource.example(example.id)),
-          isMobile: !_isLargeScreen,
+          isSmallScreen: !_isLargeScreen,
           isEmbedMode: isEmbedMode,
-          selectedTab: _mobileTabIndex,
-          onTabSelected: isEmbedMode ? (tab) => setState(() => _mobileTabIndex = tab) : null,
+          smallScreenTabBar: !_isLargeScreen
+              ? SmallScreenTabBar(
+                  selectedTab: _selectedSmallScreenTab,
+                  onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+                )
+              : null,
         ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),
@@ -496,14 +501,13 @@ class AppState extends State<App> {
                 onCloseFile: session.tabs.closeFile,
                 bottomPanel: _buildBottomPanel(session),
                 isEmbedMode: isEmbedMode,
-                mobileTabBar: isEmbedMode ? null : _buildMobileTabBar(),
-                mobilePreviewPanel: _mobileTabIndex == 1 ? _buildPreviewPanel(session) : null,
+                smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
               ),
           ]),
           if (!isEmbedMode)
             Footer(
               statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
-              isMobile: !_isLargeScreen,
+              isSmallScreen: !_isLargeScreen,
             ),
         ]),
       ),
@@ -554,27 +558,6 @@ class AppState extends State<App> {
         actions: session.fileTree.actions,
       ),
     );
-  }
-
-  Component _buildMobileTabBar() {
-    return div(classes: 'app-bar-tab-bar', [
-      button(
-        classes: 'app-bar-tab ${_mobileTabIndex == 0 ? 'active' : ''}',
-        events: {'click': (_) => setState(() => _mobileTabIndex = 0)},
-        attributes: const {'type': 'button'},
-        const [
-          span(classes: 'app-bar-tab-label', [Component.text('Code')]),
-        ],
-      ),
-      button(
-        classes: 'app-bar-tab ${_mobileTabIndex == 1 ? 'active' : ''}',
-        events: {'click': (_) => setState(() => _mobileTabIndex = 1)},
-        attributes: const {'type': 'button'},
-        const [
-          span(classes: 'app-bar-tab-label', [Component.text('Output')]),
-        ],
-      ),
-    ]);
   }
 
   Component _buildPreviewPanel(WorkspaceSession session) {

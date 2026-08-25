@@ -5,6 +5,7 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad_frontend/features/editor/components/small_screen_tab_bar.dart';
 import 'package:dartpad_frontend/features/shared/components/app_bar.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -70,46 +71,58 @@ void main() {
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 
-  testClient('renders desktop layout with button labels and without mobile tabs', (tester) {
-    tester.pumpComponent(const AppBar(isMobile: false));
+  testClient('renders AppBar with button labels and without SmallScreenTabBar on large screens', (tester) {
+    tester.pumpComponent(const AppBar(isSmallScreen: false));
 
     final labels = web.document.querySelectorAll('.app-bar-button-label');
     expect(labels.length, 2);
     expect((labels.item(0)! as web.HTMLElement).textContent, 'Create');
     expect((labels.item(1)! as web.HTMLElement).textContent, 'Samples');
 
-    final mobileTabs = web.document.querySelector('.app-bar-tab-bar');
-    expect(mobileTabs, isNull);
+    final smallScreenTabBar = web.document.querySelector('.small-screen-tab-bar');
+    expect(smallScreenTabBar, isNull);
   });
 
-  testClient('renders mobile layout without button labels and without mobile tabs', (tester) {
+  testClient('renders AppBar and SmallScreenTabBar on small screens', (tester) {
     tester.pumpComponent(
-      const AppBar(isMobile: true),
+      AppBar(
+        isSmallScreen: true,
+        smallScreenTabBar: SmallScreenTabBar(onTabSelected: (_) {}),
+      ),
     );
 
     final labels = web.document.querySelectorAll('.app-bar-button-label');
     expect(labels.length, 0);
 
-    // Mobile tab bar is no longer rendered inside AppBar; it is handled
-    // by EditorShell so it only spans the editor/preview width.
-    final mobileTabs = web.document.querySelector('.app-bar-tab-bar');
-    expect(mobileTabs, isNull);
+    final smallScreenTabBar = web.document.querySelector('.small-screen-tab-bar');
+    expect(smallScreenTabBar, isNotNull);
   });
 
-  testClient('renders nothing in desktop embed mode', (tester) {
-    tester.pumpComponent(const AppBar(isMobile: false, isEmbedMode: true));
+  testClient('renders nothing in large-screen embed mode', (tester) {
+    tester.pumpComponent(const AppBar(isSmallScreen: false, isEmbedMode: true));
 
     expect(web.document.querySelector('.app-bar'), isNull);
-    expect(web.document.querySelector('.app-bar-tab-bar'), isNull);
+    expect(web.document.querySelector('.small-screen-tab-bar'), isNull);
   });
 
-  testClient('renders only tab bar in mobile embed mode', (tester) {
-    tester.pumpComponent(const AppBar(isMobile: true, isEmbedMode: true));
+  testClient('renders only SmallScreenTabBar in small-screen embed mode', (tester) {
+    var selectedTab = SmallScreenTab.code;
+    tester.pumpComponent(
+      AppBar(
+        isSmallScreen: true,
+        isEmbedMode: true,
+        smallScreenTabBar: SmallScreenTabBar(
+          onTabSelected: (tab) => selectedTab = tab,
+        ),
+      ),
+    );
 
     expect(web.document.querySelector('.app-bar'), isNull);
-    expect(web.document.querySelector('.app-bar-tab-bar'), isNotNull);
+    expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
 
-    final tabs = web.document.querySelectorAll('.app-bar-tab');
+    final tabs = web.document.querySelectorAll('.small-screen-tab-bar-tab');
     expect(tabs.length, 2);
+    (tabs.item(1)! as web.HTMLButtonElement).click();
+    expect(selectedTab, SmallScreenTab.output);
   });
 }

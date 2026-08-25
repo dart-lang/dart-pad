@@ -7,24 +7,27 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../editor/components/small_screen_tab_bar.dart';
 import '../../startup/examples.g.dart';
 import '../icons.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
 
-/// The main application bar with the DartPad logo, title, theme toggle, and
+/// The main [AppBar] with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 class AppBar extends StatefulComponent {
   const AppBar({
     this.onCreateNewSnippet,
     this.onLoadSample,
-    this.isMobile = false,
+    this.isSmallScreen = false,
     this.isEmbedMode = false,
-    this.selectedTab = 0,
-    this.onTabSelected,
+    this.smallScreenTabBar,
     super.key,
-  });
+  }) : assert(
+         smallScreenTabBar == null || isSmallScreen,
+         'A SmallScreenTabBar requires a small-screen layout.',
+       );
 
   /// Called when the user selects a snippet from the Create menu.
   final void Function(Example example)? onCreateNewSnippet;
@@ -32,17 +35,14 @@ class AppBar extends StatefulComponent {
   /// Called when the user selects a sample from the sample menu.
   final void Function(Example example)? onLoadSample;
 
-  /// Whether the app bar is being rendered in mobile (compact) layout mode.
-  final bool isMobile;
+  /// Whether this [AppBar] is being rendered in a small-screen layout.
+  final bool isSmallScreen;
 
   /// Whether the application is running in embed mode.
   final bool isEmbedMode;
 
-  /// The active mobile tab index (0 = Code, 1 = Output).
-  final int selectedTab;
-
-  /// Called when the active mobile tab is switched.
-  final void Function(int tab)? onTabSelected;
+  /// Code / Output [SmallScreenTabBar] displayed in small-screen layouts.
+  final SmallScreenTabBar? smallScreenTabBar;
 
   @override
   State<AppBar> createState() => _AppBarState();
@@ -79,118 +79,107 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
+    return switch ((component.isEmbedMode, component.isSmallScreen)) {
+      // Large embedded layouts show neither AppBar nor SmallScreenTabBar.
+      (true, false) => const Component.fragment([]),
+      // Small embedded layouts show only SmallScreenTabBar.
+      (true, true) => component.smallScreenTabBar ?? const Component.fragment([]),
+      // Large standalone layouts show AppBar.
+      (false, false) => _buildAppBar(),
+      // Small standalone layouts show AppBar and SmallScreenTabBar.
+      (false, true) => _buildAppBar(component.smallScreenTabBar),
+    };
+  }
+
+  Component _buildAppBar([SmallScreenTabBar? smallScreenTabBar]) {
     final isCreateDisabled = component.onCreateNewSnippet == null;
     final isSamplesDisabled = component.onLoadSample == null;
-    final isMobile = component.isMobile;
+    final isSmallScreen = component.isSmallScreen;
 
-    if (component.isEmbedMode && !isMobile) {
-      return const Component.fragment([]);
-    }
-
-    final tabBar = div(classes: 'app-bar-tab-bar', [
-      button(
-        classes: 'app-bar-tab ${component.selectedTab == 0 ? 'active' : ''}',
-        events: {'click': (_) => component.onTabSelected?.call(0)},
-        attributes: const {'type': 'button'},
-        const [
-          span(classes: 'app-bar-tab-label', [Component.text('Code')]),
-        ],
-      ),
-      button(
-        classes: 'app-bar-tab ${component.selectedTab == 1 ? 'active' : ''}',
-        events: {'click': (_) => component.onTabSelected?.call(1)},
-        attributes: const {'type': 'button'},
-        const [
-          span(classes: 'app-bar-tab-label', [Component.text('Output')]),
-        ],
-      ),
+    final appBar = div(classes: 'app-bar', [
+      // Left section: logo + title + create + samples.
+      div(classes: 'app-bar-left', [
+        const img(
+          src: 'images/dart_logo_192.png',
+          alt: 'Dart',
+          classes: 'app-bar-logo',
+        ),
+        const span(classes: 'app-bar-title', [.text('DartPad')]),
+        const div(classes: 'app-bar-divider', []),
+        DropdownMenu(
+          alignLeft: true,
+          disabled: isCreateDisabled,
+          trigger: button(
+            classes: 'app-bar-text-button',
+            disabled: isCreateDisabled,
+            attributes: {
+              'aria-label': 'Create a new snippet',
+              'title': 'Create a new snippet',
+            },
+            [
+              const Icon('add_circle', size: 18),
+              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Create')]),
+            ],
+          ),
+          items: [
+            for (final example in Examples.snippets)
+              DropdownMenuItem(
+                label: example.name,
+                leadingImage: example.icon,
+                onPressed: () => component.onCreateNewSnippet?.call(example),
+              ),
+          ],
+        ),
+        DropdownMenu(
+          alignLeft: true,
+          disabled: isSamplesDisabled,
+          trigger: button(
+            classes: 'app-bar-text-button',
+            disabled: isSamplesDisabled,
+            attributes: {
+              'aria-label': 'Samples',
+              'title': 'Try a sample',
+            },
+            [
+              const Icon('playlist_add', size: 18),
+              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Samples')]),
+            ],
+          ),
+          items: _buildExampleItems(),
+        ),
+      ]),
+      // Spacer.
+      const div(classes: 'app-bar-spacer', []),
+      // Right section: theme toggle + overflow menu.
+      div(classes: 'app-bar-right', [
+        const ThemeToggle(),
+        DropdownMenu(
+          trigger: const dp.IconButton(
+            icon: 'more_vert',
+            tooltip: 'More options',
+            label: 'More options',
+          ),
+          items: [
+            DropdownMenuItem(
+              label: 'Install SDK',
+              trailingIcon: 'launch',
+              onPressed: () => _openLink('https://flutter.dev/get-started'),
+            ),
+            DropdownMenuItem(
+              label: 'Sharing guide',
+              trailingIcon: 'launch',
+              onPressed: () => _openLink(
+                'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
+              ),
+            ),
+          ],
+        ),
+      ]),
     ]);
 
-    if (component.isEmbedMode) {
-      return tabBar;
-    }
-
     return div(classes: 'app-bar-container', [
-      div(classes: 'app-bar', [
-        // Left section: logo + title + create + samples.
-        div(classes: 'app-bar-left', [
-          const img(
-            src: 'images/dart_logo_192.png',
-            alt: 'Dart',
-            classes: 'app-bar-logo',
-          ),
-          const span(classes: 'app-bar-title', [.text('DartPad')]),
-          const div(classes: 'app-bar-divider', []),
-          DropdownMenu(
-            alignLeft: true,
-            disabled: isCreateDisabled,
-            trigger: button(
-              classes: 'app-bar-text-button',
-              disabled: isCreateDisabled,
-              attributes: {
-                'aria-label': 'Create a new snippet',
-                'title': 'Create a new snippet',
-              },
-              [
-                const Icon('add_circle', size: 18),
-                if (!isMobile) const span(classes: 'app-bar-button-label', [.text('Create')]),
-              ],
-            ),
-            items: [
-              for (final example in Examples.snippets)
-                DropdownMenuItem(
-                  label: example.name,
-                  leadingImage: example.icon,
-                  onPressed: () => component.onCreateNewSnippet?.call(example),
-                ),
-            ],
-          ),
-          DropdownMenu(
-            alignLeft: true,
-            disabled: isSamplesDisabled,
-            trigger: button(
-              classes: 'app-bar-text-button',
-              disabled: isSamplesDisabled,
-              attributes: {
-                'aria-label': 'Samples',
-                'title': 'Try a sample',
-              },
-              [
-                const Icon('playlist_add', size: 18),
-                if (!isMobile) const span(classes: 'app-bar-button-label', [.text('Samples')]),
-              ],
-            ),
-            items: _buildExampleItems(),
-          ),
-        ]),
-        // Spacer.
-        const div(classes: 'app-bar-spacer', []),
-        // Right section: theme toggle + overflow menu.
-        div(classes: 'app-bar-right', [
-          const ThemeToggle(),
-          DropdownMenu(
-            trigger: const dp.IconButton(
-              icon: 'more_vert',
-              tooltip: 'More options',
-              label: 'More options',
-            ),
-            items: [
-              DropdownMenuItem(
-                label: 'Install SDK',
-                trailingIcon: 'launch',
-                onPressed: () => _openLink('https://flutter.dev/get-started'),
-              ),
-              DropdownMenuItem(
-                label: 'Sharing guide',
-                trailingIcon: 'launch',
-                onPressed: () => _openLink(
-                  'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-                ),
-              ),
-            ],
-          ),
-        ]),
-      ]),
+      appBar,
+      ?smallScreenTabBar,
     ]);
   }
 
@@ -226,48 +215,6 @@ class _AppBarState extends State<AppBar> {
     ),
     css('.app-bar-spacer').styles(
       flex: const Flex(grow: 1),
-    ),
-    css('.app-bar-tab-bar').styles(
-      display: .flex,
-      height: 40.px,
-      minHeight: 40.px,
-      padding: .only(bottom: 4.px),
-      alignItems: .center,
-      backgroundColor: colorSurface,
-    ),
-    css('.app-bar-tab').styles(
-      display: .flex,
-      position: const .relative(),
-      height: 100.percent,
-      padding: .zero,
-      border: .none,
-      cursor: .pointer,
-      justifyContent: .center,
-      alignItems: .center,
-      flex: const Flex(grow: 1, basis: .zero),
-      color: colorOnSurface,
-      fontSize: 14.px,
-      fontWeight: .w500,
-      backgroundColor: Colors.transparent,
-    ),
-    css('.app-bar-tab:hover').styles(
-      backgroundColor: colorSurface.highlight(colorOnSurface, 0.04),
-    ),
-    css('.app-bar-tab.active').styles(
-      color: colorPrimary,
-      fontWeight: .w600,
-    ),
-    css('.app-bar-tab.active::after').styles(
-      content: '',
-      position: .absolute(bottom: 0.px, left: 50.percent),
-      width: 48.px,
-      height: 3.px,
-      radius: .circular(2.px),
-      backgroundColor: colorPrimary,
-      raw: {'transform': 'translateX(-50%)'},
-    ),
-    css('.app-bar-tab-label').styles(
-      whiteSpace: .noWrap,
     ),
     css('.app-bar-right').styles(
       display: .flex,

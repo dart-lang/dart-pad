@@ -10,13 +10,13 @@ import 'package:web/web.dart' as web;
 import '../../../app_styles.dart';
 import '../../shared/icons.dart';
 
-/// Renders a tab bar for switching between and closing open editor files.
-final class EditorTabs extends StatelessComponent {
-  /// Creates a tab strip for [openTabs].
+/// Displays open editor files and lets users switch between or close them.
+final class EditorTabBar extends StatelessComponent {
+  /// Creates an [EditorTabBar] for [openTabs].
   ///
   /// [confirmDiscard] can override the browser confirmation dialog, for
   /// example in tests.
-  const EditorTabs({
+  const EditorTabBar({
     required this.openTabs,
     required this.activeFile,
     required this.onSwitchFile,
@@ -42,7 +42,7 @@ final class EditorTabs extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'editor-tabs', [
+    return div(classes: 'editor-tab-bar', [
       for (final tab in openTabs)
         div(
           key: ValueKey('tab-${tab.path}'),
@@ -101,7 +101,7 @@ final class EditorTabs extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css('.editor-tabs', [
+    css('.editor-tab-bar', [
       css('&').styles(
         display: .flex,
         minHeight: 38.px,

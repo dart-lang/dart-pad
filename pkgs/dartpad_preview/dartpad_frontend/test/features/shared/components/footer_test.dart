@@ -11,7 +11,7 @@ import 'package:web/web.dart' as web;
 
 void main() {
   testClient('renders desktop footer with privacy and feedback links', (tester) {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isMobile: false));
+    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: false));
 
     final links = web.document.querySelectorAll('.app-footer-link');
     expect(links.length, 2);
@@ -20,8 +20,8 @@ void main() {
     expect(status?.textContent, 'Ready');
   });
 
-  testClient('renders mobile footer without privacy and feedback links', (tester) {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isMobile: true));
+  testClient('renders small-screen footer without privacy and feedback links', (tester) {
+    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: true));
 
     final links = web.document.querySelectorAll('.app-footer-link');
     expect(links.length, 0);

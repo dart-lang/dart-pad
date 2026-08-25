@@ -10,7 +10,7 @@ import '../../../app_styles.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/icons.dart';
 import 'editor_stack.dart';
-import 'editor_tabs.dart';
+import 'editor_tab_bar.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor.
 class EditorShell extends StatefulComponent {
@@ -24,8 +24,7 @@ class EditorShell extends StatefulComponent {
     required this.onCloseFile,
     required this.bottomPanel,
     this.isEmbedMode = false,
-    this.mobileTabBar,
-    this.mobilePreviewPanel,
+    this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -59,14 +58,9 @@ class EditorShell extends StatefulComponent {
   /// toggle button.
   final bool isEmbedMode;
 
-  /// Optional tab bar (Code / Output) rendered above the editor in mobile
-  /// layout. When provided, the tab bar is placed to the right of the file
-  /// tree so it does not span the full screen width.
-  final Component? mobileTabBar;
-
-  /// The preview panel to show when the Output tab is active in mobile layout.
+  /// The preview panel to show when the Output tab is active in a small-screen layout.
   /// When non-null, the preview panel replaces the editor content.
-  final Component? mobilePreviewPanel;
+  final Component? smallScreenPreviewPanel;
 
   @override
   State<EditorShell> createState() => _EditorShellState();
@@ -81,7 +75,7 @@ class _EditorShellState extends State<EditorShell> {
   @override
   void initState() {
     super.initState();
-    _fileTreeCollapsed = component.isEmbedMode || component.mobileTabBar != null;
+    _fileTreeCollapsed = component.isEmbedMode;
   }
 
   void _toggleFileTree() {
@@ -103,7 +97,7 @@ class _EditorShellState extends State<EditorShell> {
         maxValue: 0.9,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
-            EditorTabs(
+            EditorTabBar(
               openTabs: openTabs,
               activeFile: component.activeFile,
               onSwitchFile: component.onSwitchFile!,
@@ -119,16 +113,9 @@ class _EditorShellState extends State<EditorShell> {
         right: component.bottomPanel,
       ),
     ]);
-    // Determine the right-hand content: in mobile mode wrap with the tab bar,
-    // otherwise just the editor.
     final Component rightContent;
-    if (component.mobileTabBar != null) {
-      rightContent = div(classes: 'editor-shell-mobile-content', [
-        component.mobileTabBar!,
-        if (component.mobilePreviewPanel != null) component.mobilePreviewPanel! else editorContent,
-      ]);
-    } else if (component.mobilePreviewPanel != null) {
-      rightContent = component.mobilePreviewPanel!;
+    if (component.smallScreenPreviewPanel != null) {
+      rightContent = component.smallScreenPreviewPanel!;
     } else {
       rightContent = editorContent;
     }
@@ -210,16 +197,6 @@ class _EditorShellState extends State<EditorShell> {
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
     ),
-
-    // -- Mobile layout: content column to the right of the file tree --
-    css('.editor-shell-mobile-content').styles(
-      display: .flex,
-      minWidth: .zero,
-      minHeight: .zero,
-      flexDirection: .column,
-      flex: const Flex(grow: 1, basis: .zero),
-    ),
-
     // -- Embed mode: collapsed file-tree rail --
     css('.file-tree-rail').styles(
       display: .flex,
