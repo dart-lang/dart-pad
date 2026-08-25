@@ -9,4 +9,4 @@ environment:
 dependencies: {}
 
 dev_dependencies:
-  dart_flutter_team_lints: ^3.5.2
+  lints: ^6.0.0
