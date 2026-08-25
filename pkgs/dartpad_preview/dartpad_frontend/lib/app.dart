@@ -23,9 +23,9 @@ import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/startup/archive_loader.dart';
+import 'features/startup/example_project.dart';
 import 'features/startup/gist_loader.dart';
 import 'features/startup/project_loader.dart';
-import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
@@ -39,6 +39,43 @@ class App extends StatefulComponent {
 
   @css
   static List<StyleRule> get styles => AppState.styles;
+}
+
+/// Describes where the initial workspace project should be loaded from.
+sealed class ProjectSource {
+  const ProjectSource();
+
+  /// Loads an example, or the default example when [sampleId] is omitted.
+  const factory ProjectSource.example([String? sampleId]) = ExampleProjectSource;
+
+  /// Captures the startup query parameters from [uri].
+  factory ProjectSource.fromUri(Uri uri) => UrlProjectSource(uri.queryParameters);
+
+  Map<String, String> get queryParameters;
+
+  /// The query string that represents this source in the browser URL.
+  String get search {
+    final query = Uri(queryParameters: queryParameters).query;
+    return query.isEmpty ? '' : '?$query';
+  }
+}
+
+/// A project source described by URL query parameters.
+final class UrlProjectSource extends ProjectSource {
+  const UrlProjectSource(this.queryParameters);
+
+  @override
+  final Map<String, String> queryParameters;
+}
+
+/// A project source that always loads a packaged example.
+final class ExampleProjectSource extends ProjectSource {
+  const ExampleProjectSource([this.sampleId]);
+
+  final String? sampleId;
+
+  @override
+  Map<String, String> get queryParameters => sampleId == null ? const <String, String>{} : {'sample': sampleId!};
 }
 
 /// Composition root – wires all services and drives the startup lifecycle.
@@ -62,7 +99,12 @@ class AppState extends State<App> {
     _session = WorkspaceSession.create(
       WorkspaceRepository.create(events: events),
     );
-    unawaited(_initializeWorkspace(_session));
+    unawaited(
+      _initializeWorkspace(
+        _session,
+        source: ProjectSource.fromUri(Uri.base),
+      ),
+    );
   }
 
   bool _isCurrent(WorkspaceSession session) => mounted && identical(_session, session);
@@ -72,9 +114,9 @@ class AppState extends State<App> {
   /// initialization deliberately continue in the background.
   Future<void> _initializeWorkspace(
     WorkspaceSession session, {
-    bool forceSample = false,
+    required ProjectSource source,
   }) async {
-    final projectFuture = _loadProject(session, forceSample: forceSample);
+    final projectFuture = _loadProject(session, source: source);
 
     try {
       final (:workspace, :project) = await waitForWorkspaceUsable(
@@ -197,10 +239,10 @@ class AppState extends State<App> {
     }
   }
 
-  /// Replaces the current workspace with a fresh sample workspace on the same
+  /// Replaces the current workspace with a fresh example workspace on the same
   /// worker. The old session is disposed only after Jaspr has unmounted its
   /// keyed subtree.
-  void resetWorkspace() {
+  void resetWorkspace(ProjectSource source) {
     final oldSession = _session;
     final worker = oldSession.repository.dartpad;
     if (_isInitializingWorkspace || worker == null) {
@@ -217,8 +259,13 @@ class AppState extends State<App> {
       ),
     );
 
-    if (web.window.location.search.isNotEmpty) {
-      web.window.history.pushState(null, '', web.window.location.pathname);
+    final newSearch = source.search;
+    if (web.window.location.search != newSearch) {
+      web.window.history.pushState(
+        null,
+        '',
+        newSearch.isEmpty ? web.window.location.pathname : newSearch,
+      );
     }
 
     setState(() {
@@ -230,7 +277,12 @@ class AppState extends State<App> {
       _projectDir = '';
     });
 
-    unawaited(_initializeWorkspace(nextSession, forceSample: true));
+    unawaited(
+      _initializeWorkspace(
+        nextSession,
+        source: source,
+      ),
+    );
     disposeAfterWorkspaceUnmount(
       context,
       () async {
@@ -245,9 +297,9 @@ class AppState extends State<App> {
 
   Future<LoadedProject?> _loadProject(
     WorkspaceSession session, {
-    bool forceSample = false,
+    required ProjectSource source,
   }) async {
-    final params = forceSample ? const <String, String>{} : Uri.base.queryParameters;
+    final params = source.queryParameters;
 
     try {
       final LoadedProject project;
@@ -269,13 +321,18 @@ class AppState extends State<App> {
         _updateLoadingStatus(session, 'Downloading Gist...', clearError: true);
         final loader = GistLoader(gistId: gistId);
         project = await loader.loadGist(session.repository.root);
+      } else if (params['sample'] case final String sampleId) {
+        _updateLoadingStatus(session, 'Loading Example...', clearError: true);
+        project = await loadExampleProject(
+          session.repository.root,
+          sampleId: sampleId,
+          onFailure: (failure) => _reportExampleLoadFailure(session, failure),
+        );
       } else {
         _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
-        await createSampleProject(session.repository.root);
-        project = const LoadedProject(
-          projectDir: '',
-          entryPath: sampleProjectEntryPath,
-          packageRoot: '',
+        project = await loadExampleProject(
+          session.repository.root,
+          onFailure: (failure) => _reportExampleLoadFailure(session, failure),
         );
       }
 
@@ -300,6 +357,27 @@ class AppState extends State<App> {
       }
       return null;
     }
+  }
+
+  void _reportExampleLoadFailure(
+    WorkspaceSession session,
+    ExampleLoadFailure failure,
+  ) {
+    if (!_isCurrent(session)) {
+      return;
+    }
+
+    session.events.dispatch(
+      LogEvent(
+        failure.message,
+        level: Level.WARNING,
+        error: failure.error,
+        stackTrace: failure.stackTrace,
+      ),
+    );
+    setState(() {
+      _errorMessage = failure.message;
+    });
   }
 
   void _updateLoadingStatus(
@@ -341,7 +419,12 @@ class AppState extends State<App> {
     final session = _session;
     return div(classes: 'app-shell', [
       AppBar(
-        onCreateNew: _isInitializingWorkspace || session.repository.dartpad == null ? null : resetWorkspace,
+        onCreateNewSnippet: _isInitializingWorkspace || session.repository.dartpad == null
+            ? null
+            : (example) => resetWorkspace(ProjectSource.example(example.id)),
+        onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
+            ? null
+            : (example) => resetWorkspace(ProjectSource.example(example.id)),
       ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),

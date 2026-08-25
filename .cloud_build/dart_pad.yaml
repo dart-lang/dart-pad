@@ -22,6 +22,7 @@ steps:
         export PATH="/opt/flutter/bin:$$PATH"
         export PATH="$$PATH":"$$HOME/.pub-cache/bin"
         dart pub get
+        (cd ../examples && dart run build_examples.dart)
         dart run tool/copy_assets.dart
         dart run jaspr_cli:jaspr build -v
     dir: pkgs/dartpad_preview/dartpad_frontend

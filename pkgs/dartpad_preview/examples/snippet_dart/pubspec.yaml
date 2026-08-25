@@ -1,0 +1,12 @@
+name: dart_snippet
+description: A minimal Dart snippet.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.0
+
+dependencies: {}
+
+dev_dependencies:
+  lints: ^6.0.0
