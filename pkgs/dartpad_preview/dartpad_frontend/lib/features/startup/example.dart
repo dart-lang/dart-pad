@@ -4,9 +4,16 @@
 
 /// Metadata for a packaged example project (snippet or sample).
 class Example {
+  /// The display name of the example.
   final String name;
+
+  /// The unique identifier of the example.
   final String id;
+
+  /// The path to the packaged archive containing the example project.
   final String archivePath;
+
+  /// The relative path to the main entry file within the example project.
   final String entryPath;
 
   const Example({
