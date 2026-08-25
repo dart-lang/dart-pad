@@ -5,7 +5,6 @@
 import 'package:dartpad_editor/dartpad_editor.dart';
 
 import 'archive_loader.dart';
-import 'example.dart';
 import 'examples.g.dart';
 import 'project_loader.dart';
 

@@ -7,7 +7,6 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
-import '../../startup/example.dart';
 import '../../startup/examples.g.dart';
 import '../icons.dart';
 import 'dropdown_menu.dart';

@@ -186,6 +186,7 @@ class ExamplesBuilder {
 // This file has been automatically generated - please do not edit it manually.
 
 import 'example.dart';
+export 'example.dart';
 
 abstract final class Examples {
   static const List<Example> snippets = [
