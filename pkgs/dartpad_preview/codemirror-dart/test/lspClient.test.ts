@@ -290,4 +290,3 @@ test("createLspClient accepts dartLanguage() and language.name is 'dart'", () =>
 
   bindings.dispose();
 });
-
