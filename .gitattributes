@@ -1,4 +1,2 @@
 **/pubspec.lock linguist-generated=true
 pkgs/dartpad_ui/lib/primitives/samples.g.dart linguist-generated=true
-pkgs/dartpad_preview/samples/** text eol=lf
-pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/samples.g.dart text eol=lf linguist-generated=true
