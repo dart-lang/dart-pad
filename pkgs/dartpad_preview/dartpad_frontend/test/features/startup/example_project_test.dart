@@ -24,38 +24,41 @@ void main() {
     return Uint8List.fromList(const GZipEncoder().encode(TarEncoder().encode(archive)));
   }
 
-  test('reports an unknown example ID before loading the counter example', () async {
+  test('throws ArgumentError for an unknown sample ID', () async {
     final api = MemoryWorkspaceResourceApi();
-    final failures = <ExampleLoadFailure>[];
+
+    await expectLater(
+      http.runWithClient(
+        () => loadSampleProject(
+          api.root,
+          sampleId: 'unknown-sample',
+        ),
+        () => MockClient((_) async => http.Response.bytes(counterArchive(), 200)),
+      ),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
+  test('throws when the sample archive is unavailable', () async {
+    final api = MemoryWorkspaceResourceApi();
+
+    await expectLater(
+      http.runWithClient(
+        () => loadSampleProject(api.root, sampleId: 'dart'),
+        () => MockClient((_) async => http.Response('Not Found', 404)),
+      ),
+      throwsA(isA<Exception>()),
+    );
+  });
+
+  test('loads a valid sample successfully', () async {
+    final api = MemoryWorkspaceResourceApi();
 
     final project = await http.runWithClient(
-      () => loadExampleProject(
-        api.root,
-        sampleId: 'unknown-sample',
-        onFailure: failures.add,
-      ),
+      () => loadSampleProject(api.root),
       () => MockClient((_) async => http.Response.bytes(counterArchive(), 200)),
     );
 
     expect(project.entryPath, 'lib/main.dart');
-    expect(failures.map((failure) => failure.message), [
-      'Error while loading unknown-sample example, falling back to counter example.',
-    ]);
-  });
-
-  test('reports an unavailable snippet and creates the built-in counter fallback', () async {
-    final api = MemoryWorkspaceResourceApi();
-    final failures = <ExampleLoadFailure>[];
-
-    final project = await http.runWithClient(
-      () => loadExampleProject(api.root, sampleId: 'dart', onFailure: failures.add),
-      () => MockClient((_) async => http.Response('Not Found', 404)),
-    );
-
-    expect(project.entryPath, 'lib/main.dart');
-    expect(await api.fileExist('lib/main.dart'), isTrue);
-    expect(failures.map((failure) => failure.message), [
-      'Error while loading dart example, falling back to counter example.',
-    ]);
   });
 }
