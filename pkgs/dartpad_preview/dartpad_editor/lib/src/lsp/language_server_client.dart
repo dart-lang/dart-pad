@@ -95,7 +95,11 @@ class LanguageServerClient {
             await handler(relativePath);
           }
         },
-        language: dart(),
+        // Use dartLanguage() (single LanguageSupport object), NOT dart()
+        // (bundled array of extensions). The LSP client's highlightLanguage
+        // callback accesses language.language to get the Language instance
+        // whose .name must equal "dart" for hover syntax highlighting.
+        language: dartLanguage(),
       );
     }
     _languageServerSubscription = (languageServerMessages ?? languageServer!.languageServerChannel.stream).listen(

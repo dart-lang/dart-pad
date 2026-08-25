@@ -72,7 +72,9 @@ class CodeMirrorLspClient {
     void Function(String) sendToServer,
     String rootUri, {
     required Future<void> Function(String) onDisplayFile,
-    required JSAny language,
+    // Expects a JS LanguageSupport object (from dartLanguage()), not the
+    // bundled array returned by dart().
+    required JSObject language,
   }) {
     late final CodeMirrorLspClient instance;
 

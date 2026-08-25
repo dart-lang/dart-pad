@@ -9,8 +9,9 @@ import { Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { LSPPlugin } from "@codemirror/lsp-client";
 
-import { CMWorkspace } from "../src/lspClient";
+import { CMWorkspace, createLspClient } from "../src/lspClient";
 import { formatDocument, formatDocumentAsync } from "../src/formatting";
+import { dartLanguage } from "codemirror-lang-dart";
 
 function fakeView(contents: string): EditorView {
   return {
@@ -254,3 +255,39 @@ test("formatDocument remains a synchronous CodeMirror command", () => {
     LSPPlugin.get = originalGet;
   }
 });
+
+test("dartLanguage produces a Language with name 'dart'", () => {
+  const stubParse = () => new Int32Array(0);
+  const support = dartLanguage(stubParse);
+
+  assert.ok(support.language, "language property should exist");
+  assert.equal(support.language.name, "dart");
+  assert.ok(support.language.parser, "language should have a parser");
+});
+
+test("createLspClient accepts dartLanguage() and language.name is 'dart'", () => {
+  const stubParse = () => new Int32Array(0);
+  const support = dartLanguage(stubParse);
+
+  const bindings = createLspClient(
+    () => {},
+    "file:///workspace",
+    () => {},
+    () => {},
+    [],
+    support,
+  );
+
+  // This is a smoke test: the highlightLanguage callback inside
+  // createLspClient matches on `language.language.name === "dart"`, but
+  // that callback is not exposed outside createLspClient, so we cannot
+  // call it directly. Instead we verify the precondition it depends on:
+  // that language.name is set to "dart". The first test above asserts
+  // this property, and together they ensure the callback will match.
+  assert.ok(bindings);
+  assert.ok(support.language, "language property should exist");
+  assert.equal(support.language.name, "dart");
+
+  bindings.dispose();
+});
+

@@ -39,6 +39,13 @@ external JSAny sass();
 @JS()
 external JSAny sql();
 
+/// Returns the full Dart editor extension bundle as a jsified array:
+/// `[LanguageSupport, languageData (commentTokens), keymap (toggle comment)]`.
+///
+/// **Not to be confused with [dartLanguage]**, which returns a single
+/// `LanguageSupport` object. Use [dartLanguage] when only the language
+/// definition is needed (e.g. for the LSP client's `highlightLanguage`
+/// callback). Use [dart] when setting up a full editor instance.
 JSObject dart() {
   final language = dartLanguage();
 
