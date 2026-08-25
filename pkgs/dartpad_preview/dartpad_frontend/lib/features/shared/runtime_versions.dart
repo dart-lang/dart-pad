@@ -16,8 +16,13 @@ final class RuntimeVersions {
   final String dart;
   final String flutter;
 
-  /// Loads the versions recorded in the generated SDK asset manifest.
-  static Future<RuntimeVersions?> load() async {
+  static final Future<RuntimeVersions?> _loaded = _load();
+
+  /// Loads the versions recorded in the generated SDK asset manifest once per
+  /// page. Workspace resets rebuild the footer but do not change SDK assets.
+  static Future<RuntimeVersions?> load() => _loaded;
+
+  static Future<RuntimeVersions?> _load() async {
     try {
       final response = await http.get(
         Uri.base.resolve('dartpad/flutter/versions.json'),
@@ -26,7 +31,9 @@ final class RuntimeVersions {
         return null;
       }
       return fromManifest(jsonDecode(response.body));
-    } on FormatException {
+    } catch (_) {
+      // Runtime versions are optional presentation metadata. A missing or
+      // temporarily unavailable manifest must not surface as an app error.
       return null;
     }
   }

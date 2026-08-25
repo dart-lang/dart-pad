@@ -4,36 +4,31 @@
 
 import 'dart:async';
 
+import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
+import 'package:web/web.dart' as web;
 
-import 'features/bottom_panel/view_models/console_view_model.dart';
-import 'features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
-import 'features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
-import 'features/editor/image/image_tab.dart';
-import 'features/editor/view_models/tabs_view_model.dart';
-import 'features/filetree/file_tree_tabs_adapter.dart';
 import 'features/filetree/file_tree_view.dart';
-import 'features/filetree/file_tree_view_model.dart';
 import 'features/preview/view/preview_container.dart';
-import 'features/preview/view_models/preview_view_model.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
-import 'features/shared/events/workspace_event.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/gist_loader.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/sample_project.dart';
 import 'features/workspace/data/workspace_repository.dart';
+import 'features/workspace/workspace_lifecycle.dart';
+import 'features/workspace/workspace_session.dart';
 
 /// The deliberately small first production slice of DartPad.
 class App extends StatefulComponent {
@@ -48,16 +43,14 @@ class App extends StatefulComponent {
 
 /// Composition root – wires all services and drives the startup lifecycle.
 class AppState extends State<App> {
-  late final AppEventBus _events;
-  late final WorkspaceRepository _workspaceRepository;
-  late final TabsViewModel _tabs;
-  late final FileTreeViewModel _fileTree;
-  late final DiagnosticsViewModel _diagnostics;
-  late final ConsoleViewModel _console;
-  late final PreviewViewModel _preview;
+  late WorkspaceSession _session;
 
-  StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
+  /// Incremented on every workspace reset. Used as a [ValueKey] so Jaspr
+  /// unmounts the old workspace subtree (including CodeMirror NodeContainers)
+  /// rather than trying to update them in-place.
+  int _workspaceGeneration = 0;
 
+  bool _isInitializingWorkspace = true;
   String loadingStatus = 'Loading Workspace...';
   String _projectDir = '';
   String? _errorMessage;
@@ -65,109 +58,196 @@ class AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _events = AppEventBus();
-
-    _console = ConsoleViewModel(events: _events);
-
-    _workspaceRepository = WorkspaceRepository.create(events: _events);
-
-    final codemirrorAdapter = CodeMirrorTabAdapter();
-
-    _tabs = TabsViewModel(
-      workspaceResourceApi: _workspaceRepository.workspaceResourceApi,
-      adapters: [
-        ImageTabAdapter(workspaceResourceApi: _workspaceRepository.workspaceResourceApi),
-        codemirrorAdapter,
-      ],
+    final events = AppEventBus();
+    _session = WorkspaceSession.create(
+      WorkspaceRepository.create(events: events),
     );
+    unawaited(_initializeWorkspace(_session));
+  }
 
-    _fileTree = FileTreeViewModel(
-      tabs: FileTreeTabsAdapter(_tabs),
-      workspace: _workspaceRepository.workspaceResourceApi,
-    );
-    _diagnostics = DiagnosticsViewModel(tabs: _tabs);
+  bool _isCurrent(WorkspaceSession session) => mounted && identical(_session, session);
 
-    _preview = PreviewViewModel(workspaceRepository: _workspaceRepository, eventBus: _events);
+  /// Loads the workspace and project. Once the initial file has been opened,
+  /// the workspace is usable and another reset may be requested. Pub and LSP
+  /// initialization deliberately continue in the background.
+  Future<void> _initializeWorkspace(
+    WorkspaceSession session, {
+    bool forceSample = false,
+  }) async {
+    final projectFuture = _loadProject(session, forceSample: forceSample);
 
-    final projectFuture = loadProject();
-
-    _events.on<WorkspaceLoadedEvent>().listen((event) async {
-      if (!mounted) {
+    try {
+      final (:workspace, :project) = await waitForWorkspaceUsable(
+        workspaceReady: session.repository.readyWorkspace,
+        projectReady: projectFuture,
+      );
+      if (!_isCurrent(session)) {
         return;
       }
 
-      final project = await projectFuture;
+      setState(() {
+        _isInitializingWorkspace = false;
+      });
 
-      if (!mounted) {
+      unawaited(_initializeWorkspaceTools(session, workspace, project));
+    } catch (error) {
+      if (!_isCurrent(session)) {
         return;
       }
+      setState(() {
+        _isInitializingWorkspace = false;
+        _errorMessage = 'Failed to initialize workspace: $error';
+      });
+    }
+  }
 
+  Future<void> _initializeWorkspaceTools(
+    WorkspaceSession session,
+    Workspace workspace,
+    LoadedProject? project,
+  ) async {
+    try {
       if (project?.packageRoot case final String packageRoot) {
+        if (!_isCurrent(session)) {
+          return;
+        }
         setState(() {
           loadingStatus = 'Running Pub Get...';
         });
 
         try {
-          await _workspaceRepository.pubGet(
+          await session.repository.pubGet(
             path: packageRoot,
             projectRoot: packageRoot,
           );
         } catch (error, stackTrace) {
-          _events.dispatch(
-            LogEvent(
-              'Pub get failed.',
-              level: Level.SEVERE,
-              error: error,
-              stackTrace: stackTrace,
-            ),
-          );
+          if (_isCurrent(session)) {
+            session.events.dispatch(
+              LogEvent(
+                'Pub get failed.',
+                level: Level.SEVERE,
+                error: error,
+                stackTrace: stackTrace,
+              ),
+            );
+          }
         }
       }
 
-      if (!mounted) {
+      if (!_isCurrent(session)) {
         return;
       }
-
       setState(() {
         loadingStatus = 'Initializing Analyzer...';
       });
 
-      final languageServer = await event.workspace.startLanguageServer();
+      final languageServer = await workspace.startLanguageServer();
+      if (!_isCurrent(session)) {
+        await languageServer.stop();
+        return;
+      }
+
       final languageServerClient = LanguageServerClient(
         languageServer: languageServer,
-        rootWorkspaceUri: event.workspace.workspaceFolder,
-        workspaceChangeEvents: _workspaceRepository.workspaceResourceApi.changeEvents,
+        rootWorkspaceUri: workspace.workspaceFolder,
+        workspaceChangeEvents: session.repository.workspaceResourceApi.changeEvents,
         documentEditsHandler: (filePath, edits) async {
-          final tab = _tabs.getTab(filePath);
-          if (tab != null && tab is CodeMirrorTab) {
+          final tab = session.tabs.getTab(filePath);
+          if (tab is CodeMirrorTab) {
             await tab.applyEdits(edits);
           } else {
-            final file = _workspaceRepository.root.getFile(filePath);
-            await file.writeContent(LanguageServerClient.applyEdits(await file.readContent(), edits));
+            final file = session.repository.root.getFile(filePath);
+            await file.writeContent(
+              LanguageServerClient.applyEdits(await file.readContent(), edits),
+            );
           }
         },
-        displayFileHandler: (filePath) async {
-          await _tabs.openFile(filePath);
-        },
+        displayFileHandler: session.tabs.openFile,
       );
+      if (!_isCurrent(session)) {
+        await languageServerClient.dispose();
+        await languageServer.stop();
+        return;
+      }
 
-      _analyzerSubscription = languageServerClient.analyzerActivityStream.listen(
-        _updateAnalyzerStatus,
+      session.attachLanguageServer(
+        server: languageServer,
+        client: languageServerClient,
+        onAnalyzerActivity: (activity) => _updateAnalyzerStatus(session, activity),
       );
-
-      _fileTree.languageServerClient = languageServerClient;
-      _diagnostics.attachLanguageServer(languageServerClient);
-
-      codemirrorAdapter.attachLanguageServerClient(languageServerClient);
 
       setState(() {
         loadingStatus = 'Analyzing Project...';
       });
-    });
+    } catch (error, stackTrace) {
+      if (!_isCurrent(session)) {
+        return;
+      }
+      session.events.dispatch(
+        LogEvent(
+          'Analyzer initialization failed.',
+          level: Level.SEVERE,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+      setState(() {
+        loadingStatus = 'Analyzer initialization failed.';
+      });
+    }
   }
 
-  Future<LoadedProject?> loadProject() async {
-    final params = Uri.base.queryParameters;
+  /// Replaces the current workspace with a fresh sample workspace on the same
+  /// worker. The old session is disposed only after Jaspr has unmounted its
+  /// keyed subtree.
+  void resetWorkspace() {
+    final oldSession = _session;
+    final worker = oldSession.repository.dartpad;
+    if (_isInitializingWorkspace || worker == null) {
+      return;
+    }
+
+    final previousWorkspaceDisposed = Completer<void>();
+    final events = AppEventBus();
+    final nextSession = WorkspaceSession.create(
+      WorkspaceRepository.resetAndCreate(
+        events: events,
+        worker: worker,
+        previousWorkspaceDisposed: previousWorkspaceDisposed.future,
+      ),
+    );
+
+    if (web.window.location.search.isNotEmpty) {
+      web.window.history.pushState(null, '', web.window.location.pathname);
+    }
+
+    setState(() {
+      _workspaceGeneration++;
+      _session = nextSession;
+      _isInitializingWorkspace = true;
+      loadingStatus = 'Initializing Workspace...';
+      _errorMessage = null;
+      _projectDir = '';
+    });
+
+    unawaited(_initializeWorkspace(nextSession, forceSample: true));
+    disposeAfterWorkspaceUnmount(
+      context,
+      () async {
+        try {
+          await oldSession.dispose(closeWorker: false);
+        } finally {
+          previousWorkspaceDisposed.complete();
+        }
+      },
+    );
+  }
+
+  Future<LoadedProject?> _loadProject(
+    WorkspaceSession session, {
+    bool forceSample = false,
+  }) async {
+    final params = forceSample ? const <String, String>{} : Uri.base.queryParameters;
 
     try {
       final LoadedProject project;
@@ -175,37 +255,23 @@ class AppState extends State<App> {
         'archive': final String archiveUrlParam,
         'path': final String filePathParam,
       }) {
-        setState(() {
-          loadingStatus = 'Downloading Archive...';
-          _errorMessage = null;
-        });
+        _updateLoadingStatus(session, 'Downloading Archive...', clearError: true);
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
         final filePath = Uri.decodeComponent(filePathParam);
         final loader = ArchiveLoader(archiveUrl: archiveUrl, filePath: filePath);
-        project = await loader.loadArchive(_workspaceRepository.root);
+        project = await loader.loadArchive(session.repository.root);
       } else if (params case {'package': final String packageName}) {
-        setState(() {
-          loadingStatus = 'Resolving Package...';
-          _errorMessage = null;
-        });
+        _updateLoadingStatus(session, 'Resolving Package...', clearError: true);
         final loader = await ArchiveLoader.forPackage(packageName);
-        setState(() {
-          loadingStatus = 'Downloading Package...';
-        });
-        project = await loader.loadArchive(_workspaceRepository.root);
+        _updateLoadingStatus(session, 'Downloading Package...');
+        project = await loader.loadArchive(session.repository.root);
       } else if (params['gist'] case final String gistId) {
-        setState(() {
-          loadingStatus = 'Downloading Gist...';
-          _errorMessage = null;
-        });
+        _updateLoadingStatus(session, 'Downloading Gist...', clearError: true);
         final loader = GistLoader(gistId: gistId);
-        project = await loader.loadGist(_workspaceRepository.root);
+        project = await loader.loadGist(session.repository.root);
       } else {
-        setState(() {
-          loadingStatus = 'Creating Sample Project...';
-          _errorMessage = null;
-        });
-        await createSampleProject(_workspaceRepository.root);
+        _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
+        await createSampleProject(session.repository.root);
         project = const LoadedProject(
           projectDir: '',
           entryPath: sampleProjectEntryPath,
@@ -213,21 +279,21 @@ class AppState extends State<App> {
         );
       }
 
-      if (!mounted) {
+      if (!_isCurrent(session)) {
         return project;
       }
 
       setState(() {
         _projectDir = project.projectDir;
       });
-      _fileTree.focusPath(project.projectDir);
+      session.fileTree.focusPath(project.projectDir);
       if (project.entryPath case final String entryPath) {
-        unawaited(_tabs.openFile(entryPath));
+        await session.tabs.openFile(entryPath);
       }
 
       return project;
     } catch (error) {
-      if (mounted) {
+      if (_isCurrent(session)) {
         setState(() {
           _errorMessage = 'Failed to load project: $error';
         });
@@ -236,8 +302,27 @@ class AppState extends State<App> {
     }
   }
 
-  void _updateAnalyzerStatus(AnalyzerActivity activity) {
-    if (!mounted || activity is! AnalyzerStatusActivity) {
+  void _updateLoadingStatus(
+    WorkspaceSession session,
+    String status, {
+    bool clearError = false,
+  }) {
+    if (!_isCurrent(session)) {
+      return;
+    }
+    setState(() {
+      loadingStatus = status;
+      if (clearError) {
+        _errorMessage = null;
+      }
+    });
+  }
+
+  void _updateAnalyzerStatus(
+    WorkspaceSession session,
+    AnalyzerActivity activity,
+  ) {
+    if (!_isCurrent(session) || activity is! AnalyzerStatusActivity) {
       return;
     }
 
@@ -253,97 +338,94 @@ class AppState extends State<App> {
 
   @override
   Component build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _tabs,
-      builder: (context) => div(classes: 'app-shell', [
-        const AppBar(),
-        div(classes: 'app-workspace', [
-          SplitPanel(
-            initialValue: 0.7,
-            left: EditorShell(
-              openTabs: _tabs.openTabs,
-              activeFile: _tabs.activeFile,
-              fileTree: _buildFileTree(),
-              editorOverlay: _buildEditorOverlay(),
-              onSwitchFile: _tabs.switchFile,
-              onCloseFile: _tabs.closeFile,
-              bottomPanel: _buildBottomPanel(),
+    final session = _session;
+    return div(classes: 'app-shell', [
+      AppBar(
+        onCreateNew: _isInitializingWorkspace || session.repository.dartpad == null ? null : resetWorkspace,
+      ),
+      ListenableBuilder(
+        key: ValueKey(_workspaceGeneration),
+        listenable: session.tabs,
+        builder: (context) => div(classes: 'app-workspace-container', [
+          div(classes: 'app-workspace', [
+            SplitPanel(
+              initialValue: 0.7,
+              left: EditorShell(
+                openTabs: session.tabs.openTabs,
+                activeFile: session.tabs.activeFile,
+                fileTree: _buildFileTree(session),
+                editorOverlay: _buildEditorOverlay(session),
+                onSwitchFile: session.tabs.switchFile,
+                onCloseFile: session.tabs.closeFile,
+                bottomPanel: _buildBottomPanel(session),
+              ),
+              right: _buildPreviewPanel(session),
             ),
-            right: _buildPreviewPanel(),
+          ]),
+          Footer(
+            statusLabel: _errorMessage ?? session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
           ),
         ]),
-        Footer(
-          statusLabel: _errorMessage ?? _tabs.errorMessage ?? _tabs.warningMessage ?? loadingStatus,
-        ),
-      ]),
-    );
+      ),
+    ]);
   }
 
-  Component _buildBottomPanel() {
+  Component _buildBottomPanel(WorkspaceSession session) {
     return ListenableBuilder(
-      listenable: _console,
+      listenable: session.console,
       builder: (context) => ListenableBuilder(
-        listenable: _diagnostics,
+        listenable: session.diagnostics,
         builder: (context) => BottomPanel(
-          diagnostics: _diagnostics.diagnostics,
-          hasMoreDiagnostics: _diagnostics.hasMoreDiagnostics,
-          activeFile: _tabs.activeFile,
-          logs: _console.logs,
-          onClearConsole: _console.clear,
+          diagnostics: session.diagnostics.diagnostics,
+          hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
+          activeFile: session.tabs.activeFile,
+          logs: session.console.logs,
+          onClearConsole: session.console.clear,
           onOpenDiagnostic: (fileName, diagnostic) {
-            unawaited(_diagnostics.openDiagnostic(fileName, diagnostic));
+            unawaited(session.diagnostics.openDiagnostic(fileName, diagnostic));
           },
         ),
       ),
     );
   }
 
-  Component _buildEditorOverlay() {
+  Component _buildEditorOverlay(WorkspaceSession session) {
     return PubspecEditorActions(
-      activeFile: _tabs.activeFile,
-      saveAllFiles: _tabs.saveAllTabs,
-      events: _events,
-      onPubGet: (workspacePath) => _workspaceRepository.pubGet(
+      activeFile: session.tabs.activeFile,
+      saveAllFiles: session.tabs.saveAllTabs,
+      events: session.events,
+      onPubGet: (workspacePath) => session.repository.pubGet(
         path: workspacePath,
         projectRoot: _projectDir,
       ),
-      onPubClean: (workspacePath) => _workspaceRepository.pubClean(path: workspacePath),
+      onPubClean: (workspacePath) => session.repository.pubClean(path: workspacePath),
     );
   }
 
-  Component _buildFileTree() {
+  Component _buildFileTree(WorkspaceSession session) {
     return ListenableBuilder(
-      listenable: _fileTree,
+      listenable: session.fileTree,
       builder: (context) => FileTreeView(
-        state: _fileTree.state,
-        actions: _fileTree.actions,
+        state: session.fileTree.state,
+        actions: session.fileTree.actions,
       ),
     );
   }
 
-  Component _buildPreviewPanel() {
+  Component _buildPreviewPanel(WorkspaceSession session) {
     return ListenableBuilder(
-      listenable: _preview,
+      listenable: session.preview,
       builder: (context) => PreviewContainer(
-        preview: _preview,
-        activeFile: _tabs.activeFile,
+        preview: session.preview,
+        activeFile: session.tabs.activeFile,
       ),
     );
   }
 
   @override
   void dispose() {
-    unawaited(_disposeResources());
+    unawaited(_session.dispose(closeWorker: true));
     super.dispose();
-  }
-
-  Future<void> _disposeResources() async {
-    await _analyzerSubscription?.cancel();
-    _console.dispose();
-    _diagnostics.dispose();
-    _fileTree.dispose();
-    _tabs.dispose();
-    await _events.dispose();
   }
 
   static List<StyleRule> get styles => [
@@ -354,6 +436,13 @@ class AppState extends State<App> {
       minWidth: .zero,
       minHeight: .zero,
       flexDirection: .column,
+    ),
+    css('.app-workspace-container').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
     ),
     css('.app-workspace').styles(
       display: .flex,
