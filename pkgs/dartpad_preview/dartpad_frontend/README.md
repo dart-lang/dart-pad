@@ -46,6 +46,12 @@ Example:
 http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart
 ```
 
+When `main` is omitted, the file opened by `path` is also executed:
+
+```url
+http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/lib/main.dart
+```
+
 ### Loading from Package Name
 
 To load the example project of a package published on pub.dev, use the

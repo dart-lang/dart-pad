@@ -51,10 +51,11 @@ class ArchiveLoader {
   /// The name of the package that the archive belongs to.
   final String? packageName;
 
-  /// The workspace-relative file path within the project to open after extraction.
+  /// The workspace-relative file path within the project to open in the editor
+  /// after extraction.
   final String? filePath;
 
-  /// The entrypoint file to be executed. Defaults to [filePath].
+  /// The entrypoint file to be executed in the preview. Defaults to [filePath].
   final String? pathToMain;
 
   /// Downloads, decompresses, and extracts all files from the [archiveUrl]
