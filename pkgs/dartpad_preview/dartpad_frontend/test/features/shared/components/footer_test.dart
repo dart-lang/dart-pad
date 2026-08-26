@@ -33,7 +33,7 @@ void main() {
   });
 
   testClient('opens shortcuts dialog and toggles show more shortcuts', (tester) async {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isMobile: false));
+    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: false));
 
     // Initially dialog is not in the DOM.
     expect(web.document.querySelector('.shortcuts-dialog'), isNull);
@@ -118,6 +118,6 @@ class _StatusHolderState extends State<_StatusHolder> {
 
   @override
   Component build(BuildContext context) {
-    return Footer(statusLabel: _status, isMobile: false);
+    return Footer(statusLabel: _status, isSmallScreen: false);
   }
 }
