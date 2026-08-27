@@ -56,6 +56,9 @@ final class _ErrorToastState extends State<ErrorToast> {
   }
 
   void _show(ErrorToastEvent event) {
+    if (!mounted) {
+      return;
+    }
     _dismissTimer?.cancel();
     setState(() {
       _message = event.message;
@@ -78,22 +81,25 @@ final class _ErrorToastState extends State<ErrorToast> {
   @override
   Component build(BuildContext context) {
     final message = _message;
-    if (message == null) {
-      return const .empty();
-    }
-    return div(
-      key: ValueKey(_toastId),
-      classes: 'editor-error-toast',
-      attributes: const {
-        'role': 'alert',
-        'aria-live': 'assertive',
-        'aria-atomic': 'true',
-      },
-      [
-        const Icon('error', size: 18, classes: 'editor-error-toast-icon'),
-        span([.text(message)]),
-      ],
-    );
+    // Keep the stateful component's root render object stable. Replacing an
+    // empty component with a keyed element while the context menu closes can
+    // otherwise make Jaspr detach the old fragment from the wrong parent.
+    return div(classes: 'editor-error-toast-host', [
+      if (message != null)
+        div(
+          key: ValueKey(_toastId),
+          classes: 'editor-error-toast',
+          attributes: const {
+            'role': 'alert',
+            'aria-live': 'assertive',
+            'aria-atomic': 'true',
+          },
+          [
+            const Icon('error', size: 18, classes: 'editor-error-toast-icon'),
+            span([.text(message)]),
+          ],
+        ),
+    ]);
   }
 
   @override

@@ -391,4 +391,61 @@ void main() {
     final topValue = double.parse(topStyle.replaceAll('px', ''));
     expect(topValue, lessThan(controller.anchorTop));
   });
+
+  testClient('right-click contextmenu positions cursor when outside selection', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    mainTab.editor.text = 'void main() {\n  print("hello");\n}';
+    // Set selection initially at position 0
+    mainTab.editor.view.dispatch(
+      TransactionSpec(selection: EditorSelection.single(0)),
+    );
+
+    // Get coords for position 10
+    final coords = mainTab.editor.view.coordsAtPos(10);
+    if (coords != null) {
+      mainTab.container.dispatchEvent(
+        web.MouseEvent(
+          'contextmenu',
+          web.MouseEventInit(
+            bubbles: true,
+            cancelable: true,
+            clientX: ((coords.left + coords.right) / 2).round(),
+            clientY: ((coords.top + coords.bottom) / 2).round(),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(mainTab.editor.view.state.selection.main.anchor, 10);
+    }
+  });
+
+  testClient('right-click contextmenu preserves selection when inside existing selection', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    mainTab.editor.text = 'void main() {\n  print("hello");\n}';
+    // Set selection from 5 to 15
+    mainTab.editor.view.dispatch(
+      TransactionSpec(selection: EditorSelection.single(5, 15)),
+    );
+
+    // Get coords for position 10 (inside range 5..15)
+    final coords = mainTab.editor.view.coordsAtPos(10);
+    if (coords != null) {
+      mainTab.container.dispatchEvent(
+        web.MouseEvent(
+          'contextmenu',
+          web.MouseEventInit(
+            bubbles: true,
+            cancelable: true,
+            clientX: ((coords.left + coords.right) / 2).round(),
+            clientY: ((coords.top + coords.bottom) / 2).round(),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(mainTab.editor.view.state.selection.main.from, 5);
+      expect(mainTab.editor.view.state.selection.main.to, 15);
+    }
+  });
 }

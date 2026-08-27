@@ -22,6 +22,7 @@ import 'features/preview/models/preview_state.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
+import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
@@ -520,6 +521,9 @@ class AppState extends State<App> {
     if (!_isCurrent(session)) {
       return;
     }
+    if (loadingStatus == status && (!clearError || _errorMessage == null)) {
+      return;
+    }
     setState(() {
       loadingStatus = status;
       if (clearError) {
@@ -582,6 +586,7 @@ class AppState extends State<App> {
                   onSwitchFile: session.tabs.switchFile,
                   onCloseFile: session.tabs.closeFile,
                   bottomPanel: _buildBottomPanel(session),
+                  contextMenu: session.contextMenu,
                   isEmbedMode: isEmbedMode,
                 ),
                 right: _buildPreviewPanel(session),
@@ -595,6 +600,7 @@ class AppState extends State<App> {
                 onSwitchFile: session.tabs.switchFile,
                 onCloseFile: session.tabs.closeFile,
                 bottomPanel: _buildBottomPanel(session),
+                contextMenu: session.contextMenu,
                 isEmbedMode: isEmbedMode,
                 smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
               ),
@@ -609,6 +615,17 @@ class AppState extends State<App> {
         ]),
       ),
       if (_errorMessage case final String message) ErrorDialog(errorMessage: message),
+      ListenableBuilder(
+        listenable: session.contextMenu,
+        builder: (context) => ContextMenu(
+          key: const ValueKey('active-context-menu'),
+          x: session.contextMenu.x,
+          y: session.contextMenu.y,
+          items: session.contextMenu.items,
+          isOpen: session.contextMenu.isOpen,
+          onClose: session.contextMenu.hide,
+        ),
+      ),
     ]);
   }
 
@@ -623,6 +640,7 @@ class AppState extends State<App> {
           activeFile: session.tabs.activeFile,
           logs: session.console.logs,
           onClearConsole: session.console.clear,
+          contextMenu: session.contextMenu,
           onOpenDiagnostic: (fileName, diagnostic) {
             unawaited(session.diagnostics.openDiagnostic(fileName, diagnostic));
           },
@@ -643,7 +661,10 @@ class AppState extends State<App> {
         ),
         onPubClean: (workspacePath) => session.repository.pubClean(path: workspacePath),
       ),
-      ErrorToast(events: session.events),
+      ErrorToast(
+        key: const ValueKey('editor-error-toast'),
+        events: session.events,
+      ),
     ]);
   }
 
@@ -653,6 +674,7 @@ class AppState extends State<App> {
       builder: (context) => FileTreeView(
         state: session.fileTree.state,
         actions: session.fileTree.actions,
+        contextMenu: session.contextMenu,
       ),
     );
   }
@@ -676,6 +698,7 @@ class AppState extends State<App> {
   }
 
   static List<StyleRule> get styles => [
+    ...ContextMenu.styles,
     css('.app-shell').styles(
       display: .flex,
       width: 100.percent,
