@@ -9,8 +9,10 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../../sdks.g.dart';
 import '../icons.dart';
-import '../runtime_versions.dart';
+import '../sdk_info.dart';
+import 'dropdown_menu.dart';
 import 'icon_button.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
@@ -19,6 +21,8 @@ final class Footer extends StatefulComponent {
   const Footer({
     required this.statusLabel,
     this.isSmallScreen = false,
+    this.currentSdk,
+    this.onSelectSdk,
     super.key,
   });
 
@@ -27,6 +31,12 @@ final class Footer extends StatefulComponent {
 
   /// Whether the footer is rendered in a small-screen layout.
   final bool isSmallScreen;
+
+  /// The currently active SDK.
+  final SdkInfo? currentSdk;
+
+  /// Callback when a different SDK is selected.
+  final ValueChanged<SdkInfo>? onSelectSdk;
 
   @override
   State<Footer> createState() => _FooterState();
@@ -37,25 +47,6 @@ final class Footer extends StatefulComponent {
 
 class _FooterState extends State<Footer> {
   bool _showShortcuts = false;
-  RuntimeVersions? _runtimeVersions;
-
-  String get dartRuntimeVersion => _runtimeVersions?.dart ?? '…';
-  String get flutterRuntimeVersion => _runtimeVersions?.flutter ?? '…';
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadRuntimeVersions());
-  }
-
-  Future<void> _loadRuntimeVersions() async {
-    final versions = await RuntimeVersions.load();
-    if (versions != null && mounted) {
-      setState(() {
-        _runtimeVersions = versions;
-      });
-    }
-  }
 
   void _openShortcuts() {
     setState(() {
@@ -112,19 +103,55 @@ class _FooterState extends State<Footer> {
             _buildFeedbackLink(),
           ],
         ]),
-        div(
-          classes: 'app-footer-runtime-versions',
-          attributes: {'aria-label': 'Runtime versions'},
-          [
-            .text('Dart $dartRuntimeVersion • Flutter $flutterRuntimeVersion'),
-          ],
-        ),
         div(classes: 'app-footer-status', [
           .text(component.statusLabel),
         ]),
+        _buildRuntimeVersions(),
       ]),
       if (_showShortcuts) _buildShortcutsDialog(),
     ]);
+  }
+
+  Component _buildRuntimeVersions() {
+    final currentSdk = component.currentSdk;
+    final onSelectSdk = component.onSelectSdk;
+    final isDisabled = onSelectSdk == null;
+
+    if (availableSdks.length > 1) {
+      return DropdownMenu(
+        openUp: true,
+        disabled: isDisabled,
+        trigger: button(
+          classes: 'app-footer-sdk-trigger',
+          disabled: isDisabled,
+          attributes: {
+            'aria-label': 'Select DartPad SDK',
+            'title': 'Select DartPad SDK',
+          },
+          [
+            span([.text(currentSdk?.displayName ?? 'Dart … • Flutter …')]),
+            const Icon('arrow_drop_down', size: 16),
+          ],
+        ),
+        items: [
+          for (final sdk in availableSdks)
+            DropdownMenuItem(
+              label: sdk.displayName,
+              trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
+              onPressed: () => onSelectSdk?.call(sdk),
+            ),
+        ],
+      );
+    }
+
+    final displayText = currentSdk?.displayName ?? 'Dart … • Flutter …';
+    return div(
+      classes: 'app-footer-runtime-versions',
+      attributes: {'aria-label': 'Runtime versions'},
+      [
+        .text(displayText),
+      ],
+    );
   }
 
   Component _buildPrivacyNoticeLink() {
@@ -207,7 +234,6 @@ class _FooterState extends State<Footer> {
       border: .only(
         top: .solid(color: colorBorder, width: 1.px),
       ),
-      overflow: .hidden,
       alignItems: .center,
       gap: Gap.all(10.px),
       flex: const .shrink(0),
@@ -237,16 +263,42 @@ class _FooterState extends State<Footer> {
     css('.app-footer-link:hover').styles(color: colorOnSurface),
     css('.app-footer-runtime-versions').styles(
       minWidth: .zero,
-      margin: const Margin.only(left: Unit.auto),
       overflow: .hidden,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
     ),
+    css('.app-footer-sdk-trigger').styles(
+      display: .inlineFlex,
+      position: const .relative(),
+      height: 28.px,
+      padding: .symmetric(horizontal: 6.px),
+      border: .none,
+      radius: .circular(4.px),
+      outline: const Outline(style: .none),
+      cursor: .pointer,
+      transition: Transition('background-color', duration: 150.ms, curve: .ease),
+      alignItems: .center,
+      gap: Gap.all(2.px),
+      color: colorOnSurface,
+      fontFamily: const .list([FontFamilies.sansSerif]),
+      fontSize: 11.px,
+      textOverflow: .ellipsis,
+      whiteSpace: .noWrap,
+      backgroundColor: Colors.transparent,
+    ),
+    css('.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus').styles(
+      backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
+    ),
+    css('.app-footer-sdk-trigger:disabled').styles(
+      opacity: 0.7,
+      cursor: .notAllowed,
+    ),
     css('.app-footer-status').styles(
       width: 120.px,
       minWidth: 120.px,
-      margin: Margin.only(left: 10.px),
+      margin: Margin.only(left: Unit.auto, right: 8.px),
       overflow: .hidden,
+      textAlign: .right,
       fontSize: 11.px,
       textOverflow: .ellipsis,
       whiteSpace: .noWrap,
