@@ -18,7 +18,13 @@ import {
   Compartment,
   Extension,
 } from "@codemirror/state";
-import { EditorView, keymap, showPanel } from "@codemirror/view";
+import { EditorView, keymap, showPanel, KeyBinding } from "@codemirror/view";
+import {
+  formatKeymap,
+  renameKeymap,
+  jumpToDefinitionKeymap,
+  findReferencesKeymap,
+} from "@codemirror/lsp-client";
 import { basicSetup } from "codemirror";
 import { dartpad as dartpadTheme } from "./theme";
 import { indentWithTab, toggleLineComment } from "@codemirror/commands";
@@ -78,8 +84,39 @@ declare global {
       selectionAction: typeof selectionAction;
       diagnosticHoverToolbar: typeof diagnosticHoverToolbar;
       forceSemanticTokensRefresh: typeof forceSemanticTokensRefresh;
+
+      // test utilities
+      getRegisteredKeys: (state: EditorState) => string[];
+      formatKeymap: readonly KeyBinding[];
+      renameKeymap: readonly KeyBinding[];
+      jumpToDefinitionKeymap: readonly KeyBinding[];
+      findReferencesKeymap: readonly KeyBinding[];
     };
   }
+}
+
+/**
+ * Returns all key binding strings registered in the given editor state.
+ *
+ * This is used by tests to verify that every shortcut listed in the
+ * shortcuts dialog is actually registered in CodeMirror.
+ */
+function getRegisteredKeys(state: EditorState): string[] {
+  return state
+    .facet(keymap)
+    .flat()
+    .flatMap((b) => {
+      const keys: string[] = [b.key, b.mac, b.linux, b.win].filter(
+        (k): k is string => k != null,
+      );
+      // CodeMirror stores Shift-modified handlers (e.g. Shift-Tab for
+      // indentWithTab) as a separate `shift` property rather than a
+      // distinct key string. Emit `Shift-{key}` so tests can find them.
+      if (b.shift && b.key) {
+        keys.push(`Shift-${b.key}`);
+      }
+      return keys;
+    });
 }
 
 /**
@@ -124,4 +161,11 @@ window._codemirror = {
   selectionAction,
   diagnosticHoverToolbar,
   forceSemanticTokensRefresh,
+
+  // test utilities
+  getRegisteredKeys,
+  formatKeymap,
+  renameKeymap,
+  jumpToDefinitionKeymap,
+  findReferencesKeymap,
 };
