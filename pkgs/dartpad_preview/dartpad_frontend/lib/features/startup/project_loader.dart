@@ -27,11 +27,13 @@ final class LoadedProject {
     required this.projectDir,
     required this.entryPath,
     required this.packageRoot,
+    this.pathToMain,
   });
 
   final String projectDir;
   final String? entryPath;
   final String? packageRoot;
+  final String? pathToMain;
 }
 
 /// Shared workspace import operations for externally loaded projects.
