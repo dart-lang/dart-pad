@@ -115,7 +115,6 @@ void main() {
     expect(contextMenu.isOpen, isFalse);
     expect(web.document.querySelector('.editor-error-toast')?.textContent, contains('Clipboard access denied'));
 
-    contextMenu.dispose();
     await events.dispose();
   });
 }
