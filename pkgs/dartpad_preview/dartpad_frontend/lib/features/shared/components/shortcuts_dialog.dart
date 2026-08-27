@@ -104,7 +104,9 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
     // Group shortcuts by category, preserving the order of first appearance.
     final categories = <ShortcutCategory, List<ShortcutDefinition>>{};
     for (final shortcut in shortcutDefinitions) {
-      categories.putIfAbsent(shortcut.category, () => []).add(shortcut);
+      if (shortcut.category case final category?) {
+        categories.putIfAbsent(category, () => []).add(shortcut);
+      }
     }
 
     final shortcutRows = <Component>[];

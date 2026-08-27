@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
 
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
+import '../../shared/components/context_menu.dart';
 import '../file_tree_models.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
@@ -24,6 +26,7 @@ class FileTreeFileItem extends StatefulComponent {
     required this.selectedPath,
     required this.onSelect,
     this.confirmDelete,
+    this.contextMenu,
     super.key,
   });
 
@@ -47,6 +50,9 @@ class FileTreeFileItem extends StatefulComponent {
 
   /// Optional callback to confirm deletion of this file.
   final bool Function(String message)? confirmDelete;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
 
   @override
   State<FileTreeFileItem> createState() => _FileTreeFileItemState();
@@ -169,6 +175,12 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
             unawaited(Future<void>.sync(() => component.actions.openFile(path)));
           }
         },
+        'contextmenu': (web.Event event) => _handleContextMenu(
+          event,
+          path,
+          openable: openable,
+          protected: protected,
+        ),
       },
       children: [
         const span(classes: 'file-tree-disclosure spacer', []),
@@ -186,6 +198,66 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           ),
       ],
     );
+  }
+
+  void _handleContextMenu(
+    web.Event event,
+    String path, {
+    required bool openable,
+    required bool protected,
+  }) {
+    final menu = component.contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    event.preventDefault();
+    event.stopPropagation();
+    component.actions.clearOperationError();
+    component.onSelect(path);
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildContextMenuItems(path, openable: openable, protected: protected),
+    );
+  }
+
+  List<ContextMenuEntry> _buildContextMenuItems(
+    String path, {
+    required bool openable,
+    required bool protected,
+  }) {
+    return [
+      if (openable)
+        ContextMenuItem(
+          label: 'Open',
+          onPressed: () {
+            unawaited(Future<void>.sync(() => component.actions.openFile(path)));
+          },
+        ),
+      if (!protected) ...[
+        ContextMenuItem(
+          label: 'Rename',
+          onPressed: () {
+            setState(() {
+              _isRenaming = true;
+            });
+          },
+        ),
+        ContextMenuItem(
+          label: 'Delete',
+          destructive: true,
+          onPressed: () => _confirmDeleteFile(path),
+        ),
+        const ContextMenuDivider(),
+      ],
+      ContextMenuItem(
+        label: 'Copy path',
+        onPressed: () {
+          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+        },
+      ),
+    ];
   }
 
   Component _fileIcon(String fileName) {

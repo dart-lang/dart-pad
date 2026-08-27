@@ -10,6 +10,7 @@ import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
 import '../../app_styles.dart';
+import '../shared/components/context_menu.dart';
 import '../shared/icons.dart';
 import 'components/file_tree_file_item.dart';
 import 'components/file_tree_folder_item.dart';
@@ -26,6 +27,7 @@ final class FileTreeView extends StatefulComponent {
     required this.state,
     required this.actions,
     this.confirmDelete,
+    this.contextMenu,
     super.key,
   });
 
@@ -37,6 +39,9 @@ final class FileTreeView extends StatefulComponent {
 
   /// An optional callback used to confirm destructive operations.
   final bool Function(String message)? confirmDelete;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
 
   @override
   State<FileTreeView> createState() => _FileTreeViewInternalState();
@@ -181,6 +186,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
               unawaited(actions.moveEntry(sourcePath, state.focusedPath));
             }
           },
+          'contextmenu': _handleContextMenu,
         },
         [
           if (_creatingEntry != null && _creatingInFolder == state.focusedPath)
@@ -244,6 +250,14 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 creatingInFolder: _creatingInFolder,
                 creatingEntry: _creatingEntry,
                 collapseAllCount: _collapseAllCount,
+                contextMenu: component.contextMenu,
+                onStartCreate: (folderPath, kind) {
+                  setState(() {
+                    _creatingEntry = kind;
+                    _creatingInFolder = folderPath;
+                    _selectedPath = null;
+                  });
+                },
                 onConfirmCreate: (name) async {
                   final parentPath = _creatingInFolder!;
                   final kind = _creatingEntry!;
@@ -280,6 +294,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                     _selectedPath = selectedPath;
                   });
                 },
+                contextMenu: component.contextMenu,
                 confirmDelete: component.confirmDelete,
               );
             }
@@ -287,6 +302,53 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         ],
       ),
     ]);
+  }
+
+  void _handleContextMenu(web.Event event) {
+    final menu = component.contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    final target = mouseEvent.target as web.Element?;
+    if (target?.closest('.file-tree-item') != null) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildContextMenuItems(),
+    );
+  }
+
+  List<ContextMenuEntry> _buildContextMenuItems() {
+    final state = component.state;
+    return [
+      ContextMenuItem(
+        label: 'New file',
+        disabled: state.busy,
+        onPressed: () {
+          setState(() {
+            _creatingEntry = FileTreeEntryKind.file;
+            _creatingInFolder = state.focusedPath;
+            _selectedPath = null;
+          });
+        },
+      ),
+      ContextMenuItem(
+        label: 'New folder',
+        disabled: state.busy,
+        onPressed: () {
+          setState(() {
+            _creatingEntry = FileTreeEntryKind.folder;
+            _creatingInFolder = state.focusedPath;
+            _selectedPath = null;
+          });
+        },
+      ),
+    ];
   }
 
   Component _toolbarButton({

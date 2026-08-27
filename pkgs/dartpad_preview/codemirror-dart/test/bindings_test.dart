@@ -132,6 +132,30 @@ void main() {
 
     expect(view.state.doc.toJsString().toDart, 'hio');
     expect(view.state.selection.main.anchor, 2);
+    expect(view.contentDOM, isNotNull);
+    expect(view.contentDOM.classList.contains('cm-content'), isTrue);
+  });
+
+  test('EditorView posAtCoords resolves coordinate position', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(EditorStateConfig(doc: 'hello world'.toJS)),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    final coords = view.coordsAtPos(2);
+    if (coords != null) {
+      final pos = view.posAtCoords(EditorCoords(x: coords.left + 2, y: coords.top + 2));
+      expect(pos, isNotNull);
+    }
   });
 
   test('diagnostic hover renders Apply fix and reports its range', () async {

@@ -46,6 +46,7 @@ extension type EditorSelection(JSObject _) implements JSObject {
   external static SelectionRange range(int anchor, int head);
   external static EditorSelection single(int anchor, [int? head]);
 
+  external int get mainIndex;
   external JSArray<SelectionRange> get ranges;
   external SelectionRange get main;
 }
@@ -64,6 +65,8 @@ extension type EditorState(JSObject _) implements JSObject {
 
   external Text get doc;
   external EditorSelection get selection;
+
+  external JSString sliceDoc([int? from, int? to]);
 }
 
 /// Options passed when creating an editor state.
@@ -97,6 +100,7 @@ extension type Text(JSObject _) implements JSObject {
   external int get length;
   external int get lines;
   external Line line(int line);
+  external Line lineAt(int pos);
 
   @JS('toString')
   external JSString toJsString();
@@ -170,11 +174,24 @@ extension type EditorView._(JSObject _) implements JSObject {
   external void focus();
   external web.HTMLElement get scrollDOM;
   external web.HTMLElement get dom;
+  external web.HTMLElement get contentDOM;
   external Rect? coordsAtPos(int pos, [int? side]);
+  @JS('posAtCoords')
+  external int? _posAtCoords(EditorCoords coords, [JSBoolean? precise]);
+
+  int? posAtCoords(EditorCoords coords, {bool? precise}) => _posAtCoords(coords, precise?.toJS);
 
   external static UpdateListener get updateListener;
 
   external static JSAny scrollIntoView(int pos, [ScrollIntoViewOptions? options]);
+}
+
+/// A point with x and y coordinates used by [EditorView.posAtCoords].
+extension type EditorCoords._(JSObject _) implements JSObject {
+  external factory EditorCoords({double x, double y});
+
+  external double get x;
+  external double get y;
 }
 
 /// The type of object given to the [EditorView] constructor.

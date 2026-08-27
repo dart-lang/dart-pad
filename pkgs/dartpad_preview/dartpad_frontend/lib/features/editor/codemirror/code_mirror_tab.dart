@@ -3,13 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
 
+import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../../shared/app_event_bus.dart';
+import '../../shared/components/context_menu.dart';
 import '../../shared/node_container.dart';
 import '../components/code_action_panel.dart';
+import 'editor_context_menu.dart';
 
 /// A workspace-backed text editor tab that preserves its editor state while
 /// switching between files.
@@ -20,6 +25,8 @@ final class CodeMirrorTab extends EditorTab<Component> {
     required String content,
     required this.onSaveAll,
     required this.workspaceResourceApi,
+    this.contextMenu,
+    this.events,
     LanguageServerClient? languageServerClient,
   }) : _savedContent = content,
        container = web.document.createElement('div') as web.HTMLElement,
@@ -48,12 +55,27 @@ final class CodeMirrorTab extends EditorTab<Component> {
       getDiagnostics: () => editor.languageServerClient?.allDiagnostics ?? const [],
       onStateChanged: _notifyUpdate,
     );
+
+    _contextMenuHandler = (web.MouseEvent event) {
+      event.preventDefault();
+      event.stopPropagation();
+      _showContextMenu(event.clientX.toDouble(), event.clientY.toDouble());
+    }.toJS;
+    container.addEventListener('contextmenu', _contextMenuHandler);
   }
+
+  late final JSFunction _contextMenuHandler;
 
   /// Saves all dirty tabs when CodeMirror receives its save command.
   final void Function() onSaveAll;
 
   final WorkspaceResourceApi workspaceResourceApi;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
+
+  /// The event bus for system notifications and error toasts.
+  final AppEventBus? events;
 
   /// The DOM element that hosts the CodeMirror editor.
   final web.HTMLElement container;
@@ -181,6 +203,32 @@ final class CodeMirrorTab extends EditorTab<Component> {
     }
   }
 
+  void _showContextMenu(double clientX, double clientY) {
+    final menu = contextMenu;
+    if (menu == null) {
+      return;
+    }
+
+    final pos = editor.view.posAtCoords(cm.EditorCoords(x: clientX, y: clientY));
+    if (pos != null) {
+      final selection = editor.view.state.selection;
+      final insideSelection = selection.ranges.toDart.any((r) => pos >= r.from && pos <= r.to);
+      if (!insideSelection) {
+        editor.view.dispatch(cm.TransactionSpec(selection: cm.EditorSelection.single(pos)));
+      }
+    }
+
+    menu.show(
+      clientX,
+      clientY,
+      buildEditorContextMenu(
+        editor: editor,
+        path: path,
+        events: events,
+      ),
+    );
+  }
+
   @override
   Component build() => Component.fragment([
     NodeContainer(
@@ -199,6 +247,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
+    container.removeEventListener('contextmenu', _contextMenuHandler);
     codeActionsController.dispose();
     editor.destroy();
     unawaited(_updates.close());

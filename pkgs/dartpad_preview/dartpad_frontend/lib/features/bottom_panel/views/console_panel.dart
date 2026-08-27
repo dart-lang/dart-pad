@@ -2,19 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:js_interop';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../shared/components/context_menu.dart';
 import '../models/console_entry.dart';
 
 /// Displays the application's structured log events.
 class ConsolePanel extends StatefulComponent {
-  const ConsolePanel({required this.logs, super.key});
+  const ConsolePanel({
+    required this.logs,
+    this.onClear,
+    this.contextMenu,
+    super.key,
+  });
 
   final List<ConsoleEntry> logs;
+  final VoidCallback? onClear;
+  final ContextMenuController? contextMenu;
 
   @override
   State<ConsolePanel> createState() => _DebugConsolePanelState();
@@ -54,21 +65,65 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'console-panel', [
-      div(
-        key: _listKey,
-        classes: 'console-list',
-        [
-          if (component.logs.isEmpty)
-            const div(classes: 'console-empty', [.text('No output yet')])
-          else
-            for (final log in component.logs)
-              div(classes: 'log-row ${log.level.consoleCssClass}', [
-                pre(classes: 'log-message', [.text(log.message)]),
-              ]),
-        ],
+    return div(
+      classes: 'console-panel',
+      events: {
+        'contextmenu': _handleContextMenu,
+      },
+      [
+        div(
+          key: _listKey,
+          classes: 'console-list',
+          [
+            if (component.logs.isEmpty)
+              const div(classes: 'console-empty', [.text('No output yet')])
+            else
+              for (final log in component.logs)
+                div(classes: 'log-row ${log.level.consoleCssClass}', [
+                  pre(classes: 'log-message', [.text(log.message)]),
+                ]),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _handleContextMenu(web.Event event) {
+    final menu = component.contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    event.preventDefault();
+    event.stopPropagation();
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildContextMenuItems(),
+    );
+  }
+
+  List<ContextMenuEntry> _buildContextMenuItems() {
+    return [
+      ContextMenuItem(
+        label: 'Clear console',
+        disabled: component.logs.isEmpty,
+        onPressed: () => component.onClear?.call(),
       ),
-    ]);
+      ContextMenuItem(
+        label: 'Copy output',
+        disabled: component.logs.isEmpty,
+        onPressed: () {
+          final text = component.logs.map((l) => l.message).join('\n');
+          unawaited(
+            web.window.navigator.clipboard.writeText(text).toDart.catchError((Object e) {
+              web.console.warn('Clipboard write failed: $e'.toJS);
+              return null;
+            }),
+          );
+        },
+      ),
+    ];
   }
 
   static List<StyleRule> get styles => [

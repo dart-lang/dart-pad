@@ -17,6 +17,7 @@ import '../filetree/file_tree_tabs_adapter.dart';
 import '../filetree/file_tree_view_model.dart';
 import '../preview/view_models/preview_view_model.dart';
 import '../shared/app_event_bus.dart';
+import '../shared/components/context_menu.dart';
 import 'data/workspace_repository.dart';
 
 /// Owns every resource whose lifetime is tied to one worker workspace.
@@ -29,11 +30,16 @@ final class WorkspaceSession {
     required this.fileTree,
     required this.diagnostics,
     required this.preview,
+    required this.contextMenu,
     required this._codemirrorAdapter,
   });
 
   factory WorkspaceSession.create(WorkspaceRepository repository) {
-    final codemirrorAdapter = CodeMirrorTabAdapter();
+    final contextMenu = ContextMenuController();
+    final codemirrorAdapter = CodeMirrorTabAdapter(
+      contextMenu: contextMenu,
+      events: repository.events,
+    );
     final tabs = TabsViewModel(
       workspaceResourceApi: repository.workspaceResourceApi,
       adapters: [
@@ -59,6 +65,7 @@ final class WorkspaceSession {
         workspaceRepository: repository,
         eventBus: repository.events,
       ),
+      contextMenu: contextMenu,
       codemirrorAdapter: codemirrorAdapter,
     );
   }
@@ -70,6 +77,7 @@ final class WorkspaceSession {
   final FileTreeViewModel fileTree;
   final DiagnosticsViewModel diagnostics;
   final PreviewViewModel preview;
+  final ContextMenuController contextMenu;
   final CodeMirrorTabAdapter _codemirrorAdapter;
 
   LanguageServer? _languageServer;
@@ -124,6 +132,8 @@ final class WorkspaceSession {
     await _safeAwait(_languageServer?.stop());
     _languageServer = null;
 
+    contextMenu.hide();
+    contextMenu.dispose();
     await _safeAwait(
       closeWorker ? repository.close() : repository.closeWorkspaceOnly(),
     );

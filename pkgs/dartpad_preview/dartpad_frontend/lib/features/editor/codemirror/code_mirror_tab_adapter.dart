@@ -9,13 +9,21 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../../shared/app_event_bus.dart';
+import '../../shared/components/context_menu.dart';
 import '../../shared/editable_text_file.dart';
 import 'code_mirror_tab.dart';
 
 /// Creates text tabs and synchronizes them with workspace and LSP changes.
 final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   /// Creates an adapter for files using the codemirror editor.
-  CodeMirrorTabAdapter();
+  CodeMirrorTabAdapter({
+    this.contextMenu,
+    this.events,
+  });
+
+  final ContextMenuController? contextMenu;
+  final AppEventBus? events;
 
   TabsController<Component>? _tabs;
   LanguageServerClient? _languageServerClient;
@@ -54,6 +62,8 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       onSaveAll: _saveAll,
       workspaceResourceApi: tabs.workspaceResourceApi,
       languageServerClient: _languageServerClient,
+      contextMenu: contextMenu,
+      events: events,
     );
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
@@ -10,6 +11,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
+import '../../shared/components/context_menu.dart';
 import '../../shared/icons.dart';
 import '../file_tree_models.dart';
 import 'file_tree_file_item.dart';
@@ -32,6 +34,8 @@ class FileTreeFolderItem extends StatefulComponent {
     required this.onCancelCreate,
     this.confirmDelete,
     this.collapseAllCount = 0,
+    this.contextMenu,
+    this.onStartCreate,
     super.key,
   });
 
@@ -70,6 +74,12 @@ class FileTreeFolderItem extends StatefulComponent {
 
   /// Trigger generation counter to collapse all folders recursively.
   final int collapseAllCount;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
+
+  /// Callback to initiate entry creation inside this folder.
+  final void Function(String folderPath, FileTreeEntryKind kind)? onStartCreate;
 
   @override
   State<FileTreeFolderItem> createState() => _FileTreeFolderItemState();
@@ -216,6 +226,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             });
           }
         },
+        'contextmenu': (web.Event event) => _handleContextMenu(
+          event,
+          path,
+          protected: protected,
+        ),
       },
       children: [
         button(
@@ -303,6 +318,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onCancelCreate: component.onCancelCreate,
                 confirmDelete: component.confirmDelete,
                 collapseAllCount: component.collapseAllCount,
+                contextMenu: component.contextMenu,
+                onStartCreate: component.onStartCreate,
               );
             }),
             if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)
@@ -334,11 +351,77 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 selectedPath: component.selectedPath,
                 onSelect: component.onSelect,
                 confirmDelete: component.confirmDelete,
+                contextMenu: component.contextMenu,
               );
             }),
           ]),
       ],
     );
+  }
+
+  void _handleContextMenu(
+    web.Event event,
+    String path, {
+    required bool protected,
+  }) {
+    final menu = component.contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    event.preventDefault();
+    event.stopPropagation();
+    component.onSelect(path);
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildContextMenuItems(path, protected: protected),
+    );
+  }
+
+  List<ContextMenuEntry> _buildContextMenuItems(
+    String path, {
+    required bool protected,
+  }) {
+    return [
+      ContextMenuItem(
+        label: 'New file',
+        disabled: component.state.busy,
+        onPressed: () {
+          component.onStartCreate?.call(path, FileTreeEntryKind.file);
+        },
+      ),
+      ContextMenuItem(
+        label: 'New folder',
+        disabled: component.state.busy,
+        onPressed: () {
+          component.onStartCreate?.call(path, FileTreeEntryKind.folder);
+        },
+      ),
+      if (!protected) ...[
+        const ContextMenuDivider(),
+        ContextMenuItem(
+          label: 'Rename',
+          onPressed: () {
+            setState(() {
+              _isRenaming = true;
+            });
+          },
+        ),
+        ContextMenuItem(
+          label: 'Delete',
+          destructive: true,
+          onPressed: () => _confirmDeleteFolder(path),
+        ),
+      ],
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: 'Copy path',
+        onPressed: () {
+          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+        },
+      ),
+    ];
   }
 
   void _confirmDeleteFolder(String path) {

@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:js_interop';
+
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../shared/components/context_menu.dart';
 import '../../shared/icons.dart';
 
 /// Displays open editor files and lets users switch between or close them.
@@ -22,6 +26,7 @@ final class EditorTabBar extends StatelessComponent {
     required this.onSwitchFile,
     required this.onCloseFile,
     this.confirmDiscard,
+    this.contextMenu,
     super.key,
   });
 
@@ -40,63 +45,166 @@ final class EditorTabBar extends StatelessComponent {
   /// Requests confirmation before discarding changes in the file at [path].
   final bool Function(String path)? confirmDiscard;
 
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
+
+  bool _closeSingleTab(EditorTab<Component> tabToClose) {
+    final discardChanges =
+        tabToClose.hasUnsavedChanges &&
+        (confirmDiscard?.call(tabToClose.path) ??
+            web.window.confirm(
+              'Discard unsaved changes in ${tabToClose.name}?',
+            ));
+    if (tabToClose.hasUnsavedChanges && !discardChanges) {
+      return false;
+    }
+    return onCloseFile(
+      tabToClose.path,
+      discardChanges: discardChanges,
+    );
+  }
+
+  void _closeOtherTabs(EditorTab<Component> keepTab) {
+    final tabsToClose = openTabs.where((t) => t.path != keepTab.path).toList();
+    for (final t in tabsToClose) {
+      if (!_closeSingleTab(t)) {
+        break;
+      }
+    }
+  }
+
+  void _closeAllTabs() {
+    for (final t in List.of(openTabs)) {
+      if (!_closeSingleTab(t)) {
+        break;
+      }
+    }
+  }
+
   @override
   Component build(BuildContext context) {
-    return div(classes: 'editor-tab-bar', [
-      for (final tab in openTabs)
-        div(
-          key: ValueKey('tab-${tab.path}'),
-          classes: [
-            'editor-tab',
-            if (tab.path == activeFile) 'active',
-            if (tab.hasUnsavedChanges) 'dirty',
-          ].join(' '),
-          attributes: {
-            'title': tab.path,
-            'tabindex': '0',
-            'role': 'tab',
-            'aria-selected': tab.path == activeFile ? 'true' : 'false',
-          },
-          events: {
-            'click': (_) => onSwitchFile(tab.path),
-            'keydown': (event) {
-              final keyboardEvent = event as web.KeyboardEvent;
-              if (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ') {
-                onSwitchFile(tab.path);
-              }
+    return div(
+      classes: 'editor-tab-bar',
+      events: {
+        'contextmenu': _handleTabBarContextMenu,
+      },
+      [
+        for (final tab in openTabs)
+          div(
+            key: ValueKey('tab-${tab.path}'),
+            classes: [
+              'editor-tab',
+              if (tab.path == activeFile) 'active',
+              if (tab.hasUnsavedChanges) 'dirty',
+            ].join(' '),
+            attributes: {
+              'title': tab.path,
+              'tabindex': '0',
+              'role': 'tab',
+              'aria-selected': tab.path == activeFile ? 'true' : 'false',
             },
-          },
-          [
-            span(classes: 'editor-tab-name', [.text(tab.name)]),
-            if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
-            button(
-              classes: 'editor-tab-action close',
-              attributes: {
-                'title': 'Close tab',
-                'aria-label': 'Close ${tab.name}',
+            events: {
+              'click': (_) => onSwitchFile(tab.path),
+              'keydown': (event) {
+                final keyboardEvent = event as web.KeyboardEvent;
+                if (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ') {
+                  onSwitchFile(tab.path);
+                }
               },
-              events: {
-                'click': (event) {
-                  event.stopPropagation();
-                  final discardChanges =
-                      tab.hasUnsavedChanges &&
-                      (confirmDiscard?.call(tab.path) ??
-                          web.window.confirm(
-                            'Discard unsaved changes in ${tab.name}?',
-                          ));
-                  if (!tab.hasUnsavedChanges || discardChanges) {
-                    onCloseFile(
-                      tab.path,
-                      discardChanges: discardChanges,
-                    );
-                  }
+              'contextmenu': (event) => _handleTabContextMenu(event, tab),
+            },
+            [
+              span(classes: 'editor-tab-name', [.text(tab.name)]),
+              if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
+              button(
+                classes: 'editor-tab-action close',
+                attributes: {
+                  'title': 'Close tab',
+                  'aria-label': 'Close ${tab.name}',
                 },
-              },
-              [const Icon('close', size: 12)],
-            ),
-          ],
-        ),
-    ]);
+                events: {
+                  'click': (event) {
+                    event.stopPropagation();
+                    _closeSingleTab(tab);
+                  },
+                },
+                [const Icon('close', size: 12)],
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  void _handleTabBarContextMenu(web.Event event) {
+    final menu = contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    final target = mouseEvent.target as web.Element?;
+    if (target?.closest('.editor-tab') != null) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildTabBarContextMenuItems(),
+    );
+  }
+
+  List<ContextMenuEntry> _buildTabBarContextMenuItems() {
+    return [
+      ContextMenuItem(
+        label: 'Close all tabs',
+        disabled: openTabs.isEmpty,
+        onPressed: _closeAllTabs,
+      ),
+    ];
+  }
+
+  void _handleTabContextMenu(web.Event event, EditorTab<Component> tab) {
+    final menu = contextMenu;
+    if (menu == null) {
+      return;
+    }
+    final mouseEvent = event as web.MouseEvent;
+    event.preventDefault();
+    event.stopPropagation();
+    menu.show(
+      mouseEvent.clientX.toDouble(),
+      mouseEvent.clientY.toDouble(),
+      _buildTabContextMenuItems(tab),
+    );
+  }
+
+  List<ContextMenuEntry> _buildTabContextMenuItems(EditorTab<Component> tab) {
+    final hasOthers = openTabs.length > 1;
+
+    return [
+      ContextMenuItem(
+        label: 'Close',
+        onPressed: () => _closeSingleTab(tab),
+      ),
+      ContextMenuItem(
+        label: 'Close others',
+        disabled: !hasOthers,
+        onPressed: () => _closeOtherTabs(tab),
+      ),
+      ContextMenuItem(
+        label: 'Close all',
+        onPressed: _closeAllTabs,
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: 'Copy path',
+        onPressed: () {
+          unawaited(web.window.navigator.clipboard.writeText(tab.path).toDart.catchError((Object? _) => null));
+        },
+      ),
+    ];
   }
 
   @css

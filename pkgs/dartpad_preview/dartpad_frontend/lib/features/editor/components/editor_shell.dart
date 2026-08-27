@@ -7,6 +7,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/icons.dart';
 import 'editor_stack.dart';
@@ -23,6 +24,7 @@ class EditorShell extends StatefulComponent {
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bottomPanel,
+    this.contextMenu,
     this.isEmbedMode = false,
     this.smallScreenPreviewPanel,
     super.key,
@@ -51,6 +53,9 @@ class EditorShell extends StatefulComponent {
 
   /// Bottom panel (e.g. problems view) rendered below the editor.
   final Component bottomPanel;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
 
   /// Whether the app is running in embed mode (`?embed=true`).
   ///
@@ -102,6 +107,7 @@ class _EditorShellState extends State<EditorShell> {
               activeFile: component.activeFile,
               onSwitchFile: component.onSwitchFile!,
               onCloseFile: component.onCloseFile!,
+              contextMenu: component.contextMenu,
             ),
             EditorStack(
               openTabs: openTabs,
@@ -115,9 +121,10 @@ class _EditorShellState extends State<EditorShell> {
     ]);
     final Component rightContent = component.smallScreenPreviewPanel ?? editorContent;
 
+    final Component shellContent;
     // Collapsed file tree: show a narrow rail with a toggle button.
     if (_fileTreeCollapsed) {
-      return div(classes: 'editor-shell', [
+      shellContent = div(classes: 'editor-shell', [
         aside(classes: 'file-tree-rail', [
           button(
             classes: 'file-tree-rail-button',
@@ -131,32 +138,34 @@ class _EditorShellState extends State<EditorShell> {
         ]),
         rightContent,
       ]);
+    } else {
+      // Expanded file tree with collapse button.
+      shellContent = div(classes: 'editor-shell', [
+        SplitPanel(
+          initialValue: 200,
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          left: aside(classes: 'file-tree-pane', [
+            div(classes: 'file-tree-collapse-bar', [
+              button(
+                classes: 'file-tree-rail-button',
+                attributes: {
+                  'title': 'Hide file tree',
+                  'aria-label': 'Hide file tree',
+                },
+                onClick: _toggleFileTree,
+                [const Icon('chevron_left', size: 18)],
+              ),
+            ]),
+            component.fileTree,
+          ]),
+          right: rightContent,
+        ),
+      ]);
     }
 
-    // Expanded file tree with collapse button.
-    return div(classes: 'editor-shell', [
-      SplitPanel(
-        initialValue: 200,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        left: aside(classes: 'file-tree-pane', [
-          div(classes: 'file-tree-collapse-bar', [
-            button(
-              classes: 'file-tree-rail-button',
-              attributes: {
-                'title': 'Hide file tree',
-                'aria-label': 'Hide file tree',
-              },
-              onClick: _toggleFileTree,
-              [const Icon('chevron_left', size: 18)],
-            ),
-          ]),
-          component.fileTree,
-        ]),
-        right: rightContent,
-      ),
-    ]);
+    return shellContent;
   }
 
   static List<StyleRule> get styles => [

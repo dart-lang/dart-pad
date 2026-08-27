@@ -6,6 +6,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/components/context_menu.dart';
 import '../models/console_entry.dart';
 import 'bottom_panel_tabs.dart';
 import 'console_panel.dart';
@@ -29,6 +30,7 @@ class BottomPanel extends StatefulComponent {
     required this.onOpenDiagnostic,
     required this.logs,
     required this.onClearConsole,
+    this.contextMenu,
     super.key,
   });
 
@@ -49,6 +51,9 @@ class BottomPanel extends StatefulComponent {
 
   /// Clears the debug output.
   final void Function() onClearConsole;
+
+  /// The context menu controller used to show right-click menus.
+  final ContextMenuController? contextMenu;
 
   @override
   State<BottomPanel> createState() => _BottomPanelState();
@@ -88,7 +93,11 @@ class _BottomPanelState extends State<BottomPanel> {
           activeFile: component.activeFile,
           onOpenDiagnostic: component.onOpenDiagnostic,
         ),
-        BottomPanelTab.console => ConsolePanel(logs: component.logs),
+        BottomPanelTab.console => ConsolePanel(
+          logs: component.logs,
+          onClear: component.onClearConsole,
+          contextMenu: component.contextMenu,
+        ),
       },
     ]);
   }
