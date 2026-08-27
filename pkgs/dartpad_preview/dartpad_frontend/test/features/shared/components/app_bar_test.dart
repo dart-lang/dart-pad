@@ -72,7 +72,7 @@ void main() {
   });
 
   testClient('renders AppBar with button labels and without SmallScreenTabBar on large screens', (tester) {
-    tester.pumpComponent(const AppBar(isSmallScreen: false));
+    tester.pumpComponent(const AppBar());
 
     final labels = web.document.querySelectorAll('.app-bar-button-label');
     expect(labels.length, 2);
@@ -86,7 +86,6 @@ void main() {
   testClient('renders AppBar and SmallScreenTabBar on small screens', (tester) {
     tester.pumpComponent(
       AppBar(
-        isSmallScreen: true,
         smallScreenTabBar: SmallScreenTabBar(onTabSelected: (_) {}),
       ),
     );
@@ -99,7 +98,7 @@ void main() {
   });
 
   testClient('renders nothing in large-screen embed mode', (tester) {
-    tester.pumpComponent(const AppBar(isSmallScreen: false, isEmbedMode: true));
+    tester.pumpComponent(const AppBar(isEmbedMode: true));
 
     expect(web.document.querySelector('.app-bar'), isNull);
     expect(web.document.querySelector('.small-screen-tab-bar'), isNull);
@@ -109,7 +108,6 @@ void main() {
     var selectedTab = SmallScreenTab.code;
     tester.pumpComponent(
       AppBar(
-        isSmallScreen: true,
         isEmbedMode: true,
         smallScreenTabBar: SmallScreenTabBar(
           onTabSelected: (tab) => selectedTab = tab,

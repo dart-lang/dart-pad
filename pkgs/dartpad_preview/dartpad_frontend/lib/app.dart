@@ -462,7 +462,6 @@ class AppState extends State<App> {
           onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
               ? null
               : (example) => resetWorkspace(ProjectSource.example(example.id)),
-          isSmallScreen: !_isLargeScreen,
           isEmbedMode: isEmbedMode,
           smallScreenTabBar: !_isLargeScreen
               ? SmallScreenTabBar(

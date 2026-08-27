@@ -20,14 +20,10 @@ class AppBar extends StatefulComponent {
   const AppBar({
     this.onCreateNewSnippet,
     this.onLoadSample,
-    this.isSmallScreen = false,
     this.isEmbedMode = false,
     this.smallScreenTabBar,
     super.key,
-  }) : assert(
-         smallScreenTabBar == null || isSmallScreen,
-         'A SmallScreenTabBar requires a small-screen layout.',
-       );
+  });
 
   /// Called when the user selects a snippet from the Create menu.
   final void Function(Example example)? onCreateNewSnippet;
@@ -35,14 +31,14 @@ class AppBar extends StatefulComponent {
   /// Called when the user selects a sample from the sample menu.
   final void Function(Example example)? onLoadSample;
 
-  /// Whether this [AppBar] is being rendered in a small-screen layout.
-  final bool isSmallScreen;
-
   /// Whether the application is running in embed mode.
   final bool isEmbedMode;
 
   /// Code / Output [SmallScreenTabBar] displayed in small-screen layouts.
   final SmallScreenTabBar? smallScreenTabBar;
+
+  /// Whether this [AppBar] is being rendered in a small-screen layout.
+  bool get isSmallScreen => smallScreenTabBar != null;
 
   @override
   State<AppBar> createState() => _AppBarState();
