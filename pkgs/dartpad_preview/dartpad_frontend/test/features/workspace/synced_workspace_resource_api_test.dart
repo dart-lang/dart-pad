@@ -244,7 +244,7 @@ void main() {
       final api = SyncedWorkspaceResourceApi(
         localApi: localApi,
         remoteApi: Future.value(failingRemoteApi),
-        onRemoteActionError: (error, _) => errors.add(error),
+        onLocalToRemoteSyncError: (error, _) => errors.add(error),
       );
       await api.apiReady;
       failingRemoteApi.failWrites = true;
@@ -257,7 +257,67 @@ void main() {
       expect(await api.readFileAsText('first.dart'), 'first');
       expect(await api.readFileAsText('second.dart'), 'second');
     });
+
+    test('reports failures while applying remote changes', () async {
+      final errors = <Object>[];
+      final failingRemoteApi = _FailingReadWorkspaceResourceApi();
+      final api = SyncedWorkspaceResourceApi(
+        localApi: localApi,
+        remoteApi: Future.value(failingRemoteApi),
+        onRemoteToLocalSyncError: (error, _) => errors.add(error),
+      );
+      await api.apiReady;
+      failingRemoteApi.failReads = true;
+
+      await failingRemoteApi.writeFileFromText('remote.dart', 'remote');
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(errors, hasLength(1));
+      expect(errors.single, isA<StateError>());
+    });
+
+    test('reports errors emitted by the remote change stream', () async {
+      final errors = <Object>[];
+      final erroringRemoteApi = _ErroringChangeEventsWorkspaceResourceApi();
+      final api = SyncedWorkspaceResourceApi(
+        localApi: localApi,
+        remoteApi: Future.value(erroringRemoteApi),
+        onRemoteToLocalSyncError: (error, _) => errors.add(error),
+      );
+      await api.apiReady;
+
+      erroringRemoteApi.addChangeError(StateError('Remote watcher failed'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(errors, hasLength(1));
+      expect(errors.single, isA<StateError>());
+      await api.dispose();
+    });
   });
+}
+
+final class _ErroringChangeEventsWorkspaceResourceApi extends MemoryWorkspaceResourceApi {
+  final StreamController<WorkspaceChangeEvent> _changeEvents = StreamController.broadcast();
+
+  @override
+  Stream<WorkspaceChangeEvent> get changeEvents => _changeEvents.stream;
+
+  void addChangeError(Object error) => _changeEvents.addError(error);
+
+  @override
+  Future<void> dispose() => _changeEvents.close();
+}
+
+final class _FailingReadWorkspaceResourceApi extends MemoryWorkspaceResourceApi {
+  bool failReads = false;
+
+  @override
+  Future<Uint8List> readFileAsBytes(String uri) {
+    if (failReads) {
+      return Future.error(StateError('Reading remote change failed'));
+    }
+    return super.readFileAsBytes(uri);
+  }
 }
 
 final class _FailingWriteWorkspaceResourceApi extends MemoryWorkspaceResourceApi {

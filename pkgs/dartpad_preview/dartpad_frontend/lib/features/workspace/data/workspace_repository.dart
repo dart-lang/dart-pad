@@ -52,8 +52,11 @@ class WorkspaceRepository {
     final api = SyncedWorkspaceResourceApi(
       localApi: MemoryWorkspaceResourceApi(),
       remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
-      onRemoteActionError: (_, _) {
+      onLocalToRemoteSyncError: (_, _) {
         events.dispatch(const ErrorToastEvent('Saving failed, try again'));
+      },
+      onRemoteToLocalSyncError: (_, _) {
+        events.dispatch(const ErrorToastEvent('Something went wrong, please try again'));
       },
     );
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
@@ -142,8 +145,11 @@ class WorkspaceRepository {
     final api = SyncedWorkspaceResourceApi(
       localApi: MemoryWorkspaceResourceApi(),
       remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
-      onRemoteActionError: (_, _) {
+      onLocalToRemoteSyncError: (_, _) {
         events.dispatch(const ErrorToastEvent('Saving failed, try again'));
+      },
+      onRemoteToLocalSyncError: (_, _) {
+        events.dispatch(const ErrorToastEvent('Something went wrong, please try again'));
       },
     );
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);

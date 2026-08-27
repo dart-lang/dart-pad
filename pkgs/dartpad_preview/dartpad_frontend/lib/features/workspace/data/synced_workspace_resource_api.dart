@@ -14,13 +14,15 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   SyncedWorkspaceResourceApi({
     required this.localApi,
     required Future<WorkspaceResourceApi> remoteApi,
-    this.onRemoteActionError,
+    this.onLocalToRemoteSyncError,
+    this.onRemoteToLocalSyncError,
   }) {
     _initRemote(remoteApi);
   }
 
   final WorkspaceResourceApi localApi;
-  final void Function(Object error, StackTrace stackTrace)? onRemoteActionError;
+  final void Function(Object error, StackTrace stackTrace)? onLocalToRemoteSyncError;
+  final void Function(Object error, StackTrace stackTrace)? onRemoteToLocalSyncError;
   WorkspaceResourceApi? remoteApi;
   StreamSubscription<WorkspaceChangeEvent>? _remoteSubscription;
   final Completer<void> _initialSyncCompleter = Completer<void>();
@@ -82,22 +84,27 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
       try {
         await action(api);
       } catch (error, stackTrace) {
-        onRemoteActionError?.call(error, stackTrace);
+        onLocalToRemoteSyncError?.call(error, stackTrace);
       }
     });
   }
 
   void _startWatchingRemote(WorkspaceResourceApi ws) {
-    _remoteSubscription = ws.changeEvents.listen((event) async {
-      if (_isDisposed) {
-        return;
-      }
-      try {
-        await _applyRemoteChange(ws, event);
-      } catch (_) {
-        // Ignored.
-      }
-    });
+    _remoteSubscription = ws.changeEvents.listen(
+      (event) async {
+        if (_isDisposed) {
+          return;
+        }
+        try {
+          await _applyRemoteChange(ws, event);
+        } catch (error, stackTrace) {
+          onRemoteToLocalSyncError?.call(error, stackTrace);
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        onRemoteToLocalSyncError?.call(error, stackTrace);
+      },
+    );
   }
 
   Future<void> _applyRemoteChange(WorkspaceResourceApi ws, WorkspaceChangeEvent event) async {
