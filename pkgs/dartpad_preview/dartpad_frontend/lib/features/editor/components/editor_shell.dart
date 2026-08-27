@@ -113,12 +113,7 @@ class _EditorShellState extends State<EditorShell> {
         right: component.bottomPanel,
       ),
     ]);
-    final Component rightContent;
-    if (component.smallScreenPreviewPanel != null) {
-      rightContent = component.smallScreenPreviewPanel!;
-    } else {
-      rightContent = editorContent;
-    }
+    final Component rightContent = component.smallScreenPreviewPanel ?? editorContent;
 
     // Collapsed file tree: show a narrow rail with a toggle button.
     if (_fileTreeCollapsed) {
