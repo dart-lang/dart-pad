@@ -90,9 +90,11 @@ void main() {
       await pumpEventQueue();
 
       expect(contextMenu.isOpen, isTrue);
-      final closeAllItem = contextMenu.items.firstWhere(
-        (item) => item is ContextMenuItem && item.label == 'Close all tabs',
-      ) as ContextMenuItem;
+      final closeAllItem =
+          contextMenu.items.firstWhere(
+                (item) => item is ContextMenuItem && item.label == 'Close all tabs',
+              )
+              as ContextMenuItem;
 
       closeAllItem.onPressed();
 
@@ -136,16 +138,17 @@ void main() {
       );
       await pumpEventQueue();
 
-      final closeOthersItem = contextMenu.items.firstWhere(
-        (item) => item is ContextMenuItem && item.label == 'Close others',
-      ) as ContextMenuItem;
+      final closeOthersItem =
+          contextMenu.items.firstWhere(
+                (item) => item is ContextMenuItem && item.label == 'Close others',
+              )
+              as ContextMenuItem;
 
       closeOthersItem.onPressed();
 
       expect(promptedPaths, ['lib/dirty1.dart']);
       expect(closedPaths, isEmpty);
     });
-
 
     testClient('closeAllTabs continues closing all tabs if user confirms each discard', (tester) async {
       final contextMenu = ContextMenuController();
@@ -182,9 +185,11 @@ void main() {
       );
       await pumpEventQueue();
 
-      final closeAllItem = contextMenu.items.firstWhere(
-        (item) => item is ContextMenuItem && item.label == 'Close all',
-      ) as ContextMenuItem;
+      final closeAllItem =
+          contextMenu.items.firstWhere(
+                (item) => item is ContextMenuItem && item.label == 'Close all',
+              )
+              as ContextMenuItem;
 
       closeAllItem.onPressed();
 

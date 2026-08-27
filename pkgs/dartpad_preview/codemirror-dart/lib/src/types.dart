@@ -179,8 +179,7 @@ extension type EditorView._(JSObject _) implements JSObject {
   @JS('posAtCoords')
   external int? _posAtCoords(EditorCoords coords, [JSBoolean? precise]);
 
-  int? posAtCoords(EditorCoords coords, {bool? precise}) =>
-      _posAtCoords(coords, precise?.toJS);
+  int? posAtCoords(EditorCoords coords, {bool? precise}) => _posAtCoords(coords, precise?.toJS);
 
   external static UpdateListener get updateListener;
 

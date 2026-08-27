@@ -5,7 +5,8 @@
 import 'package:web/web.dart' as web;
 
 /// Whether the current platform is macOS.
-final isMac = web.window.navigator.platform.toLowerCase().contains('mac') ||
+final isMac =
+    web.window.navigator.platform.toLowerCase().contains('mac') ||
     web.window.navigator.userAgent.toLowerCase().contains('mac');
 
 /// Resolves platform-agnostic modifier placeholders in a display key string.
