@@ -267,6 +267,7 @@ export function dartLanguage(parseCallback: ParseCallback) {
       indentUnit.of("  "),
       indentService.of(dartIndent),
     ], // extensions
+    "dart",
   );
 
   return new LanguageSupport(dartLanguage, [

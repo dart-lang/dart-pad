@@ -21159,7 +21159,8 @@
         const dartLanguage = new Language(dataFacet, customParser, [
             indentUnit.of("  "),
             indentService.of(dartIndent),
-        ]);
+        ], // extensions
+        "dart");
         return new LanguageSupport(dartLanguage, [
             indentUnit.of("  "),
         ]);
