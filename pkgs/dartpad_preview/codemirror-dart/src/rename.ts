@@ -36,6 +36,7 @@ interface TextDocumentEdit {
   edits: TextEdit[];
 }
 
+/** Text and resource changes returned by an LSP workspace operation. */
 export interface WorkspaceEdit {
   changes?: Record<string, TextEdit[]>;
   documentChanges?: unknown[];
@@ -50,8 +51,10 @@ export interface WorkspaceEdit {
 export type ApplyWorkspaceEdit = (edit: WorkspaceEdit) => Promise<void> | void;
 type PluginLookup = (view: Parameters<Command>[0]) => LSPPlugin | null;
 
+/** Updates the transient rename-message tooltip shown by an editor view. */
 export const renameTooltipEffect = StateEffect.define<Tooltip | null>();
 
+/** Stores the currently visible rename-message tooltip, if any. */
 export const renameTooltipField = StateField.define<Tooltip | null>({
   create() {
     return null;
@@ -70,6 +73,7 @@ export const renameTooltipField = StateField.define<Tooltip | null>({
   provide: (field) => showTooltip.from(field),
 });
 
+/** Returns a user-facing message for an unknown LSP or workspace error. */
 export function getRenameErrorMessage(error: unknown): string {
   if (!error) return "The element can't be renamed.";
   if (typeof error === "string" && error.trim().length > 0) return error;
@@ -85,6 +89,7 @@ export function getRenameErrorMessage(error: unknown): string {
   return "The element can't be renamed.";
 }
 
+/** Creates the temporary tooltip used to report rename failures. */
 export function createRenameTooltip(pos: number, message: string): Tooltip {
   return {
     pos,
@@ -123,6 +128,7 @@ export function createRenameTooltip(pos: number, message: string): Tooltip {
   };
 }
 
+/** Shows a rename message at `pos` and removes it automatically after a delay. */
 export function showRenameMessage(
   view: EditorView,
   pos: number,
@@ -178,7 +184,10 @@ function rebaseEdits(
   }));
 }
 
-/** Rebase edits for open CodeMirror documents while preserving the LSP shape. */
+/**
+ * Rebases edits for tracked CodeMirror documents to their current versions
+ * while preserving the original `WorkspaceEdit` shape.
+ */
 export function rebaseWorkspaceEdit(
   plugin: LSPPlugin,
   mapping: WorkspaceMapping,
@@ -213,7 +222,10 @@ export function rebaseWorkspaceEdit(
   return rebased;
 }
 
-/** Requests a symbol rename and forwards the resulting workspace edit. */
+/**
+ * Requests a symbol rename, rebases the returned edits, and waits until the
+ * workspace has applied them. Returns false when the request cannot complete.
+ */
 export async function renameSymbolAsync(
   view: Parameters<Command>[0],
   newName: string,
@@ -258,7 +270,10 @@ export async function renameSymbolAsync(
   }
 }
 
-/** Handles checking prepareRename and opening the rename prompt. */
+/**
+ * Validates the symbol with `textDocument/prepareRename` and opens the rename
+ * prompt. Servers without prepare support fall back to the current word.
+ */
 export async function startRename(
   view: EditorView,
   applyWorkspaceEdit: ApplyWorkspaceEdit,
@@ -352,7 +367,10 @@ export async function startRename(
   return true;
 }
 
-/** Creates the F2 rename command for a specific workspace-edit handler. */
+/**
+ * Creates the F2 rename command and Escape handler for a workspace-edit
+ * callback.
+ */
 export function createRenameKeymap(
   applyWorkspaceEdit: ApplyWorkspaceEdit,
 ): readonly KeyBinding[] {

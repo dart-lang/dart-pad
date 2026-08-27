@@ -27,17 +27,20 @@ import {
   type ApplyWorkspaceEdit,
 } from "./rename";
 
+/** Browser-facing operations exposed by one connected CodeMirror LSP client. */
 export type LspClientBindings = {
   createExtension: (uri: string) => Extension;
   receiveFromServer: (msg: string) => void;
   dispose: () => void;
 };
 
+/** Handles a server notification before it reaches CodeMirror extensions. */
 export type NotificationHandler = {
   method: string;
   callback: (client: LSPClient, params: any) => boolean;
 };
 
+/** Creates hover support that stays hidden while rename UI is active. */
 function lspHoverTooltips(config: { hoverTime?: number } = {}) {
   return hoverTooltip(
     async (view, pos, _side) => {
@@ -95,6 +98,12 @@ function lspHoverTooltips(config: { hoverTime?: number } = {}) {
   );
 }
 
+/**
+ * Connects a shared CodeMirror LSP client to the supplied transport callbacks.
+ *
+ * `onWorkspaceEdit` is awaited for editor-initiated workspace operations so
+ * callers can update open views and persist edits to files without editors.
+ */
 export function createLspClient(
   sendToServer: (msg: string) => void,
   rootUri: string,
