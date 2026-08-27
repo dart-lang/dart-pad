@@ -16,10 +16,19 @@ final class SdkInfo {
     this.flutterVersion,
   });
 
+  /// Unique identifier for this SDK runtime (e.g. `'flutter'`, `'dart'`).
   final String id;
+
+  /// Human-readable display name for this SDK (e.g. `'Flutter'`, `'Dart'`).
   final String name;
+
+  /// Relative path from the application base URI to this SDK's asset bundle directory (e.g. `'dartpad/flutter/'`).
   final String path;
+
+  /// The version of the Dart SDK (e.g. `'3.14.0'`).
   final String dartVersion;
+
+  /// The version of the Flutter SDK (e.g. `'3.48.0'`), or `null` if this is a pure Dart runtime.
   final String? flutterVersion;
 
   bool get isFlutter => flutterVersion != null;
