@@ -11,6 +11,17 @@ Ctrl/Cmd+S saves every dirty tab and formats Dart files before writing. Closing
 a dirty tab requires confirmation before its changes are discarded. Reloading
 resets the transient project.
 
+## Example Links
+
+| Package / Source | Type | Description | Link |
+| :--- | :--- | :--- | :--- |
+| `flutter_animate` | Package | Declarative animations for Flutter | [http://localhost:8080/?package=flutter_animate](http://localhost:8080/?package=flutter_animate) |
+| `fl_chart` | Package | Charts and data visualization | [http://localhost:8080/?package=fl_chart](http://localhost:8080/?package=fl_chart) |
+| `provider` | Package | State management for Flutter | [http://localhost:8080/?package=provider](http://localhost:8080/?package=provider) |
+| `uuid` | Package | UUID generator (Dart console output) | [http://localhost:8080/?package=uuid](http://localhost:8080/?package=uuid) |
+| `material_ui` | Package | Material UI components example | [http://localhost:8080/?package=material_ui](http://localhost:8080/?package=material_ui) |
+| Gist Example | Gist | Example loaded from a GitHub Gist | [http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc](http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc) |
+
 ## Running
 
 Run the project using:
