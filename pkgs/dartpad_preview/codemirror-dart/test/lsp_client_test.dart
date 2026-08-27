@@ -20,6 +20,7 @@ void main() {
   late JSFunction sendToServerCallback;
   late JSFunction initializedCallback;
   late JSFunction displayFileCallback;
+  late JSFunction workspaceEditCallback;
   late JSFunction analyzerStatusCallback;
   late JSObject fakeHandle;
   late JSObject language;
@@ -64,12 +65,14 @@ void main() {
             JSString rootUri,
             JSFunction onInitialized,
             JSFunction onDisplayFile,
+            JSFunction onWorkspaceEdit,
             JSArray notificationHandlers,
             JSAny capturedLanguage,
           ) {
             sendToServerCallback = sendToServer;
             initializedCallback = onInitialized;
             displayFileCallback = onDisplayFile;
+            workspaceEditCallback = onWorkspaceEdit;
             capturedRootUri = rootUri.toDart;
             expect(capturedLanguage, same(language));
 
@@ -97,13 +100,19 @@ void main() {
   test('bridges callbacks and delegates messages and extensions', () async {
     final outgoingMessages = <String>[];
     final displayedUris = <String>[];
+    final appliedWorkspaceEdits = <Map<String, Object?>>[];
     final displayCompleter = Completer<void>();
+    final workspaceEditCompleter = Completer<void>();
     final client = CodeMirrorLspClient(
       outgoingMessages.add,
       'file:///workspace',
       onDisplayFile: (uri) {
         displayedUris.add(uri);
         return displayCompleter.future;
+      },
+      onWorkspaceEdit: (edit) {
+        appliedWorkspaceEdits.add(edit);
+        return workspaceEditCompleter.future;
       },
       language: language,
     );
@@ -137,6 +146,45 @@ void main() {
     await displayFuture;
     expect(displayCompleted, isTrue);
 
+    final workspaceEditPromise =
+        workspaceEditCallback.callAsFunction(
+              null,
+              {
+                    'documentChanges': [
+                      {
+                        'textDocument': {
+                          'uri': 'file:///main.dart',
+                          'version': 1,
+                        },
+                        'edits': [
+                          {
+                            'range': {
+                              'start': {'line': 0, 'character': 0},
+                              'end': {'line': 0, 'character': 4},
+                            },
+                            'newText': 'entrypoint',
+                          },
+                        ],
+                      },
+                    ],
+                  }.jsify()
+                  as JSObject,
+            )!
+            as JSPromise;
+    expect(appliedWorkspaceEdits, hasLength(1));
+    expect(
+      appliedWorkspaceEdits.single['documentChanges'],
+      isA<List<Object?>>(),
+    );
+    var workspaceEditCompleted = false;
+    final workspaceEditFuture = workspaceEditPromise.toDart;
+    unawaited(workspaceEditFuture.then((_) => workspaceEditCompleted = true));
+    await pumpEventQueue();
+    expect(workspaceEditCompleted, isFalse);
+    workspaceEditCompleter.complete();
+    await workspaceEditFuture;
+    expect(workspaceEditCompleted, isTrue);
+
     final extension = client.createExtension('file:///main.dart');
     expect(createdExtensionUri, 'file:///main.dart');
     expect(
@@ -159,6 +207,7 @@ void main() {
       (_) {},
       'file:///workspace',
       onDisplayFile: (_) async {},
+      onWorkspaceEdit: (_) async {},
       language: language,
     );
     final statuses = <bool>[];
@@ -211,6 +260,7 @@ void main() {
       (_) {},
       'file:///workspace',
       onDisplayFile: (_) async {},
+      onWorkspaceEdit: (_) async {},
       language: language,
     );
     final jsClient = JSObject();

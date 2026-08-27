@@ -18176,6 +18176,10 @@
         return found < 0 ? null : plugin.manager.tooltipViews[found];
     }
     const closeHoverTooltipEffect = /*@__PURE__*/StateEffect.define();
+    /**
+    Transaction effect that closes all hover tooltips.
+    */
+    const closeHoverTooltips = /*@__PURE__*/closeHoverTooltipEffect.of(null);
 
     const panelConfig = /*@__PURE__*/Facet.define({
         combine(configs) {
@@ -34861,7 +34865,7 @@ ${text}</tr>
         }
     }
 
-    function toPosition(doc, pos) {
+    function toPosition$1(doc, pos) {
         let line = doc.lineAt(pos);
         return { line: line.number - 1, character: pos - line.from };
     }
@@ -34906,7 +34910,7 @@ ${text}</tr>
         document, but can be given another one.
         */
         toPosition(pos, doc = this.view.state.doc) {
-            return toPosition(doc, pos);
+            return toPosition$1(doc, pos);
         }
         /**
         Convert an LSP `{line, character}` object to a CodeMirror
@@ -35600,7 +35604,7 @@ ${text}</tr>
         let events = [];
         changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
             events.push({
-                range: { start: toPosition(startDoc, fromA), end: toPosition(startDoc, toA) },
+                range: { start: toPosition$1(startDoc, fromA), end: toPosition$1(startDoc, toA) },
                 text: inserted.toString()
             });
         });
@@ -35773,74 +35777,6 @@ ${text}</tr>
         22: "class", // Struct
         25: "type" // TypeParameter
     };
-
-    /**
-    Create an extension that queries the language server for hover
-    tooltips when the user hovers over the code with their pointer,
-    and displays a tooltip when the server provides one.
-    */
-    function hoverTooltips(config = {}) {
-        return hoverTooltip(lspTooltipSource, {
-            hideOn: tr => tr.docChanged,
-            hoverTime: config.hoverTime
-        });
-    }
-    function hoverRequest(plugin, pos) {
-        if (plugin.client.hasCapability("hoverProvider") === false)
-            return Promise.resolve(null);
-        plugin.client.sync();
-        return plugin.client.request("textDocument/hover", {
-            position: plugin.toPosition(pos),
-            textDocument: { uri: plugin.uri },
-        });
-    }
-    function lspTooltipSource(view, pos) {
-        const plugin = LSPPlugin.get(view);
-        if (!plugin)
-            return Promise.resolve(null);
-        return hoverRequest(plugin, pos).then(result => {
-            if (!result)
-                return null;
-            return {
-                pos: result.range ? fromPosition(view.state.doc, result.range.start) : pos,
-                end: result.range ? fromPosition(view.state.doc, result.range.end) : pos,
-                create() {
-                    let elt = document.createElement("div");
-                    elt.className = "cm-lsp-hover-tooltip cm-lsp-documentation";
-                    elt.innerHTML = renderTooltipContent(plugin, result.contents);
-                    return { dom: elt };
-                },
-                above: true
-            };
-        });
-    }
-    function renderTooltipContent(plugin, value) {
-        if (Array.isArray(value))
-            return value.map(m => renderCode(plugin, m)).join("<br>");
-        if (typeof value == "string" || typeof value == "object" && "language" in value)
-            return renderCode(plugin, value);
-        return plugin.docToHTML(value);
-    }
-    function renderCode(plugin, code) {
-        if (typeof code == "string")
-            return plugin.docToHTML(code, "markdown");
-        let { language: language$1, value } = code;
-        let lang = plugin.client.config.highlightLanguage && plugin.client.config.highlightLanguage(language$1 || "");
-        if (!lang) {
-            let viewLang = plugin.view.state.facet(language);
-            if (viewLang && (!language$1 || viewLang.name == language$1))
-                lang = viewLang;
-        }
-        if (!lang)
-            return escHTML(value);
-        let result = "";
-        highlightCode(value, lang.parser.parse(value), { style: tags => highlightingFor(plugin.view.state, tags) }, (text, cls) => {
-            result += cls ? `<span class="${cls}">${escHTML(text)}</span>` : escHTML(text);
-        }, () => {
-            result += "<br>";
-        });
-        return result;
-    }
 
     function getFormatting(plugin, options) {
         return plugin.client.request("textDocument/formatting", {
@@ -39398,6 +39334,42 @@ ${text}</tr>
             border: "none",
             padding: "0 3px",
         },
+        ".cm-tooltip.cm-rename-message-tooltip": {
+            border: "1px solid #1B86F5 !important",
+            borderRadius: "3px !important",
+            backgroundColor: "#ffffff !important",
+            color: "#1E1E1E !important",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15) !important",
+            maxWidth: "max-content !important",
+            width: "max-content !important",
+            whiteSpace: "nowrap !important",
+            padding: "3px 8px !important",
+            fontSize: "12px !important",
+            lineHeight: "1.3 !important",
+            userSelect: "none",
+            cursor: "default",
+        },
+        ".cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::before": {
+            borderTopColor: "#1B86F5 !important",
+            borderBottomColor: "#1B86F5 !important",
+        },
+        ".cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::after": {
+            borderTopColor: "#1B86F5 !important",
+            borderBottomColor: "#1B86F5 !important",
+        },
+        '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip': {
+            borderColor: "#208FFD !important",
+            backgroundColor: "#1E1E1E !important",
+            color: "#FFFFFF !important",
+        },
+        '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::before': {
+            borderTopColor: "#208FFD !important",
+            borderBottomColor: "#208FFD !important",
+        },
+        '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::after': {
+            borderTopColor: "#208FFD !important",
+            borderBottomColor: "#208FFD !important",
+        },
     });
     const dartpadHighlightStyle = HighlightStyle.define([
         { tag: tags$1.keyword, color: "var(--cm-keyword)" },
@@ -39700,7 +39672,307 @@ ${text}</tr>
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
-    function createLspClient(sendToServer, rootUri, onInitialized, onDisplayFile, notificationHandlers, language) {
+    const renameTooltipEffect = StateEffect.define();
+    const renameTooltipField = StateField.define({
+        create() {
+            return null;
+        },
+        update(tooltip, tr) {
+            if (tr.docChanged || tr.selection) {
+                return null;
+            }
+            for (const effect of tr.effects) {
+                if (effect.is(renameTooltipEffect)) {
+                    return effect.value;
+                }
+            }
+            return tooltip;
+        },
+        provide: (field) => showTooltip.from(field),
+    });
+    function getRenameErrorMessage(error) {
+        if (!error)
+            return "The element can't be renamed.";
+        if (typeof error === "string" && error.trim().length > 0)
+            return error;
+        if (typeof error === "object") {
+            const errObj = error;
+            if (typeof errObj.message === "string" &&
+                errObj.message.trim().length > 0) {
+                return errObj.message;
+            }
+        }
+        return "The element can't be renamed.";
+    }
+    function createRenameTooltip(pos, message) {
+        return {
+            pos,
+            above: true,
+            strictSide: true,
+            arrow: true,
+            create(view) {
+                const dom = document.createElement("div");
+                dom.className = "cm-rename-message-tooltip";
+                dom.textContent = message;
+                dom.addEventListener("click", () => {
+                    view.dispatch({ effects: renameTooltipEffect.of(null) });
+                });
+                const attachClass = () => {
+                    if (dom.parentElement) {
+                        dom.parentElement.classList.add("cm-rename-message-tooltip-wrapper");
+                    }
+                };
+                if (typeof queueMicrotask === "function") {
+                    queueMicrotask(attachClass);
+                }
+                setTimeout(attachClass, 0);
+                return {
+                    dom,
+                    mount() {
+                        attachClass();
+                    },
+                    positioned() {
+                        attachClass();
+                    },
+                };
+            },
+        };
+    }
+    function showRenameMessage(view, pos, message) {
+        const effects = [closeHoverTooltips];
+        if (view.state.field(renameTooltipField, false) === undefined) {
+            effects.push(StateEffect.appendConfig.of(renameTooltipField));
+        }
+        const tooltip = createRenameTooltip(pos, message);
+        effects.push(renameTooltipEffect.of(tooltip));
+        view.dispatch({ effects });
+        setTimeout(() => {
+            try {
+                const current = view.state.field(renameTooltipField, false);
+                if (current && current.pos === pos) {
+                    view.dispatch({ effects: renameTooltipEffect.of(null) });
+                }
+            }
+            catch (_a) {
+                // Ignore if view destroyed
+            }
+        }, 5000);
+    }
+    function isTextDocumentEdit(change) {
+        var _a;
+        if (!change || typeof change !== "object")
+            return false;
+        const candidate = change;
+        return !!((_a = candidate.textDocument) === null || _a === void 0 ? void 0 : _a.uri) && Array.isArray(candidate.edits);
+    }
+    function toPosition(doc, offset) {
+        const line = doc.lineAt(offset);
+        return { line: line.number - 1, character: offset - line.from };
+    }
+    function rebaseEdits(plugin, mapping, uri, edits) {
+        var _a, _b;
+        const file = plugin.client.workspace.getFile(uri);
+        const doc = (_b = (_a = file === null || file === void 0 ? void 0 : file.getView()) === null || _a === void 0 ? void 0 : _a.state.doc) !== null && _b !== void 0 ? _b : file === null || file === void 0 ? void 0 : file.doc;
+        if (!doc || !mapping.getMapping(uri))
+            return edits;
+        return edits.map((edit) => (Object.assign(Object.assign({}, edit), { range: {
+                start: toPosition(doc, mapping.mapPosition(uri, edit.range.start, 1)),
+                end: toPosition(doc, mapping.mapPosition(uri, edit.range.end, -1)),
+            } })));
+    }
+    /** Rebase edits for open CodeMirror documents while preserving the LSP shape. */
+    function rebaseWorkspaceEdit(plugin, mapping, edit) {
+        const rebased = Object.assign({}, edit);
+        if (edit.changes) {
+            rebased.changes = Object.fromEntries(Object.entries(edit.changes).map(([uri, edits]) => [
+                uri,
+                rebaseEdits(plugin, mapping, uri, edits),
+            ]));
+        }
+        if (edit.documentChanges) {
+            rebased.documentChanges = edit.documentChanges.map((change) => {
+                if (!isTextDocumentEdit(change))
+                    return change;
+                return Object.assign(Object.assign({}, change), { edits: rebaseEdits(plugin, mapping, change.textDocument.uri, change.edits) });
+            });
+        }
+        return rebased;
+    }
+    /** Requests a symbol rename and forwards the resulting workspace edit. */
+    function renameSymbolAsync(view_1, newName_1, applyWorkspaceEdit_1) {
+        return __awaiter(this, arguments, void 0, function* (view, newName, applyWorkspaceEdit, getPlugin = LSPPlugin.get, targetPos) {
+            const plugin = getPlugin(view);
+            const pos = targetPos !== null && targetPos !== void 0 ? targetPos : view.state.selection.main.head;
+            const word = view.state.wordAt(pos);
+            if (!plugin || !word) {
+                showRenameMessage(view, pos, "The element can't be renamed.");
+                return false;
+            }
+            try {
+                plugin.client.sync();
+                yield plugin.client.withMapping((mapping) => __awaiter(this, void 0, void 0, function* () {
+                    const response = yield plugin.client.request("textDocument/rename", {
+                        newName,
+                        position: plugin.toPosition(word.from),
+                        textDocument: { uri: plugin.uri },
+                    });
+                    if (response) {
+                        yield applyWorkspaceEdit(rebaseWorkspaceEdit(plugin, mapping, response));
+                    }
+                }));
+                return true;
+            }
+            catch (error) {
+                showRenameMessage(view, pos, getRenameErrorMessage(error));
+                return false;
+            }
+        });
+    }
+    /** Handles checking prepareRename and opening the rename prompt. */
+    function startRename(view_1, applyWorkspaceEdit_1) {
+        return __awaiter(this, arguments, void 0, function* (view, applyWorkspaceEdit, getPlugin = LSPPlugin.get) {
+            var _a, _b;
+            const pos = view.state.selection.main.head;
+            const wordRange = view.state.wordAt(pos);
+            const plugin = getPlugin(view);
+            if (!wordRange ||
+                !plugin ||
+                ((_b = (_a = plugin.client).hasCapability) === null || _b === void 0 ? void 0 : _b.call(_a, "renameProvider")) === false) {
+                showRenameMessage(view, pos, "The element can't be renamed.");
+                return true;
+            }
+            let initialName = view.state.sliceDoc(wordRange.from, wordRange.to);
+            try {
+                plugin.client.sync();
+                const prepareResult = yield plugin.client.request("textDocument/prepareRename", {
+                    textDocument: { uri: plugin.uri },
+                    position: plugin.toPosition(pos),
+                });
+                if (prepareResult === null) {
+                    showRenameMessage(view, pos, "The element can't be renamed.");
+                    return true;
+                }
+                if (typeof prepareResult === "object" && prepareResult !== null) {
+                    if ("placeholder" in prepareResult &&
+                        typeof prepareResult.placeholder === "string") {
+                        initialName = prepareResult.placeholder;
+                    }
+                }
+            }
+            catch (error) {
+                // If the server doesn't support prepareRename (e.g. -32601 Method not found),
+                // proceed to open the rename dialog.
+                if ((error === null || error === void 0 ? void 0 : error.code) === -32601 ||
+                    (typeof (error === null || error === void 0 ? void 0 : error.message) === "string" &&
+                        error.message.includes("Method not found"))) ;
+                else {
+                    showRenameMessage(view, pos, getRenameErrorMessage(error));
+                    return true;
+                }
+            }
+            const panel = getDialog(view, "cm-lsp-rename-panel");
+            if (panel) {
+                const input = panel.dom.querySelector("[name=name]");
+                if (input) {
+                    input.value = initialName;
+                    input.select();
+                }
+            }
+            else {
+                const { close, result } = showDialog(view, {
+                    label: view.state.phrase("New name"),
+                    input: { name: "name", value: initialName },
+                    focus: true,
+                    submitLabel: view.state.phrase("rename"),
+                    class: "cm-lsp-rename-panel",
+                });
+                void result.then((form) => {
+                    view.dispatch({ effects: close });
+                    if (form) {
+                        const input = form.elements.namedItem("name");
+                        void renameSymbolAsync(view, input.value, applyWorkspaceEdit, getPlugin, pos);
+                    }
+                });
+            }
+            return true;
+        });
+    }
+    /** Creates the F2 rename command for a specific workspace-edit handler. */
+    function createRenameKeymap(applyWorkspaceEdit) {
+        const renameSymbol = (view) => {
+            if (view.state.field(renameTooltipField, false)) {
+                view.dispatch({
+                    effects: [renameTooltipEffect.of(null), closeHoverTooltips],
+                });
+                return true;
+            }
+            view.dispatch({ effects: closeHoverTooltips });
+            void startRename(view, applyWorkspaceEdit);
+            return true;
+        };
+        const closeRenameTooltip = (view) => {
+            if (view.state.field(renameTooltipField, false)) {
+                view.dispatch({
+                    effects: [renameTooltipEffect.of(null), closeHoverTooltips],
+                });
+                return true;
+            }
+            return false;
+        };
+        return [
+            { key: "F2", run: renameSymbol, preventDefault: true },
+            { key: "Escape", run: closeRenameTooltip },
+        ];
+    }
+
+    // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+    // for details. All rights reserved. Use of this source code is governed by a
+    // BSD-style license that can be found in the LICENSE file.
+    function lspHoverTooltips(config = {}) {
+        return hoverTooltip((view, pos, _side) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            if (view.state.field(renameTooltipField, false) ||
+                getDialog(view, "cm-lsp-rename-panel")) {
+                return null;
+            }
+            const plugin = LSPPlugin.get(view);
+            if (!plugin ||
+                ((_b = (_a = plugin.client).hasCapability) === null || _b === void 0 ? void 0 : _b.call(_a, "hoverProvider")) === false) {
+                return null;
+            }
+            plugin.client.sync();
+            try {
+                const result = yield plugin.client.request("textDocument/hover", {
+                    position: plugin.toPosition(pos),
+                    textDocument: { uri: plugin.uri },
+                });
+                if (!result)
+                    return null;
+                if (view.state.field(renameTooltipField, false) ||
+                    getDialog(view, "cm-lsp-rename-panel")) {
+                    return null;
+                }
+                return {
+                    pos: result.range ? plugin.fromPosition(result.range.start) : pos,
+                    end: result.range ? plugin.fromPosition(result.range.end) : pos,
+                    create() {
+                        const elt = document.createElement("div");
+                        elt.className = "cm-lsp-hover-tooltip cm-lsp-documentation";
+                        elt.innerHTML = plugin.docToHTML(result.contents);
+                        return { dom: elt };
+                    },
+                    above: true,
+                };
+            }
+            catch (_c) {
+                return null;
+            }
+        }), {
+            hideOn: (tr) => tr.docChanged,
+            hoverTime: config.hoverTime,
+        });
+    }
+    function createLspClient(sendToServer, rootUri, onInitialized, onDisplayFile, onWorkspaceEdit, notificationHandlers, language) {
         let handlers = [];
         let disposed = false;
         const transport = {
@@ -39731,6 +40003,7 @@ ${text}</tr>
             },
             extensions: [
                 semanticExtension,
+                renameTooltipField,
                 {
                     clientCapabilities: {
                         workspace: {
@@ -39762,11 +40035,11 @@ ${text}</tr>
                     },
                 },
                 serverCompletion(),
-                [hoverTooltips({ hoverTime: 800 })],
+                [lspHoverTooltips({ hoverTime: 800 })],
                 [
                     keymap.of([
                         ...formatKeymap,
-                        ...renameKeymap,
+                        ...createRenameKeymap(onWorkspaceEdit),
                         ...jumpToDefinitionKeymap,
                         ...findReferencesKeymap,
                     ]),
@@ -40102,6 +40375,10 @@ ${text}</tr>
     }
     function diagnosticHoverToolbar(actions) {
         return hoverTooltip((view, pos, side) => {
+            if (view.state.field(renameTooltipField, false) ||
+                getDialog(view, "cm-lsp-rename-panel")) {
+                return null;
+            }
             const activeDiagnostics = [];
             forEachDiagnostic(view.state, (diagnostic, from, to) => {
                 if (pos >= from && pos <= to) {
@@ -40395,6 +40672,9 @@ ${text}</tr>
         selectionAction,
         diagnosticHoverToolbar,
         forceSemanticTokensRefresh,
+        renameTooltipField,
+        showRenameMessage,
+        startRename,
         // test utilities
         getRegisteredKeys,
         formatKeymap,

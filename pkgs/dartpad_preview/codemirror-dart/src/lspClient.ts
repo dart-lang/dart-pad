@@ -3,17 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import { Extension, Text } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, getDialog, hoverTooltip, keymap } from "@codemirror/view";
 import {
   LSPClient,
   Workspace,
   WorkspaceFile,
   LSPPlugin,
   serverCompletion,
-  hoverTooltips,
   signatureHelp,
   formatKeymap,
-  renameKeymap,
   jumpToDefinitionKeymap,
   findReferencesKeymap,
   serverDiagnostics,
@@ -23,6 +21,11 @@ import {
   semanticExtension,
 } from "./semanticHighlighting";
 import { LanguageSupport } from "@codemirror/language";
+import {
+  createRenameKeymap,
+  renameTooltipField,
+  type ApplyWorkspaceEdit,
+} from "./rename";
 
 export type LspClientBindings = {
   createExtension: (uri: string) => Extension;
@@ -35,11 +38,69 @@ export type NotificationHandler = {
   callback: (client: LSPClient, params: any) => boolean;
 };
 
+function lspHoverTooltips(config: { hoverTime?: number } = {}) {
+  return hoverTooltip(
+    async (view, pos, _side) => {
+      if (
+        view.state.field(renameTooltipField, false) ||
+        getDialog(view, "cm-lsp-rename-panel")
+      ) {
+        return null;
+      }
+      const plugin = LSPPlugin.get(view);
+      if (
+        !plugin ||
+        (plugin.client as any).hasCapability?.("hoverProvider") === false
+      ) {
+        return null;
+      }
+      plugin.client.sync();
+      try {
+        const result = await plugin.client.request<
+          {
+            position: { line: number; character: number };
+            textDocument: { uri: string };
+          },
+          any
+        >("textDocument/hover", {
+          position: plugin.toPosition(pos),
+          textDocument: { uri: plugin.uri },
+        });
+        if (!result) return null;
+        if (
+          view.state.field(renameTooltipField, false) ||
+          getDialog(view, "cm-lsp-rename-panel")
+        ) {
+          return null;
+        }
+        return {
+          pos: result.range ? plugin.fromPosition(result.range.start) : pos,
+          end: result.range ? plugin.fromPosition(result.range.end) : pos,
+          create() {
+            const elt = document.createElement("div");
+            elt.className = "cm-lsp-hover-tooltip cm-lsp-documentation";
+            elt.innerHTML = plugin.docToHTML(result.contents);
+            return { dom: elt };
+          },
+          above: true,
+        };
+      } catch {
+        return null;
+      }
+    },
+    {
+      hideOn: (tr) => tr.docChanged,
+      hoverTime: config.hoverTime,
+    },
+  );
+}
+
 export function createLspClient(
   sendToServer: (msg: string) => void,
   rootUri: string,
   onInitialized: () => void,
   onDisplayFile: (uri: string) => any,
+  onWorkspaceEdit: ApplyWorkspaceEdit,
   notificationHandlers: NotificationHandler[],
   language: LanguageSupport,
 ): LspClientBindings {
@@ -75,6 +136,7 @@ export function createLspClient(
     },
     extensions: [
       semanticExtension,
+      renameTooltipField,
       {
         clientCapabilities: {
           workspace: {
@@ -106,11 +168,11 @@ export function createLspClient(
         },
       },
       serverCompletion(),
-      [hoverTooltips({ hoverTime: 800 })],
+      [lspHoverTooltips({ hoverTime: 800 })],
       [
         keymap.of([
           ...formatKeymap,
-          ...renameKeymap,
+          ...createRenameKeymap(onWorkspaceEdit),
           ...jumpToDefinitionKeymap,
           ...findReferencesKeymap,
         ]),
