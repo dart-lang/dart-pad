@@ -10,7 +10,7 @@ import '../../../app_styles.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/icons.dart';
 import 'editor_stack.dart';
-import 'editor_tabs.dart';
+import 'editor_tab_bar.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor.
 class EditorShell extends StatefulComponent {
@@ -24,6 +24,7 @@ class EditorShell extends StatefulComponent {
     required this.onCloseFile,
     required this.bottomPanel,
     this.isEmbedMode = false,
+    this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -56,6 +57,10 @@ class EditorShell extends StatefulComponent {
   /// When `true`, the file tree starts collapsed into a narrow rail with a
   /// toggle button.
   final bool isEmbedMode;
+
+  /// The preview panel to show when the Output tab is active in a small-screen layout.
+  /// When non-null, the preview panel replaces the editor content.
+  final Component? smallScreenPreviewPanel;
 
   @override
   State<EditorShell> createState() => _EditorShellState();
@@ -92,7 +97,7 @@ class _EditorShellState extends State<EditorShell> {
         maxValue: 0.9,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
-            EditorTabs(
+            EditorTabBar(
               openTabs: openTabs,
               activeFile: component.activeFile,
               onSwitchFile: component.onSwitchFile!,
@@ -108,10 +113,10 @@ class _EditorShellState extends State<EditorShell> {
         right: component.bottomPanel,
       ),
     ]);
+    final Component rightContent = component.smallScreenPreviewPanel ?? editorContent;
 
-    // In embed mode with collapsed file tree, show a narrow rail instead of
-    // the full SplitPanel with file tree.
-    if (component.isEmbedMode && _fileTreeCollapsed) {
+    // Collapsed file tree: show a narrow rail with a toggle button.
+    if (_fileTreeCollapsed) {
       return div(classes: 'editor-shell', [
         aside(classes: 'file-tree-rail', [
           button(
@@ -124,47 +129,32 @@ class _EditorShellState extends State<EditorShell> {
             [const Icon('folder_open', size: 18)],
           ),
         ]),
-        editorContent,
+        rightContent,
       ]);
     }
 
-    // In embed mode with expanded file tree, show the file tree with a
-    // collapse button in its header area.
-    if (component.isEmbedMode) {
-      return div(classes: 'editor-shell', [
-        SplitPanel(
-          initialValue: 200,
-          useRatio: false,
-          minValue: 150,
-          maxValue: 300,
-          left: aside(classes: 'file-tree-pane', [
-            div(classes: 'file-tree-collapse-bar', [
-              button(
-                classes: 'file-tree-rail-button',
-                attributes: {
-                  'title': 'Hide file tree',
-                  'aria-label': 'Hide file tree',
-                },
-                onClick: _toggleFileTree,
-                [const Icon('chevron_left', size: 18)],
-              ),
-            ]),
-            component.fileTree,
-          ]),
-          right: editorContent,
-        ),
-      ]);
-    }
-
-    // Standard (non-embed) layout.
+    // Expanded file tree with collapse button.
     return div(classes: 'editor-shell', [
       SplitPanel(
         initialValue: 200,
         useRatio: false,
         minValue: 150,
         maxValue: 300,
-        left: aside(classes: 'file-tree-pane', [component.fileTree]),
-        right: editorContent,
+        left: aside(classes: 'file-tree-pane', [
+          div(classes: 'file-tree-collapse-bar', [
+            button(
+              classes: 'file-tree-rail-button',
+              attributes: {
+                'title': 'Hide file tree',
+                'aria-label': 'Hide file tree',
+              },
+              onClick: _toggleFileTree,
+              [const Icon('chevron_left', size: 18)],
+            ),
+          ]),
+          component.fileTree,
+        ]),
+        right: rightContent,
       ),
     ]);
   }
@@ -202,7 +192,6 @@ class _EditorShellState extends State<EditorShell> {
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
     ),
-
     // -- Embed mode: collapsed file-tree rail --
     css('.file-tree-rail').styles(
       display: .flex,

@@ -16,7 +16,9 @@ import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/error_toast.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
+import 'features/editor/components/small_screen_tab_bar.dart';
 import 'features/filetree/file_tree_view.dart';
+import 'features/preview/models/preview_state.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
@@ -34,9 +36,12 @@ import 'features/workspace/workspace_session.dart';
 
 /// Whether the application is running in embed mode (`?embed=true`).
 ///
-/// When `true`, the app bar and footer are hidden and the file tree starts
+/// When `true`, the [AppBar] and footer are hidden and the file tree starts
 /// collapsed into a narrow rail with a toggle button.
 final bool isEmbedMode = Uri.base.queryParameters['embed'] == 'true';
+
+/// Smallest screen width when the screen is considered to be a large screen.
+const minLargeScreenWidth = 866.0;
 
 /// The deliberately small first production slice of DartPad.
 class App extends StatefulComponent {
@@ -100,19 +105,51 @@ class AppState extends State<App> {
   String _projectDir = '';
   String? _errorMessage;
 
+  bool _isLargeScreen = true;
+  SmallScreenTab _selectedSmallScreenTab = .code;
+  StreamSubscription<web.Event>? _resizeSubscription;
+
   @override
   void initState() {
     super.initState();
+    _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
+    _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
+      _updateScreenSize();
+    });
+
     final events = AppEventBus();
     _session = WorkspaceSession.create(
       WorkspaceRepository.create(events: events),
     );
+    _session.preview.addListener(_onPreviewStateChanged);
     unawaited(
       _initializeWorkspace(
         _session,
         source: ProjectSource.fromUri(Uri.base),
       ),
     );
+  }
+
+  void _updateScreenSize() {
+    final isLarge = web.window.innerWidth >= minLargeScreenWidth;
+    if (_isLargeScreen != isLarge) {
+      setState(() {
+        _isLargeScreen = isLarge;
+      });
+    }
+  }
+
+  void _onPreviewStateChanged() {
+    if (!_isLargeScreen) {
+      final state = _session.preview.state;
+      if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
+        if (_selectedSmallScreenTab != .output) {
+          setState(() {
+            _selectedSmallScreenTab = .output;
+          });
+        }
+      }
+    }
   }
 
   bool _isCurrent(WorkspaceSession session) => mounted && identical(_session, session);
@@ -266,6 +303,8 @@ class AppState extends State<App> {
         previousWorkspaceDisposed: previousWorkspaceDisposed.future,
       ),
     );
+    oldSession.preview.removeListener(_onPreviewStateChanged);
+    nextSession.preview.addListener(_onPreviewStateChanged);
 
     final newSearch = source.search;
     if (web.window.location.search != newSearch) {
@@ -415,7 +454,7 @@ class AppState extends State<App> {
   Component build(BuildContext context) {
     final session = _session;
     return div(classes: 'app-shell', [
-      if (!isEmbedMode)
+      if (!isEmbedMode || !_isLargeScreen)
         AppBar(
           onCreateNewSnippet: _isInitializingWorkspace || session.repository.dartpad == null
               ? null
@@ -423,15 +462,36 @@ class AppState extends State<App> {
           onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
               ? null
               : (example) => resetWorkspace(ProjectSource.example(example.id)),
+          isEmbedMode: isEmbedMode,
+          smallScreenTabBar: !_isLargeScreen
+              ? SmallScreenTabBar(
+                  selectedTab: _selectedSmallScreenTab,
+                  onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+                )
+              : null,
         ),
       ListenableBuilder(
         key: ValueKey(_workspaceGeneration),
         listenable: session.tabs,
         builder: (context) => div(classes: 'app-workspace-container', [
           div(classes: 'app-workspace', [
-            SplitPanel(
-              initialValue: 0.7,
-              left: EditorShell(
+            if (_isLargeScreen)
+              SplitPanel(
+                initialValue: 0.7,
+                left: EditorShell(
+                  openTabs: session.tabs.openTabs,
+                  activeFile: session.tabs.activeFile,
+                  fileTree: _buildFileTree(session),
+                  editorOverlay: _buildEditorOverlay(session),
+                  onSwitchFile: session.tabs.switchFile,
+                  onCloseFile: session.tabs.closeFile,
+                  bottomPanel: _buildBottomPanel(session),
+                  isEmbedMode: isEmbedMode,
+                ),
+                right: _buildPreviewPanel(session),
+              )
+            else
+              EditorShell(
                 openTabs: session.tabs.openTabs,
                 activeFile: session.tabs.activeFile,
                 fileTree: _buildFileTree(session),
@@ -440,13 +500,13 @@ class AppState extends State<App> {
                 onCloseFile: session.tabs.closeFile,
                 bottomPanel: _buildBottomPanel(session),
                 isEmbedMode: isEmbedMode,
+                smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
               ),
-              right: _buildPreviewPanel(session),
-            ),
           ]),
           if (!isEmbedMode)
             Footer(
               statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
+              isSmallScreen: !_isLargeScreen,
             ),
         ]),
       ),
@@ -511,6 +571,8 @@ class AppState extends State<App> {
 
   @override
   void dispose() {
+    _resizeSubscription?.cancel();
+    _session.preview.removeListener(_onPreviewStateChanged);
     unawaited(_session.dispose(closeWorker: true));
     super.dispose();
   }

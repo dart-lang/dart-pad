@@ -7,18 +7,21 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../../editor/components/small_screen_tab_bar.dart';
 import '../../startup/examples.g.dart';
 import '../icons.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
 
-/// The main application bar with the DartPad logo, title, theme toggle, and
+/// The main [AppBar] with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 class AppBar extends StatefulComponent {
   const AppBar({
     this.onCreateNewSnippet,
     this.onLoadSample,
+    this.isEmbedMode = false,
+    this.smallScreenTabBar,
     super.key,
   });
 
@@ -27,6 +30,15 @@ class AppBar extends StatefulComponent {
 
   /// Called when the user selects a sample from the sample menu.
   final void Function(Example example)? onLoadSample;
+
+  /// Whether the application is running in embed mode.
+  final bool isEmbedMode;
+
+  /// Code / Output [SmallScreenTabBar] displayed in small-screen layouts.
+  final SmallScreenTabBar? smallScreenTabBar;
+
+  /// Whether this [AppBar] is being rendered in a small-screen layout.
+  bool get isSmallScreen => smallScreenTabBar != null;
 
   @override
   State<AppBar> createState() => _AppBarState();
@@ -63,10 +75,24 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
+    return switch ((component.isEmbedMode, component.isSmallScreen)) {
+      // Large embedded layouts show neither AppBar nor SmallScreenTabBar.
+      (true, false) => const Component.fragment([]),
+      // Small embedded layouts show only SmallScreenTabBar.
+      (true, true) => component.smallScreenTabBar ?? const Component.fragment([]),
+      // Large standalone layouts show AppBar.
+      (false, false) => _buildAppBar(),
+      // Small standalone layouts show AppBar and SmallScreenTabBar.
+      (false, true) => _buildAppBar(component.smallScreenTabBar),
+    };
+  }
+
+  Component _buildAppBar([SmallScreenTabBar? smallScreenTabBar]) {
     final isCreateDisabled = component.onCreateNewSnippet == null;
     final isSamplesDisabled = component.onLoadSample == null;
+    final isSmallScreen = component.isSmallScreen;
 
-    return div(classes: 'app-bar', [
+    final appBar = div(classes: 'app-bar', [
       // Left section: logo + title + create + samples.
       div(classes: 'app-bar-left', [
         const img(
@@ -88,7 +114,7 @@ class _AppBarState extends State<AppBar> {
             },
             [
               const Icon('add_circle', size: 18),
-              const span(classes: 'app-bar-button-label', [.text('Create')]),
+              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Create')]),
             ],
           ),
           items: [
@@ -112,7 +138,7 @@ class _AppBarState extends State<AppBar> {
             },
             [
               const Icon('playlist_add', size: 18),
-              const span(classes: 'app-bar-button-label', [.text('Samples')]),
+              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Samples')]),
             ],
           ),
           items: _buildExampleItems(),
@@ -146,21 +172,30 @@ class _AppBarState extends State<AppBar> {
         ),
       ]),
     ]);
+
+    return div(classes: 'app-bar-container', [
+      appBar,
+      ?smallScreenTabBar,
+    ]);
   }
 
   static List<StyleRule> get styles => [
+    css('.app-bar-container').styles(
+      display: .flex,
+      position: const .relative(),
+      zIndex: const ZIndex(200),
+      flexDirection: .column,
+      flex: const .shrink(0),
+    ),
     css('.app-bar').styles(
       display: .flex,
       position: const .relative(),
-      // File-tree folder rows are sticky and use z-indices up to 100. Keep
-      // the whole app bar above that stacking context so dropdowns are never
-      // painted behind the workspace.
       zIndex: const ZIndex(200),
       height: 48.px,
       minHeight: 48.px,
       padding: .symmetric(horizontal: 12.px),
       border: .only(
-        bottom: .solid(color: colorBorder, width: 2.px),
+        bottom: .solid(color: colorBorder, width: 1.px),
       ),
       alignItems: .center,
       gap: Gap.all(8.px),

@@ -16,7 +16,7 @@ import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'package:dartpad_frontend/features/editor/components/code_action_panel.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
-import 'package:dartpad_frontend/features/editor/components/editor_tabs.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
 import 'package:dartpad_frontend/features/startup/example_project.dart';
 import 'package:jaspr/jaspr.dart';
@@ -208,7 +208,7 @@ void main() {
     mainTab.editor.text = '${mainTab.content}\n// dirty';
 
     tester.pumpComponent(
-      EditorTabs(
+      EditorTabBar(
         openTabs: tabs!.openTabs,
         activeFile: tabs!.activeFile,
         onSwitchFile: tabs!.switchFile,
@@ -227,7 +227,7 @@ void main() {
     var shouldDiscard = false;
 
     tester.pumpComponent(
-      EditorTabs(
+      EditorTabBar(
         openTabs: tabs!.openTabs,
         activeFile: tabs!.activeFile,
         onSwitchFile: tabs!.switchFile,
