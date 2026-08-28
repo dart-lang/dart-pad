@@ -115,6 +115,44 @@ export const dartpadTheme = EditorView.theme({
     border: "none",
     padding: "0 3px",
   },
+  ".cm-tooltip.cm-rename-message-tooltip": {
+    border: "1px solid #1B86F5 !important",
+    borderRadius: "3px !important",
+    backgroundColor: "#ffffff !important",
+    color: "#1E1E1E !important",
+    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15) !important",
+    maxWidth: "max-content !important",
+    width: "max-content !important",
+    whiteSpace: "nowrap !important",
+    padding: "3px 8px !important",
+    fontSize: "12px !important",
+    lineHeight: "1.3 !important",
+    userSelect: "none",
+    cursor: "default",
+  },
+  ".cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::before": {
+    borderTopColor: "#1B86F5 !important",
+    borderBottomColor: "#1B86F5 !important",
+  },
+  ".cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::after": {
+    borderTopColor: "#1B86F5 !important",
+    borderBottomColor: "#1B86F5 !important",
+  },
+  '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip': {
+    borderColor: "#208FFD !important",
+    backgroundColor: "#1E1E1E !important",
+    color: "#FFFFFF !important",
+  },
+  '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::before':
+    {
+      borderTopColor: "#208FFD !important",
+      borderBottomColor: "#208FFD !important",
+    },
+  '[data-theme="dark"] & .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::after':
+    {
+      borderTopColor: "#208FFD !important",
+      borderBottomColor: "#208FFD !important",
+    },
 });
 
 export const dartpadHighlightStyle = HighlightStyle.define([

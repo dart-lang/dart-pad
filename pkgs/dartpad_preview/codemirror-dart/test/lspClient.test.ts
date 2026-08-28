@@ -274,6 +274,7 @@ test("createLspClient accepts dartLanguage() and language.name is 'dart'", () =>
     "file:///workspace",
     () => {},
     () => {},
+    () => {},
     [],
     support,
   );

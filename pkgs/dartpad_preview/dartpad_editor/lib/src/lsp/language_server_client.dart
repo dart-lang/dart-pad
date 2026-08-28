@@ -95,6 +95,7 @@ class LanguageServerClient {
             await handler(relativePath);
           }
         },
+        onWorkspaceEdit: applyWorkspaceEdit,
         // Use dartLanguage() (single LanguageSupport object), NOT dart()
         // (bundled array of extensions). The LSP client's highlightLanguage
         // callback accesses language.language to get the Language instance

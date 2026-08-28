@@ -42,6 +42,7 @@ import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
 import { formatDocument, formatDocumentAsync } from "./formatting";
 import { selectionAction } from "./selectionAction";
+import { renameTooltipField, showRenameMessage, startRename } from "./rename";
 
 declare global {
   interface Window {
@@ -84,6 +85,9 @@ declare global {
       selectionAction: typeof selectionAction;
       diagnosticHoverToolbar: typeof diagnosticHoverToolbar;
       forceSemanticTokensRefresh: typeof forceSemanticTokensRefresh;
+      renameTooltipField: typeof renameTooltipField;
+      showRenameMessage: typeof showRenameMessage;
+      startRename: typeof startRename;
 
       // test utilities
       getRegisteredKeys: (state: EditorState) => string[];
@@ -161,6 +165,9 @@ window._codemirror = {
   selectionAction,
   diagnosticHoverToolbar,
   forceSemanticTokensRefresh,
+  renameTooltipField,
+  showRenameMessage,
+  startRename,
 
   // test utilities
   getRegisteredKeys,

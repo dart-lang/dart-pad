@@ -18,6 +18,7 @@ external _LspClientHandle _createLspClient(
   JSString rootUri,
   JSFunction onInitialized,
   JSFunction onDisplayFile,
+  JSFunction onWorkspaceEdit,
   JSArray<NotificationHandler> notificationHandlers,
   JSAny language,
 );
@@ -68,10 +69,16 @@ class CodeMirrorLspClient {
   ///
   /// The [rootUri] anchors the virtual workspace directory used during the
   /// initialize handshake.
+  ///
+  /// The [onWorkspaceEdit] callback applies workspace-wide edits returned by
+  /// editor-initiated LSP operations such as symbol rename. Its future is
+  /// awaited before the operation completes, and failures are propagated back
+  /// to CodeMirror so they can be reported to the user.
   factory CodeMirrorLspClient(
     void Function(String) sendToServer,
     String rootUri, {
     required Future<void> Function(String) onDisplayFile,
+    required Future<void> Function(Map<String, Object?>) onWorkspaceEdit,
     // Expects a JS LanguageSupport object (from dartLanguage()), not the
     // bundled array returned by dart().
     required JSObject language,
@@ -143,6 +150,10 @@ class CodeMirrorLspClient {
       }).toJS,
       ((JSString uri) {
         return onDisplayFile(uri.toDart).toJS;
+      }).toJS,
+      ((JSObject edit) {
+        final dartEdit = (edit.dartify() as Map).cast<String, Object?>();
+        return onWorkspaceEdit(dartEdit).toJS;
       }).toJS,
       notificationHandlers,
       language,

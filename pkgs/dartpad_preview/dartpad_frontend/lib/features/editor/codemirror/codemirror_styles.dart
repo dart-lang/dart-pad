@@ -290,6 +290,41 @@ List<StyleRule> get codemirrorStyles => [
       'border-bottom-color': colorBorder.value,
     },
   ),
+  css('.editor-container .cm-tooltip.cm-rename-message-tooltip').styles(
+    padding: .symmetric(vertical: 3.px, horizontal: 8.px),
+    radius: .circular(3.px),
+    shadow: BoxShadow(
+      offsetX: 0.px,
+      offsetY: 2.px,
+      blur: 6.px,
+      color: const Color.rgba(0, 0, 0, 0.15),
+    ),
+    color: colorOnContainer,
+    fontSize: 12.px,
+    lineHeight: 1.3.em,
+    backgroundColor: colorContainer,
+    raw: {
+      'border': '1px solid ${colorPrimary.value} !important',
+      'background-color': '${colorContainer.value} !important',
+      'max-width': 'max-content !important',
+      'width': 'max-content !important',
+      'white-space': 'nowrap !important',
+      'user-select': 'none',
+      'cursor': 'default',
+    },
+  ),
+  css('.editor-container .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::before').styles(
+    raw: {
+      'border-top-color': '${colorPrimary.value} !important',
+      'border-bottom-color': '${colorPrimary.value} !important',
+    },
+  ),
+  css('.editor-container .cm-tooltip.cm-rename-message-tooltip .cm-tooltip-arrow::after').styles(
+    raw: {
+      'border-top-color': '${colorPrimary.value} !important',
+      'border-bottom-color': '${colorPrimary.value} !important',
+    },
+  ),
   css('.editor-container .cm-selection-action-tooltip').styles(
     padding: .zero,
     radius: .circular(6.px),

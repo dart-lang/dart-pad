@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import { Extension } from "@codemirror/state";
-import { EditorView, hoverTooltip } from "@codemirror/view";
+import { EditorView, getDialog, hoverTooltip } from "@codemirror/view";
 import { forEachDiagnostic, setDiagnosticsEffect } from "@codemirror/lint";
+import { renameTooltipField } from "./rename";
 
 export interface ToolbarAction {
   label: string;
@@ -30,6 +31,12 @@ function hideTooltip(tr: any, tooltip: any) {
 export function diagnosticHoverToolbar(actions: ToolbarAction[]): Extension {
   return hoverTooltip(
     (view, pos, side) => {
+      if (
+        view.state.field(renameTooltipField, false) ||
+        getDialog(view, "cm-lsp-rename-panel")
+      ) {
+        return null;
+      }
       const activeDiagnostics: any[] = [];
       forEachDiagnostic(view.state, (diagnostic, from, to) => {
         if (pos >= from && pos <= to) {
