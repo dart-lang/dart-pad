@@ -63,6 +63,7 @@ final class CodeMirrorEditor {
               cm.KeyBinding(key: 'Mod-Shift-M'.toJS, run: ((cm.EditorView view) => true.toJS).toJS),
             ].toJS,
           ),
+          cm.keymapOf(cm.extraKeymap),
           cm.basicSetup,
           cm.indentUnitOf('  '.toJS),
           cm.gotoDefinitionOnClick(),

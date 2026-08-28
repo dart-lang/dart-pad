@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Third-party licenses are listed in THIRD_PARTY_NOTICES.txt.
-(function () {
+(function (exports) {
     'use strict';
 
     /**
@@ -40635,6 +40635,15 @@ ${text}</tr>
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
+    const extraKeymap = [
+        { key: "Shift-Mod-\\", run: cursorMatchingBracket },
+        { key: "Alt-m", run: cursorMatchingBracket },
+        { key: "Alt--", run: foldCode },
+        { key: "Alt-+", run: unfoldCode },
+        { key: "Alt-=", run: unfoldCode },
+        { key: "Alt-0", run: foldAll },
+        { key: "Alt-9", run: unfoldAll },
+    ];
     /**
      * Returns all key binding strings registered in the given editor state.
      *
@@ -40701,10 +40710,15 @@ ${text}</tr>
         startRename,
         // test utilities
         getRegisteredKeys,
+        extraKeymap,
         formatKeymap,
         renameKeymap,
         jumpToDefinitionKeymap,
         findReferencesKeymap,
     };
 
-})();
+    exports.extraKeymap = extraKeymap;
+
+    return exports;
+
+})({});

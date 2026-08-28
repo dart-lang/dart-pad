@@ -51,6 +51,7 @@ void main() {
       'diagnosticHoverToolbar',
       'forceSemanticTokensRefresh',
       'getRegisteredKeys',
+      'extraKeymap',
       'formatKeymap',
       'renameKeymap',
       'jumpToDefinitionKeymap',
@@ -290,5 +291,54 @@ void main() {
     expect(commentTokens.getProperty<JSString>('line'.toJS).toDart, '//');
     expect(block.getProperty<JSString>('open'.toJS).toDart, '/*');
     expect(block.getProperty<JSString>('close'.toJS).toDart, '*/');
+  });
+
+  test('extraKeymap Alt-m jumps cursor to matching bracket', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+
+    // Document: "void main() {}"
+    // indices:   01234567890123
+    // '(' is at 9, ')' is at 10, '{' is at 12, '}' is at 13
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(
+          EditorStateConfig(
+            doc: 'void main() {}'.toJS,
+            selection: EditorSelection.single(12), // at '{'
+            extensions: <JSAny>[
+              keymapOf(extraKeymap),
+              basicSetup,
+              dart(),
+            ].toJS,
+          ),
+        ),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    expect(view.state.selection.main.head, 12);
+
+    // Dispatch Alt-m
+    final content = view.dom.querySelector('.cm-content')!;
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: 'm',
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    // Cursor should have jumped to matching '}' (index 14 / after '}')
+    expect(view.state.selection.main.head, 14);
   });
 }
