@@ -11,6 +11,17 @@ Ctrl/Cmd+S saves every dirty tab and formats Dart files before writing. Closing
 a dirty tab requires confirmation before its changes are discarded. Reloading
 resets the transient project.
 
+## Example Links
+
+| Package / Source | Type | Description | Link |
+| :--- | :--- | :--- | :--- |
+| `flutter_animate` | Package | Declarative animations for Flutter | [https://preview.dartpad.dev/?package=flutter_animate](http://localhost:8080/?package=flutter_animate) |
+| `fl_chart` | Package | Charts and data visualization | [https://preview.dartpad.dev/?package=fl_chart](http://localhost:8080/?package=fl_chart) |
+| `provider` | Package | State management for Flutter | [https://preview.dartpad.dev/?package=provider](http://localhost:8080/?package=provider) |
+| `uuid` | Package | UUID generator (Dart console output) | [https://preview.dartpad.dev/?package=uuid](http://localhost:8080/?package=uuid) |
+| `material_ui` | Package | Material UI components example | [https://preview.dartpad.dev/?package=material_ui](http://localhost:8080/?package=material_ui) |
+| Gist Example | Gist | Example loaded from a GitHub Gist | [https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc](http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc) |
+
 ## Running
 
 Run the project using:
@@ -99,4 +110,3 @@ generates `versions.json` in each SDK folder.
 
 Build the client with `dart run jaspr_cli:jaspr build` after the assets have
 been copied.
-
