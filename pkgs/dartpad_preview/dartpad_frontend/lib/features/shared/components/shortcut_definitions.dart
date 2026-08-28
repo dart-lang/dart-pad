@@ -181,8 +181,8 @@ class ShortcutDefinition {
 
   static const jumpToMatchingBracket = ShortcutDefinition(
     label: 'Jump to matching bracket',
-    displayKey: r'Mod + Shift + \',
-    codemirrorKeys: [r'Shift-Mod-\'],
+    displayKey: r'Mod + Shift + \ / Alt + M',
+    codemirrorKeys: [r'Shift-Mod-\', 'Alt-m'],
     category: ShortcutCategory.editing,
     isPrimary: false,
   );
@@ -245,32 +245,32 @@ class ShortcutDefinition {
 
   static const foldCode = ShortcutDefinition(
     label: 'Fold code',
-    displayKey: 'Ctrl + Shift + [',
-    codemirrorKeys: ['Ctrl-Shift-['],
+    displayKey: 'Ctrl + Shift + [ / Alt + -',
+    codemirrorKeys: ['Ctrl-Shift-[', 'Alt--'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
   static const unfoldCode = ShortcutDefinition(
     label: 'Unfold code',
-    displayKey: 'Ctrl + Shift + ]',
-    codemirrorKeys: ['Ctrl-Shift-]'],
+    displayKey: 'Ctrl + Shift + ] / Alt + +',
+    codemirrorKeys: ['Ctrl-Shift-]', 'Alt-+', 'Alt-='],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
   static const foldAll = ShortcutDefinition(
     label: 'Fold all',
-    displayKey: 'Ctrl + Alt + [',
-    codemirrorKeys: ['Ctrl-Alt-['],
+    displayKey: 'Ctrl + Alt + [ / Alt + 0',
+    codemirrorKeys: ['Ctrl-Alt-[', 'Alt-0'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
   static const unfoldAll = ShortcutDefinition(
     label: 'Unfold all',
-    displayKey: 'Ctrl + Alt + ]',
-    codemirrorKeys: ['Ctrl-Alt-]'],
+    displayKey: 'Ctrl + Alt + ] / Alt + 9',
+    codemirrorKeys: ['Ctrl-Alt-]', 'Alt-9'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );

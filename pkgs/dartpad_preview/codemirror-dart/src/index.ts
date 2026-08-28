@@ -27,12 +27,20 @@ import {
 } from "@codemirror/lsp-client";
 import { basicSetup } from "codemirror";
 import { dartpad as dartpadTheme } from "./theme";
-import { indentWithTab, toggleLineComment } from "@codemirror/commands";
+import {
+  indentWithTab,
+  toggleLineComment,
+  cursorMatchingBracket,
+} from "@codemirror/commands";
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
   HighlightStyle,
   indentUnit,
+  foldCode,
+  unfoldCode,
+  foldAll,
+  unfoldAll,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
 import { LSPPlugin } from "@codemirror/lsp-client";
@@ -43,6 +51,16 @@ import { forceSemanticTokensRefresh } from "./semanticHighlighting";
 import { formatDocument, formatDocumentAsync } from "./formatting";
 import { selectionAction } from "./selectionAction";
 import { renameTooltipField, showRenameMessage, startRename } from "./rename";
+
+export const extraKeymap: readonly KeyBinding[] = [
+  { key: "Shift-Mod-\\", run: cursorMatchingBracket },
+  { key: "Alt-m", run: cursorMatchingBracket },
+  { key: "Alt--", run: foldCode },
+  { key: "Alt-+", run: unfoldCode },
+  { key: "Alt-=", run: unfoldCode },
+  { key: "Alt-0", run: foldAll },
+  { key: "Alt-9", run: unfoldAll },
+];
 
 declare global {
   interface Window {
@@ -91,6 +109,7 @@ declare global {
 
       // test utilities
       getRegisteredKeys: (state: EditorState) => string[];
+      extraKeymap: readonly KeyBinding[];
       formatKeymap: readonly KeyBinding[];
       renameKeymap: readonly KeyBinding[];
       jumpToDefinitionKeymap: readonly KeyBinding[];
@@ -171,6 +190,7 @@ window._codemirror = {
 
   // test utilities
   getRegisteredKeys,
+  extraKeymap,
   formatKeymap,
   renameKeymap,
   jumpToDefinitionKeymap,

@@ -138,6 +138,10 @@ external StateEffectType get forceSemanticTokensRefresh;
 @JS()
 external JSArray<JSString> getRegisteredKeys(EditorState state);
 
+/// Extra keymap containing navigation and folding keybindings (e.g. Alt+M, Alt+-, Alt++).
+@JS()
+external JSArray<KeyBinding> get extraKeymap;
+
 /// LSP keymaps exported individually so tests can register them
 /// without creating a full LSP client.
 @JS()
