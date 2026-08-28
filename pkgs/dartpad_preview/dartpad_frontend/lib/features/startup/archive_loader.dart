@@ -64,8 +64,8 @@ class ArchiveLoader {
   /// Scans the archive files to find the nearest parent directory containing
   /// a `pubspec.yaml` file for the active target file.
   ///
-  /// The returned entrypoint is either [filePath] or a well-known example file
-  /// discovered in package archives.
+  /// The returned entrypoint is either [filePath], a well-known example file
+  /// discovered in package archives, or a fallback `README.md` file.
   Future<LoadedProject> loadArchive(WorkspaceFolder root) async {
     final Uri uri = Uri.base.resolve(archiveUrl);
     if (!uri.isAbsolute) {
@@ -85,7 +85,7 @@ class ArchiveLoader {
 
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
-    final targetFilePath = filePath ?? findExampleFile(archive);
+    final targetFilePath = filePath ?? findExampleFile(archive) ?? findReadmeFile(archive);
     final files = <ProjectFile>[];
     for (final ArchiveFile file in archive.files) {
       if (!file.isFile) {
@@ -146,5 +146,36 @@ class ArchiveLoader {
     }
 
     return null;
+  }
+
+  /// Finds the README file in the archive, returning null if not found.
+  String? findReadmeFile(Archive archive) {
+    const readmeFilenames = ['README.md', 'readme.md'];
+
+    for (final filename in readmeFilenames) {
+      final ArchiveFile? file = archive.find(filename);
+      if (file != null) {
+        return filename;
+      }
+    }
+
+    String? bestCandidate;
+    var minDepth = double.infinity;
+
+    for (final file in archive.files) {
+      if (!file.isFile) {
+        continue;
+      }
+      final path = _relativePath(file.name);
+      final segments = path.split('/');
+      if (segments.last.toLowerCase() == 'readme.md') {
+        if (segments.length < minDepth) {
+          minDepth = segments.length.toDouble();
+          bestCandidate = path;
+        }
+      }
+    }
+
+    return bestCandidate;
   }
 }

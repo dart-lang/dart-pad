@@ -88,15 +88,18 @@ default `counter` sample.
 
 | Query string                             | Description |
 | :--------------------------------------- | :--- |
-| `?archive=<url>&path=<path>`             | Load a `.tar` or `.tar.gz` archive from `<url>` and initially open `<path>`. DartPad detects gzip compression from the downloaded bytes. |
+| `?archive=<url>`                         | Load a `.tar` or `.tar.gz` archive from `<url>` and auto-detect an example or `README.md` file. DartPad detects gzip compression from the downloaded bytes. |
+| `?archive=<url>&path=<path>`             | Load an archive and initially open `<path>`. |
+| `?archive=<url>&main=<main>`             | Load an archive, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
 | `?archive=<url>&path=<path>&main=<main>` | Load an archive, initially open `<path>`, and use `<main>` as the run entrypoint. |
 | `?package=<package>`                     | Load the latest version of `<package>` reported by pub.dev and auto-detect a file from its `example/` directory. |
 | `?package=<package>&main=<main>`         | Load the latest package version, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
 | `?gist=<gistId>`                         | Load the files of a public GitHub Gist. |
 | `?sample=<sampleId>`                     | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `hello-world`, `flame-game`, `dart`, and `flutter`. |
 
-For an archive, `archive` and `path` must be supplied together. `<path>` and
-`<main>` are paths inside the extracted workspace, not URLs.
+For an archive, `path` is optional. If omitted, DartPad searches for an example
+file or falls back to `README.md` / `readme.md`. `<path>` and `<main>` are paths
+inside the extracted workspace, not URLs.
 
 `package` always resolves the release in
 the `latest` field of the pub.dev package API response.
@@ -180,15 +183,16 @@ The frontend distinguishes between two paths:
 They are usually the same file. The `main` query parameter lets archive and
 package links show one file while running another.
 
-| Project source  | Initial editor file                                                                                  | Run entrypoint |
-| :-------------- | :--------------------------------------------------------------------------------------------------- | :--- |
-| Archive         | The required `path` query parameter.                                                                 | `main` when supplied; otherwise `path`. |
-| pub.dev package | The first recognized example file listed below.                                                      | `main` when supplied; otherwise the detected example file. |
-| GitHub Gist     | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present. | The same detected path. It is auto-run only when it is a Dart file. |
-| Bundled sample  | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample.           | The same configured entry file. |
+| Project source  | Initial editor file                                                                                                    | Run entrypoint                                             |
+| :-------------- | :--------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------- |
+| Archive         | `path` when supplied; otherwise the first recognized example file; otherwise `README.md` / `readme.md` when present. | `main` when supplied; otherwise the detected editor file.  |
+| pub.dev package | The first recognized example file listed below.                                                                        | `main` when supplied; otherwise the detected example file. |
+| GitHub Gist     | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present.                  | The same detected path. It is auto-run only when it is a Dart file. |
+| Bundled sample  | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample.                             | The same configured entry file.                            |
 
-For a pub.dev package, example-file detection checks these paths in order and
-uses the first one present in the downloaded archive:
+For an archive where `path` is omitted, or for a pub.dev package, example-file
+detection checks these paths in order and uses the first one present in the
+downloaded archive:
 
 1. `example/main.dart`
 2. `example/lib/main.dart`
@@ -200,6 +204,9 @@ uses the first one present in the downloaded archive:
 8. `example/lib/example.dart`
 9. `example/example.md`
 10. `example/README.md`
+
+If no example file is found in an archive, the loader searches for `README.md` or
+`readme.md` (at the root or within the project folder) as a fallback.
 
 When loading a Gist, root-level Dart files are first moved under `lib/` while
 non-Dart files stay at the workspace root. Detection then prefers
