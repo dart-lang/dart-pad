@@ -10,20 +10,6 @@ Projects live only in the browser's in-memory workspace. Reloading the page or
 choosing another sample creates a fresh workspace; there is currently no
 persistent project storage.
 
-## Table of contents
-
-- [What the frontend provides](#what-the-frontend-provides)
-- [Development](#development)
-  - [SDK runtime assets](#sdk-runtime-assets)
-  - [Checks](#checks)
-- [Query options](#query-options)
-  - [Specifying code to load](#specifying-code-to-load)
-  - [Editor options](#editor-options)
-- [SDK detection](#sdk-detection)
-- [Dependency resolution](#dependency-resolution)
-- [Entrypoint detection](#entrypoint-detection)
-- [Startup and workspace lifecycle](#startup-and-workspace-lifecycle)
-
 ## What the frontend provides
 
 - A file tree and reusable editor tabs for Dart, YAML, Markdown, images, and
@@ -100,14 +86,14 @@ Choose one project source per URL: an archive, a pub.dev package, a GitHub
 Gist, or a bundled sample. If no source is specified, the frontend loads the
 default `counter` sample.
 
-| Query string | Description |
-| :--- | :--- |
-| `?archive=<url>&path=<path>` | Load a `.tar` or `.tar.gz` archive from `<url>` and initially open `<path>`. DartPad detects gzip compression from the downloaded bytes. |
+| Query string                             | Description |
+| :--------------------------------------- | :--- |
+| `?archive=<url>&path=<path>`             | Load a `.tar` or `.tar.gz` archive from `<url>` and initially open `<path>`. DartPad detects gzip compression from the downloaded bytes. |
 | `?archive=<url>&path=<path>&main=<main>` | Load an archive, initially open `<path>`, and use `<main>` as the run entrypoint. |
-| `?package=<package>` | Load the latest version of `<package>` reported by pub.dev and auto-detect a file from its `example/` directory. |
-| `?package=<package>&main=<main>` | Load the latest package version, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
-| `?gist=<gistId>` | Load the files of a public GitHub Gist. |
-| `?sample=<sampleId>` | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `hello-world`, `flame-game`, `dart`, and `flutter`. |
+| `?package=<package>`                     | Load the latest version of `<package>` reported by pub.dev and auto-detect a file from its `example/` directory. |
+| `?package=<package>&main=<main>`         | Load the latest package version, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
+| `?gist=<gistId>`                         | Load the files of a public GitHub Gist. |
+| `?sample=<sampleId>`                     | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `hello-world`, `flame-game`, `dart`, and `flutter`. |
 
 For an archive, `archive` and `path` must be supplied together. `<path>` and
 `<main>` are paths inside the extracted workspace, not URLs.
@@ -125,28 +111,25 @@ http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.ta
 
 Or open packages in the deployed preview:
 
-| Source | URL |
-| :--- | :--- |
+| Source                  | URL |
+| :---------------------- | :--- |
 | flutter_animate package | [https://preview.dartpad.dev/?package=flutter_animate](https://preview.dartpad.dev/?package=flutter_animate) |
-| uuid package | [https://preview.dartpad.dev/?package=uuid](https://preview.dartpad.dev/?package=uuid) |
-| example GitHub Gist | [https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc](https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc) |
-| material_ui archive | [https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart](https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart) |
-
-
+| uuid package            | [https://preview.dartpad.dev/?package=uuid](https://preview.dartpad.dev/?package=uuid) |
+| example GitHub Gist     | [https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc](https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc) |
+| material_ui archive     | [https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart](https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart) |
 
 ### Editor options
 
 | Option or feature | Behavior |
-| :--- | :--- |
-| `?embed=true` | Hides the app bar and footer on desktop and starts with the file tree collapsed. On small screens, only the Code/Output tab bar remains as the header. |
-
+| :---------------- | :--- |
+| `?embed=true`     | Hides the app bar and footer on desktop and starts with the file tree collapsed. On small screens, only the Code/Output tab bar remains as the header. |
 
 ## SDK detection
 
 The generated `lib/sdks.g.dart` lists the available Dart and Flutter runtime
-bundles. The copy script prefers the SDK with the ID `flutter` as the default
-when it is present. Users can switch SDKs from the footer; switching creates a
-new worker but preserves the current in-memory files.
+bundles. The `tool/copy_assets.dart` script prefers the SDK with the ID `flutter`
+as the default when it is present. Users can switch SDKs from the footer;
+switching creates a new worker but preserves the current in-memory files.
 
 The selected SDK determines how compiled code is started:
 
@@ -197,12 +180,12 @@ The frontend distinguishes between two paths:
 They are usually the same file. The `main` query parameter lets archive and
 package links show one file while running another.
 
-| Project source | Initial editor file | Run entrypoint |
-| :--- | :--- | :--- |
-| Archive | The required `path` query parameter. | `main` when supplied; otherwise `path`. |
-| pub.dev package | The first recognized example file listed below. | `main` when supplied; otherwise the detected example file. |
-| GitHub Gist | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present. | The same detected path. It is auto-run only when it is a Dart file. |
-| Bundled sample | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample. | The same configured entry file. |
+| Project source  | Initial editor file                                                                                  | Run entrypoint |
+| :-------------- | :--------------------------------------------------------------------------------------------------- | :--- |
+| Archive         | The required `path` query parameter.                                                                 | `main` when supplied; otherwise `path`. |
+| pub.dev package | The first recognized example file listed below.                                                      | `main` when supplied; otherwise the detected example file. |
+| GitHub Gist     | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present. | The same detected path. It is auto-run only when it is a Dart file. |
+| Bundled sample  | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample.           | The same configured entry file. |
 
 For a pub.dev package, example-file detection checks these paths in order and
 uses the first one present in the downloaded archive:
