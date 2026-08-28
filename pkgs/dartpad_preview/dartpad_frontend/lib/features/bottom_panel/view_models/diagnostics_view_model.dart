@@ -22,6 +22,7 @@ class DiagnosticsViewModel extends ChangeNotifier {
   final TabsViewModel tabs;
 
   List<DiagnosticEntry> _diagnostics = const [];
+  String? _projectRoot;
 
   StreamSubscription<Map<String, dynamic>>? _diagnosticsSubscription;
 
@@ -47,14 +48,26 @@ class DiagnosticsViewModel extends ChangeNotifier {
   /// Subscribes to diagnostic updates from [lsc].
   ///
   /// Cancels any previous subscription before attaching to the new client.
-  void attachLanguageServer(LanguageServerClient lsc) {
+  void attachLanguageServer(
+    LanguageServerClient lsc, {
+    String? projectRoot,
+  }) {
     _diagnosticsSubscription?.cancel();
-    _diagnostics = lsc.allDiagnostics;
+    _projectRoot = projectRoot == null ? null : workspaceContext.normalize(projectRoot);
+    _updateDiagnostics(lsc);
     _diagnosticsSubscription = lsc.diagnosticsStream.listen((_) {
-      _diagnostics = lsc.allDiagnostics;
+      _updateDiagnostics(lsc);
       notifyListeners();
     });
     notifyListeners();
+  }
+
+  void _updateDiagnostics(LanguageServerClient lsc) {
+    _diagnostics = lsc.allDiagnostics
+        .where(
+          (entry) => _projectRoot == null || workspaceContext.isWithinFolder(entry.fileName, _projectRoot!),
+        )
+        .toList(growable: false);
   }
 
   @override
