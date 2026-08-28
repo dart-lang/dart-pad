@@ -39672,7 +39672,9 @@ ${text}</tr>
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
+    /** Updates the transient rename-message tooltip shown by an editor view. */
     const renameTooltipEffect = StateEffect.define();
+    /** Stores the currently visible rename-message tooltip, if any. */
     const renameTooltipField = StateField.define({
         create() {
             return null;
@@ -39690,6 +39692,7 @@ ${text}</tr>
         },
         provide: (field) => showTooltip.from(field),
     });
+    /** Returns a user-facing message for an unknown LSP or workspace error. */
     function getRenameErrorMessage(error) {
         if (!error)
             return "The element can't be renamed.";
@@ -39704,6 +39707,7 @@ ${text}</tr>
         }
         return "The element can't be renamed.";
     }
+    /** Creates the temporary tooltip used to report rename failures. */
     function createRenameTooltip(pos, message) {
         return {
             pos,
@@ -39738,6 +39742,7 @@ ${text}</tr>
             },
         };
     }
+    /** Shows a rename message at `pos` and removes it automatically after a delay. */
     function showRenameMessage(view, pos, message) {
         const effects = [closeHoverTooltips];
         if (view.state.field(renameTooltipField, false) === undefined) {
@@ -39780,7 +39785,10 @@ ${text}</tr>
                 end: toPosition(doc, mapping.mapPosition(uri, edit.range.end, -1)),
             } })));
     }
-    /** Rebase edits for open CodeMirror documents while preserving the LSP shape. */
+    /**
+     * Rebases edits for tracked CodeMirror documents to their current versions
+     * while preserving the original `WorkspaceEdit` shape.
+     */
     function rebaseWorkspaceEdit(plugin, mapping, edit) {
         const rebased = Object.assign({}, edit);
         if (edit.changes) {
@@ -39798,7 +39806,10 @@ ${text}</tr>
         }
         return rebased;
     }
-    /** Requests a symbol rename and forwards the resulting workspace edit. */
+    /**
+     * Requests a symbol rename, rebases the returned edits, and waits until the
+     * workspace has applied them. Returns false when the request cannot complete.
+     */
     function renameSymbolAsync(view_1, newName_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, newName, applyWorkspaceEdit, getPlugin = LSPPlugin.get, targetPos) {
             const plugin = getPlugin(view);
@@ -39828,7 +39839,10 @@ ${text}</tr>
             }
         });
     }
-    /** Handles checking prepareRename and opening the rename prompt. */
+    /**
+     * Validates the symbol with `textDocument/prepareRename` and opens the rename
+     * prompt. Servers without prepare support fall back to the current word.
+     */
     function startRename(view_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, applyWorkspaceEdit, getPlugin = LSPPlugin.get) {
             var _a, _b;
@@ -39897,7 +39911,10 @@ ${text}</tr>
             return true;
         });
     }
-    /** Creates the F2 rename command for a specific workspace-edit handler. */
+    /**
+     * Creates the F2 rename command and Escape handler for a workspace-edit
+     * callback.
+     */
     function createRenameKeymap(applyWorkspaceEdit) {
         const renameSymbol = (view) => {
             if (view.state.field(renameTooltipField, false)) {
@@ -39928,6 +39945,7 @@ ${text}</tr>
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
+    /** Creates hover support that stays hidden while rename UI is active. */
     function lspHoverTooltips(config = {}) {
         return hoverTooltip((view, pos, _side) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
@@ -39972,6 +39990,12 @@ ${text}</tr>
             hoverTime: config.hoverTime,
         });
     }
+    /**
+     * Connects a shared CodeMirror LSP client to the supplied transport callbacks.
+     *
+     * `onWorkspaceEdit` is awaited for editor-initiated workspace operations so
+     * callers can update open views and persist edits to files without editors.
+     */
     function createLspClient(sendToServer, rootUri, onInitialized, onDisplayFile, onWorkspaceEdit, notificationHandlers, language) {
         let handlers = [];
         let disposed = false;
