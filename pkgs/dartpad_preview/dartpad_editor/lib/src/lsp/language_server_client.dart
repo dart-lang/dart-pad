@@ -62,9 +62,15 @@ class _AnalyzerNotificationQueue {
 /// Coordinates communication with the Dart Language Server Protocol (LSP) worker,
 /// handles diagnostics, and processes filesystem edits requested by the LSP.
 class LanguageServerClient {
+  /// Creates a client for an editor project inside a virtual workspace.
+  ///
+  /// [rootWorkspaceUri] remains the base for all workspace-relative file
+  /// operations. [editorRootUri] is sent to the language server as its root
+  /// URI and may point to a nested package within that workspace.
   LanguageServerClient({
     required LanguageServer? languageServer,
     required this.rootWorkspaceUri,
+    required this.editorRootUri,
     required Stream<WorkspaceChangeEvent> workspaceChangeEvents,
     this._documentEditsHandler,
     this._displayFileHandler,
@@ -82,12 +88,12 @@ class LanguageServerClient {
     if (createCodeMirrorLspClient != null) {
       _codeMirrorLspClient = createCodeMirrorLspClient(
         (String msg) => _sendToLanguageServer(jsonDecode(msg)),
-        rootWorkspaceUri.toString(),
+        editorRootUri.toString(),
       );
     } else {
       _codeMirrorLspClient = CodeMirrorLspClient(
         (String msg) => _sendToLanguageServer(jsonDecode(msg)),
-        rootWorkspaceUri.toString(),
+        editorRootUri.toString(),
         onDisplayFile: (String uri) async {
           final handler = _displayFileHandler;
           if (handler != null) {
@@ -115,7 +121,14 @@ class LanguageServerClient {
     });
   }
 
+  /// Root of the complete virtual workspace used to resolve file paths.
   final Uri rootWorkspaceUri;
+
+  /// Root of the active editor project supplied during LSP initialization.
+  ///
+  /// This may equal [rootWorkspaceUri] when the active package is rooted at the
+  /// complete workspace or when no more specific package root was detected.
+  final Uri editorRootUri;
   late final void Function(Object? message) _sendToLanguageServer;
 
   late final StreamSubscription<WorkspaceChangeEvent> _workspaceSubscription;

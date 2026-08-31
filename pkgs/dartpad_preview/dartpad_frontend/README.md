@@ -104,6 +104,13 @@ inside the extracted workspace, not URLs.
 `package` always resolves the release in
 the `latest` field of the pub.dev package API response.
 
+DartPad loads the complete archive into the workspace, but initializes the
+language server at the nearest package root for the file it opens. The package
+root is the closest parent directory containing a `pubspec.yaml`. For example,
+`?package=flutter_animate` opens `example/lib/main.dart` and analyzes only the
+package under `example/`, while the rest of the downloaded archive remains in
+the workspace.
+
 Examples:
 
 ```text
