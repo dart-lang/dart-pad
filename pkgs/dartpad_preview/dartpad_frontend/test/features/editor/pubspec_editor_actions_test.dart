@@ -79,6 +79,34 @@ void main() {
     expect(web.document.querySelector('.pubspec-editor-actions'), isNull);
   });
 
+  testClient('renders actions after switching from another active file', (tester) async {
+    tester.pumpComponent(
+      PubspecEditorActions(
+        activeFile: 'main.dart',
+        saveAllFiles: () async {},
+        events: events,
+        onPubGet: (_) async {},
+        onPubClean: (_) async {},
+      ),
+    );
+    await pumpEventQueue();
+    expect(web.document.querySelector('.pubspec-editor-actions'), isNull);
+
+    tester.pumpComponent(
+      PubspecEditorActions(
+        activeFile: 'pubspec.yaml',
+        saveAllFiles: () async {},
+        events: events,
+        onPubGet: (_) async {},
+        onPubClean: (_) async {},
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('[aria-label="Pub get"]'), isNotNull);
+    expect(web.document.querySelector('[aria-label="Pub clean"]'), isNotNull);
+  });
+
   testClient('saves all files before running Pub Get', (tester) async {
     final operations = <String>[];
     tester.pumpComponent(
