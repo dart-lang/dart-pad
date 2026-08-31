@@ -275,6 +275,7 @@ class AppState extends State<App> {
         server: languageServer,
         client: languageServerClient,
         onAnalyzerActivity: (activity) => _updateAnalyzerStatus(session, activity),
+        projectRoot: project?.packageRoot,
       );
 
       setState(() {

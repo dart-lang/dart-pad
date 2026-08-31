@@ -90,6 +90,7 @@ final class WorkspaceSession {
     required LanguageServer server,
     required LanguageServerClient client,
     required void Function(AnalyzerActivity activity) onAnalyzerActivity,
+    String? projectRoot,
   }) {
     if (_disposed) {
       throw StateError('Cannot attach a language server to a disposed session.');
@@ -104,7 +105,7 @@ final class WorkspaceSession {
       onAnalyzerActivity,
     );
     fileTree.languageServerClient = client;
-    diagnostics.attachLanguageServer(client);
+    diagnostics.attachLanguageServer(client, projectRoot: projectRoot);
     _codemirrorAdapter.attachLanguageServerClient(client);
   }
 
