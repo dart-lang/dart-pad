@@ -85,7 +85,7 @@ class ArchiveLoader {
 
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
-    final targetFilePath = filePath ?? findExampleFile(archive) ?? findReadmeFile(archive);
+    final targetFilePath = filePath ?? findDefaultFile(archive);
     final files = <ProjectFile>[];
     for (final ArchiveFile file in archive.files) {
       if (!file.isFile) {
@@ -121,9 +121,10 @@ class ArchiveLoader {
     return path;
   }
 
-  /// Finds the example file in the archive, returning null if not found.
-  String? findExampleFile(Archive archive) {
-    final List<String> exampleFilenames = [
+  /// Finds the default file to open in the archive if none was specified,
+  /// searching for well-known example and README file paths in priority order.
+  String? findDefaultFile(Archive archive) {
+    final List<String> candidateFilenames = [
       'example/main.dart',
       'example/lib/main.dart',
       if (packageName != null) ...[
@@ -136,46 +137,18 @@ class ArchiveLoader {
       'example/lib/example.dart',
       'example/example.md',
       'example/README.md',
+      'example/readme.md',
+      'README.md',
+      'readme.md',
     ];
 
-    for (final String exampleFilename in exampleFilenames) {
-      final ArchiveFile? file = archive.find(exampleFilename);
+    for (final String candidate in candidateFilenames) {
+      final ArchiveFile? file = archive.find(candidate);
       if (file != null) {
-        return exampleFilename;
+        return candidate;
       }
     }
 
     return null;
-  }
-
-  /// Finds the README file in the archive, returning null if not found.
-  String? findReadmeFile(Archive archive) {
-    const readmeFilenames = ['README.md', 'readme.md'];
-
-    for (final filename in readmeFilenames) {
-      final ArchiveFile? file = archive.find(filename);
-      if (file != null) {
-        return filename;
-      }
-    }
-
-    String? bestCandidate;
-    var minDepth = double.infinity;
-
-    for (final file in archive.files) {
-      if (!file.isFile) {
-        continue;
-      }
-      final path = _relativePath(file.name);
-      final segments = path.split('/');
-      if (segments.last.toLowerCase() == 'readme.md') {
-        if (segments.length < minDepth) {
-          minDepth = segments.length.toDouble();
-          bestCandidate = path;
-        }
-      }
-    }
-
-    return bestCandidate;
   }
 }
