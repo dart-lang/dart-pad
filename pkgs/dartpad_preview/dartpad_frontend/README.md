@@ -190,7 +190,7 @@ package links show one file while running another.
 | GitHub Gist     | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present.                  | The same detected path. It is auto-run only when it is a Dart file. |
 | Bundled sample  | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample.                             | The same configured entry file.                            |
 
-For an archive where `path` is omitted, or for a pub.dev package, example-file
+For an archive where `path` is omitted, or for a pub.dev package, default file
 detection checks these paths in order and uses the first one present in the
 downloaded archive:
 
@@ -204,9 +204,9 @@ downloaded archive:
 8. `example/lib/example.dart`
 9. `example/example.md`
 10. `example/README.md`
-
-If no example file is found in an archive, the loader searches for `README.md` or
-`readme.md` (at the root or within the project folder) as a fallback.
+11. `example/readme.md`
+12. `README.md`
+13. `readme.md`
 
 When loading a Gist, root-level Dart files are first moved under `lib/` while
 non-Dart files stay at the workspace root. Detection then prefers
