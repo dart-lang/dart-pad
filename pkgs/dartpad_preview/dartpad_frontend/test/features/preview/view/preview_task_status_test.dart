@@ -11,8 +11,17 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
+  late TaskStatusController controller;
+
+  setUp(() {
+    controller = TaskStatusController();
+  });
+
+  tearDown(() {
+    controller.dispose();
+  });
+
   testClient('shows only the one-time workspace preparation task', (tester) async {
-    final controller = TaskStatusController();
     tester.pumpComponent(
       PreviewTaskStatus(
         controller: controller,
@@ -50,12 +59,9 @@ void main() {
     );
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
-
-    controller.dispose();
   });
 
   testClient('moves directly from compilation to preview startup', (tester) async {
-    final controller = TaskStatusController();
     tester.pumpComponent(
       PreviewTaskStatus(
         controller: controller,
@@ -79,12 +85,9 @@ void main() {
     starting.succeed();
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
-
-    controller.dispose();
   });
 
   testClient('shows an explicit preview restart without showing stop tasks', (tester) async {
-    final controller = TaskStatusController();
     tester.pumpComponent(
       PreviewTaskStatus(
         controller: controller,
@@ -102,12 +105,9 @@ void main() {
     restarting.succeed();
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
-
-    controller.dispose();
   });
 
   testClient('keeps failures visible and opens the Console', (tester) async {
-    final controller = TaskStatusController();
     var openConsoleCalls = 0;
     tester.pumpComponent(
       PreviewTaskStatus(
@@ -127,8 +127,6 @@ void main() {
     link.click();
     await pumpEventQueue();
     expect(openConsoleCalls, 1);
-
-    controller.dispose();
   });
 }
 

@@ -81,7 +81,7 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
   }
 
   void _onKeyDown(web.KeyboardEvent event) {
-    if (event.key != 'Escape' || !_showPopover) {
+    if (!mounted || event.key != 'Escape' || !_showPopover) {
       return;
     }
     event.preventDefault();
@@ -92,7 +92,7 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
   }
 
   void _onMouseDown(web.MouseEvent event) {
-    if (!_pinned) {
+    if (!mounted || !_pinned) {
       return;
     }
     final anchor = _anchorKey.currentNode;
@@ -106,6 +106,9 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
   }
 
   void _onFocusOut(web.Event event) {
+    if (!mounted) {
+      return;
+    }
     final anchor = _anchorKey.currentNode;
     final relatedTarget = (event as web.FocusEvent).relatedTarget as web.Node?;
     if (anchor == null || relatedTarget == null || !anchor.contains(relatedTarget)) {
@@ -142,18 +145,33 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
       key: _anchorKey,
       classes: 'task-status-anchor',
       events: {
-        'mouseenter': (_) => setState(() {
-          _hovered = true;
-          _forceClosed = false;
-        }),
-        'mouseleave': (_) => setState(() {
-          _hovered = false;
-          _forceClosed = false;
-        }),
-        'focusin': (_) => setState(() {
-          _focused = true;
-          _forceClosed = false;
-        }),
+        'mouseenter': (_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _hovered = true;
+            _forceClosed = false;
+          });
+        },
+        'mouseleave': (_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _hovered = false;
+            _forceClosed = false;
+          });
+        },
+        'focusin': (_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _focused = true;
+            _forceClosed = false;
+          });
+        },
         'focusout': _onFocusOut,
       },
       [
@@ -165,7 +183,7 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
             if (entries.isNotEmpty) 'aria-controls': 'task-status-popover',
           },
           onClick: () {
-            if (entries.isEmpty) {
+            if (!mounted || entries.isEmpty) {
               return;
             }
             setState(() {
