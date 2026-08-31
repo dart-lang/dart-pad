@@ -437,16 +437,14 @@ class AppState extends State<App> {
 
     try {
       final LoadedProject project;
-      if (params case {
-        'archive': final String archiveUrlParam,
-        'path': final String filePathParam,
-      }) {
+      if (params case {'archive': final String archiveUrlParam}) {
         userErrorMessage =
             'The project archive could not be downloaded. '
             'Please check that the URL is correct and accessible.';
         _updateLoadingStatus(session, 'Downloading Archive...', clearError: true);
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
-        final filePath = Uri.decodeComponent(filePathParam);
+        final filePathParam = params['path'];
+        final filePath = filePathParam != null ? Uri.decodeComponent(filePathParam) : null;
         final pathToMainParam = params['main'];
         final pathToMain = pathToMainParam != null ? Uri.decodeComponent(pathToMainParam) : null;
         final loader = ArchiveLoader(
