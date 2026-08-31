@@ -5,35 +5,67 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
-import 'package:jaspr/jaspr.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
+  late TaskStatusController taskStatus;
+  late AnalyzerStatusController analyzerStatus;
+
+  setUp(() {
+    taskStatus = TaskStatusController();
+    analyzerStatus = AnalyzerStatusController(taskStatus);
+  });
+
+  tearDown(() {
+    analyzerStatus.dispose();
+    taskStatus.dispose();
+  });
+
   testClient('renders desktop footer with privacy and feedback links', (tester) {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: false));
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        analyzerStatus: analyzerStatus,
+        isSmallScreen: false,
+      ),
+    );
 
     final links = web.document.querySelectorAll('.app-footer-link');
     expect(links.length, 2);
 
-    final status = web.document.querySelector('.app-footer-status');
-    expect(status?.textContent, 'Ready');
+    final status = web.document.querySelector('.task-status-trigger');
+    expect(status?.textContent, contains('Ready'));
   });
 
   testClient('renders small-screen footer without privacy and feedback links', (tester) {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: true));
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        analyzerStatus: analyzerStatus,
+        isSmallScreen: true,
+      ),
+    );
 
     final links = web.document.querySelectorAll('.app-footer-link');
     expect(links.length, 0);
 
-    final status = web.document.querySelector('.app-footer-status');
-    expect(status?.textContent, 'Ready');
+    final status = web.document.querySelector('.task-status-trigger');
+    expect(status?.textContent, contains('Ready'));
   });
 
   testClient('opens shortcuts dialog and toggles show more shortcuts', (tester) async {
-    tester.pumpComponent(const Footer(statusLabel: 'Ready', isSmallScreen: false));
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        analyzerStatus: analyzerStatus,
+        isSmallScreen: false,
+      ),
+    );
 
     // Initially dialog is not in the DOM.
     expect(web.document.querySelector('.shortcuts-dialog'), isNull);
@@ -71,11 +103,19 @@ void main() {
 
     rows = web.document.querySelectorAll('.shortcuts-dialog-row');
     expect(rows.length, primaryShortcutCount);
+
+    (web.document.querySelector('[aria-label="Close shortcuts dialog"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
   });
 
-  testClient('footer status update does not dismiss active shortcuts dialog', (tester) async {
-    late void Function(String) setStatus;
-    tester.pumpComponent(_StatusHolder(onController: (fn) => setStatus = fn));
+  testClient('task status update does not dismiss active shortcuts dialog', (tester) async {
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        analyzerStatus: analyzerStatus,
+        isSmallScreen: false,
+      ),
+    );
 
     // Open dialog.
     final keyboardBtn = web.document.querySelector('.app-footer-buttons button') as web.HTMLButtonElement?;
@@ -84,40 +124,100 @@ void main() {
 
     expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
 
-    // Update status to 'Done' from parent.
-    setStatus('Done');
+    taskStatus.startTask(TaskKind.creatingWorkspace).succeed();
     await pumpEventQueue();
 
     // Dialog must still be open.
     expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
-    final status = web.document.querySelector('.app-footer-status');
-    expect(status?.textContent, 'Done');
+    final status = web.document.querySelector('.task-status-trigger');
+    expect(status?.textContent, contains('Creating workspace'));
+
+    (web.document.querySelector('[aria-label="Close shortcuts dialog"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
   });
-}
 
-class _StatusHolder extends StatefulComponent {
-  const _StatusHolder({required this.onController});
-  final void Function(void Function(String)) onController;
+  testClient('shows active and completed tasks in the status popover', (tester) async {
+    final completed = taskStatus.startTask(TaskKind.creatingWorkspace);
+    completed.succeed();
+    taskStatus.startTask(
+      TaskKind.pubGet,
+      label: 'Pub get in /',
+      scope: '/',
+    );
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        analyzerStatus: analyzerStatus,
+        statusMessage: 'Could not save all files.',
+      ),
+    );
 
-  @override
-  State<_StatusHolder> createState() => _StatusHolderState();
-}
+    final anchor = web.document.querySelector('.task-status-anchor')!;
+    anchor.dispatchEvent(web.MouseEvent('mouseenter'));
+    await pumpEventQueue();
 
-class _StatusHolderState extends State<_StatusHolder> {
-  String _status = 'Analyzing project...';
+    final rows = web.document.querySelectorAll('.task-status-table tr');
+    expect(rows.length, 2);
+    expect(rows.item(0)?.textContent, contains('Pub get in /'));
+    expect(rows.item(1)?.textContent, contains('Creating workspace'));
+    expect(web.document.querySelector('.app-footer-message')?.textContent, 'Could not save all files.');
+  });
 
-  @override
-  void initState() {
-    super.initState();
-    component.onController((newStatus) {
-      setState(() {
-        _status = newStatus;
-      });
-    });
-  }
+  testClient('shows a fixed analyzer label with activity, ready, and failure icons', (tester) async {
+    tester.pumpComponent(
+      Footer(taskStatus: taskStatus, analyzerStatus: analyzerStatus),
+    );
 
-  @override
-  Component build(BuildContext context) {
-    return Footer(statusLabel: _status, isSmallScreen: false);
-  }
+    expect(web.document.querySelector('.analyzer-status.waiting'), isNotNull);
+    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
+    expect(web.document.querySelector('.analyzer-status .task-status-icon.running'), isNotNull);
+
+    analyzerStatus.beginInitialization();
+    analyzerStatus.update(isAnalyzing: true);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.analyzer-status.analyzing'), isNotNull);
+    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
+    expect(web.document.querySelector('.analyzer-status-duration'), isNull);
+
+    analyzerStatus.update(isAnalyzing: false);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.analyzer-status.ready'), isNotNull);
+    expect(web.document.querySelector('.analyzer-status .task-status-icon.succeeded'), isNotNull);
+
+    analyzerStatus.update(isAnalyzing: true);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.analyzer-status.analyzing'), isNotNull);
+    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
+    expect(taskStatus.entries, hasLength(1));
+
+    analyzerStatus.markUnavailable();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.analyzer-status.unavailable'), isNotNull);
+    expect(web.document.querySelector('.analyzer-status .task-status-icon.failed'), isNotNull);
+  });
+
+  testClient('opens by focus or click and closes with Escape', (tester) async {
+    taskStatus.startTask(TaskKind.analyzingWorkspace);
+    tester.pumpComponent(
+      Footer(taskStatus: taskStatus, analyzerStatus: analyzerStatus),
+    );
+
+    final trigger = web.document.querySelector('.task-status-trigger') as web.HTMLButtonElement;
+    trigger.focus();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.task-status-popover'), isNotNull);
+
+    web.document.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true),
+      ),
+    );
+    await pumpEventQueue();
+    expect(web.document.querySelector('.task-status-popover'), isNull);
+
+    trigger.click();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.task-status-popover'), isNotNull);
+  });
 }

@@ -7,6 +7,8 @@ library;
 
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -14,6 +16,7 @@ import 'package:web/web.dart' as web;
 void main() {
   testClient('switches to the console and invokes clear', (tester) async {
     var clearCalls = 0;
+    final events = AppEventBus();
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
@@ -22,6 +25,7 @@ void main() {
         logs: const [ConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () => clearCalls++,
+        events: events,
       ),
     );
 
@@ -42,6 +46,7 @@ void main() {
   });
 
   testClient('keeps clear enabled when the console is empty', (tester) async {
+    final events = AppEventBus();
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
@@ -50,6 +55,7 @@ void main() {
         logs: const [],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () {},
+        events: events,
       ),
     );
 
@@ -62,6 +68,7 @@ void main() {
   });
 
   testClient('shows a diagnostic limit notice in the problems panel', (tester) async {
+    final events = AppEventBus();
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
@@ -70,6 +77,7 @@ void main() {
         logs: const [],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () {},
+        events: events,
       ),
     );
 
@@ -77,5 +85,25 @@ void main() {
       web.document.querySelector('.diagnostics-limit-notice')!.textContent,
       contains('Only the first 1,000 problems are shown.'),
     );
+  });
+
+  testClient('opens the Console when requested by another workspace component', (tester) async {
+    final events = AppEventBus();
+    tester.pumpComponent(
+      BottomPanel(
+        diagnostics: const [],
+        hasMoreDiagnostics: false,
+        activeFile: '',
+        logs: const [],
+        onOpenDiagnostic: (_, _) {},
+        onClearConsole: () {},
+        events: events,
+      ),
+    );
+
+    expect(web.document.querySelector('.console-panel'), isNull);
+    events.dispatch(const OpenConsoleEvent());
+    await pumpEventQueue();
+    expect(web.document.querySelector('.console-panel'), isNotNull);
   });
 }

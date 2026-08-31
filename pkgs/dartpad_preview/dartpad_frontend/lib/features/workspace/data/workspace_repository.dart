@@ -11,12 +11,14 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/events/error_toast_event.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/sdk_info.dart';
+import '../../shared/task_status.dart';
 import 'synced_workspace_resource_api.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
 class WorkspaceRepository {
   WorkspaceRepository({
     required this.events,
+    required this.taskStatus,
     required this.workspaceResourceApi,
     required this.sdk,
     required Future<Workspace> workspaceFuture,
@@ -26,6 +28,7 @@ class WorkspaceRepository {
 
   /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
+  final TaskStatusController taskStatus;
   final WorkspaceResourceApi workspaceResourceApi;
   final SdkInfo sdk;
   final Future<Workspace> _workspaceFuture;
@@ -49,15 +52,24 @@ class WorkspaceRepository {
   factory WorkspaceRepository.create({
     required AppEventBus events,
     required SdkInfo sdk,
+    required TaskStatusController taskStatus,
     WorkspaceResourceApi? localApi,
   }) {
     late final WorkspaceRepository repository;
 
     final workspaceFuture = (() async {
       final dartpadSdk = DartPadSdk(assetBaseUrl: sdk.assetBaseUrl);
-      final dartpad = await dartpadSdk.dedicatedWorker();
+      final dartpad = await taskStatus.runTask(
+        TaskKind.startingDartPadWorker,
+        dartpadSdk.dedicatedWorker,
+        blocksPreview: true,
+      );
       repository.dartpad = dartpad;
-      final workspace = await dartpad.createWorkspace();
+      final workspace = await taskStatus.runTask(
+        TaskKind.creatingWorkspace,
+        dartpad.createWorkspace,
+        blocksPreview: true,
+      );
       return workspace;
     })();
     final api = SyncedWorkspaceResourceApi(
@@ -73,6 +85,7 @@ class WorkspaceRepository {
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
     return repository = WorkspaceRepository(
       events: events,
+      taskStatus: taskStatus,
       workspaceResourceApi: api,
       sdk: sdk,
       workspaceFuture: workspaceFuture,
@@ -80,30 +93,56 @@ class WorkspaceRepository {
     );
   }
 
-  Future<void> pubGet({String path = '', String projectRoot = ''}) => runWorkspacePubGet(
-    events: events,
-    path: path,
-    projectRoot: projectRoot,
-    command: (normalizedPath) async {
-      final workspace = await _workspaceFuture;
-      final api = workspaceResourceApi;
-      if (api is SyncedWorkspaceResourceApi) {
-        await api.flush();
-      }
-      final result = await workspace.pub(uri: normalizedPath, command: 'get');
-      return result.log;
-    },
-  );
+  Future<void> pubGet({String path = '', String projectRoot = ''}) {
+    final normalizedPath = workspaceContext.normalize(path);
+    final pathLabel = workspaceContext.relativeDisplayPath(
+      path: normalizedPath,
+      projectRoot: projectRoot,
+    );
+    return taskStatus.runTask(
+      TaskKind.pubGet,
+      () => runWorkspacePubGet(
+        events: events,
+        path: path,
+        projectRoot: projectRoot,
+        command: (normalizedPath) async {
+          final workspace = await _workspaceFuture;
+          final api = workspaceResourceApi;
+          if (api is SyncedWorkspaceResourceApi) {
+            await api.flush();
+          }
+          final result = await workspace.pub(uri: normalizedPath, command: 'get');
+          return result.log;
+        },
+      ),
+      label: 'Pub get in $pathLabel',
+      scope: normalizedPath.toString(),
+      blocksPreview: true,
+    );
+  }
 
   /// Removes generated Pub and build output from the workspace.
   Future<void> pubClean({String path = ''}) async {
-    events.dispatch(const LogEvent('Cleaning workspace...'));
-    final api = workspaceResourceApi;
-    if (api is SyncedWorkspaceResourceApi) {
-      await api.flush();
-    }
-    await cleanGeneratedOutput(workspaceResourceApi, path: path);
-    events.dispatch(const LogEvent('Cleaning workspace... Done'));
+    final normalizedPath = workspaceContext.normalize(path);
+    final pathLabel = workspaceContext.relativeDisplayPath(
+      path: normalizedPath,
+      projectRoot: '',
+    );
+    await taskStatus.runTask(
+      TaskKind.pubClean,
+      () async {
+        events.dispatch(const LogEvent('Cleaning workspace...'));
+        final api = workspaceResourceApi;
+        if (api is SyncedWorkspaceResourceApi) {
+          await api.flush();
+        }
+        await cleanGeneratedOutput(workspaceResourceApi, path: path);
+        events.dispatch(const LogEvent('Cleaning workspace... Done'));
+      },
+      label: 'Pub clean in $pathLabel',
+      scope: normalizedPath.toString(),
+      blocksPreview: true,
+    );
   }
 
   /// Deletes generated directories when they exist.
@@ -147,12 +186,17 @@ class WorkspaceRepository {
     required AppEventBus events,
     required DartPad worker,
     required SdkInfo sdk,
+    required TaskStatusController taskStatus,
     required Future<void> previousWorkspaceDisposed,
     WorkspaceResourceApi? localApi,
   }) {
     final workspaceFuture = (() async {
       await previousWorkspaceDisposed;
-      final workspace = await worker.createWorkspace();
+      final workspace = await taskStatus.runTask(
+        TaskKind.creatingWorkspace,
+        worker.createWorkspace,
+        blocksPreview: true,
+      );
       return workspace;
     })();
 
@@ -169,6 +213,7 @@ class WorkspaceRepository {
     final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
     return WorkspaceRepository(
       events: events,
+      taskStatus: taskStatus,
       workspaceResourceApi: api,
       sdk: sdk,
       workspaceFuture: workspaceFuture,

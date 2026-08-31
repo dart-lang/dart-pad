@@ -23,11 +23,12 @@ import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/context_menu.dart';
-import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
+import 'features/shared/events/open_console_event.dart';
 import 'features/shared/sdk_info.dart';
+import 'features/shared/task_status.dart';
 import 'features/startup/archive_loader.dart';
 import 'features/startup/example_project.dart';
 import 'features/startup/gist_loader.dart';
@@ -105,9 +106,8 @@ class AppState extends State<App> {
   int _workspaceGeneration = 0;
 
   bool _isInitializingWorkspace = true;
-  String loadingStatus = 'Loading Workspace...';
   String _projectDir = '';
-  String? _errorMessage;
+  String? _workspacePreparationFailure;
 
   bool _isLargeScreen = true;
   SmallScreenTab _selectedSmallScreenTab = .code;
@@ -124,10 +124,16 @@ class AppState extends State<App> {
     });
 
     final events = AppEventBus();
+    final taskStatus = TaskStatusController();
+    final preparationTask = taskStatus.startTask(
+      TaskKind.preparingWorkspace,
+      blocksPreview: true,
+    );
     _session = WorkspaceSession.create(
       WorkspaceRepository.create(
         events: events,
         sdk: _currentSdk,
+        taskStatus: taskStatus,
       ),
     );
     _session.preview.addListener(_onPreviewStateChanged);
@@ -135,6 +141,7 @@ class AppState extends State<App> {
       _initializeWorkspace(
         _session,
         source: ProjectSource.fromUri(Uri.base),
+        preparationTask: preparationTask,
       ),
     );
   }
@@ -169,6 +176,7 @@ class AppState extends State<App> {
   Future<void> _initializeWorkspace(
     WorkspaceSession session, {
     required ProjectSource source,
+    required TaskStatusHandle preparationTask,
   }) async {
     final projectFuture = _loadProject(session, source: source);
 
@@ -178,6 +186,7 @@ class AppState extends State<App> {
         projectReady: projectFuture,
       );
       if (!_isCurrent(session)) {
+        preparationTask.cancel();
         return;
       }
 
@@ -185,14 +194,40 @@ class AppState extends State<App> {
         _isInitializingWorkspace = false;
       });
 
-      unawaited(_initializeWorkspaceTools(session, workspace, project));
-    } catch (error) {
-      if (!_isCurrent(session)) {
+      if (project == null) {
+        preparationTask.fail();
+        setState(() {
+          _workspacePreparationFailure ??= 'The project could not be loaded.';
+        });
+        unawaited(_initializeAnalyzer(session, workspace, null));
         return;
       }
+
+      unawaited(
+        _initializeWorkspaceTools(
+          session,
+          workspace,
+          project,
+          preparationTask,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (!_isCurrent(session)) {
+        preparationTask.cancel();
+        return;
+      }
+      preparationTask.fail();
+      session.events.dispatch(
+        LogEvent(
+          'Workspace preparation failed.',
+          level: Level.SEVERE,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
       setState(() {
         _isInitializingWorkspace = false;
-        _errorMessage = 'The workspace could not be initialized.';
+        _workspacePreparationFailure = 'The workspace could not be initialized.';
       });
     }
   }
@@ -200,48 +235,61 @@ class AppState extends State<App> {
   Future<void> _initializeWorkspaceTools(
     WorkspaceSession session,
     Workspace workspace,
-    LoadedProject? project,
+    LoadedProject project,
+    TaskStatusHandle preparationTask,
   ) async {
-    try {
-      if (project?.packageRoot case final String packageRoot) {
-        if (!_isCurrent(session)) {
-          return;
-        }
-        setState(() {
-          loadingStatus = 'Running Pub Get...';
-        });
-
-        try {
-          await session.repository.pubGet(
-            path: packageRoot,
-            projectRoot: packageRoot,
-          );
-        } catch (error, stackTrace) {
-          if (_isCurrent(session)) {
-            session.events.dispatch(
-              LogEvent(
-                'Pub get failed.',
-                level: Level.SEVERE,
-                error: error,
-                stackTrace: stackTrace,
-              ),
-            );
-          }
-        }
-      }
-
+    var preparationSucceeded = true;
+    if (project.packageRoot case final String packageRoot) {
       if (!_isCurrent(session)) {
+        preparationTask.cancel();
         return;
       }
+      try {
+        await session.repository.pubGet(
+          path: packageRoot,
+          projectRoot: packageRoot,
+        );
+      } catch (error, stackTrace) {
+        preparationSucceeded = false;
+        if (_isCurrent(session)) {
+          preparationTask.fail();
+          session.events.dispatch(
+            LogEvent(
+              'Pub get failed.',
+              level: Level.SEVERE,
+              error: error,
+              stackTrace: stackTrace,
+            ),
+          );
+          setState(() {
+            _workspacePreparationFailure = 'Pub get failed while preparing the workspace.';
+          });
+        }
+      }
+    }
 
-      if (project?.pathToMain case final String pathToMain when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
+    if (!_isCurrent(session)) {
+      preparationTask.cancel();
+      return;
+    }
+
+    if (preparationSucceeded) {
+      preparationTask.succeed();
+      if (project.pathToMain case final String pathToMain when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
         unawaited(session.preview.runCode(pathToMain));
       }
+    }
 
-      setState(() {
-        loadingStatus = 'Initializing Analyzer...';
-      });
+    await _initializeAnalyzer(session, workspace, project.packageRoot);
+  }
 
+  Future<void> _initializeAnalyzer(
+    WorkspaceSession session,
+    Workspace workspace,
+    String? projectRoot,
+  ) async {
+    try {
+      session.analyzerStatus.beginInitialization();
       final languageServer = await workspace.startLanguageServer();
       if (!_isCurrent(session)) {
         await languageServer.stop();
@@ -274,17 +322,13 @@ class AppState extends State<App> {
       session.attachLanguageServer(
         server: languageServer,
         client: languageServerClient,
-        onAnalyzerActivity: (activity) => _updateAnalyzerStatus(session, activity),
-        projectRoot: project?.packageRoot,
+        projectRoot: projectRoot,
       );
-
-      setState(() {
-        loadingStatus = 'Analyzing Project...';
-      });
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {
         return;
       }
+      session.analyzerStatus.markUnavailable();
       session.events.dispatch(
         LogEvent(
           'Analyzer initialization failed.',
@@ -293,9 +337,6 @@ class AppState extends State<App> {
           stackTrace: stackTrace,
         ),
       );
-      setState(() {
-        loadingStatus = 'Analyzer initialization failed.';
-      });
     }
   }
 
@@ -311,11 +352,17 @@ class AppState extends State<App> {
 
     final previousWorkspaceDisposed = Completer<void>();
     final events = AppEventBus();
+    final taskStatus = TaskStatusController();
+    final preparationTask = taskStatus.startTask(
+      TaskKind.preparingWorkspace,
+      blocksPreview: true,
+    );
     final nextSession = WorkspaceSession.create(
       WorkspaceRepository.resetAndCreate(
         events: events,
         worker: worker,
         sdk: _currentSdk,
+        taskStatus: taskStatus,
         previousWorkspaceDisposed: previousWorkspaceDisposed.future,
       ),
     );
@@ -335,8 +382,7 @@ class AppState extends State<App> {
       _workspaceGeneration++;
       _session = nextSession;
       _isInitializingWorkspace = true;
-      loadingStatus = 'Initializing Workspace...';
-      _errorMessage = null;
+      _workspacePreparationFailure = null;
       _projectDir = '';
     });
 
@@ -344,6 +390,7 @@ class AppState extends State<App> {
       _initializeWorkspace(
         nextSession,
         source: source,
+        preparationTask: preparationTask,
       ),
     );
     disposeAfterWorkspaceUnmount(
@@ -372,10 +419,16 @@ class AppState extends State<App> {
     };
 
     final events = AppEventBus();
+    final taskStatus = TaskStatusController();
+    final preparationTask = taskStatus.startTask(
+      TaskKind.preparingWorkspace,
+      blocksPreview: true,
+    );
     final nextSession = WorkspaceSession.create(
       WorkspaceRepository.create(
         events: events,
         sdk: newSdk,
+        taskStatus: taskStatus,
         localApi: oldLocalApi,
       ),
     );
@@ -385,11 +438,12 @@ class AppState extends State<App> {
       _session = nextSession;
       _currentSdk = newSdk;
       _isInitializingWorkspace = true;
-      loadingStatus = 'Switching to ${newSdk.name}...';
-      _errorMessage = null;
+      _workspacePreparationFailure = null;
     });
 
-    unawaited(_initializeSwitchSdkWorkspace(nextSession));
+    unawaited(
+      _initializeSwitchSdkWorkspace(nextSession, preparationTask),
+    );
 
     disposeAfterWorkspaceUnmount(
       context,
@@ -399,10 +453,14 @@ class AppState extends State<App> {
     );
   }
 
-  Future<void> _initializeSwitchSdkWorkspace(WorkspaceSession session) async {
+  Future<void> _initializeSwitchSdkWorkspace(
+    WorkspaceSession session,
+    TaskStatusHandle preparationTask,
+  ) async {
     try {
       final workspace = await session.repository.readyWorkspace;
       if (!_isCurrent(session)) {
+        preparationTask.cancel();
         return;
       }
 
@@ -417,14 +475,39 @@ class AppState extends State<App> {
               entryPath: null,
             )
           : null;
-      unawaited(_initializeWorkspaceTools(session, workspace, project));
-    } catch (error) {
-      if (!_isCurrent(session)) {
+      if (project == null) {
+        preparationTask.fail();
+        setState(() {
+          _workspacePreparationFailure = 'The current project could not be prepared for the selected SDK.';
+        });
+        unawaited(_initializeAnalyzer(session, workspace, null));
         return;
       }
+      unawaited(
+        _initializeWorkspaceTools(
+          session,
+          workspace,
+          project,
+          preparationTask,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (!_isCurrent(session)) {
+        preparationTask.cancel();
+        return;
+      }
+      preparationTask.fail();
+      session.events.dispatch(
+        LogEvent(
+          'Workspace preparation failed.',
+          level: Level.SEVERE,
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
       setState(() {
         _isInitializingWorkspace = false;
-        _errorMessage = 'The workspace could not be initialized for the selected SDK.';
+        _workspacePreparationFailure = 'The workspace could not be initialized for the selected SDK.';
       });
     }
   }
@@ -442,7 +525,6 @@ class AppState extends State<App> {
         userErrorMessage =
             'The project archive could not be downloaded. '
             'Please check that the URL is correct and accessible.';
-        _updateLoadingStatus(session, 'Downloading Archive...', clearError: true);
         final archiveUrl = Uri.decodeComponent(archiveUrlParam);
         final filePathParam = params['path'];
         final filePath = filePathParam != null ? Uri.decodeComponent(filePathParam) : null;
@@ -453,39 +535,64 @@ class AppState extends State<App> {
           filePath: filePath,
           pathToMain: pathToMain,
         );
-        project = await loader.loadArchive(session.repository.root);
+        project = await session.taskStatus.runTask(
+          TaskKind.downloadingArchive,
+          () => loader.loadArchive(session.repository.root),
+          scope: archiveUrl,
+          blocksPreview: true,
+        );
       } else if (params case {'package': final String packageName}) {
         userErrorMessage =
             'The package "$packageName" could not be resolved from pub.dev. '
             'Please verify the package name in the URL.';
-        _updateLoadingStatus(session, 'Resolving Package...', clearError: true);
         final pathToMainParam = params['main'];
         final pathToMain = pathToMainParam != null ? Uri.decodeComponent(pathToMainParam) : null;
-        final loader = await ArchiveLoader.forPackage(
-          packageName,
-          pathToMain: pathToMain,
+        final loader = await session.taskStatus.runTask(
+          TaskKind.resolvingPackage,
+          () => ArchiveLoader.forPackage(
+            packageName,
+            pathToMain: pathToMain,
+          ),
+          label: 'Resolving package $packageName',
+          scope: packageName,
+          blocksPreview: true,
         );
-        _updateLoadingStatus(session, 'Downloading Package...');
-        project = await loader.loadArchive(session.repository.root);
+        project = await session.taskStatus.runTask(
+          TaskKind.downloadingPackage,
+          () => loader.loadArchive(session.repository.root),
+          label: 'Downloading package $packageName',
+          scope: packageName,
+          blocksPreview: true,
+        );
       } else if (params['gist'] case final String gistId) {
         userErrorMessage =
             'The GitHub Gist could not be loaded. '
             'Please check that the Gist ID "$gistId" in the URL is correct.';
-        _updateLoadingStatus(session, 'Downloading Gist...', clearError: true);
         final loader = GistLoader(gistId: gistId);
-        project = await loader.loadGist(session.repository.root);
+        project = await session.taskStatus.runTask(
+          TaskKind.downloadingGist,
+          () => loader.loadGist(session.repository.root),
+          scope: gistId,
+          blocksPreview: true,
+        );
       } else if (params['sample'] case final String sampleId) {
         userErrorMessage = 'The requested sample "$sampleId" could not be loaded.';
-        _updateLoadingStatus(session, 'Loading Sample...', clearError: true);
-        project = await loadSampleProject(
-          session.repository.root,
-          sampleId: sampleId,
+        project = await session.taskStatus.runTask(
+          TaskKind.loadingSample,
+          () => loadSampleProject(
+            session.repository.root,
+            sampleId: sampleId,
+          ),
+          label: 'Loading sample $sampleId',
+          scope: sampleId,
+          blocksPreview: true,
         );
       } else {
         userErrorMessage = 'The default project could not be loaded.';
-        _updateLoadingStatus(session, 'Initializing Workspace...', clearError: true);
-        project = await loadSampleProject(
-          session.repository.root,
+        project = await session.taskStatus.runTask(
+          TaskKind.loadingDefaultSample,
+          () => loadSampleProject(session.repository.root),
+          blocksPreview: true,
         );
       }
 
@@ -502,51 +609,22 @@ class AppState extends State<App> {
       }
 
       return project;
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (_isCurrent(session)) {
+        session.events.dispatch(
+          LogEvent(
+            'Project loading failed.',
+            level: Level.SEVERE,
+            error: error,
+            stackTrace: stackTrace,
+          ),
+        );
         setState(() {
-          _errorMessage = userErrorMessage;
+          _workspacePreparationFailure = userErrorMessage;
         });
       }
       return null;
     }
-  }
-
-  void _updateLoadingStatus(
-    WorkspaceSession session,
-    String status, {
-    bool clearError = false,
-  }) {
-    if (!_isCurrent(session)) {
-      return;
-    }
-    if (loadingStatus == status && (!clearError || _errorMessage == null)) {
-      return;
-    }
-    setState(() {
-      loadingStatus = status;
-      if (clearError) {
-        _errorMessage = null;
-      }
-    });
-  }
-
-  void _updateAnalyzerStatus(
-    WorkspaceSession session,
-    AnalyzerActivity activity,
-  ) {
-    if (!_isCurrent(session) || activity is! AnalyzerStatusActivity) {
-      return;
-    }
-
-    final status = activity.isAnalyzing ? 'Analyzing Project...' : 'Done';
-    if (loadingStatus == status) {
-      return;
-    }
-
-    setState(() {
-      loadingStatus = status;
-    });
   }
 
   @override
@@ -606,14 +684,15 @@ class AppState extends State<App> {
           ]),
           if (!isEmbedMode)
             Footer(
-              statusLabel: session.tabs.errorMessage ?? session.tabs.warningMessage ?? loadingStatus,
+              taskStatus: session.taskStatus,
+              analyzerStatus: session.analyzerStatus,
+              statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
               isSmallScreen: !_isLargeScreen,
               currentSdk: _currentSdk,
               onSelectSdk: _isInitializingWorkspace ? null : switchSdk,
             ),
         ]),
       ),
-      if (_errorMessage case final String message) ErrorDialog(errorMessage: message),
       ListenableBuilder(
         listenable: session.contextMenu,
         builder: (context) => ContextMenu(
@@ -639,6 +718,7 @@ class AppState extends State<App> {
           activeFile: session.tabs.activeFile,
           logs: session.console.logs,
           onClearConsole: session.console.clear,
+          events: session.events,
           contextMenu: session.contextMenu,
           onOpenDiagnostic: (fileName, diagnostic) {
             unawaited(session.diagnostics.openDiagnostic(fileName, diagnostic));
@@ -683,9 +763,30 @@ class AppState extends State<App> {
       listenable: session.preview,
       builder: (context) => PreviewContainer(
         preview: session.preview,
+        taskStatus: session.taskStatus,
         activeFile: session.tabs.activeFile,
+        workspacePreparationFailure: _workspacePreparationFailure,
+        onOpenConsole: () => _openConsole(session),
       ),
     );
+  }
+
+  void _openConsole(WorkspaceSession session) {
+    if (!_isCurrent(session)) {
+      return;
+    }
+    if (!_isLargeScreen && _selectedSmallScreenTab != SmallScreenTab.code) {
+      setState(() {
+        _selectedSmallScreenTab = SmallScreenTab.code;
+      });
+      context.binding.addPostFrameCallback(() {
+        if (_isCurrent(session)) {
+          session.events.dispatch(const OpenConsoleEvent());
+        }
+      });
+      return;
+    }
+    session.events.dispatch(const OpenConsoleEvent());
   }
 
   @override

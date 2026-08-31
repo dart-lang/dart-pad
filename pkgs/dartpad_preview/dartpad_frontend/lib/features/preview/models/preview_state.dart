@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../shared/task_status.dart';
+
 /// Base sealed class representing the current visual and execution state of
 /// the preview.
 sealed class PreviewState {
@@ -45,14 +47,28 @@ class PreviewHotReloading extends _ActivePreviewState {
 /// State representing an active stop/shutdown execution process.
 class PreviewStopping extends PreviewState {}
 
+/// The user action that initiated a preview launch lifecycle.
+enum PreviewLaunchAction { start, restart }
+
 /// State representing a compiler or runtime failure while compiling the
 /// [entrypoint].
 class PreviewCompileError extends PreviewState {
-  PreviewCompileError(this.entrypoint, this.message);
+  PreviewCompileError(
+    this.entrypoint,
+    this.message, {
+    required this.action,
+    required this.failedTask,
+  });
 
   @override
   final String entrypoint;
 
   /// The error message describing the failure.
   final String message;
+
+  /// Whether the failed launch was a fresh start or a cached restart.
+  final PreviewLaunchAction action;
+
+  /// The typed task phase that failed.
+  final TaskKind failedTask;
 }

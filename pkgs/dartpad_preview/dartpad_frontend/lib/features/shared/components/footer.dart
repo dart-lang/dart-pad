@@ -7,25 +7,36 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../../sdks.g.dart';
+import '../analyzer_status.dart';
 import '../icons.dart';
 import '../sdk_info.dart';
+import '../task_status.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart';
 import 'shortcuts_dialog.dart';
+import 'task_status_indicator.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
 final class Footer extends StatefulComponent {
   /// Creates the application footer.
   const Footer({
-    required this.statusLabel,
+    required this.taskStatus,
+    required this.analyzerStatus,
+    this.statusMessage,
     this.isSmallScreen = false,
     this.currentSdk,
     this.onSelectSdk,
     super.key,
   });
 
-  /// Human-readable label for the current application status.
-  final String statusLabel;
+  /// Recent application task activity.
+  final TaskStatusController taskStatus;
+
+  /// Readiness and background activity of the session analyzer.
+  final AnalyzerStatusController analyzerStatus;
+
+  /// An optional editor error or warning shown alongside task activity.
+  final String? statusMessage;
 
   /// Whether the footer is rendered in a small-screen layout.
   final bool isSmallScreen;
@@ -77,9 +88,12 @@ class _FooterState extends State<Footer> {
             _buildFeedbackLink(),
           ],
         ]),
-        div(classes: 'app-footer-status', [
-          .text(component.statusLabel),
-        ]),
+        if (component.statusMessage case final message?)
+          div(classes: 'app-footer-message', [.text(message)])
+        else
+          const div(classes: 'app-footer-spacer', []),
+        TaskStatusIndicator(controller: component.taskStatus),
+        AnalyzerStatusIndicator(controller: component.analyzerStatus),
         _buildRuntimeVersions(),
       ]),
       if (_showShortcuts)
@@ -159,6 +173,8 @@ class _FooterState extends State<Footer> {
   }
 
   static List<StyleRule> get styles => [
+    ...TaskStatusIndicator.styles,
+    ...AnalyzerStatusIndicator.styles,
     css('.app-footer').styles(
       display: .flex,
       minHeight: 34.px,
@@ -225,10 +241,10 @@ class _FooterState extends State<Footer> {
       opacity: 0.7,
       cursor: .notAllowed,
     ),
-    css('.app-footer-status').styles(
-      width: 120.px,
-      minWidth: 120.px,
-      margin: Margin.only(left: Unit.auto, right: 8.px),
+    css('.app-footer-spacer').styles(flex: const .grow(1)),
+    css('.app-footer-message').styles(
+      minWidth: .zero,
+      margin: const Margin.only(left: Unit.auto),
       overflow: .hidden,
       textAlign: .right,
       fontSize: 11.px,

@@ -8,25 +8,39 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../bottom_panel/views/console_panel.dart';
 import '../../shared/components/button_group.dart';
+import '../../shared/components/task_status_indicator.dart';
 import '../../shared/node_container.dart';
+import '../../shared/task_status.dart';
 import '../components/runtime_button.dart';
 import '../models/preview_state.dart';
 import '../view_models/preview_view_model.dart';
 
-/// A container component that hosts the preview frame toolbar, status toast
-/// messages, and the sandbox node where the compiled application runs.
+/// A container component that hosts the preview toolbar, task status, and the
+/// sandbox node where the compiled application runs.
 class PreviewContainer extends StatefulComponent {
   const PreviewContainer({
     required this.preview,
+    required this.taskStatus,
     required this.activeFile,
+    required this.onOpenConsole,
+    this.workspacePreparationFailure,
     super.key,
   });
 
   /// The view model that manages compilation and run operations for the preview.
   final PreviewViewModel preview;
 
+  /// Tracks prerequisite and runtime tasks shown in an empty preview.
+  final TaskStatusController taskStatus;
+
   /// The path of the currently active file in the editor workspace.
   final String activeFile;
+
+  /// A persistent failure from the one-time workspace preparation lifecycle.
+  final String? workspacePreparationFailure;
+
+  /// Opens the workspace Console tab.
+  final void Function() onOpenConsole;
 
   @override
   State<PreviewContainer> createState() => _PreviewContainerState();
@@ -42,42 +56,40 @@ class _PreviewContainerState extends State<PreviewContainer> {
     final state = viewModel.state;
     final isRunning = viewModel.isRunning;
 
-    final statusToast = switch (state) {
-      PreviewStarting() => const div(classes: 'preview-toast', [
-        div(classes: 'status-spinner', []),
-        span([.text('Starting...')]),
-      ]),
-      PreviewRestarting() => const div(classes: 'preview-toast', [
-        div(classes: 'status-spinner', []),
-        span([.text('Restarting...')]),
-      ]),
-      PreviewHotReloading() => null,
-      PreviewStopping() => const div(classes: 'preview-toast', [
-        div(classes: 'status-spinner', []),
-        span([.text('Stopping...')]),
-      ]),
-      PreviewCompileError() => const div(classes: 'preview-toast preview-toast-error', [
-        span(classes: 'status-icon', [.text('⚠️')]),
-        span([.text('Start failed')]),
-      ]),
+    final previewFailure = state is PreviewCompileError ? state : null;
+    final failureKind =
+        previewFailure?.failedTask ??
+        (component.workspacePreparationFailure == null ? null : TaskKind.preparingWorkspace);
+    final failureMessage = previewFailure?.message ?? component.workspacePreparationFailure;
+    final taskStatusMode = switch (state) {
+      PreviewInitial() => PreviewTaskStatusMode.workspacePreparation,
+      PreviewStarting() => PreviewTaskStatusMode.startup,
+      PreviewRestarting() => PreviewTaskStatusMode.restart,
+      PreviewCompileError(:final action) => switch (action) {
+        PreviewLaunchAction.start => PreviewTaskStatusMode.startup,
+        PreviewLaunchAction.restart => PreviewTaskStatusMode.restart,
+      },
       _ => null,
     };
 
     return div(classes: 'preview-container', [
       div(classes: 'preview-toolbar', [
         div(classes: 'preview-controls', [
-          ButtonGroup(
-            children: [
-              if (isRunning)
-                RuntimeButton.restart(previewViewModel: viewModel)
-              else
-                RuntimeButton.start(
-                  previewViewModel: viewModel,
-                  activeFile: component.activeFile,
-                ),
-              RuntimeButton.hotReload(previewViewModel: viewModel),
-              RuntimeButton.stop(previewViewModel: viewModel),
-            ],
+          ListenableBuilder(
+            listenable: component.taskStatus,
+            builder: (context) => ButtonGroup(
+              children: [
+                if (isRunning)
+                  RuntimeButton.restart(previewViewModel: viewModel)
+                else
+                  RuntimeButton.start(
+                    previewViewModel: viewModel,
+                    activeFile: component.activeFile,
+                  ),
+                RuntimeButton.hotReload(previewViewModel: viewModel),
+                RuntimeButton.stop(previewViewModel: viewModel),
+              ],
+            ),
           ),
         ]),
       ]),
@@ -85,22 +97,22 @@ class _PreviewContainerState extends State<PreviewContainer> {
         classes: 'preview-content ${!isRunning ? 'status-stopped' : ''} ${!viewModel.isFlutter ? 'is-dart' : ''}',
         [
           NodeContainer(viewModel.containerElement),
-          if (state is PreviewInitial)
-            const div(classes: 'preview-placeholder', [
-              span([.text('The preview will start momentarily.')]),
-            ]),
+          if (taskStatusMode != null)
+            PreviewTaskStatus(
+              controller: component.taskStatus,
+              mode: taskStatusMode,
+              persistentFailureKind: failureKind,
+              persistentFailureMessage: failureMessage,
+              onOpenConsole: component.onOpenConsole,
+            ),
           if (isRunning && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
-          ?statusToast,
         ],
       ),
     ]);
   }
 
   static List<StyleRule> get styles => [
-    css.keyframes('spin', {
-      '0%': Styles(transform: .rotate(0.deg)),
-      '100%': Styles(transform: .rotate(360.deg)),
-    }),
+    ...PreviewTaskStatus.styles,
     css('.preview-container', [
       css('&').styles(
         display: .flex,
@@ -170,56 +182,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
           border: .none,
           radius: .circular(0.px),
           shadow: .none,
-        ),
-        css('.preview-toast', [
-          css('&').styles(
-            display: .flex,
-            position: .absolute(top: 16.px, left: 16.px),
-            zIndex: const ZIndex(10),
-            padding: .symmetric(vertical: 8.px, horizontal: 16.px),
-            border: const .all(color: Color('rgba(255, 255, 255, 0.12)')),
-            radius: .circular(8.px),
-            shadow: BoxShadow(
-              offsetX: 0.px,
-              offsetY: 4.px,
-              blur: 12.px,
-              color: Colors.black.withOpacity(0.3),
-            ),
-            backdropFilter: .blur(8.px),
-            alignItems: .center,
-            gap: .all(8.px),
-            color: colorOnSurface,
-            fontSize: 14.px,
-            fontWeight: .w500,
-            backgroundColor: const Color('rgba(15, 23, 42, 0.8)'),
-          ),
-          css('.status-spinner').styles(
-            width: 14.px,
-            height: 14.px,
-            border: .only(
-              top: .solid(color: Colors.white, width: 2.px),
-              right: .solid(color: const .rgba(255, 255, 255, 0.3), width: 2.px),
-              bottom: .solid(color: const .rgba(255, 255, 255, 0.3), width: 2.px),
-              left: .solid(color: const .rgba(255, 255, 255, 0.3), width: 2.px),
-            ),
-            radius: .circular(50.percent),
-            animation: Animation(name: 'spin', duration: 1.seconds, curve: .linear, count: 10e6),
-          ),
-          css('.status-icon').styles(
-            display: .flex,
-            alignItems: .center,
-          ),
-          css('&.preview-toast-error').styles(
-            backgroundColor: const Color('rgba(127, 29, 29, 0.9)'),
-          ),
-        ]),
-        css('.preview-placeholder').styles(
-          display: .flex,
-          position: .absolute(top: 0.px, left: 0.px, right: 0.px, bottom: 0.px),
-          justifyContent: .center,
-          alignItems: .center,
-          color: colorOnSurface,
-          fontSize: 14.px,
         ),
       ]),
     ]),

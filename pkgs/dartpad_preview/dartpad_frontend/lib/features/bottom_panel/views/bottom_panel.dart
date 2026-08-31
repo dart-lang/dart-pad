@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/app_event_bus.dart';
 import '../../shared/components/context_menu.dart';
+import '../../shared/events/open_console_event.dart';
 import '../models/console_entry.dart';
 import 'bottom_panel_tabs.dart';
 import 'console_panel.dart';
@@ -30,6 +34,7 @@ class BottomPanel extends StatefulComponent {
     required this.onOpenDiagnostic,
     required this.logs,
     required this.onClearConsole,
+    required this.events,
     this.contextMenu,
     super.key,
   });
@@ -52,6 +57,9 @@ class BottomPanel extends StatefulComponent {
   /// Clears the debug output.
   final void Function() onClearConsole;
 
+  /// Workspace events used to react to requests from the preview panel.
+  final AppEventBus events;
+
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
 
@@ -64,6 +72,30 @@ class BottomPanel extends StatefulComponent {
 
 class _BottomPanelState extends State<BottomPanel> {
   BottomPanelTab _activeTab = BottomPanelTab.problems;
+  StreamSubscription<OpenConsoleEvent>? _openConsoleSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForOpenConsole();
+  }
+
+  @override
+  void didUpdateComponent(BottomPanel oldComponent) {
+    super.didUpdateComponent(oldComponent);
+    if (!identical(oldComponent.events, component.events)) {
+      unawaited(_openConsoleSubscription?.cancel());
+      _listenForOpenConsole();
+    }
+  }
+
+  void _listenForOpenConsole() {
+    _openConsoleSubscription = component.events.on<OpenConsoleEvent>().listen((_) {
+      if (mounted && _activeTab != BottomPanelTab.console) {
+        _selectTab(BottomPanelTab.console);
+      }
+    });
+  }
 
   void _selectTab(BottomPanelTab tab) {
     setState(() {
@@ -100,6 +132,12 @@ class _BottomPanelState extends State<BottomPanel> {
         ),
       },
     ]);
+  }
+
+  @override
+  void dispose() {
+    unawaited(_openConsoleSubscription?.cancel());
+    super.dispose();
   }
 
   static List<StyleRule> get styles => [

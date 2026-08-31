@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 import '../../bottom_panel/models/console_entry.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../models/compiler_session.dart';
 import '../models/preview_sandbox.dart';
@@ -66,13 +67,19 @@ class PreviewViewModel extends ChangeNotifier {
   final List<ConsoleEntry> _appLogs = [];
 
   /// Whether the compiler or execution setup can be started.
-  bool get canStart => !_busy && (_state is PreviewInitial || _state is PreviewCompileError);
+  bool get canStart =>
+      !_busy &&
+      !workspaceRepository.taskStatus.hasBlockingPreviewTask &&
+      (_state is PreviewInitial || _state is PreviewCompileError);
 
   /// Whether the running preview can be restarted.
-  bool get canRestart => !_busy && _state is PreviewRunning;
+  bool get canRestart =>
+      !_busy &&
+      _state is PreviewRunning &&
+      (_lastCompiledCode != null || !workspaceRepository.taskStatus.hasBlockingPreviewTask);
 
   /// Whether the running preview can accept a hot reload.
-  bool get canHotReload => !_busy && _state is PreviewRunning;
+  bool get canHotReload => !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
 
   /// Whether the preview run process can be stopped.
   bool get canStop => _state is! PreviewStopping && (_busy || _sandbox != null);
@@ -110,21 +117,33 @@ class PreviewViewModel extends ChangeNotifier {
     if (_busy) {
       return;
     }
+    final compileNeeded = !skipRecompilation || _lastCompiledCode == null;
+    if (compileNeeded && workspaceRepository.taskStatus.hasBlockingPreviewTask) {
+      return;
+    }
 
     final operationId = _beginOperation();
+    final isRestart =
+        _state is PreviewRunning ||
+        _state is PreviewRestarting ||
+        _state is PreviewHotReloading ||
+        _state is PreviewStopping;
+    final launchAction = isRestart ? PreviewLaunchAction.restart : PreviewLaunchAction.start;
+    final launchTask = isRestart ? TaskKind.restartingPreview : TaskKind.startingPreview;
+    final statusTask = workspaceRepository.taskStatus.startTask(
+      launchTask,
+      blocksPreview: true,
+    );
 
     _appLogs.clear();
 
-    final compileNeeded = !skipRecompilation || _lastCompiledCode == null;
+    var failedTask = launchTask;
     eventBus.dispatch(LogEvent('Run $entrypoint'));
     if (compileNeeded) {
       eventBus.dispatch(const LogEvent('Starting compiler...'));
     }
 
-    if (_state is PreviewRunning ||
-        _state is PreviewRestarting ||
-        _state is PreviewHotReloading ||
-        _state is PreviewStopping) {
+    if (isRestart) {
       _state = PreviewRestarting(entrypoint);
     } else {
       _state = PreviewStarting(entrypoint);
@@ -156,12 +175,18 @@ class PreviewViewModel extends ChangeNotifier {
         _hotReloadCompiler = compiler;
 
         eventBus.dispatch(const LogEvent('Compiling application...'));
-        final result = await compiler.compile();
+        failedTask = TaskKind.compilingApplication;
+        final result = await workspaceRepository.taskStatus.runTask(
+          TaskKind.compilingApplication,
+          compiler.compile,
+          blocksPreview: true,
+        );
         if (!_isCurrentOperation(operationId)) {
           return;
         }
         eventBus.dispatch(LogEvent(result.log ?? ''));
         eventBus.dispatch(const LogEvent('Compilation succeeded.'));
+        failedTask = launchTask;
         _lastCompiledCode = result.code;
         codeToLoad = result.code!;
       } else {
@@ -222,14 +247,33 @@ class PreviewViewModel extends ChangeNotifier {
         eventBus.dispatch(
           LogEvent('Compilation failed', level: Level.SEVERE, error: e, stackTrace: st),
         );
-        _state = PreviewCompileError(entrypoint, e.message);
+        _state = PreviewCompileError(
+          entrypoint,
+          e.message,
+          action: launchAction,
+          failedTask: failedTask,
+        );
       }
     } catch (e, st) {
       if (_isCurrentOperation(operationId)) {
         eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: e, stackTrace: st));
-        _state = PreviewCompileError(entrypoint, e.toString());
+        _state = PreviewCompileError(
+          entrypoint,
+          e.toString(),
+          action: launchAction,
+          failedTask: failedTask,
+        );
       }
     } finally {
+      if (!_isCurrentOperation(operationId)) {
+        statusTask.cancel();
+      } else if (_state is PreviewRunning) {
+        statusTask.succeed();
+      } else if (_state is PreviewCompileError) {
+        statusTask.fail();
+      } else {
+        statusTask.cancel();
+      }
       if (!_disposed) {
         notifyListeners();
       }
@@ -243,12 +287,17 @@ class PreviewViewModel extends ChangeNotifier {
     if (entry == null) {
       return;
     }
-    if (_busy) {
+    if (_busy || workspaceRepository.taskStatus.hasBlockingPreviewTask) {
       return;
     }
     final operationId = _beginOperation();
+    final statusTask = workspaceRepository.taskStatus.startTask(
+      TaskKind.hotReload,
+      blocksPreview: true,
+    );
     final sandbox = _sandbox;
     if (sandbox == null) {
+      statusTask.cancel();
       return;
     }
     eventBus.dispatch(LogEvent('Hot reload $entry'));
@@ -256,6 +305,7 @@ class PreviewViewModel extends ChangeNotifier {
 
     _state = PreviewHotReloading(entry);
     notifyListeners();
+    var reloadSucceeded = false;
 
     try {
       eventBus.dispatch(const LogEvent('Preparing compiler...'));
@@ -273,7 +323,11 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       eventBus.dispatch(const LogEvent('Compiling changes...'));
-      final result = await compiler.compile();
+      final result = await workspaceRepository.taskStatus.runTask(
+        TaskKind.compilingChanges,
+        compiler.compile,
+        blocksPreview: true,
+      );
       if (!_isCurrentOperation(operationId)) {
         return;
       }
@@ -291,21 +345,31 @@ class PreviewViewModel extends ChangeNotifier {
       eventBus.dispatch(const LogEvent('Hot reload completed successfully.'));
       _lastCompiledCode = result.code;
       _state = PreviewRunning(entry);
+      reloadSucceeded = true;
     } on HotReloadRejectedException catch (e, st) {
       if (_isCurrentOperation(operationId)) {
         eventBus.dispatch(
           LogEvent('Hot reload rejected', level: Level.WARNING, error: e, stackTrace: st),
         );
-        _state = PreviewCompileError(entry, e.message);
+        _state = PreviewRunning(entry);
       }
     } catch (e, st) {
       if (_isCurrentOperation(operationId)) {
         eventBus.dispatch(
           LogEvent('Hot reload failed', level: Level.SEVERE, error: e, stackTrace: st),
         );
-        _state = PreviewCompileError(entry, e.toString());
+        _state = PreviewRunning(entry);
       }
     } finally {
+      if (!_isCurrentOperation(operationId)) {
+        statusTask.cancel();
+      } else if (reloadSucceeded) {
+        statusTask.succeed();
+      } else if (_state is PreviewRunning) {
+        statusTask.fail();
+      } else {
+        statusTask.cancel();
+      }
       if (!_disposed) {
         notifyListeners();
       }
@@ -319,6 +383,10 @@ class PreviewViewModel extends ChangeNotifier {
       return;
     }
     final operationId = _beginOperation();
+    final statusTask = workspaceRepository.taskStatus.startTask(
+      TaskKind.stoppingPreview,
+      blocksPreview: true,
+    );
     eventBus.dispatch(const LogEvent('Stopping app...'));
     _state = PreviewStopping();
     _lastCompiledCode = null;
@@ -338,15 +406,24 @@ class PreviewViewModel extends ChangeNotifier {
         await hotReloadCompiler.close();
       }
       eventBus.dispatch(const LogEvent('Stopped app.'));
+    } catch (_) {
+      if (_isCurrentOperation(operationId)) {
+        statusTask.fail();
+      } else {
+        statusTask.cancel();
+      }
+      rethrow;
     } finally {
       operationStillCurrent = _isCurrentOperation(operationId);
     }
 
     if (!operationStillCurrent) {
+      statusTask.cancel();
       return;
     }
 
     _state = PreviewInitial();
+    statusTask.succeed();
     if (!_disposed) {
       notifyListeners();
     }
