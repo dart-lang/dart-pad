@@ -69,6 +69,36 @@ void main() {
     late StreamController<Object?> outgoingMessages;
     late LanguageServerClient client;
     late Future<void> Function(String file, List<Object?> edits)? documentEditsHandler;
+    late String initializedRootUri;
+
+    LanguageServerClient createClient({required Uri editorRootUri}) {
+      return LanguageServerClient(
+        languageServer: null,
+        rootWorkspaceUri: workspace.workspaceFolder,
+        editorRootUri: editorRootUri,
+        workspaceChangeEvents: workspaceEvents.stream,
+        documentEditsHandler: (file, edits) async {
+          if (documentEditsHandler != null) {
+            await documentEditsHandler!.call(file, edits);
+          } else {
+            final text = await workspace.readFileAsText(file);
+            await workspace.writeFileFromText(
+              file,
+              LanguageServerClient.applyEdits(text, edits),
+            );
+          }
+        },
+        sendToLanguageServer: (message) {
+          sentMessages.add(message);
+          outgoingMessages.add(message);
+        },
+        languageServerMessages: serverMessages.stream,
+        createCodeMirrorLspClient: (_, rootUri) {
+          initializedRootUri = rootUri;
+          return codeMirrorClient;
+        },
+      );
+    }
 
     setUp(() {
       workspace = FakeWorkspace();
@@ -78,24 +108,9 @@ void main() {
       sentMessages = [];
       outgoingMessages = StreamController<Object?>.broadcast();
       documentEditsHandler = null;
-      client = LanguageServerClient(
-        languageServer: null,
-        rootWorkspaceUri: workspace.workspaceFolder,
-        workspaceChangeEvents: workspaceEvents.stream,
-        documentEditsHandler: (file, edits) async {
-          if (documentEditsHandler != null) {
-            await documentEditsHandler!.call(file, edits);
-          } else {
-            final text = await workspace.readFileAsText(file);
-            await workspace.writeFileFromText(file, LanguageServerClient.applyEdits(text, edits));
-          }
-        },
-        sendToLanguageServer: (message) {
-          sentMessages.add(message);
-          outgoingMessages.add(message);
-        },
-        languageServerMessages: serverMessages.stream,
-        createCodeMirrorLspClient: (_, _) => codeMirrorClient,
+      initializedRootUri = '';
+      client = createClient(
+        editorRootUri: Uri.parse('file:///workspace/example/'),
       );
     });
 
@@ -104,6 +119,53 @@ void main() {
       await serverMessages.close();
       await workspaceEvents.close();
       await outgoingMessages.close();
+    });
+
+    test('initializes at the project root while preserving workspace-relative paths', () async {
+      expect(initializedRootUri, 'file:///workspace/example/');
+
+      final diagnosticActivity = client.analyzerActivityStream.first;
+      serverMessages.add({
+        'method': 'textDocument/publishDiagnostics',
+        'params': {
+          'uri': 'file:///workspace/example/lib/main.dart',
+          'diagnostics': [
+            {
+              'range': {
+                'start': {'line': 0, 'character': 0},
+              },
+              'message': 'problem',
+            },
+          ],
+        },
+      });
+      await diagnosticActivity;
+
+      expect(client.allDiagnostics.single.fileName, 'example/lib/main.dart');
+
+      final renameFuture = client.willRenameFiles(
+        'example/lib/old.dart',
+        'example/lib/new.dart',
+      );
+      expect(sentMessages.single, {
+        'jsonrpc': '2.0',
+        'id': -1,
+        'method': 'workspace/willRenameFiles',
+        'params': {
+          'files': [
+            {
+              'oldUri': 'file:///workspace/example/lib/old.dart',
+              'newUri': 'file:///workspace/example/lib/new.dart',
+            },
+          ],
+        },
+      });
+      serverMessages.add({
+        'jsonrpc': '2.0',
+        'id': -1,
+        'result': null,
+      });
+      await renameFuture;
     });
 
     test('serializes diagnostics and analyzer status into observable state', () async {

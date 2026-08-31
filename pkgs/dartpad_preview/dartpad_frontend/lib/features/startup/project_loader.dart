@@ -19,9 +19,6 @@ final class ProjectFile {
 
 /// The workspace state produced by a project loader.
 ///
-/// [projectDir] is the folder shown in the file tree. [packageRoot] is null
-/// when the loaded files do not form a Dart package; it is an empty string for
-/// a package rooted at the workspace root.
 final class LoadedProject {
   const LoadedProject({
     required this.projectDir,
@@ -30,10 +27,36 @@ final class LoadedProject {
     this.pathToMain,
   });
 
+  /// Workspace-relative folder shown as the root of the file tree.
   final String projectDir;
+
+  /// Workspace-relative file opened after the project is loaded.
   final String? entryPath;
+
+  /// Workspace-relative root of the Dart package containing [entryPath].
+  ///
+  /// This is `null` when no Dart package was detected and an empty string when
+  /// the package is rooted at the complete workspace.
   final String? packageRoot;
+
+  /// Workspace-relative Dart entrypoint executed in the preview.
   final String? pathToMain;
+}
+
+/// Resolves [packageRoot] to the editor and language-server root URI.
+///
+/// [rootWorkspaceUri] identifies the complete virtual workspace, while
+/// [packageRoot] is a workspace-relative path. A missing package root or a
+/// package rooted at the workspace both use [rootWorkspaceUri] directly.
+Uri resolveEditorRootUri(Uri rootWorkspaceUri, String? packageRoot) {
+  if (packageRoot == null || packageRoot.isEmpty) {
+    return rootWorkspaceUri;
+  }
+
+  final normalizedPackageRoot = workspaceContext.normalize(packageRoot);
+  return rootWorkspaceUri.resolveUri(
+    Uri(path: '$normalizedPackageRoot/'),
+  );
 }
 
 /// Shared workspace import operations for externally loaded projects.
