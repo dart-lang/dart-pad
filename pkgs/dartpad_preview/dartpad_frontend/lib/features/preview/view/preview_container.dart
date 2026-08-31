@@ -87,7 +87,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
           NodeContainer(viewModel.containerElement),
           if (state is PreviewInitial)
             const div(classes: 'preview-placeholder', [
-              span([.text('Start your app to see the preview.')]),
+              span([.text('The preview will start momentarily.')]),
             ]),
           if (isRunning && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
           ?statusToast,
