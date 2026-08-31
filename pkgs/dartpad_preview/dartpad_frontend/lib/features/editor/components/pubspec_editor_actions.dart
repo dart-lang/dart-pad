@@ -112,22 +112,26 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
   @override
   Component build(BuildContext context) {
     final fileName = workspaceContext.basename(component.activeFile);
-    if (fileName != 'pubspec.yaml' && fileName != 'pubspec.lock') {
-      return const Component.fragment([]);
-    }
-
     final directory = workspaceContext.dirname(component.activeFile);
-    return div(classes: 'pubspec-editor-actions', [
-      Button(
-        label: 'Pub get',
-        disabled: _busy,
-        onClick: () => unawaited(_pubGet(directory)),
-      ),
-      Button(
-        label: 'Pub clean',
-        disabled: _busy,
-        onClick: () => unawaited(_pubClean(directory)),
-      ),
+    final isPubspecFile = fileName == 'pubspec.yaml' || fileName == 'pubspec.lock';
+
+    // Keep the stateful component's root render object stable while switching
+    // between editor tabs. Jaspr cannot safely replace an empty fragment root
+    // with an element when this component is nested in the editor overlay.
+    return div(classes: 'pubspec-editor-actions-host', [
+      if (isPubspecFile)
+        div(classes: 'pubspec-editor-actions', [
+          Button(
+            label: 'Pub get',
+            disabled: _busy,
+            onClick: () => unawaited(_pubGet(directory)),
+          ),
+          Button(
+            label: 'Pub clean',
+            disabled: _busy,
+            onClick: () => unawaited(_pubClean(directory)),
+          ),
+        ]),
     ]);
   }
 }
