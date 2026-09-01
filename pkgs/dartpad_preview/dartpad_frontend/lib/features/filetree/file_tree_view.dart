@@ -28,6 +28,7 @@ final class FileTreeView extends StatefulComponent {
     required this.actions,
     this.confirmDelete,
     this.contextMenu,
+    this.onCollapse,
     super.key,
   });
 
@@ -43,6 +44,9 @@ final class FileTreeView extends StatefulComponent {
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
 
+  /// An optional callback invoked when the user clicks the collapse button in the header.
+  final VoidCallback? onCollapse;
+
   @override
   State<FileTreeView> createState() => _FileTreeViewInternalState();
 
@@ -56,7 +60,6 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   FileTreeEntryKind? _creatingEntry;
   bool _isRootDropTarget = false;
   int _dragEnterCount = 0;
-  int _collapseAllCount = 0;
 
   @override
   void didUpdateComponent(FileTreeView oldComponent) {
@@ -75,63 +78,17 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
 
     return div(classes: 'file-tree', [
       div(classes: 'file-tree-header', [
-        const span(classes: 'file-tree-title', [.text('Files')]),
-        div(classes: 'file-tree-toolbar', [
-          _toolbarButton(
-            title: 'Navigate up',
-            disabled: state.busy || state.focusedPath.isEmpty,
-            icon: const Icon('arrow_upward', size: 16),
-            onClick: actions.navigateUp,
-          ),
-          _toolbarButton(
-            title: 'Collapse all',
-            disabled: state.busy,
-            icon: const Icon('unfold_less', size: 16),
-            onClick: () {
-              setState(() {
-                _collapseAllCount++;
-              });
+        const span(classes: 'file-tree-title', [.text('Explorer')]),
+        if (component.onCollapse case final onCollapse?)
+          button(
+            classes: 'file-tree-collapse-button',
+            attributes: const {
+              'title': 'Hide file tree',
+              'aria-label': 'Hide file tree',
             },
+            onClick: onCollapse,
+            [const Icon('chevron_left', size: 16)],
           ),
-          _toolbarButton(
-            title: 'New file',
-            disabled: state.busy,
-            icon: const Icon('note_add', size: 16),
-            onClick: () {
-              setState(() {
-                _creatingEntry = FileTreeEntryKind.file;
-                final path = _selectedPath ?? '';
-                _selectedPath = null;
-                if (path.isEmpty) {
-                  _creatingInFolder = state.focusedPath;
-                } else if (state.root.isFolder(path)) {
-                  _creatingInFolder = path;
-                } else {
-                  _creatingInFolder = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-                }
-              });
-            },
-          ),
-          _toolbarButton(
-            title: 'New folder',
-            disabled: state.busy,
-            icon: const Icon('create_new_folder', size: 16),
-            onClick: () {
-              setState(() {
-                _creatingEntry = FileTreeEntryKind.folder;
-                final path = _selectedPath ?? '';
-                _selectedPath = null;
-                if (path.isEmpty) {
-                  _creatingInFolder = state.focusedPath;
-                } else if (state.root.isFolder(path)) {
-                  _creatingInFolder = path;
-                } else {
-                  _creatingInFolder = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-                }
-              });
-            },
-          ),
-        ]),
       ]),
       if (state.operationError case final error?)
         div(classes: 'file-tree-error', [
@@ -249,7 +206,6 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 },
                 creatingInFolder: _creatingInFolder,
                 creatingEntry: _creatingEntry,
-                collapseAllCount: _collapseAllCount,
                 contextMenu: component.contextMenu,
                 onStartCreate: (folderPath, kind) {
                   setState(() {
@@ -325,7 +281,16 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
 
   List<ContextMenuEntry> _buildContextMenuItems() {
     final state = component.state;
+    final actions = component.actions;
     return [
+      if (state.focusedPath.isNotEmpty) ...[
+        ContextMenuItem(
+          label: 'Navigate up',
+          disabled: state.busy,
+          onPressed: actions.navigateUp,
+        ),
+        const ContextMenuDivider(),
+      ],
       ContextMenuItem(
         label: 'New file',
         disabled: state.busy,
@@ -349,24 +314,6 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         },
       ),
     ];
-  }
-
-  Component _toolbarButton({
-    required String title,
-    required bool disabled,
-    required Component icon,
-    required void Function() onClick,
-  }) {
-    return button(
-      classes: 'file-tree-toolbar-button',
-      attributes: {
-        'title': title,
-        'aria-label': title,
-        if (disabled) 'disabled': '',
-      },
-      onClick: disabled ? null : onClick,
-      [icon],
-    );
   }
 
   static List<StyleRule> get styles => [
@@ -397,8 +344,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         textTransform: .upperCase,
         letterSpacing: 0.7.px,
       ),
-      css('.file-tree-toolbar').styles(display: .flex, gap: .all(4.px)),
-      css('.file-tree-toolbar-button, .file-tree-action, .file-tree-disclosure').styles(
+      css('.file-tree-collapse-button, .file-tree-disclosure').styles(
         display: .flex,
         padding: .zero,
         border: .none,
@@ -409,13 +355,9 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         color: colorOnSurface,
         backgroundColor: Colors.transparent,
       ),
-      css('.file-tree-toolbar-button').styles(width: 24.px, height: 24.px),
-      css('.file-tree-toolbar-button:hover, .file-tree-action:hover, .file-tree-disclosure:hover').styles(
+      css('.file-tree-collapse-button').styles(width: 24.px, height: 24.px),
+      css('.file-tree-collapse-button:hover, .file-tree-disclosure:hover').styles(
         backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
-      ),
-      css('.file-tree-toolbar-button:disabled, .file-tree-action:disabled').styles(
-        opacity: 0.45,
-        cursor: .defaultCursor,
       ),
 
       css('.file-tree-list', [
@@ -538,22 +480,6 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         flex: const Flex(grow: 1, basis: .zero),
         textOverflow: .ellipsis,
         whiteSpace: .noWrap,
-      ),
-      css('.file-tree-actions').styles(display: .none, gap: .all(2.px)),
-      css('.file-tree-item:hover .file-tree-actions, .file-tree-item.active .file-tree-actions').styles(display: .flex),
-      css('.file-tree-action', [
-        css('&').styles(
-          width: 20.px,
-          height: 20.px,
-          flex: const .shrink(0),
-        ),
-        css('&.delete:hover').styles(color: colorError, backgroundColor: colorSurface),
-        css('&.confirm:hover').styles(color: colorSuccess, backgroundColor: colorSurface),
-      ]),
-
-      css('.file-tree-action-icon').styles(
-        width: 12.px,
-        height: 12.px,
       ),
       css('.file-tree-input-wrapper').styles(position: const .relative()),
       css('.file-tree-input', [

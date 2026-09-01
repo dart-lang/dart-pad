@@ -17,7 +17,6 @@ import '../file_tree_models.dart';
 import 'file_tree_file_item.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
-import 'file_tree_row_actions.dart';
 
 /// A stateful item representing a folder node.
 class FileTreeFolderItem extends StatefulComponent {
@@ -33,7 +32,6 @@ class FileTreeFolderItem extends StatefulComponent {
     required this.onConfirmCreate,
     required this.onCancelCreate,
     this.confirmDelete,
-    this.collapseAllCount = 0,
     this.contextMenu,
     this.onStartCreate,
     super.key,
@@ -71,9 +69,6 @@ class FileTreeFolderItem extends StatefulComponent {
 
   /// Optional callback to confirm deletion of this folder and its contents.
   final bool Function(String message)? confirmDelete;
-
-  /// Trigger generation counter to collapse all folders recursively.
-  final int collapseAllCount;
 
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
@@ -121,9 +116,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     if (component.creatingEntry != null && component.creatingInFolder == component.node.resource.path) {
       _isCollapsed = false;
       _scrollTopIntoView();
-    }
-    if (component.collapseAllCount != oldComponent.collapseAllCount) {
-      _isCollapsed = true;
     }
 
     final activeFile = component.state.activeFile;
@@ -255,16 +247,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
         span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
-        if (!protected)
-          FileTreeRowActions(
-            onRename: () {
-              component.onSelect(path);
-              setState(() {
-                _isRenaming = true;
-              });
-            },
-            onDelete: () => _confirmDeleteFolder(path),
-          ),
       ],
     );
 
@@ -317,7 +299,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onConfirmCreate: component.onConfirmCreate,
                 onCancelCreate: component.onCancelCreate,
                 confirmDelete: component.confirmDelete,
-                collapseAllCount: component.collapseAllCount,
                 contextMenu: component.contextMenu,
                 onStartCreate: component.onStartCreate,
               );
@@ -415,6 +396,13 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         ),
       ],
       const ContextMenuDivider(),
+      ContextMenuItem(
+        label: 'Use as root',
+        disabled: component.state.busy,
+        onPressed: () {
+          component.actions.focusPath(path);
+        },
+      ),
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {
