@@ -168,13 +168,16 @@ final class TaskStatusController extends ChangeNotifier {
       scope: scope,
       blocksPreview: blocksPreview,
     );
+    var success = false;
     try {
       final result = await Future<T>.sync(operation);
       handle.succeed();
+      success = true;
       return result;
-    } catch (_) {
-      handle.fail();
-      rethrow;
+    } finally {
+      if (!success) {
+        handle.fail();
+      }
     }
   }
 
