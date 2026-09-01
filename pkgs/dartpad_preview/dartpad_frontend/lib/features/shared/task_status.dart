@@ -113,7 +113,15 @@ final class TaskStatusController extends ChangeNotifier {
         .map((task) => task.entry)
         .where((entry) => entry.finishedAt == null || entry.finishedAt!.isAfter(cutoff))
         .toList();
-    result.sort(_compareEntries);
+    result.sort((a, b) {
+      if (a.isRunning != b.isRunning) {
+        return a.isRunning ? -1 : 1;
+      }
+      if (a.isRunning) {
+        return b.startedAt.compareTo(a.startedAt);
+      }
+      return b.finishedAt!.compareTo(a.finishedAt!);
+    });
     return List.unmodifiable(result);
   }
 
@@ -215,16 +223,6 @@ final class TaskStatusController extends ChangeNotifier {
       final finishedAt = task.entry.finishedAt;
       return finishedAt != null && !finishedAt.isAfter(cutoff);
     });
-  }
-
-  static int _compareEntries(TaskStatusEntry a, TaskStatusEntry b) {
-    if (a.isRunning != b.isRunning) {
-      return a.isRunning ? -1 : 1;
-    }
-    if (a.isRunning) {
-      return b.startedAt.compareTo(a.startedAt);
-    }
-    return b.finishedAt!.compareTo(a.finishedAt!);
   }
 
   @override
