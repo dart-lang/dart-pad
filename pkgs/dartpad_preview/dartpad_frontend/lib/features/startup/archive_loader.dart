@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
+import 'package:yaml_edit/yaml_edit.dart';
 
 import 'project_loader.dart';
 
@@ -101,6 +102,7 @@ class ArchiveLoader {
     final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
     final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(files, entryPath) ?? '';
 
+    _disableWorkspaceResolution(files, projectDir);
     await ProjectLoader.writeFiles(root, files);
 
     return LoadedProject(
@@ -109,6 +111,118 @@ class ArchiveLoader {
       packageRoot: projectDir,
       pathToMain: mainPath,
     );
+  }
+
+  /// Isolates the active package from a workspace that is not part of the
+  /// loaded archive.
+  ///
+  /// This mirrors `dart pub unpack`: the original pubspec remains unchanged,
+  /// while `resolution: workspace` is disabled through a package-local
+  /// `pubspec_overrides.yaml` file. Pub runs dependency resolution for an
+  /// `example/` package by default. Therefore, workspace resolution must also
+  /// be disabled for nested example packages to prevent `pub get` from failing
+  /// there.
+  void _disableWorkspaceResolution(List<ProjectFile> files, String projectDir) {
+    var packageDir = projectDir;
+    while (true) {
+      _disableWorkspaceResolutionForPackage(files, packageDir);
+
+      final exampleDir = _packageFilePath(packageDir, 'example');
+      final examplePubspecPath = _packageFilePath(exampleDir, 'pubspec.yaml');
+      if (_findFile(files, examplePubspecPath) == -1) {
+        return;
+      }
+      packageDir = exampleDir;
+    }
+  }
+
+  void _disableWorkspaceResolutionForPackage(
+    List<ProjectFile> files,
+    String projectDir,
+  ) {
+    final pubspecPath = _packageFilePath(projectDir, 'pubspec.yaml');
+    final pubspecIndex = _findFile(files, pubspecPath);
+    if (pubspecIndex == -1) {
+      return;
+    }
+
+    final String pubspecContents;
+    try {
+      pubspecContents = utf8.decode(files[pubspecIndex].bytes);
+    } on FormatException {
+      return;
+    }
+
+    if (!_usesWorkspaceResolution(pubspecContents)) {
+      return;
+    }
+
+    final overridesPath = _packageFilePath(projectDir, 'pubspec_overrides.yaml');
+    final overridesIndex = _findFile(files, overridesPath);
+    if (overridesIndex == -1) {
+      files.add(
+        ProjectFile(
+          path: overridesPath,
+          bytes: Uint8List.fromList(utf8.encode('resolution:\n')),
+        ),
+      );
+      return;
+    }
+
+    final ProjectFile overridesFile = files[overridesIndex];
+    final String overridesContents;
+    try {
+      overridesContents = utf8.decode(overridesFile.bytes);
+    } on FormatException {
+      return;
+    }
+
+    final updatedOverrides = _setResolutionToNull(overridesContents);
+    if (updatedOverrides == null) {
+      return;
+    }
+
+    files[overridesIndex] = ProjectFile(
+      path: overridesFile.path,
+      bytes: Uint8List.fromList(utf8.encode(updatedOverrides)),
+    );
+  }
+
+  bool _usesWorkspaceResolution(String pubspecContents) {
+    try {
+      final editor = YamlEditor(pubspecContents);
+      final rootValue = editor.parseAt(const []).value;
+      return rootValue is Map && rootValue['resolution'] == 'workspace';
+    } on FormatException {
+      return false;
+    }
+  }
+
+  String? _setResolutionToNull(String overridesContents) {
+    try {
+      final editor = YamlEditor(overridesContents);
+      final rootValue = editor.parseAt(const []).value;
+      if (rootValue == null) {
+        editor.update(const [], {'resolution': null});
+      } else if (rootValue is Map) {
+        editor.update(const ['resolution'], null);
+      } else {
+        return null;
+      }
+      return editor.toString();
+    } on FormatException {
+      return null;
+    }
+  }
+
+  int _findFile(List<ProjectFile> files, String path) {
+    return files.indexWhere(
+      (file) => ProjectLoader.normalizePath(file.path) == path,
+    );
+  }
+
+  String _packageFilePath(String projectDir, String filename) {
+    return projectDir.isEmpty ? filename : '$projectDir/$filename';
   }
 
   String _relativePath(String path) {
