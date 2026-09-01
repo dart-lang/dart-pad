@@ -125,10 +125,6 @@ class AppState extends State<App> {
 
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
-    final preparationTask = taskStatus.startTask(
-      TaskKind.preparingWorkspace,
-      blocksPreview: true,
-    );
     _session = WorkspaceSession.create(
       WorkspaceRepository.create(
         events: events,
@@ -141,7 +137,6 @@ class AppState extends State<App> {
       _initializeWorkspace(
         _session,
         source: ProjectSource.fromUri(Uri.base),
-        preparationTask: preparationTask,
       ),
     );
   }
@@ -176,7 +171,6 @@ class AppState extends State<App> {
   Future<void> _initializeWorkspace(
     WorkspaceSession session, {
     required ProjectSource source,
-    required TaskStatusHandle preparationTask,
   }) async {
     final projectFuture = _loadProject(session, source: source);
 
@@ -186,7 +180,6 @@ class AppState extends State<App> {
         projectReady: projectFuture,
       );
       if (!_isCurrent(session)) {
-        preparationTask.cancel();
         return;
       }
 
@@ -195,7 +188,6 @@ class AppState extends State<App> {
       });
 
       if (project == null) {
-        preparationTask.fail();
         setState(() {
           _workspacePreparationFailure ??= 'The project could not be loaded.';
         });
@@ -208,15 +200,12 @@ class AppState extends State<App> {
           session,
           workspace,
           project,
-          preparationTask,
         ),
       );
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {
-        preparationTask.cancel();
         return;
       }
-      preparationTask.fail();
       session.events.dispatch(
         LogEvent(
           'Workspace preparation failed.',
@@ -236,12 +225,10 @@ class AppState extends State<App> {
     WorkspaceSession session,
     Workspace workspace,
     LoadedProject project,
-    TaskStatusHandle preparationTask,
   ) async {
     var preparationSucceeded = true;
     if (project.packageRoot case final String packageRoot) {
       if (!_isCurrent(session)) {
-        preparationTask.cancel();
         return;
       }
       try {
@@ -252,7 +239,6 @@ class AppState extends State<App> {
       } catch (error, stackTrace) {
         preparationSucceeded = false;
         if (_isCurrent(session)) {
-          preparationTask.fail();
           session.events.dispatch(
             LogEvent(
               'Pub get failed.',
@@ -269,12 +255,10 @@ class AppState extends State<App> {
     }
 
     if (!_isCurrent(session)) {
-      preparationTask.cancel();
       return;
     }
 
     if (preparationSucceeded) {
-      preparationTask.succeed();
       if (project.pathToMain case final String pathToMain when pathToMain.isNotEmpty && pathToMain.endsWith('.dart')) {
         unawaited(session.preview.runCode(pathToMain));
       }
@@ -353,10 +337,6 @@ class AppState extends State<App> {
     final previousWorkspaceDisposed = Completer<void>();
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
-    final preparationTask = taskStatus.startTask(
-      TaskKind.preparingWorkspace,
-      blocksPreview: true,
-    );
     final nextSession = WorkspaceSession.create(
       WorkspaceRepository.resetAndCreate(
         events: events,
@@ -390,7 +370,6 @@ class AppState extends State<App> {
       _initializeWorkspace(
         nextSession,
         source: source,
-        preparationTask: preparationTask,
       ),
     );
     disposeAfterWorkspaceUnmount(
@@ -420,10 +399,6 @@ class AppState extends State<App> {
 
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
-    final preparationTask = taskStatus.startTask(
-      TaskKind.preparingWorkspace,
-      blocksPreview: true,
-    );
     final nextSession = WorkspaceSession.create(
       WorkspaceRepository.create(
         events: events,
@@ -442,7 +417,7 @@ class AppState extends State<App> {
     });
 
     unawaited(
-      _initializeSwitchSdkWorkspace(nextSession, preparationTask),
+      _initializeSwitchSdkWorkspace(nextSession),
     );
 
     disposeAfterWorkspaceUnmount(
@@ -455,12 +430,10 @@ class AppState extends State<App> {
 
   Future<void> _initializeSwitchSdkWorkspace(
     WorkspaceSession session,
-    TaskStatusHandle preparationTask,
   ) async {
     try {
       final workspace = await session.repository.readyWorkspace;
       if (!_isCurrent(session)) {
-        preparationTask.cancel();
         return;
       }
 
@@ -476,7 +449,6 @@ class AppState extends State<App> {
             )
           : null;
       if (project == null) {
-        preparationTask.fail();
         setState(() {
           _workspacePreparationFailure = 'The current project could not be prepared for the selected SDK.';
         });
@@ -488,15 +460,12 @@ class AppState extends State<App> {
           session,
           workspace,
           project,
-          preparationTask,
         ),
       );
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {
-        preparationTask.cancel();
         return;
       }
-      preparationTask.fail();
       session.events.dispatch(
         LogEvent(
           'Workspace preparation failed.',
@@ -536,7 +505,7 @@ class AppState extends State<App> {
           pathToMain: pathToMain,
         );
         project = await session.taskStatus.runTask(
-          TaskKind.downloadingArchive,
+          TaskKind.loadingCode,
           () => loader.loadArchive(session.repository.root),
           scope: archiveUrl,
           blocksPreview: true,
@@ -547,20 +516,16 @@ class AppState extends State<App> {
             'Please verify the package name in the URL.';
         final pathToMainParam = params['main'];
         final pathToMain = pathToMainParam != null ? Uri.decodeComponent(pathToMainParam) : null;
-        final loader = await session.taskStatus.runTask(
-          TaskKind.resolvingPackage,
-          () => ArchiveLoader.forPackage(
-            packageName,
-            pathToMain: pathToMain,
-          ),
-          label: 'Resolving package $packageName',
-          scope: packageName,
-          blocksPreview: true,
-        );
         project = await session.taskStatus.runTask(
-          TaskKind.downloadingPackage,
-          () => loader.loadArchive(session.repository.root),
-          label: 'Downloading package $packageName',
+          TaskKind.loadingCode,
+          () async {
+            final loader = await ArchiveLoader.forPackage(
+              packageName,
+              pathToMain: pathToMain,
+            );
+            return await loader.loadArchive(session.repository.root);
+          },
+          label: 'Loading package $packageName',
           scope: packageName,
           blocksPreview: true,
         );
@@ -570,7 +535,7 @@ class AppState extends State<App> {
             'Please check that the Gist ID "$gistId" in the URL is correct.';
         final loader = GistLoader(gistId: gistId);
         project = await session.taskStatus.runTask(
-          TaskKind.downloadingGist,
+          TaskKind.loadingCode,
           () => loader.loadGist(session.repository.root),
           scope: gistId,
           blocksPreview: true,
@@ -578,7 +543,7 @@ class AppState extends State<App> {
       } else if (params['sample'] case final String sampleId) {
         userErrorMessage = 'The requested sample "$sampleId" could not be loaded.';
         project = await session.taskStatus.runTask(
-          TaskKind.loadingSample,
+          TaskKind.loadingCode,
           () => loadSampleProject(
             session.repository.root,
             sampleId: sampleId,
@@ -590,7 +555,7 @@ class AppState extends State<App> {
       } else {
         userErrorMessage = 'The default project could not be loaded.';
         project = await session.taskStatus.runTask(
-          TaskKind.loadingDefaultSample,
+          TaskKind.loadingCode,
           () => loadSampleProject(session.repository.root),
           blocksPreview: true,
         );

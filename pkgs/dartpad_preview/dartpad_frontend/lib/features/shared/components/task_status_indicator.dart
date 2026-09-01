@@ -498,7 +498,11 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
   TaskStatusEntry? get _visibleTask {
     final entries = component.controller.entries;
     final visibleKinds = switch (component.mode) {
-      PreviewTaskStatusMode.workspacePreparation => const [TaskKind.preparingWorkspace],
+      PreviewTaskStatusMode.workspacePreparation => const [
+        TaskKind.initializingDartPadWorker,
+        TaskKind.loadingCode,
+        TaskKind.pubGet,
+      ],
       PreviewTaskStatusMode.startup => const [
         TaskKind.compilingApplication,
         TaskKind.startingPreview,
@@ -543,7 +547,8 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
   Component build(BuildContext context) {
     final task = _visibleTask;
     final failureKind = component.persistentFailureKind;
-    if (task == null && failureKind == null) {
+    final failureMessage = component.persistentFailureMessage;
+    if (task == null && failureKind == null && failureMessage == null) {
       return const div(classes: 'preview-task-status idle', [
         span(classes: 'preview-task-title', [
           .text('Start the preview when you’re ready.'),
@@ -551,8 +556,8 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
       ]);
     }
 
-    final failed = failureKind != null || task?.outcome == TaskStatusOutcome.failed;
-    final label = failureKind?.label ?? task!.label;
+    final failed = failureKind != null || failureMessage != null || task?.outcome == TaskStatusOutcome.failed;
+    final label = failureKind?.label ?? task?.label ?? 'Workspace preparation';
     final duration = task == null ? null : formatTaskDuration(task.durationAt(DateTime.now()));
     return div(
       classes: 'preview-task-status ${failed ? 'failed' : 'running'}',

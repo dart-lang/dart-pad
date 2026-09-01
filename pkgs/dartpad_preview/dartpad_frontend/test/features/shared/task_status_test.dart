@@ -23,7 +23,7 @@ void main() {
     test('orders running tasks before completed tasks', () {
       withClock(Clock(() => now), () {
         final first = controller.startTask(
-          TaskKind.loadingSample,
+          TaskKind.loadingCode,
           label: 'First',
           scope: 'first',
         );
@@ -93,7 +93,7 @@ void main() {
     test('runTask records success and preserves the result', () async {
       await withClock(Clock(() => now), () async {
         final result = await controller.runTask(
-          TaskKind.loadingSample,
+          TaskKind.loadingCode,
           () async => 42,
           label: 'Load sample counter',
           scope: 'counter',
@@ -109,7 +109,7 @@ void main() {
       await withClock(Clock(() => now), () async {
         expect(
           () => controller.runTask<void>(
-            TaskKind.loadingSample,
+            TaskKind.loadingCode,
             () => throw StateError('sync'),
             scope: 'sync',
           ),
@@ -121,7 +121,7 @@ void main() {
         now = now.add(const Duration(seconds: 1));
         await expectLater(
           controller.runTask<void>(
-            TaskKind.loadingSample,
+            TaskKind.loadingCode,
             () async => throw StateError('async'),
             label: 'Async failure',
             scope: 'async',
@@ -153,7 +153,7 @@ void main() {
 
     test('removes completed tasks after retention but keeps running tasks', () {
       withClock(Clock(() => now), () {
-        controller.startTask(TaskKind.loadingSample, scope: 'completed').succeed();
+        controller.startTask(TaskKind.loadingCode, scope: 'completed').succeed();
         controller.startTask(TaskKind.analyzingWorkspace);
 
         now = now.add(const Duration(minutes: 5, milliseconds: 1));
@@ -165,7 +165,7 @@ void main() {
 
     test('hides expired completed tasks from entries even without starting new tasks', () {
       withClock(Clock(() => now), () {
-        controller.startTask(TaskKind.loadingSample).succeed();
+        controller.startTask(TaskKind.loadingCode).succeed();
         expect(controller.entries, hasLength(1));
 
         now = now.add(const Duration(minutes: 5, milliseconds: 1));

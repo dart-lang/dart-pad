@@ -124,20 +124,20 @@ void main() {
 
     expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
 
-    taskStatus.startTask(TaskKind.creatingWorkspace).succeed();
+    taskStatus.startTask(TaskKind.initializingDartPadWorker).succeed();
     await pumpEventQueue();
 
     // Dialog must still be open.
     expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
     final status = web.document.querySelector('.task-status-trigger');
-    expect(status?.textContent, contains('Creating workspace'));
+    expect(status?.textContent, contains('Initializing DartPad worker'));
 
     (web.document.querySelector('[aria-label="Close shortcuts dialog"]')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
   });
 
   testClient('shows active and completed tasks in the status popover', (tester) async {
-    final completed = taskStatus.startTask(TaskKind.creatingWorkspace);
+    final completed = taskStatus.startTask(TaskKind.initializingDartPadWorker);
     completed.succeed();
     taskStatus.startTask(
       TaskKind.pubGet,
@@ -159,7 +159,7 @@ void main() {
     final rows = web.document.querySelectorAll('.task-status-table tr');
     expect(rows.length, 2);
     expect(rows.item(0)?.textContent, contains('Pub get in /'));
-    expect(rows.item(1)?.textContent, contains('Creating workspace'));
+    expect(rows.item(1)?.textContent, contains('Initializing DartPad worker'));
     expect(web.document.querySelector('.app-footer-message')?.textContent, 'Could not save all files.');
   });
 

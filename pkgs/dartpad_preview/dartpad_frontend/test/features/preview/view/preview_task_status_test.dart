@@ -21,7 +21,7 @@ void main() {
     controller.dispose();
   });
 
-  testClient('shows only the one-time workspace preparation task', (tester) async {
+  testClient('shows workspace preparation tasks', (tester) async {
     tester.pumpComponent(
       PreviewTaskStatus(
         controller: controller,
@@ -39,24 +39,16 @@ void main() {
     await pumpEventQueue();
     expect(_statusText, contains('Start the preview when you’re ready.'));
 
-    final preparing = controller.startTask(
-      TaskKind.preparingWorkspace,
+    final initializingWorker = controller.startTask(
+      TaskKind.initializingDartPadWorker,
       blocksPreview: true,
     );
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.running'), isNotNull);
-    expect(_statusText, contains('Preparing workspace'));
+    expect(_statusText, contains('Initializing DartPad worker'));
     expect(_statusText, isNot(contains('Pub clean')));
 
-    preparing.succeed();
-    await pumpEventQueue();
-    expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
-
-    controller.startTask(
-      TaskKind.pubGet,
-      label: 'Pub get in /',
-      scope: '/',
-    );
+    initializingWorker.succeed();
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
   });
@@ -113,14 +105,13 @@ void main() {
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.workspacePreparation,
-        persistentFailureKind: TaskKind.preparingWorkspace,
         persistentFailureMessage: 'Pub get failed.',
         onOpenConsole: () => openConsoleCalls++,
       ),
     );
 
     expect(web.document.querySelector('.preview-task-status.failed'), isNotNull);
-    expect(_statusText, contains('Preparing workspace'));
+    expect(_statusText, contains('Workspace preparation'));
     expect(_statusText, contains('Pub get failed.'));
 
     final link = web.document.querySelector('.preview-task-console-link')! as web.HTMLButtonElement;

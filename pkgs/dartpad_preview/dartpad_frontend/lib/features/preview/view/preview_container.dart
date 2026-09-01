@@ -57,9 +57,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
     final isRunning = viewModel.isRunning;
 
     final previewFailure = state is PreviewCompileError ? state : null;
-    final failureKind =
-        previewFailure?.failedTask ??
-        (component.workspacePreparationFailure == null ? null : TaskKind.preparingWorkspace);
+    final failureKind = previewFailure?.failedTask;
     final failureMessage = previewFailure?.message ?? component.workspacePreparationFailure;
     final taskStatusMode = switch (state) {
       PreviewInitial() => PreviewTaskStatusMode.workspacePreparation,

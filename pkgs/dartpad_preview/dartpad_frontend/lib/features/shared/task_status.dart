@@ -12,15 +12,8 @@ enum TaskStatusOutcome { running, succeeded, failed }
 
 /// The stable identity and default display label of a tracked task.
 enum TaskKind {
-  preparingWorkspace('Preparing workspace'),
-  resolvingPackage('Resolving package'),
-  downloadingPackage('Downloading package'),
-  downloadingArchive('Downloading archive'),
-  downloadingGist('Downloading gist'),
-  loadingSample('Loading sample'),
-  loadingDefaultSample('Loading default sample'),
-  startingDartPadWorker('Starting DartPad worker'),
-  creatingWorkspace('Creating workspace'),
+  loadingCode('Loading code'),
+  initializingDartPadWorker('Initializing DartPad worker'),
   pubGet('Pub get'),
   pubClean('Pub clean'),
   analyzingWorkspace('Analyzing workspace'),

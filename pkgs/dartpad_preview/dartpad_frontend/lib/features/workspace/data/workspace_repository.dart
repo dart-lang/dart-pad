@@ -59,18 +59,15 @@ class WorkspaceRepository {
 
     final workspaceFuture = (() async {
       final dartpadSdk = DartPadSdk(assetBaseUrl: sdk.assetBaseUrl);
-      final dartpad = await taskStatus.runTask(
-        TaskKind.startingDartPadWorker,
-        dartpadSdk.dedicatedWorker,
+      return await taskStatus.runTask(
+        TaskKind.initializingDartPadWorker,
+        () async {
+          final dartpad = await dartpadSdk.dedicatedWorker();
+          repository.dartpad = dartpad;
+          return await dartpad.createWorkspace();
+        },
         blocksPreview: true,
       );
-      repository.dartpad = dartpad;
-      final workspace = await taskStatus.runTask(
-        TaskKind.creatingWorkspace,
-        dartpad.createWorkspace,
-        blocksPreview: true,
-      );
-      return workspace;
     })();
     final api = SyncedWorkspaceResourceApi(
       localApi: localApi ?? MemoryWorkspaceResourceApi(),
@@ -193,7 +190,7 @@ class WorkspaceRepository {
     final workspaceFuture = (() async {
       await previousWorkspaceDisposed;
       final workspace = await taskStatus.runTask(
-        TaskKind.creatingWorkspace,
+        TaskKind.initializingDartPadWorker,
         worker.createWorkspace,
         blocksPreview: true,
       );
