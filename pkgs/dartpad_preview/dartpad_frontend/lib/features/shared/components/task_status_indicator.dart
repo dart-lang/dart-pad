@@ -657,7 +657,10 @@ final class _TaskStatusIcon extends StatelessComponent {
       ),
       TaskStatusOutcome.failed => span(
         classes: 'task-status-icon failed',
-        attributes: {'aria-label': 'Failed'},
+        attributes: {
+          'aria-label': 'Failed',
+          'title': "See 'Console' for details",
+        },
         [Icon('close', size: size)],
       ),
       TaskStatusOutcome.succeeded || null => span(

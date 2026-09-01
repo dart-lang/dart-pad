@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:jaspr/jaspr.dart';
 
 /// The lifecycle state of a tracked application task.
@@ -95,14 +96,12 @@ final class TaskStatusEntry {
 /// new one.
 final class TaskStatusController extends ChangeNotifier {
   TaskStatusController({
-    DateTime Function()? now,
     this.retention = const Duration(minutes: 5),
-  }) : _now = now ?? DateTime.now;
+  });
 
   /// How long completed tasks remain visible.
   final Duration retention;
 
-  final DateTime Function() _now;
   final Map<_TaskKey, _TrackedTask> _tasks = {};
   Timer? _expiryTimer;
   bool _disposed = false;
@@ -143,7 +142,7 @@ final class TaskStatusController extends ChangeNotifier {
         kind: kind,
         label: label ?? kind.label,
         scope: scope,
-        startedAt: _now(),
+        startedAt: clock.now(),
         outcome: TaskStatusOutcome.running,
         blocksPreview: blocksPreview,
       ),
@@ -189,7 +188,7 @@ final class TaskStatusController extends ChangeNotifier {
     if (task == null || !identical(task.token, token)) {
       return;
     }
-    _tasks[key] = _TrackedTask(token, task.entry._finish(_now(), outcome));
+    _tasks[key] = _TrackedTask(token, task.entry._finish(clock.now(), outcome));
     _scheduleExpiry();
     notifyListeners();
   }
@@ -208,7 +207,7 @@ final class TaskStatusController extends ChangeNotifier {
   }
 
   void _removeExpiredTasks() {
-    final cutoff = _now().subtract(retention);
+    final cutoff = clock.now().subtract(retention);
     _tasks.removeWhere((_, task) {
       final finishedAt = task.entry.finishedAt;
       return finishedAt != null && !finishedAt.isAfter(cutoff);
@@ -237,7 +236,7 @@ final class TaskStatusController extends ChangeNotifier {
       return;
     }
 
-    final delay = nextExpiry.difference(_now());
+    final delay = nextExpiry.difference(clock.now());
     _expiryTimer = Timer(delay.isNegative ? Duration.zero : delay, () {
       if (_disposed) {
         return;
