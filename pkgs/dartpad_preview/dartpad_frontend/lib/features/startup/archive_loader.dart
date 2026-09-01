@@ -9,7 +9,6 @@ import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
-import 'package:yaml_edit/yaml_edit.dart';
 
 import 'project_loader.dart';
 
@@ -153,38 +152,14 @@ class ArchiveLoader {
       return;
     }
 
-    // No override is needed unless the package uses workspace resolution.
     if (!_usesWorkspaceResolution(pubspecContents)) {
       return;
     }
 
     final overridesPath = workspaceContext.join(projectDir, 'pubspec_overrides.yaml');
-    final overridesBytes = project.readFile(overridesPath);
-    // Create a package-local override when the archive does not provide one.
-    if (overridesBytes == null) {
-      project.writeFile(
-        overridesPath,
-        Uint8List.fromList(utf8.encode(jsonEncode({'resolution': null}))),
-      );
-      return;
-    }
-
-    // Preserve an existing override and only disable workspace resolution.
-    final String overridesContents;
-    try {
-      overridesContents = utf8.decode(overridesBytes);
-    } on FormatException {
-      return;
-    }
-
-    final updatedOverrides = _setResolutionToNull(overridesContents);
-    if (updatedOverrides == null) {
-      return;
-    }
-
     project.writeFile(
       overridesPath,
-      Uint8List.fromList(utf8.encode(updatedOverrides)),
+      Uint8List.fromList(utf8.encode(jsonEncode({'resolution': null}))),
     );
   }
 
@@ -194,23 +169,6 @@ class ArchiveLoader {
       return rootValue is Map && rootValue['resolution'] == 'workspace';
     } on YamlException {
       return false;
-    }
-  }
-
-  String? _setResolutionToNull(String overridesContents) {
-    try {
-      final editor = YamlEditor(overridesContents);
-      final rootValue = editor.parseAt(const []).value;
-      if (rootValue == null) {
-        editor.update(const [], {'resolution': null});
-      } else if (rootValue is Map) {
-        editor.update(const ['resolution'], null);
-      } else {
-        return null;
-      }
-      return editor.toString();
-    } on FormatException {
-      return null;
     }
   }
 

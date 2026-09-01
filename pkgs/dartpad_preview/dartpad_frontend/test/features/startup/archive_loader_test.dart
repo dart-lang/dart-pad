@@ -13,7 +13,6 @@ import 'package:dartpad_frontend/features/startup/archive_loader.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
-import 'package:yaml_edit/yaml_edit.dart';
 
 void main() {
   group('ArchiveLoader', () {
@@ -241,7 +240,7 @@ void main() {
       );
     });
 
-    test('merges workspace resolution into an existing overrides file', () async {
+    test('replaces an existing overrides file for the active package', () async {
       const overrides = '''
 # Preserve this comment.
 dependency_overrides:
@@ -269,17 +268,10 @@ resolution: workspace
       );
 
       final updated = await api.readFileAsText('pubspec_overrides.yaml');
-      final editor = YamlEditor(updated);
-      expect(updated, contains('# Preserve this comment.'));
-      expect(
-        editor.parseAt(const ['dependency_overrides', 'collection']).value,
-        '^1.19.0',
-      );
-      expect(editor.parseAt(const ['workspace', 0]).value, 'packages/*');
-      expect(editor.parseAt(const ['resolution']).value, isNull);
+      expect(updated, '{"resolution":null}');
     });
 
-    test('adds workspace resolution to an empty overrides file', () async {
+    test('replaces an empty overrides file', () async {
       final archiveBytes = createTarArchive({
         'pubspec.yaml': 'name: package\nresolution: workspace\n',
         'pubspec_overrides.yaml': '',
@@ -299,10 +291,10 @@ resolution: workspace
       );
 
       final updated = await api.readFileAsText('pubspec_overrides.yaml');
-      expect(YamlEditor(updated).parseAt(const ['resolution']).value, isNull);
+      expect(updated, '{"resolution":null}');
     });
 
-    test('preserves an invalid overrides file', () async {
+    test('replaces an invalid overrides file', () async {
       const overrides = '- not a map\n';
       final archiveBytes = createTarArchive({
         'pubspec.yaml': 'name: package\nresolution: workspace\n',
@@ -322,7 +314,10 @@ resolution: workspace
         }),
       );
 
-      expect(await api.readFileAsText('pubspec_overrides.yaml'), overrides);
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
     });
 
     test('preserves overrides outside the active package', () async {
