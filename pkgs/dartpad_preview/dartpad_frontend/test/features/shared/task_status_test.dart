@@ -163,6 +163,17 @@ void main() {
       });
     });
 
+    test('hides expired completed tasks from entries even without starting new tasks', () {
+      withClock(Clock(() => now), () {
+        controller.startTask(TaskKind.loadingSample).succeed();
+        expect(controller.entries, hasLength(1));
+
+        now = now.add(const Duration(minutes: 5, milliseconds: 1));
+        expect(controller.entries, isEmpty);
+        expect(controller.current, isNull);
+      });
+    });
+
     test('cancel removes only the handle-owned task', () {
       withClock(Clock(() => now), () {
         final handle = controller.startTask(TaskKind.hotReload);

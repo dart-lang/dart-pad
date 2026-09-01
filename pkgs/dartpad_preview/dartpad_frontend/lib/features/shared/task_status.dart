@@ -103,13 +103,16 @@ final class TaskStatusController extends ChangeNotifier {
   final Duration retention;
 
   final Map<_TaskKey, _TrackedTask> _tasks = {};
-  Timer? _expiryTimer;
   bool _disposed = false;
 
   /// Running tasks first (newest start first), then completed tasks (newest
   /// finish first).
   List<TaskStatusEntry> get entries {
-    final result = _tasks.values.map((task) => task.entry).toList();
+    final cutoff = clock.now().subtract(retention);
+    final result = _tasks.values
+        .map((task) => task.entry)
+        .where((entry) => entry.finishedAt == null || entry.finishedAt!.isAfter(cutoff))
+        .toList();
     result.sort(_compareEntries);
     return List.unmodifiable(result);
   }
@@ -147,7 +150,6 @@ final class TaskStatusController extends ChangeNotifier {
         blocksPreview: blocksPreview,
       ),
     );
-    _scheduleExpiry();
     notifyListeners();
     return TaskStatusHandle._(this, key, token);
   }
@@ -189,7 +191,6 @@ final class TaskStatusController extends ChangeNotifier {
       return;
     }
     _tasks[key] = _TrackedTask(token, task.entry._finish(clock.now(), outcome));
-    _scheduleExpiry();
     notifyListeners();
   }
 
@@ -202,7 +203,6 @@ final class TaskStatusController extends ChangeNotifier {
       return;
     }
     _tasks.remove(key);
-    _scheduleExpiry();
     notifyListeners();
   }
 
@@ -211,39 +211,6 @@ final class TaskStatusController extends ChangeNotifier {
     _tasks.removeWhere((_, task) {
       final finishedAt = task.entry.finishedAt;
       return finishedAt != null && !finishedAt.isAfter(cutoff);
-    });
-  }
-
-  void _scheduleExpiry() {
-    _expiryTimer?.cancel();
-    _expiryTimer = null;
-    if (_disposed) {
-      return;
-    }
-
-    DateTime? nextExpiry;
-    for (final task in _tasks.values) {
-      final finishedAt = task.entry.finishedAt;
-      if (finishedAt == null) {
-        continue;
-      }
-      final expiry = finishedAt.add(retention);
-      if (nextExpiry == null || expiry.isBefore(nextExpiry)) {
-        nextExpiry = expiry;
-      }
-    }
-    if (nextExpiry == null) {
-      return;
-    }
-
-    final delay = nextExpiry.difference(clock.now());
-    _expiryTimer = Timer(delay.isNegative ? Duration.zero : delay, () {
-      if (_disposed) {
-        return;
-      }
-      _removeExpiredTasks();
-      _scheduleExpiry();
-      notifyListeners();
     });
   }
 
@@ -260,8 +227,6 @@ final class TaskStatusController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    _expiryTimer?.cancel();
-    _expiryTimer = null;
     _tasks.clear();
     super.dispose();
   }
