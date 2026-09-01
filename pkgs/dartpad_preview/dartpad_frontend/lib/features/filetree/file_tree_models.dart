@@ -169,6 +169,7 @@ final class FileTreeActions {
     required this.openFile,
     required this.clearOperationError,
     required this.navigateUp,
+    required this.focusPath,
   });
 
   /// Creates a file in the selected folder.
@@ -200,4 +201,7 @@ final class FileTreeActions {
 
   /// Navigates to the parent folder of the currently focused folder.
   final void Function() navigateUp;
+
+  /// Focuses the file tree on the folder at the supplied path.
+  final void Function(String path) focusPath;
 }

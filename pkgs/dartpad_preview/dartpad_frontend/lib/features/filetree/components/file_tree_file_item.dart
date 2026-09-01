@@ -14,7 +14,6 @@ import '../../shared/components/context_menu.dart';
 import '../file_tree_models.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
-import 'file_tree_row_actions.dart';
 
 /// A stateful item representing a file node.
 class FileTreeFileItem extends StatefulComponent {
@@ -186,16 +185,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         const span(classes: 'file-tree-disclosure spacer', []),
         _fileIcon(component.node.resource.shortName),
         span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
-        if (!protected)
-          FileTreeRowActions(
-            onRename: () {
-              component.onSelect(path);
-              setState(() {
-                _isRenaming = true;
-              });
-            },
-            onDelete: () => _confirmDeleteFile(path),
-          ),
       ],
     );
   }

@@ -30,7 +30,18 @@ EditorShell _createShell({
   return EditorShell(
     openTabs: tabs,
     activeFile: activeFile,
-    fileTree: const div(id: 'file-tree', [Component.text('tree')]),
+    fileTreeBuilder: (onCollapse) => div(id: 'file-tree', [
+      const Component.text('tree'),
+      button(
+        classes: 'file-tree-collapse-button',
+        attributes: const {
+          'title': 'Hide file tree',
+          'aria-label': 'Hide file tree',
+        },
+        onClick: onCollapse,
+        [const Component.text('collapse')],
+      ),
+    ]),
     editorOverlay: const div(id: 'editor-overlay', []),
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
@@ -54,8 +65,6 @@ void main() {
       tester.pumpComponent(_createShell());
 
       expect(web.document.querySelector('.file-tree-rail'), isNull);
-      // Collapse bar is always shown when the file tree is expanded.
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNotNull);
     });
 
     testClient('renders without open tabs', (tester) {
@@ -85,7 +94,6 @@ void main() {
       // Collapsed: rail is visible, full file-tree pane is not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
       expect(web.document.querySelector('.file-tree-pane'), isNull);
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNull);
     });
 
     testClient('collapsed rail has expand button with correct aria-label', (
@@ -105,7 +113,7 @@ void main() {
       expect(web.document.querySelector('.editor-host'), isNotNull);
     });
 
-    testClient('clicking expand button shows file tree with collapse bar', (
+    testClient('clicking expand button shows file tree', (
       tester,
     ) async {
       tester.pumpComponent(_createShell(isEmbedMode: true));
@@ -120,10 +128,9 @@ void main() {
       expandButton.click();
       await pumpEventQueue();
 
-      // Now expanded – pane and collapse bar visible, rail gone.
+      // Now expanded – pane visible, rail gone.
       expect(web.document.querySelector('.file-tree-rail'), isNull);
       expect(web.document.querySelector('.file-tree-pane'), isNotNull);
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNotNull);
       expect(web.document.querySelector('#file-tree'), isNotNull);
     });
 
@@ -136,7 +143,7 @@ void main() {
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
 
-      final collapseButton = web.document.querySelector('.file-tree-collapse-bar .file-tree-rail-button');
+      final collapseButton = web.document.querySelector('.file-tree-collapse-button');
       expect(collapseButton, isNotNull);
       expect(collapseButton!.getAttribute('aria-label'), 'Hide file tree');
       expect(collapseButton.getAttribute('title'), 'Hide file tree');
@@ -151,13 +158,12 @@ void main() {
       expect(web.document.querySelector('.file-tree-pane'), isNotNull);
 
       // Collapse.
-      (web.document.querySelector('.file-tree-collapse-bar .file-tree-rail-button')! as web.HTMLButtonElement).click();
+      (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
 
       // Back to collapsed state.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
       expect(web.document.querySelector('.file-tree-pane'), isNull);
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNull);
     });
 
     testClient('toggle cycle: collapse → expand → collapse', (tester) async {
@@ -171,16 +177,15 @@ void main() {
       await pumpEventQueue();
 
       // State 2: expanded.
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNotNull);
+      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
 
       // Collapse.
-      (web.document.querySelector('.file-tree-collapse-bar .file-tree-rail-button')! as web.HTMLButtonElement).click();
+      (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
 
       // State 3: collapsed again.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-      expect(web.document.querySelector('.file-tree-collapse-bar'), isNull);
     });
 
     testClient('file tree content is visible when expanded', (tester) async {
@@ -209,7 +214,7 @@ void main() {
       expect(web.document.querySelector('.editor-host'), isNotNull);
 
       // Collapse again.
-      (web.document.querySelector('.file-tree-collapse-bar .file-tree-rail-button')! as web.HTMLButtonElement).click();
+      (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
       expect(web.document.querySelector('.editor-host'), isNotNull);
     });
