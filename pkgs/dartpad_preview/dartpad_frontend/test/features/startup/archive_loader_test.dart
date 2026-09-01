@@ -19,14 +19,19 @@ void main() {
   group('ArchiveLoader', () {
     const String absoluteUrl = 'https://example.com/archive.tar.gz';
 
-    Uint8List createTarArchive(Map<String, String> files) {
+    Uint8List createTarArchiveFromBytes(Map<String, List<int>> files) {
       final Archive archive = Archive();
-      for (final MapEntry<String, String> entry in files.entries) {
-        final List<int> contentBytes = entry.value.codeUnits;
-        archive.addFile(ArchiveFile(entry.key, contentBytes.length, contentBytes));
+      for (final entry in files.entries) {
+        archive.addFile(ArchiveFile(entry.key, entry.value.length, entry.value));
       }
       final List<int> encoded = TarEncoder().encode(archive);
       return Uint8List.fromList(encoded);
+    }
+
+    Uint8List createTarArchive(Map<String, String> files) {
+      return createTarArchiveFromBytes(
+        files.map((path, contents) => MapEntry(path, contents.codeUnits)),
+      );
     }
 
     Uint8List createTarGzArchive(Map<String, String> files) {
@@ -166,7 +171,7 @@ void main() {
       expect(await api.readFileAsText('pubspec.yaml'), pubspec);
       expect(
         await api.readFileAsText('pubspec_overrides.yaml'),
-        'resolution:\n',
+        '{"resolution":null}',
       );
     });
 
@@ -197,11 +202,11 @@ void main() {
       expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
       expect(
         await api.readFileAsText('pubspec_overrides.yaml'),
-        'resolution:\n',
+        '{"resolution":null}',
       );
       expect(
         await api.readFileAsText('example/pubspec_overrides.yaml'),
-        'resolution:\n',
+        '{"resolution":null}',
       );
     });
 
@@ -232,7 +237,7 @@ void main() {
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
       expect(
         await api.readFileAsText('example/pubspec_overrides.yaml'),
-        'resolution:\n',
+        '{"resolution":null}',
       );
     });
 
@@ -320,6 +325,35 @@ resolution: workspace
       expect(await api.readFileAsText('pubspec_overrides.yaml'), overrides);
     });
 
+    test('preserves overrides outside the active package', () async {
+      const rootOverrides = 'dependency_overrides:\n  collection: any\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': 'name: root\nresolution: workspace\n',
+        'pubspec_overrides.yaml': rootOverrides,
+        'example/pubspec.yaml': 'name: example\n',
+        'example/pubspec_overrides.yaml': 'workspace: []\n',
+        'example/lib/main.dart': 'void main() {}',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'example/lib/main.dart',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(await api.readFileAsText('pubspec_overrides.yaml'), rootOverrides);
+      expect(
+        await api.readFileAsText('example/pubspec_overrides.yaml'),
+        'workspace: []\n',
+      );
+    });
+
     test('preserves a malformed pubspec without creating overrides', () async {
       const pubspec = 'name: package\nresolution: [workspace\n';
       final archiveBytes = createTarArchive({
@@ -340,6 +374,27 @@ resolution: workspace
       );
 
       expect(await api.readFileAsText('pubspec.yaml'), pubspec);
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('preserves a non-UTF-8 pubspec without creating overrides', () async {
+      final archiveBytes = createTarArchiveFromBytes({
+        'pubspec.yaml': [0xFF],
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'pubspec.yaml',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(await api.readFileAsBytes('pubspec.yaml'), [0xFF]);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
     });
 
