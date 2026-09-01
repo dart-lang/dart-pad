@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
+import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
 import 'project_loader.dart';
@@ -87,23 +88,21 @@ class ArchiveLoader {
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
     final targetFilePath = filePath ?? findDefaultFile(archive);
-    final files = <ProjectFile>[];
-    for (final ArchiveFile file in archive.files) {
-      if (!file.isFile) {
-        continue;
-      }
-
-      files.add(
-        ProjectFile(path: _relativePath(file.name), bytes: file.content),
-      );
-    }
+    final project = Project([
+      for (final ArchiveFile file in archive.files)
+        if (file.isFile)
+          ProjectFile(
+            path: _relativePath(file.name),
+            bytes: file.content,
+          ),
+    ]);
 
     final entryPath = targetFilePath == null ? null : ProjectLoader.normalizePath(targetFilePath);
     final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
-    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(files, entryPath) ?? '';
+    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(project, entryPath) ?? '';
 
-    _disableWorkspaceResolution(files, projectDir);
-    await ProjectLoader.writeFiles(root, files);
+    _disableWorkspaceResolution(project, projectDir);
+    await ProjectLoader.writeFiles(root, project);
 
     return LoadedProject(
       projectDir: projectDir,
@@ -122,14 +121,15 @@ class ArchiveLoader {
   /// `example/` package by default. Therefore, workspace resolution must also
   /// be disabled for nested example packages to prevent `pub get` from failing
   /// there.
-  void _disableWorkspaceResolution(List<ProjectFile> files, String projectDir) {
-    var packageDir = projectDir;
+  void _disableWorkspaceResolution(Project project, String projectDir) {
+    final normalizedProjectDir = workspaceContext.normalize(projectDir);
+    var packageDir = normalizedProjectDir;
     while (true) {
-      _disableWorkspaceResolutionForPackage(files, packageDir);
+      _disableWorkspaceResolutionForPackage(project, packageDir);
 
-      final exampleDir = _packageFilePath(packageDir, 'example');
-      final examplePubspecPath = _packageFilePath(exampleDir, 'pubspec.yaml');
-      if (_findFile(files, examplePubspecPath) == -1) {
+      final exampleDir = workspaceContext.join(packageDir, 'example');
+      final examplePubspecPath = workspaceContext.join(exampleDir, 'pubspec.yaml');
+      if (!project.containsFile(examplePubspecPath)) {
         return;
       }
       packageDir = exampleDir;
@@ -137,42 +137,42 @@ class ArchiveLoader {
   }
 
   void _disableWorkspaceResolutionForPackage(
-    List<ProjectFile> files,
+    Project project,
     String projectDir,
   ) {
-    final pubspecPath = _packageFilePath(projectDir, 'pubspec.yaml');
-    final pubspecIndex = _findFile(files, pubspecPath);
-    if (pubspecIndex == -1) {
+    final pubspecPath = workspaceContext.join(projectDir, 'pubspec.yaml');
+    final pubspecBytes = project.readFile(pubspecPath);
+    if (pubspecBytes == null) {
       return;
     }
 
     final String pubspecContents;
     try {
-      pubspecContents = utf8.decode(files[pubspecIndex].bytes);
+      pubspecContents = utf8.decode(pubspecBytes);
     } on FormatException {
       return;
     }
 
+    // No override is needed unless the package uses workspace resolution.
     if (!_usesWorkspaceResolution(pubspecContents)) {
       return;
     }
 
-    final overridesPath = _packageFilePath(projectDir, 'pubspec_overrides.yaml');
-    final overridesIndex = _findFile(files, overridesPath);
-    if (overridesIndex == -1) {
-      files.add(
-        ProjectFile(
-          path: overridesPath,
-          bytes: Uint8List.fromList(utf8.encode('resolution:\n')),
-        ),
+    final overridesPath = workspaceContext.join(projectDir, 'pubspec_overrides.yaml');
+    final overridesBytes = project.readFile(overridesPath);
+    // Create a package-local override when the archive does not provide one.
+    if (overridesBytes == null) {
+      project.writeFile(
+        overridesPath,
+        Uint8List.fromList(utf8.encode(jsonEncode({'resolution': null}))),
       );
       return;
     }
 
-    final ProjectFile overridesFile = files[overridesIndex];
+    // Preserve an existing override and only disable workspace resolution.
     final String overridesContents;
     try {
-      overridesContents = utf8.decode(overridesFile.bytes);
+      overridesContents = utf8.decode(overridesBytes);
     } on FormatException {
       return;
     }
@@ -182,18 +182,17 @@ class ArchiveLoader {
       return;
     }
 
-    files[overridesIndex] = ProjectFile(
-      path: overridesFile.path,
-      bytes: Uint8List.fromList(utf8.encode(updatedOverrides)),
+    project.writeFile(
+      overridesPath,
+      Uint8List.fromList(utf8.encode(updatedOverrides)),
     );
   }
 
   bool _usesWorkspaceResolution(String pubspecContents) {
     try {
-      final editor = YamlEditor(pubspecContents);
-      final rootValue = editor.parseAt(const []).value;
+      final rootValue = loadYaml(pubspecContents);
       return rootValue is Map && rootValue['resolution'] == 'workspace';
-    } on FormatException {
+    } on YamlException {
       return false;
     }
   }
@@ -213,16 +212,6 @@ class ArchiveLoader {
     } on FormatException {
       return null;
     }
-  }
-
-  int _findFile(List<ProjectFile> files, String path) {
-    return files.indexWhere(
-      (file) => ProjectLoader.normalizePath(file.path) == path,
-    );
-  }
-
-  String _packageFilePath(String projectDir, String filename) {
-    return projectDir.isEmpty ? filename : '$projectDir/$filename';
   }
 
   String _relativePath(String path) {

@@ -50,20 +50,11 @@ class GistLoader {
     final fetchedFiles = await Future.wait(
       filesJson.values.map(_loadFile).toList(),
     );
-    final files = _moveRootDartFilesIntoLib(
-      fetchedFiles
-          .map(
-            (file) => ProjectFile(
-              path: ProjectLoader.normalizePath(file.path),
-              bytes: file.bytes,
-            ),
-          )
-          .toList(),
-    );
-    final entryPath = _findEntryPath(files);
-    final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(files, entryPath);
+    final project = Project(_moveRootDartFilesIntoLib(fetchedFiles));
+    final entryPath = _findEntryPath(project);
+    final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(project, entryPath);
 
-    await ProjectLoader.writeFiles(root, files);
+    await ProjectLoader.writeFiles(root, project);
     return LoadedProject(
       projectDir: packageRoot ?? '',
       entryPath: entryPath,
@@ -121,8 +112,8 @@ class GistLoader {
     ];
   }
 
-  String? _findEntryPath(List<ProjectFile> files) {
-    final paths = files.map((file) => file.path).toSet();
+  String? _findEntryPath(Project project) {
+    final paths = project.paths.toSet();
     for (final path in const ['lib/main.dart', 'main.dart']) {
       if (paths.contains(path)) {
         return path;

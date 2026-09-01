@@ -17,6 +17,44 @@ final class ProjectFile {
   final Uint8List bytes;
 }
 
+/// An in-memory collection of files that can be imported into a workspace.
+final class Project {
+  Project(Iterable<ProjectFile> files) {
+    for (final file in files) {
+      final path = ProjectLoader.normalizePath(file.path);
+      if (_files.containsKey(path)) {
+        throw ArgumentError('Multiple files resolve to the same path: $path');
+      }
+      _files[path] = file.bytes;
+    }
+  }
+
+  final Map<String, Uint8List> _files = {};
+
+  /// The normalized workspace-relative paths in this project.
+  Iterable<String> get paths => _files.keys;
+
+  /// The files in this project.
+  Iterable<ProjectFile> get files => _files.entries.map(
+    (entry) => ProjectFile(path: entry.key, bytes: entry.value),
+  );
+
+  /// Whether the project contains a file at [path].
+  bool containsFile(String path) {
+    return _files.containsKey(ProjectLoader.normalizePath(path));
+  }
+
+  /// Returns the bytes at [path], or `null` when the file does not exist.
+  Uint8List? readFile(String path) {
+    return _files[ProjectLoader.normalizePath(path)];
+  }
+
+  /// Adds or replaces the file at [path].
+  void writeFile(String path, Uint8List bytes) {
+    _files[ProjectLoader.normalizePath(path)] = bytes;
+  }
+}
+
 /// The workspace state produced by a project loader.
 ///
 final class LoadedProject {
@@ -65,16 +103,15 @@ final class ProjectLoader {
   ///
   /// Returns null when no project root can be inferred.
   static String? findProjectDirectory(
-    Iterable<ProjectFile> files,
+    Project project,
     String entryPath,
   ) {
-    final filePaths = files.map((file) => normalizePath(file.path)).toSet();
     final segments = normalizePath(entryPath).split('/');
 
     for (var i = segments.length - 1; i >= 0; i--) {
       final parentDirectory = segments.sublist(0, i).join('/');
-      final pubspecPath = parentDirectory.isEmpty ? 'pubspec.yaml' : '$parentDirectory/pubspec.yaml';
-      if (filePaths.contains(pubspecPath)) {
+      final pubspecPath = workspaceContext.join(parentDirectory, 'pubspec.yaml');
+      if (project.containsFile(pubspecPath)) {
         return parentDirectory;
       }
     }
@@ -82,24 +119,13 @@ final class ProjectLoader {
     return null;
   }
 
-  /// Creates all folders and writes [files] into [root].
+  /// Creates all folders and writes [project] into [root].
   static Future<void> writeFiles(
     WorkspaceFolder root,
-    Iterable<ProjectFile> files,
+    Project project,
   ) async {
-    final normalizedFiles = <ProjectFile>[];
-    final paths = <String>{};
-
-    for (final file in files) {
-      final path = normalizePath(file.path);
-      if (!paths.add(path)) {
-        throw ArgumentError('Multiple files resolve to the same path: $path');
-      }
-      normalizedFiles.add(ProjectFile(path: path, bytes: file.bytes));
-    }
-
     final folders = <String>{};
-    for (final file in normalizedFiles) {
+    for (final file in project.files) {
       var directory = workspaceContext.dirname(file.path);
       while (directory.isNotEmpty) {
         folders.add(directory);
@@ -112,7 +138,7 @@ final class ProjectLoader {
       await root.getFolder(folder).create();
     }
 
-    for (final file in normalizedFiles) {
+    for (final file in project.files) {
       await root.workspace.writeFileFromBytes(
         root.getFile(file.path).path,
         file.bytes,
