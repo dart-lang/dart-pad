@@ -64,9 +64,9 @@ class _AnalyzerNotificationQueue {
 class LanguageServerClient {
   /// Creates a client for an editor project inside a virtual workspace.
   ///
-  /// [rootWorkspaceUri] remains the base for all workspace-relative file
-  /// operations. [editorRootUri] is sent to the language server as its root
-  /// URI and may point to a nested package within that workspace.
+  /// [rootWorkspaceUri] is the base URI for workspace-relative file operations.
+  /// [editorRootUri] is sent to the language server as its root URI and may
+  /// point to a nested package within that workspace.
   LanguageServerClient({
     required LanguageServer? languageServer,
     required this.rootWorkspaceUri,
