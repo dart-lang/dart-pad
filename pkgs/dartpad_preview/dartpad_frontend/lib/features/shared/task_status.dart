@@ -10,7 +10,30 @@ import 'package:jaspr/jaspr.dart';
 /// The lifecycle state of a tracked application task.
 enum TaskStatusOutcome { running, succeeded, failed }
 
-/// The stable identity and default display label of a tracked task.
+/// The typed identity and default display label of a tracked task.
+///
+/// ### Trade-offs of Merging Task Kinds
+///
+/// **Pros of merging:**
+/// - **Simpler UI & less noise:** Groups implementation details and sub-steps
+///   into high-level user actions (e.g. downloading gists, packages, archives, or
+///   samples are all merged into [loadingCode]), avoiding rapid status flicker.
+/// - **Smaller enum surface:** Reduces maintenance overhead for transient steps.
+///
+/// **Cons of merging:**
+/// - **Loss of entry slot independence:** [TaskStatusController] keys entries by
+///   `({TaskKind kind, String? scope})`. If two operations share the same kind,
+///   starting one replaces the other's status or recent history in the UI.
+/// - **Coarser error & state attribution:** Code and UI widgets cannot distinguish
+///   which specific phase failed (e.g. worker setup vs compilation) without inspecting
+///   raw string labels.
+///
+/// The following [TaskKind]s provide 2 kinds for startup and worker initialization
+/// ([loadingCode], [initializingDartPadWorker]), specific kinds for Pub and
+/// analysis operations ([pubGet], [pubClean], [analyzingWorkspace]), and
+/// dedicated kinds for each compiling and preview action ([startingPreview],
+/// [restartingPreview], [stoppingPreview], [compilingApplication], [hotReload],
+/// [compilingChanges]).
 enum TaskKind {
   loadingCode('Loading code'),
   initializingDartPadWorker('Initializing DartPad worker'),
