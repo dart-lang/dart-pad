@@ -95,7 +95,7 @@ default `counter` sample.
 | `?package=<package>`                     | Load the latest version of `<package>` reported by pub.dev and auto-detect a file from its `example/` directory. |
 | `?package=<package>&main=<main>`         | Load the latest package version, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
 | `?gist=<gistId>`                         | Load the files of a public GitHub Gist. |
-| `?sample=<sampleId>`                     | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `hello-world`, `flame-game`, `dart`, and `flutter`. |
+| `?sample=<sampleId>`                     | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, and `flutter`. |
 
 For an archive, `path` is optional. If omitted, DartPad searches for an example
 file or falls back to `README.md` / `readme.md`. `<path>` and `<main>` are paths

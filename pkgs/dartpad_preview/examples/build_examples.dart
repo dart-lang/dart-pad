@@ -30,22 +30,12 @@ void main(List<String> args) {
   builder.generate();
 }
 
-enum ExampleCategory {
-  snippet('Snippet'),
-  sample('Sample');
-
-  const ExampleCategory(this.label);
-  final String label;
-}
-
 class ExampleConfig implements Comparable<ExampleConfig> {
-  final ExampleCategory category;
-
-  /// Optional sub-grouping within [category], used as a divider label in the
-  /// dropdown menu (e.g. `"Dart"`, `"Flutter"`, `"Ecosystem"`).
+  /// Optional sub-grouping used as a divider label in the dropdown menu
+  /// (e.g. `"Dart"`, `"Flutter"`).
   final String? subcategory;
 
-  /// Unique kebab-case identifier for the sample (e.g. `"hello-world"`).
+  /// Unique kebab-case identifier for the sample (e.g. `"counter"`).
   final String id;
 
   /// Human-readable display name shown in the UI.
@@ -61,12 +51,10 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   /// (e.g. `"images/flutter_logo_192.png"`).
   final String? icon;
 
-  /// Original position in `examples.json`, used to preserve declaration order
-  /// when sorting within a [category].
+  /// Original position in `examples.json`, used to preserve declaration order.
   final int index;
 
   ExampleConfig({
-    required this.category,
     this.subcategory,
     required this.id,
     required this.name,
@@ -78,10 +66,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
 
   factory ExampleConfig.fromJson(Map<String, Object?> json, {int index = 0}) {
     return ExampleConfig(
-      category: ExampleCategory.values.firstWhere(
-        (c) => c.label == json['category'] as String,
-        orElse: () => throw FormatException('Unknown category: ${json['category']}'),
-      ),
       subcategory: json['subcategory'] as String?,
       id: json['id'] as String,
       name: json['name'] as String,
@@ -122,9 +106,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
 
   @override
   int compareTo(ExampleConfig other) {
-    if (category != other.category) {
-      return category.label.compareTo(other.category.label);
-    }
     return index.compareTo(other.index);
   }
 }
@@ -143,8 +124,7 @@ class ExamplesBuilder {
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
     examples = [
-      for (final (i, j) in json.indexed)
-        ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
+      for (final (i, j) in json.indexed) ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
     ];
 
     var hadFailure = false;
@@ -228,14 +208,6 @@ import 'example.dart';
 export 'example.dart';
 
 abstract final class Examples {
-  static const List<Example> snippets = [
-    ${_itemsForCategory(ExampleCategory.snippet)},
-  ];
-
-  static const List<Example> samples = [
-    ${_itemsForCategory(ExampleCategory.sample)},
-  ];
-
   static const List<Example> all = [
     ${examples.map((s) => s.varName).join(',\n    ')},
   ];
@@ -259,11 +231,6 @@ abstract final class Examples {
     return _normalizeLineEndings(buf.toString());
   }
 
-  String _itemsForCategory(ExampleCategory category) {
-    final items = examples.where((s) => s.category == category).toList();
-    return items.map((item) => item.varName).join(',\n    ');
-  }
-
   List<int> _archiveBytes(ExampleConfig example) {
     final projectDir = Directory(example.projectDir);
     final archive = Archive();
@@ -278,16 +245,10 @@ abstract final class Examples {
   }
 
   List<File> _projectFiles(Directory projectDir) {
-    final files = projectDir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((file) {
-          final rel = _relativeProjectPath(file, projectDir);
-          return !rel.startsWith('.dart_tool/') &&
-              !rel.startsWith('.git/') &&
-              rel != 'pubspec.lock';
-        })
-        .toList();
+    final files = projectDir.listSync(recursive: true).whereType<File>().where((file) {
+      final rel = _relativeProjectPath(file, projectDir);
+      return !rel.startsWith('.dart_tool/') && !rel.startsWith('.git/') && rel != 'pubspec.lock';
+    }).toList();
     files.sort((a, b) => _relativeProjectPath(a, projectDir).compareTo(_relativeProjectPath(b, projectDir)));
     return files;
   }

@@ -8,9 +8,9 @@ import 'archive_loader.dart';
 import 'examples.g.dart';
 import 'project_loader.dart';
 
-/// Loads a sample project from its packaged archive into [root].
+/// Loads an example project from its packaged archive into [root].
 ///
-/// Throws an [ArgumentError] when [sampleId] does not match any known sample.
+/// Throws an [ArgumentError] when [sampleId] does not match any known example.
 /// Archive download errors propagate to the caller.
 Future<LoadedProject> loadSampleProject(
   WorkspaceFolder root, {

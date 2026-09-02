@@ -613,10 +613,7 @@ class AppState extends State<App> {
     return div(classes: 'app-shell', [
       if (!isEmbedMode || !_isLargeScreen)
         AppBar(
-          onCreateNewSnippet: _isInitializingWorkspace || session.repository.dartpad == null
-              ? null
-              : (example) => resetWorkspace(ProjectSource.example(example.id)),
-          onLoadSample: _isInitializingWorkspace || session.repository.dartpad == null
+          onSelectExample: _isInitializingWorkspace || session.repository.dartpad == null
               ? null
               : (example) => resetWorkspace(ProjectSource.example(example.id)),
           isEmbedMode: isEmbedMode,
