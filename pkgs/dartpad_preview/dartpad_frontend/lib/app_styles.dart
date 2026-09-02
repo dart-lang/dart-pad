@@ -43,6 +43,7 @@ List<StyleRule> get appStyles => [
     overflow: .hidden,
     color: colorOnSurface,
     fontFamily: const .list([
+      FontFamily('Roboto'),
       FontFamily('Inter'),
       FontFamily('Segoe UI'),
       FontFamilies.sansSerif,

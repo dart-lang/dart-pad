@@ -220,13 +220,13 @@ class _AppBarState extends State<AppBar> {
       gap: Gap.all(4.px),
     ),
     css('.app-bar-logo').styles(
-      width: 24.px,
-      height: 24.px,
+      width: 32.px,
+      height: 32.px,
     ),
     css('.app-bar-title').styles(
-      fontSize: 16.px,
-      fontWeight: .w600,
-      letterSpacing: const .em(0.02),
+      color: colorOnContainer,
+      fontSize: 22.px,
+      fontWeight: .w400,
     ),
     css('.app-bar-divider').styles(
       width: 1.px,

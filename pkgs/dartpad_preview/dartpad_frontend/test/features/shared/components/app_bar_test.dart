@@ -26,6 +26,19 @@ void main() {
     expect(samples.disabled, isTrue);
   });
 
+  testClient('renders logo and DartPad title', (tester) {
+    tester.pumpComponent(const AppBar());
+
+    final logo = web.document.querySelector('.app-bar-logo') as web.HTMLImageElement?;
+    expect(logo, isNotNull);
+    expect(logo!.src, contains('images/dart_logo_192.png'));
+    expect(logo.alt, 'Dart');
+
+    final title = web.document.querySelector('.app-bar-title');
+    expect(title, isNotNull);
+    expect(title!.textContent, 'DartPad');
+  });
+
   testClient('opens Create and selects a snippet', (tester) async {
     String? selectedExampleId;
     tester.pumpComponent(
