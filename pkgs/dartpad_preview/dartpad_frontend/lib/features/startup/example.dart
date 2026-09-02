@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Metadata for a packaged example project (snippet or sample).
+/// Metadata for a packaged example project.
 class Example {
   /// The display name of the example.
   final String name;

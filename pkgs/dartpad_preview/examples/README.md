@@ -2,17 +2,9 @@
 
 This package declares example projects that ship with the DartPad preview.
 
-## Snippets vs. Samples
-
-Example projects are categorized as either a **Snippet** or a **Sample**:
-
-- **Snippet**: A minimal starter template with basic boilerplate code designed to give users a clean starting point for writing code from scratch. Snippets are accessible from the **Create** menu (e.g., `Dart snippet`, `Flutter snippet`).
-- **Sample**: A complete, runnable demonstration or showcase of a specific widget, feature, or application (e.g., the Flutter `Counter` app). Samples are accessible from the **Samples** menu and can be loaded directly via URL query parameters (e.g., `?sample=counter`).
-
 ## Layout
 
-- `examples.json` – list of all examples, each tagged with a category
-  (`Snippet` or `Sample`).
+- `examples.json` – list of all examples.
 - `<id>/` – each example is a self-contained Dart / Flutter project with at
   least `lib/main.dart`, `pubspec.yaml`, and `README.md`.
 - `build_examples.dart` – reads `examples.json`, packages each project into a
@@ -26,17 +18,18 @@ Example projects are categorized as either a **Snippet** or a **Sample**:
 2. Add an entry to `examples.json`:
    ```json
    {
-     "category": "Sample",
      "name": "My Example",
      "id": "my-example",
-     "projectDir": "my_example"
+     "projectDir": "my_example",
+     "subcategory": "Flutter",
+     "icon": "images/flutter_logo_192.png"
    }
    ```
-   - **category**: `"Snippet"` for small code fragments shown in the Create
-     menu, or `"Sample"` for complete applications shown in the Samples menu.
    - **id**: a lowercase kebab-case identifier (used in the URL query
      parameter `?sample=my-example`).
    - **projectDir**: the directory name relative to this package root.
+   - **subcategory** *(optional)*: section divider label in the New menu.
+   - **icon** *(optional)*: path to the icon image.
    - **entryPath** *(optional)*: defaults to `lib/main.dart`.
 3. Run the build script:
    ```bash
