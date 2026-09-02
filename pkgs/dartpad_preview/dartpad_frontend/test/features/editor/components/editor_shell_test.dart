@@ -80,6 +80,14 @@ void main() {
       expect(web.document.querySelector('#editor-overlay'), isNotNull);
     });
 
+    testClient('renders editor breadcrumbs for active file', (tester) {
+      tester.pumpComponent(_createShell(activeFile: 'lib/main.dart'));
+
+      expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
+      expect(web.document.querySelector('.editor-breadcrumb-folder')?.textContent, 'lib');
+      expect(web.document.querySelector('.editor-breadcrumb-file')?.textContent, contains('main.dart'));
+    });
+
     testClient('renders bottom panel', (tester) {
       tester.pumpComponent(_createShell());
 

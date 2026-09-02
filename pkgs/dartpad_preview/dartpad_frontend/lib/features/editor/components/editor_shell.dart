@@ -10,6 +10,7 @@ import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/icons.dart';
+import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
 
@@ -109,6 +110,7 @@ class _EditorShellState extends State<EditorShell> {
               onCloseFile: component.onCloseFile!,
               contextMenu: component.contextMenu,
             ),
+            if (component.activeFile.isNotEmpty) EditorBreadcrumbs(path: component.activeFile),
             EditorStack(
               openTabs: openTabs,
               activeFile: component.activeFile,
