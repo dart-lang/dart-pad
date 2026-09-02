@@ -171,6 +171,11 @@ class ExamplesBuilder {
         fail('pubspec.yaml missing in $projectPath.');
       }
 
+      final readmePath = p.join(projectPath, 'README.md');
+      if (!File(readmePath).existsSync()) {
+        fail('README.md missing in $projectPath.');
+      }
+
       final entryFullPath = p.join(projectPath, example.entryPath);
       if (!File(entryFullPath).existsSync()) {
         fail('Entry file ${example.entryPath} missing in $projectPath.');
@@ -273,7 +278,16 @@ abstract final class Examples {
   }
 
   List<File> _projectFiles(Directory projectDir) {
-    final files = projectDir.listSync(recursive: true).whereType<File>().toList();
+    final files = projectDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) {
+          final rel = _relativeProjectPath(file, projectDir);
+          return !rel.startsWith('.dart_tool/') &&
+              !rel.startsWith('.git/') &&
+              rel != 'pubspec.lock';
+        })
+        .toList();
     files.sort((a, b) => _relativeProjectPath(a, projectDir).compareTo(_relativeProjectPath(b, projectDir)));
     return files;
   }
