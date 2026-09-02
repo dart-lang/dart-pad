@@ -14,7 +14,7 @@ Example projects are categorized as either a **Snippet** or a **Sample**:
 - `examples.json` – list of all examples, each tagged with a category
   (`Snippet` or `Sample`).
 - `<id>/` – each example is a self-contained Dart / Flutter project with at
-  least `lib/main.dart` and `pubspec.yaml`.
+  least `lib/main.dart`, `pubspec.yaml`, and `README.md`.
 - `build_examples.dart` – reads `examples.json`, packages each project into a
   `.tar.gz` archive, copies them to `../dartpad_frontend/web/examples/`, and
   generates `../dartpad_frontend/lib/features/startup/examples.g.dart`.
@@ -22,7 +22,7 @@ Example projects are categorized as either a **Snippet** or a **Sample**:
 ## Adding a New Example
 
 1. Create a new project directory at the package root (e.g. `my_example/`)
-   with at least `lib/main.dart` and `pubspec.yaml`.
+   with at least `lib/main.dart`, `pubspec.yaml`, and `README.md`.
 2. Add an entry to `examples.json`:
    ```json
    {
