@@ -12,6 +12,7 @@ import '../../../app_styles.dart';
 /// - General buttons (`.cm-button`)
 /// - LSP hover tooltips (`.cm-lsp-hover-tooltip`)
 /// - LSP rename panels (`.cm-lsp-rename-panel`)
+/// - LSP reference panels (`.cm-lsp-reference-panel`)
 /// - Search panels (`.cm-search`)
 /// - General panels and tooltips (`.cm-panels`, `.cm-tooltip`)
 /// - Selection action popups (`.cm-selection-action-tooltip`)
@@ -236,7 +237,107 @@ List<StyleRule> get codemirrorStyles => [
     border: .only(
       top: .solid(color: colorBorder, width: 1.px),
     ),
+    color: colorOnContainer,
     backgroundColor: colorContainer,
+  ),
+  css('.editor-container .cm-panel:has(.cm-lsp-reference-panel)').styles(
+    position: const .relative(),
+    color: colorOnContainer,
+    backgroundColor: colorContainer,
+  ),
+  css('.editor-container .cm-lsp-reference-panel').styles(
+    display: .flex,
+    minWidth: 100.percent,
+    maxHeight: 180.px,
+    padding: .symmetric(vertical: 4.px),
+    outline: const Outline(style: .none),
+    overflow: .auto,
+    flexDirection: .column,
+    color: colorOnContainer,
+    fontFamily: const .list([
+      FontFamily('Cascadia Code'),
+      FontFamily('Consolas'),
+      FontFamilies.monospace,
+    ]),
+    fontSize: 13.px,
+    lineHeight: 1.5.em,
+    backgroundColor: colorContainer,
+    raw: {
+      'box-sizing': 'border-box',
+      'width': 'max-content',
+    },
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference-file').styles(
+    padding: .symmetric(vertical: 4.px, horizontal: 12.px),
+    margin: .only(top: 4.px, bottom: 2.px),
+    color: colorOnSurface,
+    fontSize: 12.px,
+    fontWeight: .w600,
+    raw: {
+      'user-select': 'none',
+    },
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference-file:first-child').styles(
+    margin: .only(top: 0.px),
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference').styles(
+    padding: .symmetric(vertical: 3.px, horizontal: 12.px),
+    border: .only(
+      left: .solid(color: Colors.transparent, width: 2.px),
+    ),
+    cursor: .pointer,
+    transition: Transition('background-color', duration: 150.ms),
+    color: colorOnContainer,
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference:hover').styles(
+    backgroundColor: colorContainer.highlight(colorOnContainer, 0.08),
+  ),
+  css(
+    '.editor-container .cm-lsp-reference-panel .cm-lsp-reference[aria-selected="true"], '
+    '.editor-container .cm-lsp-reference-panel .cm-lsp-reference[aria-selected]',
+  ).styles(
+    border: .only(
+      left: .solid(color: colorPrimary, width: 2.px),
+    ),
+    color: colorOnContainer,
+    backgroundColor: colorContainer.highlight(colorOnContainer, 0.18),
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference-line').styles(
+    margin: .only(right: 6.px),
+    opacity: 0.65,
+    color: colorOnContainer,
+    raw: {
+      'user-select': 'none',
+    },
+  ),
+  css('.editor-container .cm-lsp-reference-panel .cm-lsp-reference strong').styles(
+    color: colorPrimary,
+    fontWeight: .w700,
+  ),
+  css('.editor-container .cm-dialog-close').styles(
+    display: .flex,
+    position: .absolute(top: 6.px, right: 8.px),
+    zIndex: const ZIndex(2),
+    width: 22.px,
+    height: 22.px,
+    padding: .zero,
+    border: .all(color: colorBorder, width: 1.px),
+    radius: .circular(4.px),
+    cursor: .pointer,
+    transition: .combine([
+      Transition('background-color', duration: 200.ms),
+      Transition('color', duration: 200.ms),
+    ]),
+    justifyContent: .center,
+    alignItems: .center,
+    color: colorOnContainer,
+    fontSize: 16.px,
+    lineHeight: 1.em,
+    backgroundColor: colorContainer,
+  ),
+  css('.editor-container .cm-dialog-close:hover').styles(
+    color: colorOnContainer,
+    backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
   ),
   css('.editor-container .cm-tooltip').styles(
     maxWidth: 450.px,
