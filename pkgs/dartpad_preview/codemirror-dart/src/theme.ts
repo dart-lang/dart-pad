@@ -58,6 +58,13 @@ export const dartpadTheme = EditorView.theme({
   ".cm-activeLineGutter": {
     backgroundColor: "rgba(27, 134, 245, 0.07)",
   },
+  ".cm-panels": {
+    backgroundColor: "#fff",
+    color: "#4a4a4a",
+  },
+  ".cm-lsp-reference-panel": {
+    color: "#4a4a4a",
+  },
 
   // Dark Mode Overrides (triggered by data-theme="dark" on ancestor html or body)
   '[data-theme="dark"] &': {
@@ -107,6 +114,13 @@ export const dartpadTheme = EditorView.theme({
   },
   '[data-theme="dark"] & .cm-activeLineGutter': {
     backgroundColor: "rgba(32, 143, 253, 0.07)",
+  },
+  '[data-theme="dark"] & .cm-panels': {
+    backgroundColor: "#0E161F",
+    color: "#FFFFFF",
+  },
+  '[data-theme="dark"] & .cm-lsp-reference-panel': {
+    color: "#FFFFFF",
   },
 
   // Shared Styles
