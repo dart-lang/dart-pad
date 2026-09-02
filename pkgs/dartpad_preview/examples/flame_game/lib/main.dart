@@ -12,8 +12,8 @@ library;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'config.dart';
-import 'game.dart';
+import 'src/config.dart';
+import 'src/game.dart';
 
 void main() {
   runApp(const GameApp());
