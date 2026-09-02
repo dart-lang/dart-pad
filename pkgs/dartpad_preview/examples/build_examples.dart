@@ -209,7 +209,7 @@ export 'example.dart';
 
 abstract final class Examples {
   static const List<Example> all = [
-    ${examples.map((s) => s.varName).join(',\n    ')},
+${_generateAllList()}
   ];
 
   static Example? getById(String id) {
@@ -229,6 +229,28 @@ abstract final class Examples {
     buf.write(examples.map((e) => e.sourceDef).join('\n'));
     buf.writeln();
     return _normalizeLineEndings(buf.toString());
+  }
+
+  String _generateAllList() {
+    final buf = StringBuffer();
+    String? currentSubcategory;
+    for (var i = 0; i < examples.length; i++) {
+      final example = examples[i];
+      if (example.subcategory != currentSubcategory) {
+        if (i > 0) {
+          buf.writeln();
+        }
+        if (example.subcategory != null) {
+          buf.writeln('    // ${example.subcategory} Examples');
+        }
+        currentSubcategory = example.subcategory;
+      }
+      buf.write('    ${example.varName},');
+      if (i < examples.length - 1) {
+        buf.writeln();
+      }
+    }
+    return buf.toString();
   }
 
   List<int> _archiveBytes(ExampleConfig example) {

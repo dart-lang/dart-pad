@@ -12,7 +12,11 @@ abstract final class Examples {
   static const List<Example> all = [
     _dart,
     _flutter,
+
+    // Dart Examples
     _fibonacci,
+
+    // Flutter Examples
     _counter,
     _sunflower,
     _flameGame,
