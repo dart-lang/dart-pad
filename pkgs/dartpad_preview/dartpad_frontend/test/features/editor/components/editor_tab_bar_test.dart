@@ -197,4 +197,47 @@ void main() {
       expect(closedPaths, ['lib/a.dart', 'lib/b.dart', 'lib/c.dart']);
     });
   });
+
+  group('EditorTabBar – layout and dirty indicator structure', () {
+    testClient('tabs have consistent top-level child count whether clean or dirty', (tester) async {
+      final cleanTab = _TestEditorTab('lib/clean.dart', unsaved: false);
+      final dirtyTab = _TestEditorTab('lib/dirty.dart', unsaved: true);
+
+      tester.pumpComponent(
+        EditorTabBar(
+          openTabs: [cleanTab, dirtyTab],
+          activeFile: 'lib/clean.dart',
+          onSwitchFile: (_) {},
+          onCloseFile: (_, {discardChanges = false}) => true,
+        ),
+      );
+
+      final tabElements = web.document.querySelectorAll('.editor-tab');
+      expect(tabElements.length, 2);
+
+      final cleanElement = tabElements.item(0)! as web.HTMLElement;
+      final dirtyElement = tabElements.item(1)! as web.HTMLElement;
+
+      // Both tabs have exactly 2 direct children: .editor-tab-name and .editor-tab-action
+      expect(cleanElement.children.length, 2);
+      expect(dirtyElement.children.length, 2);
+
+      expect(cleanElement.children.item(0)!.className, contains('editor-tab-name'));
+      expect(cleanElement.children.item(1)!.className, contains('editor-tab-action'));
+
+      expect(dirtyElement.children.item(0)!.className, contains('editor-tab-name'));
+      expect(dirtyElement.children.item(1)!.className, contains('editor-tab-action'));
+
+      // Dirty dot is contained inside the action button for dirty tabs
+      final dirtyAction = dirtyElement.querySelector('.editor-tab-action') as web.HTMLElement;
+      expect(dirtyAction.className, contains('dirty'));
+      expect(dirtyAction.querySelector('.editor-tab-dirty-dot'), isNotNull);
+      expect(dirtyAction.querySelector('.material-symbols-outlined'), isNotNull);
+
+      // Clean tab does not contain dirty dot
+      final cleanAction = cleanElement.querySelector('.editor-tab-action') as web.HTMLElement;
+      expect(cleanAction.className, isNot(contains('dirty')));
+      expect(cleanAction.querySelector('.editor-tab-dirty-dot'), isNull);
+    });
+  });
 }
