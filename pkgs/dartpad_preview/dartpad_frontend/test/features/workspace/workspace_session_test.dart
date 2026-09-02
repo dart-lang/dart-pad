@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
@@ -98,6 +99,28 @@ void main() {
       events.dispatchAsync(_TestEvent()),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('runOrHotReload calls runCode when preview canStart', () async {
+    final events = AppEventBus();
+    final workspace = _Workspace();
+    final repository = WorkspaceRepository(
+      events: events,
+      taskStatus: TaskStatusController(),
+      workspaceResourceApi: workspace,
+      sdk: defaultSdk,
+      workspaceFuture: Completer<Workspace>().future,
+    );
+    final session = WorkspaceSession.create(repository);
+
+    expect(session.preview.canStart, isTrue);
+    expect(session.preview.canHotReload, isFalse);
+
+    // runOrHotReload starts runCode
+    session.runOrHotReload();
+    expect(session.preview.state, isA<PreviewStarting>());
+
+    await session.dispose(closeWorker: false);
   });
 }
 

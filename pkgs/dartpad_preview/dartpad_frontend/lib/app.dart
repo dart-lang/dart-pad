@@ -24,6 +24,7 @@ import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/footer.dart';
+import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
@@ -112,6 +113,7 @@ class AppState extends State<App> {
   bool _isLargeScreen = true;
   SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
+  StreamSubscription<web.KeyboardEvent>? _keySubscription;
 
   SdkInfo _currentSdk = defaultSdk;
 
@@ -122,6 +124,7 @@ class AppState extends State<App> {
     _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
       _updateScreenSize();
     });
+    _keySubscription = web.EventStreamProviders.keyDownEvent.forTarget(web.document).listen(_handleGlobalKeyDown);
 
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
@@ -767,9 +770,21 @@ class AppState extends State<App> {
     session.events.dispatch(const OpenConsoleEvent());
   }
 
+  void _handleGlobalKeyDown(web.KeyboardEvent event) {
+    if (event.defaultPrevented) {
+      return;
+    }
+    final isModifier = isMac ? event.metaKey : event.ctrlKey;
+    if (isModifier && !event.altKey && !event.shiftKey && event.key == 'Enter') {
+      event.preventDefault();
+      _session.runOrHotReload();
+    }
+  }
+
   @override
   void dispose() {
     _resizeSubscription?.cancel();
+    _keySubscription?.cancel();
     _session.preview.removeListener(_onPreviewStateChanged);
     unawaited(_session.dispose(closeWorker: true));
     super.dispose();

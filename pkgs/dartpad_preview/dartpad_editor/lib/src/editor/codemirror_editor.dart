@@ -36,6 +36,7 @@ final class CodeMirrorEditor {
   /// Optional callbacks can be provided:
   /// - [onUpdate] is triggered when the document text changes.
   /// - [onSave] is triggered on Cmd/Ctrl+S keypress.
+  /// - [onRun] is triggered on Cmd/Ctrl+Enter keypress.
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
   /// - [onQuickFixRequested] is triggered from a diagnostic hover action.
   /// - [onQuickFixAvailabilityRequested] controls whether that action is shown.
@@ -45,6 +46,7 @@ final class CodeMirrorEditor {
     String? initialDoc,
     void Function(String text)? onUpdate,
     void Function()? onSave,
+    void Function()? onRun,
     void Function()? onCodeActionRequested,
     void Function(int from, int to)? onQuickFixRequested,
     Future<bool> Function(int from, int to)? onQuickFixAvailabilityRequested,
@@ -63,6 +65,30 @@ final class CodeMirrorEditor {
               cm.KeyBinding(key: 'Mod-Shift-M'.toJS, run: ((cm.EditorView view) => true.toJS).toJS),
             ].toJS,
           ),
+          if (onSave != null)
+            cm.keymapOf(
+              [
+                cm.KeyBinding(
+                  key: 'Mod-s'.toJS,
+                  run: ((cm.EditorView view) {
+                    onSave();
+                    return true.toJS;
+                  }).toJS,
+                ),
+              ].toJS,
+            ),
+          if (onRun != null)
+            cm.keymapOf(
+              [
+                cm.KeyBinding(
+                  key: 'Mod-Enter'.toJS,
+                  run: ((cm.EditorView view) {
+                    onRun();
+                    return true.toJS;
+                  }).toJS,
+                ),
+              ].toJS,
+            ),
           cm.keymapOf(cm.extraKeymap),
           cm.basicSetup,
           cm.indentUnitOf('  '.toJS),
@@ -82,18 +108,6 @@ final class CodeMirrorEditor {
               }
             }).toJS,
           ),
-          if (onSave != null)
-            cm.keymapOf(
-              [
-                cm.KeyBinding(
-                  key: 'Mod-s'.toJS,
-                  run: ((cm.EditorView view) {
-                    onSave();
-                    return true.toJS;
-                  }).toJS,
-                ),
-              ].toJS,
-            ),
           langCompartment.of(_languageExtension(file, languageServerClient)),
           if (onCodeActionRequested != null)
             cm.keymapOf(

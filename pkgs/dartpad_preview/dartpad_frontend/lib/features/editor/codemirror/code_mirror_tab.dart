@@ -24,6 +24,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
     required String path,
     required String content,
     required this.onSaveAll,
+    this.onRun,
     required this.workspaceResourceApi,
     this.contextMenu,
     this.events,
@@ -38,6 +39,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
       initialDoc: content,
       onUpdate: _handleEditorUpdate,
       onSave: onSaveAll,
+      onRun: onRun,
       onCodeActionRequested: () {
         unawaited(codeActionsController.triggerCodeActions());
       },
@@ -68,6 +70,9 @@ final class CodeMirrorTab extends EditorTab<Component> {
 
   /// Saves all dirty tabs when CodeMirror receives its save command.
   final void Function() onSaveAll;
+
+  /// Triggers run or hot reload on Cmd/Ctrl+Enter keystroke.
+  final void Function()? onRun;
 
   final WorkspaceResourceApi workspaceResourceApi;
 
