@@ -13,6 +13,7 @@ export const dartpadTheme = EditorView.theme({
     // Default to Light Mode variables and styles
     backgroundColor: "#fff",
     color: "#4a4a4a",
+    colorScheme: "light",
     "--cm-builtin": "#4a4a4a",
     "--cm-comment": "#5F6368",
     "--cm-keyword": "#007a27",
@@ -62,6 +63,7 @@ export const dartpadTheme = EditorView.theme({
   '[data-theme="dark"] &': {
     backgroundColor: "#0E161F",
     color: "#FFFFFF",
+    colorScheme: "dark",
     "--cm-builtin": "#FFFFFF",
     "--cm-comment": "#909CC3",
     "--cm-keyword": "#50E191",
