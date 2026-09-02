@@ -11,11 +11,11 @@ Example projects are categorized as either a **Snippet** or a **Sample**:
 
 ## Layout
 
-- `examples.json` – list of all examples, each tagged with a category
+- `examples.yaml` – list of all examples, each tagged with a category
   (`Snippet` or `Sample`).
 - `<id>/` – each example is a self-contained Dart / Flutter project with at
   least `lib/main.dart` and `pubspec.yaml`.
-- `build_examples.dart` – reads `examples.json`, packages each project into a
+- `build_examples.dart` – reads `examples.yaml`, packages each project into a
   `.tar.gz` archive, copies them to `../dartpad_frontend/web/examples/`, and
   generates `../dartpad_frontend/lib/features/startup/examples.g.dart`.
 
@@ -23,14 +23,13 @@ Example projects are categorized as either a **Snippet** or a **Sample**:
 
 1. Create a new project directory at the package root (e.g. `my_example/`)
    with at least `lib/main.dart` and `pubspec.yaml`.
-2. Add an entry to `examples.json`:
-   ```json
-   {
-     "category": "Sample",
-     "name": "My Example",
-     "id": "my-example",
-     "projectDir": "my_example"
-   }
+2. Add an entry to `examples.yaml`:
+   ```yaml
+   examples:
+   - category: Sample
+     name: My Example
+     id: my-example
+     projectDir: my_example
    ```
    - **category**: `"Snippet"` for small code fragments shown in the Create
      menu, or `"Sample"` for complete applications shown in the Samples menu.

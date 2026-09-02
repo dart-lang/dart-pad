@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
+import 'package:yaml/yaml.dart';
 
 void main(List<String> args) {
   final argParser = ArgParser()
@@ -61,7 +61,7 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   /// (e.g. `"images/flutter_logo_192.png"`).
   final String? icon;
 
-  /// Original position in `examples.json`, used to preserve declaration order
+  /// Original position in `examples.yaml`, used to preserve declaration order
   /// when sorting within a [category].
   final int index;
 
@@ -135,16 +135,16 @@ class ExamplesBuilder {
   static const _generatedCodePath = '../dartpad_frontend/lib/features/startup/examples.g.dart';
 
   void parse() {
-    final jsonFile = File('examples.json');
-    if (!jsonFile.existsSync()) {
-      stderr.writeln('examples.json not found.');
+    final yamlFile = File('examples.yaml');
+    if (!yamlFile.existsSync()) {
+      stderr.writeln('examples.yaml not found.');
       exit(1);
     }
 
-    final json = jsonDecode(jsonFile.readAsStringSync()) as List;
+    final root = loadYaml(yamlFile.readAsStringSync()) as Map;
+    final yaml = root['examples'] as List;
     examples = [
-      for (final (i, j) in json.indexed)
-        ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
+      for (final (i, j) in yaml.indexed) ExampleConfig.fromJson((j as Map).cast<String, Object?>(), index: i),
     ];
 
     var hadFailure = false;
