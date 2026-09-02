@@ -20,10 +20,12 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   CodeMirrorTabAdapter({
     this.contextMenu,
     this.events,
+    this.onRun,
   });
 
   final ContextMenuController? contextMenu;
   final AppEventBus? events;
+  final void Function()? onRun;
 
   TabsController<Component>? _tabs;
   LanguageServerClient? _languageServerClient;
@@ -60,6 +62,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       path: path,
       content: content,
       onSaveAll: _saveAll,
+      onRun: onRun,
       workspaceResourceApi: tabs.workspaceResourceApi,
       languageServerClient: _languageServerClient,
       contextMenu: contextMenu,
