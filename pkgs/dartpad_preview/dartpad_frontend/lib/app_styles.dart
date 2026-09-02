@@ -29,6 +29,12 @@ final colorSuccess = const ColorToken('success', Color('#4CAF50'));
 /// Global styles that establish the document-level application layout.
 @css
 List<StyleRule> get appStyles => [
+  css('html[data-theme="dark"]').styles(
+    raw: {'color-scheme': 'dark'},
+  ),
+  css('html[data-theme="light"]').styles(
+    raw: {'color-scheme': 'light'},
+  ),
   css('html, body').styles(
     width: 100.percent,
     height: 100.percent,
