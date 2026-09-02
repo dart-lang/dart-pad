@@ -115,9 +115,12 @@ final class EditorTabBar extends StatelessComponent {
             },
             [
               span(classes: 'editor-tab-name', [.text(tab.name)]),
-              if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
               button(
-                classes: 'editor-tab-action close',
+                classes: [
+                  'editor-tab-action',
+                  'close',
+                  if (tab.hasUnsavedChanges) 'dirty',
+                ].join(' '),
                 attributes: {
                   'title': 'Close tab',
                   'aria-label': 'Close ${tab.name}',
@@ -128,7 +131,10 @@ final class EditorTabBar extends StatelessComponent {
                     _closeSingleTab(tab);
                   },
                 },
-                [const Icon('close', size: 12)],
+                [
+                  if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
+                  const Icon('close', size: 12),
+                ],
               ),
             ],
           ),
@@ -270,19 +276,21 @@ final class EditorTabBar extends StatelessComponent {
             cursor: .pointer,
             justifyContent: .center,
             alignItems: .center,
+            flex: const .shrink(0),
             color: colorOnSurface,
             fontSize: 11.px,
             backgroundColor: Colors.transparent,
           ),
           css('&:hover').styles(
-            color: const Color('#ffffff'),
-            backgroundColor: const Color('#3a3a3a'),
-          ),
-          css('&.close:hover').styles(
-            color: colorError,
-            backgroundColor: colorSurface,
+            backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
           ),
         ]),
+        css('&.dirty:not(:hover) .editor-tab-action .material-symbols-outlined').styles(
+          display: .none,
+        ),
+        css('&.dirty:hover .editor-tab-action .editor-tab-dirty-dot').styles(
+          display: .none,
+        ),
       ]),
     ]),
   ];
