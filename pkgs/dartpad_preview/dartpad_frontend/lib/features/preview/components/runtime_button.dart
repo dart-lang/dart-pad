@@ -37,8 +37,8 @@ class RuntimeButton extends StatelessComponent {
     );
   }
 
-  /// Factory constructor for a 'Restart' button that restarts execution of
-  /// the currently running entrypoint, skipping recompilation.
+  /// Factory constructor for a 'Restart' button that recompiles and restarts
+  /// execution of the currently running entrypoint.
   factory RuntimeButton.restart({required PreviewViewModel previewViewModel}) {
     return RuntimeButton(
       title: 'Restart',
@@ -46,7 +46,6 @@ class RuntimeButton extends StatelessComponent {
       isEnabled: previewViewModel.canRestart,
       onClick: () => previewViewModel.runCode(
         previewViewModel.state.entrypoint ?? 'lib/main.dart',
-        skipRecompilation: true,
       ),
     );
   }

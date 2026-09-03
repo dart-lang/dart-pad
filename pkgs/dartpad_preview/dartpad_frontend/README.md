@@ -235,9 +235,8 @@ After dependency resolution, the frontend automatically runs the resolved
 entrypoint only if its path ends in `.dart`. The Start button is independent
 of that startup choice: it runs the currently active editor file, or
 `lib/main.dart` if no file is active. It does not replace an active non-Dart
-file with `lib/main.dart`. Restart uses the entrypoint of the current run and
-reuses the last successful compilation when one is available; Hot Reload
-recompiles changes for that same running entrypoint.
+file with `lib/main.dart`. Restart recompiles the entrypoint of the current run;
+Hot Reload recompiles changes for that same running entrypoint.
 
 Whether that entrypoint is presented as a Flutter application or a console
 program is determined as described in [SDK detection](#sdk-detection).
