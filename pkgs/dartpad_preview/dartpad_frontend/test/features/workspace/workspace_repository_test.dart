@@ -12,6 +12,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/workspace/data/synced_workspace_resource_api.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
@@ -207,6 +208,39 @@ void main() {
   });
 
   group('hasFlutterDependency', () {
+    test('reads package_config.json from the worker before it is mirrored locally', () async {
+      final localApi = MemoryWorkspaceResourceApi();
+      final remoteApi = MemoryWorkspaceResourceApi();
+      await remoteApi.root.getFile('.dart_tool/package_config.json').writeContent('''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "flutter",
+            "rootUri": "file:///path/to/flutter",
+            "packageUri": "lib/",
+            "languageVersion": "3.0"
+          }
+        ]
+      }
+      ''');
+      final syncedApi = SyncedWorkspaceResourceApi(
+        localApi: localApi,
+        remoteApi: Future.value(remoteApi),
+      );
+      await syncedApi.apiReady;
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        taskStatus: TaskStatusController(),
+        workspaceResourceApi: syncedApi,
+        sdk: defaultSdk,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      expect(await localApi.fileExist('.dart_tool/package_config.json'), isFalse);
+      expect(await repository.hasFlutterDependency('lib/main.dart'), isTrue);
+    });
+
     test('returns true when flutter is a dependency in package_config.json', () async {
       final api = MemoryWorkspaceResourceApi();
       final repository = WorkspaceRepository(
@@ -309,6 +343,44 @@ void main() {
 
       final hasFlutter = await repository.hasFlutterDependency('subproject/lib/src/helpers/util.dart');
       expect(hasFlutter, isTrue);
+    });
+  });
+
+  group('convertToPackageUri', () {
+    test('reads package_config.json from the worker before it is mirrored locally', () async {
+      final localApi = MemoryWorkspaceResourceApi();
+      final remoteApi = MemoryWorkspaceResourceApi();
+      await remoteApi.root.getFile('example/.dart_tool/package_config.json').writeContent('''
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "provider_example",
+            "rootUri": "../",
+            "packageUri": "lib/",
+            "languageVersion": "3.0"
+          }
+        ]
+      }
+      ''');
+      final syncedApi = SyncedWorkspaceResourceApi(
+        localApi: localApi,
+        remoteApi: Future.value(remoteApi),
+      );
+      await syncedApi.apiReady;
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        taskStatus: TaskStatusController(),
+        workspaceResourceApi: syncedApi,
+        sdk: defaultSdk,
+        workspaceFuture: Completer<Workspace>().future,
+      );
+
+      expect(await localApi.fileExist('example/.dart_tool/package_config.json'), isFalse);
+      expect(
+        await repository.convertToPackageUri('example/lib/main.dart'),
+        Uri.parse('package:provider_example/main.dart'),
+      );
     });
   });
 }
