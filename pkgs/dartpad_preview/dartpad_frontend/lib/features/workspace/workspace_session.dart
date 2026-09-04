@@ -16,14 +16,18 @@ import '../editor/view_models/tabs_view_model.dart';
 import '../filetree/file_tree_tabs_adapter.dart';
 import '../filetree/file_tree_view_model.dart';
 import '../preview/view_models/preview_view_model.dart';
+import '../shared/analyzer_status.dart';
 import '../shared/app_event_bus.dart';
 import '../shared/components/context_menu.dart';
+import '../shared/task_status.dart';
 import 'data/workspace_repository.dart';
 
 /// Owns every resource whose lifetime is tied to one worker workspace.
 final class WorkspaceSession {
   WorkspaceSession._({
     required this.events,
+    required this.taskStatus,
+    required this.analyzerStatus,
     required this.repository,
     required this.console,
     required this.tabs,
@@ -56,6 +60,8 @@ final class WorkspaceSession {
 
     return WorkspaceSession._(
       events: repository.events,
+      taskStatus: repository.taskStatus,
+      analyzerStatus: AnalyzerStatusController(repository.taskStatus),
       repository: repository,
       console: ConsoleViewModel(events: repository.events),
       tabs: tabs,
@@ -71,6 +77,8 @@ final class WorkspaceSession {
   }
 
   final AppEventBus events;
+  final TaskStatusController taskStatus;
+  final AnalyzerStatusController analyzerStatus;
   final WorkspaceRepository repository;
   final ConsoleViewModel console;
   final TabsViewModel tabs;
@@ -89,7 +97,6 @@ final class WorkspaceSession {
   void attachLanguageServer({
     required LanguageServer server,
     required LanguageServerClient client,
-    required void Function(AnalyzerActivity activity) onAnalyzerActivity,
     String? projectRoot,
   }) {
     if (_disposed) {
@@ -102,11 +109,19 @@ final class WorkspaceSession {
     _languageServer = server;
     _languageServerClient = client;
     _analyzerSubscription = client.analyzerActivityStream.listen(
-      onAnalyzerActivity,
+      _onAnalyzerActivity,
+      onError: (_) => analyzerStatus.markUnavailable(),
     );
     fileTree.languageServerClient = client;
     diagnostics.attachLanguageServer(client, projectRoot: projectRoot);
     _codemirrorAdapter.attachLanguageServerClient(client);
+  }
+
+  void _onAnalyzerActivity(AnalyzerActivity activity) {
+    if (_disposed || activity is! AnalyzerStatusActivity) {
+      return;
+    }
+    analyzerStatus.update(isAnalyzing: activity.isAnalyzing);
   }
 
   /// Disposes the complete workspace session at most once.
@@ -139,6 +154,8 @@ final class WorkspaceSession {
       closeWorker ? repository.close() : repository.closeWorkspaceOnly(),
     );
     await _safeAwait(events.dispose());
+    analyzerStatus.dispose();
+    taskStatus.dispose();
   }
 
   /// Awaits a (possibly null) [future] and swallows errors so that a

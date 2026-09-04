@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_session.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
@@ -74,6 +75,7 @@ void main() {
     final workspace = _Workspace();
     final repository = WorkspaceRepository(
       events: events,
+      taskStatus: TaskStatusController(),
       workspaceResourceApi: workspace,
       sdk: defaultSdk,
       workspaceFuture: Completer<Workspace>().future,
@@ -82,11 +84,16 @@ void main() {
 
     expect(session.repository, same(repository));
     expect(session.events, same(events));
+    expect(session.taskStatus, same(repository.taskStatus));
 
     await session.dispose(closeWorker: false);
     await session.dispose(closeWorker: false);
 
     expect(workspace.disposeCount, 1);
+    expect(
+      () => session.taskStatus.startTask(TaskKind.analyzingWorkspace),
+      throwsStateError,
+    );
     await expectLater(
       events.dispatchAsync(_TestEvent()),
       throwsA(isA<StateError>()),

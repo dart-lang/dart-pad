@@ -11,6 +11,7 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
@@ -146,11 +147,36 @@ void main() {
     },
   );
 
+  test('Pub Clean exposes a blocking task status', () async {
+    final workspace = _Workspace()..folders.add('example/build');
+    final taskStatus = TaskStatusController();
+    final repository = WorkspaceRepository(
+      events: AppEventBus(),
+      taskStatus: taskStatus,
+      workspaceResourceApi: workspace,
+      sdk: defaultSdk,
+      workspaceFuture: Completer<Workspace>().future,
+    );
+
+    final future = repository.pubClean(path: 'example');
+    expect(taskStatus.current?.kind, TaskKind.pubClean);
+    expect(taskStatus.current?.label, 'Pub clean in example');
+    expect(taskStatus.current?.scope, 'example');
+    expect(taskStatus.hasBlockingPreviewTask, isTrue);
+    await future;
+
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
+    expect(taskStatus.hasBlockingPreviewTask, isFalse);
+    taskStatus.dispose();
+    await repository.events.dispose();
+  });
+
   group('workspace reset cleanup', () {
     test('disposes the workspace without disposing the worker', () async {
       final workspace = _Workspace();
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: workspace,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
@@ -166,6 +192,7 @@ void main() {
       final workspace = _Workspace()..disposeError = StateError('workspace already removed');
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: workspace,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
@@ -184,6 +211,7 @@ void main() {
       final api = MemoryWorkspaceResourceApi();
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: api,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
@@ -213,6 +241,7 @@ void main() {
       final api = MemoryWorkspaceResourceApi();
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: api,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
@@ -242,6 +271,7 @@ void main() {
       final api = MemoryWorkspaceResourceApi();
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: api,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
@@ -255,6 +285,7 @@ void main() {
       final api = MemoryWorkspaceResourceApi();
       final repository = WorkspaceRepository(
         events: AppEventBus(),
+        taskStatus: TaskStatusController(),
         workspaceResourceApi: api,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,

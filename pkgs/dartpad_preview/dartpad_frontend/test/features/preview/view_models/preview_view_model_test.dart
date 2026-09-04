@@ -16,6 +16,7 @@ import 'package:dartpad_frontend/features/preview/view_models/preview_view_model
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:logging/logging.dart';
@@ -136,6 +137,7 @@ class FakeWorkspaceRepository extends WorkspaceRepository {
     SdkInfo? sdk,
   }) : super(
          events: events,
+         taskStatus: TaskStatusController(),
          workspaceResourceApi: workspaceResourceApi,
          sdk: sdk ?? defaultSdk,
          workspaceFuture: Completer<Workspace>().future,
@@ -190,6 +192,7 @@ void main() {
 
     tearDown(() async {
       await logSubscription.cancel();
+      repository.taskStatus.dispose();
       await events.dispose();
     });
 
@@ -206,6 +209,32 @@ void main() {
       expect(viewModel.canStop, isFalse);
       expect(viewModel.isRunning, isFalse);
 
+      viewModel.dispose();
+    });
+
+    test('blocking prerequisite disables and rejects compiling actions', () async {
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+      );
+      final pubGet = repository.taskStatus.startTask(
+        TaskKind.pubGet,
+        label: 'Pub get in /',
+        scope: '/',
+        blocksPreview: true,
+      );
+
+      expect(viewModel.canStart, isFalse);
+      await viewModel.runCode('lib/main.dart');
+      expect(viewModel.state, isA<PreviewInitial>());
+      expect(repository.startHotReloadCompilerCount, 0);
+
+      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+      expect(viewModel.state, isA<PreviewInitial>());
+      expect(repository.startHotReloadCompilerCount, 0);
+
+      pubGet.succeed();
+      expect(viewModel.canStart, isTrue);
       viewModel.dispose();
     });
 
@@ -246,6 +275,15 @@ void main() {
       expect(fakeSandbox.loadedCode, 'compiled_code');
       expect(fakeSandbox.runAppCount, 1);
       expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
+      expect(
+        repository.taskStatus.entries
+            .where(
+              (entry) => entry.kind == TaskKind.startingPreview || entry.kind == TaskKind.compilingApplication,
+            )
+            .map((entry) => entry.outcome)
+            .toList(),
+        [TaskStatusOutcome.succeeded, TaskStatusOutcome.succeeded],
+      );
 
       final logMessages = loggedEvents.map((e) => e.message).toList();
       expect(
@@ -340,6 +378,7 @@ void main() {
       expect(viewModel.isFlutter, isFalse);
 
       viewModel.dispose();
+      dartRepository.taskStatus.dispose();
     });
 
     test('runCode fails compilation with CompilationFailedException', () async {
@@ -359,7 +398,17 @@ void main() {
       final errState = viewModel.state as PreviewCompileError;
       expect(errState.message, 'syntax error');
       expect(errState.entrypoint, 'lib/main.dart');
-
+      expect(errState.action, PreviewLaunchAction.start);
+      expect(errState.failedTask, TaskKind.compilingApplication);
+      expect(
+        repository.taskStatus.entries
+            .where(
+              (entry) => entry.kind == TaskKind.startingPreview || entry.kind == TaskKind.compilingApplication,
+            )
+            .map((entry) => entry.outcome)
+            .toList(),
+        [TaskStatusOutcome.failed, TaskStatusOutcome.failed],
+      );
       expect(loggedEvents.any((e) => e.message == 'Compilation failed' && e.level == Level.SEVERE), isTrue);
 
       viewModel.dispose();
@@ -380,6 +429,8 @@ void main() {
       expect(viewModel.state, isA<PreviewCompileError>());
       final errState = viewModel.state as PreviewCompileError;
       expect(errState.message, contains('load crash'));
+      expect(errState.action, PreviewLaunchAction.start);
+      expect(errState.failedTask, TaskKind.startingPreview);
 
       expect(loggedEvents.any((e) => e.message == 'Run failed' && e.level == Level.SEVERE), isTrue);
 
@@ -407,7 +458,15 @@ void main() {
       expect(fakeCompiler.compileCount, 1);
       expect(fakeSandbox1.loadModuleCount, 1);
 
-      // Trigger restart which skips recompilation
+      final pubGet = repository.taskStatus.startTask(
+        TaskKind.pubGet,
+        label: 'Pub get in /',
+        scope: '/',
+        blocksPreview: true,
+      );
+      expect(viewModel.canRestart, isTrue);
+
+      // A cached restart remains available during a blocking workspace task.
       await viewModel.runCode('lib/main.dart', skipRecompilation: true);
 
       // Compiler should NOT be called again
@@ -415,6 +474,36 @@ void main() {
       expect(fakeSandbox1.disposeCount, 1);
       expect(fakeSandbox2.loadModuleCount, 1);
       expect(fakeSandbox2.loadedCode, 'compiled_code'); // Reuses compiled code
+
+      pubGet.succeed();
+      viewModel.dispose();
+    });
+
+    test('cached restart reports a typed restart failure', () async {
+      final firstSandbox = FakePreviewSandbox();
+      final failingSandbox = FakePreviewSandbox()..onRunApp = (_) => throw StateError('restart failed');
+      final fakeCompiler = FakeCompilerSession();
+      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
+
+      var sandboxIndex = 0;
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async {
+          sandboxIndex++;
+          return sandboxIndex == 1 ? firstSandbox : failingSandbox;
+        },
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+
+      expect(viewModel.state, isA<PreviewCompileError>());
+      final error = viewModel.state as PreviewCompileError;
+      expect(error.action, PreviewLaunchAction.restart);
+      expect(error.failedTask, TaskKind.restartingPreview);
+      expect(error.message, contains('restart failed'));
+      expect(fakeCompiler.compileCount, 1);
 
       viewModel.dispose();
     });
@@ -457,6 +546,15 @@ void main() {
       expect(fakeSandbox.reloadedLibraries, [Uri.parse('package:app/main.dart')]);
 
       expect(loggedEvents.map((e) => e.message), contains('Hot reload completed successfully.'));
+      expect(
+        repository.taskStatus.entries
+            .where(
+              (entry) => entry.kind == TaskKind.hotReload || entry.kind == TaskKind.compilingChanges,
+            )
+            .map((entry) => entry.outcome)
+            .toList(),
+        [TaskStatusOutcome.succeeded, TaskStatusOutcome.succeeded],
+      );
 
       viewModel.dispose();
     });
@@ -475,8 +573,11 @@ void main() {
       await viewModel.hotReloadCode();
       await pump();
 
-      expect(viewModel.state, isA<PreviewCompileError>());
-      expect((viewModel.state as PreviewCompileError).message, 'rejected reload');
+      expect(viewModel.state, isA<PreviewRunning>());
+      expect(
+        repository.taskStatus.entries.firstWhere((entry) => entry.kind == TaskKind.hotReload).outcome,
+        TaskStatusOutcome.failed,
+      );
 
       expect(loggedEvents.any((e) => e.message == 'Hot reload rejected' && e.level == Level.WARNING), isTrue);
 
