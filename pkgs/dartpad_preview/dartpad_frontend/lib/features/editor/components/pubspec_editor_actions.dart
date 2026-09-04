@@ -48,12 +48,25 @@ final class PubspecEditorActions extends StatefulComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css('.pubspec-editor-actions').styles(
-      display: .flex,
-      position: .absolute(right: 32.px, top: 16.px),
-      zIndex: const ZIndex(20),
-      alignItems: .center,
-      gap: .all(8.px),
+    css('.pubspec-editor-actions', [
+      css('&').styles(
+        display: .flex,
+        position: .absolute(right: 32.px, top: 16.px),
+        zIndex: const ZIndex(20),
+        alignItems: .center,
+        gap: .all(8.px),
+      ),
+      css('.dp-button').styles(
+        shadow: BoxShadow(
+          offsetX: 0.px,
+          offsetY: 2.px,
+          blur: 6.px,
+          color: const Color.rgba(0, 0, 0, 0.20),
+        ),
+      ),
+    ]),
+    css('html[data-theme="dark"] .pubspec-editor-actions .dp-button').styles(
+      shadow: .none,
     ),
   ];
 }

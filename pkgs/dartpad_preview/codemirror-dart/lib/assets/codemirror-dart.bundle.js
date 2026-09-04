@@ -39237,6 +39237,7 @@ ${text}</tr>
             // Default to Light Mode variables and styles
             backgroundColor: "#fff",
             color: "#4a4a4a",
+            colorScheme: "light",
             "--cm-builtin": "#4a4a4a",
             "--cm-comment": "#5F6368",
             "--cm-keyword": "#007a27",
@@ -39280,10 +39281,18 @@ ${text}</tr>
         ".cm-activeLineGutter": {
             backgroundColor: "rgba(27, 134, 245, 0.07)",
         },
+        ".cm-panels": {
+            backgroundColor: "#fff",
+            color: "#4a4a4a",
+        },
+        ".cm-lsp-reference-panel": {
+            color: "#4a4a4a",
+        },
         // Dark Mode Overrides (triggered by data-theme="dark" on ancestor html or body)
         '[data-theme="dark"] &': {
             backgroundColor: "#0E161F",
             color: "#FFFFFF",
+            colorScheme: "dark",
             "--cm-builtin": "#FFFFFF",
             "--cm-comment": "#909CC3",
             "--cm-keyword": "#50E191",
@@ -39325,6 +39334,13 @@ ${text}</tr>
         },
         '[data-theme="dark"] & .cm-activeLineGutter': {
             backgroundColor: "rgba(32, 143, 253, 0.07)",
+        },
+        '[data-theme="dark"] & .cm-panels': {
+            backgroundColor: "#0E161F",
+            color: "#FFFFFF",
+        },
+        '[data-theme="dark"] & .cm-lsp-reference-panel': {
+            color: "#FFFFFF",
         },
         // Shared Styles
         ".cm-foldPlaceholder": {
