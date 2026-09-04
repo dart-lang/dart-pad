@@ -38,6 +38,7 @@ abstract mixin class TabsController<T> {
   final Map<String, StreamSubscription<void>> _tabUpdateSubscriptions = {};
   String _activeTabPath = '';
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
+  Future<void>? _pendingSave;
 
   // An iterable of all existing tabs, including those that are not currently open but kept alive.
   Iterable<EditorTab<T>> get allTabs => _tabs.followedBy(_keepAliveTabs.values);
@@ -171,7 +172,31 @@ abstract mixin class TabsController<T> {
   }
 
   /// Saves all open tabs that have unsaved changes.
+  ///
+  /// Deduplicates concurrent calls: if a save operation is already pending or
+  /// in progress, callers await the ongoing save first and only trigger a new
+  /// save operation if unsaved changes still remain.
   Future<void> saveAllTabs() async {
+    final existing = _pendingSave;
+    if (existing != null) {
+      await existing;
+      if (!hasUnsavedChanges) {
+        return;
+      }
+    }
+
+    final saveFuture = _saveAllTabsInternal();
+    _pendingSave = saveFuture;
+    try {
+      await saveFuture;
+    } finally {
+      if (_pendingSave == saveFuture) {
+        _pendingSave = null;
+      }
+    }
+  }
+
+  Future<void> _saveAllTabsInternal() async {
     final savedFiles = <String>[];
     for (final tab in allTabs) {
       if (tab.hasUnsavedChanges) {

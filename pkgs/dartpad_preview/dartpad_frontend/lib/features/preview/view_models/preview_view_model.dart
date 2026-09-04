@@ -26,7 +26,11 @@ class PreviewViewModel extends ChangeNotifier {
     required this.workspaceRepository,
     required this.eventBus,
     this.createSandbox = _createRealSandbox,
+    this.onSaveAll,
   });
+
+  /// Optional callback to persist all unsaved editor files before running or hot reloading.
+  final Future<void> Function()? onSaveAll;
 
   /// Repository for working with file systems, compiler sessions, and
   /// package properties.
@@ -138,6 +142,17 @@ class PreviewViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (onSaveAll != null) {
+        try {
+          await onSaveAll!();
+        } catch (_) {
+          // Save errors are reported by TabsViewModel.
+        }
+        if (!_isCurrentOperation(operationId)) {
+          return;
+        }
+      }
+
       final previousCompiler = _hotReloadCompiler;
       if (previousCompiler != null) {
         eventBus.dispatch(const LogEvent('Closing previous compiler session...'));
@@ -288,6 +303,17 @@ class PreviewViewModel extends ChangeNotifier {
     var reloadSucceeded = false;
 
     try {
+      if (onSaveAll != null) {
+        try {
+          await onSaveAll!();
+        } catch (_) {
+          // Save errors are reported by TabsViewModel.
+        }
+        if (!_isCurrentOperation(operationId)) {
+          return;
+        }
+      }
+
       eventBus.dispatch(const LogEvent('Preparing compiler...'));
       var compiler = _hotReloadCompiler;
       if (compiler == null) {

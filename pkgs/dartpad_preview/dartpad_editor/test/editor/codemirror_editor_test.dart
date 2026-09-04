@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -83,5 +83,32 @@ void main() {
     await pumpEventQueue();
 
     expect(runTriggered, isTrue);
+  });
+
+  test('triggers onBlur callback when editor loses focus', () async {
+    final parent = web.HTMLDivElement();
+    web.document.body!.appendChild(parent);
+
+    var blurTriggered = false;
+    final editor = CodeMirrorEditor(
+      parent,
+      file: 'lib/main.dart',
+      initialDoc: 'void main() {}',
+      onBlur: () {
+        blurTriggered = true;
+      },
+    );
+
+    addTearDown(() {
+      editor.destroy();
+      parent.remove();
+    });
+
+    editor.view.contentDOM.dispatchEvent(
+      web.FocusEvent('focusout', web.FocusEventInit(bubbles: true)),
+    );
+    await pumpEventQueue();
+
+    expect(blurTriggered, isTrue);
   });
 }
