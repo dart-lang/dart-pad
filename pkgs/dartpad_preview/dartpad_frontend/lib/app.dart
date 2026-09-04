@@ -635,7 +635,7 @@ class AppState extends State<App> {
                 left: EditorShell(
                   openTabs: session.tabs.openTabs,
                   activeFile: session.tabs.activeFile,
-                  fileTree: _buildFileTree(session),
+                  fileTreeBuilder: (onCollapse) => _buildFileTree(session, onCollapse: onCollapse),
                   editorOverlay: _buildEditorOverlay(session),
                   onSwitchFile: session.tabs.switchFile,
                   onCloseFile: session.tabs.closeFile,
@@ -649,7 +649,7 @@ class AppState extends State<App> {
               EditorShell(
                 openTabs: session.tabs.openTabs,
                 activeFile: session.tabs.activeFile,
-                fileTree: _buildFileTree(session),
+                fileTreeBuilder: (onCollapse) => _buildFileTree(session, onCollapse: onCollapse),
                 editorOverlay: _buildEditorOverlay(session),
                 onSwitchFile: session.tabs.switchFile,
                 onCloseFile: session.tabs.closeFile,
@@ -724,13 +724,14 @@ class AppState extends State<App> {
     ]);
   }
 
-  Component _buildFileTree(WorkspaceSession session) {
+  Component _buildFileTree(WorkspaceSession session, {VoidCallback? onCollapse}) {
     return ListenableBuilder(
       listenable: session.fileTree,
       builder: (context) => FileTreeView(
         state: session.fileTree.state,
         actions: session.fileTree.actions,
         contextMenu: session.contextMenu,
+        onCollapse: onCollapse,
       ),
     );
   }

@@ -19,7 +19,7 @@ class EditorShell extends StatefulComponent {
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.fileTree,
+    required this.fileTreeBuilder,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
@@ -45,8 +45,8 @@ class EditorShell extends StatefulComponent {
   /// Closes the editor tab at the provided path.
   final bool Function(String path, {bool discardChanges})? onCloseFile;
 
-  /// The workspace file tree.
-  final Component fileTree;
+  /// A builder function that creates the file tree component with a collapse callback.
+  final Component Function(VoidCallback onCollapse) fileTreeBuilder;
 
   /// A component displayed above the active editor content.
   final Component editorOverlay;
@@ -139,7 +139,7 @@ class _EditorShellState extends State<EditorShell> {
         rightContent,
       ]);
     } else {
-      // Expanded file tree with collapse button.
+      // Expanded file tree.
       shellContent = div(classes: 'editor-shell', [
         SplitPanel(
           initialValue: 200,
@@ -147,18 +147,7 @@ class _EditorShellState extends State<EditorShell> {
           minValue: 150,
           maxValue: 300,
           left: aside(classes: 'file-tree-pane', [
-            div(classes: 'file-tree-collapse-bar', [
-              button(
-                classes: 'file-tree-rail-button',
-                attributes: {
-                  'title': 'Hide file tree',
-                  'aria-label': 'Hide file tree',
-                },
-                onClick: _toggleFileTree,
-                [const Icon('chevron_left', size: 18)],
-              ),
-            ]),
-            component.fileTree,
+            component.fileTreeBuilder(_toggleFileTree),
           ]),
           right: rightContent,
         ),
@@ -230,21 +219,6 @@ class _EditorShellState extends State<EditorShell> {
     ),
     css('.file-tree-rail-button:hover').styles(
       backgroundColor: colorBorder,
-    ),
-
-    // -- Embed mode: collapse bar above file tree when expanded --
-    css('.file-tree-collapse-bar').styles(
-      display: .flex,
-      height: 32.px,
-      minHeight: 32.px,
-      padding: .symmetric(horizontal: 4.px),
-      border: .only(
-        bottom: .solid(color: colorBorder, width: 1.px),
-      ),
-      justifyContent: .end,
-      alignItems: .center,
-      flex: const .shrink(0),
-      backgroundColor: colorSurface,
     ),
   ];
 }

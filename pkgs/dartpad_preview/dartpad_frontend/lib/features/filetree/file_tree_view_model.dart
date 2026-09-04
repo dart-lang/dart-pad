@@ -81,6 +81,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     openFile: tabs.openFile,
     clearOperationError: clearOperationError,
     navigateUp: navigateUp,
+    focusPath: focusPath,
   );
 
   /// Whether the file at [path] is required by DartPad Preview.
