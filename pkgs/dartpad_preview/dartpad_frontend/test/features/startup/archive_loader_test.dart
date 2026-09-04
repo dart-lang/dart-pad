@@ -209,7 +209,7 @@ void main() {
       );
     });
 
-    test('disables workspace resolution only for the active nested package', () async {
+    test('disables workspace resolution across all packages in the archive', () async {
       const rootPubspec = 'name: root_package\nresolution: workspace\n';
       const examplePubspec = 'name: example_package\nresolution: workspace\n';
       final archiveBytes = createTarArchive({
@@ -233,7 +233,10 @@ void main() {
       expect(result.packageRoot, 'example');
       expect(await api.readFileAsText('pubspec.yaml'), rootPubspec);
       expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
-      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
       expect(
         await api.readFileAsText('example/pubspec_overrides.yaml'),
         '{"resolution":null}',
@@ -320,12 +323,12 @@ resolution: workspace
       );
     });
 
-    test('preserves overrides outside the active package', () async {
+    test('preserves overrides for packages not using workspace resolution', () async {
       const rootOverrides = 'dependency_overrides:\n  collection: any\n';
       final archiveBytes = createTarArchive({
-        'pubspec.yaml': 'name: root\nresolution: workspace\n',
+        'pubspec.yaml': 'name: root\n',
         'pubspec_overrides.yaml': rootOverrides,
-        'example/pubspec.yaml': 'name: example\n',
+        'example/pubspec.yaml': 'name: example\nresolution: workspace\n',
         'example/pubspec_overrides.yaml': 'workspace: []\n',
         'example/lib/main.dart': 'void main() {}',
       });
@@ -345,7 +348,41 @@ resolution: workspace
       expect(await api.readFileAsText('pubspec_overrides.yaml'), rootOverrides);
       expect(
         await api.readFileAsText('example/pubspec_overrides.yaml'),
-        'workspace: []\n',
+        '{"resolution":null}',
+      );
+    });
+
+    test('disables workspace resolution across arbitrary nested package directories', () async {
+      final archiveBytes = createTarArchive({
+        'packages/pkg_a/pubspec.yaml': 'name: pkg_a\nresolution: workspace\n',
+        'packages/pkg_b/pubspec.yaml': 'name: pkg_b\n',
+        'packages/nested/pkg_c/pubspec.yaml': 'name: pkg_c\nresolution: workspace\n',
+        'README.md': '# Multi-package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(
+        await api.readFileAsText('packages/pkg_a/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+      expect(
+        await api.fileExist('packages/pkg_b/pubspec_overrides.yaml'),
+        isFalse,
+      );
+      expect(
+        await api.readFileAsText('packages/nested/pkg_c/pubspec_overrides.yaml'),
+        '{"resolution":null}',
       );
     });
 

@@ -100,7 +100,7 @@ class ArchiveLoader {
     final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
     final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(project, entryPath) ?? '';
 
-    _disableWorkspaceResolution(project, projectDir);
+    _disableWorkspaceResolution(project);
     await ProjectLoader.writeFiles(root, project);
 
     return LoadedProject(
@@ -111,27 +111,20 @@ class ArchiveLoader {
     );
   }
 
-  /// Isolates the active package from a workspace that is not part of the
-  /// loaded archive.
+  /// Isolates packages in the loaded archive from a workspace that is not part
+  /// of the archive.
   ///
   /// This mirrors `dart pub unpack`: the original pubspec remains unchanged,
   /// while `resolution: workspace` is disabled through a package-local
-  /// `pubspec_overrides.yaml` file. Pub runs dependency resolution for an
-  /// `example/` package by default. Therefore, workspace resolution must also
-  /// be disabled for nested example packages to prevent `pub get` from failing
-  /// there.
-  void _disableWorkspaceResolution(Project project, String projectDir) {
-    final normalizedProjectDir = workspaceContext.normalize(projectDir);
-    var packageDir = normalizedProjectDir;
-    while (true) {
-      _disableWorkspaceResolutionForPackage(project, packageDir);
-
-      final exampleDir = workspaceContext.join(packageDir, 'example');
-      final examplePubspecPath = workspaceContext.join(exampleDir, 'pubspec.yaml');
-      if (!project.containsFile(examplePubspecPath)) {
-        return;
+  /// `pubspec_overrides.yaml` file.
+  void _disableWorkspaceResolution(Project project) {
+    for (final path in project.paths.toList()) {
+      if (workspaceContext.basename(path) == 'pubspec.yaml') {
+        _disableWorkspaceResolutionForPackage(
+          project,
+          workspaceContext.dirname(path),
+        );
       }
-      packageDir = exampleDir;
     }
   }
 
