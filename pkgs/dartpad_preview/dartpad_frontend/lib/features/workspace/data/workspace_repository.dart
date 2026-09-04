@@ -39,6 +39,25 @@ class WorkspaceRepository {
 
   WorkspaceFolder get root => workspaceResourceApi.root;
 
+  /// The workspace that owns generated metadata used by compilation.
+  ///
+  /// Pub commands run in the worker workspace. Their filesystem events are
+  /// mirrored back to the local editor workspace asynchronously, so generated
+  /// files such as `.dart_tool/package_config.json` may not be available
+  /// locally when compilation finishes. Prefer the worker API when it is
+  /// available and retain the local API for unsynchronized repositories and
+  /// tests.
+  WorkspaceFolder get _compilerMetadataRoot {
+    final api = workspaceResourceApi;
+    if (api is SyncedWorkspaceResourceApi) {
+      final remoteApi = api.remoteApi;
+      if (remoteApi != null) {
+        return remoteApi.root;
+      }
+    }
+    return api.root;
+  }
+
   /// Base URL where worker and sandbox assets are hosted.
   Uri get assetBaseUrl => sdk.assetBaseUrl;
 
@@ -231,11 +250,12 @@ class WorkspaceRepository {
   /// Converts a workspace [filePath] to a `package:` URI based on the nearest
   /// resolved package configuration or pubspec.yaml.
   Future<Uri> convertToPackageUri(String filePath) async {
+    final metadataRoot = _compilerMetadataRoot;
     String? resolvedPackageName;
     WorkspaceFolder? resolvedFolder;
 
     // 1. Search for package_config.json in all parent folders (from bottom to top)
-    WorkspaceFolder folder = root.getFile(filePath).parent;
+    WorkspaceFolder folder = metadataRoot.getFile(filePath).parent;
     while (true) {
       final config = folder.getFile('.dart_tool/package_config.json');
       if (await config.exists()) {
@@ -269,7 +289,7 @@ class WorkspaceRepository {
 
     // 2. Search for pubspec.yaml in all parent folders (from bottom to top)
     if (resolvedPackageName == null) {
-      folder = root.getFile(filePath).parent;
+      folder = metadataRoot.getFile(filePath).parent;
       while (true) {
         final pubspec = folder.getFile('pubspec.yaml');
         if (await pubspec.exists()) {
@@ -290,7 +310,7 @@ class WorkspaceRepository {
     }
 
     final packageName = resolvedPackageName ?? 'app';
-    final packageFolder = resolvedFolder ?? root;
+    final packageFolder = resolvedFolder ?? metadataRoot;
 
     final libFolder = workspaceContext.join(packageFolder.path, 'lib');
     if (workspacePath.isWithin(libFolder, filePath)) {
@@ -308,7 +328,7 @@ class WorkspaceRepository {
   /// Checks if the project containing [filePath] has a dependency on the
   /// flutter framework by reading its resolved `.dart_tool/package_config.json`.
   Future<bool> hasFlutterDependency(String filePath) async {
-    WorkspaceFolder folder = root.getFile(filePath).parent;
+    WorkspaceFolder folder = _compilerMetadataRoot.getFile(filePath).parent;
     while (true) {
       final config = folder.getFile('.dart_tool/package_config.json');
       if (await config.exists()) {
