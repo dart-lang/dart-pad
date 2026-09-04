@@ -16,6 +16,7 @@ String resolveDisplayKey(String key) => key.replaceAll('Mod', isMac ? '⌘' : 'C
 
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
 enum ShortcutCategory {
+  execution('Execution'),
   refactoring('Refactoring & code intelligence'),
   editing('Editing'),
   search('Search'),
@@ -73,6 +74,14 @@ class ShortcutDefinition {
   /// When `false`, the shortcut is only visible after expanding the
   /// "Show more shortcuts" section.
   final bool isPrimary;
+
+  // ── Execution ────────────────────────────────────────────────────────────
+  static const runOrHotReload = ShortcutDefinition(
+    label: 'Run / Hot reload',
+    displayKey: 'Mod + Enter',
+    codemirrorKeys: ['Mod-Enter'],
+    category: ShortcutCategory.execution,
+  );
 
   // ── Refactoring & code intelligence ──────────────────────────────────────
   static const quickFix = ShortcutDefinition(
@@ -167,14 +176,6 @@ class ShortcutDefinition {
     label: 'Copy line up / down',
     displayKey: 'Shift + Alt + ↑ / ↓',
     codemirrorKeys: ['Shift-Alt-ArrowUp', 'Shift-Alt-ArrowDown'],
-    category: ShortcutCategory.editing,
-    isPrimary: false,
-  );
-
-  static const insertBlankLine = ShortcutDefinition(
-    label: 'Insert blank line',
-    displayKey: 'Mod + Enter',
-    codemirrorKeys: ['Mod-Enter'],
     category: ShortcutCategory.editing,
     isPrimary: false,
   );
@@ -300,6 +301,9 @@ class ShortcutDefinition {
 /// Display keys use `Mod` as a platform-agnostic placeholder for the primary
 /// modifier key. Call [resolveDisplayKey] to get the platform-specific string.
 const shortcutDefinitions = <ShortcutDefinition>[
+  // ── Execution ────────────────────────────────────────────────────────────
+  ShortcutDefinition.runOrHotReload,
+
   // ── Refactoring & code intelligence ──────────────────────────────────────
   ShortcutDefinition.quickFix,
   ShortcutDefinition.renameSymbol,
@@ -316,7 +320,6 @@ const shortcutDefinitions = <ShortcutDefinition>[
   ShortcutDefinition.indent,
   ShortcutDefinition.outdent,
   ShortcutDefinition.copyLine,
-  ShortcutDefinition.insertBlankLine,
   ShortcutDefinition.jumpToMatchingBracket,
 
   // ── Search ───────────────────────────────────────────────────────────────

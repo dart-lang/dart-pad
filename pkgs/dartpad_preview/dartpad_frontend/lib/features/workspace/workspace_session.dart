@@ -40,9 +40,11 @@ final class WorkspaceSession {
 
   factory WorkspaceSession.create(WorkspaceRepository repository) {
     final contextMenu = ContextMenuController();
+    late final WorkspaceSession session;
     final codemirrorAdapter = CodeMirrorTabAdapter(
       contextMenu: contextMenu,
       events: repository.events,
+      onRun: () => session.runOrHotReload(),
     );
     final tabs = TabsViewModel(
       workspaceResourceApi: repository.workspaceResourceApi,
@@ -58,7 +60,7 @@ final class WorkspaceSession {
       workspace: repository.workspaceResourceApi,
     );
 
-    return WorkspaceSession._(
+    session = WorkspaceSession._(
       events: repository.events,
       taskStatus: repository.taskStatus,
       analyzerStatus: AnalyzerStatusController(repository.taskStatus),
@@ -74,6 +76,7 @@ final class WorkspaceSession {
       contextMenu: contextMenu,
       codemirrorAdapter: codemirrorAdapter,
     );
+    return session;
   }
 
   final AppEventBus events;
@@ -87,6 +90,21 @@ final class WorkspaceSession {
   final PreviewViewModel preview;
   final ContextMenuController contextMenu;
   final CodeMirrorTabAdapter _codemirrorAdapter;
+
+  /// Triggers a hot reload if the preview is running, or runs the active file/entrypoint
+  /// if the preview is ready to start.
+  void runOrHotReload() {
+    if (preview.canHotReload) {
+      unawaited(preview.hotReloadCode());
+    } else if (preview.canStart) {
+      final activeFile = tabs.activeFile;
+      unawaited(
+        preview.runCode(
+          activeFile.isNotEmpty ? activeFile : (preview.state.entrypoint ?? 'lib/main.dart'),
+        ),
+      );
+    }
+  }
 
   LanguageServer? _languageServer;
   LanguageServerClient? _languageServerClient;
