@@ -26,7 +26,9 @@ class EditorViewState {
 /// language server features (such as syntax highlighting, diagnostics,
 /// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
-  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient);
+  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient, [this._focusoutHandler]);
+
+  final JSFunction? _focusoutHandler;
 
   /// Creates a new [CodeMirrorEditor] inside the given [element].
   ///
@@ -37,6 +39,7 @@ final class CodeMirrorEditor {
   /// - [onUpdate] is triggered when the document text changes.
   /// - [onSave] is triggered on Cmd/Ctrl+S keypress.
   /// - [onRun] is triggered on Cmd/Ctrl+Enter keypress.
+  /// - [onBlur] is triggered when the editor loses focus.
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
   /// - [onQuickFixRequested] is triggered from a diagnostic hover action.
   /// - [onQuickFixAvailabilityRequested] controls whether that action is shown.
@@ -47,6 +50,7 @@ final class CodeMirrorEditor {
     void Function(String text)? onUpdate,
     void Function()? onSave,
     void Function()? onRun,
+    void Function()? onBlur,
     void Function()? onCodeActionRequested,
     void Function(int from, int to)? onQuickFixRequested,
     Future<bool> Function(int from, int to)? onQuickFixAvailabilityRequested,
@@ -106,6 +110,9 @@ final class CodeMirrorEditor {
               if (update.docChanged && onUpdate != null) {
                 onUpdate(update.state.doc.toJsString().toDart);
               }
+              if (update.focusChanged && !update.view.hasFocus && onBlur != null) {
+                onBlur();
+              }
             }).toJS,
           ),
           langCompartment.of(_languageExtension(file, languageServerClient)),
@@ -148,7 +155,18 @@ final class CodeMirrorEditor {
       ),
     );
 
-    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient);
+    JSFunction? focusoutHandler;
+    if (onBlur != null) {
+      focusoutHandler = ((web.FocusEvent event) {
+        final relatedTarget = event.relatedTarget as web.Node?;
+        if (relatedTarget == null || !view.dom.contains(relatedTarget)) {
+          onBlur();
+        }
+      }).toJS;
+      view.dom.addEventListener('focusout', focusoutHandler);
+    }
+
+    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient, focusoutHandler);
     return editor;
   }
 
@@ -234,8 +252,14 @@ final class CodeMirrorEditor {
     view.focus();
   }
 
+  /// Whether the editor currently has focus.
+  bool get hasFocus => view.hasFocus;
+
   /// Destroys the editor view.
   void destroy() {
+    if (_focusoutHandler != null) {
+      view.dom.removeEventListener('focusout', _focusoutHandler);
+    }
     view.destroy();
   }
 

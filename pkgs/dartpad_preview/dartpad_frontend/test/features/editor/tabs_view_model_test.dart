@@ -201,6 +201,34 @@ void main() {
     expect(tabs!.errorMessage, isNot(contains('Bad state')));
   });
 
+  testClient('autosaves dirty tab when editor loses focus', (tester) async {
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    mainTab.editor.text = 'void main() { print("autosaved"); }';
+    expect(mainTab.hasUnsavedChanges, isTrue);
+
+    mainTab.editor.view.contentDOM.dispatchEvent(
+      web.FocusEvent('focusout', web.FocusEventInit(bubbles: true)),
+    );
+    await pumpEventQueue();
+
+    expect(mainTab.hasUnsavedChanges, isFalse);
+    expect(workspace.files['lib/main.dart'], 'void main() { print("autosaved"); }');
+  });
+
+  testClient('autosaves dirty tab when switching tabs', (tester) async {
+    await tabs!.openFile('pubspec.yaml');
+    tabs!.switchFile('lib/main.dart');
+    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    mainTab.editor.text = 'void main() { print("switched"); }';
+    expect(mainTab.hasUnsavedChanges, isTrue);
+
+    tabs!.switchFile('pubspec.yaml');
+    await pumpEventQueue();
+
+    expect(mainTab.hasUnsavedChanges, isFalse);
+    expect(workspace.files['lib/main.dart'], 'void main() { print("switched"); }');
+  });
+
   testClient('renders one dirty indicator and a close action for every tab', (tester) async {
     await tabs!.openFile('pubspec.yaml');
     tabs!.switchFile('lib/main.dart');

@@ -455,6 +455,18 @@ void main() {
       expect(adapter.createdTabs['b.dart']!.dirty, isFalse);
       expect(tabs.saveLog.single, containsAll(['a.dart', 'b.dart']));
     });
+
+    test('deduplicates concurrent saveAllTabs calls', () async {
+      adapter.dirty = true;
+      await openExisting('a.dart');
+      final tabA = adapter.createdTabs['a.dart']!..lifecycleLog.clear();
+
+      final future1 = tabs.saveAllTabs();
+      final future2 = tabs.saveAllTabs();
+      await Future.wait([future1, future2]);
+
+      expect(tabA.lifecycleLog, ['save']);
+    });
   });
 
   test('tracks and discards only dirty tabs', () async {
