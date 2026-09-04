@@ -39254,7 +39254,7 @@ ${text}</tr>
             "--cm-operator": "#4a4a4a",
             "--cm-def": "#4a4a4a",
             "--cm-tag": "#007a27",
-            "--cm-property": "#a54a78",
+            "--cm-property": "#0E161F",
         },
         // Light Mode Scoped Styles
         ".cm-content": {
@@ -39309,7 +39309,7 @@ ${text}</tr>
             "--cm-operator": "#FFFFFF",
             "--cm-def": "#FFFFFF",
             "--cm-tag": "#50E191",
-            "--cm-property": "#FF2D64",
+            "--cm-property": "#00D2FA",
         },
         '[data-theme="dark"] & .cm-content': {
             caretColor: "white",
