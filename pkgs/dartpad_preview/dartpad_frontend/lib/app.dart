@@ -267,10 +267,16 @@ class AppState extends State<App> {
     await _initializeAnalyzer(session, workspace, project.packageRoot);
   }
 
+  /// Starts the language server with an editor root derived from [packageRoot].
+  ///
+  /// [packageRoot] is relative to the complete virtual [workspace]. It is
+  /// `null` when no Dart package was detected and empty when the package is
+  /// rooted at the workspace itself. The resulting editor root URI determines
+  /// where analysis starts.
   Future<void> _initializeAnalyzer(
     WorkspaceSession session,
     Workspace workspace,
-    String? projectRoot,
+    String? packageRoot,
   ) async {
     try {
       session.analyzerStatus.beginInitialization();
@@ -280,9 +286,15 @@ class AppState extends State<App> {
         return;
       }
 
+      final rootWorkspaceUri = workspace.workspaceFolder;
+      final editorRootUri = resolveEditorRootUri(
+        rootWorkspaceUri,
+        packageRoot,
+      );
       final languageServerClient = LanguageServerClient(
         languageServer: languageServer,
-        rootWorkspaceUri: workspace.workspaceFolder,
+        rootWorkspaceUri: rootWorkspaceUri,
+        editorRootUri: editorRootUri,
         workspaceChangeEvents: session.repository.workspaceResourceApi.changeEvents,
         documentEditsHandler: (filePath, edits) async {
           final tab = session.tabs.getTab(filePath);
@@ -306,7 +318,7 @@ class AppState extends State<App> {
       session.attachLanguageServer(
         server: languageServer,
         client: languageServerClient,
-        projectRoot: projectRoot,
+        projectRoot: packageRoot,
       );
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {

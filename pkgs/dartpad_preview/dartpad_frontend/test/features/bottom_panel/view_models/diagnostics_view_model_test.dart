@@ -43,6 +43,7 @@ void main() {
       languageServerClient = LanguageServerClient(
         languageServer: null,
         rootWorkspaceUri: Uri.parse('file:///workspace/'),
+        editorRootUri: Uri.parse('file:///workspace/'),
         workspaceChangeEvents: workspaceEvents.stream,
         sendToLanguageServer: (_) {},
         languageServerMessages: languageServerMessages.stream,
