@@ -111,6 +111,15 @@ root is the closest parent directory containing a `pubspec.yaml`. For example,
 package under `example/`, while the rest of the downloaded archive remains in
 the workspace.
 
+If the active package in a remote archive or pub.dev package declares
+`resolution: workspace`, DartPad resolves that package independently of its
+original workspace. It writes a package-local
+`pubspec_overrides.yaml` with a null `resolution` value while leaving the
+downloaded `pubspec.yaml` unchanged. An existing overrides file in an isolated
+package is replaced. Because Pub resolves an `example/` package by
+default, DartPad applies the same isolation recursively to nested example
+packages that declare workspace resolution.
+
 Examples:
 
 ```text

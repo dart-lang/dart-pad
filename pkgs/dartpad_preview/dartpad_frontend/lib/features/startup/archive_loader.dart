@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
+import 'package:yaml/yaml.dart';
 
 import 'project_loader.dart';
 
@@ -86,22 +87,21 @@ class ArchiveLoader {
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
     final targetFilePath = filePath ?? findDefaultFile(archive);
-    final files = <ProjectFile>[];
-    for (final ArchiveFile file in archive.files) {
-      if (!file.isFile) {
-        continue;
-      }
-
-      files.add(
-        ProjectFile(path: _relativePath(file.name), bytes: file.content),
-      );
-    }
+    final project = Project([
+      for (final ArchiveFile file in archive.files)
+        if (file.isFile)
+          ProjectFile(
+            path: _relativePath(file.name),
+            bytes: file.content,
+          ),
+    ]);
 
     final entryPath = targetFilePath == null ? null : ProjectLoader.normalizePath(targetFilePath);
     final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
-    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(files, entryPath) ?? '';
+    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(project, entryPath) ?? '';
 
-    await ProjectLoader.writeFiles(root, files);
+    _disableWorkspaceResolution(project);
+    await ProjectLoader.writeFiles(root, project);
 
     return LoadedProject(
       projectDir: projectDir,
@@ -109,6 +109,60 @@ class ArchiveLoader {
       packageRoot: projectDir,
       pathToMain: mainPath,
     );
+  }
+
+  /// Isolates packages in the loaded archive from a workspace that is not part
+  /// of the archive.
+  ///
+  /// This mirrors `dart pub unpack`: the original pubspec remains unchanged,
+  /// while `resolution: workspace` is disabled through a package-local
+  /// `pubspec_overrides.yaml` file.
+  void _disableWorkspaceResolution(Project project) {
+    for (final path in project.paths.toList()) {
+      if (workspaceContext.basename(path) == 'pubspec.yaml') {
+        _disableWorkspaceResolutionForPackage(
+          project,
+          workspaceContext.dirname(path),
+        );
+      }
+    }
+  }
+
+  void _disableWorkspaceResolutionForPackage(
+    Project project,
+    String projectDir,
+  ) {
+    final pubspecPath = workspaceContext.join(projectDir, 'pubspec.yaml');
+    final pubspecBytes = project.readFile(pubspecPath);
+    if (pubspecBytes == null) {
+      return;
+    }
+
+    final String pubspecContents;
+    try {
+      pubspecContents = utf8.decode(pubspecBytes);
+    } on FormatException {
+      return;
+    }
+
+    if (!_usesWorkspaceResolution(pubspecContents)) {
+      return;
+    }
+
+    final overridesPath = workspaceContext.join(projectDir, 'pubspec_overrides.yaml');
+    project.writeFile(
+      overridesPath,
+      Uint8List.fromList(utf8.encode(jsonEncode({'resolution': null}))),
+    );
+  }
+
+  bool _usesWorkspaceResolution(String pubspecContents) {
+    try {
+      final rootValue = loadYaml(pubspecContents);
+      return rootValue is Map && rootValue['resolution'] == 'workspace';
+    } on YamlException {
+      return false;
+    }
   }
 
   String _relativePath(String path) {

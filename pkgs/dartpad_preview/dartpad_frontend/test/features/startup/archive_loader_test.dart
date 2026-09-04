@@ -18,14 +18,19 @@ void main() {
   group('ArchiveLoader', () {
     const String absoluteUrl = 'https://example.com/archive.tar.gz';
 
-    Uint8List createTarArchive(Map<String, String> files) {
+    Uint8List createTarArchiveFromBytes(Map<String, List<int>> files) {
       final Archive archive = Archive();
-      for (final MapEntry<String, String> entry in files.entries) {
-        final List<int> contentBytes = entry.value.codeUnits;
-        archive.addFile(ArchiveFile(entry.key, contentBytes.length, contentBytes));
+      for (final entry in files.entries) {
+        archive.addFile(ArchiveFile(entry.key, entry.value.length, entry.value));
       }
       final List<int> encoded = TarEncoder().encode(archive);
       return Uint8List.fromList(encoded);
+    }
+
+    Uint8List createTarArchive(Map<String, String> files) {
+      return createTarArchiveFromBytes(
+        files.map((path, contents) => MapEntry(path, contents.codeUnits)),
+      );
     }
 
     Uint8List createTarGzArchive(Map<String, String> files) {
@@ -106,6 +111,7 @@ void main() {
       expect(await api.fileExist('my_project/lib/src/helper.dart'), isTrue);
       expect(await api.fileExist('my_project/assets/image.png'), isTrue);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+      expect(await api.fileExist('my_project/pubspec_overrides.yaml'), isFalse);
 
       // Verify content
       expect(await api.readFileAsText('my_project/pubspec.yaml'), 'name: my_project\n');
@@ -137,6 +143,290 @@ void main() {
 
       expect(await api.fileExist('project/pubspec.yaml'), isTrue);
       expect(await api.fileExist('project/lib/main.dart'), isTrue);
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+      expect(await api.fileExist('project/pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('disables workspace resolution for the active root package', () async {
+      const pubspec = 'name: root_package\nresolution: workspace\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'README.md': '# Root package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(result.packageRoot, '');
+      expect(await api.readFileAsText('pubspec.yaml'), pubspec);
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('also isolates an example package resolved by Pub', () async {
+      const rootPubspec = 'name: root_package\nresolution: workspace\n';
+      const examplePubspec = 'name: example_package\nresolution: workspace\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': rootPubspec,
+        'README.md': '# Root package\n',
+        'example/pubspec.yaml': examplePubspec,
+        'example/lib/main.dart': 'void main() {}',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(result.packageRoot, '');
+      expect(await api.readFileAsText('pubspec.yaml'), rootPubspec);
+      expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+      expect(
+        await api.readFileAsText('example/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('disables workspace resolution across all packages in the archive', () async {
+      const rootPubspec = 'name: root_package\nresolution: workspace\n';
+      const examplePubspec = 'name: example_package\nresolution: workspace\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': rootPubspec,
+        'example/pubspec.yaml': examplePubspec,
+        'example/lib/main.dart': 'void main() {}',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'example/lib/main.dart',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      final result = await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(result.packageRoot, 'example');
+      expect(await api.readFileAsText('pubspec.yaml'), rootPubspec);
+      expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+      expect(
+        await api.readFileAsText('example/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('replaces an existing overrides file for the active package', () async {
+      const overrides = '''
+# Preserve this comment.
+dependency_overrides:
+  collection: ^1.19.0
+workspace:
+  - packages/*
+resolution: workspace
+''';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': 'name: package\nresolution: workspace\n',
+        'pubspec_overrides.yaml': overrides,
+        'README.md': '# Package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      final updated = await api.readFileAsText('pubspec_overrides.yaml');
+      expect(updated, '{"resolution":null}');
+    });
+
+    test('replaces an empty overrides file', () async {
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': 'name: package\nresolution: workspace\n',
+        'pubspec_overrides.yaml': '',
+        'README.md': '# Package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      final updated = await api.readFileAsText('pubspec_overrides.yaml');
+      expect(updated, '{"resolution":null}');
+    });
+
+    test('replaces an invalid overrides file', () async {
+      const overrides = '- not a map\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': 'name: package\nresolution: workspace\n',
+        'pubspec_overrides.yaml': overrides,
+        'README.md': '# Package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(
+        await api.readFileAsText('pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('preserves overrides for packages not using workspace resolution', () async {
+      const rootOverrides = 'dependency_overrides:\n  collection: any\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': 'name: root\n',
+        'pubspec_overrides.yaml': rootOverrides,
+        'example/pubspec.yaml': 'name: example\nresolution: workspace\n',
+        'example/pubspec_overrides.yaml': 'workspace: []\n',
+        'example/lib/main.dart': 'void main() {}',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'example/lib/main.dart',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(await api.readFileAsText('pubspec_overrides.yaml'), rootOverrides);
+      expect(
+        await api.readFileAsText('example/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('disables workspace resolution across arbitrary nested package directories', () async {
+      final archiveBytes = createTarArchive({
+        'packages/pkg_a/pubspec.yaml': 'name: pkg_a\nresolution: workspace\n',
+        'packages/pkg_b/pubspec.yaml': 'name: pkg_b\n',
+        'packages/nested/pkg_c/pubspec.yaml': 'name: pkg_c\nresolution: workspace\n',
+        'README.md': '# Multi-package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(
+        await api.readFileAsText('packages/pkg_a/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+      expect(
+        await api.fileExist('packages/pkg_b/pubspec_overrides.yaml'),
+        isFalse,
+      );
+      expect(
+        await api.readFileAsText('packages/nested/pkg_c/pubspec_overrides.yaml'),
+        '{"resolution":null}',
+      );
+    });
+
+    test('preserves a malformed pubspec without creating overrides', () async {
+      const pubspec = 'name: package\nresolution: [workspace\n';
+      final archiveBytes = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'README.md': '# Package\n',
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'README.md',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(await api.readFileAsText('pubspec.yaml'), pubspec);
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('preserves a non-UTF-8 pubspec without creating overrides', () async {
+      final archiveBytes = createTarArchiveFromBytes({
+        'pubspec.yaml': [0xFF],
+      });
+      const loader = ArchiveLoader(
+        archiveUrl: absoluteUrl,
+        filePath: 'pubspec.yaml',
+      );
+      final api = MemoryWorkspaceResourceApi();
+
+      await http.runWithClient(
+        () => loader.loadArchive(api.root),
+        () => MockClient((http.Request request) async {
+          return http.Response.bytes(archiveBytes, 200);
+        }),
+      );
+
+      expect(await api.readFileAsBytes('pubspec.yaml'), [0xFF]);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
     });
 
