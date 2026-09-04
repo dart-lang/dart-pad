@@ -11,19 +11,17 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  testClient('disables example menus while workspace initialization is pending', (
+  testClient('disables example menu while workspace initialization is pending', (
     tester,
   ) {
     tester.pumpComponent(const AppBar());
 
-    final create =
+    final newButton =
         web.document.querySelector(
-              '[aria-label="Create a new snippet"]',
+              '[aria-label="New"]',
             )!
             as web.HTMLButtonElement;
-    final samples = web.document.querySelector('[aria-label="Samples"]')! as web.HTMLButtonElement;
-    expect(create.disabled, isTrue);
-    expect(samples.disabled, isTrue);
+    expect(newButton.disabled, isTrue);
   });
 
   testClient('renders logo and DartPad title', (tester) {
@@ -39,23 +37,23 @@ void main() {
     expect(title!.textContent, 'DartPad');
   });
 
-  testClient('opens Create and selects a snippet', (tester) async {
+  testClient('opens New and selects Dart Snippet', (tester) async {
     String? selectedExampleId;
     tester.pumpComponent(
-      AppBar(onCreateNewSnippet: (example) => selectedExampleId = example.id),
+      AppBar(onSelectExample: (example) => selectedExampleId = example.id),
     );
 
-    final create =
+    final newButton =
         web.document.querySelector(
-              '[aria-label="Create a new snippet"]',
+              '[aria-label="New"]',
             )!
             as web.HTMLButtonElement;
-    expect(create.disabled, isFalse);
+    expect(newButton.disabled, isFalse);
 
-    create.click();
+    newButton.click();
     await pumpEventQueue();
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, 2);
+    expect(items.length, 6);
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
@@ -63,34 +61,42 @@ void main() {
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 
-  testClient('opens Samples and selects Fibonacci', (tester) async {
+  testClient('opens New and selects Fibonacci with section dividers', (tester) async {
     String? selectedExampleId;
     tester.pumpComponent(
-      AppBar(onLoadSample: (example) => selectedExampleId = example.id),
+      AppBar(onSelectExample: (example) => selectedExampleId = example.id),
     );
 
-    final samples = web.document.querySelector('[aria-label="Samples"]')! as web.HTMLButtonElement;
-    expect(samples.disabled, isFalse);
+    final newButton =
+        web.document.querySelector(
+              '[aria-label="New"]',
+            )!
+            as web.HTMLButtonElement;
+    expect(newButton.disabled, isFalse);
 
-    samples.click();
+    newButton.click();
     await pumpEventQueue();
 
+    final dividers = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-divider');
+    expect(dividers.length, 2);
+    expect((dividers.item(0)! as web.HTMLElement).textContent, 'Dart');
+    expect((dividers.item(1)! as web.HTMLElement).textContent, 'Flutter');
+
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, greaterThan(0));
-    (items.item(0)! as web.HTMLButtonElement).click();
+    expect(items.length, 6);
+    (items.item(2)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
     expect(selectedExampleId, 'fibonacci');
     expect(web.document.querySelector('.dropdown-menu-panel-left'), isNull);
   });
 
-  testClient('renders AppBar with button labels and without SmallScreenTabBar on large screens', (tester) {
+  testClient('renders AppBar with button label and without SmallScreenTabBar on large screens', (tester) {
     tester.pumpComponent(const AppBar());
 
     final labels = web.document.querySelectorAll('.app-bar-button-label');
-    expect(labels.length, 2);
-    expect((labels.item(0)! as web.HTMLElement).textContent, 'Create');
-    expect((labels.item(1)! as web.HTMLElement).textContent, 'Samples');
+    expect(labels.length, 1);
+    expect((labels.item(0)! as web.HTMLElement).textContent, 'New');
 
     final smallScreenTabBar = web.document.querySelector('.small-screen-tab-bar');
     expect(smallScreenTabBar, isNull);

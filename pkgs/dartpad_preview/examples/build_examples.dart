@@ -30,22 +30,12 @@ void main(List<String> args) {
   builder.generate();
 }
 
-enum ExampleCategory {
-  snippet('Snippet'),
-  sample('Sample');
-
-  const ExampleCategory(this.label);
-  final String label;
-}
-
 class ExampleConfig implements Comparable<ExampleConfig> {
-  final ExampleCategory category;
-
-  /// Optional sub-grouping within [category], used as a divider label in the
-  /// dropdown menu (e.g. `"Dart"`, `"Flutter"`, `"Ecosystem"`).
+  /// Optional sub-grouping used as a divider label in the dropdown menu
+  /// (e.g. `"Dart"`, `"Flutter"`).
   final String? subcategory;
 
-  /// Unique kebab-case identifier for the sample (e.g. `"hello-world"`).
+  /// Unique kebab-case identifier for the sample (e.g. `"counter"`).
   final String id;
 
   /// Human-readable display name shown in the UI.
@@ -61,12 +51,10 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   /// (e.g. `"images/flutter_logo_192.png"`).
   final String? icon;
 
-  /// Original position in `examples.json`, used to preserve declaration order
-  /// when sorting within a [category].
+  /// Original position in `examples.json`, used to preserve declaration order.
   final int index;
 
   ExampleConfig({
-    required this.category,
     this.subcategory,
     required this.id,
     required this.name,
@@ -78,10 +66,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
 
   factory ExampleConfig.fromJson(Map<String, Object?> json, {int index = 0}) {
     return ExampleConfig(
-      category: ExampleCategory.values.firstWhere(
-        (c) => c.label == json['category'] as String,
-        orElse: () => throw FormatException('Unknown category: ${json['category']}'),
-      ),
       subcategory: json['subcategory'] as String?,
       id: json['id'] as String,
       name: json['name'] as String,
@@ -122,9 +106,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
 
   @override
   int compareTo(ExampleConfig other) {
-    if (category != other.category) {
-      return category.label.compareTo(other.category.label);
-    }
     return index.compareTo(other.index);
   }
 }
@@ -143,8 +124,7 @@ class ExamplesBuilder {
 
     final json = jsonDecode(jsonFile.readAsStringSync()) as List;
     examples = [
-      for (final (i, j) in json.indexed)
-        ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
+      for (final (i, j) in json.indexed) ExampleConfig.fromJson(j as Map<String, Object?>, index: i),
     ];
 
     var hadFailure = false;
@@ -169,6 +149,11 @@ class ExamplesBuilder {
       final pubspecPath = p.join(projectPath, 'pubspec.yaml');
       if (!File(pubspecPath).existsSync()) {
         fail('pubspec.yaml missing in $projectPath.');
+      }
+
+      final readmePath = p.join(projectPath, 'README.md');
+      if (!File(readmePath).existsSync()) {
+        fail('README.md missing in $projectPath.');
       }
 
       final entryFullPath = p.join(projectPath, example.entryPath);
@@ -223,16 +208,8 @@ import 'example.dart';
 export 'example.dart';
 
 abstract final class Examples {
-  static const List<Example> snippets = [
-    ${_itemsForCategory(ExampleCategory.snippet)},
-  ];
-
-  static const List<Example> samples = [
-    ${_itemsForCategory(ExampleCategory.sample)},
-  ];
-
   static const List<Example> all = [
-    ${examples.map((s) => s.varName).join(',\n    ')},
+${_generateAllList()}
   ];
 
   static Example? getById(String id) {
@@ -254,9 +231,26 @@ abstract final class Examples {
     return _normalizeLineEndings(buf.toString());
   }
 
-  String _itemsForCategory(ExampleCategory category) {
-    final items = examples.where((s) => s.category == category).toList();
-    return items.map((item) => item.varName).join(',\n    ');
+  String _generateAllList() {
+    final buf = StringBuffer();
+    String? currentSubcategory;
+    for (var i = 0; i < examples.length; i++) {
+      final example = examples[i];
+      if (example.subcategory != currentSubcategory) {
+        if (i > 0) {
+          buf.writeln();
+        }
+        if (example.subcategory != null) {
+          buf.writeln('    // ${example.subcategory} Examples');
+        }
+        currentSubcategory = example.subcategory;
+      }
+      buf.write('    ${example.varName},');
+      if (i < examples.length - 1) {
+        buf.writeln();
+      }
+    }
+    return buf.toString();
   }
 
   List<int> _archiveBytes(ExampleConfig example) {
@@ -273,7 +267,10 @@ abstract final class Examples {
   }
 
   List<File> _projectFiles(Directory projectDir) {
-    final files = projectDir.listSync(recursive: true).whereType<File>().toList();
+    final files = projectDir.listSync(recursive: true).whereType<File>().where((file) {
+      final rel = _relativeProjectPath(file, projectDir);
+      return !rel.startsWith('.dart_tool/') && !rel.startsWith('.git/') && rel != 'pubspec.lock';
+    }).toList();
     files.sort((a, b) => _relativeProjectPath(a, projectDir).compareTo(_relativeProjectPath(b, projectDir)));
     return files;
   }

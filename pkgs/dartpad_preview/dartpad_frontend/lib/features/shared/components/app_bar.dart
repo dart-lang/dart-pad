@@ -18,18 +18,14 @@ import 'theme_toggle.dart';
 /// overflow menu.
 class AppBar extends StatefulComponent {
   const AppBar({
-    this.onCreateNewSnippet,
-    this.onLoadSample,
+    this.onSelectExample,
     this.isEmbedMode = false,
     this.smallScreenTabBar,
     super.key,
   });
 
-  /// Called when the user selects a snippet from the Create menu.
-  final void Function(Example example)? onCreateNewSnippet;
-
-  /// Called when the user selects a sample from the sample menu.
-  final void Function(Example example)? onLoadSample;
+  /// Called when the user selects an example from the New menu.
+  final void Function(Example example)? onSelectExample;
 
   /// Whether the application is running in embed mode.
   final bool isEmbedMode;
@@ -56,7 +52,7 @@ class _AppBarState extends State<AppBar> {
     final entries = <DropdownMenuEntry>[];
     String? lastSubcategory;
 
-    for (final example in Examples.samples) {
+    for (final example in Examples.all) {
       if (example.subcategory != null && example.subcategory != lastSubcategory) {
         entries.add(DropdownMenuDivider(label: example.subcategory!));
         lastSubcategory = example.subcategory;
@@ -65,7 +61,7 @@ class _AppBarState extends State<AppBar> {
         DropdownMenuItem(
           label: example.name,
           leadingImage: example.icon,
-          onPressed: () => component.onLoadSample?.call(example),
+          onPressed: () => component.onSelectExample?.call(example),
         ),
       );
     }
@@ -88,12 +84,11 @@ class _AppBarState extends State<AppBar> {
   }
 
   Component _buildAppBar([SmallScreenTabBar? smallScreenTabBar]) {
-    final isCreateDisabled = component.onCreateNewSnippet == null;
-    final isSamplesDisabled = component.onLoadSample == null;
+    final isNewDisabled = component.onSelectExample == null;
     final isSmallScreen = component.isSmallScreen;
 
     final appBar = div(classes: 'app-bar', [
-      // Left section: logo + title + create + samples.
+      // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
         const img(
           src: 'images/dart_logo_192.png',
@@ -104,41 +99,17 @@ class _AppBarState extends State<AppBar> {
         const div(classes: 'app-bar-divider', []),
         DropdownMenu(
           alignLeft: true,
-          disabled: isCreateDisabled,
+          disabled: isNewDisabled,
           trigger: button(
             classes: 'app-bar-text-button',
-            disabled: isCreateDisabled,
+            disabled: isNewDisabled,
             attributes: {
-              'aria-label': 'Create a new snippet',
-              'title': 'Create a new snippet',
+              'aria-label': 'New',
+              'title': 'New',
             },
             [
               const Icon('add_circle', size: 18),
-              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Create')]),
-            ],
-          ),
-          items: [
-            for (final example in Examples.snippets)
-              DropdownMenuItem(
-                label: example.name,
-                leadingImage: example.icon,
-                onPressed: () => component.onCreateNewSnippet?.call(example),
-              ),
-          ],
-        ),
-        DropdownMenu(
-          alignLeft: true,
-          disabled: isSamplesDisabled,
-          trigger: button(
-            classes: 'app-bar-text-button',
-            disabled: isSamplesDisabled,
-            attributes: {
-              'aria-label': 'Samples',
-              'title': 'Try a sample',
-            },
-            [
-              const Icon('playlist_add', size: 18),
-              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('Samples')]),
+              if (!isSmallScreen) const span(classes: 'app-bar-button-label', [.text('New')]),
             ],
           ),
           items: _buildExampleItems(),
@@ -235,7 +206,7 @@ class _AppBarState extends State<AppBar> {
       backgroundColor: colorBorder,
     ),
 
-    // -- Text button (Create / Samples) --
+    // -- Text button (New) --
     css('.app-bar-text-button').styles(
       display: .flex,
       padding: .symmetric(horizontal: 10.px, vertical: 6.px),

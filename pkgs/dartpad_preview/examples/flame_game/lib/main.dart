@@ -1,6 +1,6 @@
-// Copyright 2024 the Dart project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license
-// that can be found in the LICENSE file.
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 /// A simplified brick-breaker game,
 /// built using the Flame game engine for Flutter.
@@ -12,8 +12,8 @@ library;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'config.dart';
-import 'game.dart';
+import 'src/config.dart';
+import 'src/game.dart';
 
 void main() {
   runApp(const GameApp());
