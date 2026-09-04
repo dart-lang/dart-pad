@@ -73,11 +73,15 @@ class PreviewViewModel extends ChangeNotifier {
       (_state is PreviewInitial || _state is PreviewCompileError);
 
   /// Whether the running preview can be restarted.
-  bool get canRestart =>
-      !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning && _sandbox != null;
+  bool get canRestart => _canReloadOrRestart;
 
   /// Whether the running preview can accept a hot reload.
-  bool get canHotReload => !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
+  bool get canHotReload => _canReloadOrRestart;
+
+  bool get _canReloadOrRestart =>
+      !_busy &&
+      !workspaceRepository.taskStatus.hasBlockingPreviewTask &&
+      _state is PreviewRunning;
 
   /// Whether the preview run process can be stopped.
   bool get canStop => _state is! PreviewStopping && (_busy || _sandbox != null);
