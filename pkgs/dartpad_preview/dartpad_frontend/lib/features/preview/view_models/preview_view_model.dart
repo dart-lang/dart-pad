@@ -73,13 +73,15 @@ class PreviewViewModel extends ChangeNotifier {
       (_state is PreviewInitial || _state is PreviewCompileError);
 
   /// Whether the running preview can be restarted.
-  bool get canRestart =>
-      !_busy &&
-      _state is PreviewRunning &&
-      (_lastCompiledCode != null || !workspaceRepository.taskStatus.hasBlockingPreviewTask);
+  bool get canRestart => _canReloadOrRestart;
 
   /// Whether the running preview can accept a hot reload.
-  bool get canHotReload => !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
+  bool get canHotReload => _canReloadOrRestart;
+
+  bool get _canReloadOrRestart =>
+      !_busy &&
+      !workspaceRepository.taskStatus.hasBlockingPreviewTask &&
+      _state is PreviewRunning;
 
   /// Whether the preview run process can be stopped.
   bool get canStop => _state is! PreviewStopping && (_busy || _sandbox != null);
@@ -99,26 +101,15 @@ class PreviewViewModel extends ChangeNotifier {
   // so stale work cannot revive the preview after a stop or newer run.
   int _operationId = 0;
 
-  String? _lastCompiledCode;
-
   /// Starts the preview for [entrypoint].
   ///
-  /// By default this creates a fresh compiler session, compiles the current
+  /// This creates a fresh compiler session, compiles the current
   /// sources, loads the resulting module into a new sandbox, and runs the app.
-  ///
-  /// If [skipRecompilation] is `true`, this skips recompilation and reuses the
-  /// last successfully compiled module from [_lastCompiledCode] instead. This is
-  /// used for restart semantics where we want to recreate the sandbox and reset
-  /// runtime state without recompiling unchanged code.
-  ///
-  /// If no cached artifact is available yet, the code is compiled even when
-  /// [skipRecompilation] is `true`.
-  Future<void> runCode(String entrypoint, {bool skipRecompilation = false}) async {
+  Future<void> runCode(String entrypoint) async {
     if (_busy) {
       return;
     }
-    final compileNeeded = !skipRecompilation || _lastCompiledCode == null;
-    if (compileNeeded && workspaceRepository.taskStatus.hasBlockingPreviewTask) {
+    if (workspaceRepository.taskStatus.hasBlockingPreviewTask) {
       return;
     }
 
@@ -139,9 +130,7 @@ class PreviewViewModel extends ChangeNotifier {
 
     var failedTask = launchTask;
     eventBus.dispatch(LogEvent('Run $entrypoint'));
-    if (compileNeeded) {
-      eventBus.dispatch(const LogEvent('Starting compiler...'));
-    }
+    eventBus.dispatch(const LogEvent('Starting compiler...'));
 
     if (isRestart) {
       _state = PreviewRestarting(entrypoint);
@@ -151,47 +140,40 @@ class PreviewViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final String codeToLoad;
-
-      if (compileNeeded) {
-        final previousCompiler = _hotReloadCompiler;
-        if (previousCompiler != null) {
-          eventBus.dispatch(const LogEvent('Closing previous compiler session...'));
-          _hotReloadCompiler = null;
-          await previousCompiler.close();
-          if (!_isCurrentOperation(operationId)) {
-            return;
-          }
-        }
-
-        eventBus.dispatch(const LogEvent('Creating hot reload compiler...'));
-        final compiler = await workspaceRepository.startHotReloadCompiler(
-          Uri.parse(entrypoint),
-        );
-        if (!_isCurrentOperation(operationId)) {
-          await compiler.close();
-          return;
-        }
-        _hotReloadCompiler = compiler;
-
-        eventBus.dispatch(const LogEvent('Compiling application...'));
-        failedTask = TaskKind.compilingApplication;
-        final result = await workspaceRepository.taskStatus.runTask(
-          TaskKind.compilingApplication,
-          compiler.compile,
-          blocksPreview: true,
-        );
+      final previousCompiler = _hotReloadCompiler;
+      if (previousCompiler != null) {
+        eventBus.dispatch(const LogEvent('Closing previous compiler session...'));
+        _hotReloadCompiler = null;
+        await previousCompiler.close();
         if (!_isCurrentOperation(operationId)) {
           return;
         }
-        eventBus.dispatch(LogEvent(result.log ?? ''));
-        eventBus.dispatch(const LogEvent('Compilation succeeded.'));
-        failedTask = launchTask;
-        _lastCompiledCode = result.code;
-        codeToLoad = result.code!;
-      } else {
-        codeToLoad = _lastCompiledCode!;
       }
+
+      eventBus.dispatch(const LogEvent('Creating hot reload compiler...'));
+      final compiler = await workspaceRepository.startHotReloadCompiler(
+        Uri.parse(entrypoint),
+      );
+      if (!_isCurrentOperation(operationId)) {
+        await compiler.close();
+        return;
+      }
+      _hotReloadCompiler = compiler;
+
+      eventBus.dispatch(const LogEvent('Compiling application...'));
+      failedTask = TaskKind.compilingApplication;
+      final result = await workspaceRepository.taskStatus.runTask(
+        TaskKind.compilingApplication,
+        compiler.compile,
+        blocksPreview: true,
+      );
+      if (!_isCurrentOperation(operationId)) {
+        return;
+      }
+      eventBus.dispatch(LogEvent(result.log ?? ''));
+      eventBus.dispatch(const LogEvent('Compilation succeeded.'));
+      failedTask = launchTask;
+      final codeToLoad = result.code!;
 
       final previousSandbox = _sandbox;
       if (previousSandbox != null) {
@@ -343,7 +325,6 @@ class PreviewViewModel extends ChangeNotifier {
       }
 
       eventBus.dispatch(const LogEvent('Hot reload completed successfully.'));
-      _lastCompiledCode = result.code;
       _state = PreviewRunning(entry);
       reloadSucceeded = true;
     } on HotReloadRejectedException catch (e, st) {
@@ -389,7 +370,6 @@ class PreviewViewModel extends ChangeNotifier {
     );
     eventBus.dispatch(const LogEvent('Stopping app...'));
     _state = PreviewStopping();
-    _lastCompiledCode = null;
     notifyListeners();
     var operationStillCurrent = true;
 

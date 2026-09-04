@@ -33,8 +33,7 @@ class PreviewRunning extends _ActivePreviewState {
   PreviewRunning(super.entrypoint);
 }
 
-/// State representing a restart of the application execution using cached
-/// compiled assets.
+/// State representing an application restart after recompiling current sources.
 class PreviewRestarting extends _ActivePreviewState {
   PreviewRestarting(super.entrypoint);
 }
@@ -66,7 +65,7 @@ class PreviewCompileError extends PreviewState {
   /// The error message describing the failure.
   final String message;
 
-  /// Whether the failed launch was a fresh start or a cached restart.
+  /// Whether the failed launch was a fresh start or a restart.
   final PreviewLaunchAction action;
 
   /// The typed task phase that failed.

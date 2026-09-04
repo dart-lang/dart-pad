@@ -229,7 +229,7 @@ void main() {
       expect(viewModel.state, isA<PreviewInitial>());
       expect(repository.startHotReloadCompilerCount, 0);
 
-      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+      await viewModel.runCode('lib/main.dart');
       expect(viewModel.state, isA<PreviewInitial>());
       expect(repository.startHotReloadCompilerCount, 0);
 
@@ -437,10 +437,15 @@ void main() {
       viewModel.dispose();
     });
 
-    test('runCode skipRecompilation = true reuses previous compilation', () async {
+    test('runCode from a running state recompiles the latest sources', () async {
       final fakeSandbox1 = FakePreviewSandbox();
       final fakeSandbox2 = FakePreviewSandbox();
       final fakeCompiler = FakeCompilerSession();
+      fakeCompiler.onCompile = () => (
+        code: 'compiled_code_${fakeCompiler.compileCount}',
+        compiledLibraryUris: <String>['package:app/main.dart'],
+        log: 'compiled log',
+      );
 
       repository.onStartHotReloadCompiler = (_) => fakeCompiler;
 
@@ -457,29 +462,19 @@ void main() {
       await viewModel.runCode('lib/main.dart');
       expect(fakeCompiler.compileCount, 1);
       expect(fakeSandbox1.loadModuleCount, 1);
-
-      final pubGet = repository.taskStatus.startTask(
-        TaskKind.pubGet,
-        label: 'Pub get in /',
-        scope: '/',
-        blocksPreview: true,
-      );
       expect(viewModel.canRestart, isTrue);
 
-      // A cached restart remains available during a blocking workspace task.
-      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+      await viewModel.runCode('lib/main.dart');
 
-      // Compiler should NOT be called again
-      expect(fakeCompiler.compileCount, 1);
+      expect(fakeCompiler.compileCount, 2);
       expect(fakeSandbox1.disposeCount, 1);
       expect(fakeSandbox2.loadModuleCount, 1);
-      expect(fakeSandbox2.loadedCode, 'compiled_code'); // Reuses compiled code
+      expect(fakeSandbox2.loadedCode, 'compiled_code_2');
 
-      pubGet.succeed();
       viewModel.dispose();
     });
 
-    test('cached restart reports a typed restart failure', () async {
+    test('restart reports a typed restart failure', () async {
       final firstSandbox = FakePreviewSandbox();
       final failingSandbox = FakePreviewSandbox()..onRunApp = (_) => throw StateError('restart failed');
       final fakeCompiler = FakeCompilerSession();
@@ -496,14 +491,14 @@ void main() {
       );
 
       await viewModel.runCode('lib/main.dart');
-      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+      await viewModel.runCode('lib/main.dart');
 
       expect(viewModel.state, isA<PreviewCompileError>());
       final error = viewModel.state as PreviewCompileError;
       expect(error.action, PreviewLaunchAction.restart);
       expect(error.failedTask, TaskKind.restartingPreview);
       expect(error.message, contains('restart failed'));
-      expect(fakeCompiler.compileCount, 1);
+      expect(fakeCompiler.compileCount, 2);
 
       viewModel.dispose();
     });
@@ -615,9 +610,9 @@ void main() {
       expect(fakeSandbox.disposeCount, 1);
       expect(fakeCompiler.closeCount, 1);
 
-      // Subsequent skipRecompilation should trigger compile since cache was cleared
+      // A subsequent run compiles again after the previous session was stopped.
       fakeSandbox.loadModuleCount = 0;
-      await viewModel.runCode('lib/main.dart', skipRecompilation: true);
+      await viewModel.runCode('lib/main.dart');
       expect(fakeCompiler.compileCount, 2);
 
       viewModel.dispose();
