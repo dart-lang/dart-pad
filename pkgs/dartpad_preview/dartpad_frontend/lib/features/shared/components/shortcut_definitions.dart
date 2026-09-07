@@ -16,6 +16,7 @@ String resolveDisplayKey(String key) => key.replaceAll('Mod', isMac ? '⌘' : 'C
 
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
 enum ShortcutCategory {
+  view('View'),
   execution('Execution'),
   refactoring('Refactoring & code intelligence'),
   editing('Editing'),
@@ -291,6 +292,13 @@ class ShortcutDefinition {
     label: 'Paste',
     displayKey: 'Mod + V',
   );
+
+  // ── Global & palette commands ───────────────────────────────────────────
+  static const commandPalette = ShortcutDefinition(
+    label: 'Open command palette',
+    displayKey: 'Mod + Shift + P',
+    category: ShortcutCategory.view,
+  );
 }
 
 /// The complete list of keyboard shortcuts displayed in the shortcuts dialog.
@@ -301,6 +309,9 @@ class ShortcutDefinition {
 /// Display keys use `Mod` as a platform-agnostic placeholder for the primary
 /// modifier key. Call [resolveDisplayKey] to get the platform-specific string.
 const shortcutDefinitions = <ShortcutDefinition>[
+  // ── View ─────────────────────────────────────────────────────────────────
+  ShortcutDefinition.commandPalette,
+
   // ── Execution ────────────────────────────────────────────────────────────
   ShortcutDefinition.runOrHotReload,
 

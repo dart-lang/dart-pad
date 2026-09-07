@@ -22,6 +22,7 @@ import 'features/preview/models/preview_state.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
+import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/shortcut_definitions.dart';
@@ -109,6 +110,7 @@ class AppState extends State<App> {
   bool _isInitializingWorkspace = true;
   String _projectDir = '';
   String? _workspacePreparationFailure;
+  bool _isCommandPaletteOpen = false;
 
   bool _isLargeScreen = true;
   SmallScreenTab _selectedSmallScreenTab = .code;
@@ -681,6 +683,17 @@ class AppState extends State<App> {
           onClose: session.contextMenu.hide,
         ),
       ),
+      if (_isCommandPaletteOpen)
+        CommandPalette.fromSession(
+          key: const ValueKey('active-command-palette'),
+          session: session,
+          projectDir: _projectDir,
+          onClose: () {
+            setState(() {
+              _isCommandPaletteOpen = false;
+            });
+          },
+        ),
     ]);
   }
 
@@ -768,13 +781,21 @@ class AppState extends State<App> {
   }
 
   void _handleGlobalKeyDown(web.KeyboardEvent event) {
-    if (event.defaultPrevented) {
+    if (event.defaultPrevented || event.repeat) {
       return;
     }
     final isModifier = isMac ? event.metaKey : event.ctrlKey;
     if (isModifier && !event.altKey && !event.shiftKey && event.key == 'Enter') {
       event.preventDefault();
       _session.runOrHotReload();
+    } else if (isModifier &&
+        !event.altKey &&
+        event.shiftKey &&
+        (event.key == 'p' || event.key == 'P')) {
+      event.preventDefault();
+      setState(() {
+        _isCommandPaletteOpen = !_isCommandPaletteOpen;
+      });
     }
   }
 
@@ -789,6 +810,7 @@ class AppState extends State<App> {
 
   static List<StyleRule> get styles => [
     ...ContextMenu.styles,
+    ...CommandPalette.styles,
     css('.app-shell').styles(
       display: .flex,
       width: 100.percent,
