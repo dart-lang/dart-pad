@@ -169,31 +169,32 @@ class _PreviewContainerState extends State<PreviewContainer> {
               ],
             ),
           ),
-          ButtonGroup(
-            children: [
-              DeviceModeDropdown(
-                mode: mode,
-                disabled: !isRunning,
-                onModeSelected: (m) {
-                  setState(() {
-                    mode = m;
-                    isRotated = false;
-                  });
-                  context.binding.addPostFrameCallback(_updateScale);
-                },
-              ),
-              if (mode.size != null)
-                IconButton(
-                  icon: 'screen_rotation',
-                  tooltip: 'Rotate orientation',
+          if (viewModel.isFlutter)
+            ButtonGroup(
+              children: [
+                DeviceModeDropdown(
+                  mode: mode,
                   disabled: !isRunning,
-                  onClick: (_) {
-                    setState(() => isRotated = !isRotated);
+                  onModeSelected: (m) {
+                    setState(() {
+                      mode = m;
+                      isRotated = false;
+                    });
                     context.binding.addPostFrameCallback(_updateScale);
                   },
                 ),
-            ],
-          ),
+                if (mode.size != null)
+                  IconButton(
+                    icon: 'screen_rotation',
+                    tooltip: 'Rotate orientation',
+                    disabled: !isRunning,
+                    onClick: (_) {
+                      setState(() => isRotated = !isRotated);
+                      context.binding.addPostFrameCallback(_updateScale);
+                    },
+                  ),
+              ],
+            ),
         ]),
       ]),
       div(

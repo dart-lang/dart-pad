@@ -43,7 +43,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   @override
   List<ConsoleEntry> appLogs = const [];
 
-  void setRunning(bool value) {
+  void setRunning({required bool value}) {
     isRunning = value;
     state = value ? PreviewRunning('lib/main.dart') : PreviewInitial();
     canStart = !value;
@@ -129,7 +129,7 @@ void main() {
     trigger.click();
     await pumpEventQueue();
 
-    final items = web.document.querySelectorAll('.device-dropdown-item');
+    final items = web.document.querySelectorAll('.dropdown-menu-item');
     for (var i = 0; i < items.length; i++) {
       final item = items.item(i) as web.HTMLElement;
       if (item.textContent?.contains(title) ?? false) {
@@ -247,7 +247,7 @@ void main() {
   });
 
   testClient('disables dropdown and rotate button when preview is stopped', (tester) async {
-    preview.setRunning(false);
+    preview.setRunning(value: false);
 
     tester.pumpComponent(buildContainer());
     await pumpEventQueue();
@@ -259,7 +259,7 @@ void main() {
     // Clicking trigger does not open menu
     trigger.click();
     await pumpEventQueue();
-    expect(web.document.querySelector('.device-dropdown-menu'), isNull);
+    expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
 
     final rotateBtn = findRotateButton()!;
     expect(rotateBtn.disabled, isTrue);
