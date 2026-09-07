@@ -40,6 +40,7 @@ final class CodeMirrorTab extends EditorTab<Component> {
       onUpdate: _handleEditorUpdate,
       onSave: onSaveAll,
       onRun: onRun,
+      onBlur: _handleBlur,
       onCodeActionRequested: () {
         unawaited(codeActionsController.triggerCodeActions());
       },
@@ -123,6 +124,15 @@ final class CodeMirrorTab extends EditorTab<Component> {
     _measureTimer?.cancel();
     _measureTimer = null;
     _savedViewState = editor.saveViewState();
+    if (_isDirty) {
+      onSaveAll();
+    }
+  }
+
+  void _handleBlur() {
+    if (_isDirty) {
+      onSaveAll();
+    }
   }
 
   void _scheduleMeasureAndRestore() {
@@ -157,9 +167,10 @@ final class CodeMirrorTab extends EditorTab<Component> {
       return;
     }
     if (path.endsWith('.dart')) {
-      final formatted = await editor.format();
-      if (!formatted) {
-        throw StateError('Formatting failed; $path was not saved.');
+      try {
+        await editor.format();
+      } catch (_) {
+        // Formatting is best-effort on save.
       }
     }
 

@@ -579,6 +579,72 @@ void main() {
       viewModel.dispose();
     });
 
+    test('runCode and hotReloadCode trigger onSaveAll', () async {
+      final fakeSandbox = FakePreviewSandbox();
+      final fakeCompiler = FakeCompilerSession();
+      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
+
+      var saveCount = 0;
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+        onSaveAll: () async {
+          saveCount++;
+        },
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      expect(saveCount, 1);
+
+      await viewModel.hotReloadCode();
+      expect(saveCount, 2);
+
+      viewModel.dispose();
+    });
+
+    test('runCode does not compile when saving fails', () async {
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        onSaveAll: () => Future<void>.error(StateError('save failed')),
+      );
+
+      await viewModel.runCode('lib/main.dart');
+
+      expect(repository.startHotReloadCompilerCount, 0);
+      expect(viewModel.state, isA<PreviewCompileError>());
+
+      viewModel.dispose();
+    });
+
+    test('hotReloadCode does not compile when saving fails', () async {
+      final fakeSandbox = FakePreviewSandbox();
+      final fakeCompiler = FakeCompilerSession();
+      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
+      var failSave = false;
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+        onSaveAll: () async {
+          if (failSave) {
+            throw StateError('save failed');
+          }
+        },
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      failSave = true;
+      await viewModel.hotReloadCode();
+
+      expect(fakeCompiler.compileCount, 1);
+      expect(fakeSandbox.hotReloadCount, 0);
+      expect(viewModel.state, isA<PreviewRunning>());
+
+      viewModel.dispose();
+    });
+
     test('stopCode stops and resets everything', () async {
       final fakeSandbox = FakePreviewSandbox();
       final fakeCompiler = FakeCompilerSession();
