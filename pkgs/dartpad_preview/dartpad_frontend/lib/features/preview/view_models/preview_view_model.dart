@@ -143,11 +143,7 @@ class PreviewViewModel extends ChangeNotifier {
 
     try {
       if (onSaveAll != null) {
-        try {
-          await onSaveAll!();
-        } catch (_) {
-          // Save errors are reported by TabsViewModel.
-        }
+        await onSaveAll!();
         if (!_isCurrentOperation(operationId)) {
           return;
         }
@@ -304,11 +300,7 @@ class PreviewViewModel extends ChangeNotifier {
 
     try {
       if (onSaveAll != null) {
-        try {
-          await onSaveAll!();
-        } catch (_) {
-          // Save errors are reported by TabsViewModel.
-        }
+        await onSaveAll!();
         if (!_isCurrentOperation(operationId)) {
           return;
         }

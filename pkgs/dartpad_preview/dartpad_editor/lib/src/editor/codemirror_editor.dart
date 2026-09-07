@@ -26,9 +26,7 @@ class EditorViewState {
 /// language server features (such as syntax highlighting, diagnostics,
 /// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
-  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient, [this._focusoutHandler]);
-
-  final JSFunction? _focusoutHandler;
+  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient);
 
   /// Creates a new [CodeMirrorEditor] inside the given [element].
   ///
@@ -155,18 +153,7 @@ final class CodeMirrorEditor {
       ),
     );
 
-    JSFunction? focusoutHandler;
-    if (onBlur != null) {
-      focusoutHandler = ((web.FocusEvent event) {
-        final relatedTarget = event.relatedTarget as web.Node?;
-        if (relatedTarget == null || !view.dom.contains(relatedTarget)) {
-          onBlur();
-        }
-      }).toJS;
-      view.dom.addEventListener('focusout', focusoutHandler);
-    }
-
-    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient, focusoutHandler);
+    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient);
     return editor;
   }
 
@@ -257,9 +244,6 @@ final class CodeMirrorEditor {
 
   /// Destroys the editor view.
   void destroy() {
-    if (_focusoutHandler != null) {
-      view.dom.removeEventListener('focusout', _focusoutHandler);
-    }
     view.destroy();
   }
 

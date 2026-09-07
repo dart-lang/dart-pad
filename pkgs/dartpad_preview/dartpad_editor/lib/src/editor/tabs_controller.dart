@@ -177,12 +177,16 @@ abstract mixin class TabsController<T> {
   /// in progress, callers await the ongoing save first and only trigger a new
   /// save operation if unsaved changes still remain.
   Future<void> saveAllTabs() async {
-    final existing = _pendingSave;
-    if (existing != null) {
-      await existing;
-      if (!hasUnsavedChanges) {
-        return;
+    while (true) {
+      final existing = _pendingSave;
+      if (existing == null) {
+        break;
       }
+      await existing;
+    }
+
+    if (!hasUnsavedChanges) {
+      return;
     }
 
     final saveFuture = _saveAllTabsInternal();

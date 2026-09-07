@@ -85,30 +85,33 @@ void main() {
     expect(runTriggered, isTrue);
   });
 
-  test('triggers onBlur callback when editor loses focus', () async {
+  test('triggers onBlur callback once when editor loses focus', () async {
     final parent = web.HTMLDivElement();
+    final outsideButton = web.HTMLButtonElement();
     web.document.body!.appendChild(parent);
+    web.document.body!.appendChild(outsideButton);
 
-    var blurTriggered = false;
+    var blurCount = 0;
     final editor = CodeMirrorEditor(
       parent,
       file: 'lib/main.dart',
       initialDoc: 'void main() {}',
       onBlur: () {
-        blurTriggered = true;
+        blurCount++;
       },
     );
 
     addTearDown(() {
       editor.destroy();
       parent.remove();
+      outsideButton.remove();
     });
 
-    editor.view.contentDOM.dispatchEvent(
-      web.FocusEvent('focusout', web.FocusEventInit(bubbles: true)),
-    );
+    editor.focus();
+    await pumpEventQueue();
+    outsideButton.focus();
     await pumpEventQueue();
 
-    expect(blurTriggered, isTrue);
+    expect(blurCount, 1);
   });
 }
