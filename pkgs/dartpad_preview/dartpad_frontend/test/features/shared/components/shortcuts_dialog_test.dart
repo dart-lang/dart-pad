@@ -78,4 +78,21 @@ void main() {
     backdrop?.click();
     expect(closed, isTrue);
   });
+
+  testClient('renders View category with Open command palette shortcut', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    final categories = web.document.querySelectorAll('.shortcuts-dialog-category');
+    final categoryTexts = [
+      for (var i = 0; i < categories.length; i++) categories.item(i)?.textContent,
+    ];
+    expect(categoryTexts, contains('View'));
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    final rowLabels = [
+      for (var i = 0; i < rows.length; i++)
+        (rows.item(i) as web.HTMLElement).querySelector('.shortcuts-dialog-command')?.textContent,
+    ];
+    expect(rowLabels, contains('Open command palette'));
+  });
 }

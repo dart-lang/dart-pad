@@ -122,6 +122,11 @@ final undocumentedShortcutReasons = <String, String>{
     for (final key in group.value) key: group.key,
 };
 
+/// Documented shortcuts handled at the app/window level rather than inside CodeMirror.
+const _appLevelShortcuts = <ShortcutDefinition>{
+  ShortcutDefinition.commandPalette,
+};
+
 final class _TestLanguageServerClient implements LanguageServerClient {
   @override
   JSObject createCodeMirrorExtension(String file) => [
@@ -164,6 +169,15 @@ void main() {
     final documentedKeys = shortcutDefinitions.expand((shortcut) => shortcut.codemirrorKeys).toSet();
 
     for (final shortcut in shortcutDefinitions) {
+      if (_appLevelShortcuts.contains(shortcut)) {
+        continue;
+      }
+      expect(
+        shortcut.codemirrorKeys,
+        isNotEmpty,
+        reason:
+            '"${shortcut.label}" has no CodeMirror keys and is not listed in _appLevelShortcuts.',
+      );
       final hasKey = shortcut.codemirrorKeys.any(registeredKeys.contains);
       expect(
         hasKey,
@@ -172,6 +186,16 @@ void main() {
             '"${shortcut.label}" expects one of ${shortcut.codemirrorKeys} '
             'to be registered in CodeMirror, but none were found. '
             'Registered keys: $registeredKeys',
+      );
+    }
+
+    for (final shortcut in _appLevelShortcuts) {
+      expect(
+        shortcut.codemirrorKeys,
+        isEmpty,
+        reason:
+            '"${shortcut.label}" is listed in _appLevelShortcuts but defines CodeMirror keys: '
+            '${shortcut.codemirrorKeys}',
       );
     }
 
