@@ -203,12 +203,20 @@ void main() {
 
   testClient('autosaves dirty tab when editor loses focus', (tester) async {
     final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final outsideButton = web.HTMLButtonElement();
+    web.document.body!.appendChild(mainTab.container);
+    web.document.body!.appendChild(outsideButton);
+    addTearDown(() {
+      mainTab.container.remove();
+      outsideButton.remove();
+    });
+
     mainTab.editor.text = 'void main() { print("autosaved"); }';
     expect(mainTab.hasUnsavedChanges, isTrue);
 
-    mainTab.editor.view.contentDOM.dispatchEvent(
-      web.FocusEvent('focusout', web.FocusEventInit(bubbles: true)),
-    );
+    mainTab.editor.focus();
+    await pumpEventQueue();
+    outsideButton.focus();
     await pumpEventQueue();
 
     expect(mainTab.hasUnsavedChanges, isFalse);
