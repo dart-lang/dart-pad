@@ -10,6 +10,7 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/context_menu.dart';
+import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
 import '../models/console_entry.dart';
 import 'bottom_panel_tabs.dart';
@@ -91,29 +92,49 @@ class _BottomPanelState extends State<BottomPanel> {
 
   void _listenForOpenConsole() {
     _openConsoleSubscription = component.events.on<OpenConsoleEvent>().listen((_) {
+      final panel = SplitPanel.of(context, listen: false);
+      if (panel != null && panel.isPanelCollapsed) {
+        panel.expand();
+      }
       if (mounted && _activeTab != BottomPanelTab.console) {
-        _selectTab(BottomPanelTab.console);
+        setState(() {
+          _activeTab = BottomPanelTab.console;
+        });
       }
     });
   }
 
-  void _selectTab(BottomPanelTab tab) {
-    setState(() {
-      _activeTab = tab;
-    });
+  @override
+  void dispose() {
+    unawaited(_openConsoleSubscription?.cancel());
+    super.dispose();
   }
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'bottom-panel', [
-      BottomPanelTabs(
-        problemsCount: component.diagnostics.length,
-        activeTab: _activeTab,
-        onSelectTab: _selectTab,
-        onClearConsole: component.onClearConsole,
-      ),
-      _buildContent(),
-    ]);
+    final panel = SplitPanel.of(context);
+    final isCollapsed = panel?.isPanelCollapsed ?? false;
+    return div(
+      classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
+      [
+        BottomPanelTabs(
+          problemsCount: component.diagnostics.length,
+          activeTab: _activeTab,
+          isCollapsed: isCollapsed,
+          onSelectTab: (tab) {
+            if (isCollapsed) {
+              panel?.expand();
+            }
+            setState(() {
+              _activeTab = tab;
+            });
+          },
+          onClearConsole: component.onClearConsole,
+          onCollapse: () => panel?.collapse(),
+        ),
+        if (!isCollapsed) _buildContent(),
+      ],
+    );
   }
 
   Component _buildContent() {
@@ -134,16 +155,9 @@ class _BottomPanelState extends State<BottomPanel> {
     ]);
   }
 
-  @override
-  void dispose() {
-    unawaited(_openConsoleSubscription?.cancel());
-    super.dispose();
-  }
-
   static List<StyleRule> get styles => [
     css('.bottom-panel').styles(
       display: .flex,
-      height: 100.percent,
       flexDirection: .column,
       flex: const .shrink(0),
     ),

@@ -8,6 +8,8 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../bottom_panel/views/console_panel.dart';
 import '../../shared/components/button_group.dart';
+import '../../shared/components/icon_button.dart';
+import '../../shared/components/split_panel.dart';
 import '../../shared/components/task_status_indicator.dart';
 import '../../shared/node_container.dart';
 import '../../shared/task_status.dart';
@@ -52,6 +54,9 @@ class PreviewContainer extends StatefulComponent {
 class _PreviewContainerState extends State<PreviewContainer> {
   @override
   Component build(BuildContext context) {
+    final panel = SplitPanel.of(context);
+    final isCollapsed = panel?.isPanelCollapsed ?? false;
+
     final viewModel = component.preview;
     final state = viewModel.state;
     final isRunning = viewModel.isRunning;
@@ -70,29 +75,55 @@ class _PreviewContainerState extends State<PreviewContainer> {
       _ => null,
     };
 
-    return div(classes: 'preview-container', [
-      div(classes: 'preview-toolbar', [
-        div(classes: 'preview-controls', [
-          ListenableBuilder(
-            listenable: component.taskStatus,
-            builder: (context) => ButtonGroup(
-              children: [
-                if (isRunning)
-                  RuntimeButton.restart(previewViewModel: viewModel)
-                else
-                  RuntimeButton.start(
-                    previewViewModel: viewModel,
-                    activeFile: component.activeFile,
-                  ),
-                RuntimeButton.hotReload(previewViewModel: viewModel),
-                RuntimeButton.stop(previewViewModel: viewModel),
-              ],
-            ),
+    return div(classes: 'preview-container${isCollapsed ? ' collapsed' : ''}', [
+      aside(
+        key: const ValueKey('preview-rail'),
+        classes: 'preview-rail${isCollapsed ? '' : ' hidden'}',
+        [
+          IconButton(
+            tooltip: 'Show preview',
+            label: 'Show preview',
+            icon: 'play_arrow',
+            iconSize: 18,
+            onClick: (_) => panel?.expand(),
           ),
-        ]),
-      ]),
+        ],
+      ),
       div(
-        classes: 'preview-content ${!isRunning ? 'status-stopped' : ''} ${!viewModel.isFlutter ? 'is-dart' : ''}',
+        key: const ValueKey('preview-toolbar'),
+        classes: 'preview-toolbar${isCollapsed ? ' hidden' : ''}',
+        [
+          div(classes: 'preview-controls', [
+            ListenableBuilder(
+              listenable: component.taskStatus,
+              builder: (context) => ButtonGroup(
+                children: [
+                  if (isRunning)
+                    RuntimeButton.restart(previewViewModel: viewModel)
+                  else
+                    RuntimeButton.start(
+                      previewViewModel: viewModel,
+                      activeFile: component.activeFile,
+                    ),
+                  RuntimeButton.hotReload(previewViewModel: viewModel),
+                  RuntimeButton.stop(previewViewModel: viewModel),
+                ],
+              ),
+            ),
+          ]),
+          if (panel != null)
+            IconButton(
+              tooltip: 'Hide preview',
+              label: 'Hide preview',
+              icon: 'chevron_right',
+              onClick: (_) => panel.collapse(),
+            ),
+        ],
+      ),
+      div(
+        key: const ValueKey('preview-content'),
+        classes:
+            'preview-content ${!isRunning ? 'status-stopped' : ''} ${!viewModel.isFlutter ? 'is-dart' : ''}${isCollapsed ? ' collapsed' : ''}',
         [
           NodeContainer(viewModel.containerElement),
           if (taskStatusMode != null)
@@ -111,6 +142,21 @@ class _PreviewContainerState extends State<PreviewContainer> {
 
   static List<StyleRule> get styles => [
     ...PreviewTaskStatus.styles,
+    css('.preview-rail', [
+      css('&').styles(
+        display: .flex,
+        flexDirection: .column,
+        alignItems: .center,
+        width: 36.px,
+        height: 100.percent,
+        padding: .only(top: 8.px),
+        backgroundColor: colorSurface,
+        flex: const .shrink(0),
+      ),
+      css('&.hidden').styles(
+        display: .none,
+      ),
+    ]),
     css('.preview-container', [
       css('&').styles(
         display: .flex,
@@ -119,6 +165,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flexDirection: .column,
         flex: const .grow(1),
         backgroundColor: colorContainer,
+      ),
+      css('&.collapsed').styles(
+        width: 36.px,
+        minWidth: 36.px,
+        maxWidth: 36.px,
+        flex: const .shrink(0),
+        backgroundColor: colorSurface,
       ),
       css('.active-icon-btn').styles(
         color: colorOnPrimary,
@@ -139,6 +192,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
           flex: const .shrink(0),
           backgroundColor: colorSurface,
         ),
+        css('&.hidden').styles(
+          display: .none,
+        ),
         css('.preview-controls').styles(
           display: .flex,
           alignItems: .center,
@@ -155,6 +211,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
           justifyContent: .center,
           alignItems: .center,
           flex: const .grow(1),
+        ),
+        css('&.collapsed').styles(
+          position: const .absolute(),
+          width: .zero,
+          height: .zero,
+          visibility: .hidden,
+          pointerEvents: .none,
         ),
         css('& .preview, & iframe').styles(
           width: 100.percent,

@@ -11,6 +11,8 @@ import 'package:web/web.dart' as web;
 
 import '../../app_styles.dart';
 import '../shared/components/context_menu.dart';
+import '../shared/components/icon_button.dart';
+import '../shared/components/split_panel.dart';
 import '../shared/icons.dart';
 import 'components/file_tree_file_item.dart';
 import 'components/file_tree_folder_item.dart';
@@ -28,7 +30,6 @@ final class FileTreeView extends StatefulComponent {
     required this.actions,
     this.confirmDelete,
     this.contextMenu,
-    this.onCollapse,
     super.key,
   });
 
@@ -43,9 +44,6 @@ final class FileTreeView extends StatefulComponent {
 
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
-
-  /// An optional callback invoked when the user clicks the collapse button in the header.
-  final VoidCallback? onCollapse;
 
   @override
   State<FileTreeView> createState() => _FileTreeViewInternalState();
@@ -73,20 +71,34 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
 
   @override
   Component build(BuildContext context) {
+    final panel = SplitPanel.of(context);
+    if (panel?.isPanelCollapsed ?? false) {
+      return aside(classes: 'file-tree-rail', [
+        IconButton(
+          tooltip: 'Show file tree',
+          label: 'Show file tree',
+          icon: 'folder_open',
+          iconSize: 18,
+          onClick: (_) => panel?.expand(),
+        ),
+      ]);
+    }
+
     final state = component.state;
     final actions = component.actions;
+    final showCollapse = panel != null && panel.canCollapse;
 
-    return div(classes: 'file-tree', [
+    return aside(classes: 'file-tree-pane file-tree', [
       div(classes: 'file-tree-header', [
         const span(classes: 'file-tree-title', [.text('Explorer')]),
-        if (component.onCollapse case final onCollapse?)
+        if (showCollapse)
           button(
             classes: 'file-tree-collapse-button',
             attributes: const {
               'title': 'Hide file tree',
               'aria-label': 'Hide file tree',
             },
-            onClick: onCollapse,
+            onClick: panel.collapse,
             [const Icon('chevron_left', size: 16)],
           ),
       ]),
@@ -317,6 +329,19 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   }
 
   static List<StyleRule> get styles => [
+    css('.file-tree-rail').styles(
+      display: .flex,
+      width: 36.px,
+      minWidth: 36.px,
+      padding: .only(top: 8.px),
+      border: .only(
+        right: .solid(color: colorBorder, width: 1.px),
+      ),
+      flexDirection: .column,
+      alignItems: .center,
+      flex: const .shrink(0),
+      backgroundColor: colorSurface,
+    ),
     css('.file-tree', [
       css('&').styles(
         display: .flex,

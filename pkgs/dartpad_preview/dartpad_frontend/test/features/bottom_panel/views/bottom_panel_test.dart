@@ -8,7 +8,9 @@ library;
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
+import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -30,18 +32,20 @@ void main() {
     );
 
     expect(web.document.querySelector('.console-panel'), isNull);
-    expect(web.document.querySelector('.bottom-panel-clear-btn'), isNull);
+    expect(web.document.querySelector('button[aria-label="Clear console"]'), isNull);
 
     final consoleTab = web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement;
     consoleTab.click();
     await pumpEventQueue();
 
     expect(web.document.querySelector('.console-panel')!.textContent, contains('Running pub get in /'));
-    final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
+    final clearButton =
+        web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
 
     clearButton.click();
     await pumpEventQueue();
+
     expect(clearCalls, 1);
   });
 
@@ -63,7 +67,8 @@ void main() {
     consoleTab.click();
     await pumpEventQueue();
 
-    final clearButton = web.document.querySelector('.bottom-panel-clear-btn')! as web.HTMLButtonElement;
+    final clearButton =
+        web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
   });
 
@@ -105,5 +110,29 @@ void main() {
     events.dispatch(const OpenConsoleEvent());
     await pumpEventQueue();
     expect(web.document.querySelector('.console-panel'), isNotNull);
+  });
+
+  testClient('hides content when collapsed in SplitPanel', (tester) {
+    final events = AppEventBus();
+    tester.pumpComponent(
+      SplitPanel(
+        initialState: const RightCollapsed(0.75),
+        canCollapseRight: true,
+        left: const div([]),
+        right: BottomPanel(
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          activeFile: '',
+          logs: const [],
+          onOpenDiagnostic: (_, _) {},
+          onClearConsole: () {},
+          events: events,
+        ),
+      ),
+    );
+
+    expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
+    expect(web.document.querySelector('.bottom-panel-tabs'), isNotNull);
+    expect(web.document.querySelector('.bottom-panel-content'), isNull);
   });
 }

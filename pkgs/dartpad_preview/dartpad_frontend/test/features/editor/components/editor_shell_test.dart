@@ -7,6 +7,7 @@ library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -20,28 +21,54 @@ final class _FakeTab extends EditorTab<Component> {
   Component build() => div(id: 'editor-$path', [Component.text(path)]);
 }
 
+final class _FakeFileTree extends StatelessComponent {
+  const _FakeFileTree();
+
+  @override
+  Component build(BuildContext context) {
+    final panel = SplitPanel.of(context);
+    if (panel?.isPanelCollapsed ?? false) {
+      return aside(classes: 'file-tree-rail', [
+        button(
+          classes: 'file-tree-rail-button',
+          attributes: const {
+            'title': 'Show file tree',
+            'aria-label': 'Show file tree',
+          },
+          onClick: panel?.expand,
+          [const Component.text('expand')],
+        ),
+      ]);
+    }
+    return aside(classes: 'file-tree-pane', [
+      div(id: 'file-tree', [
+        const Component.text('tree'),
+        button(
+          classes: 'file-tree-collapse-button',
+          attributes: const {
+            'title': 'Hide file tree',
+            'aria-label': 'Hide file tree',
+          },
+          onClick: panel?.collapse,
+          [const Component.text('collapse')],
+        ),
+      ]),
+    ]);
+  }
+}
+
 /// Helper that creates an [EditorShell] with sensible defaults.
 EditorShell _createShell({
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
   bool isEmbedMode = false,
+  Component? fileTree,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
   return EditorShell(
     openTabs: tabs,
     activeFile: activeFile,
-    fileTreeBuilder: (onCollapse) => div(id: 'file-tree', [
-      const Component.text('tree'),
-      button(
-        classes: 'file-tree-collapse-button',
-        attributes: const {
-          'title': 'Hide file tree',
-          'aria-label': 'Hide file tree',
-        },
-        onClick: onCollapse,
-        [const Component.text('collapse')],
-      ),
-    ]),
+    fileTree: fileTree ?? const _FakeFileTree(),
     editorOverlay: const div(id: 'editor-overlay', []),
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
