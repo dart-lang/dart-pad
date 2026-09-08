@@ -41,7 +41,7 @@ class ContextMenuItem extends ContextMenuEntry {
   }) => ContextMenuItem(
     label: shortcut.label,
     onPressed: onPressed,
-    shortcut: resolveDisplayKey(shortcut.displayKey),
+    shortcut: shortcut.resolvedDisplayKey,
   );
 
   /// The text label displayed for this menu item.
