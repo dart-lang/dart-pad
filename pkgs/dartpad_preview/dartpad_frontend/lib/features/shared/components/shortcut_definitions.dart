@@ -45,8 +45,8 @@ final class ShortcutDefinition {
     this.codemirrorKeys = const [],
     this.category,
     this.isPrimary = true,
-  })  : _singleDisplayKey = displayKey,
-        _alternativeDisplayKeys = null;
+  }) : _singleDisplayKey = displayKey,
+       _alternativeDisplayKeys = null;
 
   /// Creates a shortcut definition with multiple alternative key combinations.
   const ShortcutDefinition.alternatives({
@@ -55,8 +55,8 @@ final class ShortcutDefinition {
     this.codemirrorKeys = const [],
     this.category,
     this.isPrimary = true,
-  })  : _singleDisplayKey = null,
-        _alternativeDisplayKeys = displayKeys;
+  }) : _singleDisplayKey = null,
+       _alternativeDisplayKeys = displayKeys;
 
   /// Human-readable command name, e.g. `'Quick fix'`.
   final String label;
