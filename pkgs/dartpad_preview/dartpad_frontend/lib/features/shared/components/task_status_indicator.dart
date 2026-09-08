@@ -9,7 +9,6 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
-import '../analyzer_status.dart';
 import '../icons.dart';
 import '../task_status.dart';
 
@@ -344,100 +343,6 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
         raw: {'max-width': 'none'},
       ),
     ]),
-  ];
-}
-
-/// Stable analyzer readiness indicator with a non-timed update pulse.
-final class AnalyzerStatusIndicator extends StatefulComponent {
-  const AnalyzerStatusIndicator({required this.controller, super.key});
-
-  final AnalyzerStatusController controller;
-
-  @override
-  State<AnalyzerStatusIndicator> createState() => _AnalyzerStatusIndicatorState();
-
-  @css
-  static List<StyleRule> get styles => _AnalyzerStatusIndicatorState.styles;
-}
-
-class _AnalyzerStatusIndicatorState extends State<AnalyzerStatusIndicator> {
-  @override
-  void initState() {
-    super.initState();
-    component.controller.addListener(_onStatusChanged);
-  }
-
-  @override
-  void didUpdateComponent(AnalyzerStatusIndicator oldComponent) {
-    super.didUpdateComponent(oldComponent);
-    if (!identical(oldComponent.controller, component.controller)) {
-      oldComponent.controller.removeListener(_onStatusChanged);
-      component.controller.addListener(_onStatusChanged);
-    }
-  }
-
-  void _onStatusChanged() {
-    if (!mounted) {
-      return;
-    }
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    component.controller.removeListener(_onStatusChanged);
-    super.dispose();
-  }
-
-  @override
-  Component build(BuildContext context) {
-    final phase = component.controller.phase;
-    final unavailable = phase == AnalyzerStatusPhase.unavailable;
-    final running = phase == AnalyzerStatusPhase.waiting || phase == AnalyzerStatusPhase.analyzing;
-
-    return div(
-      classes: 'analyzer-status ${phase.name}',
-      attributes: {'aria-label': 'Analyzer: ${phase.name}'},
-      [
-        _TaskStatusIcon.outcome(
-          outcome: running
-              ? TaskStatusOutcome.running
-              : unavailable
-              ? TaskStatusOutcome.failed
-              : TaskStatusOutcome.succeeded,
-          size: 16,
-        ),
-        const span(classes: 'analyzer-status-label', [.text('Analyzer')]),
-      ],
-    );
-  }
-
-  static List<StyleRule> get styles => [
-    css('.analyzer-status').styles(
-      display: .flex,
-      height: 28.px,
-      minWidth: .zero,
-      padding: .symmetric(horizontal: 6.px),
-      alignItems: .center,
-      gap: Gap.all(6.px),
-      fontSize: 11.px,
-      whiteSpace: .noWrap,
-    ),
-    css('.analyzer-status-label').styles(
-      minWidth: .zero,
-      overflow: .hidden,
-      textOverflow: .ellipsis,
-    ),
-    css('.analyzer-status .task-status-icon.running').styles(
-      width: 10.px,
-      height: 10.px,
-      border: .only(
-        top: .solid(color: colorPrimary, width: 2.px),
-        right: .solid(color: colorBorder, width: 2.px),
-        bottom: .solid(color: colorBorder, width: 2.px),
-        left: .solid(color: colorBorder, width: 2.px),
-      ),
-    ),
   ];
 }
 

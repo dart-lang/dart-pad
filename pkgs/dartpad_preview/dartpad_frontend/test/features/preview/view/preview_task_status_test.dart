@@ -30,7 +30,7 @@ void main() {
       ),
     );
 
-    controller.startTask(TaskKind.analyzingWorkspace);
+    controller.startTask(TaskKind.startingAnalyzer);
     controller.startTask(
       TaskKind.pubClean,
       label: 'Pub clean in /',

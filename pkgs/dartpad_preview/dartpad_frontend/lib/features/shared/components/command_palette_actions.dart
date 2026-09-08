@@ -14,7 +14,6 @@ import '../../filetree/file_tree_view_model.dart';
 import '../../preview/view_models/preview_view_model.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../../workspace/workspace_session.dart';
-import '../analyzer_status.dart';
 import '../app_event_bus.dart';
 import '../events/log_event.dart';
 import '../task_status.dart';
@@ -52,8 +51,6 @@ final class CommandContext {
   FileTreeViewModel? get fileTree => session?.fileTree;
 
   TaskStatusController? get taskStatus => session?.taskStatus;
-
-  AnalyzerStatusController? get analyzerStatus => session?.analyzerStatus;
 }
 
 /// An executable command shown in the command palette.
