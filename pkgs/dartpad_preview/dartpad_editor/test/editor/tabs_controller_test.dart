@@ -70,6 +70,8 @@ class TestTab extends EditorTab<String> {
 
   final List<String> lifecycleLog = [];
   final StreamController<void> updates = StreamController<void>.broadcast(sync: true);
+  Completer<void>? saveGate;
+  bool preserveDirtyAfterSave = false;
 
   @override
   bool get keepAlive => testKeepAlive;
@@ -101,7 +103,14 @@ class TestTab extends EditorTab<String> {
     if (saveError != null) {
       throw saveError!;
     }
-    dirty = false;
+    final gate = saveGate;
+    final preserveDirty = preserveDirtyAfterSave;
+    if (gate != null) {
+      await gate.future;
+    }
+    if (!preserveDirty) {
+      dirty = false;
+    }
   }
 
   @override
@@ -454,6 +463,45 @@ void main() {
       expect(adapter.createdTabs['a.dart']!.dirty, isFalse);
       expect(adapter.createdTabs['b.dart']!.dirty, isFalse);
       expect(tabs.saveLog.single, containsAll(['a.dart', 'b.dart']));
+    });
+
+    test('deduplicates concurrent saveAllTabs calls', () async {
+      adapter.dirty = true;
+      await openExisting('a.dart');
+      final tabA = adapter.createdTabs['a.dart']!..lifecycleLog.clear();
+
+      final future1 = tabs.saveAllTabs();
+      final future2 = tabs.saveAllTabs();
+      await Future.wait([future1, future2]);
+
+      expect(tabA.lifecycleLog, ['save']);
+    });
+
+    test('serializes waiting saveAllTabs calls when changes remain', () async {
+      adapter.dirty = true;
+      await openExisting('a.dart');
+      final firstSave = Completer<void>();
+      final secondSave = Completer<void>();
+      final tabA = adapter.createdTabs['a.dart']!
+        ..lifecycleLog.clear()
+        ..saveGate = firstSave
+        ..preserveDirtyAfterSave = true;
+
+      final future1 = tabs.saveAllTabs();
+      final future2 = tabs.saveAllTabs();
+      final future3 = tabs.saveAllTabs();
+
+      tabA
+        ..saveGate = secondSave
+        ..preserveDirtyAfterSave = false;
+      firstSave.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(tabA.lifecycleLog, ['save', 'save']);
+
+      secondSave.complete();
+      await Future.wait([future1, future2, future3]);
+      expect(tabA.lifecycleLog, ['save', 'save']);
     });
   });
 

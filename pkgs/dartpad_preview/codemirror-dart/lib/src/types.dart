@@ -172,6 +172,7 @@ extension type EditorView._(JSObject _) implements JSObject {
   external void destroy();
   external void requestMeasure();
   external void focus();
+  external bool get hasFocus;
   external web.HTMLElement get scrollDOM;
   external web.HTMLElement get dom;
   external web.HTMLElement get contentDOM;
@@ -270,5 +271,7 @@ extension type UpdateListener(JSObject _) implements JSObject {
 /// See: https://codemirror.net/docs/ref/#view.ViewUpdate
 extension type ViewUpdate(JSObject _) implements JSObject {
   external bool get docChanged;
+  external bool get focusChanged;
+  external EditorView get view;
   external EditorState get state;
 }

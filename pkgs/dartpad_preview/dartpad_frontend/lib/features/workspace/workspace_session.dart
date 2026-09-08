@@ -72,6 +72,7 @@ final class WorkspaceSession {
       preview: PreviewViewModel(
         workspaceRepository: repository,
         eventBus: repository.events,
+        onSaveAll: tabs.saveAllTabs,
       ),
       contextMenu: contextMenu,
       codemirrorAdapter: codemirrorAdapter,

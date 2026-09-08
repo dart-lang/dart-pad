@@ -37,6 +37,7 @@ final class CodeMirrorEditor {
   /// - [onUpdate] is triggered when the document text changes.
   /// - [onSave] is triggered on Cmd/Ctrl+S keypress.
   /// - [onRun] is triggered on Cmd/Ctrl+Enter keypress.
+  /// - [onBlur] is triggered when the editor loses focus.
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
   /// - [onQuickFixRequested] is triggered from a diagnostic hover action.
   /// - [onQuickFixAvailabilityRequested] controls whether that action is shown.
@@ -47,6 +48,7 @@ final class CodeMirrorEditor {
     void Function(String text)? onUpdate,
     void Function()? onSave,
     void Function()? onRun,
+    void Function()? onBlur,
     void Function()? onCodeActionRequested,
     void Function(int from, int to)? onQuickFixRequested,
     Future<bool> Function(int from, int to)? onQuickFixAvailabilityRequested,
@@ -105,6 +107,9 @@ final class CodeMirrorEditor {
             ((cm.ViewUpdate update) {
               if (update.docChanged && onUpdate != null) {
                 onUpdate(update.state.doc.toJsString().toDart);
+              }
+              if (update.focusChanged && !update.view.hasFocus && onBlur != null) {
+                onBlur();
               }
             }).toJS,
           ),
@@ -233,6 +238,9 @@ final class CodeMirrorEditor {
   void focus() {
     view.focus();
   }
+
+  /// Whether the editor currently has focus.
+  bool get hasFocus => view.hasFocus;
 
   /// Destroys the editor view.
   void destroy() {
