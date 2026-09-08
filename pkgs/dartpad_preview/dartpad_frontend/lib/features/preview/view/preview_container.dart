@@ -184,8 +184,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
                       previewViewModel: viewModel,
                       activeFile: component.activeFile,
                     ),
-                  if (viewModel.isFlutter)
-                    RuntimeButton.restart(previewViewModel: viewModel),
+                  if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
                   RuntimeButton.stop(previewViewModel: viewModel),
                 ],
               ),
