@@ -132,14 +132,14 @@ class RuntimeButton extends StatelessComponent {
         backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
       ),
       css('&:disabled').styles(
-        cursor: .notAllowed,
         opacity: 0.5,
+        cursor: .notAllowed,
       ),
       css('.runtime-button-label').styles(
         display: .none,
+        color: colorOnSurface,
         fontSize: 13.px,
         fontWeight: .w500,
-        color: colorOnSurface,
         whiteSpace: .noWrap,
       ),
     ]),
