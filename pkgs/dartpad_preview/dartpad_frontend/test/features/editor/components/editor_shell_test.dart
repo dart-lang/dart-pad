@@ -7,6 +7,7 @@ library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -20,28 +21,54 @@ final class _FakeTab extends EditorTab<Component> {
   Component build() => div(id: 'editor-$path', [Component.text(path)]);
 }
 
+final class _FakeFileTree extends StatelessComponent {
+  const _FakeFileTree();
+
+  @override
+  Component build(BuildContext context) {
+    final panel = SplitPanel.of(context);
+    if (panel?.isPanelCollapsed ?? false) {
+      return aside(classes: 'file-tree-rail', [
+        button(
+          classes: 'file-tree-rail-button',
+          attributes: const {
+            'title': 'Show file tree',
+            'aria-label': 'Show file tree',
+          },
+          onClick: panel?.expand,
+          [const Component.text('expand')],
+        ),
+      ]);
+    }
+    return aside(classes: 'file-tree', [
+      div(id: 'file-tree', [
+        const Component.text('tree'),
+        button(
+          classes: 'file-tree-collapse-button',
+          attributes: const {
+            'title': 'Hide file tree',
+            'aria-label': 'Hide file tree',
+          },
+          onClick: panel?.collapse,
+          [const Component.text('collapse')],
+        ),
+      ]),
+    ]);
+  }
+}
+
 /// Helper that creates an [EditorShell] with sensible defaults.
 EditorShell _createShell({
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
   bool isEmbedMode = false,
+  Component? fileTree,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
   return EditorShell(
     openTabs: tabs,
     activeFile: activeFile,
-    fileTreeBuilder: (onCollapse) => div(id: 'file-tree', [
-      const Component.text('tree'),
-      button(
-        classes: 'file-tree-collapse-button',
-        attributes: const {
-          'title': 'Hide file tree',
-          'aria-label': 'Hide file tree',
-        },
-        onClick: onCollapse,
-        [const Component.text('collapse')],
-      ),
-    ]),
+    fileTree: fileTree ?? const _FakeFileTree(),
     editorOverlay: const div(id: 'editor-overlay', []),
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
@@ -56,7 +83,7 @@ void main() {
       tester.pumpComponent(_createShell());
 
       expect(web.document.querySelector('.editor-shell'), isNotNull);
-      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.editor-host'), isNotNull);
       expect(web.document.querySelector('#file-tree'), isNotNull);
     });
@@ -101,7 +128,7 @@ void main() {
 
       // Collapsed: rail is visible, full file-tree pane is not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-      expect(web.document.querySelector('.file-tree-pane'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNull);
     });
 
     testClient('collapsed rail has expand button with correct aria-label', (
@@ -128,7 +155,7 @@ void main() {
 
       // Initially collapsed – rail visible, pane not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-      expect(web.document.querySelector('.file-tree-pane'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNull);
 
       // Click expand button.
       final expandButton =
@@ -138,7 +165,7 @@ void main() {
 
       // Now expanded – pane visible, rail gone.
       expect(web.document.querySelector('.file-tree-rail'), isNull);
-      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('#file-tree'), isNotNull);
     });
 
@@ -163,7 +190,7 @@ void main() {
       // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
-      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
 
       // Collapse.
       (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
@@ -171,7 +198,7 @@ void main() {
 
       // Back to collapsed state.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-      expect(web.document.querySelector('.file-tree-pane'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNull);
     });
 
     testClient('toggle cycle: collapse → expand → collapse', (tester) async {
@@ -185,7 +212,7 @@ void main() {
       await pumpEventQueue();
 
       // State 2: expanded.
-      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
 
       // Collapse.
@@ -200,14 +227,14 @@ void main() {
       tester.pumpComponent(_createShell(isEmbedMode: true));
 
       // Collapsed: file tree is not rendered in the pane.
-      expect(web.document.querySelector('.file-tree-pane #file-tree'), isNull);
+      expect(web.document.querySelector('.file-tree #file-tree'), isNull);
 
       // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
 
       // File tree content is now visible inside the pane.
-      expect(web.document.querySelector('.file-tree-pane #file-tree'), isNotNull);
+      expect(web.document.querySelector('.file-tree #file-tree'), isNotNull);
     });
 
     testClient('editor host remains through toggle cycles', (tester) async {
@@ -232,14 +259,14 @@ void main() {
     testClient('standard mode shows file tree pane directly', (tester) {
       tester.pumpComponent(_createShell(isEmbedMode: false));
 
-      expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
 
     testClient('embed mode does not show file tree pane initially', (tester) {
       tester.pumpComponent(_createShell(isEmbedMode: true));
 
-      expect(web.document.querySelector('.file-tree-pane'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
     });
   });

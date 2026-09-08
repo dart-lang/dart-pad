@@ -16,6 +16,8 @@ class BottomPanelTabs extends StatelessComponent {
     required this.activeTab,
     required this.onSelectTab,
     required this.onClearConsole,
+    this.isCollapsed = false,
+    this.onCollapse,
     super.key,
   });
 
@@ -31,29 +33,44 @@ class BottomPanelTabs extends StatelessComponent {
   /// Clears the console's output.
   final void Function() onClearConsole;
 
+  /// Whether the bottom panel content is currently collapsed.
+  final bool isCollapsed;
+
+  /// An optional callback invoked to collapse the panel content.
+  final VoidCallback? onCollapse;
+
   @override
   Component build(BuildContext context) {
     return div(classes: 'bottom-panel-tabs', [
       _BottomPanelTabButton(
         label: 'Problems',
         countLabel: problemsCount.toString(),
-        active: activeTab == BottomPanelTab.problems,
+        active: !isCollapsed && activeTab == BottomPanelTab.problems,
         onClick: () => onSelectTab(BottomPanelTab.problems),
       ),
       _BottomPanelTabButton(
         label: 'Console',
-        active: activeTab == BottomPanelTab.console,
+        active: !isCollapsed && activeTab == BottomPanelTab.console,
         onClick: () => onSelectTab(BottomPanelTab.console),
       ),
       const div(classes: 'bottom-panel-tabs-spacer', []),
-      if (activeTab == BottomPanelTab.console)
+      if (!isCollapsed && activeTab == BottomPanelTab.console)
         IconButton(
           icon: 'playlist_remove',
           iconSize: 20,
           tooltip: 'Clear console',
           label: 'Clear console',
-          classes: 'bottom-panel-clear-btn',
+          classes: 'bottom-panel-btn',
           onClick: (_) => onClearConsole(),
+        ),
+      if (!isCollapsed && onCollapse != null)
+        IconButton(
+          tooltip: 'Hide bottom panel',
+          label: 'Hide bottom panel',
+          icon: 'expand_more',
+          iconSize: 20,
+          classes: 'bottom-panel-btn',
+          onClick: (_) => onCollapse!(),
         ),
     ]);
   }
@@ -109,8 +126,8 @@ class BottomPanelTabs extends StatelessComponent {
     css('.bottom-panel-tabs-spacer').styles(
       flex: const Flex(grow: 1),
     ),
-    css('.bottom-panel-clear-btn').styles(
-      margin: .only(right: 8.px),
+    css('.bottom-panel-btn').styles(
+      margin: .only(top: 2.px, bottom: 2.px, right: 8.px),
       alignSelf: .center,
     ),
   ];

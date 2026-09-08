@@ -9,18 +9,17 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
-import '../../shared/icons.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor.
-class EditorShell extends StatefulComponent {
+class EditorShell extends StatelessComponent {
   /// Creates the top-level editor layout.
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.fileTreeBuilder,
+    required this.fileTree,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
@@ -46,8 +45,8 @@ class EditorShell extends StatefulComponent {
   /// Closes the editor tab at the provided path.
   final bool Function(String path, {bool discardChanges})? onCloseFile;
 
-  /// A builder function that creates the file tree component with a collapse callback.
-  final Component Function(VoidCallback onCollapse) fileTreeBuilder;
+  /// The file tree component to show in the side panel.
+  final Component fileTree;
 
   /// A component displayed above the active editor content.
   final Component editorOverlay;
@@ -69,96 +68,53 @@ class EditorShell extends StatefulComponent {
   final Component? smallScreenPreviewPanel;
 
   @override
-  State<EditorShell> createState() => _EditorShellState();
-
-  @css
-  static List<StyleRule> get styles => _EditorShellState.styles;
-}
-
-class _EditorShellState extends State<EditorShell> {
-  late bool _fileTreeCollapsed;
-
-  @override
-  void initState() {
-    super.initState();
-    _fileTreeCollapsed = component.isEmbedMode;
-  }
-
-  void _toggleFileTree() {
-    setState(() {
-      _fileTreeCollapsed = !_fileTreeCollapsed;
-    });
-  }
-
-  @override
   Component build(BuildContext context) {
-    final openTabs = component.openTabs;
-
+    final openTabs = this.openTabs;
     final editorContent = main_(classes: 'editor-host', [
       SplitPanel(
         isVertical: true,
         useRatio: true,
         initialValue: 0.75,
         minValue: 0.3,
-        maxValue: 0.9,
+        maxValue: 0.85,
+        canCollapseRight: true,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
             EditorTabBar(
               openTabs: openTabs,
-              activeFile: component.activeFile,
-              onSwitchFile: component.onSwitchFile!,
-              onCloseFile: component.onCloseFile!,
-              contextMenu: component.contextMenu,
+              activeFile: activeFile,
+              onSwitchFile: onSwitchFile!,
+              onCloseFile: onCloseFile!,
+              contextMenu: contextMenu,
             ),
-            if (component.activeFile.isNotEmpty) EditorBreadcrumbs(path: component.activeFile),
+            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: activeFile),
             EditorStack(
               openTabs: openTabs,
-              activeFile: component.activeFile,
-              overlay: component.editorOverlay,
+              activeFile: activeFile,
+              overlay: editorOverlay,
             ),
           ],
         ]),
-        right: component.bottomPanel,
+        right: bottomPanel,
       ),
     ]);
-    final Component rightContent = component.smallScreenPreviewPanel ?? editorContent;
+    final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
-    final Component shellContent;
-    // Collapsed file tree: show a narrow rail with a toggle button.
-    if (_fileTreeCollapsed) {
-      shellContent = div(classes: 'editor-shell', [
-        aside(classes: 'file-tree-rail', [
-          button(
-            classes: 'file-tree-rail-button',
-            attributes: {
-              'title': 'Show file tree',
-              'aria-label': 'Show file tree',
-            },
-            onClick: _toggleFileTree,
-            [const Icon('folder_open', size: 18)],
-          ),
-        ]),
-        rightContent,
-      ]);
-    } else {
-      // Expanded file tree.
-      shellContent = div(classes: 'editor-shell', [
-        SplitPanel(
-          initialValue: 200,
-          useRatio: false,
-          minValue: 150,
-          maxValue: 300,
-          left: aside(classes: 'file-tree-pane', [
-            component.fileTreeBuilder(_toggleFileTree),
-          ]),
-          right: rightContent,
-        ),
-      ]);
-    }
-
-    return shellContent;
+    return div(classes: 'editor-shell', [
+      SplitPanel(
+        initialValue: 200,
+        initialState: isEmbedMode ? const LeftCollapsed(200) : null,
+        useRatio: false,
+        minValue: 150,
+        maxValue: 300,
+        canCollapseLeft: true,
+        left: fileTree,
+        right: rightContent,
+      ),
+    ]);
   }
 
+  @css
   static List<StyleRule> get styles => [
     css('.editor-shell').styles(
       display: .flex,
@@ -168,13 +124,6 @@ class _EditorShellState extends State<EditorShell> {
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
-    ),
-    css('.file-tree-pane').styles(
-      display: .flex,
-      minWidth: 100.px,
-      minHeight: .zero,
-      overflow: .hidden,
-      flexDirection: .column,
     ),
     css('.editor-host').styles(
       display: .flex,

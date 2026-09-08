@@ -3,10 +3,177 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
+
 import '../../../app_styles.dart';
+
+/// The collapse, hidden, and split state of a split panel.
+@immutable
+sealed class SplitState {
+  const SplitState();
+
+  /// Whether either panel is collapsed to its intrinsic/rail size.
+  bool get isCollapsed => this is LeftCollapsed || this is RightCollapsed;
+
+  /// Whether the left panel is collapsed.
+  bool get isLeftCollapsed => this is LeftCollapsed;
+
+  /// Whether the right panel is collapsed.
+  bool get isRightCollapsed => this is RightCollapsed;
+
+  /// Whether neither panel is collapsed or hidden.
+  bool get isSplit => this is Split;
+
+  /// Whether either panel is hidden completely.
+  bool get isHidden => this is LeftHidden || this is RightHidden;
+
+  /// Whether the left panel is hidden.
+  bool get isLeftHidden => this is LeftHidden;
+
+  /// Whether the right panel is hidden.
+  bool get isRightHidden => this is RightHidden;
+
+  /// The active split value or the last split value when collapsed or hidden.
+  double get value => switch (this) {
+    Split(:final value) => value,
+    LeftCollapsed(:final lastSplitValue) => lastSplitValue,
+    RightCollapsed(:final lastSplitValue) => lastSplitValue,
+    LeftHidden(:final lastSplitValue) => lastSplitValue,
+    RightHidden(:final lastSplitValue) => lastSplitValue,
+  };
+}
+
+/// The left (or top) panel is completely hidden (`display: none`) and the drag handle is hidden.
+final class LeftHidden extends SplitState {
+  const LeftHidden(this.lastSplitValue);
+  final double lastSplitValue;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is LeftHidden && other.lastSplitValue == lastSplitValue);
+
+  @override
+  int get hashCode => Object.hash(LeftHidden, lastSplitValue);
+}
+
+/// The left (or top) panel is collapsed to its intrinsic size with the drag handle visible.
+final class LeftCollapsed extends SplitState {
+  const LeftCollapsed(this.lastSplitValue);
+  final double lastSplitValue;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is LeftCollapsed && other.lastSplitValue == lastSplitValue);
+
+  @override
+  int get hashCode => Object.hash(LeftCollapsed, lastSplitValue);
+}
+
+/// Both panels are active and sized according to [value], with the drag handle visible.
+final class Split extends SplitState {
+  const Split(this.value);
+
+  @override
+  final double value;
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || (other is Split && other.value == value);
+
+  @override
+  int get hashCode => Object.hash(Split, value);
+}
+
+/// The right (or bottom) panel is collapsed to its intrinsic size with the drag handle visible.
+final class RightCollapsed extends SplitState {
+  const RightCollapsed(this.lastSplitValue);
+  final double lastSplitValue;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is RightCollapsed && other.lastSplitValue == lastSplitValue);
+
+  @override
+  int get hashCode => Object.hash(RightCollapsed, lastSplitValue);
+}
+
+/// The right (or bottom) panel is completely hidden (`display: none`) and the drag handle is hidden.
+final class RightHidden extends SplitState {
+  const RightHidden(this.lastSplitValue);
+  final double lastSplitValue;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is RightHidden && other.lastSplitValue == lastSplitValue);
+
+  @override
+  int get hashCode => Object.hash(RightHidden, lastSplitValue);
+}
+
+/// An inherited component that exposes [SplitPanelData] to descendants of a [SplitPanel].
+class _InheritedSplitPanel extends InheritedComponent {
+  _InheritedSplitPanel({required this.data, required super.child});
+
+  final SplitPanelData data;
+
+  @override
+  bool updateShouldNotify(covariant _InheritedSplitPanel oldComponent) {
+    return data != oldComponent.data;
+  }
+}
+
+@immutable
+class SplitPanelData {
+  SplitPanelData({
+    required this._splitPanelState,
+    required this._isLeft,
+    required this.state,
+  });
+
+  /// The state of the enclosing [SplitPanel].
+  final SplitPanelState _splitPanelState;
+
+  /// Whether this inherited scope is for the left (or top) child panel.
+  final bool _isLeft;
+
+  /// The state of the split panel when this component was created.
+  final SplitState state;
+
+  /// Whether the panel on this side of the split can be collapsed.
+  bool get canCollapse => _isLeft ? _splitPanelState.canCollapseLeft : _splitPanelState.canCollapseRight;
+
+  /// Whether the panel on this side of the split is collapsed.
+  bool get isPanelCollapsed => _isLeft ? _splitPanelState.isLeftCollapsed : _splitPanelState.isRightCollapsed;
+
+  /// Whether the panel on this side of the split is hidden.
+  bool get isPanelHidden => _isLeft ? _splitPanelState.isLeftHidden : _splitPanelState.isRightHidden;
+
+  void expand([double? targetValue]) {
+    _splitPanelState.split(targetValue);
+  }
+
+  void collapse() {
+    if (_isLeft) {
+      _splitPanelState.collapseLeft();
+    } else {
+      _splitPanelState.collapseRight();
+    }
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitPanelData &&
+          other._splitPanelState == _splitPanelState &&
+          other._isLeft == _isLeft &&
+          other.state == state);
+
+  @override
+  int get hashCode => Object.hash(_splitPanelState, _isLeft, state);
+}
 
 /// A component that divides its layout space between two sub-components,
 /// allowing the user to resize the boundary between them by dragging a splitter handle.
@@ -14,8 +181,9 @@ class SplitPanel extends StatefulComponent {
   const SplitPanel({
     required this.left,
     required this.right,
-    this.showLeft = true,
-    this.showRight = true,
+    this.canCollapseLeft,
+    this.canCollapseRight,
+    this.initialState,
     this.initialValue = 0.5,
     this.useRatio = true,
     this.isVertical = false,
@@ -31,14 +199,17 @@ class SplitPanel extends StatefulComponent {
   /// The right or bottom component in the split panel.
   final Component right;
 
+  /// Whether the left (or top) panel can be collapsed.
+  final bool? canCollapseLeft;
+
+  /// Whether the right (or bottom) panel can be collapsed.
+  final bool? canCollapseRight;
+
+  /// The initial collapse or split state. If null, defaults to [Split] with [initialValue].
+  final SplitState? initialState;
+
   /// The initial split value (either ratio or absolute pixels).
   final double initialValue;
-
-  /// Whether to display the left/top component.
-  final bool showLeft;
-
-  /// Whether to display the right/bottom component.
-  final bool showRight;
 
   /// Whether the split value represents a ratio (0.0 to 1.0) rather than absolute pixels.
   final bool useRatio;
@@ -56,30 +227,112 @@ class SplitPanel extends StatefulComponent {
   /// The maximum allowable split value (ratio or pixel limit).
   final double? maxValue;
 
-  @override
-  State<SplitPanel> createState() => _SplitPanelState();
+  /// Returns the [SplitPanelData] from the nearest ancestor.
+  static SplitPanelData? of(BuildContext context, {bool listen = true}) {
+    if (listen) {
+      return context.dependOnInheritedComponentOfExactType<_InheritedSplitPanel>()?.data;
+    }
+    return (context.getElementForInheritedComponentOfExactType<_InheritedSplitPanel>()?.component
+            as _InheritedSplitPanel?)
+        ?.data;
+  }
 
-  @css
-  static List<StyleRule> get styles => _SplitPanelState.styles;
+  @override
+  State<SplitPanel> createState() => SplitPanelState();
 }
 
-class _SplitPanelState extends State<SplitPanel> {
-  late double value;
+class SplitPanelState extends State<SplitPanel> {
+  late SplitState _state;
+
+  /// The current collapse, hidden, or split state.
+  SplitState get state => _state;
+
+  /// The current split value (ratio 0.0 to 1.0, or absolute pixels).
+  double get value => _state.value;
+
+  /// Whether the left (or top) panel can be collapsed.
+  bool get canCollapseLeft => component.canCollapseLeft ?? (_state is LeftCollapsed);
+
+  /// Whether the right (or bottom) panel can be collapsed.
+  bool get canCollapseRight => component.canCollapseRight ?? (_state is RightCollapsed);
+
+  /// Whether either panel is currently collapsed.
+  bool get isCollapsed => _state.isCollapsed;
+
+  /// Whether the left (or top) panel is collapsed.
+  bool get isLeftCollapsed => _state.isLeftCollapsed;
+
+  /// Whether the right (or bottom) panel is collapsed.
+  bool get isRightCollapsed => _state.isRightCollapsed;
+
+  /// Whether neither panel is collapsed or hidden.
+  bool get isSplit => _state.isSplit;
+
+  /// Backwards-compatible alias for [isSplit].
+  bool get isUncollapsed => _state.isSplit;
+
+  /// Whether either panel is hidden completely.
+  bool get isHidden => _state.isHidden;
+
+  /// Whether the left (or top) panel is hidden.
+  bool get isLeftHidden => _state.isLeftHidden;
+
+  /// Whether the right (or bottom) panel is hidden.
+  bool get isRightHidden => _state.isRightHidden;
+
+  /// Collapses the left (or top) panel.
+  void collapseLeft() {
+    setState(() => _state = LeftCollapsed(_state.value));
+  }
+
+  /// Collapses the right (or bottom) panel.
+  void collapseRight() {
+    setState(() => _state = RightCollapsed(_state.value));
+  }
+
+  /// Hides the left (or top) panel completely.
+  void hideLeft() {
+    setState(() => _state = LeftHidden(_state.value));
+  }
+
+  /// Hides the right (or bottom) panel completely.
+  void hideRight() {
+    setState(() => _state = RightHidden(_state.value));
+  }
+
+  /// Splits the panel to [targetValue] or restores the previous split size.
+  void split([double? targetValue]) {
+    setState(() => _state = Split(targetValue ?? _state.value));
+  }
+
+  void _updateFromDrag(SplitState newState) {
+    if (_state != newState) {
+      setState(() {
+        _state = newState;
+      });
+    }
+  }
+
   bool isDragging = false;
+  bool _dragStartedWhileLeftCollapsed = false;
+  bool _dragStartedWhileRightCollapsed = false;
+  double _dragStartPos = 0;
   StreamSubscription<web.MouseEvent>? _mouseMoveSubscription;
   StreamSubscription<web.MouseEvent>? _mouseUpSubscription;
 
   @override
   void initState() {
     super.initState();
-    value = component.initialValue;
+    _state = component.initialState ?? Split(component.initialValue);
   }
 
   @override
   void didUpdateComponent(SplitPanel oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (oldComponent.initialValue != component.initialValue) {
-      value = component.initialValue;
+    if (component.initialState != null && component.initialState != oldComponent.initialState) {
+      _state = component.initialState!;
+    } else if (oldComponent.initialValue != component.initialValue) {
+      _state = Split(component.initialValue);
     }
   }
 
@@ -96,6 +349,11 @@ class _SplitPanelState extends State<SplitPanel> {
       isDragging = true;
     });
 
+    final startPos = component.isVertical ? event.clientY.toDouble() : event.clientX.toDouble();
+    _dragStartPos = startPos;
+    _dragStartedWhileRightCollapsed = canCollapseRight && isRightCollapsed;
+    _dragStartedWhileLeftCollapsed = canCollapseLeft && isLeftCollapsed;
+
     _mouseMoveSubscription?.cancel();
     _mouseMoveSubscription = web.EventStreamProviders.mouseMoveEvent.forTarget(web.window).listen((web.MouseEvent e) {
       final rect = container.getBoundingClientRect();
@@ -105,36 +363,123 @@ class _SplitPanelState extends State<SplitPanel> {
         return;
       }
 
+      final clientPos = (component.isVertical ? e.clientY : e.clientX).toDouble();
+      final currentFirstPos = clientPos - startOffset;
+      final currentSecondPos = totalSize - currentFirstPos;
+
+      final double minFirst;
+      final double maxFirst;
       if (component.useRatio) {
-        final clientPos = component.isVertical ? e.clientY : e.clientX;
-        var newRatio = (clientPos - startOffset) / totalSize;
-
-        final minR = component.minValue ?? 0.15;
-        final maxR = component.maxValue ?? 0.85;
-        if (newRatio < minR) {
-          newRatio = minR;
-        }
-        if (newRatio > maxR) {
-          newRatio = maxR;
-        }
-        setState(() {
-          value = newRatio;
-        });
+        final minRatio = component.minValue ?? 0.15;
+        final maxRatio = component.maxValue ?? 0.85;
+        minFirst = totalSize * minRatio;
+        maxFirst = totalSize * maxRatio;
+      } else if (component.absoluteFirst) {
+        minFirst = component.minValue ?? 100.0;
+        maxFirst = component.maxValue ?? (totalSize - 100.0);
       } else {
-        final clientPos = component.isVertical ? e.clientY : e.clientX;
-        var newValue = component.absoluteFirst ? (clientPos - startOffset) : (startOffset + totalSize - clientPos);
+        final minSecond = component.minValue ?? 100.0;
+        final maxSecond = component.maxValue ?? (totalSize - 100.0);
+        minFirst = totalSize - maxSecond;
+        maxFirst = totalSize - minSecond;
+      }
 
-        final minV = component.minValue ?? 100.0;
-        final maxV = component.maxValue ?? (totalSize - 100.0);
-        if (newValue < minV) {
-          newValue = minV;
+      final minSecond = totalSize - maxFirst;
+      final maxSecond = totalSize - minFirst;
+
+      final effectiveMinFirst = max(0.0, min(minFirst, totalSize * 0.5));
+      final effectiveMaxFirst = max(effectiveMinFirst, maxFirst);
+
+      final effectiveMinSecond = max(0.0, min(minSecond, totalSize * 0.5));
+      final effectiveMaxSecond = max(effectiveMinSecond, maxSecond);
+
+      final collapseThresholdRight = effectiveMinSecond - 30;
+      final collapseThresholdLeft = effectiveMinFirst - 30;
+
+      if (_dragStartedWhileRightCollapsed) {
+        final delta = _dragStartPos - clientPos;
+        if (isRightCollapsed) {
+          if (delta > 10) {
+            final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
+            final newValue = _valueFromSecondSize(targetSize, totalSize);
+            _updateFromDrag(Split(newValue));
+            if (currentSecondPos > collapseThresholdRight + 15) {
+              _dragStartedWhileRightCollapsed = false;
+            }
+          }
+        } else {
+          // Already auto-expanded during this drag gesture
+          if (delta < 5) {
+            _updateFromDrag(RightCollapsed(value));
+          } else {
+            final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
+            final newValue = _valueFromSecondSize(targetSize, totalSize);
+            _updateFromDrag(Split(newValue));
+            if (currentSecondPos > collapseThresholdRight + 15) {
+              _dragStartedWhileRightCollapsed = false;
+            }
+          }
         }
-        if (newValue > maxV) {
-          newValue = maxV;
+        return;
+      }
+
+      if (_dragStartedWhileLeftCollapsed) {
+        final delta = clientPos - _dragStartPos;
+        if (isLeftCollapsed) {
+          if (delta > 10) {
+            final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
+            final newValue = _valueFromFirstSize(targetSize, totalSize);
+            _updateFromDrag(Split(newValue));
+            if (currentFirstPos > collapseThresholdLeft + 15) {
+              _dragStartedWhileLeftCollapsed = false;
+            }
+          }
+        } else {
+          // Already auto-expanded during this drag gesture
+          if (delta < 5) {
+            _updateFromDrag(LeftCollapsed(value));
+          } else {
+            final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
+            final newValue = _valueFromFirstSize(targetSize, totalSize);
+            _updateFromDrag(Split(newValue));
+            if (currentFirstPos > collapseThresholdLeft + 15) {
+              _dragStartedWhileLeftCollapsed = false;
+            }
+          }
         }
-        setState(() {
-          value = newValue;
-        });
+        return;
+      }
+
+      // Drag started while already expanded
+      if (isRightCollapsed) {
+        // If it auto-collapsed during this drag, can auto-expand if dragged back up/left
+        if (currentSecondPos > collapseThresholdRight + 15) {
+          final targetSize = currentSecondPos.clamp(effectiveMinSecond, effectiveMaxSecond);
+          final newValue = _valueFromSecondSize(targetSize, totalSize);
+          _updateFromDrag(Split(newValue));
+        }
+        return;
+      }
+
+      if (isLeftCollapsed) {
+        // If it auto-collapsed during this drag, can auto-expand if dragged back down/right
+        if (currentFirstPos > collapseThresholdLeft + 15) {
+          final targetSize = currentFirstPos.clamp(effectiveMinFirst, effectiveMaxFirst);
+          final newValue = _valueFromFirstSize(targetSize, totalSize);
+          _updateFromDrag(Split(newValue));
+        }
+        return;
+      }
+
+      // Expanded: check if dragged too small (below collapseThreshold), auto-collapse
+      if (canCollapseRight && currentSecondPos < collapseThresholdRight) {
+        _updateFromDrag(RightCollapsed(value));
+      } else if (canCollapseLeft && currentFirstPos < collapseThresholdLeft) {
+        _updateFromDrag(LeftCollapsed(value));
+      } else {
+        final targetSize = currentFirstPos.clamp(effectiveMinFirst, totalSize - effectiveMinSecond);
+        final newValue = _valueFromFirstSize(targetSize, totalSize);
+        _updateFromDrag(Split(newValue));
       }
     });
 
@@ -149,9 +494,35 @@ class _SplitPanelState extends State<SplitPanel> {
     _mouseMoveSubscription = null;
     _mouseUpSubscription?.cancel();
     _mouseUpSubscription = null;
+    _dragStartedWhileLeftCollapsed = false;
+    _dragStartedWhileRightCollapsed = false;
     setState(() {
       isDragging = false;
     });
+  }
+
+  double _valueFromFirstSize(double firstSize, double totalSize) {
+    if (component.useRatio) {
+      final ratio = firstSize / totalSize;
+      return ratio.clamp(component.minValue ?? 0.15, component.maxValue ?? 0.85);
+    } else if (component.absoluteFirst) {
+      return firstSize.clamp(component.minValue ?? 100.0, component.maxValue ?? (totalSize - 100.0));
+    } else {
+      final secondVal = totalSize - firstSize;
+      return secondVal.clamp(component.minValue ?? 100.0, component.maxValue ?? (totalSize - 100.0));
+    }
+  }
+
+  double _valueFromSecondSize(double secondSize, double totalSize) {
+    if (component.useRatio) {
+      final ratio = 1.0 - (secondSize / totalSize);
+      return ratio.clamp(component.minValue ?? 0.15, component.maxValue ?? 0.85);
+    } else if (component.absoluteFirst) {
+      final firstVal = totalSize - secondSize;
+      return firstVal.clamp(component.minValue ?? 100.0, component.maxValue ?? (totalSize - 100.0));
+    } else {
+      return secondSize.clamp(component.minValue ?? 100.0, component.maxValue ?? (totalSize - 100.0));
+    }
   }
 
   @override
@@ -165,29 +536,64 @@ class _SplitPanelState extends State<SplitPanel> {
   Component build(BuildContext context) {
     final leftChild = component.left;
     final rightChild = component.right;
+    final state = _state;
 
-    final leftFlex = component.useRatio
-        ? Flex(grow: component.showRight ? value : 1, basis: .zero)
-        : (component.showRight
-              ? (component.absoluteFirst ? Flex(grow: 0, basis: value.px) : const Flex(grow: 1, basis: .zero))
-              : const Flex(grow: 1, basis: .zero));
+    final Flex leftFlex;
+    final Flex rightFlex;
+    final Display? leftDisplay;
+    final Display? rightDisplay;
+    final bool showDragHandle;
 
-    final rightFlex = component.useRatio
-        ? Flex(grow: component.showLeft ? 1 - value : 1, basis: .zero)
-        : (component.showLeft
-              ? (component.absoluteFirst ? const Flex(grow: 1, basis: .zero) : Flex(grow: 0, basis: value.px))
-              : const Flex(grow: 1, basis: .zero));
+    switch (state) {
+      case LeftHidden():
+        leftFlex = const Flex.shrink(0);
+        rightFlex = const Flex(grow: 1, basis: .zero);
+        leftDisplay = .none;
+        rightDisplay = null;
+        showDragHandle = false;
+      case RightHidden():
+        leftFlex = const Flex(grow: 1, basis: .zero);
+        rightFlex = const Flex.shrink(0);
+        leftDisplay = null;
+        rightDisplay = .none;
+        showDragHandle = false;
+      case LeftCollapsed():
+        leftFlex = const Flex.shrink(0);
+        rightFlex = const Flex(grow: 1, basis: .zero);
+        leftDisplay = null;
+        rightDisplay = null;
+        showDragHandle = true;
+      case RightCollapsed():
+        leftFlex = const Flex(grow: 1, basis: .zero);
+        rightFlex = const Flex.shrink(0);
+        leftDisplay = null;
+        rightDisplay = null;
+        showDragHandle = true;
+      case Split(:final value):
+        leftFlex = component.useRatio
+            ? Flex(grow: value, basis: .zero)
+            : (component.absoluteFirst ? Flex(grow: 0, basis: value.px) : const Flex(grow: 1, basis: .zero));
+        rightFlex = component.useRatio
+            ? Flex(grow: 1 - value, basis: .zero)
+            : (component.absoluteFirst ? const Flex(grow: 1, basis: .zero) : Flex(grow: 0, basis: value.px));
+        leftDisplay = null;
+        rightDisplay = null;
+        showDragHandle = true;
+    }
 
     return Component.fragment([
-      Component.apply(
-        styles: Styles(
-          display: !component.showLeft ? .none : null,
-          pointerEvents: isDragging ? .none : null,
-          flex: leftFlex,
+      _InheritedSplitPanel(
+        data: SplitPanelData(splitPanelState: this, isLeft: true, state: state),
+        child: Component.apply(
+          styles: Styles(
+            display: leftDisplay,
+            pointerEvents: isDragging ? .none : null,
+            flex: leftFlex,
+          ),
+          child: leftChild,
         ),
-        child: leftChild,
       ),
-      if (component.showLeft && component.showRight)
+      if (showDragHandle)
         div(
           classes: 'drag-handle ${component.isVertical ? 'vertical' : 'horizontal'}${isDragging ? ' dragging' : ''}',
           events: {
@@ -195,19 +601,23 @@ class _SplitPanelState extends State<SplitPanel> {
           },
           [],
         ),
-      Component.apply(
-        styles: Styles(
-          display: !component.showRight ? .none : null,
-          pointerEvents: isDragging ? .none : null,
-          flex: rightFlex,
+      _InheritedSplitPanel(
+        data: SplitPanelData(splitPanelState: this, isLeft: false, state: state),
+        child: Component.apply(
+          styles: Styles(
+            display: rightDisplay,
+            pointerEvents: isDragging ? .none : null,
+            flex: rightFlex,
+          ),
+          child: rightChild,
         ),
-        child: rightChild,
       ),
     ]);
   }
 
-  static const width = 10;
+  static const width = 8;
 
+  @css
   static List<StyleRule> get styles => [
     css('.drag-handle').styles(
       position: const .relative(),

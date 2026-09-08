@@ -10,6 +10,7 @@ import 'package:dartpad_frontend/features/preview/components/runtime_button.dart
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
@@ -168,150 +169,236 @@ void main() {
     throw StateError('Option "$title" not found in dropdown');
   }
 
-  testClient('defaults to mobile mode with rotation button visible', (tester) async {
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+  group('PreviewContainer – collapse button', () {
+    testClient('does not render collapse button when not in a SplitPanel', (tester) {
+      tester.pumpComponent(buildContainer());
 
-    final trigger = findDropdownTrigger();
-    expect(trigger.textContent, contains('Mobile'));
-    expect(trigger.textContent, contains('smartphone'));
+      expect(web.document.querySelector('button[aria-label="Hide preview"]'), isNull);
+    });
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    expect(content.className, contains('mode-mobile'));
+    testClient('renders collapse button when in SplitPanel', (tester) {
+      tester.pumpComponent(
+        SplitPanel(
+          canCollapseRight: true,
+          left: const div([]),
+          right: PreviewContainer(
+            preview: preview,
+            taskStatus: taskStatus,
+            activeFile: 'lib/main.dart',
+            onOpenConsole: () {},
+          ),
+        ),
+      );
 
-    final rotateBtn = findRotateButton();
-    expect(rotateBtn, isNotNull);
-    expect(rotateBtn!.disabled, isFalse);
+      final button = web.document.querySelector('button[aria-label="Hide preview"]') as web.HTMLButtonElement?;
+      expect(button, isNotNull);
+      expect(button!.getAttribute('aria-label'), 'Hide preview');
+    });
+
+    testClient('renders preview-rail and keeps container mounted when collapsed in SplitPanel', (tester) {
+      tester.pumpComponent(
+        SplitPanel(
+          initialState: const RightCollapsed(0.7),
+          canCollapseRight: true,
+          left: const div([]),
+          right: PreviewContainer(
+            preview: preview,
+            taskStatus: taskStatus,
+            activeFile: 'lib/main.dart',
+            onOpenConsole: () {},
+          ),
+        ),
+      );
+
+      expect(web.document.querySelector('.preview-container.collapsed'), isNotNull);
+      expect(web.document.querySelector('.preview-rail:not(.hidden)'), isNotNull);
+      expect(web.document.querySelector('.preview-rail button'), isNotNull);
+      expect(web.document.querySelector('.preview-toolbar.hidden'), isNotNull);
+      expect(web.document.querySelector('.preview-content.collapsed'), isNotNull);
+    });
+
+    testClient('collapsing and expanding preserves containerElement in the DOM', (tester) async {
+      final splitKey = GlobalStateKey<SplitPanelState>();
+      tester.pumpComponent(
+        SplitPanel(
+          key: splitKey,
+          initialState: const Split(0.7),
+          canCollapseRight: true,
+          left: const div([]),
+          right: PreviewContainer(
+            preview: preview,
+            taskStatus: taskStatus,
+            activeFile: 'lib/main.dart',
+            onOpenConsole: () {},
+          ),
+        ),
+      );
+
+      final containerElement = preview.containerElement;
+      expect(containerElement.isConnected, isTrue);
+
+      // Collapse right panel
+      splitKey.currentState!.collapseRight();
+      await pumpEventQueue();
+
+      expect(containerElement.isConnected, isTrue);
+      expect(web.document.querySelector('.preview-container.collapsed'), isNotNull);
+
+      // Expand right panel
+      splitKey.currentState!.split();
+      await pumpEventQueue();
+
+      expect(containerElement.isConnected, isTrue);
+      expect(web.document.querySelector('.preview-container:not(.collapsed)'), isNotNull);
+    });
   });
 
-  testClient('switches mode to tablet and updates CSS classes', (tester) async {
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+  group('PreviewContainer – device mode & controls', () {
+    testClient('defaults to mobile mode with rotation button visible', (tester) async {
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-    await selectDropdownOption('Tablet');
+      final trigger = findDropdownTrigger();
+      expect(trigger.textContent, contains('Mobile'));
+      expect(trigger.textContent, contains('smartphone'));
 
-    final trigger = findDropdownTrigger();
-    expect(trigger.textContent, contains('Tablet'));
-    expect(trigger.textContent, contains('tablet'));
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.className, contains('mode-mobile'));
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    expect(content.className, contains('mode-tablet'));
+      final rotateBtn = findRotateButton();
+      expect(rotateBtn, isNotNull);
+      expect(rotateBtn!.disabled, isFalse);
+    });
 
-    final rotateBtn = findRotateButton();
-    expect(rotateBtn, isNotNull);
-    expect(rotateBtn!.disabled, isFalse);
-  });
+    testClient('switches mode to tablet and updates CSS classes', (tester) async {
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-  testClient('switches mode to full size and removes rotation button', (tester) async {
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+      await selectDropdownOption('Tablet');
 
-    expect(findRotateButton(), isNotNull);
+      final trigger = findDropdownTrigger();
+      expect(trigger.textContent, contains('Tablet'));
+      expect(trigger.textContent, contains('tablet'));
 
-    await selectDropdownOption('Full size');
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.className, contains('mode-tablet'));
 
-    final trigger = findDropdownTrigger();
-    expect(trigger.textContent, contains('Full size'));
-    expect(trigger.textContent, contains('devices'));
+      final rotateBtn = findRotateButton();
+      expect(rotateBtn, isNotNull);
+      expect(rotateBtn!.disabled, isFalse);
+    });
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    expect(content.className, contains('mode-current'));
+    testClient('switches mode to full size and removes rotation button', (tester) async {
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-    expect(findRotateButton(), isNull);
-  });
+      expect(findRotateButton(), isNotNull);
 
-  testClient('toggles orientation and resets rotation when switching mode', (tester) async {
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+      await selectDropdownOption('Full size');
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    final rotateBtn = findRotateButton()!;
+      final trigger = findDropdownTrigger();
+      expect(trigger.textContent, contains('Full size'));
+      expect(trigger.textContent, contains('devices'));
 
-    // Initial mobile dimensions
-    expect(content.style.getPropertyValue('--device-width'), '390px');
-    expect(content.style.getPropertyValue('--device-height'), '846px');
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.className, contains('mode-current'));
 
-    // Rotate to landscape
-    rotateBtn.click();
-    await pumpEventQueue();
+      expect(findRotateButton(), isNull);
+    });
 
-    expect(content.style.getPropertyValue('--device-width'), '846px');
-    expect(content.style.getPropertyValue('--device-height'), '390px');
+    testClient('toggles orientation and resets rotation when switching mode', (tester) async {
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-    // Switching to tablet resets orientation back to default (portrait for tablet: 760x576)
-    await selectDropdownOption('Tablet');
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      final rotateBtn = findRotateButton()!;
 
-    expect(content.style.getPropertyValue('--device-width'), '760px');
-    expect(content.style.getPropertyValue('--device-height'), '576px');
-  });
+      // Initial mobile dimensions
+      expect(content.style.getPropertyValue('--device-width'), '390px');
+      expect(content.style.getPropertyValue('--device-height'), '846px');
 
-  testClient('removes device CSS variables in full size mode', (tester) async {
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+      // Rotate to landscape
+      rotateBtn.click();
+      await pumpEventQueue();
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    expect(content.style.getPropertyValue('--device-width'), '390px');
+      expect(content.style.getPropertyValue('--device-width'), '846px');
+      expect(content.style.getPropertyValue('--device-height'), '390px');
 
-    await selectDropdownOption('Full size');
+      // Switching to tablet resets orientation back to default (portrait for tablet: 760x576)
+      await selectDropdownOption('Tablet');
 
-    expect(content.style.getPropertyValue('--device-width'), isEmpty);
-    expect(content.style.getPropertyValue('--device-height'), isEmpty);
-    expect(content.style.getPropertyValue('--device-scale'), isEmpty);
-  });
+      expect(content.style.getPropertyValue('--device-width'), '760px');
+      expect(content.style.getPropertyValue('--device-height'), '576px');
+    });
 
-  testClient('calculates downscaling when container is smaller than device dimensions', (tester) async {
-    // 390px width device in a 200px wide container
-    tester.pumpComponent(buildContainer(width: '200px', height: '500px'));
-    await pumpEventQueue();
+    testClient('removes device CSS variables in full size mode', (tester) async {
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    final scaleStr = content.style.getPropertyValue('--device-scale');
-    expect(scaleStr, isNotEmpty);
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.style.getPropertyValue('--device-width'), '390px');
 
-    final scale = double.parse(scaleStr);
-    expect(scale, lessThan(1.0));
-    expect(scale, greaterThan(0.0));
-  });
+      await selectDropdownOption('Full size');
 
-  testClient('disables dropdown and rotate button when preview is stopped', (tester) async {
-    preview.setRunning(value: false);
+      expect(content.style.getPropertyValue('--device-width'), isEmpty);
+      expect(content.style.getPropertyValue('--device-height'), isEmpty);
+      expect(content.style.getPropertyValue('--device-scale'), isEmpty);
+    });
 
-    tester.pumpComponent(buildContainer());
-    await pumpEventQueue();
+    testClient('calculates downscaling when container is smaller than device dimensions', (tester) async {
+      // 390px width device in a 200px wide container
+      tester.pumpComponent(buildContainer(width: '200px', height: '500px'));
+      await pumpEventQueue();
 
-    final trigger = findDropdownTrigger();
-    expect(trigger.className, contains('disabled'));
-    expect(trigger.getAttribute('disabled'), 'true');
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      final scaleStr = content.style.getPropertyValue('--device-scale');
+      expect(scaleStr, isNotEmpty);
 
-    // Clicking trigger does not open menu
-    trigger.click();
-    await pumpEventQueue();
-    expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
+      final scale = double.parse(scaleStr);
+      expect(scale, lessThan(1.0));
+      expect(scale, greaterThan(0.0));
+    });
 
-    final rotateBtn = findRotateButton()!;
-    expect(rotateBtn.disabled, isTrue);
+    testClient('disables dropdown and rotate button when preview is stopped', (tester) async {
+      preview.setRunning(value: false);
 
-    final content = web.document.querySelector('.preview-content') as web.HTMLElement;
-    expect(content.className, contains('status-stopped'));
-  });
+      tester.pumpComponent(buildContainer());
+      await pumpEventQueue();
 
-  testClient('mounts and unmounts cleanly without errors', (tester) async {
-    final showContainer = ValueNotifier(true);
+      final trigger = findDropdownTrigger();
+      expect(trigger.className, contains('disabled'));
+      expect(trigger.getAttribute('disabled'), 'true');
 
-    tester.pumpComponent(
-      ListenableBuilder(
-        listenable: showContainer,
-        builder: (context) => showContainer.value ? buildContainer() : const Component.fragment([]),
-      ),
-    );
-    await pumpEventQueue();
+      // Clicking trigger does not open menu
+      trigger.click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
 
-    expect(web.document.querySelector('.preview-container'), isNotNull);
+      final rotateBtn = findRotateButton()!;
+      expect(rotateBtn.disabled, isTrue);
 
-    showContainer.value = false;
-    await pumpEventQueue();
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.className, contains('status-stopped'));
+    });
 
-    expect(web.document.querySelector('.preview-container'), isNull);
+    testClient('mounts and unmounts cleanly without errors', (tester) async {
+      final showContainer = ValueNotifier(true);
+
+      tester.pumpComponent(
+        ListenableBuilder(
+          listenable: showContainer,
+          builder: (context) => showContainer.value ? buildContainer() : const Component.fragment([]),
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+
+      showContainer.value = false;
+      await pumpEventQueue();
+
+      expect(web.document.querySelector('.preview-container'), isNull);
+    });
   });
 
   testClient('renders runtime buttons with icons and labels', (tester) async {
@@ -350,8 +437,8 @@ void main() {
     expect(buttons[2].textContent, contains('stop'));
   });
 
-  testClient('hides all button and dropdown labels in narrow Flutter toolbar (< 250px)', (tester) async {
-    tester.pumpComponent(buildContainer(width: '240px'));
+  testClient('hides all button and dropdown labels in narrow Flutter toolbar (< 270px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '250px'));
     await pumpEventQueue();
 
     final buttons = findRuntimeButtons();
@@ -363,7 +450,7 @@ void main() {
   });
 
   testClient(
-    'expands only the first button label while hiding dropdown label in Flutter toolbar (250px - 299px)',
+    'expands only the first button label while hiding dropdown label in Flutter toolbar (270px - 319px)',
     (tester) async {
       tester.pumpComponent(buildContainer(width: '280px'));
       await pumpEventQueue();
@@ -380,7 +467,7 @@ void main() {
     },
   );
 
-  testClient('expands dropdown label and first button in medium-wide Flutter toolbar (300px - 379px)', (tester) async {
+  testClient('expands dropdown label and first button in medium-wide Flutter toolbar (320px - 409px)', (tester) async {
     tester.pumpComponent(buildContainer(width: '340px'));
     await pumpEventQueue();
 
@@ -395,8 +482,8 @@ void main() {
     expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
   });
 
-  testClient('expands all button labels and dropdown label in wide Flutter toolbar (>= 380px)', (tester) async {
-    tester.pumpComponent(buildContainer(width: '400px'));
+  testClient('expands all button labels and dropdown label in wide Flutter toolbar (>= 410px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '420px'));
     await pumpEventQueue();
 
     final buttons = findRuntimeButtons();
@@ -407,7 +494,7 @@ void main() {
     expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
   });
 
-  testClient('hides all button labels in narrow Dart toolbar (< 160px)', (tester) async {
+  testClient('hides all button labels in narrow Dart toolbar (< 180px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '140px'));
     await pumpEventQueue();
@@ -420,7 +507,7 @@ void main() {
     dartPreview.dispose();
   });
 
-  testClient('expands only the first button in medium Dart toolbar (160px - 249px)', (tester) async {
+  testClient('expands only the first button in medium Dart toolbar (180px - 269px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '200px'));
     await pumpEventQueue();
@@ -436,7 +523,7 @@ void main() {
     dartPreview.dispose();
   });
 
-  testClient('expands all buttons in wide Dart toolbar (>= 250px)', (tester) async {
+  testClient('expands all buttons in wide Dart toolbar (>= 270px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '300px'));
     await pumpEventQueue();

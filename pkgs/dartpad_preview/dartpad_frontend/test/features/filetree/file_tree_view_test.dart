@@ -11,6 +11,8 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
+import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -47,13 +49,26 @@ void main() {
     expect(web.document.querySelector('.file-tree-toolbar'), isNull);
   });
 
-  testClient('renders collapse button in header when onCollapse is provided and invokes callback', (tester) async {
-    var collapseCalled = false;
+  testClient('does not render collapse button in header when not in a collapsible SplitPanel', (tester) {
     tester.pumpComponent(
       FileTreeView(
         state: _state(workspace),
         actions: _actions(),
-        onCollapse: () => collapseCalled = true,
+      ),
+    );
+
+    expect(web.document.querySelector('.file-tree-collapse-button'), isNull);
+  });
+
+  testClient('renders collapse button and collapses into rail when hosted in collapsible SplitPanel', (tester) async {
+    tester.pumpComponent(
+      SplitPanel(
+        canCollapseLeft: true,
+        left: FileTreeView(
+          state: _state(workspace),
+          actions: _actions(),
+        ),
+        right: const div([]),
       ),
     );
 
@@ -65,18 +80,16 @@ void main() {
     collapseButton.click();
     await pumpEventQueue();
 
-    expect(collapseCalled, isTrue);
-  });
+    expect(web.document.querySelector('.file-tree'), isNull);
+    final railButton = web.document.querySelector('.file-tree-rail button') as web.HTMLButtonElement?;
+    expect(railButton, isNotNull);
+    expect(railButton!.getAttribute('aria-label'), 'Show file tree');
 
-  testClient('does not render collapse button in header when onCollapse is null', (tester) {
-    tester.pumpComponent(
-      FileTreeView(
-        state: _state(workspace),
-        actions: _actions(),
-      ),
-    );
+    railButton.click();
+    await pumpEventQueue();
 
-    expect(web.document.querySelector('.file-tree-collapse-button'), isNull);
+    expect(web.document.querySelector('.file-tree'), isNotNull);
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
   });
 
   testClient('single click on a folder selects it and toggles collapsed state', (tester) async {

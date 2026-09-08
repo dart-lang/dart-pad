@@ -13,6 +13,7 @@ import '../../../app_styles.dart';
 import '../../bottom_panel/views/console_panel.dart';
 import '../../shared/components/button_group.dart';
 import '../../shared/components/icon_button.dart';
+import '../../shared/components/split_panel.dart';
 import '../../shared/components/task_status_indicator.dart';
 import '../../shared/node_container.dart';
 import '../../shared/task_status.dart';
@@ -132,6 +133,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
   Component build(BuildContext context) {
     context.binding.addPostFrameCallback(_updateScale);
 
+    final panel = SplitPanel.of(context);
+    final isCollapsed = panel?.isPanelCollapsed ?? false;
+
     final viewModel = component.preview;
     final state = viewModel.state;
     final isRunning = viewModel.isRunning;
@@ -150,10 +154,21 @@ class _PreviewContainerState extends State<PreviewContainer> {
       _ => null,
     };
 
-    return div(classes: 'preview-container', [
+    return div(classes: 'preview-container${isCollapsed ? ' collapsed' : ''}', [
+      aside(key: const ValueKey('preview-rail'), classes: 'preview-rail${isCollapsed ? '' : ' hidden'}', [
+        IconButton(
+          tooltip: 'Show preview',
+          label: 'Show preview',
+          icon: 'play_arrow',
+          iconSize: 18,
+          onClick: (_) => panel?.expand(),
+        ),
+      ]),
       div(
+        key: const ValueKey('preview-toolbar'),
         classes: [
           'preview-toolbar',
+          if (isCollapsed) 'hidden',
           if (viewModel.isFlutter) 'has-device-mode',
         ].join(' '),
         [
@@ -201,6 +216,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
                 ],
               ),
           ]),
+          if (panel != null && panel.canCollapse)
+            IconButton(
+              tooltip: 'Hide preview',
+              label: 'Hide preview',
+              icon: 'chevron_right',
+              onClick: (_) => panel.collapse(),
+            ),
         ],
       ),
       div(
@@ -210,6 +232,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
           'mode-${mode.name}',
           if (!isRunning) 'status-stopped',
           if (!viewModel.isFlutter) 'is-dart',
+          if (isCollapsed) 'collapsed',
         ].join(' '),
         [
           NodeContainer(viewModel.containerElement),
@@ -228,6 +251,21 @@ class _PreviewContainerState extends State<PreviewContainer> {
   }
 
   static List<StyleRule> get styles => [
+    css('.preview-rail', [
+      css('&').styles(
+        display: .flex,
+        width: 36.px,
+        height: 100.percent,
+        padding: .only(top: 8.px),
+        flexDirection: .column,
+        alignItems: .center,
+        flex: const .shrink(0),
+        backgroundColor: colorSurface,
+      ),
+      css('&.hidden').styles(
+        display: .none,
+      ),
+    ]),
     css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(
       display: .none,
     ),
@@ -240,6 +278,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flex: const .grow(1),
         backgroundColor: colorContainer,
         raw: {'container-type': 'inline-size'},
+      ),
+      css('&.collapsed').styles(
+        width: 36.px,
+        minWidth: 36.px,
+        maxWidth: 36.px,
+        flex: const .shrink(0),
+        backgroundColor: colorSurface,
       ),
       css('.active-icon-btn').styles(
         color: colorOnPrimary,
@@ -260,6 +305,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
           flex: const .shrink(0),
           backgroundColor: colorSurface,
         ),
+        css('&.hidden').styles(
+          display: .none,
+        ),
         css('.preview-controls').styles(
           display: .flex,
           flexWrap: .nowrap,
@@ -278,6 +326,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
           justifyContent: .center,
           alignItems: .center,
           flex: const .grow(1),
+        ),
+        css('&.collapsed').styles(
+          position: const .absolute(),
+          width: .zero,
+          height: .zero,
+          visibility: .hidden,
+          pointerEvents: .none,
         ),
         css('&.mode-mobile, &.mode-tablet').styles(
           padding: Padding.all(16.px),
@@ -347,26 +402,24 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
       ]),
     ]),
-    // Flutter: first button expands at >= 250px
-    ContainerStyleRule('(min-width: 250px)', [
+    // Flutter: first button expands at >= 270px
+    ContainerStyleRule('(min-width: 270px)', [
       css('.preview-toolbar.has-device-mode .runtime-button:first-child', expandedRuntimeButtonStyles),
     ]),
-    // Flutter: device dropdown label expands at >= 300px
-    ContainerStyleRule('(min-width: 300px)', [
-      css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(
-        display: .inline,
-      ),
+    // Flutter: device dropdown label expands at >= 320px
+    ContainerStyleRule('(min-width: 320px)', [
+      css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(display: .inline),
     ]),
-    // Flutter: all 3 buttons expand at >= 380px
-    ContainerStyleRule('(min-width: 380px)', [
+    // Flutter: all 3 buttons expand at >= 410px
+    ContainerStyleRule('(min-width: 410px)', [
       css('.preview-toolbar.has-device-mode .runtime-button', expandedRuntimeButtonStyles),
     ]),
-    // Dart (no device dropdown): first button expands at >= 160px
-    ContainerStyleRule('(min-width: 160px)', [
+    // Dart (no device dropdown): first button expands at >= 180px
+    ContainerStyleRule('(min-width: 180px)', [
       css('.preview-toolbar:not(.has-device-mode) .runtime-button:first-child', expandedRuntimeButtonStyles),
     ]),
-    // Dart (no device dropdown): all 3 buttons expand at >= 250px
-    ContainerStyleRule('(min-width: 250px)', [
+    // Dart (no device dropdown): all 3 buttons expand at >= 270px
+    ContainerStyleRule('(min-width: 270px)', [
       css('.preview-toolbar:not(.has-device-mode) .runtime-button', expandedRuntimeButtonStyles),
     ]),
   ];

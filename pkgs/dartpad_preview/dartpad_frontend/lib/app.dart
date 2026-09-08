@@ -110,6 +110,8 @@ class AppState extends State<App> {
   String _projectDir = '';
   String? _workspacePreparationFailure;
 
+  GlobalStateKey<SplitPanelState> _previewSplitKey = GlobalStateKey<SplitPanelState>();
+
   bool _isLargeScreen = true;
   SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
@@ -154,14 +156,16 @@ class AppState extends State<App> {
   }
 
   void _onPreviewStateChanged() {
-    if (!_isLargeScreen) {
-      final state = _session.preview.state;
-      if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
+    final state = _session.preview.state;
+    if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
+      if (!_isLargeScreen) {
         if (_selectedSmallScreenTab != .output) {
           setState(() {
             _selectedSmallScreenTab = .output;
           });
         }
+      } else if (_previewSplitKey.currentState?.isRightCollapsed ?? false) {
+        _previewSplitKey.currentState?.split();
       }
     }
   }
@@ -375,6 +379,7 @@ class AppState extends State<App> {
 
     setState(() {
       _workspaceGeneration++;
+      _previewSplitKey = GlobalStateKey<SplitPanelState>();
       _session = nextSession;
       _isInitializingWorkspace = true;
       _workspacePreparationFailure = null;
@@ -425,6 +430,7 @@ class AppState extends State<App> {
 
     setState(() {
       _workspaceGeneration++;
+      _previewSplitKey = GlobalStateKey<SplitPanelState>();
       _session = nextSession;
       _currentSdk = newSdk;
       _isInitializingWorkspace = true;
@@ -631,11 +637,15 @@ class AppState extends State<App> {
           div(classes: 'app-workspace', [
             if (_isLargeScreen)
               SplitPanel(
+                key: _previewSplitKey,
                 initialValue: 0.7,
+                canCollapseRight: true,
+                minValue: 0.3,
+                maxValue: 0.85,
                 left: EditorShell(
                   openTabs: session.tabs.openTabs,
                   activeFile: session.tabs.activeFile,
-                  fileTreeBuilder: (onCollapse) => _buildFileTree(session, onCollapse: onCollapse),
+                  fileTree: _buildFileTree(session),
                   editorOverlay: _buildEditorOverlay(session),
                   onSwitchFile: session.tabs.switchFile,
                   onCloseFile: session.tabs.closeFile,
@@ -649,7 +659,7 @@ class AppState extends State<App> {
               EditorShell(
                 openTabs: session.tabs.openTabs,
                 activeFile: session.tabs.activeFile,
-                fileTreeBuilder: (onCollapse) => _buildFileTree(session, onCollapse: onCollapse),
+                fileTree: _buildFileTree(session),
                 editorOverlay: _buildEditorOverlay(session),
                 onSwitchFile: session.tabs.switchFile,
                 onCloseFile: session.tabs.closeFile,
@@ -724,14 +734,13 @@ class AppState extends State<App> {
     ]);
   }
 
-  Component _buildFileTree(WorkspaceSession session, {VoidCallback? onCollapse}) {
+  Component _buildFileTree(WorkspaceSession session) {
     return ListenableBuilder(
       listenable: session.fileTree,
       builder: (context) => FileTreeView(
         state: session.fileTree.state,
         actions: session.fileTree.actions,
         contextMenu: session.contextMenu,
-        onCollapse: onCollapse,
       ),
     );
   }
