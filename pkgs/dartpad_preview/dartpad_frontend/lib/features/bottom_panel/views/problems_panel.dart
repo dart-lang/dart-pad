@@ -123,9 +123,6 @@ class ProblemsPanel extends StatelessComponent {
           left: .solid(color: colorInfo, width: 2.px),
         ),
       ),
-      css('& .problem-row.active-file').styles(
-        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
-      ),
       css('& .problem-severity-badge').styles(
         display: .inlineFlex,
         width: 18.px,
@@ -168,9 +165,6 @@ class ProblemsPanel extends StatelessComponent {
         ]),
         fontSize: 11.px,
       ),
-      css(
-        '& .problem-row:hover .problem-location, & .problem-row:focus-within .problem-location',
-      ).styles(display: .none),
     ]),
   ];
 }
