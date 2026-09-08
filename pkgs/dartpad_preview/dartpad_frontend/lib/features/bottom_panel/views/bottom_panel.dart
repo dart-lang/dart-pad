@@ -26,11 +26,10 @@ enum BottomPanelTab {
 }
 
 /// The bottom panel showing tabs with associated content panes.
-class BottomPanel extends StatefulComponent {
+final class BottomPanel extends StatefulComponent {
   const BottomPanel({
     required this.diagnostics,
     required this.hasMoreDiagnostics,
-    required this.activeFile,
     required this.onOpenDiagnostic,
     required this.logs,
     required this.onClearConsole,
@@ -44,9 +43,6 @@ class BottomPanel extends StatefulComponent {
 
   /// Whether diagnostics are omitted from the problems panel.
   final bool hasMoreDiagnostics;
-
-  /// The currently active editor file path, used to highlight matching rows.
-  final String activeFile;
 
   /// Called when the user clicks a diagnostic row.
   final void Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
@@ -122,7 +118,6 @@ class _BottomPanelState extends State<BottomPanel> {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
           hasMoreDiagnostics: component.hasMoreDiagnostics,
-          activeFile: component.activeFile,
           onOpenDiagnostic: component.onOpenDiagnostic,
         ),
         BottomPanelTab.console => ConsolePanel(

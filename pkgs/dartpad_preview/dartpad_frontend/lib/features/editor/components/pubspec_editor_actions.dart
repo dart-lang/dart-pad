@@ -18,7 +18,7 @@ import '../../shared/events/log_event.dart';
 /// Manages its own busy state internally, disabling the action button while
 /// a Pub operation is in progress.
 final class PubspecEditorActions extends StatefulComponent {
-  /// Creates the floating Pub actions for [activeFile].
+  /// Creates the floating Pub get action for [activeFile].
   const PubspecEditorActions({
     required this.activeFile,
     required this.saveAllFiles,
@@ -50,7 +50,6 @@ final class PubspecEditorActions extends StatefulComponent {
         position: .absolute(right: 32.px, top: 16.px),
         zIndex: const ZIndex(20),
         alignItems: .center,
-        gap: .all(8.px),
       ),
       css('.dp-button').styles(
         shadow: BoxShadow(
@@ -124,13 +123,17 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     // with an element when this component is nested in the editor overlay.
     return div(classes: 'pubspec-editor-actions-host', [
       if (isPubspecFile)
-        div(classes: 'pubspec-editor-actions', [
-          Button(
-            label: 'Pub get',
-            disabled: _busy,
-            onClick: () => unawaited(_pubGet(directory)),
-          ),
-        ]),
+        div(
+          classes: 'pubspec-editor-actions',
+          attributes: {'aria-busy': _busy ? 'true' : 'false'},
+          [
+            Button(
+              label: 'Pub get',
+              disabled: _busy,
+              onClick: () => unawaited(_pubGet(directory)),
+            ),
+          ],
+        ),
     ]);
   }
 }

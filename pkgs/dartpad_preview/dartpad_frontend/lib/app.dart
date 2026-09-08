@@ -716,7 +716,6 @@ class AppState extends State<App> {
         builder: (context) => BottomPanel(
           diagnostics: session.diagnostics.diagnostics,
           hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
-          activeFile: session.tabs.activeFile,
           logs: session.console.logs,
           onClearConsole: session.console.clear,
           events: session.events,
