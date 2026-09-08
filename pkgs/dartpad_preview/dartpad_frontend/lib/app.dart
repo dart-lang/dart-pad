@@ -98,6 +98,14 @@ final class ExampleProjectSource extends ProjectSource {
   Map<String, String> get queryParameters => sampleId == null ? const <String, String>{} : {'sample': sampleId!};
 }
 
+/// Prompts the browser's native confirmation dialog before unloading the page
+/// to prevent accidental data loss, as workspace changes are currently held in memory.
+@visibleForTesting
+void handleBeforeUnload(web.BeforeUnloadEvent event) {
+  event.preventDefault();
+  event.returnValue = '';
+}
+
 /// Composition root – wires all services and drives the startup lifecycle.
 class AppState extends State<App> {
   late WorkspaceSession _session;
@@ -116,6 +124,7 @@ class AppState extends State<App> {
   SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
   StreamSubscription<web.KeyboardEvent>? _keySubscription;
+  StreamSubscription<web.BeforeUnloadEvent>? _beforeUnloadSubscription;
 
   SdkInfo _currentSdk = defaultSdk;
 
@@ -127,6 +136,9 @@ class AppState extends State<App> {
       _updateScreenSize();
     });
     _keySubscription = web.EventStreamProviders.keyDownEvent.forTarget(web.document).listen(_handleGlobalKeyDown);
+    _beforeUnloadSubscription = web.EventStreamProviders.beforeUnloadEvent
+        .forTarget(web.window)
+        .listen(handleBeforeUnload);
 
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
@@ -799,6 +811,7 @@ class AppState extends State<App> {
   void dispose() {
     _resizeSubscription?.cancel();
     _keySubscription?.cancel();
+    _beforeUnloadSubscription?.cancel();
     _session.preview.removeListener(_onPreviewStateChanged);
     unawaited(_session.dispose(closeWorker: true));
     super.dispose();
