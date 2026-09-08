@@ -13,9 +13,9 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
 import '../../shared/events/log_event.dart';
 
-/// Displays path-aware Pub actions for an active Pub metadata file.
+/// Displays a path-aware Pub get action for an active Pub metadata file.
 ///
-/// Manages its own busy state internally, disabling the action buttons while
+/// Manages its own busy state internally, disabling the action button while
 /// a Pub operation is in progress.
 final class PubspecEditorActions extends StatefulComponent {
   /// Creates the floating Pub actions for [activeFile].
@@ -24,7 +24,6 @@ final class PubspecEditorActions extends StatefulComponent {
     required this.saveAllFiles,
     required this.events,
     required this.onPubGet,
-    required this.onPubClean,
     super.key,
   });
 
@@ -39,9 +38,6 @@ final class PubspecEditorActions extends StatefulComponent {
 
   /// Runs Pub Get in the supplied workspace-relative directory.
   final Future<void> Function(String path) onPubGet;
-
-  /// Runs Pub Clean in the supplied workspace-relative directory.
-  final Future<void> Function(String path) onPubClean;
 
   @override
   State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
@@ -85,11 +81,6 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
       }
       await component.onPubGet(path);
     });
-  }
-
-  /// Runs Pub Clean in [path] without saving files first.
-  Future<void> _pubClean(String path) async {
-    await _run('Pub clean failed.', () => component.onPubClean(path));
   }
 
   Future<void> _run(
@@ -138,11 +129,6 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
             label: 'Pub get',
             disabled: _busy,
             onClick: () => unawaited(_pubGet(directory)),
-          ),
-          Button(
-            label: 'Pub clean',
-            disabled: _busy,
-            onClick: () => unawaited(_pubClean(directory)),
           ),
         ]),
     ]);
