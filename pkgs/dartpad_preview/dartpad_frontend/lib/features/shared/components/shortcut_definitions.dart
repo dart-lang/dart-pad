@@ -14,9 +14,6 @@ final isMac =
 /// - `Mod` → `⌘` on macOS, `Ctrl` on other platforms.
 String resolveDisplayKey(String key) => key.replaceAll('Mod', isMac ? '⌘' : 'Ctrl');
 
-/// Resolves platform-agnostic modifier placeholders in [keys] using [resolveDisplayKey].
-List<String> resolveDisplayKeys(Iterable<String> keys) => keys.map(resolveDisplayKey).toList();
-
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
 enum ShortcutCategory {
   view('View'),
@@ -41,64 +38,50 @@ enum ShortcutCategory {
 /// listed in the general shortcuts dialog and are only used for menus or
 /// toolbars.
 final class ShortcutDefinition {
-  /// Creates a shortcut definition.
-  ///
-  /// Exactly one of [displayKey] (for a single key combination) or
-  /// [displayKeys] (for multiple alternative key combinations) must be
-  /// provided.
+  /// Creates a shortcut definition for a single key combination.
   const ShortcutDefinition({
     required this.label,
-    String? displayKey,
-    List<String>? displayKeys,
+    required String displayKey,
     this.codemirrorKeys = const [],
     this.category,
     this.isPrimary = true,
-  }) : assert(
-         (displayKey != null) == (displayKeys == null),
-         'Provide exactly one of displayKey or displayKeys',
-       ),
-       _displayKey = displayKey,
-       _displayKeys = displayKeys;
+  })  : _singleDisplayKey = displayKey,
+        _alternativeDisplayKeys = null;
+
+  /// Creates a shortcut definition with multiple alternative key combinations.
+  const ShortcutDefinition.alternatives({
+    required this.label,
+    required List<String> displayKeys,
+    this.codemirrorKeys = const [],
+    this.category,
+    this.isPrimary = true,
+  })  : _singleDisplayKey = null,
+        _alternativeDisplayKeys = displayKeys;
 
   /// Human-readable command name, e.g. `'Quick fix'`.
   final String label;
 
-  final String? _displayKey;
-  final List<String>? _displayKeys;
+  final String? _singleDisplayKey;
+  final List<String>? _alternativeDisplayKeys;
 
-  /// List of alternative display key combinations shown in the shortcuts dialog.
+  /// List of display key combination(s) shown in the shortcuts dialog.
   ///
+  /// Returns a single-element list if defined via [displayKey], or the alternative
+  /// key combinations if defined via [displayKeys].
   /// May contain unresolved `Mod` placeholders. Use [resolvedDisplayKeys] for UI rendering.
-  List<String> get displayKeys {
-    if (_displayKeys != null) {
-      return _displayKeys;
-    }
-    final key = _displayKey;
-    if (key != null) {
-      return [key];
-    }
-    return const [];
-  }
+  List<String> get displayKeys => _alternativeDisplayKeys ?? [_singleDisplayKey!];
 
   /// Display string shown in single-string contexts (e.g. context menus).
   ///
   /// When multiple display keys are defined, they are joined with `' or '`.
   /// May contain unresolved `Mod` placeholders. Use [resolvedDisplayKey] for UI rendering.
-  String get displayKey {
-    if (_displayKey != null) {
-      return _displayKey;
-    }
-    if (_displayKeys != null) {
-      return _displayKeys.join(' or ');
-    }
-    return '';
-  }
+  String get displayKey => _singleDisplayKey ?? _alternativeDisplayKeys!.join(' or ');
 
   /// Resolves platform-agnostic modifier placeholders in [displayKeys] using [resolveDisplayKey].
-  List<String> get resolvedDisplayKeys => resolveDisplayKeys(displayKeys);
+  List<String> get resolvedDisplayKeys => displayKeys.map(resolveDisplayKey).toList();
 
   /// Resolves platform-agnostic modifier placeholders in [displayKey] using [resolveDisplayKey].
-  String get resolvedDisplayKey => resolveDisplayKey(displayKey);
+  String get resolvedDisplayKey => resolvedDisplayKeys.join(' or ');
 
   /// CodeMirror key notation(s) for this shortcut.
   ///
@@ -226,7 +209,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const jumpToMatchingBracket = ShortcutDefinition(
+  static const jumpToMatchingBracket = ShortcutDefinition.alternatives(
     label: 'Jump to matching bracket',
     displayKeys: [r'Mod + Shift + \', 'Alt + M'],
     codemirrorKeys: [r'Shift-Mod-\', 'Alt-m'],
@@ -249,7 +232,7 @@ final class ShortcutDefinition {
     category: ShortcutCategory.search,
   );
 
-  static const findNext = ShortcutDefinition(
+  static const findNext = ShortcutDefinition.alternatives(
     label: 'Find next',
     displayKeys: ['F3', 'Mod + G'],
     codemirrorKeys: ['F3', 'Mod-g'],
@@ -257,7 +240,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const findPrevious = ShortcutDefinition(
+  static const findPrevious = ShortcutDefinition.alternatives(
     label: 'Find previous',
     displayKeys: ['Shift + F3', 'Mod + Shift + G'],
     codemirrorKeys: ['Shift-F3', 'Mod-Shift-g'],
@@ -290,7 +273,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const foldCode = ShortcutDefinition(
+  static const foldCode = ShortcutDefinition.alternatives(
     label: 'Fold code',
     displayKeys: ['Ctrl + Shift + [', 'Alt + -'],
     codemirrorKeys: ['Ctrl-Shift-[', 'Alt--'],
@@ -298,7 +281,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const unfoldCode = ShortcutDefinition(
+  static const unfoldCode = ShortcutDefinition.alternatives(
     label: 'Unfold code',
     displayKeys: ['Ctrl + Shift + ]', 'Alt + +'],
     codemirrorKeys: ['Ctrl-Shift-]', 'Alt-+', 'Alt-='],
@@ -306,7 +289,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const foldAll = ShortcutDefinition(
+  static const foldAll = ShortcutDefinition.alternatives(
     label: 'Fold all',
     displayKeys: ['Ctrl + Alt + [', 'Alt + 0'],
     codemirrorKeys: ['Ctrl-Alt-[', 'Alt-0'],
@@ -314,7 +297,7 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const unfoldAll = ShortcutDefinition(
+  static const unfoldAll = ShortcutDefinition.alternatives(
     label: 'Unfold all',
     displayKeys: ['Ctrl + Alt + ]', 'Alt + 9'],
     codemirrorKeys: ['Ctrl-Alt-]', 'Alt-9'],

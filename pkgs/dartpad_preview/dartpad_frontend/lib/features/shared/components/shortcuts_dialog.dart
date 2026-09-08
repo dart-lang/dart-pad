@@ -298,7 +298,7 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(4.px),
       color: colorOnContainer,
-      fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+      fontFamily: monospaceFontFamily,
       fontSize: 11.px,
       whiteSpace: .noWrap,
       backgroundColor: colorContainer,

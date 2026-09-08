@@ -23,7 +23,6 @@ void main() {
       BottomPanel(
         diagnostics: const [],
         hasMoreDiagnostics: false,
-        activeFile: '',
         logs: const [ConsoleEntry(message: 'Running pub get in /', level: Level.INFO)],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () => clearCalls++,
@@ -54,7 +53,6 @@ void main() {
       BottomPanel(
         diagnostics: const [],
         hasMoreDiagnostics: false,
-        activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () {},
@@ -76,7 +74,6 @@ void main() {
       BottomPanel(
         diagnostics: const [],
         hasMoreDiagnostics: true,
-        activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () {},
@@ -96,7 +93,6 @@ void main() {
       BottomPanel(
         diagnostics: const [],
         hasMoreDiagnostics: false,
-        activeFile: '',
         logs: const [],
         onOpenDiagnostic: (_, _) {},
         onClearConsole: () {},
@@ -120,7 +116,6 @@ void main() {
         right: BottomPanel(
           diagnostics: const [],
           hasMoreDiagnostics: false,
-          activeFile: '',
           logs: const [],
           onOpenDiagnostic: (_, _) {},
           onClearConsole: () {},

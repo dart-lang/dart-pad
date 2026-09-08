@@ -160,7 +160,7 @@ void main() {
       expect(single.resolvedDisplayKeys, [resolveDisplayKey('Mod + S')]);
       expect(single.resolvedDisplayKey, resolveDisplayKey('Mod + S'));
 
-      const multiple = ShortcutDefinition(
+      const multiple = ShortcutDefinition.alternatives(
         label: 'Multiple',
         displayKeys: ['F3', 'Mod + G'],
       );
@@ -168,17 +168,6 @@ void main() {
       expect(multiple.displayKey, 'F3 or Mod + G');
       expect(multiple.resolvedDisplayKeys, ['F3', resolveDisplayKey('Mod + G')]);
       expect(multiple.resolvedDisplayKey, 'F3 or ${resolveDisplayKey('Mod + G')}');
-    });
-
-    test('enforces mutual exclusivity between displayKey and displayKeys', () {
-      expect(
-        () => ShortcutDefinition(label: 'Invalid', displayKey: 'A', displayKeys: ['B']),
-        throwsA(isA<AssertionError>()),
-      );
-      expect(
-        () => ShortcutDefinition(label: 'Invalid'),
-        throwsA(isA<AssertionError>()),
-      );
     });
   });
 }
