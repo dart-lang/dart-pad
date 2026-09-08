@@ -110,7 +110,7 @@ class AppState extends State<App> {
   String _projectDir = '';
   String? _workspacePreparationFailure;
 
-  final _previewSplitKey = GlobalStateKey<SplitPanelState>();
+  GlobalStateKey<SplitPanelState> _previewSplitKey = GlobalStateKey<SplitPanelState>();
 
   bool _isLargeScreen = true;
   SmallScreenTab _selectedSmallScreenTab = .code;
@@ -379,6 +379,7 @@ class AppState extends State<App> {
 
     setState(() {
       _workspaceGeneration++;
+      _previewSplitKey = GlobalStateKey<SplitPanelState>();
       _session = nextSession;
       _isInitializingWorkspace = true;
       _workspacePreparationFailure = null;
@@ -429,6 +430,7 @@ class AppState extends State<App> {
 
     setState(() {
       _workspaceGeneration++;
+      _previewSplitKey = GlobalStateKey<SplitPanelState>();
       _session = nextSession;
       _currentSdk = newSdk;
       _isInitializingWorkspace = true;

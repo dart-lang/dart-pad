@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_lifecycle.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
@@ -42,6 +43,18 @@ void main() {
   ) async {
     final operations = <String>[];
     tester.pumpComponent(_ResetHarness(operations));
+
+    (web.document.querySelector('button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(operations, ['unmount:0', 'dispose:0', 'create:1']);
+  });
+
+  testClient('unmounts SplitPanel subtree when GlobalStateKey is refreshed on reset', (
+    tester,
+  ) async {
+    final operations = <String>[];
+    tester.pumpComponent(_SplitPanelResetHarness(operations));
 
     (web.document.querySelector('button')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
@@ -114,5 +127,57 @@ final class _TrackedWorkspaceState extends State<_TrackedWorkspace> {
   void dispose() {
     component.operations.add('unmount:${component.generation}');
     super.dispose();
+  }
+}
+
+final class _SplitPanelResetHarness extends StatefulComponent {
+  const _SplitPanelResetHarness(this.operations);
+
+  final List<String> operations;
+
+  @override
+  State<_SplitPanelResetHarness> createState() => _SplitPanelResetHarnessState();
+}
+
+final class _SplitPanelResetHarnessState extends State<_SplitPanelResetHarness> {
+  int generation = 0;
+  GlobalStateKey<SplitPanelState> previewSplitKey = GlobalStateKey<SplitPanelState>();
+
+  void reset() {
+    final oldGeneration = generation;
+    final previousWorkspaceDisposed = Completer<void>();
+    unawaited(
+      previousWorkspaceDisposed.future.then((_) {
+        component.operations.add('create:${oldGeneration + 1}');
+      }),
+    );
+    setState(() {
+      generation++;
+      previewSplitKey = GlobalStateKey<SplitPanelState>();
+    });
+    disposeAfterWorkspaceUnmount(context, () async {
+      component.operations.add('dispose:$oldGeneration');
+      previousWorkspaceDisposed.complete();
+    });
+  }
+
+  @override
+  Component build(BuildContext context) {
+    return div([
+      button(onClick: reset, const [.text('Reset')]),
+      div(
+        key: ValueKey(generation),
+        [
+          SplitPanel(
+            key: previewSplitKey,
+            left: _TrackedWorkspace(
+              generation: generation,
+              operations: component.operations,
+            ),
+            right: const div([]),
+          ),
+        ],
+      ),
+    ]);
   }
 }
