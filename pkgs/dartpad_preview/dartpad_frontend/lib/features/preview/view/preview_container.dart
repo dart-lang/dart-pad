@@ -163,7 +163,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
               builder: (context) => ButtonGroup(
                 children: [
                   if (isRunning)
-                    RuntimeButton.hotReload(previewViewModel: viewModel)
+                    RuntimeButton.reload(previewViewModel: viewModel)
                   else
                     RuntimeButton.start(
                       previewViewModel: viewModel,

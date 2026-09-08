@@ -12,7 +12,7 @@ import '../../shared/icons.dart';
 import '../view_models/preview_view_model.dart';
 
 /// A button component used to trigger preview runtime actions
-/// (Start, Restart, Hot Reload, Stop).
+/// (Start, Restart, Reload, Stop).
 class RuntimeButton extends StatelessComponent {
   /// Creates a runtime button with direct configurations.
   const RuntimeButton({
@@ -52,9 +52,9 @@ class RuntimeButton extends StatelessComponent {
     );
   }
 
-  /// Factory constructor for a 'Hot Reload' button that hot reloads changes
+  /// Factory constructor for a 'Reload' button that hot reloads changes
   /// in the currently running entrypoint.
-  factory RuntimeButton.hotReload({required PreviewViewModel previewViewModel}) {
+  factory RuntimeButton.reload({required PreviewViewModel previewViewModel}) {
     return RuntimeButton(
       title: 'Reload',
       icon: 'bolt',
