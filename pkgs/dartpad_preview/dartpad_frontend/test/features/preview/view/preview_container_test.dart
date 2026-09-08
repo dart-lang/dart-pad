@@ -437,8 +437,8 @@ void main() {
     expect(buttons[2].textContent, contains('stop'));
   });
 
-  testClient('hides all button and dropdown labels in narrow Flutter toolbar (< 250px)', (tester) async {
-    tester.pumpComponent(buildContainer(width: '240px'));
+  testClient('hides all button and dropdown labels in narrow Flutter toolbar (< 270px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '250px'));
     await pumpEventQueue();
 
     final buttons = findRuntimeButtons();
@@ -450,7 +450,7 @@ void main() {
   });
 
   testClient(
-    'expands only the first button label while hiding dropdown label in Flutter toolbar (250px - 299px)',
+    'expands only the first button label while hiding dropdown label in Flutter toolbar (270px - 319px)',
     (tester) async {
       tester.pumpComponent(buildContainer(width: '280px'));
       await pumpEventQueue();
@@ -467,7 +467,7 @@ void main() {
     },
   );
 
-  testClient('expands dropdown label and first button in medium-wide Flutter toolbar (300px - 379px)', (tester) async {
+  testClient('expands dropdown label and first button in medium-wide Flutter toolbar (320px - 409px)', (tester) async {
     tester.pumpComponent(buildContainer(width: '340px'));
     await pumpEventQueue();
 
@@ -482,8 +482,8 @@ void main() {
     expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
   });
 
-  testClient('expands all button labels and dropdown label in wide Flutter toolbar (>= 380px)', (tester) async {
-    tester.pumpComponent(buildContainer(width: '400px'));
+  testClient('expands all button labels and dropdown label in wide Flutter toolbar (>= 410px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '420px'));
     await pumpEventQueue();
 
     final buttons = findRuntimeButtons();
@@ -494,7 +494,7 @@ void main() {
     expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
   });
 
-  testClient('hides all button labels in narrow Dart toolbar (< 160px)', (tester) async {
+  testClient('hides all button labels in narrow Dart toolbar (< 180px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '140px'));
     await pumpEventQueue();
@@ -507,7 +507,7 @@ void main() {
     dartPreview.dispose();
   });
 
-  testClient('expands only the first button in medium Dart toolbar (160px - 249px)', (tester) async {
+  testClient('expands only the first button in medium Dart toolbar (180px - 269px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '200px'));
     await pumpEventQueue();
@@ -523,7 +523,7 @@ void main() {
     dartPreview.dispose();
   });
 
-  testClient('expands all buttons in wide Dart toolbar (>= 250px)', (tester) async {
+  testClient('expands all buttons in wide Dart toolbar (>= 270px)', (tester) async {
     final dartPreview = FakePreviewViewModel()..isFlutter = false;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '300px'));
     await pumpEventQueue();
