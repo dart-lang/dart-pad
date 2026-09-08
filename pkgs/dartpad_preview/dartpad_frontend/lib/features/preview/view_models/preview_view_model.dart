@@ -86,10 +86,13 @@ class PreviewViewModel extends ChangeNotifier {
       !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
 
   /// Whether the preview run process can be stopped.
+  ///
+  /// For pure Dart console programs, once launched ([PreviewDartReady]), execution
+  /// is untracked and cannot be stopped; [canStart] is restored immediately instead.
   bool get canStop => _state is! PreviewStopping && _state is! PreviewDartReady && (_busy || _sandbox != null);
 
   /// Whether the application preview is currently running or executing restarts/reloads.
-  bool get isRunning => _state is PreviewRunning || state is PreviewRestarting || state is PreviewHotReloading;
+  bool get isRunning => _state is PreviewRunning || _state is PreviewRestarting || _state is PreviewHotReloading;
 
   bool get _busy =>
       _state is PreviewStarting ||
