@@ -326,16 +326,19 @@ void main() {
 
       expect(stateChanges, [
         isA<PreviewStarting>(),
-        isA<PreviewRunning>(),
+        isA<PreviewDartReady>(),
       ]);
 
-      expect(viewModel.state, isA<PreviewRunning>());
-      expect(viewModel.canStart, isFalse);
-      expect(viewModel.canRestart, isTrue);
-      expect(viewModel.canHotReload, isTrue);
-      expect(viewModel.canStop, isTrue);
-      expect(viewModel.isRunning, isTrue);
+      expect(viewModel.state, isA<PreviewDartReady>());
+      expect(viewModel.canStart, isTrue);
+      expect(viewModel.canRestart, isFalse);
+      expect(viewModel.canStop, isFalse);
+      expect(viewModel.isRunning, isFalse);
       expect(viewModel.isFlutter, isFalse);
+
+      expect(viewModel.canHotReload, isFalse);
+      await viewModel.hotReloadCode();
+      expect(fakeSandbox.hotReloadCount, 0);
 
       expect(fakeCompiler.compileCount, 1);
       expect(fakeSandbox.loadModuleCount, 1);
@@ -371,14 +374,123 @@ void main() {
       await viewModel.runCode('lib/main.dart');
       await pump();
 
-      expect(viewModel.state, isA<PreviewRunning>());
+      expect(viewModel.state, isA<PreviewDartReady>());
       expect(fakeSandbox.runAppCount, 0);
       expect(fakeSandbox.runMainCount, 1);
       expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
       expect(viewModel.isFlutter, isFalse);
+      expect(viewModel.canHotReload, isFalse);
+
+      await viewModel.hotReloadCode();
+      expect(fakeCompiler.compileCount, 1);
+      expect(fakeSandbox.hotReloadCount, 0);
 
       viewModel.dispose();
       dartRepository.taskStatus.dispose();
+    });
+
+    test('Dart launch restores controls without waiting for execution to finish', () async {
+      repository.flutterDependency = false;
+      final fakeSandbox = FakePreviewSandbox();
+      repository.onStartHotReloadCompiler = (_) => FakeCompilerSession();
+
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      fakeSandbox.consoleController.add((level: ConsoleLevel.log, message: 'done'));
+      await pump();
+
+      expect(viewModel.state, isA<PreviewDartReady>());
+      expect(viewModel.state.entrypoint, 'lib/main.dart');
+      expect(viewModel.canStart, isTrue);
+      expect(viewModel.canRestart, isFalse);
+      expect(viewModel.canHotReload, isFalse);
+      expect(viewModel.canStop, isFalse);
+      expect(viewModel.isRunning, isFalse);
+      expect(viewModel.appLogs.single.message, 'done');
+
+      // Background work can still print, but must not revive the running UI.
+      fakeSandbox.consoleController.add((level: ConsoleLevel.log, message: 'timer tick'));
+      await pump();
+      expect(viewModel.appLogs.last.message, 'timer tick');
+      expect(viewModel.canStart, isTrue);
+      expect(viewModel.canStop, isFalse);
+      expect(viewModel.isRunning, isFalse);
+      expect(fakeSandbox.disposeCount, 0);
+
+      await viewModel.hotReloadCode();
+      expect(fakeSandbox.hotReloadCount, 0);
+
+      viewModel.dispose();
+    });
+
+    test('Dart controls stay busy until the launch request succeeds', () async {
+      repository.flutterDependency = false;
+      final launchCompleted = Completer<void>();
+      final fakeSandbox = FakePreviewSandbox()..onRunApp = (_) => launchCompleted.future;
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
+      );
+
+      final run = viewModel.runCode('lib/main.dart');
+      await pump();
+
+      expect(viewModel.state, isA<PreviewStarting>());
+      expect(viewModel.canStart, isFalse);
+      expect(viewModel.canHotReload, isFalse);
+      expect(viewModel.canStop, isTrue);
+
+      launchCompleted.complete();
+      await run;
+
+      expect(viewModel.state, isA<PreviewDartReady>());
+      expect(viewModel.canStart, isTrue);
+      expect(viewModel.canStop, isFalse);
+      expect(
+        repository.taskStatus.entries.where((entry) => entry.kind == TaskKind.startingPreview).single.outcome,
+        TaskStatusOutcome.succeeded,
+      );
+
+      viewModel.dispose();
+    });
+
+    test('another Dart run replaces the old sandbox and compiler', () async {
+      repository.flutterDependency = false;
+      final firstSandbox = FakePreviewSandbox();
+      final secondSandbox = FakePreviewSandbox();
+      final firstCompiler = FakeCompilerSession();
+      final secondCompiler = FakeCompilerSession();
+      var compilerIndex = 0;
+      repository.onStartHotReloadCompiler = (_) => compilerIndex++ == 0 ? firstCompiler : secondCompiler;
+      var sandboxIndex = 0;
+      final viewModel = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => sandboxIndex++ == 0 ? firstSandbox : secondSandbox,
+      );
+
+      await viewModel.runCode('lib/main.dart');
+      firstSandbox.consoleController.add((level: ConsoleLevel.log, message: 'old timer tick'));
+      await pump();
+      expect(viewModel.appLogs, hasLength(1));
+
+      await viewModel.runCode('lib/main.dart');
+
+      expect(firstSandbox.disposeCount, 1);
+      expect(firstCompiler.closeCount, 1);
+      expect(secondCompiler.compileCount, 1);
+      expect(secondSandbox.runAppCount, 1);
+      expect(viewModel.appLogs, isEmpty);
+      expect(viewModel.state, isA<PreviewDartReady>());
+      expect(viewModel.canStart, isTrue);
+
+      viewModel.dispose();
     });
 
     test('runCode fails compilation with CompilationFailedException', () async {
@@ -431,6 +543,7 @@ void main() {
       expect(errState.message, contains('load crash'));
       expect(errState.action, PreviewLaunchAction.start);
       expect(errState.failedTask, TaskKind.startingPreview);
+      expect(viewModel.canStop, isTrue);
 
       expect(loggedEvents.any((e) => e.message == 'Run failed' && e.level == Level.SEVERE), isTrue);
 

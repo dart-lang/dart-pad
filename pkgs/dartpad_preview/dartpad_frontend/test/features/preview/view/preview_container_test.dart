@@ -5,17 +5,22 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/preview/components/runtime_button.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
+
+import '../view_models/preview_view_model_test.dart'
+    show FakePreviewSandbox, FakeWorkspaceRepository, FakeWorkspaceResourceApi;
 
 class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   @override
@@ -419,7 +424,7 @@ void main() {
     expect(buttons[2].textContent, contains('stop'));
   });
 
-  testClient('shows Start button when preview is stopped', (tester) async {
+  testClient('shows Run button when preview is stopped', (tester) async {
     preview.setRunning(value: false);
     tester.pumpComponent(buildContainer());
     await pumpEventQueue();
@@ -427,7 +432,7 @@ void main() {
     final buttons = findRuntimeButtons();
     expect(buttons, hasLength(3));
 
-    expect(buttons[0].querySelector('.runtime-button-label')?.textContent, 'Start');
+    expect(buttons[0].querySelector('.runtime-button-label')?.textContent, 'Run');
     expect(buttons[0].textContent, contains('play_arrow'));
 
     expect(buttons[1].querySelector('.runtime-button-label')?.textContent, 'Restart');
@@ -515,11 +520,9 @@ void main() {
     final buttons = findRuntimeButtons();
     final firstLabel = buttons[0].querySelector('.runtime-button-label') as web.HTMLElement;
     final secondLabel = buttons[1].querySelector('.runtime-button-label') as web.HTMLElement;
-    final thirdLabel = buttons[2].querySelector('.runtime-button-label') as web.HTMLElement;
 
     expect(web.window.getComputedStyle(firstLabel).display, isNot('none'));
     expect(web.window.getComputedStyle(secondLabel).display, 'none');
-    expect(web.window.getComputedStyle(thirdLabel).display, 'none');
     dartPreview.dispose();
   });
 
@@ -534,5 +537,71 @@ void main() {
       expect(web.window.getComputedStyle(label).display, isNot('none'));
     }
     dartPreview.dispose();
+  });
+
+  group('runtime controls', () {
+    late AppEventBus events;
+    late FakeWorkspaceRepository repository;
+    late FakePreviewSandbox sandbox;
+    late PreviewViewModel preview;
+
+    setUp(() {
+      events = AppEventBus();
+      repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
+      sandbox = FakePreviewSandbox();
+      preview = PreviewViewModel(
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      );
+    });
+
+    tearDown(() async {
+      preview.dispose();
+      repository.taskStatus.dispose();
+      await events.dispose();
+    });
+
+    Component buildPreview() => ListenableBuilder(
+      listenable: preview,
+      builder: (_) => PreviewContainer(
+        preview: preview,
+        taskStatus: repository.taskStatus,
+        activeFile: 'lib/main.dart',
+        onOpenConsole: () {},
+      ),
+    );
+
+    web.HTMLButtonElement? button(String label) =>
+        web.document.querySelector('.preview-toolbar [aria-label="$label"]') as web.HTMLButtonElement?;
+
+    testClient('Dart hides Hot Reload and restores Run immediately after launch', (tester) async {
+      repository.flutterDependency = false;
+      await preview.runCode('lib/main.dart');
+      tester.pumpComponent(buildPreview());
+
+      expect(button('Reload'), isNull);
+      expect(button('Restart'), isNull);
+      expect(button('Run')?.disabled, isFalse);
+      expect(button('Stop')?.disabled, isTrue);
+
+      sandbox.consoleController.add((level: ConsoleLevel.log, message: 'timer is still running'));
+      await pumpEventQueue();
+
+      expect(web.document.querySelector('.console-panel')?.textContent, contains('timer is still running'));
+      expect(button('Run')?.disabled, isFalse);
+      expect(button('Stop')?.disabled, isTrue);
+      expect(sandbox.disposeCount, 0);
+    });
+
+    testClient('Flutter keeps Hot Reload and running controls after launch', (tester) async {
+      await preview.runCode('lib/main.dart');
+      tester.pumpComponent(buildPreview());
+
+      expect(button('Reload')?.disabled, isFalse);
+      expect(button('Restart')?.disabled, isFalse);
+      expect(button('Stop')?.disabled, isFalse);
+      expect(button('Run'), isNull);
+    });
   });
 }

@@ -33,6 +33,13 @@ class PreviewRunning extends _ActivePreviewState {
   PreviewRunning(super.entrypoint);
 }
 
+/// State after successfully launching a Dart console program.
+///
+/// The UI is ready for another run; async main and timers may still be running.
+class PreviewDartReady extends _ActivePreviewState {
+  PreviewDartReady(super.entrypoint);
+}
+
 /// State representing an application restart after recompiling current sources.
 class PreviewRestarting extends _ActivePreviewState {
   PreviewRestarting(super.entrypoint);
