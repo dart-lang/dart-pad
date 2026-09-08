@@ -254,13 +254,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
     css('.preview-rail', [
       css('&').styles(
         display: .flex,
-        flexDirection: .column,
-        alignItems: .center,
         width: 36.px,
         height: 100.percent,
         padding: .only(top: 8.px),
-        backgroundColor: colorSurface,
+        flexDirection: .column,
+        alignItems: .center,
         flex: const .shrink(0),
+        backgroundColor: colorSurface,
       ),
       css('&.hidden').styles(
         display: .none,
