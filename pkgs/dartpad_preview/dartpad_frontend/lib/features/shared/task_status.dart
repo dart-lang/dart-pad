@@ -30,7 +30,7 @@ enum TaskStatusOutcome { running, succeeded, failed }
 ///
 /// The following [TaskKind]s provide 2 kinds for startup and worker initialization
 /// ([loadingCode], [initializingDartPadWorker]), specific kinds for Pub and
-/// analysis operations ([pubGet], [pubClean], [analyzingWorkspace]), and
+/// analysis operations ([pubGet], [pubClean], [startingAnalyzer], [analyzing]), and
 /// dedicated kinds for each compiling and preview action ([startingPreview],
 /// [restartingPreview], [stoppingPreview], [compilingApplication], [hotReload],
 /// [compilingChanges]).
@@ -39,7 +39,11 @@ enum TaskKind {
   initializingDartPadWorker('Initializing DartPad worker'),
   pubGet('Pub get'),
   pubClean('Pub clean'),
-  analyzingWorkspace('Analyzing workspace'),
+  /// Initial analyzer startup and baseline workspace analysis.
+  startingAnalyzer('Starting analyzer'),
+
+  /// An incremental background re-analysis cycle.
+  analyzing('Analyzing'),
   startingPreview('Starting preview'),
   restartingPreview('Restarting preview'),
   stoppingPreview('Stopping preview'),
