@@ -238,10 +238,7 @@ of that startup choice: it runs the currently active editor file, or
 file with `lib/main.dart`. Restart recompiles the entrypoint of the current run;
 Hot Reload is only offered for Flutter applications and recompiles changes for
 that same running entrypoint. For Dart console programs, a successful launch
-immediately restores Run and disables Stop. Execution is not tracked: an async
-`main()`, timers, and other background work may continue producing console
-output until the next run replaces the sandbox.
-
+immediately restores Run and disables Stop.
 Whether that entrypoint is presented as a Flutter application or a console
 program is determined as described in [SDK detection](#sdk-detection).
 
