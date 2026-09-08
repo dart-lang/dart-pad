@@ -46,17 +46,17 @@ class ButtonGroup extends StatelessComponent {
         alignItems: .center,
         backgroundColor: colorContainer,
       ),
-      css('& > *, & .icon-button, & .text-button, & .device-dropdown-trigger').styles(
+      css('& > *, & .icon-button, & .text-button, & .device-dropdown-trigger, & .runtime-button').styles(
         border: .none,
         radius: .circular(0.px),
       ),
       css(
-        '& > *:first-child, & > *:first-child .icon-button, & > *:first-child .text-button, & > *:first-child .device-dropdown-trigger',
+        '& > *:first-child, & > *:first-child .icon-button, & > *:first-child .text-button, & > *:first-child .device-dropdown-trigger, & > *:first-child .runtime-button',
       ).styles(
         radius: .only(topLeft: .circular(5.px), bottomLeft: .circular(5.px)),
       ),
       css(
-        '& > *:last-child, & > *:last-child .icon-button, & > *:last-child .text-button, & > *:last-child .device-dropdown-trigger',
+        '& > *:last-child, & > *:last-child .icon-button, & > *:last-child .text-button, & > *:last-child .device-dropdown-trigger, & > *:last-child .runtime-button',
       ).styles(
         radius: .only(topRight: .circular(5.px), bottomRight: .circular(5.px)),
       ),
