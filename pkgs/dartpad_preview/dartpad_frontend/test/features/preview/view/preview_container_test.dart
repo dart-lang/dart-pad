@@ -6,6 +6,7 @@
 library;
 
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
+import 'package:dartpad_frontend/features/preview/components/runtime_button.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
@@ -41,17 +42,26 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   bool canStop = true;
 
   @override
-  List<ConsoleEntry> appLogs = const [];
+  final List<ConsoleEntry> appLogs = [];
 
   void setRunning({required bool value}) {
     isRunning = value;
-    state = value ? PreviewRunning('lib/main.dart') : PreviewInitial();
     canStart = !value;
     canRestart = value;
     canHotReload = value;
     canStop = value;
+    state = value ? PreviewRunning('lib/main.dart') : PreviewInitial();
     notifyListeners();
   }
+
+  @override
+  Future<void> runCode(String activeFile) async {}
+
+  @override
+  Future<void> hotReloadCode() async {}
+
+  @override
+  Future<void> stopCode() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -67,7 +77,8 @@ void main() {
 
     final style = web.document.createElement('style') as web.HTMLStyleElement;
     style.id = 'test-preview-style';
-    style.textContent = '''
+    style.textContent =
+        '''
       .preview-container {
         display: flex;
         flex-direction: column;
@@ -79,6 +90,8 @@ void main() {
         width: 100%;
         height: 100%;
       }
+      ${PreviewContainer.styles.map((rule) => rule.toCss()).join('\n')}
+      ${RuntimeButton.styles.map((rule) => rule.toCss()).join('\n')}
     ''';
     web.document.head!.appendChild(style);
   });
@@ -95,6 +108,7 @@ void main() {
     String height = '1000px',
   }) {
     return div(
+      key: ValueKey('container-$width-$height-${customPreview?.isFlutter ?? preview.isFlutter}'),
       attributes: {
         'style': 'display: flex; flex-direction: column; width: $width; height: $height;',
       },
@@ -120,8 +134,21 @@ void main() {
     return null;
   }
 
+  List<web.HTMLButtonElement> findRuntimeButtons() {
+    final list = <web.HTMLButtonElement>[];
+    final buttons = web.document.querySelectorAll('.preview-controls .runtime-button');
+    for (var i = 0; i < buttons.length; i++) {
+      list.add(buttons.item(i) as web.HTMLButtonElement);
+    }
+    return list;
+  }
+
   web.HTMLButtonElement findDropdownTrigger() {
     return web.document.querySelector('.device-dropdown-trigger')! as web.HTMLButtonElement;
+  }
+
+  web.HTMLElement findDropdownLabel() {
+    return web.document.querySelector('.device-dropdown-label')! as web.HTMLElement;
   }
 
   Future<void> selectDropdownOption(String title) async {
@@ -175,16 +202,16 @@ void main() {
     expect(rotateBtn!.disabled, isFalse);
   });
 
-  testClient('switches mode to current screen size and removes rotation button', (tester) async {
+  testClient('switches mode to full size and removes rotation button', (tester) async {
     tester.pumpComponent(buildContainer());
     await pumpEventQueue();
 
     expect(findRotateButton(), isNotNull);
 
-    await selectDropdownOption('Current screen size');
+    await selectDropdownOption('Full size');
 
     final trigger = findDropdownTrigger();
-    expect(trigger.textContent, contains('Current screen size'));
+    expect(trigger.textContent, contains('Full size'));
     expect(trigger.textContent, contains('devices'));
 
     final content = web.document.querySelector('.preview-content') as web.HTMLElement;
@@ -218,14 +245,14 @@ void main() {
     expect(content.style.getPropertyValue('--device-height'), '576px');
   });
 
-  testClient('removes device CSS variables in current screen size mode', (tester) async {
+  testClient('removes device CSS variables in full size mode', (tester) async {
     tester.pumpComponent(buildContainer());
     await pumpEventQueue();
 
     final content = web.document.querySelector('.preview-content') as web.HTMLElement;
     expect(content.style.getPropertyValue('--device-width'), '390px');
 
-    await selectDropdownOption('Current screen size');
+    await selectDropdownOption('Full size');
 
     expect(content.style.getPropertyValue('--device-width'), isEmpty);
     expect(content.style.getPropertyValue('--device-height'), isEmpty);
@@ -285,5 +312,140 @@ void main() {
     await pumpEventQueue();
 
     expect(web.document.querySelector('.preview-container'), isNull);
+  });
+
+  testClient('renders runtime buttons with icons and labels', (tester) async {
+    tester.pumpComponent(buildContainer());
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    expect(buttons, hasLength(3));
+
+    // Running mode shows Reload first, Restart second, Stop third
+    expect(buttons[0].querySelector('.runtime-button-label')?.textContent, 'Reload');
+    expect(buttons[0].textContent, contains('bolt'));
+
+    expect(buttons[1].querySelector('.runtime-button-label')?.textContent, 'Restart');
+    expect(buttons[1].textContent, contains('restart_alt'));
+
+    expect(buttons[2].querySelector('.runtime-button-label')?.textContent, 'Stop');
+    expect(buttons[2].textContent, contains('stop'));
+  });
+
+  testClient('shows Start button when preview is stopped', (tester) async {
+    preview.setRunning(value: false);
+    tester.pumpComponent(buildContainer());
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    expect(buttons, hasLength(3));
+
+    expect(buttons[0].querySelector('.runtime-button-label')?.textContent, 'Start');
+    expect(buttons[0].textContent, contains('play_arrow'));
+
+    expect(buttons[1].querySelector('.runtime-button-label')?.textContent, 'Restart');
+    expect(buttons[1].textContent, contains('restart_alt'));
+
+    expect(buttons[2].querySelector('.runtime-button-label')?.textContent, 'Stop');
+    expect(buttons[2].textContent, contains('stop'));
+  });
+
+  testClient('hides all button and dropdown labels in narrow Flutter toolbar (< 250px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '240px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    for (final btn in buttons) {
+      final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
+      expect(web.window.getComputedStyle(label).display, 'none');
+    }
+    expect(web.window.getComputedStyle(findDropdownLabel()).display, 'none');
+  });
+
+  testClient(
+    'expands only the first button label while hiding dropdown label in Flutter toolbar (250px - 299px)',
+    (tester) async {
+      tester.pumpComponent(buildContainer(width: '280px'));
+      await pumpEventQueue();
+
+      final buttons = findRuntimeButtons();
+      final firstLabel = buttons[0].querySelector('.runtime-button-label') as web.HTMLElement;
+      final secondLabel = buttons[1].querySelector('.runtime-button-label') as web.HTMLElement;
+      final thirdLabel = buttons[2].querySelector('.runtime-button-label') as web.HTMLElement;
+
+      expect(web.window.getComputedStyle(firstLabel).display, isNot('none'));
+      expect(web.window.getComputedStyle(secondLabel).display, 'none');
+      expect(web.window.getComputedStyle(thirdLabel).display, 'none');
+      expect(web.window.getComputedStyle(findDropdownLabel()).display, 'none');
+    },
+  );
+
+  testClient('expands dropdown label and first button in medium-wide Flutter toolbar (300px - 379px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '340px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    final firstLabel = buttons[0].querySelector('.runtime-button-label') as web.HTMLElement;
+    final secondLabel = buttons[1].querySelector('.runtime-button-label') as web.HTMLElement;
+    final thirdLabel = buttons[2].querySelector('.runtime-button-label') as web.HTMLElement;
+
+    expect(web.window.getComputedStyle(firstLabel).display, isNot('none'));
+    expect(web.window.getComputedStyle(secondLabel).display, 'none');
+    expect(web.window.getComputedStyle(thirdLabel).display, 'none');
+    expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
+  });
+
+  testClient('expands all button labels and dropdown label in wide Flutter toolbar (>= 380px)', (tester) async {
+    tester.pumpComponent(buildContainer(width: '400px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    for (final btn in buttons) {
+      final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
+      expect(web.window.getComputedStyle(label).display, isNot('none'));
+    }
+    expect(web.window.getComputedStyle(findDropdownLabel()).display, isNot('none'));
+  });
+
+  testClient('hides all button labels in narrow Dart toolbar (< 160px)', (tester) async {
+    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '140px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    for (final btn in buttons) {
+      final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
+      expect(web.window.getComputedStyle(label).display, 'none');
+    }
+    dartPreview.dispose();
+  });
+
+  testClient('expands only the first button in medium Dart toolbar (160px - 249px)', (tester) async {
+    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '200px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    final firstLabel = buttons[0].querySelector('.runtime-button-label') as web.HTMLElement;
+    final secondLabel = buttons[1].querySelector('.runtime-button-label') as web.HTMLElement;
+    final thirdLabel = buttons[2].querySelector('.runtime-button-label') as web.HTMLElement;
+
+    expect(web.window.getComputedStyle(firstLabel).display, isNot('none'));
+    expect(web.window.getComputedStyle(secondLabel).display, 'none');
+    expect(web.window.getComputedStyle(thirdLabel).display, 'none');
+    dartPreview.dispose();
+  });
+
+  testClient('expands all buttons in wide Dart toolbar (>= 250px)', (tester) async {
+    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '300px'));
+    await pumpEventQueue();
+
+    final buttons = findRuntimeButtons();
+    for (final btn in buttons) {
+      final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
+      expect(web.window.getComputedStyle(label).display, isNot('none'));
+    }
+    dartPreview.dispose();
   });
 }

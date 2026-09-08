@@ -69,6 +69,7 @@ List<StyleRule> get appStyles => [
       '-webkit-font-feature-settings': "'liga'",
       'font-feature-settings': "'liga'",
       '-webkit-font-smoothing': 'antialiased',
+      'font-variation-settings': "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
     },
   ),
   ...[

@@ -29,7 +29,11 @@ class DeviceModeDropdown extends StatelessComponent {
       disabled: disabled,
       trigger: button(
         classes: 'device-dropdown-trigger${disabled ? ' disabled' : ''}',
-        attributes: disabled ? {'disabled': 'true'} : {},
+        attributes: {
+          'title': mode.title,
+          'aria-label': mode.title,
+          if (disabled) 'disabled': 'true',
+        },
         [
           Icon(mode.icon, size: 18.0),
           span(classes: 'device-dropdown-label', [.text(mode.title)]),

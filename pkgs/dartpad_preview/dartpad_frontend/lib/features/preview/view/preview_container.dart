@@ -151,52 +151,58 @@ class _PreviewContainerState extends State<PreviewContainer> {
     };
 
     return div(classes: 'preview-container', [
-      div(classes: 'preview-toolbar', [
-        div(classes: 'preview-controls', [
-          ListenableBuilder(
-            listenable: component.taskStatus,
-            builder: (context) => ButtonGroup(
-              children: [
-                if (isRunning)
-                  RuntimeButton.restart(previewViewModel: viewModel)
-                else
-                  RuntimeButton.start(
-                    previewViewModel: viewModel,
-                    activeFile: component.activeFile,
-                  ),
-                RuntimeButton.hotReload(previewViewModel: viewModel),
-                RuntimeButton.stop(previewViewModel: viewModel),
-              ],
+      div(
+        classes: [
+          'preview-toolbar',
+          if (viewModel.isFlutter) 'has-device-mode',
+        ].join(' '),
+        [
+          div(classes: 'preview-controls', [
+            ListenableBuilder(
+              listenable: component.taskStatus,
+              builder: (context) => ButtonGroup(
+                children: [
+                  if (isRunning)
+                    RuntimeButton.reload(previewViewModel: viewModel)
+                  else
+                    RuntimeButton.start(
+                      previewViewModel: viewModel,
+                      activeFile: component.activeFile,
+                    ),
+                  RuntimeButton.restart(previewViewModel: viewModel),
+                  RuntimeButton.stop(previewViewModel: viewModel),
+                ],
+              ),
             ),
-          ),
-          if (viewModel.isFlutter)
-            ButtonGroup(
-              children: [
-                DeviceModeDropdown(
-                  mode: mode,
-                  disabled: !isRunning,
-                  onModeSelected: (m) {
-                    setState(() {
-                      mode = m;
-                      isRotated = false;
-                    });
-                    context.binding.addPostFrameCallback(_updateScale);
-                  },
-                ),
-                if (mode.size != null)
-                  IconButton(
-                    icon: 'screen_rotation',
-                    tooltip: 'Rotate orientation',
+            if (viewModel.isFlutter)
+              ButtonGroup(
+                children: [
+                  DeviceModeDropdown(
+                    mode: mode,
                     disabled: !isRunning,
-                    onClick: (_) {
-                      setState(() => isRotated = !isRotated);
+                    onModeSelected: (m) {
+                      setState(() {
+                        mode = m;
+                        isRotated = false;
+                      });
                       context.binding.addPostFrameCallback(_updateScale);
                     },
                   ),
-              ],
-            ),
-        ]),
-      ]),
+                  if (mode.size != null)
+                    IconButton(
+                      icon: 'screen_rotation',
+                      tooltip: 'Rotate orientation',
+                      disabled: !isRunning,
+                      onClick: (_) {
+                        setState(() => isRotated = !isRotated);
+                        context.binding.addPostFrameCallback(_updateScale);
+                      },
+                    ),
+                ],
+              ),
+          ]),
+        ],
+      ),
       div(
         key: _contentKey,
         classes: [
@@ -222,7 +228,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
   }
 
   static List<StyleRule> get styles => [
-    ...PreviewTaskStatus.styles,
+    css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(
+      display: .none,
+    ),
     css('.preview-container', [
       css('&').styles(
         display: .flex,
@@ -231,6 +239,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flexDirection: .column,
         flex: const .grow(1),
         backgroundColor: colorContainer,
+        raw: {'container-type': 'inline-size'},
       ),
       css('.active-icon-btn').styles(
         color: colorOnPrimary,
@@ -242,7 +251,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,
-          padding: .symmetric(vertical: 4.px, horizontal: 12.px),
+          padding: .symmetric(vertical: 4.px, horizontal: 4.px),
           border: .only(
             bottom: .solid(color: colorBorder, width: 1.px),
           ),
@@ -253,7 +262,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('.preview-controls').styles(
           display: .flex,
-          flexWrap: .wrap,
+          flexWrap: .nowrap,
           justifyContent: .center,
           alignItems: .center,
           flex: const .grow(1),
@@ -338,5 +347,54 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
       ]),
     ]),
+    // Flutter: first button expands at >= 250px
+    ContainerStyleRule('(min-width: 250px)', [
+      css('.preview-toolbar.has-device-mode .runtime-button:first-child', expandedRuntimeButtonStyles),
+    ]),
+    // Flutter: device dropdown label expands at >= 300px
+    ContainerStyleRule('(min-width: 300px)', [
+      css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(
+        display: .inline,
+      ),
+    ]),
+    // Flutter: all 3 buttons expand at >= 380px
+    ContainerStyleRule('(min-width: 380px)', [
+      css('.preview-toolbar.has-device-mode .runtime-button', expandedRuntimeButtonStyles),
+    ]),
+    // Dart (no device dropdown): first button expands at >= 160px
+    ContainerStyleRule('(min-width: 160px)', [
+      css('.preview-toolbar:not(.has-device-mode) .runtime-button:first-child', expandedRuntimeButtonStyles),
+    ]),
+    // Dart (no device dropdown): all 3 buttons expand at >= 250px
+    ContainerStyleRule('(min-width: 250px)', [
+      css('.preview-toolbar:not(.has-device-mode) .runtime-button', expandedRuntimeButtonStyles),
+    ]),
   ];
+
+  static List<StyleRule> get expandedRuntimeButtonStyles => [
+    css('&').styles(
+      width: .auto,
+      padding: .only(left: 5.px, right: 8.px),
+      gap: .all(6.px),
+    ),
+    css('.runtime-button-label').styles(
+      display: .inline,
+    ),
+  ];
+}
+
+/// Style rule that renders a CSS `@container` query.
+class ContainerStyleRule implements StyleRule {
+  const ContainerStyleRule(this.query, this.styles);
+
+  final String query;
+  final List<StyleRule> styles;
+
+  @override
+  String toCss([String indent = '']) {
+    const blockInset = '  ';
+    return '$indent@container $query {\n'
+        '${styles.map((r) => '${r.toCss('$indent$blockInset')}\n').join()}'
+        '$indent}';
+  }
 }

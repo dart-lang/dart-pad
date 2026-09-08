@@ -19,7 +19,7 @@ enum DeviceMode {
   final (int, int)? size;
 
   String get title => switch (this) {
-    DeviceMode.current => 'Current screen size',
+    DeviceMode.current => 'Full size',
     DeviceMode.mobile => 'Mobile',
     DeviceMode.tablet => 'Tablet',
   };

@@ -217,7 +217,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
     css('.dropdown-menu-panel').styles(
       position: .absolute(top: 100.percent),
       zIndex: const ZIndex(99),
-      minWidth: 180.px,
+      minWidth: 120.px,
       padding: .symmetric(vertical: 4.px),
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(8.px),
