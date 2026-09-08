@@ -161,6 +161,9 @@ void main() {
 
     expect(operations, ['save-all']);
     expect(logs, isEmpty);
+
+    final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
+    expect(pubGet.disabled, isFalse);
   });
 
   testClient('disables action while busy', (tester) async {

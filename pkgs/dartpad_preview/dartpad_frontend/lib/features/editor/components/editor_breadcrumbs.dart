@@ -71,7 +71,7 @@ final class EditorBreadcrumbs extends StatelessComponent {
         gap: .all(4.px),
         flex: const .shrink(0),
         color: colorOnSurface,
-        fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+        fontFamily: monospaceFontFamily,
         fontSize: 11.px,
         backgroundColor: colorSurface,
       ),
