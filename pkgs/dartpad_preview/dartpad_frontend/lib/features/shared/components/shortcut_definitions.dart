@@ -293,6 +293,13 @@ class ShortcutDefinition {
     displayKey: 'Mod + V',
   );
 
+  // ── File actions ─────────────────────────────────────────────────────────
+  static const save = ShortcutDefinition(
+    label: 'Save file',
+    displayKey: 'Mod + S',
+    codemirrorKeys: ['Mod-s'],
+  );
+
   // ── Global & palette commands ───────────────────────────────────────────
   static const commandPalette = ShortcutDefinition(
     label: 'Open command palette',

@@ -12,27 +12,35 @@ import 'package:web/web.dart' as web;
 
 void main() {
   List<CommandPaletteAction> createTestActions({
-    void Function()? onPubGet,
-    void Function()? onPubClean,
-    void Function()? onFormat,
-    void Function()? onRun,
+    void Function(CommandContext)? onPubGet,
+    void Function(CommandContext)? onPubClean,
+    void Function(CommandContext)? onFormat,
+    void Function(CommandContext)? onRun,
   }) {
     return [
       CommandPaletteAction(
         label: 'Pub get',
-        onExecute: onPubGet ?? () {},
+        description: 'Download and resolve dependencies',
+        aliases: const ['get', 'packages get'],
+        onExecute: onPubGet ?? (_) {},
       ),
       CommandPaletteAction(
         label: 'Pub clean',
-        onExecute: onPubClean ?? () {},
+        description: 'Remove build and cache artifacts',
+        aliases: const ['clean'],
+        onExecute: onPubClean ?? (_) {},
       ),
       CommandPaletteAction.fromShortcut(
         shortcut: ShortcutDefinition.formatDocument,
-        onExecute: onFormat ?? () {},
+        description: 'Format the currently active document',
+        aliases: const ['format', 'beautify'],
+        onExecute: onFormat ?? (_) {},
       ),
       CommandPaletteAction.fromShortcut(
         shortcut: ShortcutDefinition.runOrHotReload,
-        onExecute: onRun ?? () {},
+        description: 'Run the application or hot reload',
+        aliases: const ['run', 'reload'],
+        onExecute: onRun ?? (_) {},
       ),
     ];
   }
@@ -40,10 +48,14 @@ void main() {
   testClient('CommandPaletteAction.fromShortcut populates properties from shortcut', (tester) {
     final action = CommandPaletteAction.fromShortcut(
       shortcut: ShortcutDefinition.runOrHotReload,
-      onExecute: () {},
+      description: 'Run the app',
+      aliases: const ['run', 'reload'],
+      onExecute: (_) {},
     );
     expect(action.shortcut, ShortcutDefinition.runOrHotReload);
     expect(action.label, 'Run / Hot reload');
+    expect(action.description, 'Run the app');
+    expect(action.aliases, ['run', 'reload']);
     expect(action.category, ShortcutCategory.execution);
     expect(action.resolvedDisplayKey, resolveDisplayKey('Mod + Enter'));
   });
@@ -51,11 +63,29 @@ void main() {
   testClient('CommandPaletteAction can be constructed without shortcut', (tester) {
     final action = CommandPaletteAction(
       label: 'Pub get',
-      onExecute: () {},
+      description: 'Fetch packages',
+      aliases: const ['get'],
+      onExecute: (_) {},
     );
     expect(action.shortcut, isNull);
     expect(action.label, 'Pub get');
+    expect(action.description, 'Fetch packages');
+    expect(action.aliases, ['get']);
     expect(action.resolvedDisplayKey, isEmpty);
+  });
+
+  testClient('allCommandActions includes all expected default actions', (tester) {
+    final labels = allCommandActions.map((a) => a.label).toList();
+    expect(labels, [
+      'Pub get',
+      'Pub upgrade',
+      'Pub outdated',
+      'Pub downgrade',
+      'Pub clean',
+      'Format document',
+      'Run / Hot reload',
+      'Save file',
+    ]);
   });
 
   testClient('displays all available commands directly upon opening', (tester) async {
@@ -102,14 +132,23 @@ void main() {
     expect(items.length, 1);
     expect(items.item(0)!.textContent, contains('Pub clean'));
 
-    // Search for "format"
-    input.value = 'format';
+    // Search by alias "beautify" for format
+    input.value = 'beautify';
     input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
     await pumpEventQueue();
 
     items = web.document.querySelectorAll('.command-palette-item');
     expect(items.length, 1);
     expect(items.item(0)!.textContent, contains('Format document'));
+
+    // Search by alias "packages get" for pub get
+    input.value = 'packages get';
+    input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+    await pumpEventQueue();
+
+    items = web.document.querySelectorAll('.command-palette-item');
+    expect(items.length, 1);
+    expect(items.item(0)!.textContent, contains('Pub get'));
 
     // Search for "reload" (matching text from "Run / Hot reload")
     input.value = 'reload';
@@ -179,15 +218,17 @@ void main() {
     expect(activeItem?.textContent, contains('Pub clean'));
   });
 
-  testClient('executes selected command on Enter and closes palette', (tester) async {
-    var runExecuted = false;
+  testClient('executes selected command on Enter, passes CommandContext, and closes palette', (tester) async {
+    CommandContext? capturedContext;
     var closed = false;
 
+    final testContext = const CommandContext(projectDir: 'my_project');
     final actions = createTestActions(
-      onRun: () => runExecuted = true,
+      onRun: (context) => capturedContext = context,
     );
     tester.pumpComponent(
       CommandPalette(
+        context: testContext,
         actions: actions,
         onClose: () => closed = true,
       ),
@@ -205,7 +246,7 @@ void main() {
     await pumpEventQueue();
 
     expect(closed, isTrue);
-    expect(runExecuted, isTrue);
+    expect(capturedContext, same(testContext));
   });
 
   testClient('executes command on item click and closes palette', (tester) async {
@@ -213,7 +254,7 @@ void main() {
     var closed = false;
 
     final actions = createTestActions(
-      onFormat: () => formatExecuted = true,
+      onFormat: (_) => formatExecuted = true,
     );
     tester.pumpComponent(
       CommandPalette(
@@ -237,7 +278,7 @@ void main() {
     var executed = false;
 
     final actions = createTestActions(
-      onPubGet: () => executed = true,
+      onPubGet: (_) => executed = true,
     );
     tester.pumpComponent(
       CommandPalette(

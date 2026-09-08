@@ -175,8 +175,7 @@ void main() {
       expect(
         shortcut.codemirrorKeys,
         isNotEmpty,
-        reason:
-            '"${shortcut.label}" has no CodeMirror keys and is not listed in _appLevelShortcuts.',
+        reason: '"${shortcut.label}" has no CodeMirror keys and is not listed in _appLevelShortcuts.',
       );
       final hasKey = shortcut.codemirrorKeys.any(registeredKeys.contains);
       expect(
