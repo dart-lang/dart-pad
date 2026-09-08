@@ -80,7 +80,7 @@ void main() {
     collapseButton.click();
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.file-tree-pane'), isNull);
+    expect(web.document.querySelector('.file-tree'), isNull);
     final railButton = web.document.querySelector('.file-tree-rail button') as web.HTMLButtonElement?;
     expect(railButton, isNotNull);
     expect(railButton!.getAttribute('aria-label'), 'Show file tree');
@@ -88,7 +88,7 @@ void main() {
     railButton.click();
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.file-tree-pane'), isNotNull);
+    expect(web.document.querySelector('.file-tree'), isNotNull);
     expect(web.document.querySelector('.file-tree-rail'), isNull);
   });
 

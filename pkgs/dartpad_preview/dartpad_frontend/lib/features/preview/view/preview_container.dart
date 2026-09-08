@@ -111,7 +111,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
               ),
             ),
           ]),
-          if (panel != null)
+          if (panel != null && panel.canCollapse)
             IconButton(
               tooltip: 'Hide preview',
               label: 'Hide preview',

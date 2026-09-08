@@ -125,13 +125,6 @@ class EditorShell extends StatelessComponent {
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
     ),
-    css('.file-tree-pane').styles(
-      display: .flex,
-      minWidth: 100.px,
-      minHeight: .zero,
-      overflow: .hidden,
-      flexDirection: .column,
-    ),
     css('.editor-host').styles(
       display: .flex,
       minWidth: .zero,

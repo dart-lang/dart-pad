@@ -130,7 +130,7 @@ class _BottomPanelState extends State<BottomPanel> {
             });
           },
           onClearConsole: component.onClearConsole,
-          onCollapse: () => panel?.collapse(),
+          onCollapse: panel != null && panel.canCollapse ? panel.collapse : null,
         ),
         if (!isCollapsed) _buildContent(),
       ],

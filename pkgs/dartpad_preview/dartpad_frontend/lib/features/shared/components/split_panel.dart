@@ -113,7 +113,7 @@ final class RightHidden extends SplitState {
   int get hashCode => Object.hash(RightHidden, lastSplitValue);
 }
 
-///// An inherited component that exposes [SplitPanelData] to descendants of a [SplitPanel].
+/// An inherited component that exposes [SplitPanelData] to descendants of a [SplitPanel].
 class _InheritedSplitPanel extends InheritedComponent {
   _InheritedSplitPanel({required this.data, required super.child});
 
@@ -314,7 +314,8 @@ class SplitPanelState extends State<SplitPanel> {
   }
 
   bool isDragging = false;
-  bool _dragStartedWhileCollapsed = false;
+  bool _dragStartedWhileLeftCollapsed = false;
+  bool _dragStartedWhileRightCollapsed = false;
   double _dragStartPos = 0;
   StreamSubscription<web.MouseEvent>? _mouseMoveSubscription;
   StreamSubscription<web.MouseEvent>? _mouseUpSubscription;
@@ -350,7 +351,8 @@ class SplitPanelState extends State<SplitPanel> {
 
     final startPos = component.isVertical ? event.clientY.toDouble() : event.clientX.toDouble();
     _dragStartPos = startPos;
-    _dragStartedWhileCollapsed = (canCollapseRight && isRightCollapsed) || (canCollapseLeft && isLeftCollapsed);
+    _dragStartedWhileRightCollapsed = canCollapseRight && isRightCollapsed;
+    _dragStartedWhileLeftCollapsed = canCollapseLeft && isLeftCollapsed;
 
     _mouseMoveSubscription?.cancel();
     _mouseMoveSubscription = web.EventStreamProviders.mouseMoveEvent.forTarget(web.window).listen((web.MouseEvent e) {
@@ -362,180 +364,121 @@ class SplitPanelState extends State<SplitPanel> {
       }
 
       final clientPos = (component.isVertical ? e.clientY : e.clientX).toDouble();
+      final currentFirstPos = clientPos - startOffset;
+      final currentSecondPos = totalSize - currentFirstPos;
 
-      if (canCollapseRight) {
-        final currentSecondPos = startOffset + totalSize - clientPos;
+      final double minFirst;
+      final double maxFirst;
+      if (component.useRatio) {
+        final minRatio = component.minValue ?? 0.15;
+        final maxRatio = component.maxValue ?? 0.85;
+        minFirst = totalSize * minRatio;
+        maxFirst = totalSize * maxRatio;
+      } else if (component.absoluteFirst) {
+        minFirst = component.minValue ?? 100.0;
+        maxFirst = component.maxValue ?? (totalSize - 100.0);
+      } else {
+        final minSecond = component.minValue ?? 100.0;
+        final maxSecond = component.maxValue ?? (totalSize - 100.0);
+        minFirst = totalSize - maxSecond;
+        maxFirst = totalSize - minSecond;
+      }
 
-        final double minSecond;
-        final double maxSecond;
-        if (component.useRatio) {
-          final minRatio = component.minValue ?? 0.15;
-          final maxRatio = component.maxValue ?? 0.85;
-          minSecond = totalSize * (1.0 - maxRatio);
-          maxSecond = totalSize * (1.0 - minRatio);
-        } else if (component.absoluteFirst) {
-          final minFirst = component.minValue ?? 100.0;
-          final maxFirst = component.maxValue ?? (totalSize - 100.0);
-          minSecond = totalSize - maxFirst;
-          maxSecond = totalSize - minFirst;
-        } else {
-          minSecond = component.minValue ?? 100.0;
-          maxSecond = component.maxValue ?? (totalSize - 100.0);
-        }
+      final minSecond = totalSize - maxFirst;
+      final maxSecond = totalSize - minFirst;
 
-        final effectiveMin = max(0.0, min(minSecond, totalSize * 0.5));
-        final effectiveMax = max(effectiveMin, maxSecond);
+      final effectiveMinFirst = max(0.0, min(minFirst, totalSize * 0.5));
+      final effectiveMaxFirst = max(effectiveMinFirst, maxFirst);
 
-        // Auto-collapse threshold when dragging smaller than effectiveMin
-        final collapseThreshold = effectiveMin - 30;
+      final effectiveMinSecond = max(0.0, min(minSecond, totalSize * 0.5));
+      final effectiveMaxSecond = max(effectiveMinSecond, maxSecond);
 
-        if (_dragStartedWhileCollapsed) {
-          // Drag started while collapsed: delta is how much the user dragged up/towards open
-          final delta = _dragStartPos - clientPos;
-          if (isRightCollapsed) {
-            if (delta > 10) {
-              final targetSize = max(effectiveMin, currentSecondPos).clamp(effectiveMin, effectiveMax);
-              final newValue = _valueFromSecondSize(targetSize, totalSize);
-              _updateFromDrag(Split(newValue));
-              if (currentSecondPos > collapseThreshold + 15) {
-                _dragStartedWhileCollapsed = false;
-              }
-            }
-          } else {
-            // Already auto-expanded during this drag gesture
-            if (delta < 5) {
-              _updateFromDrag(RightCollapsed(value));
-            } else {
-              final targetSize = max(effectiveMin, currentSecondPos).clamp(effectiveMin, effectiveMax);
-              final newValue = _valueFromSecondSize(targetSize, totalSize);
-              _updateFromDrag(Split(newValue));
-              if (currentSecondPos > collapseThreshold + 15) {
-                _dragStartedWhileCollapsed = false;
-              }
-            }
-          }
-          return;
-        }
+      final collapseThresholdRight = effectiveMinSecond - 30;
+      final collapseThresholdLeft = effectiveMinFirst - 30;
 
-        // Drag started while already expanded
+      if (_dragStartedWhileRightCollapsed) {
+        final delta = _dragStartPos - clientPos;
         if (isRightCollapsed) {
-          // If it auto-collapsed during this drag, can auto-expand if dragged back up
-          if (currentSecondPos > collapseThreshold + 15) {
-            final targetSize = currentSecondPos.clamp(effectiveMin, effectiveMax);
+          if (delta > 10) {
+            final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
             _updateFromDrag(Split(newValue));
+            if (currentSecondPos > collapseThresholdRight + 15) {
+              _dragStartedWhileRightCollapsed = false;
+            }
           }
         } else {
-          // Expanded: if dragged too small (below collapseThreshold), auto-collapse
-          if (currentSecondPos < collapseThreshold) {
+          // Already auto-expanded during this drag gesture
+          if (delta < 5) {
             _updateFromDrag(RightCollapsed(value));
           } else {
-            final targetSize = currentSecondPos.clamp(effectiveMin, effectiveMax);
+            final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
             _updateFromDrag(Split(newValue));
+            if (currentSecondPos > collapseThresholdRight + 15) {
+              _dragStartedWhileRightCollapsed = false;
+            }
           }
         }
         return;
       }
 
-      if (canCollapseLeft) {
-        final currentFirstPos = clientPos - startOffset;
-
-        final double minFirst;
-        final double maxFirst;
-        if (component.useRatio) {
-          final minRatio = component.minValue ?? 0.15;
-          final maxRatio = component.maxValue ?? 0.85;
-          minFirst = totalSize * minRatio;
-          maxFirst = totalSize * maxRatio;
-        } else if (component.absoluteFirst) {
-          minFirst = component.minValue ?? 100.0;
-          maxFirst = component.maxValue ?? (totalSize - 100.0);
-        } else {
-          final minSecond = component.minValue ?? 100.0;
-          final maxSecond = component.maxValue ?? (totalSize - 100.0);
-          minFirst = totalSize - maxSecond;
-          maxFirst = totalSize - minSecond;
-        }
-
-        final effectiveMin = max(0.0, min(minFirst, totalSize * 0.5));
-        final effectiveMax = max(effectiveMin, maxFirst);
-
-        // Auto-collapse threshold when dragging smaller than effectiveMin
-        final collapseThreshold = effectiveMin - 30;
-
-        if (_dragStartedWhileCollapsed) {
-          // Drag started while collapsed: delta is how much the user dragged right/down towards open
-          final delta = clientPos - _dragStartPos;
-          if (isLeftCollapsed) {
-            if (delta > 10) {
-              final targetSize = max(effectiveMin, currentFirstPos).clamp(effectiveMin, effectiveMax);
-              final newValue = _valueFromFirstSize(targetSize, totalSize);
-              _updateFromDrag(Split(newValue));
-              if (currentFirstPos > collapseThreshold + 15) {
-                _dragStartedWhileCollapsed = false;
-              }
-            }
-          } else {
-            // Already auto-expanded during this drag gesture
-            if (delta < 5) {
-              _updateFromDrag(LeftCollapsed(value));
-            } else {
-              final targetSize = max(effectiveMin, currentFirstPos).clamp(effectiveMin, effectiveMax);
-              final newValue = _valueFromFirstSize(targetSize, totalSize);
-              _updateFromDrag(Split(newValue));
-              if (currentFirstPos > collapseThreshold + 15) {
-                _dragStartedWhileCollapsed = false;
-              }
-            }
-          }
-          return;
-        }
-
-        // Drag started while already expanded
+      if (_dragStartedWhileLeftCollapsed) {
+        final delta = clientPos - _dragStartPos;
         if (isLeftCollapsed) {
-          // If it auto-collapsed during this drag, can auto-expand if dragged back right
-          if (currentFirstPos > collapseThreshold + 15) {
-            final targetSize = currentFirstPos.clamp(effectiveMin, effectiveMax);
+          if (delta > 10) {
+            final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
             _updateFromDrag(Split(newValue));
+            if (currentFirstPos > collapseThresholdLeft + 15) {
+              _dragStartedWhileLeftCollapsed = false;
+            }
           }
         } else {
-          // Expanded: if dragged too small (below collapseThreshold), auto-collapse
-          if (currentFirstPos < collapseThreshold) {
+          // Already auto-expanded during this drag gesture
+          if (delta < 5) {
             _updateFromDrag(LeftCollapsed(value));
           } else {
-            final targetSize = currentFirstPos.clamp(effectiveMin, effectiveMax);
+            final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
             _updateFromDrag(Split(newValue));
+            if (currentFirstPos > collapseThresholdLeft + 15) {
+              _dragStartedWhileLeftCollapsed = false;
+            }
           }
         }
         return;
       }
 
-      if (component.useRatio) {
-        var newRatio = (clientPos - startOffset) / totalSize;
+      // Drag started while already expanded
+      if (isRightCollapsed) {
+        // If it auto-collapsed during this drag, can auto-expand if dragged back up/left
+        if (currentSecondPos > collapseThresholdRight + 15) {
+          final targetSize = currentSecondPos.clamp(effectiveMinSecond, effectiveMaxSecond);
+          final newValue = _valueFromSecondSize(targetSize, totalSize);
+          _updateFromDrag(Split(newValue));
+        }
+        return;
+      }
 
-        final minR = component.minValue ?? 0.15;
-        final maxR = component.maxValue ?? 0.85;
-        if (newRatio < minR) {
-          newRatio = minR;
+      if (isLeftCollapsed) {
+        // If it auto-collapsed during this drag, can auto-expand if dragged back down/right
+        if (currentFirstPos > collapseThresholdLeft + 15) {
+          final targetSize = currentFirstPos.clamp(effectiveMinFirst, effectiveMaxFirst);
+          final newValue = _valueFromFirstSize(targetSize, totalSize);
+          _updateFromDrag(Split(newValue));
         }
-        if (newRatio > maxR) {
-          newRatio = maxR;
-        }
-        _updateFromDrag(Split(newRatio));
+        return;
+      }
+
+      // Expanded: check if dragged too small (below collapseThreshold), auto-collapse
+      if (canCollapseRight && currentSecondPos < collapseThresholdRight) {
+        _updateFromDrag(RightCollapsed(value));
+      } else if (canCollapseLeft && currentFirstPos < collapseThresholdLeft) {
+        _updateFromDrag(LeftCollapsed(value));
       } else {
-        var newValue = component.absoluteFirst ? (clientPos - startOffset) : (startOffset + totalSize - clientPos);
-
-        final minV = component.minValue ?? 100.0;
-        final maxV = component.maxValue ?? (totalSize - 100.0);
-        if (newValue < minV) {
-          newValue = minV;
-        }
-        if (newValue > maxV) {
-          newValue = maxV;
-        }
+        final targetSize = currentFirstPos.clamp(effectiveMinFirst, totalSize - effectiveMinSecond);
+        final newValue = _valueFromFirstSize(targetSize, totalSize);
         _updateFromDrag(Split(newValue));
       }
     });
@@ -551,7 +494,8 @@ class SplitPanelState extends State<SplitPanel> {
     _mouseMoveSubscription = null;
     _mouseUpSubscription?.cancel();
     _mouseUpSubscription = null;
-    _dragStartedWhileCollapsed = false;
+    _dragStartedWhileLeftCollapsed = false;
+    _dragStartedWhileRightCollapsed = false;
     setState(() {
       isDragging = false;
     });

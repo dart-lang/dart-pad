@@ -88,7 +88,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
     final actions = component.actions;
     final showCollapse = panel != null && panel.canCollapse;
 
-    return aside(classes: 'file-tree-pane file-tree', [
+    return aside(classes: 'file-tree', [
       div(classes: 'file-tree-header', [
         const span(classes: 'file-tree-title', [.text('Explorer')]),
         if (showCollapse)
@@ -346,6 +346,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       css('&').styles(
         display: .flex,
         height: 100.percent,
+        minWidth: 100.px,
         minHeight: .zero,
         overflow: .hidden,
         flexDirection: .column,

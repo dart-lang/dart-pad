@@ -187,6 +187,93 @@ void main() {
       await pumpEventQueue();
     });
 
+    testClient('auto-collapses left when dragging handle too small with both canCollapseLeft and canCollapseRight', (
+      tester,
+    ) async {
+      final splitKey = GlobalStateKey<SplitPanelState>();
+      tester.pumpComponent(
+        div(
+          styles: Styles(
+            display: .flex,
+            height: 500.px,
+            flexDirection: .column,
+          ),
+          [
+            SplitPanel(
+              key: splitKey,
+              initialState: const Split(0.5),
+              canCollapseLeft: true,
+              canCollapseRight: true,
+              isVertical: true,
+              left: const div(id: 'top-pane', [Component.text('top')]),
+              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            ),
+          ],
+        ),
+      );
+
+      final handle = web.document.querySelector('.drag-handle')! as web.HTMLElement;
+      expect(handle, isNotNull);
+
+      // Start drag at Y=250 (expanded position)
+      handle.dispatchEvent(web.MouseEvent('mousedown', web.MouseEventInit(clientY: 250, clientX: 100)));
+      await pumpEventQueue();
+
+      // Drag up towards top: Y=30 (currentFirstPos = 30 < collapseThresholdLeft 45)
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 30, clientX: 100)));
+      await pumpEventQueue();
+
+      expect(splitKey.currentState!.isLeftCollapsed, isTrue);
+
+      // Finish drag
+      web.window.dispatchEvent(web.MouseEvent('mouseup', web.MouseEventInit(clientY: 30, clientX: 100)));
+      await pumpEventQueue();
+    });
+
+    testClient('auto-expands left-collapsed handle when both canCollapseLeft and canCollapseRight are enabled', (
+      tester,
+    ) async {
+      final splitKey = GlobalStateKey<SplitPanelState>();
+      tester.pumpComponent(
+        div(
+          styles: Styles(
+            display: .flex,
+            height: 500.px,
+            flexDirection: .column,
+          ),
+          [
+            SplitPanel(
+              key: splitKey,
+              initialState: const LeftCollapsed(0.25),
+              canCollapseLeft: true,
+              canCollapseRight: true,
+              isVertical: true,
+              left: const div(id: 'top-pane', [Component.text('top')]),
+              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            ),
+          ],
+        ),
+      );
+
+      final handle = web.document.querySelector('.drag-handle')! as web.HTMLElement;
+      expect(handle, isNotNull);
+
+      // Start drag at Y=40 (collapsed handle near top)
+      handle.dispatchEvent(web.MouseEvent('mousedown', web.MouseEventInit(clientY: 40, clientX: 100)));
+      await pumpEventQueue();
+
+      // Drag down by 30px to Y=70 (delta = 30 > 10)
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 70, clientX: 100)));
+      await pumpEventQueue();
+
+      expect(splitKey.currentState!.isLeftCollapsed, isFalse);
+      expect(splitKey.currentState!.isRightCollapsed, isFalse);
+
+      // Finish drag
+      web.window.dispatchEvent(web.MouseEvent('mouseup', web.MouseEventInit(clientY: 70, clientX: 100)));
+      await pumpEventQueue();
+    });
+
     testClient('SplitPanelState manages SplitViewState transitions', (tester) async {
       final splitKey = GlobalStateKey<SplitPanelState>();
       tester.pumpComponent(
