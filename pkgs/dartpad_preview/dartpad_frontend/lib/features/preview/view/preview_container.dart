@@ -180,7 +180,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
                   if (isRunning && viewModel.isFlutter)
                     RuntimeButton.reload(previewViewModel: viewModel)
                   else
-                    RuntimeButton.start(
+                    RuntimeButton.run(
                       previewViewModel: viewModel,
                       activeFile: component.activeFile,
                     ),
