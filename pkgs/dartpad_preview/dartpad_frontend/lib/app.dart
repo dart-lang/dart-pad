@@ -788,10 +788,7 @@ class AppState extends State<App> {
     if (isModifier && !event.altKey && !event.shiftKey && event.key == 'Enter') {
       event.preventDefault();
       _session.runOrHotReload();
-    } else if (isModifier &&
-        !event.altKey &&
-        event.shiftKey &&
-        (event.key == 'p' || event.key == 'P')) {
+    } else if (isModifier && !event.altKey && event.shiftKey && (event.key == 'p' || event.key == 'P')) {
       event.preventDefault();
       setState(() {
         _isCommandPaletteOpen = !_isCommandPaletteOpen;

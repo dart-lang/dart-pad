@@ -6,103 +6,24 @@ import 'dart:async';
 
 import 'package:jaspr/dom.dart' hide label;
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
-import '../../editor/codemirror/code_mirror_tab.dart';
 import '../../workspace/workspace_session.dart';
-import '../events/log_event.dart';
-import 'shortcut_definitions.dart';
+import 'command_palette_actions.dart';
 
-/// An executable command shown in the [CommandPalette].
-///
-/// Encapsulates command metadata and execution logic. If a command can be triggered
-/// by an existing keyboard shortcut, [shortcut] or [CommandPaletteAction.fromShortcut] links to that
-/// [ShortcutDefinition], ensuring display keys and labels are defined only once.
-class CommandPaletteAction {
-  const CommandPaletteAction({
-    required this.label,
-    this.shortcut,
-    this.category,
-    required this.onExecute,
-    this.isEnabled,
-  });
-
-  /// Creates a [CommandPaletteAction] from an existing [ShortcutDefinition].
-  ///
-  /// The [shortcut] provides the default [label], [category], and display key.
-  factory CommandPaletteAction.fromShortcut({
-    required ShortcutDefinition shortcut,
-    required FutureOr<void> Function() onExecute,
-    bool Function()? isEnabled,
-  }) => CommandPaletteAction(
-    label: shortcut.label,
-    shortcut: shortcut,
-    category: shortcut.category,
-    onExecute: onExecute,
-    isEnabled: isEnabled,
-  );
-
-  /// The human-readable name of the command shown in the palette.
-  final String label;
-
-  /// Optional keyboard shortcut associated with this command.
-  final ShortcutDefinition? shortcut;
-
-  /// Optional category used for grouping and search matching.
-  final ShortcutCategory? category;
-
-  /// Callback executed when this command is selected.
-  final FutureOr<void> Function() onExecute;
-
-  /// Optional predicate that determines whether this command can be executed.
-  final bool Function()? isEnabled;
-
-  /// The platform-resolved display key (e.g. `⌘ + Enter` on macOS, `Ctrl + Enter` on Windows),
-  /// or an empty string if this command has no shortcut.
-  String get resolvedDisplayKey => shortcut != null ? resolveDisplayKey(shortcut!.displayKey) : '';
-
-  /// Checks whether this action matches the search query against label, category, or shortcut.
-  bool matchesQuery(String query) {
-    final trimmed = query.trim().toLowerCase();
-    if (trimmed.isEmpty) {
-      return true;
-    }
-    if (label.toLowerCase().contains(trimmed)) {
-      return true;
-    }
-    if (category?.label.toLowerCase().contains(trimmed) ?? false) {
-      return true;
-    }
-    final currentShortcut = shortcut;
-    if (currentShortcut != null) {
-      if (currentShortcut.displayKey.toLowerCase().contains(trimmed) ||
-          resolvedDisplayKey.toLowerCase().contains(trimmed)) {
-        return true;
-      }
-    }
-    // Also match individual words in query
-    final tokens = trimmed.split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
-    if (tokens.length > 1) {
-      final combined = '$label ${category?.label ?? ''} $resolvedDisplayKey'.toLowerCase();
-      if (tokens.every(combined.contains)) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
+export 'command_palette_actions.dart';
 
 /// A modal dialog for searching and executing application commands.
 ///
 /// Displays all available actions immediately when opened, and dynamically
 /// filters them as the user types. Supports arrow navigation, Enter selection,
 /// and Escape / backdrop dismissal.
-class CommandPalette extends StatefulComponent {
-  /// Creates a [CommandPalette] with the given [actions].
+final class CommandPalette extends StatefulComponent {
+  /// Creates a [CommandPalette] with the given [actions] and execution [context].
   const CommandPalette({
-    required this.actions,
+    this.context = const CommandContext(),
+    this.actions = allCommandActions,
     required this.onClose,
     super.key,
   });
@@ -111,16 +32,21 @@ class CommandPalette extends StatefulComponent {
   factory CommandPalette.fromSession({
     required WorkspaceSession session,
     String projectDir = '',
+    List<CommandPaletteAction> actions = allCommandActions,
     required VoidCallback onClose,
     Key? key,
   }) => CommandPalette(
     key: key,
-    actions: CommandPalette.buildDefaultActions(
+    context: CommandContext(
       session: session,
       projectDir: projectDir,
     ),
+    actions: actions,
     onClose: onClose,
   );
+
+  /// The execution context passed to triggered command actions.
+  final CommandContext context;
 
   /// The list of actions available in the command palette.
   final List<CommandPaletteAction> actions;
@@ -134,74 +60,44 @@ class CommandPalette extends StatefulComponent {
   @css
   static List<StyleRule> get styles => _CommandPaletteState.styles;
 
-  /// Builds the default list of [CommandPaletteAction]s for the given [session].
-  static List<CommandPaletteAction> buildDefaultActions({
-    required WorkspaceSession session,
-    String projectDir = '',
-  }) {
-    return [
-      CommandPaletteAction(
-        label: 'Pub get',
-        onExecute: () => _executePubGet(session, projectDir),
-      ),
-      CommandPaletteAction(
-        label: 'Pub clean',
-        onExecute: () => _executePubClean(session, projectDir),
-      ),
-      CommandPaletteAction.fromShortcut(
-        shortcut: ShortcutDefinition.formatDocument,
-        onExecute: () async {
-          final tab = session.tabs.getTab(session.tabs.activeFile);
-          if (tab is CodeMirrorTab) {
-            await tab.editor.format();
-          }
-        },
-      ),
-      CommandPaletteAction.fromShortcut(
-        shortcut: ShortcutDefinition.runOrHotReload,
-        onExecute: session.runOrHotReload,
-      ),
-    ];
-  }
-
-  static Future<void> _executePubGet(WorkspaceSession session, String projectDir) async {
-    try {
-      await session.tabs.saveAllTabs();
-    } catch (_) {
-      return;
+  /// Checks whether [action] matches [query] against label, description, category, shortcut, or aliases.
+  static bool matchesCommand(CommandPaletteAction action, String query) {
+    final trimmed = query.trim().toLowerCase();
+    if (trimmed.isEmpty) {
+      return true;
     }
-    try {
-      await session.repository.pubGet(
-        path: projectDir,
-        projectRoot: projectDir,
-      );
-    } catch (error, stackTrace) {
-      session.events.dispatch(
-        LogEvent(
-          'Pub get failed.',
-          level: Level.SEVERE,
-          error: error,
-          stackTrace: stackTrace,
-        ),
-      );
+    if (action.label.toLowerCase().contains(trimmed)) {
+      return true;
     }
-  }
-
-  static Future<void> _executePubClean(WorkspaceSession session, String projectDir) async {
-    try {
-      await session.repository.pubClean(
-        path: projectDir,
-      );
-    } catch (error, stackTrace) {
-      session.events.dispatch(
-        LogEvent(
-          'Pub clean failed.',
-          level: Level.SEVERE,
-          error: error,
-          stackTrace: stackTrace,
-        ),
-      );
+    if (action.description.toLowerCase().contains(trimmed)) {
+      return true;
     }
+    if (action.category?.label.toLowerCase().contains(trimmed) ?? false) {
+      return true;
+    }
+    for (final alias in action.aliases) {
+      if (alias.toLowerCase().contains(trimmed)) {
+        return true;
+      }
+    }
+    final currentShortcut = action.shortcut;
+    if (currentShortcut != null) {
+      if (currentShortcut.displayKey.toLowerCase().contains(trimmed) ||
+          action.resolvedDisplayKey.toLowerCase().contains(trimmed)) {
+        return true;
+      }
+    }
+    // Also match individual words in query
+    final tokens = trimmed.split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
+    if (tokens.length > 1) {
+      final combined =
+          '${action.label} ${action.description} ${action.category?.label ?? ''} ${action.resolvedDisplayKey} ${action.aliases.join(' ')}'
+              .toLowerCase();
+      if (tokens.every(combined.contains)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -232,10 +128,10 @@ class _CommandPaletteState extends State<CommandPalette> {
 
   List<CommandPaletteAction> get _filteredActions {
     return component.actions.where((action) {
-      if (action.isEnabled != null && !action.isEnabled!()) {
+      if (action.isEnabled != null && !action.isEnabled!(component.context)) {
         return false;
       }
-      return action.matchesQuery(_query);
+      return CommandPalette.matchesCommand(action, _query);
     }).toList();
   }
 
@@ -292,7 +188,7 @@ class _CommandPaletteState extends State<CommandPalette> {
 
   void _executeAction(CommandPaletteAction action) {
     component.onClose();
-    unawaited(Future.microtask(() => action.onExecute()));
+    unawaited(Future.microtask(() => action.onExecute(component.context)));
   }
 
   @override
@@ -371,6 +267,7 @@ class _CommandPaletteState extends State<CommandPalette> {
       attributes: {
         'role': 'option',
         'aria-selected': isSelected ? 'true' : 'false',
+        if (action.description.isNotEmpty) 'title': action.description,
       },
       events: {
         'mouseenter': (_) {
@@ -430,7 +327,7 @@ class _CommandPaletteState extends State<CommandPalette> {
     css('.command-palette-prompt').styles(
       userSelect: .none,
       color: colorPrimary,
-      fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+      fontFamily: monospaceFontFamily,
       fontSize: 15.px,
       fontWeight: .w700,
     ),
@@ -440,12 +337,7 @@ class _CommandPaletteState extends State<CommandPalette> {
       outline: .unset,
       flex: const .grow(1),
       color: colorOnSurface,
-      fontFamily: const .list([
-        FontFamily('Roboto'),
-        FontFamily('Inter'),
-        FontFamily('Segoe UI'),
-        FontFamilies.sansSerif,
-      ]),
+      fontFamily: defaultFontFamily,
       fontSize: 14.px,
       backgroundColor: const Color('transparent'),
     ),
@@ -485,7 +377,7 @@ class _CommandPaletteState extends State<CommandPalette> {
       border: .all(color: colorBorder, width: 1.px),
       radius: .circular(3.px),
       color: colorOnSurface.highlight(colorSurface, 0.2),
-      fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+      fontFamily: monospaceFontFamily,
       fontSize: 11.px,
       whiteSpace: .noWrap,
       backgroundColor: colorSurface,

@@ -137,6 +137,44 @@ class WorkspaceRepository {
     );
   }
 
+  Future<void> _runPubCommand({
+    required String commandName,
+    String path = '',
+    String projectRoot = '',
+  }) => runWorkspacePubCommand(
+    events: events,
+    commandName: commandName,
+    path: path,
+    projectRoot: projectRoot,
+    command: (normalizedPath) async {
+      final workspace = await _workspaceFuture;
+      final api = workspaceResourceApi;
+      if (api is SyncedWorkspaceResourceApi) {
+        await api.flush();
+      }
+      final result = await workspace.pub(uri: normalizedPath, command: commandName);
+      return result.log;
+    },
+  );
+
+  Future<void> pubUpgrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+    commandName: 'upgrade',
+    path: path,
+    projectRoot: projectRoot,
+  );
+
+  Future<void> pubDowngrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+    commandName: 'downgrade',
+    path: path,
+    projectRoot: projectRoot,
+  );
+
+  Future<void> pubOutdated({String path = '', String projectRoot = ''}) => _runPubCommand(
+    commandName: 'outdated',
+    path: path,
+    projectRoot: projectRoot,
+  );
+
   /// Removes generated Pub and build output from the workspace.
   Future<void> pubClean({String path = ''}) async {
     final normalizedPath = workspaceContext.normalize(path);
@@ -359,9 +397,10 @@ class WorkspaceRepository {
   }
 }
 
-/// Runs Pub Get and forwards its output to the application debug console.
-Future<void> runWorkspacePubGet({
+/// Runs a Pub command and forwards its output to the application debug console.
+Future<void> runWorkspacePubCommand({
   required AppEventBus events,
+  required String commandName,
   required String path,
   required String projectRoot,
   required Future<String> Function(String normalizedPath) command,
@@ -371,9 +410,23 @@ Future<void> runWorkspacePubGet({
     path: normalizedPath,
     projectRoot: projectRoot,
   );
-  events.dispatch(LogEvent('Running pub get in $pathLabel'));
+  events.dispatch(LogEvent('Running pub $commandName in $pathLabel'));
   final log = await command(normalizedPath);
   if (log.isNotEmpty) {
     events.dispatch(LogEvent(log));
   }
 }
+
+/// Runs Pub Get and forwards its output to the application debug console.
+Future<void> runWorkspacePubGet({
+  required AppEventBus events,
+  required String path,
+  required String projectRoot,
+  required Future<String> Function(String normalizedPath) command,
+}) => runWorkspacePubCommand(
+  events: events,
+  commandName: 'get',
+  path: path,
+  projectRoot: projectRoot,
+  command: command,
+);

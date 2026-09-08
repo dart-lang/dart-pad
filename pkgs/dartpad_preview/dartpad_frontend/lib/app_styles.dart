@@ -27,6 +27,20 @@ final colorInfo = const ColorToken('info', Color('#208FFD'));
 final colorSuccess = const ColorToken('success', Color('#4CAF50'));
 
 /// Global styles that establish the document-level application layout.
+/// The default UI font family fallback chain used across the application.
+const defaultFontFamily = FontFamily.list([
+  FontFamily('Roboto'),
+  FontFamily('Inter'),
+  FontFamily('Segoe UI'),
+  FontFamilies.sansSerif,
+]);
+
+/// Monospace font family fallback chain used for code, shortcuts, and prompts.
+const monospaceFontFamily = FontFamily.list([
+  FontFamily('Consolas'),
+  FontFamilies.monospace,
+]);
+
 @css
 List<StyleRule> get appStyles => [
   css('html[data-theme="dark"]').styles(
@@ -42,12 +56,7 @@ List<StyleRule> get appStyles => [
     margin: .zero,
     overflow: .hidden,
     color: colorOnSurface,
-    fontFamily: const .list([
-      FontFamily('Roboto'),
-      FontFamily('Inter'),
-      FontFamily('Segoe UI'),
-      FontFamilies.sansSerif,
-    ]),
+    fontFamily: defaultFontFamily,
     backgroundColor: colorSurface,
   ),
   css('.material-symbols-outlined').styles(
