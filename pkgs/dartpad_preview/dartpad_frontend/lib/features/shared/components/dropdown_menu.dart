@@ -30,8 +30,11 @@ class DropdownMenuItem extends DropdownMenuEntry {
     required this.label,
     required this.onPressed,
     this.leadingImage,
+    this.leadingIcon,
+    this.leadingIconSize = 18,
     this.trailingIcon,
     this.trailingIconSize = 16,
+    this.isSelected = false,
   });
 
   /// The text label displayed for this menu item.
@@ -43,11 +46,20 @@ class DropdownMenuItem extends DropdownMenuEntry {
   /// Optional leading image URL (e.g. a logo).
   final String? leadingImage;
 
+  /// Optional leading icon name (Material Symbol).
+  final String? leadingIcon;
+
+  /// Size of the leading icon.
+  final double leadingIconSize;
+
   /// Optional trailing icon name (Material Symbol).
   final String? trailingIcon;
 
   /// Size of the trailing icon.
   final double trailingIconSize;
+
+  /// Whether this item represents the currently selected value.
+  final bool isSelected;
 }
 
 /// A reusable dropdown menu component.
@@ -171,7 +183,10 @@ class _DropdownMenuState extends State<DropdownMenu> {
                   ],
                 ),
                 DropdownMenuItem() => button(
-                  classes: 'dropdown-menu-item',
+                  classes: [
+                    'dropdown-menu-item',
+                    if (entry.isSelected) 'active',
+                  ].join(' '),
                   onClick: () {
                     _closeMenu();
                     entry.onPressed();
@@ -183,6 +198,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
                         alt: '',
                         classes: 'dropdown-menu-item-image',
                       ),
+                    if (entry.leadingIcon != null) Icon(entry.leadingIcon!, size: entry.leadingIconSize),
                     span([.text(entry.label)]),
                     if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
                   ],
@@ -195,6 +211,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
 
   static List<StyleRule> get styles => [
     css('.dropdown-menu-anchor').styles(
+      display: .inlineFlex,
       position: const .relative(),
     ),
     css('.dropdown-menu-panel').styles(
@@ -236,14 +253,22 @@ class _DropdownMenuState extends State<DropdownMenu> {
       border: .none,
       cursor: .pointer,
       alignItems: .center,
-      gap: Gap.all(6.px),
+      gap: Gap.all(8.px),
       color: colorOnContainer,
       textAlign: .left,
       fontSize: 14.px,
+      whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
     ),
     css('.dropdown-menu-item:hover').styles(
       backgroundColor: colorBorder,
+    ),
+    css('.dropdown-menu-item.active').styles(
+      fontWeight: .w500,
+      backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
+    ),
+    css('.dropdown-menu-item.active:hover').styles(
+      backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
     ),
     css('.dropdown-menu-item-image').styles(
       width: 20.px,
