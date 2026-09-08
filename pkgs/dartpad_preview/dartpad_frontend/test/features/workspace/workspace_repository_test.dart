@@ -101,6 +101,34 @@ void main() {
     await events.dispose();
   });
 
+  test('runWorkspacePubCommand logs its path and command output in order', () async {
+    final events = AppEventBus();
+    final logs = <LogEvent>[];
+    final subscription = events.on<LogEvent>().listen(logs.add);
+    String? commandPath;
+
+    await runWorkspacePubCommand(
+      events: events,
+      commandName: 'upgrade',
+      path: 'example/.',
+      projectRoot: 'example',
+      command: (path) async {
+        commandPath = path;
+        return 'Upgraded dependencies...';
+      },
+    );
+    await pumpEventQueue();
+
+    expect(commandPath, 'example');
+    expect(logs.map((event) => event.message), [
+      'Running pub upgrade in /',
+      'Upgraded dependencies...',
+    ]);
+
+    await subscription.cancel();
+    await events.dispose();
+  });
+
   test(
     'cleanGeneratedOutput removes build and .dart_tool when present',
     () async {
@@ -167,6 +195,84 @@ void main() {
     await future;
 
     expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
+    expect(taskStatus.hasBlockingPreviewTask, isFalse);
+    taskStatus.dispose();
+    await repository.events.dispose();
+  });
+
+  test('Pub Upgrade exposes a blocking task status', () async {
+    final completer = Completer<Workspace>();
+    final taskStatus = TaskStatusController();
+    final repository = WorkspaceRepository(
+      events: AppEventBus(),
+      taskStatus: taskStatus,
+      workspaceResourceApi: _Workspace(),
+      sdk: defaultSdk,
+      workspaceFuture: completer.future,
+    );
+
+    final future = repository.pubUpgrade(path: 'example');
+    expect(taskStatus.current?.kind, TaskKind.pubUpgrade);
+    expect(taskStatus.current?.label, 'Pub upgrade in example');
+    expect(taskStatus.current?.scope, 'example');
+    expect(taskStatus.hasBlockingPreviewTask, isTrue);
+
+    completer.completeError(StateError('workspace not available'));
+    await expectLater(future, throwsA(isA<StateError>()));
+
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
+    expect(taskStatus.hasBlockingPreviewTask, isFalse);
+    taskStatus.dispose();
+    await repository.events.dispose();
+  });
+
+  test('Pub Downgrade exposes a blocking task status', () async {
+    final completer = Completer<Workspace>();
+    final taskStatus = TaskStatusController();
+    final repository = WorkspaceRepository(
+      events: AppEventBus(),
+      taskStatus: taskStatus,
+      workspaceResourceApi: _Workspace(),
+      sdk: defaultSdk,
+      workspaceFuture: completer.future,
+    );
+
+    final future = repository.pubDowngrade(path: 'example');
+    expect(taskStatus.current?.kind, TaskKind.pubDowngrade);
+    expect(taskStatus.current?.label, 'Pub downgrade in example');
+    expect(taskStatus.current?.scope, 'example');
+    expect(taskStatus.hasBlockingPreviewTask, isTrue);
+
+    completer.completeError(StateError('workspace not available'));
+    await expectLater(future, throwsA(isA<StateError>()));
+
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
+    expect(taskStatus.hasBlockingPreviewTask, isFalse);
+    taskStatus.dispose();
+    await repository.events.dispose();
+  });
+
+  test('Pub Outdated exposes a non-blocking task status', () async {
+    final completer = Completer<Workspace>();
+    final taskStatus = TaskStatusController();
+    final repository = WorkspaceRepository(
+      events: AppEventBus(),
+      taskStatus: taskStatus,
+      workspaceResourceApi: _Workspace(),
+      sdk: defaultSdk,
+      workspaceFuture: completer.future,
+    );
+
+    final future = repository.pubOutdated(path: 'example');
+    expect(taskStatus.current?.kind, TaskKind.pubOutdated);
+    expect(taskStatus.current?.label, 'Pub outdated in example');
+    expect(taskStatus.current?.scope, 'example');
+    expect(taskStatus.hasBlockingPreviewTask, isFalse);
+
+    completer.completeError(StateError('workspace not available'));
+    await expectLater(future, throwsA(isA<StateError>()));
+
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
     taskStatus.dispose();
     await repository.events.dispose();

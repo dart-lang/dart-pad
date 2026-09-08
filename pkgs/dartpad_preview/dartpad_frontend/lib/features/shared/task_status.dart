@@ -12,6 +12,25 @@ enum TaskStatusOutcome { running, succeeded, failed }
 
 /// The typed identity and default display label of a tracked task.
 ///
+/// ### Task Tracking Guidelines: What Belongs in the Task Tracker
+///
+/// **Tracked (CLI-style operations and system lifecycle):**
+/// - **CLI tooling operations:** Commands typically invoked via CLI tools that
+///   run asynchronously and produce console output (e.g. [pubGet], [pubUpgrade],
+///   [pubDowngrade], [pubOutdated], [pubClean], [compilingApplication],
+///   [hotReload], [compilingChanges]). These tasks are always tracked unconditionally
+///   to provide predictable feedback to the user.
+/// - **System & runtime lifecycle:** Background environment preparations like
+///   [loadingCode], [initializingDartPadWorker], and [analyzingWorkspace].
+///
+/// **Not tracked (Editor interactions):**
+/// - Standard in-editor actions (e.g. formatting documents, saving files,
+///   renaming symbols, creating files, or applying quick fixes) are **not**
+///   tracked as tasks.
+/// - The user receives immediate visual feedback directly within the editor
+///   interface (text updates, tab indicators, or error toasts), so tracking them
+///   would only introduce UI noise and flicker.
+///
 /// ### Trade-offs of Merging Task Kinds
 ///
 /// **Pros of merging:**
@@ -27,17 +46,13 @@ enum TaskStatusOutcome { running, succeeded, failed }
 /// - **Coarser error & state attribution:** Code and UI widgets cannot distinguish
 ///   which specific phase failed (e.g. worker setup vs compilation) without inspecting
 ///   raw string labels.
-///
-/// The following [TaskKind]s provide 2 kinds for startup and worker initialization
-/// ([loadingCode], [initializingDartPadWorker]), specific kinds for Pub and
-/// analysis operations ([pubGet], [pubClean], [analyzingWorkspace]), and
-/// dedicated kinds for each compiling and preview action ([startingPreview],
-/// [restartingPreview], [stoppingPreview], [compilingApplication], [hotReload],
-/// [compilingChanges]).
 enum TaskKind {
   loadingCode('Loading code'),
   initializingDartPadWorker('Initializing DartPad worker'),
   pubGet('Pub get'),
+  pubUpgrade('Pub upgrade'),
+  pubDowngrade('Pub downgrade'),
+  pubOutdated('Pub outdated'),
   pubClean('Pub clean'),
   analyzingWorkspace('Analyzing workspace'),
   startingPreview('Starting preview'),
