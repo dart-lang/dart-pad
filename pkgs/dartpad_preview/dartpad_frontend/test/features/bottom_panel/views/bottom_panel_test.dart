@@ -39,8 +39,7 @@ void main() {
     await pumpEventQueue();
 
     expect(web.document.querySelector('.console-panel')!.textContent, contains('Running pub get in /'));
-    final clearButton =
-        web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
+    final clearButton = web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
 
     clearButton.click();
@@ -67,8 +66,7 @@ void main() {
     consoleTab.click();
     await pumpEventQueue();
 
-    final clearButton =
-        web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
+    final clearButton = web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
   });
 
