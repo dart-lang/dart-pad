@@ -35,8 +35,9 @@
     "@lezer/common": "^1.2.1",
     "@lezer/highlight": "^1.2.0",
     "@lezer/javascript": "^1.5.4",
-    "codemirror": "^6.0.1",
-    "puppeteer": "^24.42.0",
-    "puppeteer-core": "^24.42.0"
+    "codemirror": "^6.0.1"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5"
   }
 }
