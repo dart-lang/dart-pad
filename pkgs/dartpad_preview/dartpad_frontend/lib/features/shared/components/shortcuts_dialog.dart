@@ -119,11 +119,11 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
         shortcutRows.add(_categoryHeader(category.label));
       }
       for (final shortcut in primary) {
-        shortcutRows.add(_shortcutRow(shortcut.label, resolveDisplayKey(shortcut.displayKey)));
+        shortcutRows.add(_shortcutRow(shortcut));
       }
       if (_showMoreShortcuts) {
         for (final shortcut in extended) {
-          shortcutRows.add(_shortcutRow(shortcut.label, resolveDisplayKey(shortcut.displayKey)));
+          shortcutRows.add(_shortcutRow(shortcut));
         }
       }
     }
@@ -185,10 +185,20 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
     ]);
   }
 
-  Component _shortcutRow(String command, String shortcut) {
+  Component _shortcutRow(ShortcutDefinition shortcut) {
+    final keys = shortcut.resolvedDisplayKeys;
     return div(classes: 'shortcuts-dialog-row', [
-      span(classes: 'shortcuts-dialog-command', [.text(command)]),
-      span(classes: 'shortcuts-dialog-key', [.text(shortcut)]),
+      span(classes: 'shortcuts-dialog-command', [.text(shortcut.label)]),
+      span(classes: 'shortcuts-dialog-keys', [
+        for (var i = 0; i < keys.length; i++)
+          if (i == 0)
+            span(classes: 'shortcuts-dialog-key', [.text(keys[i])])
+          else
+            span(classes: 'shortcuts-dialog-alternative', [
+              const span(classes: 'shortcuts-dialog-separator', [Component.text('or')]),
+              span(classes: 'shortcuts-dialog-key', [.text(keys[i])]),
+            ]),
+      ]),
     ]);
   }
 
@@ -266,6 +276,22 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
     css('.shortcuts-dialog-command').styles(
       color: colorOnSurface,
       fontSize: 12.px,
+    ),
+    css('.shortcuts-dialog-keys').styles(
+      display: .flex,
+      flexWrap: .wrap,
+      justifyContent: .end,
+      alignItems: .center,
+      gap: Gap.all(6.px),
+    ),
+    css('.shortcuts-dialog-alternative').styles(
+      display: .inlineFlex,
+      alignItems: .center,
+      gap: Gap.all(6.px),
+    ),
+    css('.shortcuts-dialog-separator').styles(
+      color: colorOnSurface.highlight(colorSurface, 0.25),
+      fontSize: 11.px,
     ),
     css('.shortcuts-dialog-key').styles(
       padding: .symmetric(vertical: 2.px, horizontal: 6.px),
