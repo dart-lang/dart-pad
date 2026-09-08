@@ -166,7 +166,11 @@ class _PreviewContainerState extends State<PreviewContainer> {
       ]),
       div(
         key: const ValueKey('preview-toolbar'),
-        classes: 'preview-toolbar${isCollapsed ? ' hidden' : ''}',
+        classes: [
+          'preview-toolbar',
+          if (isCollapsed) 'hidden',
+          if (viewModel.isFlutter) 'has-device-mode',
+        ].join(' '),
         [
           div(classes: 'preview-controls', [
             ListenableBuilder(
@@ -174,13 +178,13 @@ class _PreviewContainerState extends State<PreviewContainer> {
               builder: (context) => ButtonGroup(
                 children: [
                   if (isRunning)
-                    RuntimeButton.restart(previewViewModel: viewModel)
+                    RuntimeButton.reload(previewViewModel: viewModel)
                   else
                     RuntimeButton.start(
                       previewViewModel: viewModel,
                       activeFile: component.activeFile,
                     ),
-                  RuntimeButton.hotReload(previewViewModel: viewModel),
+                  RuntimeButton.restart(previewViewModel: viewModel),
                   RuntimeButton.stop(previewViewModel: viewModel),
                 ],
               ),
@@ -247,7 +251,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
   }
 
   static List<StyleRule> get styles => [
-    ...PreviewTaskStatus.styles,
     css('.preview-rail', [
       css('&').styles(
         display: .flex,
@@ -263,6 +266,9 @@ class _PreviewContainerState extends State<PreviewContainer> {
         display: .none,
       ),
     ]),
+    css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(
+      display: .none,
+    ),
     css('.preview-container', [
       css('&').styles(
         display: .flex,
@@ -271,6 +277,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
         flexDirection: .column,
         flex: const .grow(1),
         backgroundColor: colorContainer,
+        raw: {'container-type': 'inline-size'},
       ),
       css('&.collapsed').styles(
         width: 36.px,
@@ -289,7 +296,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,
-          padding: .symmetric(vertical: 4.px, horizontal: 12.px),
+          padding: .symmetric(vertical: 4.px, horizontal: 4.px),
           border: .only(
             bottom: .solid(color: colorBorder, width: 1.px),
           ),
@@ -303,7 +310,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('.preview-controls').styles(
           display: .flex,
-          flexWrap: .wrap,
+          flexWrap: .nowrap,
           justifyContent: .center,
           alignItems: .center,
           flex: const .grow(1),
@@ -395,5 +402,52 @@ class _PreviewContainerState extends State<PreviewContainer> {
         ),
       ]),
     ]),
+    // Flutter: first button expands at >= 270px
+    ContainerStyleRule('(min-width: 270px)', [
+      css('.preview-toolbar.has-device-mode .runtime-button:first-child', expandedRuntimeButtonStyles),
+    ]),
+    // Flutter: device dropdown label expands at >= 320px
+    ContainerStyleRule('(min-width: 320px)', [
+      css('.preview-toolbar.has-device-mode .device-dropdown-label').styles(display: .inline),
+    ]),
+    // Flutter: all 3 buttons expand at >= 410px
+    ContainerStyleRule('(min-width: 410px)', [
+      css('.preview-toolbar.has-device-mode .runtime-button', expandedRuntimeButtonStyles),
+    ]),
+    // Dart (no device dropdown): first button expands at >= 180px
+    ContainerStyleRule('(min-width: 180px)', [
+      css('.preview-toolbar:not(.has-device-mode) .runtime-button:first-child', expandedRuntimeButtonStyles),
+    ]),
+    // Dart (no device dropdown): all 3 buttons expand at >= 270px
+    ContainerStyleRule('(min-width: 270px)', [
+      css('.preview-toolbar:not(.has-device-mode) .runtime-button', expandedRuntimeButtonStyles),
+    ]),
   ];
+
+  static List<StyleRule> get expandedRuntimeButtonStyles => [
+    css('&').styles(
+      width: .auto,
+      padding: .only(left: 5.px, right: 8.px),
+      gap: .all(6.px),
+    ),
+    css('.runtime-button-label').styles(
+      display: .inline,
+    ),
+  ];
+}
+
+/// Style rule that renders a CSS `@container` query.
+class ContainerStyleRule implements StyleRule {
+  const ContainerStyleRule(this.query, this.styles);
+
+  final String query;
+  final List<StyleRule> styles;
+
+  @override
+  String toCss([String indent = '']) {
+    const blockInset = '  ';
+    return '$indent@container $query {\n'
+        '${styles.map((r) => '${r.toCss('$indent$blockInset')}\n').join()}'
+        '$indent}';
+  }
 }

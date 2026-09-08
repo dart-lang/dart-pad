@@ -4,13 +4,15 @@
 
 import 'dart:async';
 
+import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../../shared/components/icon_button.dart';
+import '../../../app_styles.dart';
+import '../../shared/icons.dart';
 import '../view_models/preview_view_model.dart';
 
 /// A button component used to trigger preview runtime actions
-/// (Start, Restart, Hot Reload, Stop).
+/// (Start, Restart, Reload, Stop).
 class RuntimeButton extends StatelessComponent {
   /// Creates a runtime button with direct configurations.
   const RuntimeButton({
@@ -50,11 +52,11 @@ class RuntimeButton extends StatelessComponent {
     );
   }
 
-  /// Factory constructor for a 'Hot Reload' button that hot reloads changes
+  /// Factory constructor for a 'Reload' button that hot reloads changes
   /// in the currently running entrypoint.
-  factory RuntimeButton.hotReload({required PreviewViewModel previewViewModel}) {
+  factory RuntimeButton.reload({required PreviewViewModel previewViewModel}) {
     return RuntimeButton(
-      title: 'Hot Reload',
+      title: 'Reload',
       icon: 'bolt',
       isEnabled: previewViewModel.canHotReload,
       onClick: () => previewViewModel.hotReloadCode(),
@@ -86,12 +88,60 @@ class RuntimeButton extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return IconButton(
-      label: title,
-      icon: icon,
+    return button(
+      classes: [
+        'runtime-button',
+        if (!isEnabled) 'disabled',
+      ].join(' '),
       disabled: !isEnabled,
-      tooltip: title,
-      onClick: (_) => onClick(),
+      attributes: {
+        'title': title,
+        'aria-label': title,
+      },
+      onClick: isEnabled ? () => unawaited(onClick()) : null,
+      [
+        Icon(icon, size: 18.0),
+        span(classes: 'runtime-button-label', [.text(title)]),
+      ],
     );
   }
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.runtime-button', [
+      css('&').styles(
+        display: .flex,
+        position: const .relative(),
+        width: 28.px,
+        height: 28.px,
+        padding: .zero,
+        border: .none,
+        radius: .circular(4.px),
+        cursor: .pointer,
+        transition: Transition('background-color', duration: 150.ms, curve: .ease),
+        justifyContent: .center,
+        alignItems: .center,
+        color: colorOnSurface,
+        whiteSpace: .noWrap,
+        backgroundColor: Colors.transparent,
+      ),
+      css('& > *').styles(
+        raw: {'flex-shrink': '0'},
+      ),
+      css('&:not(:disabled):hover').styles(
+        backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
+      ),
+      css('&:disabled').styles(
+        opacity: 0.5,
+        cursor: .notAllowed,
+      ),
+      css('.runtime-button-label').styles(
+        display: .none,
+        color: colorOnSurface,
+        fontSize: 13.px,
+        fontWeight: .w500,
+        whiteSpace: .noWrap,
+      ),
+    ]),
+  ];
 }
