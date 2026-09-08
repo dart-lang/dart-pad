@@ -198,8 +198,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
                         alt: '',
                         classes: 'dropdown-menu-item-image',
                       ),
-                    if (entry.leadingIcon != null)
-                      Icon(entry.leadingIcon!, size: entry.leadingIconSize),
+                    if (entry.leadingIcon != null) Icon(entry.leadingIcon!, size: entry.leadingIconSize),
                     span([.text(entry.label)]),
                     if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
                   ],
