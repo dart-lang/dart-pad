@@ -54,6 +54,7 @@ enum TaskKind {
   pubDowngrade('Pub downgrade'),
   pubOutdated('Pub outdated'),
   pubClean('Pub clean'),
+
   /// Initial analyzer startup and baseline workspace analysis.
   startingAnalyzer('Starting analyzer'),
 
