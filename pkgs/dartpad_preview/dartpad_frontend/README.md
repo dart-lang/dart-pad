@@ -19,7 +19,7 @@ persistent project storage.
 - Dependency resolution with `pub get`, plus `Pub get` and `Pub clean` actions
   when `pubspec.yaml` or `pubspec.lock` is active.
 - Compilation and execution in an isolated preview sandbox, with start, stop,
-  restart, and hot reload controls.
+  restart, and Flutter-only hot reload controls.
 - Built-in Dart, Flutter, and Flame examples, as well as projects loaded from
   pub.dev packages, GitHub Gists, and remote tar archives.
 - Responsive desktop and small-screen layouts, light and dark themes, and an
@@ -232,11 +232,15 @@ it opens `README.md` when available. Otherwise no initial file is opened. Gist
 and sample URLs do not currently support a `main` override.
 
 After dependency resolution, the frontend automatically runs the resolved
-entrypoint only if its path ends in `.dart`. The Start button is independent
+entrypoint only if its path ends in `.dart`. The Run button is independent
 of that startup choice: it runs the currently active editor file, or
 `lib/main.dart` if no file is active. It does not replace an active non-Dart
 file with `lib/main.dart`. Restart recompiles the entrypoint of the current run;
-Hot Reload recompiles changes for that same running entrypoint.
+Hot Reload is only offered for Flutter applications and recompiles changes for
+that same running entrypoint. For Dart console programs, a successful launch
+immediately restores Run and disables Stop. Execution is not tracked: an async
+`main()`, timers, and other background work may continue producing console
+output until the next run replaces the sandbox.
 
 Whether that entrypoint is presented as a Flutter application or a console
 program is determined as described in [SDK detection](#sdk-detection).
