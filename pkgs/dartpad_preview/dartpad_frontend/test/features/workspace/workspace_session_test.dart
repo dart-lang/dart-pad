@@ -92,7 +92,7 @@ void main() {
 
     expect(workspace.disposeCount, 1);
     expect(
-      () => session.taskStatus.startTask(TaskKind.analyzingWorkspace),
+      () => session.taskStatus.startTask(TaskKind.startingAnalyzer),
       throwsStateError,
     );
     await expectLater(

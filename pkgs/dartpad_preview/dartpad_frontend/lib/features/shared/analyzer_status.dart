@@ -9,11 +9,16 @@ import 'task_status.dart';
 /// The session-scoped lifecycle of the Dart analyzer.
 enum AnalyzerStatusPhase { waiting, analyzing, ready, unavailable }
 
-/// Tracks analyzer readiness separately from user-visible application tasks.
+/// Tracks analyzer readiness and translates LSP analysis activity into
+/// application tasks.
 ///
-/// Analyzer startup and the first complete analysis are represented by one
-/// normal task. Later analysis cycles only toggle [AnalyzerStatusPhase.analyzing]
-/// and never replace or restart that initialization task.
+/// Analyzer startup and the first complete analysis are represented by a
+/// [TaskKind.startingAnalyzer] task. Later analysis cycles trigger a
+/// [TaskKind.analyzing] task which reuses the same task key, replacing earlier
+/// analysis entries in recent task history.
+///
+/// [phase] reflects the current analyzer lifecycle state and notifies
+/// listeners of state transitions.
 final class AnalyzerStatusController extends ChangeNotifier {
   AnalyzerStatusController(this._taskStatus);
 
@@ -21,17 +26,18 @@ final class AnalyzerStatusController extends ChangeNotifier {
 
   AnalyzerStatusPhase _phase = AnalyzerStatusPhase.waiting;
   TaskStatusHandle? _initializationTask;
+  TaskStatusHandle? _currentTask;
   bool _initializationFinished = false;
   bool _disposed = false;
 
   AnalyzerStatusPhase get phase => _phase;
 
-  /// Starts the single task spanning analyzer startup and initial analysis.
+  /// Starts the task spanning analyzer startup and initial analysis.
   void beginInitialization() {
     if (_disposed || _initializationTask != null || _initializationFinished) {
       return;
     }
-    _initializationTask = _taskStatus.startTask(TaskKind.analyzingWorkspace);
+    _initializationTask = _taskStatus.startTask(TaskKind.startingAnalyzer);
     _setPhase(AnalyzerStatusPhase.analyzing);
   }
 
@@ -42,13 +48,34 @@ final class AnalyzerStatusController extends ChangeNotifier {
     }
     if (isAnalyzing) {
       _setPhase(AnalyzerStatusPhase.analyzing);
+      if (_initializationTask != null) {
+        return;
+      }
+      if (!_initializationFinished) {
+        _initializationTask = _taskStatus.startTask(TaskKind.startingAnalyzer);
+        return;
+      }
+      _currentTask ??= _taskStatus.startTask(TaskKind.analyzing);
       return;
     }
 
-    _initializationTask?.succeed();
-    _initializationTask = null;
-    _initializationFinished = true;
-    _setPhase(AnalyzerStatusPhase.ready);
+    if (_phase == AnalyzerStatusPhase.unavailable) {
+      return;
+    }
+
+    final hadActiveTask = _initializationTask != null || _currentTask != null;
+    if (_initializationTask case final task?) {
+      task.succeed();
+      _initializationTask = null;
+      _initializationFinished = true;
+    }
+    if (_currentTask case final task?) {
+      task.succeed();
+      _currentTask = null;
+    }
+    if (hadActiveTask || _initializationFinished) {
+      _setPhase(AnalyzerStatusPhase.ready);
+    }
   }
 
   /// Marks the analyzer as unavailable after startup or stream failure.
@@ -56,8 +83,19 @@ final class AnalyzerStatusController extends ChangeNotifier {
     if (_disposed) {
       return;
     }
-    _initializationTask?.fail();
-    _initializationTask = null;
+    final hadActiveTask = _initializationTask != null || _currentTask != null;
+    if (_initializationTask case final task?) {
+      task.fail();
+      _initializationTask = null;
+    }
+    if (_currentTask case final task?) {
+      task.fail();
+      _currentTask = null;
+    }
+    if (!hadActiveTask) {
+      final kind = _initializationFinished ? TaskKind.analyzing : TaskKind.startingAnalyzer;
+      _taskStatus.startTask(kind).fail();
+    }
     _initializationFinished = true;
     _setPhase(AnalyzerStatusPhase.unavailable);
   }
@@ -76,8 +114,14 @@ final class AnalyzerStatusController extends ChangeNotifier {
       return;
     }
     _disposed = true;
-    _initializationTask?.cancel();
-    _initializationTask = null;
+    if (_initializationTask case final task?) {
+      task.cancel();
+      _initializationTask = null;
+    }
+    if (_currentTask case final task?) {
+      task.cancel();
+      _currentTask = null;
+    }
     super.dispose();
   }
 }

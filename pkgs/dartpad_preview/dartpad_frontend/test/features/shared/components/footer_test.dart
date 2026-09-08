@@ -14,15 +14,12 @@ import 'package:web/web.dart' as web;
 
 void main() {
   late TaskStatusController taskStatus;
-  late AnalyzerStatusController analyzerStatus;
 
   setUp(() {
     taskStatus = TaskStatusController();
-    analyzerStatus = AnalyzerStatusController(taskStatus);
   });
 
   tearDown(() {
-    analyzerStatus.dispose();
     taskStatus.dispose();
   });
 
@@ -30,7 +27,6 @@ void main() {
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
-        analyzerStatus: analyzerStatus,
         isSmallScreen: false,
       ),
     );
@@ -46,7 +42,6 @@ void main() {
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
-        analyzerStatus: analyzerStatus,
         isSmallScreen: true,
       ),
     );
@@ -62,7 +57,6 @@ void main() {
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
-        analyzerStatus: analyzerStatus,
         isSmallScreen: false,
       ),
     );
@@ -112,7 +106,6 @@ void main() {
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
-        analyzerStatus: analyzerStatus,
         isSmallScreen: false,
       ),
     );
@@ -147,7 +140,6 @@ void main() {
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
-        analyzerStatus: analyzerStatus,
         statusMessage: 'Could not save all files.',
       ),
     );
@@ -163,43 +155,42 @@ void main() {
     expect(web.document.querySelector('.app-footer-message')?.textContent, 'Could not save all files.');
   });
 
-  testClient('shows a fixed analyzer label with activity, ready, and failure icons', (tester) async {
+  testClient('shows analyzer startup and change analysis in the task status bar', (tester) async {
+    final analyzerStatus = AnalyzerStatusController(taskStatus);
     tester.pumpComponent(
-      Footer(taskStatus: taskStatus, analyzerStatus: analyzerStatus),
+      Footer(taskStatus: taskStatus),
     );
 
-    expect(web.document.querySelector('.analyzer-status.waiting'), isNotNull);
-    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
-    expect(web.document.querySelector('.analyzer-status .task-status-icon.running'), isNotNull);
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Ready'));
 
     analyzerStatus.beginInitialization();
-    analyzerStatus.update(isAnalyzing: true);
     await pumpEventQueue();
-    expect(web.document.querySelector('.analyzer-status.analyzing'), isNotNull);
-    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
-    expect(web.document.querySelector('.analyzer-status-duration'), isNull);
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Starting analyzer'));
 
     analyzerStatus.update(isAnalyzing: false);
     await pumpEventQueue();
-    expect(web.document.querySelector('.analyzer-status.ready'), isNotNull);
-    expect(web.document.querySelector('.analyzer-status .task-status-icon.succeeded'), isNotNull);
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Starting analyzer'));
 
     analyzerStatus.update(isAnalyzing: true);
     await pumpEventQueue();
-    expect(web.document.querySelector('.analyzer-status.analyzing'), isNotNull);
-    expect(web.document.querySelector('.analyzer-status')?.textContent?.trim(), 'Analyzer');
-    expect(taskStatus.entries, hasLength(1));
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Analyzing'));
+
+    analyzerStatus.update(isAnalyzing: false);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Analyzing'));
 
     analyzerStatus.markUnavailable();
     await pumpEventQueue();
-    expect(web.document.querySelector('.analyzer-status.unavailable'), isNotNull);
-    expect(web.document.querySelector('.analyzer-status .task-status-icon.failed'), isNotNull);
+    expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Analyzing'));
+    expect(web.document.querySelector('.task-status-trigger .task-status-icon.failed'), isNotNull);
+
+    analyzerStatus.dispose();
   });
 
   testClient('opens by focus or click and closes with Escape', (tester) async {
-    taskStatus.startTask(TaskKind.analyzingWorkspace);
+    taskStatus.startTask(TaskKind.startingAnalyzer);
     tester.pumpComponent(
-      Footer(taskStatus: taskStatus, analyzerStatus: analyzerStatus),
+      Footer(taskStatus: taskStatus),
     );
 
     final trigger = web.document.querySelector('.task-status-trigger') as web.HTMLButtonElement;
