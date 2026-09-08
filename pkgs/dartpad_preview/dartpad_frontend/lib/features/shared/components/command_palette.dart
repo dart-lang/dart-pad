@@ -292,13 +292,14 @@ class _CommandPaletteState extends State<CommandPalette> {
       position: .fixed(top: 0.px, left: 0.px, right: 0.px, bottom: 0.px),
       zIndex: const ZIndex(10000),
       justifyContent: .center,
+      alignItems: .start,
       backgroundColor: const Color('rgba(0, 0, 0, 0.45)'),
     ),
     css('.command-palette').styles(
       display: .flex,
       width: 580.px,
       maxWidth: 92.percent,
-      maxHeight: 480.px,
+      maxHeight: 500.px,
       padding: .zero,
       margin: .only(top: 40.px),
       border: .all(color: colorBorder, width: 1.px),
@@ -322,6 +323,7 @@ class _CommandPaletteState extends State<CommandPalette> {
       ),
       alignItems: .center,
       gap: Gap.all(8.px),
+      flex: const .shrink(0),
       backgroundColor: colorSurface,
     ),
     css('.command-palette-prompt').styles(
@@ -346,7 +348,7 @@ class _CommandPaletteState extends State<CommandPalette> {
     ),
     css('.command-palette-list').styles(
       display: .flex,
-      maxHeight: 340.px,
+      minHeight: 0.px,
       padding: .symmetric(vertical: 4.px),
       overflow: const .only(y: .auto),
       flexDirection: .column,
