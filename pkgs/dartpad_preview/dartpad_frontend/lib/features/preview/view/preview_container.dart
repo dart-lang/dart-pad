@@ -164,7 +164,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
                     previewViewModel: viewModel,
                     activeFile: component.activeFile,
                   ),
-                RuntimeButton.hotReload(previewViewModel: viewModel),
+                if (viewModel.isFlutter) RuntimeButton.hotReload(previewViewModel: viewModel),
                 RuntimeButton.stop(previewViewModel: viewModel),
               ],
             ),
@@ -215,7 +215,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
               persistentFailureMessage: failureMessage,
               onOpenConsole: component.onOpenConsole,
             ),
-          if (isRunning && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
+          if ((isRunning || state is PreviewDartReady) && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
         ],
       ),
     ]);

@@ -74,19 +74,19 @@ class PreviewViewModel extends ChangeNotifier {
   bool get canStart =>
       !_busy &&
       !workspaceRepository.taskStatus.hasBlockingPreviewTask &&
-      (_state is PreviewInitial || _state is PreviewCompileError);
+      (_state is PreviewInitial || _state is PreviewDartReady || _state is PreviewCompileError);
 
   /// Whether the running preview can be restarted.
   bool get canRestart => _canReloadOrRestart;
 
-  /// Whether the running preview can accept a hot reload.
-  bool get canHotReload => _canReloadOrRestart;
+  /// Whether the running Flutter preview can accept a hot reload.
+  bool get canHotReload => _isFlutter && _canReloadOrRestart;
 
   bool get _canReloadOrRestart =>
       !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
 
   /// Whether the preview run process can be stopped.
-  bool get canStop => _state is! PreviewStopping && (_busy || _sandbox != null);
+  bool get canStop => _state is! PreviewStopping && _state is! PreviewDartReady && (_busy || _sandbox != null);
 
   /// Whether the application preview is currently running or executing restarts/reloads.
   bool get isRunning => _state is PreviewRunning || state is PreviewRestarting || state is PreviewHotReloading;
@@ -232,7 +232,7 @@ class PreviewViewModel extends ChangeNotifier {
       }
       eventBus.dispatch(const LogEvent('App is running.'));
 
-      _state = PreviewRunning(entrypoint);
+      _state = _isFlutter ? PreviewRunning(entrypoint) : PreviewDartReady(entrypoint);
     } on CompilationFailedException catch (e, st) {
       if (_isCurrentOperation(operationId)) {
         eventBus.dispatch(
@@ -258,7 +258,7 @@ class PreviewViewModel extends ChangeNotifier {
     } finally {
       if (!_isCurrentOperation(operationId)) {
         statusTask.cancel();
-      } else if (_state is PreviewRunning) {
+      } else if (_state is PreviewRunning || _state is PreviewDartReady) {
         statusTask.succeed();
       } else if (_state is PreviewCompileError) {
         statusTask.fail();
@@ -274,11 +274,11 @@ class PreviewViewModel extends ChangeNotifier {
   /// Hot reloads the currently active execution session compiler changes into
   /// the sandbox.
   Future<void> hotReloadCode() async {
-    final entry = state.entrypoint;
-    if (entry == null) {
+    if (!canHotReload) {
       return;
     }
-    if (_busy || workspaceRepository.taskStatus.hasBlockingPreviewTask) {
+    final entry = state.entrypoint;
+    if (entry == null) {
       return;
     }
     final operationId = _beginOperation();
