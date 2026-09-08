@@ -16,8 +16,8 @@ persistent project storage.
   other project files.
 - Dart analysis, diagnostics, completion, formatting, code actions, and
   navigation through the language server running in the browser worker.
-- Dependency resolution with `pub get`, plus `Pub get` and `Pub clean` actions
-  when `pubspec.yaml` or `pubspec.lock` is active.
+- Dependency resolution with `pub get`, plus a `Pub get` action when
+  `pubspec.yaml` or `pubspec.lock` is active.
 - Compilation and execution in an isolated preview sandbox, with start, stop,
   restart, and Flutter-only hot reload controls.
 - Built-in Dart, Flutter, and Flame examples, as well as projects loaded from
@@ -180,8 +180,8 @@ source:
 Before invoking `pub get`, pending in-memory changes are flushed to the worker.
 Pub output is streamed to the Console panel. Once this step finishes, or fails
 and is reported, startup continues with automatic execution and language-server
-initialization. Opening `pubspec.yaml` or `pubspec.lock` exposes manual `Pub
-get` and `Pub clean` actions for that file's directory.
+initialization. Opening `pubspec.yaml` or `pubspec.lock` exposes a manual
+`Pub get` action for that file's directory.
 
 When the frontend maps the executed Dart file to its library URI, it searches
 upward for `.dart_tool/package_config.json`, then for `pubspec.yaml`. Files
