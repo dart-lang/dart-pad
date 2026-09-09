@@ -25,7 +25,7 @@ enum WorkspaceChangeEventType {
 }
 
 /// An event describing a change in the workspace filesystem.
-class WorkspaceChangeEvent {
+final class WorkspaceChangeEvent {
   WorkspaceChangeEvent({
     required this.type,
     required this.path,
