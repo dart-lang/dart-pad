@@ -4,12 +4,14 @@
 
 import 'dart:async';
 
+import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart' show kDebugMode;
 
 import '../bottom_panel/view_models/console_view_model.dart';
 import '../bottom_panel/view_models/diagnostics_view_model.dart';
+import '../editor/codemirror/code_mirror_tab.dart';
 import '../editor/codemirror/code_mirror_tab_adapter.dart';
 import '../editor/image/image_tab.dart';
 import '../editor/view_models/tabs_view_model.dart';
@@ -98,18 +100,51 @@ final class WorkspaceSession {
     if (preview.canHotReload) {
       unawaited(preview.hotReloadCode());
     } else if (preview.canStart) {
-      final activeFile = tabs.activeFile;
-      unawaited(
-        preview.runCode(
-          activeFile.isNotEmpty ? activeFile : (preview.state.entrypoint ?? 'lib/main.dart'),
-        ),
-      );
+      unawaited(startPreview());
     }
+  }
+
+  /// Starts the preview using the resolved runnable entrypoint.
+  Future<void> startPreview() async {
+    final entrypoint = await resolveRunnableEntrypoint();
+    await preview.runCode(entrypoint);
+  }
+
+  /// Resolves the entrypoint to run when starting the preview.
+  ///
+  /// If the current active file is a Dart file containing a `main()` method,
+  /// it is used as the entrypoint. Otherwise, falls back to `lib/main.dart`
+  /// (prefixed by [_projectRoot] if present).
+  Future<String> resolveRunnableEntrypoint([String? targetFile]) async {
+    final active = targetFile ?? tabs.activeFile;
+    final fallbackPath = _projectRoot != null && _projectRoot!.isNotEmpty
+        ? '$_projectRoot/lib/main.dart'
+        : 'lib/main.dart';
+
+    if (active.isNotEmpty && active.endsWith('.dart')) {
+      final tab = tabs.activeTab;
+      String? content;
+      if (tab is CodeMirrorTab && tab.path == active) {
+        content = tab.content;
+      } else {
+        final file = repository.root.getFile(active);
+        if (await file.exists()) {
+          content = await file.readContent();
+        }
+      }
+
+      if (content != null && hasMainMethod(content)) {
+        return active;
+      }
+    }
+
+    return fallbackPath;
   }
 
   LanguageServer? _languageServer;
   LanguageServerClient? _languageServerClient;
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
+  String? _projectRoot;
   bool _disposed = false;
 
   /// Attaches language-server resources to this session's consumers.
@@ -127,6 +162,7 @@ final class WorkspaceSession {
 
     _languageServer = server;
     _languageServerClient = client;
+    _projectRoot = projectRoot;
     _analyzerSubscription = client.analyzerActivityStream.listen(
       _onAnalyzerActivity,
       onError: (_) => analyzerStatus.markUnavailable(),

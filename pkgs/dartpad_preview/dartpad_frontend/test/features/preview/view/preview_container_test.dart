@@ -122,7 +122,7 @@ void main() {
         PreviewContainer(
           preview: customPreview ?? preview,
           taskStatus: taskStatus,
-          activeFile: 'lib/main.dart',
+          onStart: () {},
           onOpenConsole: () {},
         ),
       ],
@@ -189,7 +189,7 @@ void main() {
           right: PreviewContainer(
             preview: preview,
             taskStatus: taskStatus,
-            activeFile: 'lib/main.dart',
+            onStart: () {},
             onOpenConsole: () {},
           ),
         ),
@@ -209,7 +209,7 @@ void main() {
           right: PreviewContainer(
             preview: preview,
             taskStatus: taskStatus,
-            activeFile: 'lib/main.dart',
+            onStart: () {},
             onOpenConsole: () {},
           ),
         ),
@@ -233,7 +233,7 @@ void main() {
           right: PreviewContainer(
             preview: preview,
             taskStatus: taskStatus,
-            activeFile: 'lib/main.dart',
+            onStart: () {},
             onOpenConsole: () {},
           ),
         ),
@@ -567,7 +567,7 @@ void main() {
       builder: (_) => PreviewContainer(
         preview: preview,
         taskStatus: repository.taskStatus,
-        activeFile: 'lib/main.dart',
+        onStart: () {},
         onOpenConsole: () {},
       ),
     );
