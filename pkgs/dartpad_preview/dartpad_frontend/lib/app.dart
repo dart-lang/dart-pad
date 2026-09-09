@@ -714,7 +714,6 @@ class AppState extends State<App> {
         builder: (context) => BottomPanel(
           diagnostics: session.diagnostics.diagnostics,
           hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
-          activeFile: session.tabs.activeFile,
           logs: session.console.logs,
           onClearConsole: session.console.clear,
           events: session.events,
@@ -737,7 +736,6 @@ class AppState extends State<App> {
           path: workspacePath,
           projectRoot: _projectDir,
         ),
-        onPubClean: (workspacePath) => session.repository.pubClean(path: workspacePath),
       ),
       ErrorToast(
         key: const ValueKey('editor-error-toast'),

@@ -13,18 +13,17 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
 import '../../shared/events/log_event.dart';
 
-/// Displays path-aware Pub actions for an active Pub metadata file.
+/// Displays a path-aware Pub get action for an active Pub metadata file.
 ///
-/// Manages its own busy state internally, disabling the action buttons while
+/// Manages its own busy state internally, disabling the action button while
 /// a Pub operation is in progress.
 final class PubspecEditorActions extends StatefulComponent {
-  /// Creates the floating Pub actions for [activeFile].
+  /// Creates the floating Pub get action for [activeFile].
   const PubspecEditorActions({
     required this.activeFile,
     required this.saveAllFiles,
     required this.events,
     required this.onPubGet,
-    required this.onPubClean,
     super.key,
   });
 
@@ -40,9 +39,6 @@ final class PubspecEditorActions extends StatefulComponent {
   /// Runs Pub Get in the supplied workspace-relative directory.
   final Future<void> Function(String path) onPubGet;
 
-  /// Runs Pub Clean in the supplied workspace-relative directory.
-  final Future<void> Function(String path) onPubClean;
-
   @override
   State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
 
@@ -54,7 +50,6 @@ final class PubspecEditorActions extends StatefulComponent {
         position: .absolute(right: 32.px, top: 16.px),
         zIndex: const ZIndex(20),
         alignItems: .center,
-        gap: .all(8.px),
       ),
       css('.dp-button').styles(
         shadow: BoxShadow(
@@ -85,11 +80,6 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
       }
       await component.onPubGet(path);
     });
-  }
-
-  /// Runs Pub Clean in [path] without saving files first.
-  Future<void> _pubClean(String path) async {
-    await _run('Pub clean failed.', () => component.onPubClean(path));
   }
 
   Future<void> _run(
@@ -133,18 +123,17 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     // with an element when this component is nested in the editor overlay.
     return div(classes: 'pubspec-editor-actions-host', [
       if (isPubspecFile)
-        div(classes: 'pubspec-editor-actions', [
-          Button(
-            label: 'Pub get',
-            disabled: _busy,
-            onClick: () => unawaited(_pubGet(directory)),
-          ),
-          Button(
-            label: 'Pub clean',
-            disabled: _busy,
-            onClick: () => unawaited(_pubClean(directory)),
-          ),
-        ]),
+        div(
+          classes: 'pubspec-editor-actions',
+          attributes: {'aria-busy': _busy ? 'true' : 'false'},
+          [
+            Button(
+              label: 'Pub get',
+              disabled: _busy,
+              onClick: () => unawaited(_pubGet(directory)),
+            ),
+          ],
+        ),
     ]);
   }
 }

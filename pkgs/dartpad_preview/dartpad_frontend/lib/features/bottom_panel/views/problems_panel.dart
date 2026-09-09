@@ -11,11 +11,10 @@ import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
 
-class ProblemsPanel extends StatelessComponent {
+final class ProblemsPanel extends StatelessComponent {
   const ProblemsPanel({
     required this.diagnostics,
     required this.hasMoreDiagnostics,
-    required this.activeFile,
     required this.onOpenDiagnostic,
     super.key,
   });
@@ -24,7 +23,6 @@ class ProblemsPanel extends StatelessComponent {
 
   /// Whether diagnostics are omitted from the problems panel.
   final bool hasMoreDiagnostics;
-  final String activeFile;
   final FutureOr<void> Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
 
   @override
@@ -42,7 +40,6 @@ class ProblemsPanel extends StatelessComponent {
             _ProblemRow(
               fileName: entry.fileName,
               diagnostic: entry.diagnostic,
-              activeFile: activeFile,
               onOpenDiagnostic: onOpenDiagnostic,
             ),
       ]),
@@ -123,9 +120,6 @@ class ProblemsPanel extends StatelessComponent {
           left: .solid(color: colorInfo, width: 2.px),
         ),
       ),
-      css('& .problem-row.active-file').styles(
-        backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
-      ),
       css('& .problem-severity-badge').styles(
         display: .inlineFlex,
         width: 18.px,
@@ -168,24 +162,19 @@ class ProblemsPanel extends StatelessComponent {
         ]),
         fontSize: 11.px,
       ),
-      css(
-        '& .problem-row:hover .problem-location, & .problem-row:focus-within .problem-location',
-      ).styles(display: .none),
     ]),
   ];
 }
 
-class _ProblemRow extends StatelessComponent {
+final class _ProblemRow extends StatelessComponent {
   const _ProblemRow({
     required this.fileName,
     required this.diagnostic,
-    required this.activeFile,
     required this.onOpenDiagnostic,
   });
 
   final String fileName;
   final Diagnostic diagnostic;
-  final String activeFile;
   final FutureOr<void> Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
 
   @override
@@ -195,11 +184,10 @@ class _ProblemRow extends StatelessComponent {
     final line = diagnostic.line + 1;
     final character = diagnostic.character + 1;
     final location = '$fileName:$line:$character';
-    final activeClass = fileName == activeFile ? ' active-file' : '';
 
     return div(
       key: ValueKey('problem-$location-${diagnostic.message}'),
-      classes: 'problem-row $severityClass$activeClass',
+      classes: 'problem-row $severityClass',
       attributes: {
         'title': '$severityLabel: ${diagnostic.message} ($location)',
         'tabindex': '0',

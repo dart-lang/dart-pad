@@ -25,26 +25,20 @@ void main() {
     await events.dispose();
   });
 
-  testClient('runs root pubspec actions in the workspace root', (tester) async {
+  testClient('runs root pubspec action in the workspace root', (tester) async {
     String? pubGetPath;
-    String? pubCleanPath;
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
         onPubGet: (path) async => pubGetPath = path,
-        onPubClean: (path) async => pubCleanPath = path,
       ),
     );
 
     (web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
     expect(pubGetPath, '');
-
-    (web.document.querySelector('[aria-label="Pub clean"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
-    expect(pubCleanPath, '');
   });
 
   testClient('uses the directory of a nested pubspec lock', (tester) async {
@@ -55,7 +49,6 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (path) async => pubGetPath = path,
-        onPubClean: (_) async {},
       ),
     );
 
@@ -72,7 +65,6 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (_) async {},
-        onPubClean: (_) async {},
       ),
     );
 
@@ -86,7 +78,6 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (_) async {},
-        onPubClean: (_) async {},
       ),
     );
     await pumpEventQueue();
@@ -98,13 +89,11 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (_) async {},
-        onPubClean: (_) async {},
       ),
     );
     await pumpEventQueue();
 
     expect(web.document.querySelector('[aria-label="Pub get"]'), isNotNull);
-    expect(web.document.querySelector('[aria-label="Pub clean"]'), isNotNull);
   });
 
   testClient('saves all files before running Pub Get', (tester) async {
@@ -115,7 +104,6 @@ void main() {
         saveAllFiles: () async => operations.add('save-all'),
         events: events,
         onPubGet: (path) async => operations.add('pub-get:$path'),
-        onPubClean: (_) async {},
       ),
     );
 
@@ -123,24 +111,6 @@ void main() {
     await pumpEventQueue();
 
     expect(operations, ['save-all', 'pub-get:']);
-  });
-
-  testClient('runs Pub Clean without saving files', (tester) async {
-    final operations = <String>[];
-    tester.pumpComponent(
-      PubspecEditorActions(
-        activeFile: 'pubspec.yaml',
-        saveAllFiles: () async => operations.add('save-all'),
-        events: events,
-        onPubGet: (_) async {},
-        onPubClean: (path) async => operations.add('pub-clean:$path'),
-      ),
-    );
-
-    (web.document.querySelector('[aria-label="Pub clean"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
-
-    expect(operations, ['pub-clean:']);
   });
 
   testClient('logs failures and resets busy state', (tester) async {
@@ -154,7 +124,6 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (_) async => throw StateError('pub failed'),
-        onPubClean: (_) async {},
       ),
     );
 
@@ -184,7 +153,6 @@ void main() {
         },
         events: events,
         onPubGet: (path) async => operations.add('pub-get:$path'),
-        onPubClean: (_) async {},
       ),
     );
 
@@ -193,9 +161,12 @@ void main() {
 
     expect(operations, ['save-all']);
     expect(logs, isEmpty);
+
+    final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
+    expect(pubGet.disabled, isFalse);
   });
 
-  testClient('disables both actions while busy', (tester) async {
+  testClient('disables action while busy', (tester) async {
     final completer = Completer<void>();
     tester.pumpComponent(
       PubspecEditorActions(
@@ -203,7 +174,6 @@ void main() {
         saveAllFiles: () async {},
         events: events,
         onPubGet: (_) => completer.future,
-        onPubClean: (_) async {},
       ),
     );
 
@@ -211,15 +181,12 @@ void main() {
     await pumpEventQueue();
 
     final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
-    final pubClean = web.document.querySelector('[aria-label="Pub clean"]')! as web.HTMLButtonElement;
     expect(pubGet.disabled, isTrue);
-    expect(pubClean.disabled, isTrue);
 
     completer.complete();
     await pumpEventQueue();
 
     expect(pubGet.disabled, isFalse);
-    expect(pubClean.disabled, isFalse);
   });
 
   testClient('ignores another Pub action while one is running', (tester) async {
@@ -234,13 +201,13 @@ void main() {
           operations.add('pub-get:$path');
           await completer.future;
         },
-        onPubClean: (path) async => operations.add('pub-clean:$path'),
       ),
     );
 
-    (web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement).click();
+    final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
+    pubGet.click();
     await pumpEventQueue();
-    (web.document.querySelector('[aria-label="Pub clean"]')! as web.HTMLButtonElement).click();
+    pubGet.click();
     await pumpEventQueue();
 
     expect(operations, ['save-all', 'pub-get:']);

@@ -111,7 +111,7 @@ final class CommandPaletteAction {
 
   /// The platform-resolved display key (e.g. `⌘ + Enter` on macOS, `Ctrl + Enter` on Windows),
   /// or an empty string if this command has no shortcut.
-  String get resolvedDisplayKey => shortcut != null ? resolveDisplayKey(shortcut!.displayKey) : '';
+  String get resolvedDisplayKey => shortcut?.resolvedDisplayKey ?? '';
 }
 
 const pubGetAction = CommandPaletteAction(

@@ -17,12 +17,12 @@ sealed class ContextMenuEntry {
 }
 
 /// A non-interactive separator line.
-class ContextMenuDivider extends ContextMenuEntry {
+final class ContextMenuDivider extends ContextMenuEntry {
   const ContextMenuDivider();
 }
 
 /// An interactive item in a [ContextMenu].
-class ContextMenuItem extends ContextMenuEntry {
+final class ContextMenuItem extends ContextMenuEntry {
   const ContextMenuItem({
     required this.label,
     required this.onPressed,
@@ -34,14 +34,14 @@ class ContextMenuItem extends ContextMenuEntry {
   /// Creates a context menu item from a [ShortcutDefinition].
   ///
   /// The [shortcut] definition provides the default [label] and [shortcut] string
-  /// (resolved via [resolveDisplayKey]).
+  /// (resolved via [ShortcutDefinition.resolvedDisplayKey]).
   factory ContextMenuItem.fromShortcut({
     required ShortcutDefinition shortcut,
     required VoidCallback onPressed,
   }) => ContextMenuItem(
     label: shortcut.label,
     onPressed: onPressed,
-    shortcut: resolveDisplayKey(shortcut.displayKey),
+    shortcut: shortcut.resolvedDisplayKey,
   );
 
   /// The text label displayed for this menu item.

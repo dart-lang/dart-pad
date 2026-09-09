@@ -95,4 +95,79 @@ void main() {
     ];
     expect(rowLabels, contains('Open command palette'));
   });
+
+  testClient('renders multiple key badges with "or" separator for alternative shortcuts', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    // Expand to see all shortcuts including findNext and foldCode.
+    final toggleBtn = web.document.querySelector('.shortcuts-dialog-toggle-btn') as web.HTMLButtonElement?;
+    expect(toggleBtn, isNotNull);
+    toggleBtn?.click();
+    await pumpEventQueue();
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    web.HTMLElement? findRow(String command) {
+      for (var i = 0; i < rows.length; i++) {
+        final row = rows.item(i) as web.HTMLElement;
+        if (row.querySelector('.shortcuts-dialog-command')?.textContent == command) {
+          return row;
+        }
+      }
+      return null;
+    }
+
+    // Command with multiple key combos (Find next)
+    final findNextRow = findRow('Find next');
+    expect(findNextRow, isNotNull);
+    final findNextKeys = findNextRow!.querySelectorAll('.shortcuts-dialog-key');
+    expect(findNextKeys.length, 2);
+    expect(findNextKeys.item(0)?.textContent, 'F3');
+    expect(findNextKeys.item(1)?.textContent, resolveDisplayKey('Mod + G'));
+    final findNextSeparator = findNextRow.querySelectorAll('.shortcuts-dialog-separator');
+    expect(findNextSeparator.length, 1);
+    expect(findNextSeparator.item(0)?.textContent, 'or');
+    final findNextAlternatives = findNextRow.querySelectorAll('.shortcuts-dialog-alternative');
+    expect(findNextAlternatives.length, 1);
+
+    // Command with multiple key combos (Fold code)
+    final foldCodeRow = findRow('Fold code');
+    expect(foldCodeRow, isNotNull);
+    final foldCodeKeys = foldCodeRow!.querySelectorAll('.shortcuts-dialog-key');
+    expect(foldCodeKeys.length, 2);
+    expect(foldCodeKeys.item(0)?.textContent, 'Ctrl + Shift + [');
+    expect(foldCodeKeys.item(1)?.textContent, 'Alt + -');
+    final foldCodeSeparator = foldCodeRow.querySelectorAll('.shortcuts-dialog-separator');
+    expect(foldCodeSeparator.length, 1);
+    expect(foldCodeSeparator.item(0)?.textContent, 'or');
+    final foldCodeAlternatives = foldCodeRow.querySelectorAll('.shortcuts-dialog-alternative');
+    expect(foldCodeAlternatives.length, 1);
+
+    // Single combo command (Open command palette)
+    final commandPaletteRow = findRow('Open command palette');
+    expect(commandPaletteRow, isNotNull);
+    final commandPaletteKeys = commandPaletteRow!.querySelectorAll('.shortcuts-dialog-key');
+    expect(commandPaletteKeys.length, 1);
+    expect(commandPaletteKeys.item(0)?.textContent, resolveDisplayKey('Mod + Shift + P'));
+    final commandPaletteSeparator = commandPaletteRow.querySelectorAll('.shortcuts-dialog-separator');
+    expect(commandPaletteSeparator.length, 0);
+  });
+
+  group('ShortcutDefinition', () {
+    test('resolves display keys and joins them in displayKey', () {
+      const single = ShortcutDefinition(label: 'Single', displayKey: 'Mod + S');
+      expect(single.displayKeys, ['Mod + S']);
+      expect(single.displayKey, 'Mod + S');
+      expect(single.resolvedDisplayKeys, [resolveDisplayKey('Mod + S')]);
+      expect(single.resolvedDisplayKey, resolveDisplayKey('Mod + S'));
+
+      const multiple = ShortcutDefinition.alternatives(
+        label: 'Multiple',
+        displayKeys: ['F3', 'Mod + G'],
+      );
+      expect(multiple.displayKeys, ['F3', 'Mod + G']);
+      expect(multiple.displayKey, 'F3 or Mod + G');
+      expect(multiple.resolvedDisplayKeys, ['F3', resolveDisplayKey('Mod + G')]);
+      expect(multiple.resolvedDisplayKey, 'F3 or ${resolveDisplayKey('Mod + G')}');
+    });
+  });
 }

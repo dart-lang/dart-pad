@@ -4,7 +4,6 @@
 
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:jaspr_content/components/file_icon.dart';
 
 import '../../../app_styles.dart';
 import '../../shared/icons.dart';
@@ -48,30 +47,10 @@ final class EditorBreadcrumbs extends StatelessComponent {
           else
             span(
               classes: 'editor-breadcrumb-item editor-breadcrumb-file',
-              [
-                _fileIcon(segments[i]),
-                span(
-                  classes: 'editor-breadcrumb-name',
-                  [.text(segments[i])],
-                ),
-              ],
+              [.text(segments[i])],
             ),
         ],
       ],
-    );
-  }
-
-  Component _fileIcon(String fileName) {
-    final lowerName = fileName.toLowerCase();
-    final colorClass = switch (lowerName) {
-      final path when path.endsWith('.dart') => 'file-icon-dart',
-      final path when path.endsWith('.yaml') || path.endsWith('.yml') => 'file-icon-yaml',
-      _ => 'file-icon',
-    };
-    return FileIcon.forFile(
-      fileName,
-      classes: 'editor-breadcrumb-icon $colorClass',
-      attributes: const {'aria-hidden': 'true', 'width': '14', 'height': '14'},
     );
   }
 
@@ -92,7 +71,7 @@ final class EditorBreadcrumbs extends StatelessComponent {
         gap: .all(4.px),
         flex: const .shrink(0),
         color: colorOnSurface,
-        fontFamily: const .list([FontFamily('Consolas'), FontFamilies.monospace]),
+        fontFamily: monospaceFontFamily,
         fontSize: 11.px,
         backgroundColor: colorSurface,
       ),
@@ -108,16 +87,10 @@ final class EditorBreadcrumbs extends StatelessComponent {
       css('.editor-breadcrumb-file').styles(
         color: colorOnContainer,
       ),
-      css('.editor-breadcrumb-name').styles(
-        whiteSpace: .noWrap,
-      ),
       css('.editor-breadcrumb-separator').styles(
         display: .inlineFlex,
         alignItems: .center,
         color: colorOnSurface.highlight(colorSurface, 0.4),
-      ),
-      css('.editor-breadcrumb-icon').styles(
-        flex: const .shrink(0),
       ),
     ]),
   ];
