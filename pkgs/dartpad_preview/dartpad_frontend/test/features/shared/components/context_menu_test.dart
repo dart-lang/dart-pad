@@ -275,13 +275,16 @@ void main() {
 
       await pumpEventQueue();
 
-      final buttons = web.document.querySelectorAll('.context-menu-item');
+      final menu = web.document.querySelector('.context-menu')!;
+      final buttons = menu.querySelectorAll('.context-menu-item');
       final item1 = buttons.item(0) as web.HTMLButtonElement;
       final item3 = buttons.item(2) as web.HTMLButtonElement;
       final item4 = buttons.item(3) as web.HTMLButtonElement;
 
-      // Initially, Item 1 is focused
-      expect(web.document.activeElement, equals(item1));
+      // Establish a deterministic starting point for keyboard navigation.
+      // Automatic focus-on-open is covered by the preceding test.
+      item1.focus();
+      expect(web.document.activeElement, same(item1));
 
       // ArrowDown skips Item 2 (disabled) and focuses Item 3
       web.document.dispatchEvent(
