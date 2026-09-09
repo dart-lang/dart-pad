@@ -9,7 +9,6 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../shared/app_event_bus.dart';
-import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
 import '../models/console_entry.dart';
@@ -35,7 +34,6 @@ final class BottomPanel extends StatefulComponent {
     required this.logs,
     required this.onClearConsole,
     required this.events,
-    this.contextMenu,
     super.key,
   });
 
@@ -56,9 +54,6 @@ final class BottomPanel extends StatefulComponent {
 
   /// Workspace events used to react to requests from the preview panel.
   final AppEventBus events;
-
-  /// The context menu controller used to show right-click menus.
-  final ContextMenuController? contextMenu;
 
   @override
   State<BottomPanel> createState() => _BottomPanelState();
@@ -143,8 +138,6 @@ class _BottomPanelState extends State<BottomPanel> {
         ),
         BottomPanelTab.console => ConsolePanel(
           logs: component.logs,
-          onClear: component.onClearConsole,
-          contextMenu: component.contextMenu,
         ),
       },
     ]);
