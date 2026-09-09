@@ -80,7 +80,7 @@ class FileTreeFolderItem extends StatefulComponent {
   State<FileTreeFolderItem> createState() => _FileTreeFolderItemState();
 }
 
-class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
+final class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   final _folderKey = GlobalNodeKey<web.HTMLElement>();
   bool _isCollapsed = false;
   bool _isRenaming = false;
@@ -227,6 +227,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         button(
           classes: 'file-tree-disclosure',
           attributes: {
+            'tabindex': '-1',
             'title': _isCollapsed ? 'Expand' : 'Collapse',
             'aria-label': _isCollapsed ? 'Expand $path' : 'Collapse $path',
           },
@@ -407,6 +408,12 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         onPressed: () {
           unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
         },
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: component.state.showHiddenFiles ? 'Hide hidden files' : 'Show hidden files',
+        disabled: component.state.busy,
+        onPressed: component.actions.toggleShowHiddenFiles,
       ),
     ];
   }

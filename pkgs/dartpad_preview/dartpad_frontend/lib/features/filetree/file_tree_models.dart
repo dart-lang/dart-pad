@@ -115,6 +115,7 @@ final class FileTreeState {
     required this.protectedEntries,
     required this.dirtyEntries,
     required this.focusedPath,
+    required this.showHiddenFiles,
   });
 
   /// The root node whose children are displayed in the tree.
@@ -137,6 +138,9 @@ final class FileTreeState {
 
   /// The path of the folder currently focused in the file tree.
   final String focusedPath;
+
+  /// Whether hidden (ignored) files and folders should be displayed in the tree.
+  final bool showHiddenFiles;
 
   /// Checks if creating or renaming an entry with [newName] at [currentPath] conflicts
   /// with any existing resource in the root folder.
@@ -169,6 +173,7 @@ final class FileTreeActions {
     required this.clearOperationError,
     required this.navigateUp,
     required this.focusPath,
+    required this.toggleShowHiddenFiles,
   });
 
   /// Creates a file in the selected folder.
@@ -203,4 +208,7 @@ final class FileTreeActions {
 
   /// Focuses the file tree on the folder at the supplied path.
   final void Function(String path) focusPath;
+
+  /// Toggles whether hidden files and folders are displayed in the file tree.
+  final void Function() toggleShowHiddenFiles;
 }

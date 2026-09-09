@@ -202,7 +202,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 });
               },
             ),
-          ...state.root.children.map((child) {
+          ...state.root.children.where((child) => state.showHiddenFiles || !child.isIgnored).map((child) {
             if (child is FileTreeFolderNode) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),
@@ -324,6 +324,12 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
             _selectedPath = null;
           });
         },
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: state.showHiddenFiles ? 'Hide hidden files' : 'Show hidden files',
+        disabled: state.busy,
+        onPressed: actions.toggleShowHiddenFiles,
       ),
     ];
   }

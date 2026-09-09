@@ -50,12 +50,22 @@ final class FileTreeViewModel extends ChangeNotifier {
   bool _disposed = false;
   bool _busy = false;
   String? _operationError;
+  bool _showHiddenFiles = false;
 
   FileTreeFolderNode get _focusedRoot {
     if (_focusedPath.isEmpty) {
       return _fullRoot;
     }
     return _fullRoot.findFolder(_focusedPath) ?? _fullRoot;
+  }
+
+  /// Toggles whether hidden files and folders are displayed in the file tree.
+  void toggleShowHiddenFiles() {
+    if (_disposed) {
+      return;
+    }
+    _showHiddenFiles = !_showHiddenFiles;
+    _notify();
   }
 
   /// The current immutable state consumed by the file-tree view.
@@ -67,6 +77,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     protectedEntries: _protectedEntries,
     dirtyEntries: Set.unmodifiable(_pathsWithAncestors(tabs.dirtyFiles)),
     focusedPath: _focusedPath,
+    showHiddenFiles: _showHiddenFiles,
   );
 
   /// The actions that the file-tree view can invoke.
@@ -82,6 +93,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     clearOperationError: clearOperationError,
     navigateUp: navigateUp,
     focusPath: focusPath,
+    toggleShowHiddenFiles: toggleShowHiddenFiles,
   );
 
   /// Whether the file at [path] is required by DartPad Preview.

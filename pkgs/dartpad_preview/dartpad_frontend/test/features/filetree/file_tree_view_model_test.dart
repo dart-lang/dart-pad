@@ -441,4 +441,19 @@ void main() {
     expect(viewModel.state.focusedPath, '');
     expect(viewModel.state.root.resource.path, '');
   });
+
+  test('toggles showHiddenFiles and notifies listeners', () {
+    var notifications = 0;
+    viewModel.addListener(() => notifications++);
+
+    expect(viewModel.state.showHiddenFiles, isFalse);
+
+    viewModel.actions.toggleShowHiddenFiles();
+    expect(viewModel.state.showHiddenFiles, isTrue);
+    expect(notifications, 1);
+
+    viewModel.actions.toggleShowHiddenFiles();
+    expect(viewModel.state.showHiddenFiles, isFalse);
+    expect(notifications, 2);
+  });
 }

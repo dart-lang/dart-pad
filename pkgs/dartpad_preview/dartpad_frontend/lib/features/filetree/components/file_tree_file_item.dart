@@ -58,7 +58,7 @@ class FileTreeFileItem extends StatefulComponent {
   State<FileTreeFileItem> createState() => _FileTreeFileItemState();
 }
 
-class _FileTreeFileItemState extends State<FileTreeFileItem> {
+final class _FileTreeFileItemState extends State<FileTreeFileItem> {
   final _rowKey = GlobalNodeKey<web.HTMLElement>();
   bool _isRenaming = false;
 
@@ -245,6 +245,12 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         onPressed: () {
           unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
         },
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: component.state.showHiddenFiles ? 'Hide hidden files' : 'Show hidden files',
+        disabled: component.state.busy,
+        onPressed: component.actions.toggleShowHiddenFiles,
       ),
     ];
   }
