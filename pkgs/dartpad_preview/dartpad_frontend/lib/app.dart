@@ -717,7 +717,6 @@ class AppState extends State<App> {
           logs: session.console.logs,
           onClearConsole: session.console.clear,
           events: session.events,
-          contextMenu: session.contextMenu,
           onOpenDiagnostic: (fileName, diagnostic) {
             unawaited(session.diagnostics.openDiagnostic(fileName, diagnostic));
           },

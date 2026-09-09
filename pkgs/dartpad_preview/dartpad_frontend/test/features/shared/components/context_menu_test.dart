@@ -8,14 +8,11 @@ library;
 import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
-import 'package:dartpad_frontend/features/bottom_panel/views/console_panel.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
-import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
@@ -463,54 +460,6 @@ void main() {
       expect(contextMenu.items.any((item) => item is ContextMenuItem && item.label == 'Close'), isTrue);
       expect(contextMenu.items.any((item) => item is ContextMenuItem && item.label == 'Close others'), isTrue);
       expect(contextMenu.items.any((item) => item is ContextMenuItem && item.label == 'Copy path'), isTrue);
-    });
-  });
-
-  group('ConsolePanel Context Menu', () {
-    testClient('keeps the native context menu when no controller is provided', (tester) async {
-      tester.pumpComponent(
-        const ConsolePanel(logs: []),
-      );
-
-      final panel = web.document.querySelector('.console-panel') as web.HTMLElement;
-      final event = web.MouseEvent(
-        'contextmenu',
-        web.MouseEventInit(bubbles: true, cancelable: true),
-      );
-      panel.dispatchEvent(event);
-
-      expect(event.defaultPrevented, isFalse);
-    });
-
-    testClient('triggers context menu on console right click', (tester) async {
-      final contextMenu = ContextMenuController();
-      var cleared = false;
-
-      tester.pumpComponent(
-        ConsolePanel(
-          logs: [
-            const ConsoleEntry(message: 'Hello World', level: Level.INFO),
-          ],
-          onClear: () => cleared = true,
-          contextMenu: contextMenu,
-        ),
-      );
-
-      final panel = web.document.querySelector('.console-panel') as web.HTMLElement;
-      panel.dispatchEvent(
-        web.MouseEvent(
-          'contextmenu',
-          web.MouseEventInit(clientX: 200, clientY: 300, bubbles: true, cancelable: true),
-        ),
-      );
-
-      expect(contextMenu.isOpen, isTrue);
-      expect(contextMenu.items.length, 2);
-
-      final clearItem = contextMenu.items.first as ContextMenuItem;
-      expect(clearItem.label, 'Clear console');
-      clearItem.onPressed();
-      expect(cleared, isTrue);
     });
   });
 
