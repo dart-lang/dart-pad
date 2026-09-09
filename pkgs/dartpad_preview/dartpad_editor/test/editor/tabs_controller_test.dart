@@ -151,6 +151,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
 
   /// Tabs created by this adapter, keyed by path.
   final Map<String, TestTab> createdTabs = {};
+  final List<TestTab> _allCreatedTabs = [];
 
   @override
   Future<EditorTab<String>?> createTab(String path) async {
@@ -168,6 +169,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
       onDiscard: () => onDiscard?.call(path),
     );
     createdTabs[path] = tab;
+    _allCreatedTabs.add(tab);
     return tab;
   }
 }
@@ -311,6 +313,43 @@ void main() {
       tabs.updateLog.clear();
       deletedTab.notifyUpdate();
       expect(tabs.updateLog, isEmpty);
+    });
+
+    test('a cancelled load cannot replace a newer load for the same file', () async {
+      final firstGate = Completer<void>();
+      adapter.creationGate = firstGate;
+      workspace.addFile('reopened.dart');
+
+      final firstOpen = tabs.openFile('reopened.dart');
+      await adapter.creationStarted.future;
+      workspace.removeFile('reopened.dart');
+      await emitWorkspaceEvent(
+        {'type': 'remove', 'path': 'reopened.dart'},
+      );
+
+      final secondGate = Completer<void>();
+      adapter.creationGate = secondGate;
+      workspace.addFile('reopened.dart');
+      final secondOpen = tabs.openFile('reopened.dart');
+      while (adapter.creationCount < 2) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      firstGate.complete();
+      await firstOpen;
+      expect(tabs.openTabs, isEmpty);
+
+      secondGate.complete();
+      await secondOpen;
+
+      expect(tabs.openTabs, hasLength(1));
+      expect(tabs.activeFile, 'reopened.dart');
+      expect(adapter._allCreatedTabs.first.lifecycleLog, contains('dispose'));
+      expect(adapter._allCreatedTabs.last.lifecycleLog, isNot(contains('dispose')));
+
+      tabs.updateLog.clear();
+      adapter._allCreatedTabs.last.notifyUpdate();
+      expect(tabs.updateLog, [null]);
     });
   });
 
