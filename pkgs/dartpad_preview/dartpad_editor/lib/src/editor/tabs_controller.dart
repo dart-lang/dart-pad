@@ -34,7 +34,7 @@ abstract mixin class TabsController<T> {
 
   final List<EditorTab<T>> _tabs = [];
   final Map<String, EditorTab<T>> _keepAliveTabs = {};
-  final Map<String, Future<void>> _loadingTabs = {};
+  final Map<String, _PendingTabLoad> _loadingTabs = {};
   final Map<String, StreamSubscription<void>> _tabUpdateSubscriptions = {};
   String _activeTabPath = '';
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
@@ -98,33 +98,42 @@ abstract mixin class TabsController<T> {
       return;
     }
 
-    Future<void>? loadFuture = _loadingTabs[fileName];
-    if (loadFuture == null) {
-      loadFuture = _loadTab(fileName);
-      _loadingTabs[fileName] = loadFuture;
+    var pendingLoad = _loadingTabs[fileName];
+    if (pendingLoad == null) {
+      pendingLoad = _PendingTabLoad();
+      _loadingTabs[fileName] = pendingLoad;
+      pendingLoad.future = _loadTab(fileName, pendingLoad);
     }
 
-    await loadFuture;
+    await pendingLoad.future;
     if (_tabs.any((tab) => tab.path == fileName)) {
       _setActivePath(fileName);
     }
   }
 
-  Future<void> _loadTab(String fileName) async {
+  Future<void> _loadTab(String fileName, _PendingTabLoad pendingLoad) async {
     try {
       final tab = await _createTab(fileName);
-      // Check if it got cancelled or deleted while loading
-      if (!_loadingTabs.containsKey(fileName)) {
+      // Check whether this specific load was cancelled or superseded.
+      if (!identical(_loadingTabs[fileName], pendingLoad)) {
         tab.dispose();
-        await _tabUpdateSubscriptions.remove(fileName)?.cancel();
         return;
       }
 
-      if (!_tabs.any((t) => t.path == fileName)) {
-        _tabs.add(tab);
+      if (_tabs.any((t) => t.path == fileName)) {
+        tab.dispose();
+        return;
       }
+
+      unawaited(_tabUpdateSubscriptions[fileName]?.cancel());
+      _tabUpdateSubscriptions[fileName] = tab.onUpdate.listen((_) {
+        didUpdate();
+      });
+      _tabs.add(tab);
     } finally {
-      unawaited(_loadingTabs.remove(fileName));
+      if (identical(_loadingTabs[fileName], pendingLoad)) {
+        _loadingTabs.remove(fileName);
+      }
     }
   }
 
@@ -132,10 +141,6 @@ abstract mixin class TabsController<T> {
     for (final adapter in adapters) {
       final tab = await adapter.createTab(fileName);
       if (tab != null) {
-        unawaited(_tabUpdateSubscriptions[fileName]?.cancel());
-        _tabUpdateSubscriptions[fileName] = tab.onUpdate.listen((_) {
-          didUpdate();
-        });
         return tab;
       }
     }
@@ -297,13 +302,13 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleFileMoved(String oldPath, String newPath) {
-    final normalizedOldPath = workspaceContext.normalize(oldPath);
-    final normalizedNewPath = workspaceContext.normalize(newPath);
+    final normalizedOldPath = normalizeWorkspacePath(oldPath);
+    final normalizedNewPath = normalizeWorkspacePath(newPath);
     _cancelLoadsAtOrBelow(normalizedOldPath);
 
-    final openTabs = _tabs.where((tab) => workspaceContext.isWithinFolder(tab.path, normalizedOldPath)).toList();
+    final openTabs = _tabs.where((tab) => isWithinWorkspaceFolder(tab.path, normalizedOldPath)).toList();
     final keptTabs = _keepAliveTabs.entries
-        .where((entry) => workspaceContext.isWithinFolder(entry.key, normalizedOldPath))
+        .where((entry) => isWithinWorkspaceFolder(entry.key, normalizedOldPath))
         .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
@@ -311,7 +316,7 @@ abstract mixin class TabsController<T> {
 
     for (final tab in openTabs) {
       final previousPath = tab.path;
-      final rebasedPath = workspaceContext.rebasePath(
+      final rebasedPath = rebaseWorkspacePath(
         previousPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -321,7 +326,7 @@ abstract mixin class TabsController<T> {
     }
     for (final entry in keptTabs) {
       final previousPath = entry.key;
-      final rebasedPath = workspaceContext.rebasePath(
+      final rebasedPath = rebaseWorkspacePath(
         previousPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -331,8 +336,8 @@ abstract mixin class TabsController<T> {
       _moveTabUpdateSubscription(previousPath, rebasedPath);
       _keepAliveTabs[rebasedPath] = entry.value;
     }
-    if (workspaceContext.isWithinFolder(_activeTabPath, normalizedOldPath)) {
-      _activeTabPath = workspaceContext.rebasePath(
+    if (isWithinWorkspaceFolder(_activeTabPath, normalizedOldPath)) {
+      _activeTabPath = rebaseWorkspacePath(
         _activeTabPath,
         normalizedOldPath,
         normalizedNewPath,
@@ -351,24 +356,24 @@ abstract mixin class TabsController<T> {
   }
 
   void _handleDeletedFile(String path) {
-    final normalizedPath = workspaceContext.normalize(path);
+    final normalizedPath = normalizeWorkspacePath(path);
     _cancelLoadsAtOrBelow(normalizedPath);
 
-    final openTabs = _tabs.where((tab) => workspaceContext.isWithinFolder(tab.path, normalizedPath)).toList();
+    final openTabs = _tabs.where((tab) => isWithinWorkspaceFolder(tab.path, normalizedPath)).toList();
     final keptTabs = _keepAliveTabs.entries
-        .where((entry) => workspaceContext.isWithinFolder(entry.key, normalizedPath))
+        .where((entry) => isWithinWorkspaceFolder(entry.key, normalizedPath))
         .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
     }
 
     final activeIndex = _tabs.indexWhere((tab) => tab.path == _activeTabPath);
-    final activeWasDeleted = activeIndex != -1 && workspaceContext.isWithinFolder(_activeTabPath, normalizedPath);
+    final activeWasDeleted = activeIndex != -1 && isWithinWorkspaceFolder(_activeTabPath, normalizedPath);
     String? nextActivePath;
     if (activeWasDeleted) {
       for (var index = activeIndex + 1; index < _tabs.length; index++) {
         final candidate = _tabs[index];
-        if (!workspaceContext.isWithinFolder(candidate.path, normalizedPath)) {
+        if (!isWithinWorkspaceFolder(candidate.path, normalizedPath)) {
           nextActivePath = candidate.path;
           break;
         }
@@ -376,7 +381,7 @@ abstract mixin class TabsController<T> {
       if (nextActivePath == null) {
         for (var index = activeIndex - 1; index >= 0; index--) {
           final candidate = _tabs[index];
-          if (!workspaceContext.isWithinFolder(candidate.path, normalizedPath)) {
+          if (!isWithinWorkspaceFolder(candidate.path, normalizedPath)) {
             nextActivePath = candidate.path;
             break;
           }
@@ -407,11 +412,9 @@ abstract mixin class TabsController<T> {
   }
 
   void _cancelLoadsAtOrBelow(String path) {
-    final matchingPaths = _loadingTabs.keys
-        .where((candidate) => workspaceContext.isWithinFolder(candidate, path))
-        .toList();
+    final matchingPaths = _loadingTabs.keys.where((candidate) => isWithinWorkspaceFolder(candidate, path)).toList();
     for (final matchingPath in matchingPaths) {
-      unawaited(_loadingTabs.remove(matchingPath));
+      _loadingTabs.remove(matchingPath);
     }
   }
 
@@ -452,4 +455,8 @@ abstract mixin class TabsController<T> {
     _loadingTabs.clear();
     _activeTabPath = '';
   }
+}
+
+final class _PendingTabLoad {
+  late final Future<void> future;
 }

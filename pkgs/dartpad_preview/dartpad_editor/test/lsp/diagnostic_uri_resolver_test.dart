@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_editor/src/lsp/diagnostic_uri_resolver.dart';
-import 'package:dartpad_editor/src/workspace/workspace_path.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -68,21 +67,5 @@ void main() {
         );
       }
     });
-  });
-
-  test('normalizeWorkspacePath canonicalizes POSIX paths', () {
-    final cases = {
-      'lib/main.dart': 'lib/main.dart',
-      '.': '',
-      '': '',
-      'lib//src///main.dart': 'lib/src/main.dart',
-      'lib/../src/main.dart': 'src/main.dart',
-      'lib/./src/./main.dart': 'lib/src/main.dart',
-      '/absolute/path.dart': '/absolute/path.dart',
-    };
-
-    for (final MapEntry(key: input, value: expected) in cases.entries) {
-      expect(workspaceContext.normalize(input), expected, reason: 'input: $input');
-    }
   });
 }

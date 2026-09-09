@@ -116,8 +116,8 @@ class WorkspaceRepository {
     String projectRoot = '',
     bool blocksPreview = false,
   }) {
-    final normalizedPath = workspaceContext.normalize(path);
-    final pathLabel = workspaceContext.relativeDisplayPath(
+    final normalizedPath = normalizeWorkspacePath(path);
+    final pathLabel = _displayPathRelativeToProject(
       path: normalizedPath,
       projectRoot: projectRoot,
     );
@@ -178,8 +178,8 @@ class WorkspaceRepository {
 
   /// Removes generated Pub and build output from the workspace.
   Future<void> pubClean({String path = ''}) async {
-    final normalizedPath = workspaceContext.normalize(path);
-    final pathLabel = workspaceContext.relativeDisplayPath(
+    final normalizedPath = normalizeWorkspacePath(path);
+    final pathLabel = _displayPathRelativeToProject(
       path: normalizedPath,
       projectRoot: '',
     );
@@ -205,8 +205,8 @@ class WorkspaceRepository {
     WorkspaceResourceApi workspace, {
     String path = '',
   }) async {
-    final buildPath = workspaceContext.join(path, 'build');
-    final dartToolPath = workspaceContext.join(path, '.dart_tool');
+    final buildPath = joinWorkspacePath(path, 'build');
+    final dartToolPath = joinWorkspacePath(path, '.dart_tool');
     if (await workspace.folderExist(buildPath)) {
       await workspace.deleteFileSystemEntity(buildPath);
     }
@@ -351,7 +351,7 @@ class WorkspaceRepository {
     final packageName = resolvedPackageName ?? 'app';
     final packageFolder = resolvedFolder ?? metadataRoot;
 
-    final libFolder = workspaceContext.join(packageFolder.path, 'lib');
+    final libFolder = joinWorkspacePath(packageFolder.path, 'lib');
     if (workspacePath.isWithin(libFolder, filePath)) {
       final relativePath = workspacePath.relative(filePath, from: libFolder);
       return Uri(
@@ -398,6 +398,28 @@ class WorkspaceRepository {
   }
 }
 
+/// Returns a user-facing path relative to the active [projectRoot].
+///
+/// The project root itself is displayed as `/`.
+String _displayPathRelativeToProject({
+  required String path,
+  required String projectRoot,
+}) {
+  final normalizedPath = normalizeWorkspacePath(path);
+  final normalizedRoot = normalizeWorkspacePath(projectRoot);
+
+  if (normalizedPath == normalizedRoot) {
+    return '/';
+  }
+  if (normalizedRoot.isNotEmpty && normalizedPath.startsWith('$normalizedRoot/')) {
+    return normalizedPath.substring(normalizedRoot.length + 1);
+  }
+  if (normalizedRoot.isNotEmpty) {
+    return workspacePath.relative(normalizedPath, from: normalizedRoot);
+  }
+  return normalizedPath.isEmpty ? '/' : normalizedPath;
+}
+
 /// Runs a Pub command and forwards its output to the application debug console.
 Future<void> runWorkspacePubCommand({
   required AppEventBus events,
@@ -406,8 +428,8 @@ Future<void> runWorkspacePubCommand({
   required String projectRoot,
   required Future<String> Function(String normalizedPath) command,
 }) async {
-  final normalizedPath = workspaceContext.normalize(path);
-  final pathLabel = workspaceContext.relativeDisplayPath(
+  final normalizedPath = normalizeWorkspacePath(path);
+  final pathLabel = _displayPathRelativeToProject(
     path: normalizedPath,
     projectRoot: projectRoot,
   );

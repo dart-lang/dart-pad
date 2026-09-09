@@ -12,7 +12,7 @@ import '../../editor/view_models/tabs_view_model.dart';
 
 /// Manages diagnostics from the language server and navigation to their source
 /// locations.
-class DiagnosticsViewModel extends ChangeNotifier {
+final class DiagnosticsViewModel extends ChangeNotifier {
   DiagnosticsViewModel({required this.tabs});
 
   /// The maximum number of diagnostics rendered in the problems panel.
@@ -24,7 +24,7 @@ class DiagnosticsViewModel extends ChangeNotifier {
   List<DiagnosticEntry> _diagnostics = const [];
   String? _projectRoot;
 
-  StreamSubscription<Map<String, dynamic>>? _diagnosticsSubscription;
+  StreamSubscription<Map<String, Object?>>? _diagnosticsSubscription;
 
   /// The first [maxDisplayedDiagnostics] diagnostics, sorted by severity then
   /// location.
@@ -53,7 +53,7 @@ class DiagnosticsViewModel extends ChangeNotifier {
     String? projectRoot,
   }) {
     _diagnosticsSubscription?.cancel();
-    _projectRoot = projectRoot == null ? null : workspaceContext.normalize(projectRoot);
+    _projectRoot = projectRoot == null ? null : normalizeWorkspacePath(projectRoot);
     _updateDiagnostics(lsc);
     _diagnosticsSubscription = lsc.diagnosticsStream.listen((_) {
       _updateDiagnostics(lsc);
@@ -65,7 +65,7 @@ class DiagnosticsViewModel extends ChangeNotifier {
   void _updateDiagnostics(LanguageServerClient lsc) {
     _diagnostics = lsc.allDiagnostics
         .where(
-          (entry) => _projectRoot == null || workspaceContext.isWithinFolder(entry.fileName, _projectRoot!),
+          (entry) => _projectRoot == null || isWithinWorkspaceFolder(entry.fileName, _projectRoot!),
         )
         .toList(growable: false);
   }

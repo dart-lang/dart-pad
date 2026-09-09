@@ -129,6 +129,38 @@ void main() {
     await events.dispose();
   });
 
+  for (final testCase in [
+    (name: 'workspace root', path: '', projectRoot: '', expected: '/'),
+    (name: 'project root', path: 'example', projectRoot: 'example', expected: '/'),
+    (
+      name: 'project descendant',
+      path: 'packages/demo/example',
+      projectRoot: 'packages/demo',
+      expected: 'example',
+    ),
+    (name: 'above project root', path: '', projectRoot: 'example', expected: '..'),
+  ]) {
+    test('runWorkspacePubCommand displays ${testCase.name}', () async {
+      final events = AppEventBus();
+      final logs = <LogEvent>[];
+      final subscription = events.on<LogEvent>().listen(logs.add);
+
+      await runWorkspacePubCommand(
+        events: events,
+        commandName: 'get',
+        path: testCase.path,
+        projectRoot: testCase.projectRoot,
+        command: (_) async => '',
+      );
+      await pumpEventQueue();
+
+      expect(logs.map((event) => event.message), ['Running pub get in ${testCase.expected}']);
+
+      await subscription.cancel();
+      await events.dispose();
+    });
+  }
+
   test(
     'cleanGeneratedOutput removes build and .dart_tool when present',
     () async {
