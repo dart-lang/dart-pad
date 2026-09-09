@@ -353,7 +353,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       if (left is FileTreeFileNode && right is FileTreeFolderNode) {
         return 1;
       }
-      return left.resource.shortName.compareTo(right.resource.shortName);
+      return left.resource.basename.compareTo(right.resource.basename);
     });
   }
 
