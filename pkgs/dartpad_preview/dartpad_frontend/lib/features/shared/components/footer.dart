@@ -7,7 +7,6 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../../sdks.g.dart';
-import '../analyzer_status.dart';
 import '../icons.dart';
 import '../sdk_info.dart';
 import '../task_status.dart';
@@ -21,7 +20,6 @@ final class Footer extends StatefulComponent {
   /// Creates the application footer.
   const Footer({
     required this.taskStatus,
-    required this.analyzerStatus,
     this.statusMessage,
     this.isSmallScreen = false,
     this.currentSdk,
@@ -31,9 +29,6 @@ final class Footer extends StatefulComponent {
 
   /// Recent application task activity.
   final TaskStatusController taskStatus;
-
-  /// Readiness and background activity of the session analyzer.
-  final AnalyzerStatusController analyzerStatus;
 
   /// An optional editor error or warning shown alongside task activity.
   final String? statusMessage;
@@ -93,7 +88,6 @@ class _FooterState extends State<Footer> {
         else
           const div(classes: 'app-footer-spacer', []),
         TaskStatusIndicator(controller: component.taskStatus),
-        AnalyzerStatusIndicator(controller: component.analyzerStatus),
         _buildRuntimeVersions(),
       ]),
       if (_showShortcuts)
@@ -174,7 +168,6 @@ class _FooterState extends State<Footer> {
 
   static List<StyleRule> get styles => [
     ...TaskStatusIndicator.styles,
-    ...AnalyzerStatusIndicator.styles,
     css('.app-footer').styles(
       display: .flex,
       minHeight: 34.px,

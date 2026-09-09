@@ -135,7 +135,7 @@ void main() {
 
     test('tracks whether a running task blocks preview compilation', () {
       withClock(Clock(() => now), () {
-        final passive = controller.startTask(TaskKind.analyzingWorkspace);
+        final passive = controller.startTask(TaskKind.startingAnalyzer);
         expect(controller.hasBlockingPreviewTask, isFalse);
 
         final blocking = controller.startTask(
@@ -154,12 +154,12 @@ void main() {
     test('removes completed tasks after retention but keeps running tasks', () {
       withClock(Clock(() => now), () {
         controller.startTask(TaskKind.loadingCode, scope: 'completed').succeed();
-        controller.startTask(TaskKind.analyzingWorkspace);
+        controller.startTask(TaskKind.startingAnalyzer);
 
         now = now.add(const Duration(minutes: 5, milliseconds: 1));
         controller.startTask(TaskKind.pubClean, scope: '/').cancel();
 
-        expect(controller.entries.map((entry) => entry.kind), [TaskKind.analyzingWorkspace]);
+        expect(controller.entries.map((entry) => entry.kind), [TaskKind.startingAnalyzer]);
       });
     });
 
@@ -185,7 +185,7 @@ void main() {
 
     test('dispose clears tasks and makes existing handles inert', () {
       withClock(Clock(() => now), () {
-        final handle = controller.startTask(TaskKind.analyzingWorkspace);
+        final handle = controller.startTask(TaskKind.startingAnalyzer);
 
         controller.dispose();
         handle.succeed();

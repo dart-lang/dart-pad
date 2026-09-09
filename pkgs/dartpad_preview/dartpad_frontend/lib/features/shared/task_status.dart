@@ -21,7 +21,7 @@ enum TaskStatusOutcome { running, succeeded, failed }
 ///   [hotReload], [compilingChanges]). These tasks are always tracked unconditionally
 ///   to provide predictable feedback to the user.
 /// - **System & runtime lifecycle:** Background environment preparations like
-///   [loadingCode], [initializingDartPadWorker], and [analyzingWorkspace].
+///   [loadingCode], [initializingDartPadWorker], and [startingAnalyzer].
 ///
 /// **Not tracked (Editor interactions):**
 /// - Standard in-editor actions (e.g. formatting documents, saving files,
@@ -54,7 +54,12 @@ enum TaskKind {
   pubDowngrade('Pub downgrade'),
   pubOutdated('Pub outdated'),
   pubClean('Pub clean'),
-  analyzingWorkspace('Analyzing workspace'),
+
+  /// Initial analyzer startup and baseline workspace analysis.
+  startingAnalyzer('Starting analyzer'),
+
+  /// An incremental background re-analysis cycle.
+  analyzing('Analyzing'),
   startingPreview('Starting preview'),
   restartingPreview('Restarting preview'),
   stoppingPreview('Stopping preview'),

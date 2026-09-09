@@ -674,7 +674,6 @@ class AppState extends State<App> {
           if (!isEmbedMode)
             Footer(
               taskStatus: session.taskStatus,
-              analyzerStatus: session.analyzerStatus,
               statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
               isSmallScreen: !_isLargeScreen,
               currentSdk: _currentSdk,
