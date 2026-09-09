@@ -177,14 +177,14 @@ class _PreviewContainerState extends State<PreviewContainer> {
               listenable: component.taskStatus,
               builder: (context) => ButtonGroup(
                 children: [
-                  if (isRunning)
+                  if (isRunning && viewModel.isFlutter)
                     RuntimeButton.reload(previewViewModel: viewModel)
                   else
-                    RuntimeButton.start(
+                    RuntimeButton.run(
                       previewViewModel: viewModel,
                       activeFile: component.activeFile,
                     ),
-                  RuntimeButton.restart(previewViewModel: viewModel),
+                  if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
                   RuntimeButton.stop(previewViewModel: viewModel),
                 ],
               ),
@@ -244,7 +244,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
               persistentFailureMessage: failureMessage,
               onOpenConsole: component.onOpenConsole,
             ),
-          if (isRunning && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
+          if ((isRunning || state is PreviewDartReady) && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
         ],
       ),
     ]);
