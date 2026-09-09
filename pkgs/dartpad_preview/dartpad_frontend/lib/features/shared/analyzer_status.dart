@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:jaspr/jaspr.dart';
-
 import 'task_status.dart';
-
-/// The session-scoped lifecycle of the Dart analyzer.
-enum AnalyzerStatusPhase { waiting, analyzing, ready, unavailable }
 
 /// Tracks analyzer readiness and translates LSP analysis activity into
 /// application tasks.
@@ -16,21 +11,16 @@ enum AnalyzerStatusPhase { waiting, analyzing, ready, unavailable }
 /// [TaskKind.startingAnalyzer] task. Later analysis cycles trigger a
 /// [TaskKind.analyzing] task which reuses the same task key, replacing earlier
 /// analysis entries in recent task history.
-///
-/// [phase] reflects the current analyzer lifecycle state and notifies
-/// listeners of state transitions.
-final class AnalyzerStatusController extends ChangeNotifier {
+final class AnalyzerStatusController {
   AnalyzerStatusController(this._taskStatus);
 
   final TaskStatusController _taskStatus;
 
-  AnalyzerStatusPhase _phase = AnalyzerStatusPhase.waiting;
   TaskStatusHandle? _initializationTask;
   TaskStatusHandle? _currentTask;
   bool _initializationFinished = false;
+  bool _unavailable = false;
   bool _disposed = false;
-
-  AnalyzerStatusPhase get phase => _phase;
 
   /// Starts the task spanning analyzer startup and initial analysis.
   void beginInitialization() {
@@ -38,7 +28,6 @@ final class AnalyzerStatusController extends ChangeNotifier {
       return;
     }
     _initializationTask = _taskStatus.startTask(TaskKind.startingAnalyzer);
-    _setPhase(AnalyzerStatusPhase.analyzing);
   }
 
   /// Applies an analyzer busy/idle notification.
@@ -47,7 +36,7 @@ final class AnalyzerStatusController extends ChangeNotifier {
       return;
     }
     if (isAnalyzing) {
-      _setPhase(AnalyzerStatusPhase.analyzing);
+      _unavailable = false;
       if (_initializationTask != null) {
         return;
       }
@@ -59,11 +48,10 @@ final class AnalyzerStatusController extends ChangeNotifier {
       return;
     }
 
-    if (_phase == AnalyzerStatusPhase.unavailable) {
+    if (_unavailable) {
       return;
     }
 
-    final hadActiveTask = _initializationTask != null || _currentTask != null;
     if (_initializationTask case final task?) {
       task.succeed();
       _initializationTask = null;
@@ -72,9 +60,6 @@ final class AnalyzerStatusController extends ChangeNotifier {
     if (_currentTask case final task?) {
       task.succeed();
       _currentTask = null;
-    }
-    if (hadActiveTask || _initializationFinished) {
-      _setPhase(AnalyzerStatusPhase.ready);
     }
   }
 
@@ -97,18 +82,23 @@ final class AnalyzerStatusController extends ChangeNotifier {
       _taskStatus.startTask(kind).fail();
     }
     _initializationFinished = true;
-    _setPhase(AnalyzerStatusPhase.unavailable);
+    _unavailable = true;
   }
 
-  void _setPhase(AnalyzerStatusPhase phase) {
-    if (_phase == phase) {
+  /// Resets the controller state and cancels any pending analysis tasks.
+  void reset() {
+    if (_disposed) {
       return;
     }
-    _phase = phase;
-    notifyListeners();
+    _initializationTask?.cancel();
+    _initializationTask = null;
+    _currentTask?.cancel();
+    _currentTask = null;
+    _initializationFinished = false;
+    _unavailable = false;
   }
 
-  @override
+  /// Cancels any active tasks and disposes the controller.
   void dispose() {
     if (_disposed) {
       return;
@@ -122,6 +112,5 @@ final class AnalyzerStatusController extends ChangeNotifier {
       task.cancel();
       _currentTask = null;
     }
-    super.dispose();
   }
 }

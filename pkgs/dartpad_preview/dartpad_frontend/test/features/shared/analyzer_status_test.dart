@@ -16,7 +16,6 @@ void main() {
 
       controller.beginInitialization();
       controller.beginInitialization();
-      expect(controller.phase, AnalyzerStatusPhase.analyzing);
       expect(taskStatus.entries, hasLength(1));
       expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
       expect(taskStatus.current?.label, 'Starting analyzer');
@@ -28,7 +27,6 @@ void main() {
       expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
 
       controller.update(isAnalyzing: false);
-      expect(controller.phase, AnalyzerStatusPhase.ready);
       expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
       expect(taskStatus.current?.durationAt(now), const Duration(seconds: 3));
 
@@ -51,7 +49,6 @@ void main() {
 
       now = now.add(const Duration(minutes: 1));
       controller.update(isAnalyzing: true);
-      expect(controller.phase, AnalyzerStatusPhase.analyzing);
       expect(taskStatus.entries, hasLength(2));
       expect(taskStatus.current?.kind, TaskKind.analyzing);
       expect(taskStatus.current?.label, 'Analyzing');
@@ -59,7 +56,6 @@ void main() {
 
       now = now.add(const Duration(seconds: 1));
       controller.update(isAnalyzing: false);
-      expect(controller.phase, AnalyzerStatusPhase.ready);
       expect(taskStatus.entries, hasLength(2));
       final firstCycle = taskStatus.entries.firstWhere((e) => e.kind == TaskKind.analyzing);
       expect(firstCycle.outcome, TaskStatusOutcome.succeeded);
@@ -91,17 +87,14 @@ void main() {
 
     controller.beginInitialization();
     controller.markUnavailable();
-    expect(controller.phase, AnalyzerStatusPhase.unavailable);
     expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
     expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
 
     controller.update(isAnalyzing: true);
-    expect(controller.phase, AnalyzerStatusPhase.analyzing);
     expect(taskStatus.current?.kind, TaskKind.analyzing);
     expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
 
     controller.update(isAnalyzing: false);
-    expect(controller.phase, AnalyzerStatusPhase.ready);
     expect(taskStatus.entries, hasLength(2));
     expect(taskStatus.entries.firstWhere((e) => e.kind == TaskKind.analyzing).outcome, TaskStatusOutcome.succeeded);
     expect(taskStatus.entries.firstWhere((e) => e.kind == TaskKind.startingAnalyzer).outcome, TaskStatusOutcome.failed);
@@ -144,19 +137,17 @@ void main() {
       controller.beginInitialization();
       now = now.add(const Duration(seconds: 1));
       controller.update(isAnalyzing: false);
-      expect(controller.phase, AnalyzerStatusPhase.ready);
       expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
       expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
 
       now = now.add(const Duration(seconds: 1));
       controller.markUnavailable();
-      expect(controller.phase, AnalyzerStatusPhase.unavailable);
       expect(taskStatus.current?.kind, TaskKind.analyzing);
       expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
 
-      // Trailing isAnalyzing: false updates must not revert phase to ready.
+      // Trailing isAnalyzing: false updates must not create or succeed tasks.
       controller.update(isAnalyzing: false);
-      expect(controller.phase, AnalyzerStatusPhase.unavailable);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
 
       controller.dispose();
       taskStatus.dispose();
@@ -168,12 +159,53 @@ void main() {
     final controller = AnalyzerStatusController(taskStatus);
 
     controller.markUnavailable();
-    expect(controller.phase, AnalyzerStatusPhase.unavailable);
     expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
     expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
 
     controller.update(isAnalyzing: false);
-    expect(controller.phase, AnalyzerStatusPhase.unavailable);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
+
+    controller.dispose();
+    taskStatus.dispose();
+  });
+
+  test('reset cancels active tasks and clears initialization state', () {
+    final taskStatus = TaskStatusController();
+    final controller = AnalyzerStatusController(taskStatus);
+
+    controller.beginInitialization();
+    expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+    controller.reset();
+    expect(taskStatus.entries, isEmpty);
+
+    // After reset, initialization can begin anew.
+    controller.beginInitialization();
+    expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+    controller.dispose();
+    taskStatus.dispose();
+  });
+
+  test('reset after markUnavailable clears unavailable state', () {
+    final taskStatus = TaskStatusController();
+    final controller = AnalyzerStatusController(taskStatus);
+
+    controller.markUnavailable();
+    expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
+
+    controller.reset();
+
+    // After reset, initialization begins with a fresh startingAnalyzer task.
+    controller.beginInitialization();
+    expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+    controller.update(isAnalyzing: false);
+    expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
 
     controller.dispose();
     taskStatus.dispose();
