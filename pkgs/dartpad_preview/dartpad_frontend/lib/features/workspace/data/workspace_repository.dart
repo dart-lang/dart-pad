@@ -109,16 +109,23 @@ class WorkspaceRepository {
     );
   }
 
-  Future<void> pubGet({String path = '', String projectRoot = ''}) {
+  Future<void> _runPubCommand({
+    required TaskKind kind,
+    required String commandName,
+    String path = '',
+    String projectRoot = '',
+    bool blocksPreview = false,
+  }) {
     final normalizedPath = workspaceContext.normalize(path);
     final pathLabel = workspaceContext.relativeDisplayPath(
       path: normalizedPath,
       projectRoot: projectRoot,
     );
     return taskStatus.runTask(
-      TaskKind.pubGet,
-      () => runWorkspacePubGet(
+      kind,
+      () => runWorkspacePubCommand(
         events: events,
+        commandName: commandName,
         path: path,
         projectRoot: projectRoot,
         command: (normalizedPath) async {
@@ -127,15 +134,47 @@ class WorkspaceRepository {
           if (api is SyncedWorkspaceResourceApi) {
             await api.flush();
           }
-          final result = await workspace.pub(uri: normalizedPath, command: 'get');
+          final result = await workspace.pub(uri: normalizedPath, command: commandName);
           return result.log;
         },
       ),
-      label: 'Pub get in $pathLabel',
+      label: '${kind.label} in $pathLabel',
       scope: normalizedPath.toString(),
-      blocksPreview: true,
+      blocksPreview: blocksPreview,
     );
   }
+
+  Future<void> pubGet({String path = '', String projectRoot = ''}) => _runPubCommand(
+    kind: TaskKind.pubGet,
+    commandName: 'get',
+    path: path,
+    projectRoot: projectRoot,
+    blocksPreview: true,
+  );
+
+  Future<void> pubUpgrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+    kind: TaskKind.pubUpgrade,
+    commandName: 'upgrade',
+    path: path,
+    projectRoot: projectRoot,
+    blocksPreview: true,
+  );
+
+  Future<void> pubDowngrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+    kind: TaskKind.pubDowngrade,
+    commandName: 'downgrade',
+    path: path,
+    projectRoot: projectRoot,
+    blocksPreview: true,
+  );
+
+  Future<void> pubOutdated({String path = '', String projectRoot = ''}) => _runPubCommand(
+    kind: TaskKind.pubOutdated,
+    commandName: 'outdated',
+    path: path,
+    projectRoot: projectRoot,
+    blocksPreview: false,
+  );
 
   /// Removes generated Pub and build output from the workspace.
   Future<void> pubClean({String path = ''}) async {
@@ -359,9 +398,10 @@ class WorkspaceRepository {
   }
 }
 
-/// Runs Pub Get and forwards its output to the application debug console.
-Future<void> runWorkspacePubGet({
+/// Runs a Pub command and forwards its output to the application debug console.
+Future<void> runWorkspacePubCommand({
   required AppEventBus events,
+  required String commandName,
   required String path,
   required String projectRoot,
   required Future<String> Function(String normalizedPath) command,
@@ -371,9 +411,23 @@ Future<void> runWorkspacePubGet({
     path: normalizedPath,
     projectRoot: projectRoot,
   );
-  events.dispatch(LogEvent('Running pub get in $pathLabel'));
+  events.dispatch(LogEvent('Running pub $commandName in $pathLabel'));
   final log = await command(normalizedPath);
   if (log.isNotEmpty) {
     events.dispatch(LogEvent(log));
   }
 }
+
+/// Runs Pub Get and forwards its output to the application debug console.
+Future<void> runWorkspacePubGet({
+  required AppEventBus events,
+  required String path,
+  required String projectRoot,
+  required Future<String> Function(String normalizedPath) command,
+}) => runWorkspacePubCommand(
+  events: events,
+  commandName: 'get',
+  path: path,
+  projectRoot: projectRoot,
+  command: command,
+);
