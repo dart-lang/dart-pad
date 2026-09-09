@@ -59,9 +59,11 @@ sealed class WorkspaceResource {
   /// Return the full path to this resource.
   String get path;
 
-  /// Return a short version of the name that can be displayed to the user to
-  /// denote this resource.
-  String get shortName;
+  /// Returns the final path component of this resource.
+  ///
+  /// For example, the basename of `lib/main.dart` is `main.dart`, and the
+  /// basename of `src/components` is `components`.
+  String get basename;
 
   /// Check if the resource exists.
   Future<bool> exists();
@@ -87,14 +89,14 @@ sealed class WorkspaceResource {
 }
 
 /// A file inside the workspace.
-class WorkspaceFile extends WorkspaceResource {
+final class WorkspaceFile extends WorkspaceResource {
   WorkspaceFile({required super.workspace, required this.path});
 
   @override
   final String path;
 
   @override
-  String get shortName => workspacePath.basename(path);
+  String get basename => workspacePath.basename(path);
 
   @override
   WorkspaceFolder get parent => WorkspaceFolder(workspace: workspace, path: workspacePath.dirname(path));
@@ -136,7 +138,7 @@ class WorkspaceFile extends WorkspaceResource {
 
   @override
   Future<WorkspaceFile> moveTo(WorkspaceFolder targetFolder) async {
-    final newPath = workspacePath.canonicalize(workspacePath.join(targetFolder.path, shortName));
+    final newPath = workspacePath.canonicalize(workspacePath.join(targetFolder.path, basename));
     if (newPath == path) {
       return this;
     }
@@ -164,14 +166,14 @@ class WorkspaceFile extends WorkspaceResource {
 }
 
 /// A folder in the workspace that may contain files and/or other folders.
-class WorkspaceFolder extends WorkspaceResource {
+final class WorkspaceFolder extends WorkspaceResource {
   WorkspaceFolder({required super.workspace, required String path}) : path = path == '.' ? '' : path;
 
   @override
   final String path;
 
   @override
-  String get shortName => workspacePath.basename(path);
+  String get basename => workspacePath.basename(path);
 
   /// Return `true` if this folder is a file system root.
   bool get isRoot => path.isEmpty;
@@ -244,7 +246,7 @@ class WorkspaceFolder extends WorkspaceResource {
     if (isRoot) {
       throw StateError('The workspace root cannot be moved.');
     }
-    final newPath = workspacePath.join(targetFolder.path, shortName);
+    final newPath = workspacePath.join(targetFolder.path, basename);
     if (newPath == path) {
       return this;
     }
