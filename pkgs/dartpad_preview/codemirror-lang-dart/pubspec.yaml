@@ -11,3 +11,6 @@ resolution: workspace
 dependencies:
   analyzer: ^12.1.0
   web: ^1.1.1
+
+dev_dependencies:
+  test: any

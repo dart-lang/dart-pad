@@ -13,6 +13,8 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 // ignore: implementation_imports  // TODO: remove when https://github.com/dart-lang/sdk/issues/63822 is fixed
 import 'package:analyzer/src/string_source.dart';
 
+export 'src/has_main_method.dart';
+
 @JS('window._codemirror')
 external _CodemirrorNamespace get _codemirrorModule;
 

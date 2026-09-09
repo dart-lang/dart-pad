@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -23,19 +21,16 @@ class RuntimeButton extends StatelessComponent {
     super.key,
   });
 
-  /// Factory constructor for a 'Run' button that runs the [activeFile]
-  /// or falls back to 'lib/main.dart' if no active file is present.
+  /// Factory constructor for a 'Run' button that triggers [onRun].
   factory RuntimeButton.run({
     required PreviewViewModel previewViewModel,
-    required String activeFile,
+    required void Function() onRun,
   }) {
     return RuntimeButton(
       title: 'Run',
       icon: 'play_arrow',
       isEnabled: previewViewModel.canStart,
-      onClick: () => previewViewModel.runCode(
-        activeFile.isNotEmpty ? activeFile : 'lib/main.dart',
-      ),
+      onClick: onRun,
     );
   }
 
@@ -59,7 +54,7 @@ class RuntimeButton extends StatelessComponent {
       title: 'Reload',
       icon: 'bolt',
       isEnabled: previewViewModel.canHotReload,
-      onClick: () => previewViewModel.hotReloadCode(),
+      onClick: previewViewModel.hotReloadCode,
     );
   }
 
@@ -70,7 +65,7 @@ class RuntimeButton extends StatelessComponent {
       title: 'Stop',
       icon: 'stop',
       isEnabled: previewViewModel.canStop,
-      onClick: () => previewViewModel.stopCode(),
+      onClick: previewViewModel.stopCode,
     );
   }
 
@@ -84,7 +79,7 @@ class RuntimeButton extends StatelessComponent {
   final bool isEnabled;
 
   /// Callback executed when the button is clicked.
-  final Future<void> Function() onClick;
+  final void Function() onClick;
 
   @override
   Component build(BuildContext context) {
@@ -98,7 +93,7 @@ class RuntimeButton extends StatelessComponent {
         'title': title,
         'aria-label': title,
       },
-      onClick: isEnabled ? () => unawaited(onClick()) : null,
+      onClick: isEnabled ? onClick : null,
       [
         Icon(icon, size: 18.0),
         span(classes: 'runtime-button-label', [.text(title)]),

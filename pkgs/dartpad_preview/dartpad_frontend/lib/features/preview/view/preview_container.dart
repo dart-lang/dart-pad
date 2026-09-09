@@ -29,7 +29,7 @@ class PreviewContainer extends StatefulComponent {
   const PreviewContainer({
     required this.preview,
     required this.taskStatus,
-    required this.activeFile,
+    required this.onStart,
     required this.onOpenConsole,
     this.workspacePreparationFailure,
     super.key,
@@ -41,8 +41,8 @@ class PreviewContainer extends StatefulComponent {
   /// Tracks prerequisite and runtime tasks shown in an empty preview.
   final TaskStatusController taskStatus;
 
-  /// The path of the currently active file in the editor workspace.
-  final String activeFile;
+  /// Callback invoked when the user starts the preview.
+  final void Function() onStart;
 
   /// A persistent failure from the one-time workspace preparation lifecycle.
   final String? workspacePreparationFailure;
@@ -182,7 +182,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
                   else
                     RuntimeButton.run(
                       previewViewModel: viewModel,
-                      activeFile: component.activeFile,
+                      onRun: component.onStart,
                     ),
                   if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
                   RuntimeButton.stop(previewViewModel: viewModel),

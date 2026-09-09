@@ -118,7 +118,38 @@ void main() {
 
     // runOrHotReload starts runCode
     session.runOrHotReload();
+    await Future<void>.delayed(Duration.zero);
     expect(session.preview.state, isA<PreviewStarting>());
+
+    await session.dispose(closeWorker: false);
+  });
+
+  test('resolves runnable entrypoint based on main() presence', () async {
+    final events = AppEventBus();
+    final workspace = _Workspace();
+    await workspace.writeFileFromText('lib/main.dart', 'void main() {}');
+    await workspace.writeFileFromText('lib/other.dart', 'void other() {}');
+    await workspace.writeFileFromText('lib/custom.dart', 'void main() {}');
+
+    final repository = WorkspaceRepository(
+      events: events,
+      taskStatus: TaskStatusController(),
+      workspaceResourceApi: workspace,
+      sdk: defaultSdk,
+      workspaceFuture: Completer<Workspace>().future,
+    );
+    final session = WorkspaceSession.create(repository);
+
+    // canStart is immediately true without waiting on LSP
+    expect(session.preview.canStart, isTrue);
+
+    // 1. Custom file with main() becomes the runnable entrypoint
+    final customEntrypoint = await session.resolveRunnableEntrypoint('lib/custom.dart');
+    expect(customEntrypoint, 'lib/custom.dart');
+
+    // 2. File without main() falls back to lib/main.dart
+    final otherEntrypoint = await session.resolveRunnableEntrypoint('lib/other.dart');
+    expect(otherEntrypoint, 'lib/main.dart');
 
     await session.dispose(closeWorker: false);
   });

@@ -760,9 +760,9 @@ class AppState extends State<App> {
       builder: (context) => PreviewContainer(
         preview: session.preview,
         taskStatus: session.taskStatus,
-        activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure,
         onOpenConsole: () => _openConsole(session),
+        onStart: session.startPreview,
       ),
     );
   }
