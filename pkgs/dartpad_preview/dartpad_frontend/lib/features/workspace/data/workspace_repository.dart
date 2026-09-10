@@ -65,6 +65,16 @@ class WorkspaceRepository {
   /// the fallback resource API have been copied into it.
   Future<Workspace> get readyWorkspace => _readyWorkspaceFuture;
 
+  /// Reads a file outside the project workspace directly from the worker.
+  ///
+  /// External files, such as SDK and pub-cache sources, intentionally bypass
+  /// [workspaceResourceApi] so they do not participate in local workspace
+  /// synchronization or editing.
+  Future<String> readExternalFile(Uri uri) async {
+    final workspace = await readyWorkspace;
+    return workspace.readFileAsText(uri.toString());
+  }
+
   /// Whether the active worker/sandbox runtime is Flutter (using Flutter engine & bootstrap wrapper).
   bool get isFlutterSdk => sdk.isFlutter;
 

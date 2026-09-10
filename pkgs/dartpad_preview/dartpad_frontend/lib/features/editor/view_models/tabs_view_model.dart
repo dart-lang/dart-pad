@@ -60,17 +60,38 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     }
   }
 
-  /// Opens the file at [path], reporting any failure as a user-facing error.
+  /// Opens the workspace file at [path], reporting and rethrowing failures.
   ///
-  /// This wraps [openFile] with error handling: on success the current
-  /// error/warning messages are cleared; on failure a message is shown to
-  /// the user.
-  Future<void> openFileWithErrorReporting(String path) async {
+  /// Clears the current error and warning messages on success. Cancellation
+  /// propagates without changing the current messages or reporting an error.
+  @override
+  Future<void> openWorkspaceFile(String path) async {
     try {
-      await openFile(path);
+      await super.openWorkspaceFile(path);
       clearMessages();
+    } on TabOpenCancelledException {
+      rethrow;
     } catch (_) {
       _reportError('Could not open $path.');
+      rethrow;
+    }
+  }
+
+  /// Opens an external [uri], reporting and rethrowing failures.
+  ///
+  /// Clears the current error and warning messages on success. Cancellation
+  /// propagates without changing the current messages or reporting an error.
+  @override
+  Future<void> openExternalFile(Uri uri) async {
+    try {
+      await super.openExternalFile(uri);
+      clearMessages();
+    } on TabOpenCancelledException {
+      rethrow;
+    } catch (_) {
+      final label = uri.pathSegments.isEmpty ? uri.toString() : uri.pathSegments.last;
+      _reportError('Could not open $label.');
+      rethrow;
     }
   }
 

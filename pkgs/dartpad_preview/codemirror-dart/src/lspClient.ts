@@ -180,7 +180,11 @@ export function createLspClient(
       [lspHoverTooltips({ hoverTime: 800 })],
       [
         keymap.of([
-          ...formatKeymap,
+          ...formatKeymap.map((binding) => ({
+            ...binding,
+            run: (view: EditorView) =>
+              view.state.readOnly || (binding.run?.(view) ?? false),
+          })),
           ...createRenameKeymap(onWorkspaceEdit),
           ...jumpToDefinitionKeymap,
           ...findReferencesKeymap,
@@ -340,9 +344,13 @@ export class CMWorkspace extends Workspace {
     const hasCallback = typeof this.onDisplayFile === "function";
     let promise: Promise<any> = Promise.resolve();
     if (hasCallback) {
-      const res = this.onDisplayFile!(uri);
-      if (res && typeof res.then === "function") {
-        promise = res;
+      try {
+        const res = this.onDisplayFile!(uri);
+        if (res && typeof res.then === "function") {
+          promise = res;
+        }
+      } catch (error) {
+        return Promise.reject(error);
       }
     }
 
@@ -355,12 +363,25 @@ export class CMWorkspace extends Workspace {
       return Promise.resolve(null);
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (!this.pendingDisplayFiles[uri]) {
         this.pendingDisplayFiles[uri] = [];
       }
-      this.pendingDisplayFiles[uri].push((view) => {
-        promise.then(() => resolve(view));
+      const resolveView = (view: EditorView | null) => {
+        promise.then(() => resolve(view), reject);
+      };
+      this.pendingDisplayFiles[uri].push(resolveView);
+      promise.catch((error) => {
+        const pending = this.pendingDisplayFiles[uri];
+        if (pending) {
+          this.pendingDisplayFiles[uri] = pending.filter(
+            (callback) => callback !== resolveView,
+          );
+          if (this.pendingDisplayFiles[uri].length === 0) {
+            delete this.pendingDisplayFiles[uri];
+          }
+        }
+        reject(error);
       });
     });
   }

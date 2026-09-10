@@ -82,6 +82,27 @@ function fakeView(
   } as unknown as EditorView;
 }
 
+test("read-only rename does not access the LSP plugin or apply edits", async () => {
+  const view = {
+    state: EditorState.create({
+      doc: "class Example {}",
+      extensions: [EditorState.readOnly.of(true)],
+    }),
+  } as EditorView;
+  const getPlugin = () => {
+    assert.fail("read-only rename must not access the LSP plugin");
+  };
+  const applyEdit = async () => {
+    assert.fail("read-only rename must not apply edits");
+  };
+
+  assert.equal(await startRename(view, applyEdit, getPlugin), true);
+  assert.equal(
+    await renameSymbolAsync(view, "Changed", applyEdit, getPlugin),
+    false,
+  );
+});
+
 function fakePlugin(
   response: WorkspaceEdit | null,
   options: {

@@ -39828,6 +39828,8 @@ ${text}</tr>
      */
     function renameSymbolAsync(view_1, newName_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, newName, applyWorkspaceEdit, getPlugin = LSPPlugin.get, targetPos) {
+            if (view.state.readOnly)
+                return false;
             const plugin = getPlugin(view);
             const pos = targetPos !== null && targetPos !== void 0 ? targetPos : view.state.selection.main.head;
             const word = view.state.wordAt(pos);
@@ -39862,6 +39864,8 @@ ${text}</tr>
     function startRename(view_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, applyWorkspaceEdit, getPlugin = LSPPlugin.get) {
             var _a, _b;
+            if (view.state.readOnly)
+                return true;
             const pos = view.state.selection.main.head;
             const wordRange = view.state.wordAt(pos);
             const plugin = getPlugin(view);
@@ -40078,7 +40082,7 @@ ${text}</tr>
                 [lspHoverTooltips({ hoverTime: 800 })],
                 [
                     keymap.of([
-                        ...formatKeymap,
+                        ...formatKeymap.map((binding) => (Object.assign(Object.assign({}, binding), { run: (view) => { var _a, _b; return view.state.readOnly || ((_b = (_a = binding.run) === null || _a === void 0 ? void 0 : _a.call(binding, view)) !== null && _b !== void 0 ? _b : false); } }))),
                         ...createRenameKeymap(onWorkspaceEdit),
                         ...jumpToDefinitionKeymap,
                         ...findReferencesKeymap,
@@ -40223,9 +40227,14 @@ ${text}</tr>
             const hasCallback = typeof this.onDisplayFile === "function";
             let promise = Promise.resolve();
             if (hasCallback) {
-                const res = this.onDisplayFile(uri);
-                if (res && typeof res.then === "function") {
-                    promise = res;
+                try {
+                    const res = this.onDisplayFile(uri);
+                    if (res && typeof res.then === "function") {
+                        promise = res;
+                    }
+                }
+                catch (error) {
+                    return Promise.reject(error);
                 }
             }
             const file = this.getFile(uri);
@@ -40235,12 +40244,23 @@ ${text}</tr>
             if (!hasCallback) {
                 return Promise.resolve(null);
             }
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 if (!this.pendingDisplayFiles[uri]) {
                     this.pendingDisplayFiles[uri] = [];
                 }
-                this.pendingDisplayFiles[uri].push((view) => {
-                    promise.then(() => resolve(view));
+                const resolveView = (view) => {
+                    promise.then(() => resolve(view), reject);
+                };
+                this.pendingDisplayFiles[uri].push(resolveView);
+                promise.catch((error) => {
+                    const pending = this.pendingDisplayFiles[uri];
+                    if (pending) {
+                        this.pendingDisplayFiles[uri] = pending.filter((callback) => callback !== resolveView);
+                        if (this.pendingDisplayFiles[uri].length === 0) {
+                            delete this.pendingDisplayFiles[uri];
+                        }
+                    }
+                    reject(error);
                 });
             });
         }
@@ -40486,6 +40506,8 @@ ${text}</tr>
      * Starts formatting from a synchronous CodeMirror command such as a keymap.
      */
     const formatDocument = (view) => {
+        if (view.state.readOnly)
+            return true;
         const plugin = LSPPlugin.get(view);
         if (!plugin)
             return false;
@@ -40497,6 +40519,8 @@ ${text}</tr>
      */
     function formatDocumentAsync(view_1) {
         return __awaiter(this, arguments, void 0, function* (view, getPlugin = LSPPlugin.get) {
+            if (view.state.readOnly)
+                return false;
             const plugin = getPlugin(view);
             if (!plugin)
                 return false;

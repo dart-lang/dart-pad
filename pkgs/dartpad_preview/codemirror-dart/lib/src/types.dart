@@ -61,7 +61,9 @@ extension type EditorSelection(JSObject _) implements JSObject {
 /// See: https://codemirror.net/docs/ref/#state.EditorState
 extension type EditorState(JSObject _) implements JSObject {
   external static EditorState create(EditorStateConfig config);
+  external static Facet get changeFilter;
   external static Facet get languageData;
+  external static Facet get readOnly;
 
   external Text get doc;
   external EditorSelection get selection;
