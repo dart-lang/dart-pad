@@ -14,7 +14,7 @@ abstract interface class FileTreeEditorDelegate implements Listenable {
 
   /// Opens the file at [path] in the appropriate tab, or reports a warning
   /// if the file type is not supported for viewing.
-  Future<void> openFile(String path);
+  Future<void> openWorkspaceFile(String path);
 
   /// Persists all unsaved editor tabs.
   Future<void> saveAllTabs();

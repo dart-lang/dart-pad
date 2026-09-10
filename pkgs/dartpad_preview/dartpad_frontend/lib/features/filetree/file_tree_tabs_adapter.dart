@@ -5,7 +5,7 @@
 import 'package:jaspr/jaspr.dart';
 
 import '../editor/view_models/tabs_view_model.dart';
-import '../shared/editable_text_file.dart';
+import '../shared/supported_file_types.dart';
 import 'file_tree_editor_delegate.dart';
 
 /// Adapts editor tabs to the narrow contract required by the file tree.
@@ -32,12 +32,12 @@ final class FileTreeTabsAdapter implements FileTreeEditorDelegate {
   void clearMessages() => tabs.clearMessages();
 
   @override
-  Future<void> openFile(String path) {
+  Future<void> openWorkspaceFile(String path) {
     if (!isSupportedFile(path)) {
       tabs.reportWarning('Binary preview is not available for $path.');
       return Future.value();
     }
-    return tabs.openFileWithErrorReporting(path);
+    return tabs.openWorkspaceFile(path);
   }
 
   @override

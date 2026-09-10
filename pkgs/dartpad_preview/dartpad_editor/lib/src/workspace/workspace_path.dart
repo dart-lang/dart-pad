@@ -7,6 +7,19 @@ import 'package:path/path.dart' as p;
 /// The path context for virtual workspace paths, which always use `/`.
 final p.Context workspacePath = p.posix;
 
+/// Returns the workspace-relative path for [uri], or `null` when
+/// [uri] is outside [workspaceRoot].
+String? relativePathWithinWorkspace(Uri uri, Uri workspaceRoot) {
+  if (uri.scheme != workspaceRoot.scheme || uri.authority != workspaceRoot.authority) {
+    return null;
+  }
+  final rootPath = workspaceRoot.path.endsWith('/') ? workspaceRoot.path : '${workspaceRoot.path}/';
+  if (!uri.path.startsWith(rootPath)) {
+    return null;
+  }
+  return uri.path.substring(rootPath.length);
+}
+
 /// Normalizes a workspace [path].
 ///
 /// The workspace root is represented by an empty string instead of `.`.

@@ -73,78 +73,138 @@ abstract mixin class TabsController<T> {
     return _tabs.where((t) => t.path == path).firstOrNull ?? _keepAliveTabs[path];
   }
 
-  /// Opens a file by its [fileName] (path).
+  /// Opens a project file by its workspace-relative [fileName].
   ///
   /// If the file is already open, it is set active. If it was closed but kept alive, it is restored.
   /// Otherwise, it uses the first compatible adapter to load and create a new tab.
-  Future<void> openFile(String fileName) async {
+  /// Throws if the file is missing or cannot be loaded. An invalidated load throws
+  /// [TabOpenCancelledException]; successful completion means the tab is available.
+  Future<void> openWorkspaceFile(String fileName) async {
     if (_disposed) {
       throw StateError('Cannot open a file on a disposed TabsController.');
     }
-    if (!await workspaceResourceApi.fileExist(fileName)) {
-      return;
+    final exists = await workspaceResourceApi.fileExist(fileName);
+    if (_disposed) {
+      throw const TabOpenCancelledException();
+    }
+    if (!exists) {
+      throw StateError('Workspace file does not exist: $fileName');
     }
 
-    final existingIndex = _tabs.indexWhere((t) => t.path == fileName);
+    await _openTab(
+      fileName,
+      EditorTabOrigin.workspace,
+      () => _createWorkspaceTab(fileName),
+    );
+  }
+
+  /// Opens an external [uri] in a read-only tab.
+  ///
+  /// Unlike [openWorkspaceFile], this bypasses the project [workspaceResourceApi]. The
+  /// adapter that supports external files is responsible for fetching their
+  /// contents from the URI-aware backing service. An invalidated load throws
+  /// [TabOpenCancelledException]
+  Future<void> openExternalFile(Uri uri) async {
+    if (_disposed) {
+      throw StateError('Cannot open a file on a disposed TabsController.');
+    }
+
+    final path = uri.toString();
+    await _openTab(
+      path,
+      EditorTabOrigin.external,
+      () => _createExternalTab(uri),
+    );
+  }
+
+  Future<void> _openTab(
+    String path,
+    EditorTabOrigin origin,
+    Future<EditorTab<T>> Function() createTab,
+  ) async {
+    if (_disposed) {
+      throw StateError('Cannot open a file on a disposed TabsController.');
+    }
+    final existingIndex = _tabs.indexWhere((t) => t.path == path);
     if (existingIndex != -1) {
-      _setActivePath(fileName);
+      _setActivePath(path);
       return;
     }
 
-    final keptTab = _keepAliveTabs.remove(fileName);
+    final keptTab = _keepAliveTabs.remove(path);
     if (keptTab != null) {
       _tabs.add(keptTab);
-      _setActivePath(fileName);
+      _setActivePath(path);
       return;
     }
 
-    var pendingLoad = _loadingTabs[fileName];
+    var pendingLoad = _loadingTabs[path];
     if (pendingLoad == null) {
-      pendingLoad = _PendingTabLoad();
-      _loadingTabs[fileName] = pendingLoad;
-      pendingLoad.future = _loadTab(fileName, pendingLoad);
+      pendingLoad = _PendingTabLoad(origin);
+      _loadingTabs[path] = pendingLoad;
+      pendingLoad.future = _loadTab(path, pendingLoad, createTab);
     }
 
     await pendingLoad.future;
-    if (_tabs.any((tab) => tab.path == fileName)) {
-      _setActivePath(fileName);
+    if (!_tabs.any((tab) => tab.path == path)) {
+      throw const TabOpenCancelledException();
     }
+    _setActivePath(path);
   }
 
-  Future<void> _loadTab(String fileName, _PendingTabLoad pendingLoad) async {
+  Future<void> _loadTab(
+    String path,
+    _PendingTabLoad pendingLoad,
+    Future<EditorTab<T>> Function() createTab,
+  ) async {
     try {
-      final tab = await _createTab(fileName);
+      final tab = await createTab();
       // Check whether this specific load was cancelled or superseded.
-      if (!identical(_loadingTabs[fileName], pendingLoad)) {
+      if (_disposed || !identical(_loadingTabs[path], pendingLoad)) {
+        tab.dispose();
+        throw const TabOpenCancelledException();
+      }
+
+      if (_tabs.any((t) => t.path == path)) {
         tab.dispose();
         return;
       }
 
-      if (_tabs.any((t) => t.path == fileName)) {
-        tab.dispose();
-        return;
-      }
-
-      unawaited(_tabUpdateSubscriptions[fileName]?.cancel());
-      _tabUpdateSubscriptions[fileName] = tab.onUpdate.listen((_) {
+      unawaited(_tabUpdateSubscriptions[path]?.cancel());
+      _tabUpdateSubscriptions[path] = tab.onUpdate.listen((_) {
         didUpdate();
       });
       _tabs.add(tab);
+    } catch (_) {
+      if (_disposed || !identical(_loadingTabs[path], pendingLoad)) {
+        throw const TabOpenCancelledException();
+      }
+      rethrow;
     } finally {
-      if (identical(_loadingTabs[fileName], pendingLoad)) {
-        _loadingTabs.remove(fileName);
+      if (identical(_loadingTabs[path], pendingLoad)) {
+        _loadingTabs.remove(path);
       }
     }
   }
 
-  Future<EditorTab<T>> _createTab(String fileName) async {
+  Future<EditorTab<T>> _createWorkspaceTab(String fileName) async {
     for (final adapter in adapters) {
-      final tab = await adapter.createTab(fileName);
+      final tab = await adapter.createWorkspaceTab(fileName);
       if (tab != null) {
         return tab;
       }
     }
     throw UnsupportedError('No editor tab adapter found for $fileName');
+  }
+
+  Future<EditorTab<T>> _createExternalTab(Uri uri) async {
+    for (final adapter in adapters) {
+      final tab = await adapter.createExternalTab(uri);
+      if (tab != null) {
+        return tab;
+      }
+    }
+    throw UnsupportedError('No editor tab adapter found for $uri');
   }
 
   /// Switches the active file/tab to [fileName] if it is currently open.
@@ -305,10 +365,12 @@ abstract mixin class TabsController<T> {
     final normalizedOldPath = normalizeWorkspacePath(oldPath);
     final normalizedNewPath = normalizeWorkspacePath(newPath);
     _cancelLoadsAtOrBelow(normalizedOldPath);
+    final activeBeforeMove = activeTab;
+    final activeWasMoved = activeBeforeMove != null && _isAffectedWorkspaceTab(activeBeforeMove, normalizedOldPath);
 
-    final openTabs = _tabs.where((tab) => isWithinWorkspaceFolder(tab.path, normalizedOldPath)).toList();
+    final openTabs = _tabs.where((tab) => _isAffectedWorkspaceTab(tab, normalizedOldPath)).toList();
     final keptTabs = _keepAliveTabs.entries
-        .where((entry) => isWithinWorkspaceFolder(entry.key, normalizedOldPath))
+        .where((entry) => _isAffectedWorkspaceTab(entry.value, normalizedOldPath))
         .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
@@ -336,7 +398,7 @@ abstract mixin class TabsController<T> {
       _moveTabUpdateSubscription(previousPath, rebasedPath);
       _keepAliveTabs[rebasedPath] = entry.value;
     }
-    if (isWithinWorkspaceFolder(_activeTabPath, normalizedOldPath)) {
+    if (activeWasMoved) {
       _activeTabPath = rebaseWorkspacePath(
         _activeTabPath,
         normalizedOldPath,
@@ -359,21 +421,21 @@ abstract mixin class TabsController<T> {
     final normalizedPath = normalizeWorkspacePath(path);
     _cancelLoadsAtOrBelow(normalizedPath);
 
-    final openTabs = _tabs.where((tab) => isWithinWorkspaceFolder(tab.path, normalizedPath)).toList();
+    final openTabs = _tabs.where((tab) => _isAffectedWorkspaceTab(tab, normalizedPath)).toList();
     final keptTabs = _keepAliveTabs.entries
-        .where((entry) => isWithinWorkspaceFolder(entry.key, normalizedPath))
+        .where((entry) => _isAffectedWorkspaceTab(entry.value, normalizedPath))
         .toList();
     if (openTabs.isEmpty && keptTabs.isEmpty) {
       return;
     }
 
     final activeIndex = _tabs.indexWhere((tab) => tab.path == _activeTabPath);
-    final activeWasDeleted = activeIndex != -1 && isWithinWorkspaceFolder(_activeTabPath, normalizedPath);
+    final activeWasDeleted = activeIndex != -1 && _isAffectedWorkspaceTab(_tabs[activeIndex], normalizedPath);
     String? nextActivePath;
     if (activeWasDeleted) {
       for (var index = activeIndex + 1; index < _tabs.length; index++) {
         final candidate = _tabs[index];
-        if (!isWithinWorkspaceFolder(candidate.path, normalizedPath)) {
+        if (!_isAffectedWorkspaceTab(candidate, normalizedPath)) {
           nextActivePath = candidate.path;
           break;
         }
@@ -381,7 +443,7 @@ abstract mixin class TabsController<T> {
       if (nextActivePath == null) {
         for (var index = activeIndex - 1; index >= 0; index--) {
           final candidate = _tabs[index];
-          if (!isWithinWorkspaceFolder(candidate.path, normalizedPath)) {
+          if (!_isAffectedWorkspaceTab(candidate, normalizedPath)) {
             nextActivePath = candidate.path;
             break;
           }
@@ -411,8 +473,16 @@ abstract mixin class TabsController<T> {
     didUpdate();
   }
 
+  bool _isAffectedWorkspaceTab(EditorTab<T> tab, String path) =>
+      tab.origin == EditorTabOrigin.workspace && isWithinWorkspaceFolder(tab.path, path);
+
   void _cancelLoadsAtOrBelow(String path) {
-    final matchingPaths = _loadingTabs.keys.where((candidate) => isWithinWorkspaceFolder(candidate, path)).toList();
+    final matchingPaths = _loadingTabs.entries
+        .where(
+          (entry) => entry.value.origin == EditorTabOrigin.workspace && isWithinWorkspaceFolder(entry.key, path),
+        )
+        .map((entry) => entry.key)
+        .toList();
     for (final matchingPath in matchingPaths) {
       _loadingTabs.remove(matchingPath);
     }
@@ -457,6 +527,19 @@ abstract mixin class TabsController<T> {
   }
 }
 
+/// An open request invalidated by disposal, deletion, or moving its target.
+///
+/// Callers must stop navigation without reporting a file-loading error.
+final class TabOpenCancelledException implements Exception {
+  const TabOpenCancelledException();
+
+  @override
+  String toString() => 'Tab opening was cancelled.';
+}
+
 final class _PendingTabLoad {
+  _PendingTabLoad(this.origin);
+
+  final EditorTabOrigin origin;
   late final Future<void> future;
 }

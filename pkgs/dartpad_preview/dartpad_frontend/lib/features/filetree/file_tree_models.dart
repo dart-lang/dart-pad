@@ -165,7 +165,7 @@ final class FileTreeActions {
     required this.deleteFile,
     required this.deleteFolder,
     required this.moveEntry,
-    required this.openFile,
+    required this.openWorkspaceFile,
     required this.clearOperationError,
     required this.navigateUp,
     required this.focusPath,
@@ -193,7 +193,7 @@ final class FileTreeActions {
   final Future<void> Function(String sourcePath, String targetFolderPath) moveEntry;
 
   /// Opens the file at the supplied path.
-  final FutureOr<void> Function(String path) openFile;
+  final FutureOr<void> Function(String path) openWorkspaceFile;
 
   /// Clears the current operation error.
   final void Function() clearOperationError;

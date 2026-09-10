@@ -307,7 +307,7 @@ class AppState extends State<App> {
         workspaceChangeEvents: session.repository.workspaceResourceApi.changeEvents,
         documentEditsHandler: (filePath, edits) async {
           final tab = session.tabs.getTab(filePath);
-          if (tab is CodeMirrorTab) {
+          if (tab is WorkspaceCodeMirrorTab) {
             await tab.applyEdits(edits);
           } else {
             final file = session.repository.root.getFile(filePath);
@@ -316,7 +316,15 @@ class AppState extends State<App> {
             );
           }
         },
-        displayFileHandler: session.tabs.openFile,
+        displayFileHandler: (uri) {
+          final workspacePath = relativePathWithinWorkspace(
+            uri,
+            rootWorkspaceUri,
+          );
+          return workspacePath == null
+              ? session.tabs.openExternalFile(uri)
+              : session.tabs.openWorkspaceFile(workspacePath);
+        },
       );
       if (!_isCurrent(session)) {
         await languageServerClient.dispose();
@@ -593,7 +601,7 @@ class AppState extends State<App> {
       });
       session.fileTree.focusPath(project.projectDir);
       if (project.entryPath case final String entryPath) {
-        await session.tabs.openFile(entryPath);
+        await session.tabs.openWorkspaceFile(entryPath);
       }
 
       return project;
@@ -718,7 +726,11 @@ class AppState extends State<App> {
           onClearConsole: session.console.clear,
           events: session.events,
           onOpenDiagnostic: (fileName, diagnostic) {
-            unawaited(session.diagnostics.openDiagnostic(fileName, diagnostic));
+            unawaited(
+              session.diagnostics.openDiagnostic(fileName, diagnostic).catchError((Object _) {
+                // The tab model has already reported the load failure.
+              }),
+            );
           },
         ),
       ),
@@ -727,15 +739,16 @@ class AppState extends State<App> {
 
   Component _buildEditorOverlay(WorkspaceSession session) {
     return .fragment([
-      PubspecEditorActions(
-        activeFile: session.tabs.activeFile,
-        saveAllFiles: session.tabs.saveAllTabs,
-        events: session.events,
-        onPubGet: (workspacePath) => session.repository.pubGet(
-          path: workspacePath,
-          projectRoot: _projectDir,
+      if (session.tabs.activeTab?.origin == EditorTabOrigin.workspace)
+        PubspecEditorActions(
+          activeFile: session.tabs.activeFile,
+          saveAllFiles: session.tabs.saveAllTabs,
+          events: session.events,
+          onPubGet: (workspacePath) => session.repository.pubGet(
+            path: workspacePath,
+            projectRoot: _projectDir,
+          ),
         ),
-      ),
       ErrorToast(
         key: const ValueKey('editor-error-toast'),
         events: session.events,

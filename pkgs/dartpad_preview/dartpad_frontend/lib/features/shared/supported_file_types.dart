@@ -73,8 +73,8 @@ String? imageMimeTypeForPath(String path) {
 /// Whether [path] can be displayed as an image preview in the editor.
 bool isPreviewableImageFile(String path) => imageMimeTypeForPath(path) != null;
 
-/// Whether [path] can be represented as editable text.
-bool isEditableTextFile(String path) {
+/// Whether [path] is treated as text based on its file extension.
+bool isTextFile(String path) {
   final lower = path.toLowerCase();
   final dot = lower.lastIndexOf('.');
   if (dot == -1 || dot == lower.length - 1) {
@@ -83,6 +83,6 @@ bool isEditableTextFile(String path) {
   return !_binaryExtensions.contains(lower.substring(dot));
 }
 
-/// Whether [path] can be opened in a tab, either as editable text or
+/// Whether [path] can be opened in a tab, either as text or
 /// as a read-only image preview.
-bool isSupportedFile(String path) => isEditableTextFile(path) || isPreviewableImageFile(path);
+bool isSupportedFile(String path) => isTextFile(path) || isPreviewableImageFile(path);

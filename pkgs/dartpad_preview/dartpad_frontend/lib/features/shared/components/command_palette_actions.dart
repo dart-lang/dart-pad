@@ -316,8 +316,8 @@ Future<void> _executeFormatDocument(CommandContext context) async {
   if (session == null) {
     return;
   }
-  final tab = session.tabs.getTab(session.tabs.activeFile);
-  if (tab is CodeMirrorTab) {
+  final tab = session.tabs.activeTab;
+  if (tab is WorkspaceCodeMirrorTab) {
     await tab.editor.format();
   }
 }
