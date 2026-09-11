@@ -40537,6 +40537,57 @@ ${text}</tr>
         });
     }
 
+    /**
+     * Selects all occurrences of the currently selected text or surrounding word.
+     *
+     * Unlike CodeMirror's default `selectSelectionMatches`, this:
+     * 1. Automatically expands to the surrounding word when the selection is empty (like `selectNextOccurrence` / VS Code).
+     * 2. Works when multiple occurrences are already selected.
+     */
+    const selectAllOccurrences = ({ state, dispatch }) => {
+        let { main } = state.selection;
+        let from = main.from;
+        let to = main.to;
+        let fullWord = false;
+        if (main.empty) {
+            let word = state.wordAt(main.head);
+            if (!word)
+                return false;
+            from = word.from;
+            to = word.to;
+            fullWord = true;
+        }
+        else {
+            let word = state.wordAt(main.head);
+            fullWord = Boolean(word && word.from === main.from && word.to === main.to);
+        }
+        let text = state.sliceDoc(from, to);
+        if (!text)
+            return false;
+        let matches = [];
+        let mainIndex = 0;
+        for (let cur = new SearchCursor(state.doc, text); !cur.next().done;) {
+            if (matches.length > 1000)
+                return false;
+            if (fullWord) {
+                let w = state.wordAt(cur.value.from);
+                if (!w || w.from !== cur.value.from || w.to !== cur.value.to)
+                    continue;
+            }
+            if (cur.value.from <= from && cur.value.to >= to) {
+                mainIndex = matches.length;
+            }
+            matches.push(EditorSelection.range(cur.value.from, cur.value.to));
+        }
+        if (!matches.length)
+            return false;
+        dispatch(state.update({
+            selection: EditorSelection.create(matches, mainIndex),
+            userEvent: "select.search.matches",
+        }));
+        return true;
+    };
+
     // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
@@ -40652,13 +40703,23 @@ ${text}</tr>
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
     const extraKeymap = [
+        { key: "Mod-Shift-l", run: selectAllOccurrences, preventDefault: true },
+        { key: "Mod-Shift-L", run: selectAllOccurrences, preventDefault: true },
         { key: "Shift-Mod-\\", run: cursorMatchingBracket },
         { key: "Alt-m", run: cursorMatchingBracket },
-        { key: "Alt--", run: foldCode },
-        { key: "Alt-+", run: unfoldCode },
-        { key: "Alt-=", run: unfoldCode },
-        { key: "Alt-0", run: foldAll },
-        { key: "Alt-9", run: unfoldAll },
+        // macOS may report Option+M as "µ" in KeyboardEvent.key.
+        { key: "Alt-µ", run: cursorMatchingBracket, preventDefault: true },
+        { key: "Shift-Alt-f", run: formatDocument, preventDefault: true },
+        { key: "Shift-Alt-F", run: formatDocument, preventDefault: true },
+        // macOS may report Option+Shift+F as "Ï" in KeyboardEvent.key.
+        { key: "Shift-Alt-Ï", run: formatDocument, preventDefault: true },
+        { key: "Mod-Shift-7", run: toggleLineComment },
+        { key: "Mod-Shift-/", run: toggleLineComment },
+        { key: "Mod-Shift-Digit7", run: toggleLineComment },
+        { key: "Shift-Alt-a", run: toggleBlockComment, preventDefault: true },
+        { key: "Shift-Alt-A", run: toggleBlockComment, preventDefault: true },
+        // macOS may report Option+Shift+A as "Å" in KeyboardEvent.key.
+        { key: "Shift-Alt-Å", run: toggleBlockComment, preventDefault: true },
     ];
     /**
      * Returns all key binding strings registered in the given editor state.
@@ -40699,12 +40760,10 @@ ${text}</tr>
         lintGutter,
         linter,
         LSPPlugin,
-        formatDocument,
         formatDocumentAsync,
         dartpadTheme: dartpad,
         showPanel,
         syntaxHighlighting,
-        toggleLineComment,
         // custom extensions
         dartLanguage,
         yaml,

@@ -9,7 +9,6 @@ import 'dart:js_interop';
 
 import 'package:codemirror_lang_dart/codemirror_lang_dart.dart' show dartLanguage;
 
-import 'extensions.dart';
 import 'types.dart';
 
 @JS()
@@ -40,7 +39,7 @@ external JSAny sass();
 external JSAny sql();
 
 /// Returns the full Dart editor extension bundle as a jsified array:
-/// `[LanguageSupport, languageData (commentTokens), keymap (toggle comment)]`.
+/// `[LanguageSupport, languageData (commentTokens)]`.
 ///
 /// **Not to be confused with [dartLanguage]**, which returns a single
 /// `LanguageSupport` object. Use [dartLanguage] when only the language
@@ -67,26 +66,6 @@ JSObject dart() {
   return [
         language,
         EditorState.languageData.of(languageDataProvider),
-        keymapOf(
-          [
-            KeyBinding(
-              key: 'Mod-/'.toJS,
-              run: toggleLineComment,
-            ),
-            KeyBinding(
-              key: 'Mod-Shift-7'.toJS,
-              run: toggleLineComment,
-            ),
-            KeyBinding(
-              key: 'Mod-Shift-/'.toJS,
-              run: toggleLineComment,
-            ),
-            KeyBinding(
-              key: 'Mod-Shift-Digit7'.toJS,
-              run: toggleLineComment,
-            ),
-          ].toJS,
-        ),
       ].jsify()
       as JSObject;
 }

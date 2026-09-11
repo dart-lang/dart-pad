@@ -31,11 +31,10 @@ void main() {
       'lintGutter',
       'linter',
       'LSPPlugin',
-      'formatDocument',
+      'formatDocumentAsync',
       'dartpadTheme',
       'showPanel',
       'syntaxHighlighting',
-      'toggleLineComment',
       'dartLanguage',
       'yaml',
       'markdown',
@@ -340,5 +339,208 @@ void main() {
 
     // Cursor should have jumped to matching '}' (index 14 / after '}')
     expect(view.state.selection.main.head, 14);
+  });
+
+  test('extraKeymap Shift-Alt-Å toggles block comment', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(
+          EditorStateConfig(
+            doc: 'print("hello");'.toJS,
+            selection: EditorSelection.single(0, 15),
+            extensions: <JSAny>[
+              keymapOf(extraKeymap),
+              basicSetup,
+              dart(),
+            ].toJS,
+          ),
+        ),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    final content = view.dom.querySelector('.cm-content')!;
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: 'Å',
+          altKey: true,
+          shiftKey: true,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    expect(view.state.doc.toJsString().toDart, '/* print("hello"); */');
+  });
+
+  test('extraKeymap Alt-µ jumps cursor to matching bracket', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(
+          EditorStateConfig(
+            doc: 'void main() {}'.toJS,
+            selection: EditorSelection.single(12), // at '{'
+            extensions: <JSAny>[
+              keymapOf(extraKeymap),
+              basicSetup,
+              dart(),
+            ].toJS,
+          ),
+        ),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    expect(view.state.selection.main.head, 12);
+
+    final content = view.dom.querySelector('.cm-content')!;
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: 'µ',
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    expect(view.state.selection.main.head, 14);
+  });
+
+  test('extraKeymap Mod-Shift-l selects all occurrences from cursor inside a word', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(
+          EditorStateConfig(
+            doc: 'int count = 0; count++; print(count);'.toJS,
+            selection: EditorSelection.single(6), // inside first "count"
+            extensions: <JSAny>[
+              keymapOf(extraKeymap),
+              basicSetup,
+              dart(),
+            ].toJS,
+          ),
+        ),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    final isMac = web.window.navigator.platform.toLowerCase().contains('mac');
+    final content = view.dom.querySelector('.cm-content')!;
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: 'L',
+          metaKey: isMac,
+          ctrlKey: !isMac,
+          shiftKey: true,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    expect(view.state.selection.ranges.length, 3);
+    for (int i = 0; i < view.state.selection.ranges.length; i++) {
+      final range = view.state.selection.ranges[i];
+      final text = view.state.sliceDoc(range.from, range.to).toDart;
+      expect(text, 'count');
+    }
+  });
+
+  test('foldCode and unfoldCode fold and unfold line with bracket shortcuts', () {
+    final parent = web.HTMLDivElement();
+    web.document.body!.append(parent);
+
+    final view = EditorView(
+      EditorViewConfig(
+        parent: parent,
+        state: EditorState.create(
+          EditorStateConfig(
+            doc: 'void main() {\n  print("hello");\n}\n'.toJS,
+            selection: EditorSelection.single(0), // line 1
+            extensions: <JSAny>[
+              basicSetup,
+              dart(),
+            ].toJS,
+          ),
+        ),
+      ),
+    );
+
+    addTearDown(() {
+      view.destroy();
+      parent.remove();
+    });
+
+    final isMac = web.window.navigator.platform.toLowerCase().contains('mac');
+    final content = view.dom.querySelector('.cm-content')!;
+
+    // Dispatch fold shortcut: Cmd-Alt-[ on macOS, Ctrl-Shift-[ on others
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: '[',
+          metaKey: isMac,
+          altKey: isMac,
+          ctrlKey: !isMac,
+          shiftKey: !isMac,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    // A fold widget (.cm-foldPlaceholder) should appear in the DOM
+    expect(view.dom.querySelector('.cm-foldPlaceholder'), isNotNull);
+
+    // Dispatch unfold shortcut: Cmd-Alt-] on macOS, Ctrl-Shift-] on others
+    content.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: ']',
+          metaKey: isMac,
+          altKey: isMac,
+          ctrlKey: !isMac,
+          shiftKey: !isMac,
+          bubbles: true,
+          cancelable: true,
+        ),
+      ),
+    );
+
+    expect(view.dom.querySelector('.cm-foldPlaceholder'), isNull);
   });
 }

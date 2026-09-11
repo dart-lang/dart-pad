@@ -105,15 +105,15 @@ const _undocumentedShortcutGroups = <String, List<String>>{
     'Mod-u',
     'Alt-u',
     'Mod-Shift-u',
-    'Cmd-Alt-[',
-    'Cmd-Alt-]',
   ],
   'DartPad save command, which is intentionally not shown in the shortcuts dialog.': ['Mod-s'],
-  'Alternative browser and keyboard-layout bindings for documented comment commands.': [
+  'Alternative browser and keyboard-layout bindings for documented commands.': [
     'Mod-Shift-7',
     'Mod-Shift-/',
     'Mod-Shift-Digit7',
     'Shift-Alt-Ï',
+    'Shift-Alt-Å',
+    'Alt-µ',
   ],
 };
 
@@ -143,6 +143,7 @@ final class _TestLanguageServerClient implements LanguageServerClient {
 void main() {
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
+    script.charset = 'utf-8';
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
     script.src = 'packages/codemirror_dart/assets/codemirror-dart.bundle.js';
     web.document.head!.appendChild(script);

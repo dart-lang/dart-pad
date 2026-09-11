@@ -11,6 +11,7 @@ import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/editor_context_menu.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
+import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -76,7 +77,7 @@ void main() {
       expect(items[4], isA<ContextMenuItem>());
       final item4 = items[4] as ContextMenuItem;
       expect(item4.label, 'Format document');
-      expect(item4.shortcut, 'Shift + Alt + F');
+      expect(item4.shortcut, resolveDisplayKey('Alt + Shift + F'));
 
       // Divider
       expect(items[5], isA<ContextMenuDivider>());
