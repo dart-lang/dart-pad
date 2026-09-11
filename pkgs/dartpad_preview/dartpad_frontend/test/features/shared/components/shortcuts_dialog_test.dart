@@ -129,18 +129,14 @@ void main() {
     final findNextAlternatives = findNextRow.querySelectorAll('.shortcuts-dialog-alternative');
     expect(findNextAlternatives.length, 1);
 
-    // Command with multiple key combos (Fold code)
+    // Single combo command with platform-specific key (Fold code)
     final foldCodeRow = findRow('Fold code');
     expect(foldCodeRow, isNotNull);
     final foldCodeKeys = foldCodeRow!.querySelectorAll('.shortcuts-dialog-key');
-    expect(foldCodeKeys.length, 2);
-    expect(foldCodeKeys.item(0)?.textContent, 'Ctrl + Shift + [');
-    expect(foldCodeKeys.item(1)?.textContent, 'Alt + -');
+    expect(foldCodeKeys.length, 1);
+    expect(foldCodeKeys.item(0)?.textContent, ShortcutDefinition.foldCode.resolvedDisplayKey);
     final foldCodeSeparator = foldCodeRow.querySelectorAll('.shortcuts-dialog-separator');
-    expect(foldCodeSeparator.length, 1);
-    expect(foldCodeSeparator.item(0)?.textContent, 'or');
-    final foldCodeAlternatives = foldCodeRow.querySelectorAll('.shortcuts-dialog-alternative');
-    expect(foldCodeAlternatives.length, 1);
+    expect(foldCodeSeparator.length, 0);
 
     // Single combo command (Open command palette)
     final commandPaletteRow = findRow('Open command palette');
@@ -168,6 +164,29 @@ void main() {
       expect(multiple.displayKey, 'F3 or Mod + G');
       expect(multiple.resolvedDisplayKeys, ['F3', resolveDisplayKey('Mod + G')]);
       expect(multiple.resolvedDisplayKey, 'F3 or ${resolveDisplayKey('Mod + G')}');
+
+      const altShortcut = ShortcutDefinition(label: 'Format', displayKey: 'Alt + Shift + F');
+      expect(altShortcut.resolvedDisplayKeys, [resolveDisplayKey('Alt + Shift + F')]);
+      expect(altShortcut.resolvedDisplayKey, resolveDisplayKey('Alt + Shift + F'));
+    });
+
+    test('resolves Alt to ⌥ on macOS and Alt on other platforms', () {
+      expect(resolveDisplayKey('Alt + F', onMac: true), '⌥ + F');
+      expect(resolveDisplayKey('Alt + F', onMac: false), 'Alt + F');
+      expect(resolveDisplayKey('Alt + Shift + ↑ / ↓', onMac: true), '⌥ + Shift + ↑ / ↓');
+      expect(resolveDisplayKey('Alt + Shift + ↑ / ↓', onMac: false), 'Alt + Shift + ↑ / ↓');
+      expect(resolveDisplayKey('Mod + Alt + G', onMac: true), '⌘ + ⌥ + G');
+      expect(resolveDisplayKey('Mod + Alt + G', onMac: false), 'Ctrl + Alt + G');
+    });
+
+    test('resolves <mac: ... | other: ...> syntax in resolveDisplayKey', () {
+      const key = '<mac: Mod + Alt + [ | other: Ctrl + Shift + [>';
+      expect(resolveDisplayKey(key, onMac: true), '⌘ + ⌥ + [');
+      expect(resolveDisplayKey(key, onMac: false), 'Ctrl + Shift + [');
+
+      const foldCode = ShortcutDefinition.foldCode;
+      expect(resolveDisplayKey(foldCode.displayKey, onMac: true), '⌘ + ⌥ + [');
+      expect(resolveDisplayKey(foldCode.displayKey, onMac: false), 'Ctrl + Shift + [');
     });
   });
 }

@@ -356,26 +356,6 @@ JSAny _languageExtension(String fileName, [LanguageServerClient? languageServerC
     'dart' => [
       cm.dart(),
       if (languageServerClient case final lsc?) lsc.createCodeMirrorExtension(fileName),
-      cm.keymapOf(
-        [
-          cm.KeyBinding(
-            key: 'Shift-Alt-f'.toJS,
-            run: cm.formatDocument,
-            preventDefault: true,
-          ),
-          cm.KeyBinding(
-            key: 'Shift-Alt-F'.toJS,
-            run: cm.formatDocument,
-            preventDefault: true,
-          ),
-          // macOS may report Option+Shift+F as "Ï" in KeyboardEvent.key.
-          cm.KeyBinding(
-            key: 'Shift-Alt-Ï'.toJS,
-            run: cm.formatDocument,
-            preventDefault: true,
-          ),
-        ].toJS,
-      ),
     ].toJS,
     'yaml' || 'yml' || 'lock' => cm.yaml(),
     'md' => cm.markdown(),

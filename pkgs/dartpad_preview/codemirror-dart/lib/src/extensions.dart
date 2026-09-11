@@ -45,12 +45,6 @@ external JSAny get indentWithTab;
 @JS('keymap.of')
 external JSAny keymapOf(JSArray<KeyBinding> bindings);
 
-@JS()
-external JSFunction get toggleLineComment;
-
-@JS()
-external JSFunction get formatDocument;
-
 /// Formats [view] and resolves after the returned edits have been applied.
 @JS()
 external JSPromise<JSBoolean> formatDocumentAsync(EditorView view);
