@@ -41,6 +41,7 @@ final class CodeMirrorEditor {
   /// - [onCodeActionRequested] is triggered on Cmd/Ctrl+. keypress.
   /// - [onQuickFixRequested] is triggered from a diagnostic hover action.
   /// - [onQuickFixAvailabilityRequested] controls whether that action is shown.
+  /// - [readOnly] prevents both user-initiated and programmatic document changes.
   factory CodeMirrorEditor(
     web.HTMLElement element, {
     required String file,
@@ -53,6 +54,7 @@ final class CodeMirrorEditor {
     void Function(int from, int to)? onQuickFixRequested,
     Future<bool> Function(int from, int to)? onQuickFixAvailabilityRequested,
     LanguageServerClient? languageServerClient,
+    bool readOnly = false,
   }) {
     final langCompartment = cm.Compartment();
 
@@ -113,6 +115,11 @@ final class CodeMirrorEditor {
               }
             }).toJS,
           ),
+          if (readOnly) cm.EditorState.readOnly.of(true.toJS),
+          if (readOnly)
+            cm.EditorState.changeFilter.of(
+              ((JSObject _) => false.toJS).toJS,
+            ),
           langCompartment.of(_languageExtension(file, languageServerClient)),
           if (onCodeActionRequested != null)
             cm.keymapOf(

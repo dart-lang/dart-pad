@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Text } from "@codemirror/state";
+import { EditorState, Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { LSPPlugin } from "@codemirror/lsp-client";
 
@@ -75,6 +75,23 @@ test("displayFile waits until the requested editor is mounted", async () => {
   assert.equal(await display, view);
 });
 
+test("displayFile propagates failures from the display callback", async () => {
+  const client = {
+    didOpen() {},
+    didClose() {},
+  };
+  const expectedError = new Error("external file could not be loaded");
+  const workspace = new CMWorkspace(client, async () => {
+    throw expectedError;
+  });
+  const uri = "file:///sdk/lib/core.dart";
+
+  await assert.rejects(workspace.displayFile(uri), expectedError);
+
+  // A failed display must not leave a stale pending callback behind.
+  assert.doesNotThrow(() => workspace.openFile(uri, "dart", fakeView("")));
+});
+
 test("syncFiles returns and clears only unsynchronized changes", () => {
   const client = {
     didOpen() {},
@@ -116,6 +133,20 @@ test("syncFiles returns and clears only unsynchronized changes", () => {
   } finally {
     LSPPlugin.get = originalGet;
   }
+});
+
+test("read-only formatting does not access the LSP plugin", async () => {
+  const view = {
+    state: EditorState.create({ extensions: [EditorState.readOnly.of(true)] }),
+  } as EditorView;
+
+  assert.equal(formatDocument(view), true);
+  assert.equal(
+    await formatDocumentAsync(view, () => {
+      assert.fail("read-only formatting must not access the LSP plugin");
+    }),
+    false,
+  );
 });
 
 test("formatDocumentAsync resolves after formatting edits are dispatched", async () => {

@@ -7,6 +7,15 @@ import 'dart:async';
 import '../workspace/workspace_path.dart';
 import 'tabs_controller.dart';
 
+/// Identifies whether a tab is backed by a project workspace resource.
+enum EditorTabOrigin {
+  /// A regular project file that participates in workspace operations.
+  workspace,
+
+  /// A file outside the project, opened by URI for read-only navigation.
+  external,
+}
+
 /// Represents a tab in the editor workspace associated with a specific file path.
 ///
 /// The type parameter [T] is the UI representation returned by [build].
@@ -14,13 +23,22 @@ import 'tabs_controller.dart';
 /// Implementations of [EditorTab] specify how to build the tab's UI (via [build])
 /// and handle lifecycle events.
 abstract class EditorTab<T> {
-  EditorTab(this.path);
+  EditorTab(this.path, {this.origin = EditorTabOrigin.workspace});
 
   /// The file path associated with this tab.
   String path;
 
-  /// The display name of the tab, derived from the file path.
-  String get name => workspacePath.basename(path);
+  /// Whether this tab belongs to the project workspace or an external URI.
+  final EditorTabOrigin origin;
+
+  /// The path shown in the UI, without the scheme of an external URI (dont show "file:").
+  String get displayPath => switch (origin) {
+    EditorTabOrigin.workspace => path,
+    EditorTabOrigin.external => Uri.parse(path).path,
+  };
+
+  /// The display name of the tab, derived from [displayPath].
+  String get name => workspacePath.basename(displayPath);
 
   /// Whether this tab should remain in memory after it is closed.
   ///
@@ -73,7 +91,12 @@ abstract class EditorTabAdapter<T> {
   /// Disposes of any resources held by this adapter.
   void dispose() {}
 
-  /// Creates a new [EditorTab] for the given [path], or returns `null`
+  /// Creates a new [EditorTab] for the workspace-relative [path], or returns `null`
   /// if this adapter does not handle the given path.
-  Future<EditorTab<T>?> createTab(String path);
+  Future<EditorTab<T>?> createWorkspaceTab(String path);
+
+  /// Creates a read-only tab for a file outside the project workspace.
+  ///
+  /// Adapters that do not support URI-based external files return `null`.
+  Future<EditorTab<T>?> createExternalTab(Uri uri) => Future.value(null);
 }

@@ -26,6 +26,7 @@ type PluginLookup = (view: EditorView) => LSPPlugin | null;
  * Starts formatting from a synchronous CodeMirror command such as a keymap.
  */
 export const formatDocument: Command = (view) => {
+  if (view.state.readOnly) return true;
   const plugin = LSPPlugin.get(view);
   if (!plugin) return false;
 
@@ -40,6 +41,7 @@ export async function formatDocumentAsync(
   view: EditorView,
   getPlugin: PluginLookup = LSPPlugin.get,
 ): Promise<boolean> {
+  if (view.state.readOnly) return false;
   const plugin = getPlugin(view);
   if (!plugin) return false;
 

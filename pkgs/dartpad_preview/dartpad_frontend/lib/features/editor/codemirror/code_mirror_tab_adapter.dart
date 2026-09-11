@@ -11,7 +11,7 @@ import 'package:web/web.dart' as web;
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/context_menu.dart';
-import '../../shared/editable_text_file.dart';
+import '../../shared/supported_file_types.dart';
 import 'code_mirror_tab.dart';
 
 /// Creates text tabs and synchronizes them with workspace and LSP changes.
@@ -21,11 +21,15 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     this.contextMenu,
     this.events,
     this.onRun,
+    this.readExternalFile,
   });
 
   final ContextMenuController? contextMenu;
   final AppEventBus? events;
   final void Function()? onRun;
+
+  /// Reads URI-addressed files that are outside the project workspace.
+  final Future<String> Function(Uri uri)? readExternalFile;
 
   TabsController<Component>? _tabs;
   LanguageServerClient? _languageServerClient;
@@ -49,16 +53,16 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   }
 
   @override
-  Future<EditorTab<Component>?> createTab(String path) async {
+  Future<EditorTab<Component>?> createWorkspaceTab(String path) async {
     final tabs = _tabs;
     if (tabs == null) {
       return null;
     }
-    if (!isEditableTextFile(path)) {
+    if (!isTextFile(path)) {
       return null;
     }
     final content = await tabs.workspaceResourceApi.root.getFile(path).readContent();
-    return CodeMirrorTab(
+    return WorkspaceCodeMirrorTab(
       path: path,
       content: content,
       onSaveAll: _saveAll,
@@ -67,6 +71,20 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       languageServerClient: _languageServerClient,
       contextMenu: contextMenu,
       events: events,
+    );
+  }
+
+  @override
+  Future<EditorTab<Component>?> createExternalTab(Uri uri) async {
+    final reader = readExternalFile;
+    if (_tabs == null || reader == null || !isTextFile(uri.path)) {
+      return null;
+    }
+    return ExternalCodeMirrorTab(
+      uri: uri,
+      content: await reader(uri),
+      onRun: onRun,
+      languageServerClient: _languageServerClient,
     );
   }
 
