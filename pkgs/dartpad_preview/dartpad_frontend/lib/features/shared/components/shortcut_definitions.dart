@@ -22,9 +22,7 @@ String resolveDisplayKey(String key, {bool? onMac}) {
   final platformResolved = key.replaceAllMapped(_platformPattern, (m) {
     return mac ? m[1]! : m[2]!;
   });
-  return platformResolved
-      .replaceAll('Mod', mac ? '⌘' : 'Ctrl')
-      .replaceAll('Alt', mac ? '⌥' : 'Alt');
+  return platformResolved.replaceAll('Mod', mac ? '⌘' : 'Ctrl').replaceAll('Alt', mac ? '⌥' : 'Alt');
 }
 
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
