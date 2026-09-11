@@ -120,9 +120,9 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
 
     if (_isRenaming) {
       return FileTreeInputItem(
-        initialValue: component.node.resource.shortName,
+        initialValue: component.node.resource.basename,
         depth: component.depth,
-        icon: _fileIcon(component.node.resource.shortName),
+        icon: _fileIcon(component.node.resource.basename),
         checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
         onConfirm: (newName) async {
           setState(() {
@@ -183,8 +183,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       },
       children: [
         const span(classes: 'file-tree-disclosure spacer', []),
-        _fileIcon(component.node.resource.shortName),
-        span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
+        _fileIcon(component.node.resource.basename),
+        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
       ],
     );
   }

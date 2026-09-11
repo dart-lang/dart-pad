@@ -25,6 +25,19 @@ Future<MemoryWorkspaceResourceApi> createPopulatedWorkspace({
 }
 
 void main() {
+  test('basename returns the final path component', () {
+    final workspace = MemoryWorkspaceResourceApi();
+
+    expect(
+      WorkspaceFile(workspace: workspace, path: 'lib/main.dart').basename,
+      'main.dart',
+    );
+    expect(
+      WorkspaceFolder(workspace: workspace, path: 'src/components').basename,
+      'components',
+    );
+  });
+
   test('shared target validation rejects existing files and folders', () async {
     final workspace = await createPopulatedWorkspace(
       folders: ['lib', 'lib/existing'],

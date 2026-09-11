@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_editor/src/workspace/workspace_events.dart' show WorkspaceResourceEventsMixin;
 import 'package:test/test.dart';
 
 // ---------------------------------------------------------------------------
