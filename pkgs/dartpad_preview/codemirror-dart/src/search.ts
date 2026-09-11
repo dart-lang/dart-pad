@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import { StateCommand, EditorSelection, SelectionRange } from "@codemirror/state";
+import {
+  StateCommand,
+  EditorSelection,
+  SelectionRange,
+} from "@codemirror/state";
 import { SearchCursor } from "@codemirror/search";
 
 /**

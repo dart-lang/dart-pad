@@ -506,12 +506,15 @@ void main() {
     final isMac = web.window.navigator.platform.toLowerCase().contains('mac');
     final content = view.dom.querySelector('.cm-content')!;
 
-    // Dispatch fold shortcut: Cmd-Alt-[ on macOS, Ctrl-Shift-[ on others
+    // Dispatch fold shortcut: Cmd-Alt-[ on macOS, Ctrl-Shift-[ on others.
+    // On non-Mac keyboards, Shift+[ produces '{' with keyCode 219.
     content.dispatchEvent(
       web.KeyboardEvent(
         'keydown',
         web.KeyboardEventInit(
-          key: '[',
+          key: isMac ? '[' : '{',
+          code: 'BracketLeft',
+          keyCode: 219,
           metaKey: isMac,
           altKey: isMac,
           ctrlKey: !isMac,
@@ -525,12 +528,15 @@ void main() {
     // A fold widget (.cm-foldPlaceholder) should appear in the DOM
     expect(view.dom.querySelector('.cm-foldPlaceholder'), isNotNull);
 
-    // Dispatch unfold shortcut: Cmd-Alt-] on macOS, Ctrl-Shift-] on others
+    // Dispatch unfold shortcut: Cmd-Alt-] on macOS, Ctrl-Shift-] on others.
+    // On non-Mac keyboards, Shift+] produces '}' with keyCode 221.
     content.dispatchEvent(
       web.KeyboardEvent(
         'keydown',
         web.KeyboardEventInit(
-          key: ']',
+          key: isMac ? ']' : '}',
+          code: 'BracketRight',
+          keyCode: 221,
           metaKey: isMac,
           altKey: isMac,
           ctrlKey: !isMac,
