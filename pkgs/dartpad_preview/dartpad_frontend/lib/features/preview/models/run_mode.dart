@@ -5,8 +5,13 @@
 /// Execution modes exposed by the DartPad sandbox.
 enum RunMode {
   /// Pure Dart console application execution.
-  console,
+  console('console'),
 
   /// Flutter web application execution.
-  flutter,
+  flutter('flutter');
+
+  const RunMode(this.mode);
+
+  /// The string identifier used by the preview sandbox protocol.
+  final String mode;
 }
