@@ -177,7 +177,7 @@ export function createLspClient(
         },
       },
       serverCompletion(),
-      [lspHoverTooltips({ hoverTime: 800 })],
+      [lspHoverTooltips({ hoverTime: 300 })],
       [
         keymap.of([
           ...formatKeymap,
@@ -234,7 +234,7 @@ class CMWorkspaceFile implements WorkspaceFile {
     public version: number,
     public doc: Text,
     public view: EditorView | null,
-  ) {}
+  ) { }
 
   getView() {
     return this.view;
