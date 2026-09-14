@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
 
 import 'examples.g.dart';
