@@ -9,20 +9,14 @@ final isMac =
     web.window.navigator.platform.toLowerCase().contains('mac') ||
     web.window.navigator.userAgent.toLowerCase().contains('mac');
 
-final _platformPattern = RegExp(r'<mac:\s*(.*?)\s*\|\s*other:\s*(.*?)>');
-
 /// Resolves platform-agnostic modifier placeholders and platform conditionals
 /// in a display key string.
 ///
-/// - `<mac: A | other: B>` → `A` on macOS, `B` on other platforms.
 /// - `Mod` → `⌘` on macOS, `Ctrl` on other platforms.
 /// - `Alt` → `⌥` on macOS, `Alt` on other platforms.
 String resolveDisplayKey(String key, {bool? onMac}) {
   final mac = onMac ?? isMac;
-  final platformResolved = key.replaceAllMapped(_platformPattern, (m) {
-    return mac ? m[1]! : m[2]!;
-  });
-  return platformResolved.replaceAll('Mod', mac ? '⌘' : 'Ctrl').replaceAll('Alt', mac ? '⌥' : 'Alt');
+  return key.replaceAll('Mod', mac ? '⌘' : 'Ctrl').replaceAll('Alt', mac ? '⌥' : 'Alt');
 }
 
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
@@ -79,14 +73,12 @@ final class ShortcutDefinition {
   ///
   /// Returns a single-element list if defined via [displayKey], or the alternative
   /// key combinations if defined via [displayKeys].
-  /// May contain unresolved `Mod` placeholders or `<mac: ... | other: ...>` syntax.
   /// Use [resolvedDisplayKeys] for UI rendering.
   List<String> get displayKeys => _alternativeDisplayKeys ?? [_singleDisplayKey!];
 
   /// Display string shown in single-string contexts (e.g. context menus).
   ///
   /// When multiple display keys are defined, they are joined with `' or '`.
-  /// May contain unresolved `Mod` placeholders or `<mac: ... | other: ...>` syntax.
   /// Use [resolvedDisplayKey] for UI rendering.
   String get displayKey => _singleDisplayKey ?? _alternativeDisplayKeys!.join(' or ');
 
@@ -286,34 +278,34 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const foldCode = ShortcutDefinition(
+  static final foldCode = ShortcutDefinition.alternatives(
     label: 'Fold code',
-    displayKey: '<mac: Mod + Alt + [ | other: Ctrl + Shift + [>',
-    codemirrorKeys: ['Ctrl-Shift-[', 'Cmd-Alt-['],
+    displayKeys: isMac ? ['Mod + Alt + ['] : ['Ctrl + Shift + [', 'Alt + -'],
+    codemirrorKeys: ['Cmd-Alt-[', 'Ctrl-Shift-[', 'Alt--'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const unfoldCode = ShortcutDefinition(
+  static final unfoldCode = ShortcutDefinition.alternatives(
     label: 'Unfold code',
-    displayKey: '<mac: Mod + Alt + ] | other: Ctrl + Shift + ]>',
-    codemirrorKeys: ['Ctrl-Shift-]', 'Cmd-Alt-]'],
+    displayKeys: isMac ? ['Mod + Alt + ]'] : ['Ctrl + Shift + ]', 'Alt + +'],
+    codemirrorKeys: ['Cmd-Alt-]', 'Ctrl-Shift-]', 'Alt-+', 'Alt-='],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const foldAll = ShortcutDefinition(
+  static final foldAll = ShortcutDefinition.alternatives(
     label: 'Fold all',
-    displayKey: 'Ctrl + Alt + [',
-    codemirrorKeys: ['Ctrl-Alt-['],
+    displayKeys: ['Ctrl + Alt + [', if (!isMac) 'Alt + 0'],
+    codemirrorKeys: ['Ctrl-Alt-[', 'Alt-0'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const unfoldAll = ShortcutDefinition(
+  static final unfoldAll = ShortcutDefinition.alternatives(
     label: 'Unfold all',
-    displayKey: 'Ctrl + Alt + ]',
-    codemirrorKeys: ['Ctrl-Alt-]'],
+    displayKeys: ['Ctrl + Alt + ]', if (!isMac) 'Alt + 9'],
+    codemirrorKeys: ['Ctrl-Alt-]', 'Alt-9'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
@@ -356,7 +348,7 @@ final class ShortcutDefinition {
 ///
 /// Display keys use `Mod` and `Alt` as platform-agnostic placeholders for modifier
 /// keys. Call [resolveDisplayKey] to get the platform-specific string.
-const shortcutDefinitions = <ShortcutDefinition>[
+final shortcutDefinitions = <ShortcutDefinition>[
   // ── View ─────────────────────────────────────────────────────────────────
   ShortcutDefinition.commandPalette,
 

@@ -178,15 +178,5 @@ void main() {
       expect(resolveDisplayKey('Mod + Alt + G', onMac: true), '⌘ + ⌥ + G');
       expect(resolveDisplayKey('Mod + Alt + G', onMac: false), 'Ctrl + Alt + G');
     });
-
-    test('resolves <mac: ... | other: ...> syntax in resolveDisplayKey', () {
-      const key = '<mac: Mod + Alt + [ | other: Ctrl + Shift + [>';
-      expect(resolveDisplayKey(key, onMac: true), '⌘ + ⌥ + [');
-      expect(resolveDisplayKey(key, onMac: false), 'Ctrl + Shift + [');
-
-      const foldCode = ShortcutDefinition.foldCode;
-      expect(resolveDisplayKey(foldCode.displayKey, onMac: true), '⌘ + ⌥ + [');
-      expect(resolveDisplayKey(foldCode.displayKey, onMac: false), 'Ctrl + Shift + [');
-    });
   });
 }

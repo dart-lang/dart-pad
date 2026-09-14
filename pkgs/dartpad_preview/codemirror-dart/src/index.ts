@@ -38,6 +38,10 @@ import {
   defaultHighlightStyle,
   HighlightStyle,
   indentUnit,
+  foldCode,
+  unfoldCode,
+  foldAll,
+  unfoldAll,
 } from "@codemirror/language";
 import { lintGutter, linter } from "@codemirror/lint";
 import { LSPPlugin } from "@codemirror/lsp-client";
@@ -68,6 +72,11 @@ export const extraKeymap: readonly KeyBinding[] = [
   { key: "Shift-Alt-A", run: toggleBlockComment, preventDefault: true },
   // macOS may report Option+Shift+A as "Å" in KeyboardEvent.key.
   { key: "Shift-Alt-Å", run: toggleBlockComment, preventDefault: true },
+  { key: "Alt--", run: foldCode },
+  { key: "Alt-+", run: unfoldCode },
+  { key: "Alt-=", run: unfoldCode },
+  { key: "Alt-0", run: foldAll },
+  { key: "Alt-9", run: unfoldAll },
 ];
 
 declare global {

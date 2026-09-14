@@ -40723,6 +40723,11 @@ ${text}</tr>
         { key: "Shift-Alt-A", run: toggleBlockComment, preventDefault: true },
         // macOS may report Option+Shift+A as "Å" in KeyboardEvent.key.
         { key: "Shift-Alt-Å", run: toggleBlockComment, preventDefault: true },
+        { key: "Alt--", run: foldCode },
+        { key: "Alt-+", run: unfoldCode },
+        { key: "Alt-=", run: unfoldCode },
+        { key: "Alt-0", run: foldAll },
+        { key: "Alt-9", run: unfoldAll },
     ];
     /**
      * Returns all key binding strings registered in the given editor state.
