@@ -114,8 +114,8 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
 
   @override
   Component build(BuildContext context) {
-    final fileName = workspaceContext.basename(component.activeFile);
-    final directory = workspaceContext.dirname(component.activeFile);
+    final fileName = basenameWorkspacePath(component.activeFile);
+    final directory = parentWorkspacePath(component.activeFile);
     final isPubspecFile = fileName == 'pubspec.yaml' || fileName == 'pubspec.lock';
 
     // Keep the stateful component's root render object stable while switching

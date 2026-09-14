@@ -146,8 +146,7 @@ final class FileTreeState {
     required String currentPath,
     required String newName,
   }) {
-    final parentPath = currentPath.contains('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
-    final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
+    final newPath = joinWorkspacePath(parentWorkspacePath(currentPath), newName);
     if (newPath != currentPath && root.exists(newPath)) {
       return 'A file or folder already exists at "$newPath".';
     }

@@ -85,27 +85,27 @@ final class FileTreeViewModel extends ChangeNotifier {
   );
 
   /// Whether the file at [path] is required by DartPad Preview.
-  bool isProtectedFile(String path) => protectedPaths.contains(workspaceContext.normalize(path));
+  bool isProtectedFile(String path) => protectedPaths.contains(normalizeWorkspacePath(path));
 
   /// Whether [path] is or contains a file required by DartPad Preview.
   bool isProtectedFolder(String path) {
-    final normalized = workspaceContext.normalize(path);
-    return protectedPaths.any((protectedPath) => workspaceContext.isWithinFolder(protectedPath, normalized));
+    final normalized = normalizeWorkspacePath(path);
+    return protectedPaths.any((protectedPath) => isWithinWorkspaceFolder(protectedPath, normalized));
   }
 
   /// Whether [path] has unsaved changes.
   ///
   /// When [folder] is true, descendants of [path] are checked as well.
   bool hasDirtyEntry(String path, {required bool folder}) {
-    final normalized = workspaceContext.normalize(path);
+    final normalized = normalizeWorkspacePath(path);
     return tabs.dirtyFiles.any(
-      (dirtyPath) => folder ? workspaceContext.isWithinFolder(dirtyPath, normalized) : dirtyPath == normalized,
+      (dirtyPath) => folder ? isWithinWorkspaceFolder(dirtyPath, normalized) : dirtyPath == normalized,
     );
   }
 
   /// Creates a file in the target folder.
   Future<void> createFile(String parentPath, String name) async {
-    final targetPath = workspaceContext.join(parentPath, name);
+    final targetPath = joinWorkspacePath(parentPath, name);
     await _runMutation(() async {
       await workspace.ensureTargetAvailable(
         sourcePath: '',
@@ -120,7 +120,7 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// Creates a folder in the target folder.
   Future<void> createFolder(String parentPath, String name) async {
-    final targetPath = workspaceContext.join(parentPath, name);
+    final targetPath = joinWorkspacePath(parentPath, name);
     await _runMutation(() async {
       await workspace.ensureTargetAvailable(
         sourcePath: '',
@@ -134,7 +134,7 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// Renames the file at [oldPath].
   Future<void> renameFile(String oldPath, String newName) async {
-    final newPath = workspaceContext.join(workspaceContext.dirname(oldPath), newName);
+    final newPath = joinWorkspacePath(parentWorkspacePath(oldPath), newName);
     if (newPath == oldPath) {
       return;
     }
@@ -148,7 +148,7 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// Renames the folder at [oldPath].
   Future<void> renameFolder(String oldPath, String newName) async {
-    final newPath = workspaceContext.join(workspaceContext.dirname(oldPath), newName);
+    final newPath = joinWorkspacePath(parentWorkspacePath(oldPath), newName);
     if (newPath == oldPath) {
       return;
     }
@@ -192,16 +192,19 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// Moves the entry into [targetFolderPath].
   Future<void> moveEntry(String sourcePath, String targetFolderPath) async {
-    final isFolder = await workspace.folderExist(sourcePath);
-    if (isFolder && !_canMoveFolder(sourcePath, targetFolderPath)) {
-      throw ArgumentError('A folder cannot be moved into itself.');
-    }
-    final newPath = workspaceContext.join(targetFolderPath, workspaceContext.basename(sourcePath));
+    final newPath = joinWorkspacePath(
+      targetFolderPath,
+      basenameWorkspacePath(sourcePath),
+    );
     if (newPath == sourcePath) {
       return;
     }
 
     await _runMutation(() async {
+      final isFolder = await workspace.folderExist(sourcePath);
+      if (isFolder && !_canMoveFolder(sourcePath, targetFolderPath)) {
+        throw ArgumentError('A folder cannot be moved into itself.');
+      }
       await _prepareRenameOrMove(sourcePath, newPath);
       final targetFolder = workspace.root.getFolder(targetFolderPath);
       if (!isFolder) {
@@ -237,9 +240,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   }
 
   bool _canMoveFolder(String folder, String targetFolder) {
-    final source = workspaceContext.normalize(folder);
-    final target = workspaceContext.normalize(targetFolder);
-    return source.isNotEmpty && !workspaceContext.isWithinFolder(target, source);
+    final source = normalizeWorkspacePath(folder);
+    final target = normalizeWorkspacePath(targetFolder);
+    return source.isNotEmpty && !isWithinWorkspaceFolder(target, source);
   }
 
   void clearOperationError() {
@@ -248,13 +251,13 @@ final class FileTreeViewModel extends ChangeNotifier {
   }
 
   void focusPath(String path) {
-    _focusedPath = workspaceContext.normalize(path);
+    _focusedPath = normalizeWorkspacePath(path);
     _notify();
   }
 
   void navigateUp() {
     if (_focusedPath.isNotEmpty) {
-      focusPath(workspaceContext.dirname(_focusedPath));
+      focusPath(parentWorkspacePath(_focusedPath));
     }
   }
 
@@ -304,7 +307,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       if (resource is WorkspaceFolder) {
         folders[resource.path] = resource;
       } else if (resource is WorkspaceFile) {
-        final isIgnored = !workspaceContext.isVisiblePath(resource.path);
+        final isIgnored = !_isVisibleFileTreePath(resource.path);
         children
             .putIfAbsent(resource.parent.path, () => [])
             .add(
@@ -330,7 +333,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       builtFolders[folderPath] = FileTreeFolderNode(
         folder,
         children: folderChildren,
-        isIgnored: !workspaceContext.isVisiblePath(folderPath),
+        isIgnored: !_isVisibleFileTreePath(folderPath),
       );
     }
 
@@ -339,7 +342,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       builtFolders.values.where((node) => node.resource.parent.path == root.path),
     );
     _sortNodes(rootChildren);
-    return FileTreeFolderNode(root, children: rootChildren, isIgnored: !workspaceContext.isVisiblePath(root.path));
+    return FileTreeFolderNode(root, children: rootChildren, isIgnored: !_isVisibleFileTreePath(root.path));
   }
 
   void _sortNodes(List<FileTreeNode> nodes) {
@@ -394,11 +397,23 @@ final class FileTreeViewModel extends ChangeNotifier {
 Set<String> _pathsWithAncestors(Iterable<String> paths) {
   final result = <String>{};
   for (final path in paths) {
-    var current = workspaceContext.normalize(path);
+    var current = normalizeWorkspacePath(path);
     while (current.isNotEmpty) {
       result.add(current);
-      current = workspaceContext.dirname(current);
+      current = parentWorkspacePath(current);
     }
   }
   return result;
+}
+
+/// Whether [path] should be presented as a regular file-tree entry.
+///
+/// Top-level dotfiles and dotfolders, including their descendants, are marked
+/// as ignored. Nested dot entries remain visible.
+bool _isVisibleFileTreePath(String path) {
+  final normalized = normalizeWorkspacePath(path);
+  if (normalized.isEmpty) {
+    return false;
+  }
+  return !normalized.split('/').first.startsWith('.');
 }

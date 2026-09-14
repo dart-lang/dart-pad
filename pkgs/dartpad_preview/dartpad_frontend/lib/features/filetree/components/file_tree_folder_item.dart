@@ -88,11 +88,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void initState() {
     super.initState();
-    final expectedLibPath = workspaceContext.join(component.state.focusedPath, 'lib');
+    final expectedLibPath = joinWorkspacePath(component.state.focusedPath, 'lib');
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
+        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (folderPath == expectedLibPath || isActiveParent) {
       _isCollapsed = false;
@@ -121,7 +121,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty && workspaceContext.isWithinFolder(activeFile, folderPath) && activeFile != folderPath;
+        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (isActiveParent && activeFile != oldComponent.state.activeFile) {
       _isCollapsed = false;
@@ -174,8 +174,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           setState(() {
             _isRenaming = false;
           });
-          final parentPath = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-          final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
+          final newPath = joinWorkspacePath(parentWorkspacePath(path), newName);
           await component.actions.renameFolder(path, newName);
           component.onSelect(newPath);
         },

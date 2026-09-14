@@ -206,17 +206,35 @@ void main() {
     await workspace.changeEventsController.close();
   });
 
-  test('builds a folders-first tree and marks generated workspace entries as ignored', () {
+  test('builds a folders-first tree and marks top-level dot entries as ignored', () async {
     final rootChildren = viewModel.state.root.children;
 
     final folders = rootChildren.whereType<FileTreeFolderNode>().toList();
     expect(folders.map((node) => node.resource.path), ['.dart_tool', 'build', 'lib']);
     expect(folders.firstWhere((node) => node.resource.path == '.dart_tool').isIgnored, isTrue);
-    expect(folders.firstWhere((node) => node.resource.path == 'build').isIgnored, isTrue);
+    expect(folders.firstWhere((node) => node.resource.path == 'build').isIgnored, isFalse);
     expect(folders.firstWhere((node) => node.resource.path == 'lib').isIgnored, isFalse);
 
     final files = rootChildren.whereType<FileTreeFileNode>().toList();
     expect(files.map((node) => node.resource.path), ['pubspec.yaml']);
+
+    workspace
+      ..addTextFile('.env', '')
+      ..addTextFile('packages/example/.dart_tool/package_config.json', '{}')
+      ..addTextFile('packages/example/build/output.js', '');
+    await viewModel.refresh();
+
+    final refreshedRoot = viewModel.state.root;
+    final hiddenFile = refreshedRoot.children.whereType<FileTreeFileNode>().firstWhere(
+      (node) => node.resource.path == '.env',
+    );
+    final hiddenFolder = refreshedRoot.findFolder('.dart_tool')!;
+    expect(hiddenFile.isIgnored, isTrue);
+    expect(hiddenFolder.isIgnored, isTrue);
+    expect(hiddenFolder.children.single.isIgnored, isTrue);
+    expect(refreshedRoot.findFolder('packages/example/.dart_tool')?.isIgnored, isFalse);
+    expect(refreshedRoot.findFolder('packages/example/build')?.isIgnored, isFalse);
+    expect(viewModel.state.root.findFolder('packages/example')?.isIgnored, isFalse);
   });
 
   test('marks text files and supported images as openable', () async {
@@ -354,18 +372,18 @@ void main() {
     expect(viewModel.state.operationError, contains('required project file'));
   });
 
-  test('refuses moving a folder into itself or a descendant', () async {
+  test('reports moving a folder into itself or a descendant as an operation error', () async {
     workspace
       ..folders.add('assets')
       ..folders.add('assets/images');
     await viewModel.refresh();
 
-    expect(
-      () => viewModel.moveEntry('assets', 'assets/images'),
-      throwsArgumentError,
-    );
+    await viewModel.moveEntry('assets', 'assets/images');
+
     expect(workspace.folders, contains('assets'));
     expect(operationLog, isEmpty);
+    expect(viewModel.state.operationError, 'Workspace operation failed.');
+    expect(viewModel.state.busy, isFalse);
   });
 
   test('focuses on a subfolder and exposes it as the root of the tree', () async {

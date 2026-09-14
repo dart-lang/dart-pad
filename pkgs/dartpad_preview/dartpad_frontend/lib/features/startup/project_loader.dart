@@ -91,7 +91,7 @@ Uri resolveEditorRootUri(Uri rootWorkspaceUri, String? packageRoot) {
     return rootWorkspaceUri;
   }
 
-  final normalizedPackageRoot = workspaceContext.normalize(packageRoot);
+  final normalizedPackageRoot = normalizeWorkspacePath(packageRoot);
   return rootWorkspaceUri.resolveUri(
     Uri(path: '$normalizedPackageRoot/'),
   );
@@ -110,7 +110,7 @@ final class ProjectLoader {
 
     for (var i = segments.length - 1; i >= 0; i--) {
       final parentDirectory = segments.sublist(0, i).join('/');
-      final pubspecPath = workspaceContext.join(parentDirectory, 'pubspec.yaml');
+      final pubspecPath = joinWorkspacePath(parentDirectory, 'pubspec.yaml');
       if (project.containsFile(pubspecPath)) {
         return parentDirectory;
       }
@@ -126,10 +126,10 @@ final class ProjectLoader {
   ) async {
     final folders = <String>{};
     for (final file in project.files) {
-      var directory = workspaceContext.dirname(file.path);
+      var directory = parentWorkspacePath(file.path);
       while (directory.isNotEmpty) {
         folders.add(directory);
-        directory = workspaceContext.dirname(directory);
+        directory = parentWorkspacePath(directory);
       }
     }
 
@@ -148,7 +148,7 @@ final class ProjectLoader {
 
   /// Normalizes [path] and verifies that it remains inside the workspace.
   static String normalizePath(String path) {
-    final normalized = workspaceContext.normalize(path);
+    final normalized = normalizeWorkspacePath(path);
     if (normalized.isEmpty ||
         workspacePath.isAbsolute(normalized) ||
         normalized == '..' ||

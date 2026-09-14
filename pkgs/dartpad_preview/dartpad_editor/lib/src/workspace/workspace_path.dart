@@ -7,101 +7,70 @@ import 'package:path/path.dart' as p;
 /// The path context for virtual workspace paths, which always use `/`.
 final p.Context workspacePath = p.posix;
 
-/// The singleton [WorkspaceContext] instance for workspace path manipulation.
-final WorkspaceContext workspaceContext = WorkspaceContext._();
-
-/// Utility class for working with virtual workspace paths.
+/// Normalizes a workspace [path].
 ///
-/// Provides path manipulation functions such as normalization, joining, rebase,
-/// parent directory detection, and visibility filtering for virtual workspace resources.
-class WorkspaceContext {
-  WorkspaceContext._();
+/// The workspace root is represented by an empty string instead of `.`.
+String normalizeWorkspacePath(String path) {
+  final normalized = workspacePath.normalize(path);
+  return normalized == '.' ? '' : normalized;
+}
 
-  /// Normalizes a workspace [path], returning an empty string for the current directory (`.`).
-  String normalize(String path) {
-    final normalized = workspacePath.normalize(path);
-    return normalized == '.' ? '' : normalized;
+/// Returns the final path segment of a workspace [path].
+String basenameWorkspacePath(String path) {
+  return workspacePath.basename(normalizeWorkspacePath(path));
+}
+
+/// Returns the workspace-relative parent folder of [path].
+///
+/// The workspace root is represented by an empty string.
+String parentWorkspacePath(String path) {
+  return normalizeWorkspacePath(
+    workspacePath.dirname(normalizeWorkspacePath(path)),
+  );
+}
+
+/// Joins [folder] and [child] into a normalized workspace path.
+String joinWorkspacePath(String folder, String child) {
+  return normalizeWorkspacePath(
+    workspacePath.join(normalizeWorkspacePath(folder), child),
+  );
+}
+
+/// Whether [path] identifies [folder] itself or one of its descendants.
+bool isWithinWorkspaceFolder(String path, String folder) {
+  final normalizedPath = normalizeWorkspacePath(path);
+  final normalizedFolder = normalizeWorkspacePath(folder);
+  if (!_isWorkspaceRelativePath(normalizedPath) || !_isWorkspaceRelativePath(normalizedFolder)) {
+    return false;
   }
+  return normalizedFolder.isEmpty ||
+      normalizedPath == normalizedFolder ||
+      workspacePath.isWithin(normalizedFolder, normalizedPath);
+}
 
-  /// Returns the final path segment of [value].
-  String basename(String value) => workspacePath.basename(normalize(value));
+bool _isWorkspaceRelativePath(String path) {
+  return !workspacePath.isAbsolute(path) && !workspacePath.split(path).contains('..');
+}
 
-  /// Returns the workspace-relative parent folder of [value].
-  ///
-  /// The workspace root is represented by an empty string.
-  String dirname(String value) {
-    final result = workspacePath.dirname(normalize(value));
-    return result == '.' ? '' : result;
+/// Replaces the [sourceFolder] prefix of [path] with [destinationFolder].
+///
+/// Returns the normalized [path] unchanged when it is outside [sourceFolder].
+String rebaseWorkspacePath(
+  String path,
+  String sourceFolder,
+  String destinationFolder,
+) {
+  final normalizedPath = normalizeWorkspacePath(path);
+  final normalizedSource = normalizeWorkspacePath(sourceFolder);
+  final normalizedDestination = normalizeWorkspacePath(destinationFolder);
+  if (!isWithinWorkspaceFolder(normalizedPath, normalizedSource)) {
+    return normalizedPath;
   }
-
-  /// Joins [folder] and [name] into a normalized workspace path.
-  String join(String folder, String name) {
-    return normalize(
-      workspacePath.join(normalize(folder), name),
-    );
+  if (normalizedPath == normalizedSource) {
+    return normalizedDestination;
   }
-
-  /// Whether [value] identifies [folder] itself or one of its descendants.
-  bool isWithinFolder(String value, String folder) {
-    final normalizedValue = normalize(value);
-    final normalizedFolder = normalize(folder);
-    return normalizedFolder.isEmpty ||
-        normalizedValue == normalizedFolder ||
-        workspacePath.isWithin(normalizedFolder, normalizedValue);
-  }
-
-  /// Replaces the [sourceFolder] prefix of [value] with [destinationFolder].
-  ///
-  /// Returns the normalized [value] unchanged when it is outside
-  /// [sourceFolder].
-  String rebasePath(String value, String sourceFolder, String destinationFolder) {
-    final normalizedValue = normalize(value);
-    final normalizedOldRoot = normalize(sourceFolder);
-    final normalizedNewRoot = normalize(destinationFolder);
-    if (normalizedValue == normalizedOldRoot) {
-      return normalizedNewRoot;
-    }
-    return workspacePath.join(
-      normalizedNewRoot,
-      workspacePath.relative(normalizedValue, from: normalizedOldRoot),
-    );
-  }
-
-  /// Whether [value] should be shown in the workspace file tree.
-  ///
-  /// The workspace root and generated `.dart_tool` and `build` subtrees are
-  /// hidden.
-  bool isVisiblePath(String value) {
-    final normalized = normalize(value);
-    if (normalized.isEmpty) {
-      return false;
-    }
-    return normalized
-        .split('/')
-        .every(
-          (segment) => segment.isNotEmpty && segment != '.dart_tool' && segment != 'build',
-        );
-  }
-
-  /// Returns [path] relative to [projectRoot] for display to the user.
-  ///
-  /// The project root itself is displayed as `/`.
-  String relativeDisplayPath({
-    required String path,
-    required String projectRoot,
-  }) {
-    final normalizedPath = normalize(path);
-    final normalizedRoot = normalize(projectRoot);
-
-    if (normalizedPath == normalizedRoot) {
-      return '/';
-    }
-    if (normalizedRoot.isNotEmpty && normalizedPath.startsWith('$normalizedRoot/')) {
-      return normalizedPath.substring(normalizedRoot.length + 1);
-    }
-    if (normalizedRoot.isNotEmpty) {
-      return workspacePath.relative(normalizedPath, from: normalizedRoot);
-    }
-    return normalizedPath.isEmpty ? '/' : normalizedPath;
-  }
+  return joinWorkspacePath(
+    normalizedDestination,
+    workspacePath.relative(normalizedPath, from: normalizedSource),
+  );
 }

@@ -15,7 +15,7 @@ import 'project_loader.dart';
 /// A loader that downloads a (gzipped) tar archive from a remote URL,
 /// extracts all of its files into a virtual workspace folder, and opens a
 /// target file.
-class ArchiveLoader {
+final class ArchiveLoader {
   /// Creates an archive loader.
   const ArchiveLoader({
     required this.archiveUrl,
@@ -119,10 +119,10 @@ class ArchiveLoader {
   /// `pubspec_overrides.yaml` file.
   void _disableWorkspaceResolution(Project project) {
     for (final path in project.paths.toList()) {
-      if (workspaceContext.basename(path) == 'pubspec.yaml') {
+      if (basenameWorkspacePath(path) == 'pubspec.yaml') {
         _disableWorkspaceResolutionForPackage(
           project,
-          workspaceContext.dirname(path),
+          parentWorkspacePath(path),
         );
       }
     }
@@ -132,7 +132,7 @@ class ArchiveLoader {
     Project project,
     String projectDir,
   ) {
-    final pubspecPath = workspaceContext.join(projectDir, 'pubspec.yaml');
+    final pubspecPath = joinWorkspacePath(projectDir, 'pubspec.yaml');
     final pubspecBytes = project.readFile(pubspecPath);
     if (pubspecBytes == null) {
       return;
@@ -149,7 +149,7 @@ class ArchiveLoader {
       return;
     }
 
-    final overridesPath = workspaceContext.join(projectDir, 'pubspec_overrides.yaml');
+    final overridesPath = joinWorkspacePath(projectDir, 'pubspec_overrides.yaml');
     project.writeFile(
       overridesPath,
       Uint8List.fromList(utf8.encode(jsonEncode({'resolution': null}))),
