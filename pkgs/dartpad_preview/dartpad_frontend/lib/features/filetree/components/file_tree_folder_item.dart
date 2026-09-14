@@ -162,7 +162,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
 
     if (_isRenaming) {
       return FileTreeInputItem(
-        initialValue: component.node.resource.shortName,
+        initialValue: component.node.resource.basename,
         depth: component.depth,
         icon: const FileIcon(
           'seti:folder',
@@ -245,7 +245,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        span(classes: 'file-tree-name', [.text(component.node.resource.shortName)]),
+        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
       ],
     );
 

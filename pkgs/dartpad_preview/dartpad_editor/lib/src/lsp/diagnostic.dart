@@ -47,7 +47,7 @@ enum DiagnosticSeverity {
 }
 
 /// A single LSP diagnostic entry from the language server.
-class Diagnostic {
+final class Diagnostic {
   /// The 0-indexed line number where the diagnostic occurs.
   final int line;
 
@@ -73,7 +73,7 @@ class Diagnostic {
 }
 
 /// Associates a [Diagnostic] with the file it belongs to.
-class DiagnosticEntry {
+final class DiagnosticEntry {
   /// The relative path of the file this diagnostic belongs to.
   final String fileName;
 

@@ -61,7 +61,7 @@ class _AnalyzerNotificationQueue {
 
 /// Coordinates communication with the Dart Language Server Protocol (LSP) worker,
 /// handles diagnostics, and processes filesystem edits requested by the LSP.
-class LanguageServerClient {
+interface class LanguageServerClient {
   /// Creates a client for an editor project inside a virtual workspace.
   ///
   /// [rootWorkspaceUri] is the base URI for workspace-relative file operations.
