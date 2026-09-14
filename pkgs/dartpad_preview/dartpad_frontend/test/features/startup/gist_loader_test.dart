@@ -38,10 +38,11 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await loader.loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await loader.loadGist(api.root);
           expect(result.projectDir, '');
           expect(result.entryPath, 'lib/main.dart');
           expect(result.packageRoot, '');
+          expect(hasGeneratedPubspec, isFalse);
         },
         () => MockClient((request) async {
           expect(request.url.toString(), gistUrl);
@@ -81,14 +82,119 @@ void main() {
 
         await http.runWithClient(
           () async {
-            final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+            final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
             expect(result.entryPath, testCase.entryPath);
             expect(result.projectDir, '');
-            expect(result.packageRoot, isNull);
+            expect(result.packageRoot, testCase.entryPath != null ? '' : isNull);
+            expect(hasGeneratedPubspec, isTrue);
           },
           () => MockClient((request) async => http.Response(gistResponse(files), 200)),
         );
       }
+    });
+
+    group('importsRegex', () {
+      test('matches package imports and exports with single and double quotes', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+import 'package:flutter/material.dart';
+import "package:path/path.dart";
+export 'package:collection/collection.dart';
+export "package:http/http.dart";
+''').toList();
+
+        expect(matches, hasLength(4));
+        expect(matches[0].group(1), 'flutter');
+        expect(matches[1].group(1), 'path');
+        expect(matches[2].group(1), 'collection');
+        expect(matches[3].group(1), 'http');
+      });
+
+      test('matches imports with as, show, and hide clauses', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart' show test, expect;
+import 'package:meta/meta.dart' hide visibleForTesting;
+''').toList();
+
+        expect(matches, hasLength(3));
+        expect(matches.map((m) => m.group(1)), ['http', 'test', 'meta']);
+      });
+
+      test('matches package names with underscores and numbers', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+import 'package:custom_pkg_123/custom_pkg_123.dart';
+''').toList();
+
+        expect(matches, hasLength(1));
+        expect(matches.single.group(1), 'custom_pkg_123');
+      });
+
+      test('matches imports in files with leading comments and blank lines', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+// Copyright (c) 2026, the Dart project authors.
+// Some description.
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+''').toList();
+
+        expect(matches.map((m) => m.group(1)), ['flutter', 'provider']);
+      });
+
+      test('does not match dart SDK or relative imports', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'helper.dart';
+import './sub/helper.dart';
+import '../parent/helper.dart';
+''').toList();
+
+        expect(matches, isEmpty);
+      });
+
+      test('does not match commented out imports or string literals', () {
+        final matches = GistLoader.importsRegex.allMatches('''
+// import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart'; */
+final text = "import 'package:flutter/material.dart'";
+''').toList();
+
+        expect(matches, isEmpty);
+      });
+    });
+
+    test('creates default pubspec.yaml with dependencies from package imports', () async {
+      final api = MemoryWorkspaceResourceApi();
+      const loader = GistLoader(gistId: gistId);
+      final response = gistResponse({
+        'main.dart': {
+          'filename': 'main.dart',
+          'content': '''
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+export 'package:collection/collection.dart';
+import 'dart:async';
+import 'helper.dart';
+
+void main() {}
+''',
+        },
+      });
+
+      await http.runWithClient(
+        () async {
+          final (_, :hasGeneratedPubspec) = await loader.loadGist(api.root);
+          expect(hasGeneratedPubspec, isTrue);
+        },
+        () => MockClient((request) async => http.Response(response, 200)),
+      );
+
+      final pubspec = await api.readFileAsText('pubspec.yaml');
+      expect(pubspec, contains('collection: any'));
+      expect(pubspec, contains('flutter: \n    sdk: flutter'));
+      expect(pubspec, contains('path: any'));
     });
 
     test('finds the nearest pubspec directory of the selected entrypoint', () async {
@@ -103,7 +209,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
           expect(result.projectDir, 'packages/demo');
           expect(result.entryPath, 'packages/demo/lib/main.dart');
           expect(result.packageRoot, 'packages/demo');
@@ -126,7 +232,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
           expect(result.entryPath, 'lib/main.dart');
         },
         () => MockClient((request) async {
