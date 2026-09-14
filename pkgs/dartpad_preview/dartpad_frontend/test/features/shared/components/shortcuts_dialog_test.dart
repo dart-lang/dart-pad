@@ -129,14 +129,17 @@ void main() {
     final findNextAlternatives = findNextRow.querySelectorAll('.shortcuts-dialog-alternative');
     expect(findNextAlternatives.length, 1);
 
-    // Single combo command with platform-specific key (Fold code)
+    // Platform-dependent command (Fold code: 1 combo on macOS, 2 combos on other platforms)
     final foldCodeRow = findRow('Fold code');
     expect(foldCodeRow, isNotNull);
     final foldCodeKeys = foldCodeRow!.querySelectorAll('.shortcuts-dialog-key');
-    expect(foldCodeKeys.length, 1);
-    expect(foldCodeKeys.item(0)?.textContent, ShortcutDefinition.foldCode.resolvedDisplayKey);
+    final expectedFoldKeys = ShortcutDefinition.foldCode.resolvedDisplayKeys;
+    expect(foldCodeKeys.length, expectedFoldKeys.length);
+    for (var i = 0; i < expectedFoldKeys.length; i++) {
+      expect(foldCodeKeys.item(i)?.textContent, expectedFoldKeys[i]);
+    }
     final foldCodeSeparator = foldCodeRow.querySelectorAll('.shortcuts-dialog-separator');
-    expect(foldCodeSeparator.length, 0);
+    expect(foldCodeSeparator.length, expectedFoldKeys.length - 1);
 
     // Single combo command (Open command palette)
     final commandPaletteRow = findRow('Open command palette');
