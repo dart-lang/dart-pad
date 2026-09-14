@@ -265,6 +265,37 @@ void main() {
       expect(workspace.files, isNot(contains('open.dart')));
     });
 
+    test('rejects mixed workspace edits before applying any changes', () async {
+      final handledFiles = <String>[];
+      documentEditsHandler = (file, edits) async {
+        handledFiles.add(file);
+      };
+
+      for (final externalEdit in [
+        {
+          'changes': {
+            'file:///workspace/main.dart': [_edit(0, 0, 0, 0, 'local')],
+            'file:///sdk/lib/core/core.dart': [_edit(0, 0, 0, 0, 'external')],
+          },
+        },
+        {
+          'changes': {
+            'file:///workspace/main.dart': [_edit(0, 0, 0, 0, 'local')],
+          },
+          'documentChanges': [
+            {
+              'textDocument': {'uri': 'file:///sdk/lib/core/core.dart'},
+              'edits': [_edit(0, 0, 0, 0, 'external')],
+            },
+          ],
+        },
+      ]) {
+        await expectLater(client.applyWorkspaceEdit(externalEdit), throwsA(isA<Exception>()));
+      }
+
+      expect(handledFiles, isEmpty);
+    });
+
     test('awaits asynchronous open-document handlers before completing workspace edits', () async {
       final gate = Completer<void>();
       var handlerCompleted = false;
@@ -434,6 +465,28 @@ void main() {
       ]);
     });
 
+    test('declines external workspace edits without an internal protocol error', () async {
+      final response = outgoingMessages.stream.first;
+      serverMessages.add({
+        'jsonrpc': '2.0',
+        'id': 44,
+        'method': 'workspace/applyEdit',
+        'params': {
+          'edit': {
+            'changes': {
+              'file:///sdk/lib/core/core.dart': [_edit(0, 0, 0, 0, 'external')],
+            },
+          },
+        },
+      });
+
+      expect(await response, {
+        'jsonrpc': '2.0',
+        'id': 44,
+        'result': {'applied': false, 'failureReason': 'External files are read-only.'},
+      });
+    });
+
     test('reports failed server-initiated workspace edits as JSON-RPC errors', () async {
       workspace
         ..files['main.dart'] = 'old'
@@ -509,20 +562,6 @@ void main() {
         'AAAAbcdEF',
       );
     });
-  });
-
-  test('getRelativePath strips only matching folder prefixes', () {
-    final cases = <(String, String, String)>[
-      ('file:///workspace/project/lib/main.dart', '/workspace/project/', 'lib/main.dart'),
-      ('file:///other/path/main.dart', '/workspace/project/', '/other/path/main.dart'),
-      ('/workspace/project/lib/main.dart', '/workspace/project/', 'lib/main.dart'),
-      ('file:///src/main.dart', '/', 'src/main.dart'),
-      ('file:///workspace-extra/main.dart', '/workspace/', '/workspace-extra/main.dart'),
-    ];
-
-    for (final (uri, folder, expected) in cases) {
-      expect(LanguageServerClient.getRelativePath(uri, folder), expected);
-    }
   });
 
   group('analysisStatusFromServerMessage', () {

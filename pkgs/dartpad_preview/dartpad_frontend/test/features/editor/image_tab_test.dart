@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/image_preview.dart';
 import 'package:dartpad_frontend/features/editor/image/image_tab.dart';
-import 'package:dartpad_frontend/features/shared/editable_text_file.dart';
+import 'package:dartpad_frontend/features/shared/supported_file_types.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -61,14 +61,14 @@ void main() {
     final adapter = ImageTabAdapter(workspaceResourceApi: workspace);
 
     for (final path in supportedFormats.keys) {
-      final tab = await adapter.createTab(path);
+      final tab = await adapter.createWorkspaceTab(path);
       expect(tab, isA<ImageTab>(), reason: path);
       expect(tab!.hasUnsavedChanges, isFalse);
       expect(tab.build(), isA<ImagePreview>());
     }
 
-    expect(await adapter.createTab('logo.bmp'), isNull);
-    expect(await adapter.createTab('logo.avif'), isNull);
+    expect(await adapter.createWorkspaceTab('logo.bmp'), isNull);
+    expect(await adapter.createWorkspaceTab('logo.avif'), isNull);
   });
 
   testClient('renders workspace bytes as a MIME-correct data URL', (tester) async {

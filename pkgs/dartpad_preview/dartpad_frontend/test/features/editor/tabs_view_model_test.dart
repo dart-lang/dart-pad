@@ -70,6 +70,9 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
 /// Runs the [TabsViewModel] test suite.
 void main() {
   late FakeWorkspaceController workspace;
+  final externalFiles = <Uri, String>{};
+  Completer<void>? externalReadGate;
+  var runCount = 0;
   TabsViewModel? tabs;
   DiagnosticsViewModel? diagnostics;
 
@@ -83,14 +86,23 @@ void main() {
 
   setUp(() async {
     workspace = FakeWorkspaceController();
+    externalFiles.clear();
+    externalReadGate = null;
+    runCount = 0;
     tabs = TabsViewModel(
       workspaceResourceApi: workspace,
       adapters: [
-        CodeMirrorTabAdapter(),
+        CodeMirrorTabAdapter(
+          readExternalFile: (uri) async {
+            await externalReadGate?.future;
+            return externalFiles[uri]!;
+          },
+          onRun: () => runCount++,
+        ),
       ],
     );
     diagnostics = DiagnosticsViewModel(tabs: tabs!);
-    await openExampleProject(tabs!.openFile);
+    await openExampleProject(tabs!.openWorkspaceFile);
   });
 
   tearDown(() async {
@@ -100,12 +112,143 @@ void main() {
     tabs = null;
   });
 
+  test('missing workspace files report an opening error', () async {
+    await expectLater(tabs!.openWorkspaceFile('missing.dart'), throwsStateError);
+    expect(tabs!.errorMessage, 'Could not open missing.dart.');
+  });
+
+  test('cancelled external loads propagate without an error message', () async {
+    final uri = Uri.parse('file:///sdk/core.dart');
+    externalFiles[uri] = 'class Object {}';
+    externalReadGate = Completer<void>();
+    final opening = tabs!.openExternalFile(uri);
+    final completed = expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
+    await Future<void>.delayed(Duration.zero);
+    tabs!.disposeAllTabs();
+    externalReadGate!.complete();
+    await completed;
+    expect(tabs!.errorMessage, isNull);
+    expect(tabs!.openTabs, isEmpty);
+  });
+
   test('opens main.dart with main.dart active', () {
     expect(
       tabs!.openTabs.map((tab) => tab.path),
       ['lib/main.dart'],
     );
     expect(tabs!.activeFile, 'lib/main.dart');
+  });
+
+  testClient('opens external URIs as navigable read-only tabs', (tester) async {
+    final uri = Uri.parse('file:///pub-cache/example/lib/example.dart');
+    externalFiles[uri] = 'class Example {}';
+
+    await tabs!.openExternalFile(uri);
+    final tab = tabs!.activeTab! as ExternalCodeMirrorTab;
+    tester.pumpComponent(tab.build());
+    await pumpEventQueue();
+
+    expect(tabs!.activeFile, uri.toString());
+    expect(tab.origin, EditorTabOrigin.external);
+    expect(tab.keepAlive, isFalse);
+    expect(tab.content, 'class Example {}');
+    expect(tab.editor.view.contentDOM.contentEditable, 'true');
+    expect(tab.hasUnsavedChanges, isFalse);
+
+    tab.editor.text = 'changed';
+    expect(tab.content, 'class Example {}');
+    final filesBeforeSave = Map<String, String>.of(workspace.files);
+    await tab.save();
+    expect(workspace.files, filesBeforeSave);
+    tab.goToPosition(0, 6);
+    expect(tab.editor.view.state.selection.main.head, 6);
+
+    final contextMenuEvent = web.MouseEvent(
+      'contextmenu',
+      web.MouseEventInit(bubbles: true, cancelable: true),
+    );
+    tab.container.dispatchEvent(contextMenuEvent);
+    expect(contextMenuEvent.defaultPrevented, isFalse);
+
+    tab.editor.focus();
+    final saveEvent = web.KeyboardEvent(
+      'keydown',
+      web.KeyboardEventInit(key: 's', ctrlKey: true, bubbles: true, cancelable: true),
+    );
+    tab.editor.view.contentDOM.dispatchEvent(saveEvent);
+    expect(saveEvent.defaultPrevented, isTrue);
+
+    tab.editor.view.contentDOM.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true),
+      ),
+    );
+    expect(runCount, 1);
+
+    expect(tabs!.closeFile(uri.toString()), isTrue);
+    expect(tabs!.getTab(uri.toString()), isNull);
+    expect(tab.dispose, returnsNormally);
+  });
+
+  test('workspace tabs support edits, discard, and saving after rename', () async {
+    await tabs!.openWorkspaceFile('pubspec.yaml');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    expect(tab.origin, EditorTabOrigin.workspace);
+    expect(tab.keepAlive, isTrue);
+
+    await tab.applyEdits([
+      {
+        'range': {
+          'start': {'line': 0, 'character': 6},
+          'end': {'line': 0, 'character': 10},
+        },
+        'newText': 'updated',
+      },
+    ]);
+    expect(tab.content, 'name: updated');
+    expect(tab.hasUnsavedChanges, isTrue);
+    tab.discardUnsavedChanges();
+    expect(tab.content, 'name: test');
+    expect(tab.hasUnsavedChanges, isFalse);
+
+    tab.rename('renamed.yaml');
+    expect(tab.editor.file, 'renamed.yaml');
+    expect(tab.codeActionsController.file, 'renamed.yaml');
+    tab.editor.text = 'name: renamed';
+    await tab.save();
+    expect(workspace.files['renamed.yaml'], 'name: renamed');
+    expect(workspace.files['pubspec.yaml'], 'name: test');
+    expect(tab.hasUnsavedChanges, isFalse);
+  });
+
+  test('reports and rethrows external file load failures', () async {
+    final uri = Uri.parse('file:///pub-cache/missing.dart');
+
+    await expectLater(
+      tabs!.openExternalFile(uri),
+      throwsA(anything),
+    );
+
+    expect(tabs!.errorMessage, 'Could not open missing.dart.');
+    expect(tabs!.activeFile, 'lib/main.dart');
+  });
+
+  test('workspace load failures are reported and rethrown, and success clears the message', () async {
+    final error = StateError('internal read failure');
+    workspace.readError = error;
+
+    await expectLater(
+      tabs!.openWorkspaceFile('pubspec.yaml'),
+      throwsA(same(error)),
+    );
+    expect(tabs!.errorMessage, 'Could not open pubspec.yaml.');
+    expect(tabs!.activeFile, 'lib/main.dart');
+
+    workspace.readError = null;
+    await tabs!.openWorkspaceFile('pubspec.yaml');
+    expect(tabs!.errorMessage, isNull);
+    expect(tabs!.activeFile, 'pubspec.yaml');
   });
 
   test('diagnostic navigation activates the target and keeps the requested position', () async {
@@ -121,7 +264,7 @@ void main() {
     await pumpEventQueue();
 
     expect(tabs!.activeFile, 'pubspec.yaml');
-    final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
+    final pubspecTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     expect(pubspecTab.editor.view.state.selection.main.head, 4);
   });
 
@@ -129,14 +272,17 @@ void main() {
     workspace.files['broken.dart'] = 'void main() {}';
     workspace.readError = StateError('internal read failure');
 
-    await diagnostics!.openDiagnostic(
-      'broken.dart',
-      const Diagnostic(
-        line: 0,
-        character: 0,
-        message: 'Test problem',
-        severity: DiagnosticSeverity.error,
+    await expectLater(
+      diagnostics!.openDiagnostic(
+        'broken.dart',
+        const Diagnostic(
+          line: 0,
+          character: 0,
+          message: 'Test problem',
+          severity: DiagnosticSeverity.error,
+        ),
       ),
+      throwsA(same(workspace.readError)),
     );
     await pumpEventQueue();
 
@@ -145,7 +291,7 @@ void main() {
   });
 
   test('allows every clean tab including the last tab to close', () async {
-    await tabs!.openFile('pubspec.yaml');
+    await tabs!.openWorkspaceFile('pubspec.yaml');
     expect(tabs!.closeFile('lib/main.dart'), isTrue);
     expect(tabs!.activeFile, 'pubspec.yaml');
 
@@ -156,7 +302,7 @@ void main() {
   });
 
   test('requires explicit discard permission for a dirty tab', () {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = '${mainTab.content}\n// dirty';
 
     expect(tabs!.closeFile('lib/main.dart'), isFalse);
@@ -172,8 +318,8 @@ void main() {
   });
 
   test('save-all writes dirty YAML without formatting', () async {
-    await tabs!.openFile('pubspec.yaml');
-    final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
+    await tabs!.openWorkspaceFile('pubspec.yaml');
+    final pubspecTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     pubspecTab.editor.text = '${pubspecTab.content}\nversion: 1.0.0';
 
     await tabs!.saveAllTabs();
@@ -186,8 +332,8 @@ void main() {
   });
 
   test('save-all errors hide internal details', () async {
-    await tabs!.openFile('pubspec.yaml');
-    final pubspecTab = tabs!.activeTab! as CodeMirrorTab;
+    await tabs!.openWorkspaceFile('pubspec.yaml');
+    final pubspecTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     pubspecTab.editor.text = '${pubspecTab.content}\nversion: 1.0.0';
     workspace.writeError = StateError('internal write failure');
 
@@ -202,7 +348,7 @@ void main() {
   });
 
   testClient('autosaves dirty tab when editor loses focus', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final outsideButton = web.HTMLButtonElement();
     web.document.body!.appendChild(mainTab.container);
     web.document.body!.appendChild(outsideButton);
@@ -224,9 +370,9 @@ void main() {
   });
 
   testClient('autosaves dirty tab when switching tabs', (tester) async {
-    await tabs!.openFile('pubspec.yaml');
+    await tabs!.openWorkspaceFile('pubspec.yaml');
     tabs!.switchFile('lib/main.dart');
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = 'void main() { print("switched"); }';
     expect(mainTab.hasUnsavedChanges, isTrue);
 
@@ -238,9 +384,9 @@ void main() {
   });
 
   testClient('renders one dirty indicator and a close action for every tab', (tester) async {
-    await tabs!.openFile('pubspec.yaml');
+    await tabs!.openWorkspaceFile('pubspec.yaml');
     tabs!.switchFile('lib/main.dart');
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = '${mainTab.content}\n// dirty';
 
     tester.pumpComponent(
@@ -258,7 +404,7 @@ void main() {
   });
 
   testClient('dirty close honors cancellation and confirmed discard', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = '${mainTab.content}\n// dirty';
     var shouldDiscard = false;
 
@@ -285,7 +431,7 @@ void main() {
   });
 
   testClient('closing all tabs leaves an empty editor stack', (tester) async {
-    await tabs!.openFile('pubspec.yaml');
+    await tabs!.openWorkspaceFile('pubspec.yaml');
     tabs!
       ..closeFile('lib/main.dart')
       ..closeFile('pubspec.yaml');
@@ -302,7 +448,7 @@ void main() {
   });
 
   testClient('quick-fix panel renders choices and applies the selected action', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final controller = mainTab.codeActionsController
       ..showFloatingPanel = true
       ..codeActions = [
@@ -363,7 +509,7 @@ void main() {
   });
 
   testClient('Escape closes the quick-fix panel and restores editor focus', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final controller = mainTab.codeActionsController
       ..showFloatingPanel = true
       ..codeActions = [
@@ -387,7 +533,7 @@ void main() {
   });
 
   testClient('quick-fix panel reports no results and closes on outside click', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final controller = mainTab.codeActionsController
       ..showFloatingPanel = true
       ..codeActions = [];
@@ -406,7 +552,7 @@ void main() {
   });
 
   testClient('quick-fix panel adjusts position above when near screen bottom', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final controller = mainTab.codeActionsController
       ..showFloatingPanel = true
       ..panelLeft = 50
@@ -429,7 +575,7 @@ void main() {
   });
 
   testClient('right-click contextmenu positions cursor when outside selection', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = 'void main() {\n  print("hello");\n}';
     // Set selection initially at position 0
     mainTab.editor.view.dispatch(
@@ -457,7 +603,7 @@ void main() {
   });
 
   testClient('right-click contextmenu preserves selection when inside existing selection', (tester) async {
-    final mainTab = tabs!.activeTab! as CodeMirrorTab;
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     mainTab.editor.text = 'void main() {\n  print("hello");\n}';
     // Set selection from 5 to 15
     mainTab.editor.view.dispatch(

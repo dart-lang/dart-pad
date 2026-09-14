@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceResourceApi {
   final Set<String> _existingFiles = {};
   final StreamController<FileChangeEvent> _changesController = StreamController<FileChangeEvent>.broadcast(sync: true);
+  Completer<void>? fileExistGate;
 
   @override
   Stream<FileChangeEvent> get rawFileChanges => _changesController.stream;
@@ -32,7 +33,10 @@ class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceRes
   void removeFile(String path) => _existingFiles.remove(path);
 
   @override
-  Future<bool> fileExist(String uri) async => _existingFiles.contains(uri);
+  Future<bool> fileExist(String uri) async {
+    await fileExistGate?.future;
+    return _existingFiles.contains(uri);
+  }
 
   @override
   Future<bool> folderExist(String uri) async => false;
@@ -56,6 +60,7 @@ class TestTab extends EditorTab<String> {
   /// Creates a test tab with configurable lifecycle behavior.
   TestTab(
     super.path, {
+    super.origin = EditorTabOrigin.workspace,
     this.testKeepAlive = false,
     this.dirty = false,
     this.saveError,
@@ -155,7 +160,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
   final List<TestTab> _allCreatedTabs = [];
 
   @override
-  Future<EditorTab<String>?> createTab(String path) async {
+  Future<EditorTab<String>?> createWorkspaceTab(String path) async {
     creationCount++;
     if (!creationStarted.isCompleted) {
       creationStarted.complete();
@@ -163,6 +168,28 @@ class TestTabAdapter extends EditorTabAdapter<String> {
     await creationGate?.future;
     final tab = TestTab(
       path,
+      testKeepAlive: keepAlive,
+      dirty: dirty,
+      saveError: saveError,
+      eventLog: eventLog,
+      onDiscard: () => onDiscard?.call(path),
+    );
+    createdTabs[path] = tab;
+    _allCreatedTabs.add(tab);
+    return tab;
+  }
+
+  @override
+  Future<EditorTab<String>?> createExternalTab(Uri uri) async {
+    creationCount++;
+    if (!creationStarted.isCompleted) {
+      creationStarted.complete();
+    }
+    await creationGate?.future;
+    final path = uri.toString();
+    final tab = TestTab(
+      path,
+      origin: EditorTabOrigin.external,
       testKeepAlive: keepAlive,
       dirty: dirty,
       saveError: saveError,
@@ -219,7 +246,7 @@ void main() {
   /// Opens a file after ensuring it "exists" in the fake workspace.
   Future<void> openExisting(String path) async {
     workspace.addFile(path);
-    await tabs.openFile(path);
+    await tabs.openWorkspaceFile(path);
   }
 
   Future<void> emitWorkspaceEvent(Map<String, String> event) async {
@@ -235,7 +262,7 @@ void main() {
     await delivered;
   }
 
-  group('openFile', () {
+  group('openWorkspaceFile', () {
     test('opens a new tab and sets it as active', () async {
       await openExisting('main.dart');
 
@@ -245,8 +272,8 @@ void main() {
       expect(adapter.createdTabs['main.dart']!.lifecycleLog, ['activate']);
     });
 
-    test('does nothing for a file that does not exist', () async {
-      await tabs.openFile('ghost.dart');
+    test('rejects opening a file that does not exist', () async {
+      await expectLater(tabs.openWorkspaceFile('ghost.dart'), throwsStateError);
 
       expect(tabs.openTabs, isEmpty);
       expect(tabs.activeFile, '');
@@ -280,8 +307,8 @@ void main() {
       adapter.creationGate = Completer<void>();
       workspace.addFile('slow.dart');
 
-      final firstOpen = tabs.openFile('slow.dart');
-      final secondOpen = tabs.openFile('slow.dart');
+      final firstOpen = tabs.openWorkspaceFile('slow.dart');
+      final secondOpen = tabs.openWorkspaceFile('slow.dart');
       await adapter.creationStarted.future;
 
       expect(adapter.creationCount, 1);
@@ -298,7 +325,7 @@ void main() {
       adapter.creationGate = Completer<void>();
       workspace.addFile('deleted.dart');
 
-      final opening = tabs.openFile('deleted.dart');
+      final opening = tabs.openWorkspaceFile('deleted.dart');
       await adapter.creationStarted.future;
       workspace.removeFile('deleted.dart');
       await emitWorkspaceEvent(
@@ -306,7 +333,7 @@ void main() {
       );
 
       adapter.creationGate!.complete();
-      await opening;
+      await expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
       expect(tabs.openTabs, isEmpty);
       final deletedTab = adapter.createdTabs['deleted.dart']!;
       expect(deletedTab.lifecycleLog, ['dispose']);
@@ -321,7 +348,7 @@ void main() {
       adapter.creationGate = firstGate;
       workspace.addFile('reopened.dart');
 
-      final firstOpen = tabs.openFile('reopened.dart');
+      final firstOpen = tabs.openWorkspaceFile('reopened.dart');
       await adapter.creationStarted.future;
       workspace.removeFile('reopened.dart');
       await emitWorkspaceEvent(
@@ -331,13 +358,13 @@ void main() {
       final secondGate = Completer<void>();
       adapter.creationGate = secondGate;
       workspace.addFile('reopened.dart');
-      final secondOpen = tabs.openFile('reopened.dart');
+      final secondOpen = tabs.openWorkspaceFile('reopened.dart');
       while (adapter.creationCount < 2) {
         await Future<void>.delayed(Duration.zero);
       }
 
       firstGate.complete();
-      await firstOpen;
+      await expectLater(firstOpen, throwsA(isA<TabOpenCancelledException>()));
       expect(tabs.openTabs, isEmpty);
 
       secondGate.complete();
@@ -351,6 +378,47 @@ void main() {
       tabs.updateLog.clear();
       adapter._allCreatedTabs.last.notifyUpdate();
       expect(tabs.updateLog, [null]);
+    });
+
+    test('does not create a tab after disposal during the existence check', () async {
+      workspace
+        ..addFile('slow.dart')
+        ..fileExistGate = Completer<void>();
+
+      final opening = tabs.openWorkspaceFile('slow.dart');
+      await pumpEventQueue();
+      tabs.disposeAllTabs();
+      workspace.fileExistGate!.complete();
+
+      await expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
+      expect(tabs.openTabs, isEmpty);
+      expect(adapter.creationCount, 0);
+    });
+  });
+
+  group('openExternalFile', () {
+    test('opens and deduplicates an external URI without a workspace file', () async {
+      final uri = Uri.parse('file:///sdk/lib/core/core.dart');
+
+      await tabs.openExternalFile(uri);
+      await tabs.openExternalFile(uri);
+
+      expect(tabs.openTabs, hasLength(1));
+      expect(tabs.activeFile, uri.toString());
+      expect(tabs.activeTab?.origin, EditorTabOrigin.external);
+      expect(adapter.creationCount, 1);
+    });
+
+    test('workspace removal events do not close external tabs', () async {
+      final uri = Uri.parse('file:///sdk/lib/core/core.dart');
+      await tabs.openExternalFile(uri);
+
+      await emitWorkspaceEvent(
+        {'type': 'remove', 'path': uri.toString()},
+      );
+
+      expect(tabs.activeFile, uri.toString());
+      expect(tabs.openTabs, hasLength(1));
     });
   });
 
@@ -686,7 +754,7 @@ void main() {
     test('folder move cancels descendant tabs that are still loading', () async {
       adapter.creationGate = Completer<void>();
       workspace.addFile('old/slow.dart');
-      final opening = tabs.openFile('old/slow.dart');
+      final opening = tabs.openWorkspaceFile('old/slow.dart');
       await adapter.creationStarted.future;
 
       workspace.addMoveIntention('old', 'new');
@@ -694,7 +762,7 @@ void main() {
         {'type': 'add', 'path': 'new'},
       );
       adapter.creationGate!.complete();
-      await opening;
+      await expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
 
       expect(tabs.getTab('old/slow.dart'), isNull);
       expect(tabs.getTab('new/slow.dart'), isNull);
@@ -764,14 +832,14 @@ void main() {
     test('folder remove cancels descendant tabs that are still loading', () async {
       adapter.creationGate = Completer<void>();
       workspace.addFile('folder/slow.dart');
-      final opening = tabs.openFile('folder/slow.dart');
+      final opening = tabs.openWorkspaceFile('folder/slow.dart');
       await adapter.creationStarted.future;
 
       await emitWorkspaceEvent(
         {'type': 'remove', 'path': 'folder'},
       );
       adapter.creationGate!.complete();
-      await opening;
+      await expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
 
       expect(tabs.getTab('folder/slow.dart'), isNull);
       expect(
