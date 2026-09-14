@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart';
 
 import 'examples.g.dart';
+import 'generated_pubspec.dart';
 import 'project_loader.dart';
 
 part 'archive_project_source.dart';

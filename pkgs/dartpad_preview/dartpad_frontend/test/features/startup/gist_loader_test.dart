@@ -74,6 +74,26 @@ void main() {
       );
     });
 
+    test('generates a root pubspec when the gist does not provide one', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final response = gistResponse({
+        'main.dart': {
+          'filename': 'main.dart',
+          'content': "import 'package:flutter/material.dart';\nvoid main() {}",
+        },
+      });
+
+      await http.runWithClient(
+        () async {
+          await loadInto(const GistProjectSource(gistId), api.root);
+        },
+        () => MockClient((request) async => http.Response(response, 200)),
+      );
+
+      expect(await api.readFileAsText('pubspec.yaml'), contains('sdk: flutter'));
+      expect(await api.readFileAsText('pubspec.yaml'), contains('uses-material-design: true'));
+    });
+
     test('loads a truncated file from its raw URL', () async {
       final api = MemoryWorkspaceResourceApi();
       const rawUrl = 'https://gist.githubusercontent.com/example/raw/main.dart';
