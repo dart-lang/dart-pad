@@ -174,20 +174,23 @@ class _PreviewContainerState extends State<PreviewContainer> {
         [
           div(classes: 'preview-controls', [
             ListenableBuilder(
-              listenable: component.taskStatus,
-              builder: (context) => ButtonGroup(
-                children: [
-                  if (isRunning && viewModel.isFlutter)
-                    RuntimeButton.reload(previewViewModel: viewModel)
-                  else
-                    RuntimeButton.run(
-                      previewViewModel: viewModel,
-                      activeFile: component.activeFile,
-                    ),
-                  if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
-                  RuntimeButton.stop(previewViewModel: viewModel),
-                ],
-              ),
+              listenable: Listenable.merge([component.taskStatus, viewModel]),
+              builder: (context) {
+                final isRunning = viewModel.isRunning;
+                return ButtonGroup(
+                  children: [
+                    if (isRunning && viewModel.isFlutter)
+                      RuntimeButton.reload(previewViewModel: viewModel)
+                    else
+                      RuntimeButton.run(
+                        previewViewModel: viewModel,
+                        activeFile: component.activeFile,
+                      ),
+                    if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
+                    RuntimeButton.stop(previewViewModel: viewModel),
+                  ],
+                );
+              },
             ),
             if (viewModel.isFlutter)
               ButtonGroup(
