@@ -9,10 +9,15 @@ final isMac =
     web.window.navigator.platform.toLowerCase().contains('mac') ||
     web.window.navigator.userAgent.toLowerCase().contains('mac');
 
-/// Resolves platform-agnostic modifier placeholders in a display key string.
+/// Resolves platform-agnostic modifier placeholders and platform conditionals
+/// in a display key string.
 ///
 /// - `Mod` → `⌘` on macOS, `Ctrl` on other platforms.
-String resolveDisplayKey(String key) => key.replaceAll('Mod', isMac ? '⌘' : 'Ctrl');
+/// - `Alt` → `⌥` on macOS, `Alt` on other platforms.
+String resolveDisplayKey(String key, {bool? onMac}) {
+  final mac = onMac ?? isMac;
+  return key.replaceAll('Mod', mac ? '⌘' : 'Ctrl').replaceAll('Alt', mac ? '⌥' : 'Alt');
+}
 
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
 enum ShortcutCategory {
@@ -68,13 +73,13 @@ final class ShortcutDefinition {
   ///
   /// Returns a single-element list if defined via [displayKey], or the alternative
   /// key combinations if defined via [displayKeys].
-  /// May contain unresolved `Mod` placeholders. Use [resolvedDisplayKeys] for UI rendering.
+  /// Use [resolvedDisplayKeys] for UI rendering.
   List<String> get displayKeys => _alternativeDisplayKeys ?? [_singleDisplayKey!];
 
   /// Display string shown in single-string contexts (e.g. context menus).
   ///
   /// When multiple display keys are defined, they are joined with `' or '`.
-  /// May contain unresolved `Mod` placeholders. Use [resolvedDisplayKey] for UI rendering.
+  /// Use [resolvedDisplayKey] for UI rendering.
   String get displayKey => _singleDisplayKey ?? _alternativeDisplayKeys!.join(' or ');
 
   /// Resolves platform-agnostic modifier placeholders in [displayKeys] using [resolveDisplayKey].
@@ -143,7 +148,7 @@ final class ShortcutDefinition {
 
   static const formatDocument = ShortcutDefinition(
     label: 'Format document',
-    displayKey: 'Shift + Alt + F',
+    displayKey: 'Alt + Shift + F',
     codemirrorKeys: ['Shift-Alt-f', 'Shift-Alt-F'],
     category: ShortcutCategory.refactoring,
   );
@@ -166,8 +171,8 @@ final class ShortcutDefinition {
 
   static const toggleBlockComment = ShortcutDefinition(
     label: 'Toggle block comment',
-    displayKey: 'Shift + Alt + A',
-    codemirrorKeys: ['Alt-A'],
+    displayKey: 'Alt + Shift + A',
+    codemirrorKeys: ['Alt-A', 'Shift-Alt-a', 'Shift-Alt-A'],
     category: ShortcutCategory.editing,
   );
 
@@ -203,7 +208,7 @@ final class ShortcutDefinition {
 
   static const copyLine = ShortcutDefinition(
     label: 'Copy line up / down',
-    displayKey: 'Shift + Alt + ↑ / ↓',
+    displayKey: 'Alt + Shift + ↑ / ↓',
     codemirrorKeys: ['Shift-Alt-ArrowUp', 'Shift-Alt-ArrowDown'],
     category: ShortcutCategory.editing,
     isPrimary: false,
@@ -251,7 +256,7 @@ final class ShortcutDefinition {
   static const selectAllOccurrences = ShortcutDefinition(
     label: 'Select all occurrences',
     displayKey: 'Mod + Shift + L',
-    codemirrorKeys: ['Mod-Shift-l'],
+    codemirrorKeys: ['Mod-Shift-l', 'Mod-Shift-L'],
     category: ShortcutCategory.search,
     isPrimary: false,
   );
@@ -273,33 +278,33 @@ final class ShortcutDefinition {
     isPrimary: false,
   );
 
-  static const foldCode = ShortcutDefinition.alternatives(
+  static final foldCode = ShortcutDefinition.alternatives(
     label: 'Fold code',
-    displayKeys: ['Ctrl + Shift + [', 'Alt + -'],
-    codemirrorKeys: ['Ctrl-Shift-[', 'Alt--'],
+    displayKeys: isMac ? ['Mod + Alt + ['] : ['Ctrl + Shift + [', 'Alt + -'],
+    codemirrorKeys: ['Cmd-Alt-[', 'Ctrl-Shift-[', 'Alt--'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const unfoldCode = ShortcutDefinition.alternatives(
+  static final unfoldCode = ShortcutDefinition.alternatives(
     label: 'Unfold code',
-    displayKeys: ['Ctrl + Shift + ]', 'Alt + +'],
-    codemirrorKeys: ['Ctrl-Shift-]', 'Alt-+', 'Alt-='],
+    displayKeys: isMac ? ['Mod + Alt + ]'] : ['Ctrl + Shift + ]', 'Alt + +'],
+    codemirrorKeys: ['Cmd-Alt-]', 'Ctrl-Shift-]', 'Alt-+', 'Alt-='],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const foldAll = ShortcutDefinition.alternatives(
+  static final foldAll = ShortcutDefinition.alternatives(
     label: 'Fold all',
-    displayKeys: ['Ctrl + Alt + [', 'Alt + 0'],
+    displayKeys: ['Ctrl + Alt + [', if (!isMac) 'Alt + 0'],
     codemirrorKeys: ['Ctrl-Alt-[', 'Alt-0'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
   );
 
-  static const unfoldAll = ShortcutDefinition.alternatives(
+  static final unfoldAll = ShortcutDefinition.alternatives(
     label: 'Unfold all',
-    displayKeys: ['Ctrl + Alt + ]', 'Alt + 9'],
+    displayKeys: ['Ctrl + Alt + ]', if (!isMac) 'Alt + 9'],
     codemirrorKeys: ['Ctrl-Alt-]', 'Alt-9'],
     category: ShortcutCategory.autocompleteFolding,
     isPrimary: false,
@@ -341,9 +346,9 @@ final class ShortcutDefinition {
 /// This list is the **single source of truth** for both the dialog UI and the
 /// automated test that validates shortcuts against CodeMirror's keymap.
 ///
-/// Display keys use `Mod` as a platform-agnostic placeholder for the primary
-/// modifier key. Call [resolveDisplayKey] to get the platform-specific string.
-const shortcutDefinitions = <ShortcutDefinition>[
+/// Display keys use `Mod` and `Alt` as platform-agnostic placeholders for modifier
+/// keys. Call [resolveDisplayKey] to get the platform-specific string.
+final shortcutDefinitions = <ShortcutDefinition>[
   // ── View ─────────────────────────────────────────────────────────────────
   ShortcutDefinition.commandPalette,
 
