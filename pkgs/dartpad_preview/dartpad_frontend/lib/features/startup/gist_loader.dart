@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
 
+import '../shared/sdk_info.dart';
 import 'project_loader.dart';
 
 /// Loads all files of a GitHub gist into a virtual workspace.
@@ -50,7 +51,11 @@ class GistLoader {
     final fetchedFiles = await Future.wait(
       filesJson.values.map(_loadFile).toList(),
     );
-    final project = Project(_moveRootDartFilesIntoLib(fetchedFiles));
+    final projectFiles = _moveRootDartFilesIntoLib(fetchedFiles);
+    if (!projectFiles.any((file) => file.path == 'pubspec.yaml')) {
+      projectFiles.add(_createDefaultPubspecFile(projectFiles));
+    }
+    final project = Project(projectFiles);
     final entryPath = _findEntryPath(project);
     final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(project, entryPath);
 
@@ -110,6 +115,45 @@ class GistLoader {
         else
           file,
     ];
+  }
+
+  /// Matches imports and exports that reference packages.
+  static final importsRegex = RegExp(r'''^(?:import|export)\s['"]package:([^/]+)/[^'"]+['"]''', multiLine: true);
+
+  /// Creates a default pubspec.yaml for a project with the files.
+  ///
+  /// Includes packages that are imported by the project as dependencies.
+  ProjectFile _createDefaultPubspecFile(List<ProjectFile> files) {
+    final dependencies = <String, String>{};
+
+    for (final file in files) {
+      if (!file.path.endsWith('.dart')) continue;
+      final content = utf8.decode(file.bytes, allowMalformed: true);
+      for (final match in importsRegex.allMatches(content)) {
+        final packageName = match.group(1)!;
+        if (!dependencies.containsKey(packageName)) {
+          dependencies[packageName] = packageName == 'flutter' ? '\n    sdk: flutter' : 'any';
+        }
+      }
+    }
+
+    final sortedDependencies = dependencies.entries.toList();
+    sortedDependencies.sort((a, b) => a.key.compareTo(b.key));
+
+    return ProjectFile(
+      path: 'pubspec.yaml',
+      bytes: Uint8List.fromList(
+        utf8.encode('''
+name: app
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  ${sortedDependencies.map((e) => '${e.key}: ${e.value}').join('\n  ')}
+'''),
+      ),
+    );
   }
 
   String? _findEntryPath(Project project) {
