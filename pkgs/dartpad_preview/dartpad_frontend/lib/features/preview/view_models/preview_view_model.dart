@@ -149,16 +149,16 @@ class PreviewViewModel extends ChangeNotifier {
         _attachOutput(sandbox);
       }
       final sandbox = _sandbox!;
-      if (!sandbox.modes.contains(runMode.name)) {
-        throw FormatException('This SDK does not support ${runMode.name} mode.');
+      if (!sandbox.modes.contains(runMode.mode)) {
+        throw FormatException('This SDK does not support ${runMode.mode} mode.');
       }
       _eventBus.dispatch(
-        LogEvent('Compiling and ${reuse ? 'restarting' : 'running'} $entrypoint (${runMode.name})...'),
+        LogEvent('Compiling and ${reuse ? 'restarting' : 'running'} $entrypoint (${runMode.mode})...'),
       );
       failedTask = TaskKind.compilingApplication;
       final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingApplication,
-        () => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.name),
+        () => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode),
         blocksPreview: true,
       );
       if (!_current(id)) {
