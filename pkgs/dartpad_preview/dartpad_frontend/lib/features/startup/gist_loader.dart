@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
 
-import '../shared/sdk_info.dart';
 import 'project_loader.dart';
 
 /// Loads all files of a GitHub gist into a virtual workspace.
@@ -127,7 +126,9 @@ class GistLoader {
     final dependencies = <String, String>{};
 
     for (final file in files) {
-      if (!file.path.endsWith('.dart')) continue;
+      if (!file.path.endsWith('.dart')) {
+        continue;
+      }
       final content = utf8.decode(file.bytes, allowMalformed: true);
       for (final match in importsRegex.allMatches(content)) {
         final packageName = match.group(1)!;
