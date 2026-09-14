@@ -184,7 +184,6 @@ void main() {
 
   test('starts in an idle state and respects blocking prerequisites', () async {
     expect(preview.previewMode, RunMode.flutter);
-    expect(preview.isFlutter, isTrue);
     expect(preview.canStart, isTrue);
     final task = repository.taskStatus.startTask(TaskKind.pubGet, blocksPreview: true);
     expect(preview.canStart, isFalse);
@@ -202,14 +201,13 @@ void main() {
     expect(sandbox.mode, 'console');
     expect(preview.state, isA<PreviewDartReady>());
     expect(preview.previewMode, RunMode.console);
-    expect(preview.isFlutter, isFalse);
     expect(preview.appLogs.single.message, 'early print');
     expect(preview.canStart, isTrue);
     expect(preview.canStop, isFalse);
     expect(preview.canHotReload, isFalse);
 
     await preview.stopCode();
-    expect(preview.isFlutter, isFalse);
+    expect(preview.previewMode, RunMode.console);
   });
 
   test('failed console run with the Flutter SDK retains console mode', () async {
@@ -220,7 +218,7 @@ void main() {
     await preview.runCode('lib/main.dart', mode: RunMode.console);
 
     expect(preview.state, isA<PreviewCompileError>());
-    expect(preview.isFlutter, isFalse);
+    expect(preview.previewMode, RunMode.console);
   });
 
   test('Flutter start, hot reload, and restart use the same sandbox', () async {
@@ -272,7 +270,7 @@ void main() {
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
     );
-    expect(preview.isFlutter, isFalse);
+    expect(preview.previewMode, RunMode.console);
     await preview.runCode('lib/main.dart');
     expect(sandbox.mode, 'console');
     expect(preview.state, isA<PreviewDartReady>());
