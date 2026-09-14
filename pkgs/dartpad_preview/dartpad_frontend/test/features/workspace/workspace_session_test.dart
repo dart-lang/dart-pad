@@ -184,7 +184,6 @@ void main() {
       await session.dispose(closeWorker: false);
     }
   });
-
 }
 
 final class _TestEvent extends AsyncEvent<String> {}
