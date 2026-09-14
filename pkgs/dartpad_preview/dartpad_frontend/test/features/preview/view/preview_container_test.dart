@@ -33,10 +33,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   bool isRunning = true;
 
   @override
-  bool isFlutter = true;
-
-  @override
-  RunMode get previewMode => isFlutter ? RunMode.flutter : RunMode.console;
+  RunMode previewMode = RunMode.flutter;
 
   @override
   bool canStart = false;
@@ -120,7 +117,7 @@ void main() {
     String height = '1000px',
   }) {
     return div(
-      key: ValueKey('container-$width-$height-${customPreview?.isFlutter ?? preview.isFlutter}'),
+      key: ValueKey('container-$width-$height-${customPreview?.previewMode ?? preview.previewMode}'),
       attributes: {
         'style': 'display: flex; flex-direction: column; width: $width; height: $height;',
       },
@@ -506,7 +503,7 @@ void main() {
   });
 
   testClient('hides all button labels in narrow Dart toolbar (< 180px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '140px'));
     await pumpEventQueue();
 
@@ -521,7 +518,7 @@ void main() {
   });
 
   testClient('expands only the first button in medium Dart toolbar (180px - 269px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '200px'));
     await pumpEventQueue();
 
@@ -537,7 +534,7 @@ void main() {
   });
 
   testClient('expands all buttons in wide Dart toolbar (>= 270px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '300px'));
     await pumpEventQueue();
 

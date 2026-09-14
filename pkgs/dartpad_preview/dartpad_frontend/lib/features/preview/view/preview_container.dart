@@ -21,6 +21,7 @@ import '../components/device_mode_dropdown.dart';
 import '../components/runtime_button.dart';
 import '../models/device_mode.dart';
 import '../models/preview_state.dart';
+import '../models/run_mode.dart';
 import '../view_models/preview_view_model.dart';
 
 /// A container component that hosts the preview toolbar, task status, and the
@@ -169,7 +170,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
         classes: [
           'preview-toolbar',
           if (isCollapsed) 'hidden',
-          if (viewModel.isFlutter) 'has-device-mode',
+          if (viewModel.previewMode == RunMode.flutter) 'has-device-mode',
         ].join(' '),
         [
           div(classes: 'preview-controls', [
@@ -179,20 +180,20 @@ class _PreviewContainerState extends State<PreviewContainer> {
                 final isRunning = viewModel.isRunning;
                 return ButtonGroup(
                   children: [
-                    if (isRunning && viewModel.isFlutter)
+                    if (isRunning && viewModel.previewMode == RunMode.flutter)
                       RuntimeButton.reload(previewViewModel: viewModel)
                     else
                       RuntimeButton.run(
                         previewViewModel: viewModel,
                         activeFile: component.activeFile,
                       ),
-                    if (viewModel.isFlutter) RuntimeButton.restart(previewViewModel: viewModel),
+                    if (viewModel.previewMode == RunMode.flutter) RuntimeButton.restart(previewViewModel: viewModel),
                     RuntimeButton.stop(previewViewModel: viewModel),
                   ],
                 );
               },
             ),
-            if (viewModel.isFlutter)
+            if (viewModel.previewMode == RunMode.flutter)
               ButtonGroup(
                 children: [
                   DeviceModeDropdown(
@@ -234,7 +235,7 @@ class _PreviewContainerState extends State<PreviewContainer> {
           'preview-content',
           'mode-${mode.name}',
           if (!isRunning) 'status-stopped',
-          if (!viewModel.isFlutter) 'is-dart',
+          if (viewModel.previewMode == RunMode.console) 'is-dart',
           if (isCollapsed) 'collapsed',
         ].join(' '),
         [
@@ -247,7 +248,8 @@ class _PreviewContainerState extends State<PreviewContainer> {
               persistentFailureMessage: failureMessage,
               onOpenConsole: component.onOpenConsole,
             ),
-          if ((isRunning || state is PreviewDartReady) && !viewModel.isFlutter) ConsolePanel(logs: viewModel.appLogs),
+          if ((isRunning || state is PreviewDartReady) && viewModel.previewMode == RunMode.console)
+            ConsolePanel(logs: viewModel.appLogs),
         ],
       ),
     ]);

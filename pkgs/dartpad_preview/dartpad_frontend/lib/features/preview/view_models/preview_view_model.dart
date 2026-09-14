@@ -50,9 +50,6 @@ class PreviewViewModel extends ChangeNotifier {
   /// The mode selected for the current or most recent preview launch.
   RunMode get previewMode => _previewMode;
 
-  /// Whether [previewMode] uses the Flutter runtime.
-  bool get isFlutter => _previewMode == RunMode.flutter;
-
   final List<ConsoleEntry> _appLogs = [];
 
   /// Console entries emitted by the running Dart application.
@@ -73,7 +70,7 @@ class PreviewViewModel extends ChangeNotifier {
   bool get canRestart => !_launchBlocked && _state.allowsRestart;
 
   /// Whether the running Flutter preview can be hot reloaded.
-  bool get canHotReload => isFlutter && canRestart;
+  bool get canHotReload => _previewMode == RunMode.flutter && canRestart;
 
   /// Whether the current preview operation or sandbox can be stopped.
   bool get canStop => !_disposed && _state.allowsStop && (_state.isTransitioning || _sandbox != null);
@@ -130,9 +127,9 @@ class PreviewViewModel extends ChangeNotifier {
           return;
         }
         final PreviewSandbox sandbox;
-        final factory = _createSandbox;
-        if (factory != null) {
-          sandbox = await factory(_container, assetBaseUrl: _workspaceRepository.assetBaseUrl);
+        final createSandbox = _createSandbox;
+        if (createSandbox != null) {
+          sandbox = await createSandbox(_container, assetBaseUrl: _workspaceRepository.assetBaseUrl);
         } else {
           final workspace = await _workspaceRepository.readyWorkspace;
           if (!_current(id)) {
@@ -327,7 +324,7 @@ class PreviewViewModel extends ChangeNotifier {
       if (_disposed || !identical(_sandbox, sandbox)) {
         return;
       }
-      if (isFlutter ||
+      if (_previewMode == RunMode.flutter ||
           message.startsWith('Starting application from') ||
           message.startsWith('Hot restarting application from')) {
         _eventBus.dispatch(LogEvent('[app] $message', level: level));
