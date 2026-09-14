@@ -19,7 +19,7 @@ class GistLoader {
 
   /// Downloads the gist, writes its files into [root], and returns the
   /// detected project directory and optional entry file.
-  Future<LoadedProject> loadGist(
+  Future<(LoadedProject, {bool hasGeneratedPubspec})> loadGist(
     WorkspaceFolder root,
   ) async {
     if (gistId.isEmpty) {
@@ -51,7 +51,8 @@ class GistLoader {
       filesJson.values.map(_loadFile).toList(),
     );
     final projectFiles = _moveRootDartFilesIntoLib(fetchedFiles);
-    if (!projectFiles.any((file) => file.path == 'pubspec.yaml')) {
+    final generatePubspec = !projectFiles.any((file) => file.path == 'pubspec.yaml');
+    if (generatePubspec) {
       projectFiles.add(_createDefaultPubspecFile(projectFiles));
     }
     final project = Project(projectFiles);
@@ -59,11 +60,14 @@ class GistLoader {
     final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(project, entryPath);
 
     await ProjectLoader.writeFiles(root, project);
-    return LoadedProject(
-      projectDir: packageRoot ?? '',
-      entryPath: entryPath,
-      packageRoot: packageRoot,
-      pathToMain: entryPath,
+    return (
+      LoadedProject(
+        projectDir: packageRoot ?? '',
+        entryPath: entryPath,
+        packageRoot: packageRoot,
+        pathToMain: entryPath,
+      ),
+      hasGeneratedPubspec: generatePubspec,
     );
   }
 
@@ -148,7 +152,7 @@ class GistLoader {
 name: app
 
 environment:
-  sdk: ^3.13.0
+  sdk: ^3.12.0
 
 dependencies:
   ${sortedDependencies.map((e) => '${e.key}: ${e.value}').join('\n  ')}

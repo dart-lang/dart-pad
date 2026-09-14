@@ -38,10 +38,11 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await loader.loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await loader.loadGist(api.root);
           expect(result.projectDir, '');
           expect(result.entryPath, 'lib/main.dart');
           expect(result.packageRoot, '');
+          expect(hasGeneratedPubspec, isFalse);
         },
         () => MockClient((request) async {
           expect(request.url.toString(), gistUrl);
@@ -81,10 +82,11 @@ void main() {
 
         await http.runWithClient(
           () async {
-            final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+            final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
             expect(result.entryPath, testCase.entryPath);
             expect(result.projectDir, '');
             expect(result.packageRoot, testCase.entryPath != null ? '' : isNull);
+            expect(hasGeneratedPubspec, isTrue);
           },
           () => MockClient((request) async => http.Response(gistResponse(files), 200)),
         );
@@ -183,7 +185,8 @@ void main() {}
 
       await http.runWithClient(
         () async {
-          await loader.loadGist(api.root);
+          final (_, :hasGeneratedPubspec) = await loader.loadGist(api.root);
+          expect(hasGeneratedPubspec, isTrue);
         },
         () => MockClient((request) async => http.Response(response, 200)),
       );
@@ -206,7 +209,7 @@ void main() {}
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
           expect(result.projectDir, 'packages/demo');
           expect(result.entryPath, 'packages/demo/lib/main.dart');
           expect(result.packageRoot, 'packages/demo');
@@ -229,7 +232,7 @@ void main() {}
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
+          final (result, :hasGeneratedPubspec) = await const GistLoader(gistId: gistId).loadGist(api.root);
           expect(result.entryPath, 'lib/main.dart');
         },
         () => MockClient((request) async {
