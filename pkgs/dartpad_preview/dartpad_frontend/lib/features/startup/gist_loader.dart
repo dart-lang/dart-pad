@@ -10,18 +10,18 @@ import 'package:http/http.dart' as http;
 
 import 'project_loader.dart';
 
-/// Loads all files of a GitHub gist into a virtual workspace.
+/// Downloads a GitHub gist as an in-memory [Project] with source-path mapping.
 final class GistLoader {
   const GistLoader({required this.gistId});
 
   /// The GitHub gist identifier.
   final String gistId;
 
-  /// Downloads the gist, writes its files into [root], and returns the
-  /// detected project directory and optional entry file.
-  Future<LoadedProject> loadGist(
-    WorkspaceFolder root,
-  ) async {
+  /// Downloads gist files, moving only root-level Dart files into `lib/`.
+  ///
+  /// Other files retain their paths. [Project.pathMapping] records the original
+  /// paths so query options can still address the moved Dart files by name.
+  Future<Project> loadGist() async {
     if (gistId.isEmpty) {
       throw ArgumentError.value(gistId, 'gistId', 'must not be empty');
     }
@@ -50,17 +50,15 @@ final class GistLoader {
     final fetchedFiles = await Future.wait(
       filesJson.values.map(_loadFile).toList(),
     );
-    final project = Project(_moveRootDartFilesIntoLib(fetchedFiles));
-    final entryPath = _findEntryPath(project);
-    final packageRoot = entryPath == null ? null : ProjectLoader.findProjectDirectory(project, entryPath);
-
-    await ProjectLoader.writeFiles(root, project);
-    return LoadedProject(
-      projectDir: packageRoot ?? '',
-      entryPath: entryPath,
-      packageRoot: packageRoot,
-      pathToMain: entryPath,
-    );
+    // Validate original names before relocation, then reject destination collisions.
+    final original = Project(fetchedFiles);
+    final mapping = <String, String>{
+      for (final path in original.paths)
+        path: parentWorkspacePath(path).isEmpty && path.endsWith('.dart') ? 'lib/$path' : path,
+    };
+    return Project([
+      for (final file in original.files) ProjectFile(path: mapping[file.path]!, bytes: file.bytes),
+    ], pathMapping: mapping);
   }
 
   Future<ProjectFile> _loadFile(Object? value) async {
@@ -97,33 +95,5 @@ final class GistLoader {
       path: filename,
       bytes: Uint8List.fromList(utf8.encode(content)),
     );
-  }
-
-  /// Converts the flat source layout supplied by GitHub Gists to a Dart
-  /// package layout. Non-Dart files, including pubspec.yaml and assets, stay
-  /// at the package root.
-  List<ProjectFile> _moveRootDartFilesIntoLib(List<ProjectFile> files) {
-    return [
-      for (final file in files)
-        if (parentWorkspacePath(file.path).isEmpty && file.path.endsWith('.dart'))
-          ProjectFile(path: 'lib/${file.path}', bytes: file.bytes)
-        else
-          file,
-    ];
-  }
-
-  String? _findEntryPath(Project project) {
-    final paths = project.paths.toSet();
-    for (final path in const ['lib/main.dart', 'main.dart']) {
-      if (paths.contains(path)) {
-        return path;
-      }
-    }
-
-    final dartFiles = paths.where((path) => path.endsWith('.dart')).toList();
-    if (dartFiles.length == 1) {
-      return dartFiles.single;
-    }
-    return paths.contains('README.md') ? 'README.md' : null;
   }
 }

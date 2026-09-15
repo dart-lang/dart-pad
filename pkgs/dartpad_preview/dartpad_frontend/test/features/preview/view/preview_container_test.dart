@@ -559,6 +559,8 @@ void main() {
       repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
       sandbox = FakePreviewSandbox();
       preview = PreviewViewModel(
+        initialMode: RunMode.flutter,
+        initialEntrypoint: 'lib/main.dart',
         workspaceRepository: repository,
         eventBus: events,
         createSandbox: (_, {required assetBaseUrl}) async => sandbox,

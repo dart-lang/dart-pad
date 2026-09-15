@@ -19,16 +19,41 @@ import '../models/preview_state.dart';
 import '../models/run_mode.dart';
 
 /// Coordinates UI state and synchronization around the SDK-owned compiler/runtime.
-class PreviewViewModel extends ChangeNotifier {
+interface class PreviewViewModel extends ChangeNotifier {
+  /// Starts with an [initialMode] for the SDK and entrypoint.
+  ///
+  /// A null [modeOverride] allows inference on subsequent runs; a value keeps
+  /// the explicit query mode in effect.
   PreviewViewModel({
     required WorkspaceRepository workspaceRepository,
     required AppEventBus eventBus,
+    required RunMode initialMode,
     Future<PreviewSandbox> Function(web.Element, {required Uri assetBaseUrl})? createSandbox,
     Future<void> Function()? onSaveAll,
-  }) : this._(workspaceRepository, eventBus, createSandbox, onSaveAll);
+    String? initialEntrypoint,
+    RunMode? modeOverride,
+  }) : this._(workspaceRepository, eventBus, createSandbox, onSaveAll, initialEntrypoint, modeOverride, initialMode);
 
-  PreviewViewModel._(this._workspaceRepository, this._eventBus, this._createSandbox, this._onSaveAll)
-    : _previewMode = _workspaceRepository.sdk.isFlutter ? RunMode.flutter : RunMode.console;
+  PreviewViewModel._(
+    this._workspaceRepository,
+    this._eventBus,
+    this._createSandbox,
+    this._onSaveAll,
+    this._entrypoint,
+    this._modeOverride,
+    this._previewMode,
+  );
+
+  String? _entrypoint;
+  String? get entrypoint => _entrypoint;
+  final RunMode? _modeOverride;
+
+  Future<void> runCurrent() async {
+    final path = _entrypoint;
+    if (path != null) {
+      await runCode(path);
+    }
+  }
 
   final WorkspaceRepository _workspaceRepository;
   final AppEventBus _eventBus;
@@ -64,7 +89,7 @@ class PreviewViewModel extends ChangeNotifier {
   bool get _launchBlocked => _disposed || _workspaceRepository.taskStatus.hasBlockingPreviewTask;
 
   /// Whether a new preview launch can be started.
-  bool get canStart => !_launchBlocked && _state.allowsStart;
+  bool get canStart => _entrypoint != null && !_launchBlocked && _state.allowsStart;
 
   /// Whether the running preview can be restarted.
   bool get canRestart => !_launchBlocked && _state.allowsRestart;
@@ -86,12 +111,13 @@ class PreviewViewModel extends ChangeNotifier {
 
   /// Runs [entrypoint] in the requested [mode].
   ///
-  /// When [mode] is `null`, the mode is inferred from the selected SDK and the
-  /// entrypoint's Flutter dependency. A Dart SDK always selects console mode.
+  /// Without an override, infer the mode from the SDK and the entrypoint's
+  /// location relative to its nearest package root.
   Future<void> runCode(String entrypoint, {RunMode? mode}) async {
-    if (!canStart && !canRestart) {
+    if (_launchBlocked || (!_state.allowsStart && !_state.allowsRestart)) {
       return;
     }
+    _entrypoint = entrypoint;
     final id = ++_operationId;
     final restart = canRestart;
     final action = restart ? PreviewLaunchAction.restart : PreviewLaunchAction.start;
@@ -106,12 +132,7 @@ class PreviewViewModel extends ChangeNotifier {
       if (!_current(id)) {
         return;
       }
-      // Infer execution mode from SDK capabilities and package dependencies when not explicitly provided.
-      final runMode =
-          mode ??
-          (_workspaceRepository.sdk.isFlutter && await _workspaceRepository.hasFlutterDependency(entrypoint)
-              ? RunMode.flutter
-              : RunMode.console);
+      final runMode = mode ?? _modeOverride ?? await _workspaceRepository.runModeFor(entrypoint);
       if (!_current(id)) {
         return;
       }

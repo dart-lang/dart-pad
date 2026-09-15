@@ -26,7 +26,7 @@ import '../view_models/preview_view_model.dart';
 
 /// A container component that hosts the preview toolbar, task status, and the
 /// sandbox node where the compiled application runs.
-class PreviewContainer extends StatefulComponent {
+final class PreviewContainer extends StatefulComponent {
   const PreviewContainer({
     required this.preview,
     required this.taskStatus,
@@ -58,7 +58,7 @@ class PreviewContainer extends StatefulComponent {
   static List<StyleRule> get styles => _PreviewContainerState.styles;
 }
 
-class _PreviewContainerState extends State<PreviewContainer> {
+final class _PreviewContainerState extends State<PreviewContainer> {
   final GlobalNodeKey<web.HTMLElement> _contentKey = GlobalNodeKey();
   web.ResizeObserver? _resizeObserver;
 
@@ -185,7 +185,6 @@ class _PreviewContainerState extends State<PreviewContainer> {
                     else
                       RuntimeButton.run(
                         previewViewModel: viewModel,
-                        activeFile: component.activeFile,
                       ),
                     if (viewModel.previewMode == RunMode.flutter) RuntimeButton.restart(previewViewModel: viewModel),
                     RuntimeButton.stop(previewViewModel: viewModel),

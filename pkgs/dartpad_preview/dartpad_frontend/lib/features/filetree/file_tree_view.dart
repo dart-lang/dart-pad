@@ -293,16 +293,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
 
   List<ContextMenuEntry> _buildContextMenuItems() {
     final state = component.state;
-    final actions = component.actions;
     return [
-      if (state.focusedPath.isNotEmpty) ...[
-        ContextMenuItem(
-          label: 'Navigate up',
-          disabled: state.busy,
-          onPressed: actions.navigateUp,
-        ),
-        const ContextMenuDivider(),
-      ],
       ContextMenuItem(
         label: 'New file',
         disabled: state.busy,

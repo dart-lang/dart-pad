@@ -12,19 +12,23 @@ import '../bottom_panel/view_models/console_view_model.dart';
 import '../bottom_panel/view_models/diagnostics_view_model.dart';
 import '../editor/codemirror/code_mirror_tab_adapter.dart';
 import '../editor/image/image_tab.dart';
+import '../editor/models/tab_descriptor.dart';
 import '../editor/view_models/tabs_view_model.dart';
 import '../filetree/file_tree_tabs_adapter.dart';
 import '../filetree/file_tree_view_model.dart';
+import '../preview/models/run_mode.dart';
 import '../preview/view_models/preview_view_model.dart';
 import '../shared/analyzer_status.dart';
 import '../shared/app_event_bus.dart';
 import '../shared/components/context_menu.dart';
 import '../shared/task_status.dart';
+import '../startup/initial_project_state.dart';
 import 'data/workspace_repository.dart';
 
 /// Owns every resource whose lifetime is tied to one worker workspace.
 final class WorkspaceSession {
   WorkspaceSession._({
+    required this.initialProject,
     required this.events,
     required this.taskStatus,
     required this.analyzerStatus,
@@ -38,7 +42,17 @@ final class WorkspaceSession {
     required this._codemirrorAdapter,
   });
 
-  factory WorkspaceSession.create(WorkspaceRepository repository) {
+  /// Creates runtime state from [initialProject]. A null [entrypoint] uses the
+  /// snapshot's entrypoint; if both are null, Run starts disabled. An empty
+  /// string is not a sentinel for clearing the entrypoint.
+  /// [initialMode] must be resolved for the repository's SDK and the entrypoint
+  /// before creating the session, including when switching SDKs.
+  factory WorkspaceSession.create(
+    WorkspaceRepository repository, {
+    required InitialProjectState initialProject,
+    required RunMode initialMode,
+    String? entrypoint,
+  }) {
     final contextMenu = ContextMenuController();
     late final WorkspaceSession session;
     final codemirrorAdapter = CodeMirrorTabAdapter(
@@ -59,9 +73,11 @@ final class WorkspaceSession {
     final fileTree = FileTreeViewModel(
       tabs: FileTreeTabsAdapter(tabs),
       workspace: repository.workspaceResourceApi,
+      rootPath: initialProject.root,
     );
 
     session = WorkspaceSession._(
+      initialProject: initialProject,
       events: repository.events,
       taskStatus: repository.taskStatus,
       analyzerStatus: AnalyzerStatusController(repository.taskStatus),
@@ -72,6 +88,9 @@ final class WorkspaceSession {
       diagnostics: DiagnosticsViewModel(tabs: tabs),
       preview: PreviewViewModel(
         workspaceRepository: repository,
+        initialEntrypoint: entrypoint ?? initialProject.entrypoint,
+        modeOverride: initialProject.request.mode,
+        initialMode: initialMode,
         eventBus: repository.events,
         onSaveAll: tabs.saveAllTabs,
       ),
@@ -81,6 +100,7 @@ final class WorkspaceSession {
     return session;
   }
 
+  final InitialProjectState initialProject;
   final AppEventBus events;
   final TaskStatusController taskStatus;
   final AnalyzerStatusController analyzerStatus;
@@ -93,18 +113,47 @@ final class WorkspaceSession {
   final ContextMenuController contextMenu;
   final CodeMirrorTabAdapter _codemirrorAdapter;
 
-  /// Triggers a hot reload if the preview is running, or runs the active file/entrypoint
+  /// Triggers a hot reload if the preview is running, or runs the selected entrypoint
   /// if the preview is ready to start.
   void runOrHotReload() {
     if (preview.canHotReload) {
       unawaited(preview.hotReloadCode());
     } else if (preview.canStart) {
-      final activeFile = tabs.activeFile;
-      unawaited(
-        preview.runCode(
-          activeFile.isNotEmpty ? activeFile : (preview.state.entrypoint ?? 'lib/main.dart'),
-        ),
-      );
+      unawaited(preview.runCurrent());
+    }
+  }
+
+  /// Values only: these remain usable after the old tab objects are disposed.
+  List<TabDescriptor> get tabSnapshot => List.unmodifiable([
+    for (final tab in tabs.openTabs) TabDescriptor(path: tab.path, origin: tab.origin),
+  ]);
+
+  /// Opens [restoredTabs], or the snapshot's initial tabs when it is null.
+  /// An empty list deliberately restores no tabs. A null or unmatched
+  /// [activeFile] selects the first restored tab, when one exists.
+  Future<void> openProjectFiles({
+    List<TabDescriptor>? restoredTabs,
+    String? activeFile,
+  }) async {
+    fileTree.focusPath(initialProject.root);
+    final entries =
+        restoredTabs ??
+        [
+          for (final path in initialProject.files) TabDescriptor(path: path, origin: EditorTabOrigin.workspace),
+        ];
+    for (final entry in entries) {
+      if (_disposed) {
+        return;
+      }
+      if (entry.origin == EditorTabOrigin.workspace) {
+        await tabs.openWorkspaceFile(entry.path);
+      } else {
+        await tabs.openExternalFile(Uri.parse(entry.path));
+      }
+    }
+    if (!_disposed && entries.isNotEmpty) {
+      final selected = entries.any((entry) => entry.path == activeFile) ? activeFile! : entries.first.path;
+      tabs.switchFile(selected);
     }
   }
 

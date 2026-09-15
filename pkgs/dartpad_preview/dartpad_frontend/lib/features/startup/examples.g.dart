@@ -39,14 +39,12 @@ const _dart = Example(
   id: 'dart',
   icon: 'images/dart_logo_192.png',
   archivePath: 'examples/dart.tar.gz',
-  entryPath: 'lib/main.dart',
 );
 const _flutter = Example(
   name: 'Flutter Snippet',
   id: 'flutter',
   icon: 'images/flutter_logo_192.png',
   archivePath: 'examples/flutter.tar.gz',
-  entryPath: 'lib/main.dart',
 );
 const _fibonacci = Example(
   name: 'Fibonacci',
@@ -54,7 +52,6 @@ const _fibonacci = Example(
   subcategory: 'Dart',
   icon: 'images/dart_logo_192.png',
   archivePath: 'examples/fibonacci.tar.gz',
-  entryPath: 'lib/main.dart',
 );
 const _counter = Example(
   name: 'Counter',
@@ -62,7 +59,6 @@ const _counter = Example(
   subcategory: 'Flutter',
   icon: 'images/flutter_logo_192.png',
   archivePath: 'examples/counter.tar.gz',
-  entryPath: 'lib/main.dart',
 );
 const _sunflower = Example(
   name: 'Sunflower',
@@ -70,7 +66,6 @@ const _sunflower = Example(
   subcategory: 'Flutter',
   icon: 'images/flutter_logo_192.png',
   archivePath: 'examples/sunflower.tar.gz',
-  entryPath: 'lib/main.dart',
 );
 const _flameGame = Example(
   name: 'Flame Game',
@@ -78,5 +73,4 @@ const _flameGame = Example(
   subcategory: 'Flutter',
   icon: 'images/flutter_logo_192.png',
   archivePath: 'examples/flame-game.tar.gz',
-  entryPath: 'lib/main.dart',
 );

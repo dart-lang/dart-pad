@@ -30,7 +30,6 @@ This package declares example projects that ship with the DartPad preview.
    - **projectDir**: the directory name relative to this package root.
    - **subcategory** *(optional)*: section divider label in the New menu.
    - **icon** *(optional)*: path to the icon image.
-   - **entryPath** *(optional)*: defaults to `lib/main.dart`.
 3. Run the build script:
    ```bash
    dart run build_examples.dart
@@ -45,3 +44,7 @@ dart run build_examples.dart
 ```
 
 Run this before `jaspr serve` / `jaspr build`.
+
+Samples use the shared query convention: `README.md` opens initially and
+`lib/main.dart` is detected as the entrypoint. Use `?sample=<id>&file=lib/main.dart`
+to open the source instead. SDK and execution mode are inferred from project contents.

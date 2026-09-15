@@ -157,7 +157,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   Component build(BuildContext context) {
     final path = component.node.resource.path;
-    final protected = component.state.protectedEntries.contains(path);
     final selected = component.selectedPath == path;
 
     if (_isRenaming) {
@@ -196,7 +195,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         if (dim) 'dim',
       ].join(' '),
       path: path,
-      isDraggable: !protected && !component.state.busy,
+      isDraggable: !component.state.busy,
       attributes: {
         'title': path,
         'tabindex': '0',
@@ -220,7 +219,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         'contextmenu': (web.Event event) => _handleContextMenu(
           event,
           path,
-          protected: protected,
         ),
       },
       children: [
@@ -341,9 +339,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
 
   void _handleContextMenu(
     web.Event event,
-    String path, {
-    required bool protected,
-  }) {
+    String path,
+  ) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
@@ -355,14 +352,13 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     menu.show(
       mouseEvent.clientX.toDouble(),
       mouseEvent.clientY.toDouble(),
-      _buildContextMenuItems(path, protected: protected),
+      _buildContextMenuItems(path),
     );
   }
 
   List<ContextMenuEntry> _buildContextMenuItems(
-    String path, {
-    required bool protected,
-  }) {
+    String path,
+  ) {
     return [
       ContextMenuItem(
         label: 'New file',
@@ -378,22 +374,20 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           component.onStartCreate?.call(path, FileTreeEntryKind.folder);
         },
       ),
-      if (!protected) ...[
-        const ContextMenuDivider(),
-        ContextMenuItem(
-          label: 'Rename',
-          onPressed: () {
-            setState(() {
-              _isRenaming = true;
-            });
-          },
-        ),
-        ContextMenuItem(
-          label: 'Delete',
-          destructive: true,
-          onPressed: () => _confirmDeleteFolder(path),
-        ),
-      ],
+      const ContextMenuDivider(),
+      ContextMenuItem(
+        label: 'Rename',
+        onPressed: () {
+          setState(() {
+            _isRenaming = true;
+          });
+        },
+      ),
+      ContextMenuItem(
+        label: 'Delete',
+        destructive: true,
+        onPressed: () => _confirmDeleteFolder(path),
+      ),
       const ContextMenuDivider(),
       ContextMenuItem(
         label: 'Use as root',

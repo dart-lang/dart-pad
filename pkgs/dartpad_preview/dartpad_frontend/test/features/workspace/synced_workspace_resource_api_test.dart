@@ -62,6 +62,28 @@ void main() {
       expect(await remoteApi.readFileAsBytes('asset.bin'), Uint8List.fromList([1, 2, 3]));
     });
 
+    test('retains the final local state of edits, creates, deletes and moves before remote boot', () async {
+      expect(syncedApi.remoteApi, isNull);
+      await syncedApi.writeFileFromText('lib/main.dart', 'edited before boot');
+      await syncedApi.createFolder('new');
+      await syncedApi.writeFileFromBytes('new/data.bin', Uint8List.fromList([7, 8, 9]));
+      await syncedApi.writeFileFromText('temporary.txt', 'removed before boot');
+      await syncedApi.deleteFileSystemEntity('temporary.txt');
+      await syncedApi.root.getFile('lib/main.dart').rename('renamed.dart');
+      expect(syncedApi.remoteApi, isNull);
+
+      remoteApiCompleter.complete(remoteApi);
+      await syncedApi.apiReady;
+      await syncedApi.flush();
+
+      expect(await remoteApi.readFileAsText('lib/renamed.dart'), 'edited before boot');
+      expect(await remoteApi.readFileAsBytes('new/data.bin'), [7, 8, 9]);
+      expect(await remoteApi.fileExist('lib/main.dart'), isFalse);
+      expect(await remoteApi.fileExist('temporary.txt'), isFalse);
+      expect(await remoteApi.folderExist('new'), isTrue);
+      await syncedApi.dispose();
+    });
+
     test('queues and applies writes arriving while initial sync is in progress', () async {
       remoteApiCompleter.complete(remoteApi);
 

@@ -9,6 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
+  analyzer: ^12.1.0
   archive: ^4.0.9
   clock: ^1.1.2
   codemirror_dart: any
