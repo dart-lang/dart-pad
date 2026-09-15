@@ -123,6 +123,54 @@ void main() {
       expect(state.mode, RunMode.console);
       expect(state.hasPubspec, isTrue);
     });
+    test('default README and main use the explicit root', () {
+      final state = resolve('?root=example', {
+        'README.md': '# Package',
+        'pubspec.yaml': 'name: demo',
+        'lib/main.dart': 'void main() {}',
+        'example/README.md': '# Example',
+        'example/pubspec.yaml': 'name: demo_example',
+        'example/lib/main.dart': 'void main() {}',
+      });
+      expect(state.root, 'example');
+      expect(state.files, ['example/README.md']);
+      expect(state.entrypoint, 'example/lib/main.dart');
+    });
+    for (final hasMain in [true, false]) {
+      test('missing root README never falls back to the source README, hasMain=$hasMain', () {
+        final state = resolve('?root=example', {
+          'README.md': '# Package',
+          'lib/main.dart': 'void main() {}',
+          'example/pubspec.yaml': 'name: demo_example',
+          if (hasMain) 'example/lib/main.dart': 'void main() {}',
+        });
+        expect(state.files, hasMain ? ['example/lib/main.dart'] : isEmpty);
+        expect(state.entrypoint, hasMain ? 'example/lib/main.dart' : isNull);
+      });
+    }
+    test('source README does not affect root inference from an explicit entrypoint', () {
+      final state = resolve('?entrypoint=example/tool/start.dart', {
+        'README.md': '# Package',
+        'pubspec.yaml': 'name: demo',
+        'example/README.md': '# Example',
+        'example/pubspec.yaml': 'name: demo_example',
+        'example/tool/start.dart': 'void main() {}',
+      });
+      expect(state.root, 'example');
+      expect(state.files, ['example/README.md']);
+      expect(state.entrypoint, 'example/tool/start.dart');
+    });
+    test('explicit files and entrypoint stay source-relative with a nested root', () {
+      final state = resolve('?root=example&file=README.md&entrypoint=lib/main.dart', {
+        'README.md': '# Package',
+        'lib/main.dart': 'void main() {}',
+        'example/README.md': '# Example',
+        'example/lib/main.dart': 'void main() {}',
+      });
+      expect(state.root, 'example');
+      expect(state.files, ['README.md']);
+      expect(state.entrypoint, 'lib/main.dart');
+    });
     for (final example in [
       (query: '', entrypoint: 'lib/main.dart'),
       (query: '?root=example', entrypoint: 'example/lib/main.dart'),
@@ -162,8 +210,26 @@ void main() {
       expect(state.entrypoint, 'example/tool/start.dart');
       expect(state.hasPubspec, isTrue);
     });
-    test('leaves tabs empty when the main candidate is not an entrypoint', () {
-      final state = resolve('', {'lib/main.dart': '// void main() {}'});
+    for (final root in ['', 'example']) {
+      final prefix = root.isEmpty ? '' : '$root/';
+      for (final libMain in [null, '// void main() {}', 'void main() {}']) {
+        test('uses root main after lib main, root=$root, libMain=$libMain', () {
+          final state = resolve('?root=$root', {
+            '${prefix}lib/main.dart': ?libMain,
+            '${prefix}main.dart': 'void main() {}',
+            if (root.isNotEmpty) 'main.dart': 'void main() {}',
+          });
+          final expected = libMain == 'void main() {}' ? '${prefix}lib/main.dart' : '${prefix}main.dart';
+          expect(state.entrypoint, expected);
+          expect(state.files, [expected]);
+        });
+      }
+    }
+    test('leaves tabs empty when neither main candidate is an entrypoint', () {
+      final state = resolve('', {
+        'lib/main.dart': '// void main() {}',
+        'main.dart': 'class App { void main() {} }',
+      });
       expect(state.files, isEmpty);
       expect(state.entrypoint, isNull);
     });
