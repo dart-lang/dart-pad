@@ -28,9 +28,7 @@ persistent project storage.
 Saving writes all dirty tabs to the in-memory workspace. Dart files are
 formatted through the language server before they are written; if formatting
 cannot complete, the file is not saved. Closing a dirty tab asks for
-confirmation before discarding its changes. The root `lib/main.dart` and
-`pubspec.yaml` files, and folders containing them, cannot be deleted from the
-file tree.
+confirmation before discarding its changes. The file tree is restricted to the resolved project `root`.
 
 ## Development
 
@@ -80,177 +78,130 @@ Tests run in Chrome as configured by `dart_test.yaml`.
 
 ## Query options
 
-### Specifying code to load
+Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 
-Choose one project source per URL: an archive, a pub.dev package, a GitHub
-Gist, or a bundled sample. If no source is specified, the frontend loads the
-default `counter` sample.
+| Query | Source |
+| :--- | :--- |
+| `url=<url>` | A tar archive; gzip is detected from its bytes. |
+| `package=<name>` | The latest version reported by pub.dev. |
+| `package=<name>&version=<version>` | An exact pub.dev package version. |
+| `gist=<id>` | A GitHub Gist. `id=<id>` is a deprecated alias. |
+| `sample=<id>` | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
 
-| Query string                             | Description |
-| :--------------------------------------- | :--- |
-| `?archive=<url>`                         | Load a `.tar` or `.tar.gz` archive from `<url>` and auto-detect an example or `README.md` file. DartPad detects gzip compression from the downloaded bytes. |
-| `?archive=<url>&path=<path>`             | Load an archive and initially open `<path>`. |
-| `?archive=<url>&main=<main>`             | Load an archive, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
-| `?archive=<url>&path=<path>&main=<main>` | Load an archive, initially open `<path>`, and use `<main>` as the run entrypoint. |
-| `?package=<package>`                     | Load the latest version of `<package>` reported by pub.dev and auto-detect a file from its `example/` directory. |
-| `?package=<package>&main=<main>`         | Load the latest package version, auto-detect the initially opened file, and use `<main>` as the run entrypoint. |
-| `?gist=<gistId>`                         | Load the files of a public GitHub Gist. |
-| `?sample=<sampleId>`                     | Load a bundled example. Valid IDs are `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, and `flutter`. |
+The following options apply to every source:
 
-For an archive, `path` is optional. If omitted, DartPad searches for an example
-file or falls back to `README.md` / `readme.md`. `<path>` and `<main>` are paths
-inside the extracted workspace, not URLs.
+| Query | Behavior |
+| :--- | :--- |
+| `file=<path>&file=<path>` | Initial tabs, in order; the first tab is active. Defaults to `README.md`, then the resolved entrypoint if the README is absent. |
+| `root=<path>` | Root for the file tree, language server and initial Pub command. |
+| `sdk=dart` or `sdk=flutter` | SDK kind, optionally followed by `:<version>`. |
+| `entrypoint=<path>` | The file to execute, independently of the active tab. |
+| `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK. |
+| `embed=true` | Hides the app bar and footer on desktop and starts with the file tree collapsed. |
 
-`package` always resolves the release in
-the `latest` field of the pub.dev package API response.
+Explicit paths are relative to the loaded source, even when `root` is set.
+For Gists, flat Dart files are moved into `lib/`; their original query paths
+are mapped to the relocated files. For example, `file=main.dart` opens
+`lib/main.dart`. Other Gist files keep their original location.
 
-DartPad loads the complete archive into the workspace, but initializes the
-language server at the nearest package root for the file it opens. The package
-root is the closest parent directory containing a `pubspec.yaml`. For example,
-`?package=flutter_animate` opens `example/lib/main.dart` and analyzes only the
-package under `example/`, while the rest of the downloaded archive remains in
-the workspace.
+Defaults are resolved once, in this order:
 
-If the active package in a remote archive or pub.dev package declares
-`resolution: workspace`, DartPad resolves that package independently of its
-original workspace. It writes a package-local
-`pubspec_overrides.yaml` with a null `resolution` value while leaving the
-downloaded `pubspec.yaml` unchanged. An existing overrides file in an isolated
-package is replaced. Because Pub resolves an `example/` package by
-default, DartPad applies the same isolation recursively to nested example
-packages that declare workspace resolution.
+1. Open the requested files, or `README.md`. If the default README is absent,
+   open the entrypoint once it has been resolved below. The editor starts
+   without tabs only if neither exists. Missing explicitly requested files
+   remain errors.
+2. Find the deepest common ancestor of those file paths and an explicit
+   entrypoint that contains `pubspec.yaml`. Without one, use the source root.
+3. Infer Flutter from the root pubspec if `environment.flutter` or the
+   top-level `flutter` value is non-null, or any dependency or dev dependency
+   uses `sdk: flutter`. Otherwise select Dart.
+4. Find the first initial Dart file declaring a top-level `main`, then try
+   `<root>/lib/main.dart`. Without an entrypoint, the project stays editable
+   and Run stays disabled for that project session.
+5. Use Flutter mode with a Flutter SDK unless the entrypoint is under `bin/`,
+   `test/` or `tool/`, relative to its nearest pubspec. Otherwise use console.
+
+The Run button and keyboard shortcut execute the entrypoint resolved at startup.
+Changing tabs does not change it.
+
+Multiple sources, conflicting `gist`/`id` values, invalid paths, and unavailable
+SDK versions produce a visible error.
 
 Examples:
 
 ```text
-http://localhost:8080/?package=material_ui
-http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc
-http://localhost:8080/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart
+http://localhost:8080/?sample=counter&file=lib/main.dart
+http://localhost:8080/?package=flutter_animate&file=example/lib/main.dart
+http://localhost:8080/?package=material_ui&version=0.0.3&root=example&file=example/README.md&entrypoint=example/lib/main.dart
+http://localhost:8080/?gist=b6af57de480a26e2bf98daf235491fbc&file=main.dart&entrypoint=main.dart
+http://localhost:8080/?url=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&file=example/README.md&entrypoint=example/lib/main.dart
 ```
 
-Or open packages in the deployed preview:
+## SDK selection and project state
 
-| Source                  | URL |
-| :---------------------- | :--- |
-| flutter_animate package | [https://preview.dartpad.dev/?package=flutter_animate](https://preview.dartpad.dev/?package=flutter_animate) |
-| uuid package            | [https://preview.dartpad.dev/?package=uuid](https://preview.dartpad.dev/?package=uuid) |
-| example GitHub Gist     | [https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc](https://preview.dartpad.dev/?gist=b6af57de480a26e2bf98daf235491fbc) |
-| material_ui archive     | [https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart](https://preview.dartpad.dev/?archive=https://pub.dev/api/archives/material_ui-0.0.3.tar.gz&path=example/README.md&main=example/lib/main.dart) |
+`InitialProjectState` retains immutable startup metadata: source, original query,
+initial tab paths, root, SDK, entrypoint, mode and whether the root had a pubspec.
+It is resolved before starting a worker and retained by `WorkspaceSession`.
+Editing files, changing tabs or switching
+SDKs does not modify the initial metadata. Choosing a sample creates new metadata
+and a new workspace.
 
-### Editor options
+The generated `lib/sdks.g.dart` lists the available bundles. An explicit
+version must match the corresponding Dart or Flutter version in this manifest;
+Dart's human-readable build suffix is excluded from matching. No additional SDK
+versions are downloaded. Without a version, the first bundle of the selected
+kind in the manifest is used.
 
-| Option or feature | Behavior |
-| :---------------- | :--- |
-| `?embed=true`     | Hides the app bar and footer on desktop and starts with the file tree collapsed. On small screens, only the Code/Output tab bar remains as the header. |
-
-## SDK detection
-
-The generated `lib/sdks.g.dart` lists the available Dart and Flutter runtime
-bundles. The `tool/copy_assets.dart` script prefers the SDK with the ID `flutter`
-as the default when it is present. Users can switch SDKs from the footer;
-switching creates a new worker but preserves the current in-memory files.
-
-The selected SDK determines how compiled code is started:
-
-- The Flutter SDK uses the sandbox's Flutter bootstrap (`runApp`).
-- The Dart SDK invokes the program entrypoint directly (`runMain`).
-
-This choice is based on the selected SDK, not on the contents of
-`pubspec.yaml`. Separately, the frontend searches the resolved
-`.dart_tool/package_config.json` for a `flutter` package. That result controls
-how output is presented: a project with Flutter resolved displays the sandbox
-canvas, while a project without Flutter displays its output in the inline
-console.
+Switching SDKs from the footer creates a new worker and preserves current
+files, tabs, root and entrypoint. SDK kind and execution mode are separate:
+a Flutter SDK can run a console entrypoint.
 
 ## Dependency resolution
 
-The package directory used for the initial `pub get` depends on the project
-source:
+Every source uses the resolved `root` for initial `pub get` and LSP analysis.
+If that root has no `pubspec.yaml`, the initial Pub command is skipped.
+Pending workspace writes are synchronized before Pub runs. On successful
+preparation, the configured entrypoint starts automatically, when present.
 
-- For a bundled sample, the loader uses the nearest `pubspec.yaml` above its
-  configured entry file. All current samples are packages rooted at the
-  archive root.
-- For a pub.dev package or a remote archive, the loader searches upward from
-  the initially opened file for the nearest `pubspec.yaml`. If none is found,
-  it treats the workspace root as the package directory and still attempts
-  `pub get` there.
-- For a Gist, the same upward search is used. If no `pubspec.yaml` is found,
-  the package directory remains unknown and the initial `pub get` is skipped.
-
-Before invoking `pub get`, pending in-memory changes are flushed to the worker.
-Pub output is streamed to the Console panel. Once this step finishes, or fails
-and is reported, startup continues with automatic execution and language-server
-initialization. Opening `pubspec.yaml` or `pubspec.lock` exposes a manual
-`Pub get` action for that file's directory.
-
-When the frontend maps the executed Dart file to its library URI, it searches
-upward for `.dart_tool/package_config.json`, then for `pubspec.yaml`. Files
-below the resolved package's `lib/` directory receive a `package:` URI. Other
-files use their workspace URI; if no package metadata exists, `lib/` files use
-the fallback package name `app`.
+For archives, packages declaring `resolution: workspace` are isolated through
+package-local `pubspec_overrides.yaml` files containing a null `resolution`.
+Their original pubspecs remain unchanged; existing overrides in those packages
+are replaced. This applies to all nested packages in the archive.
 
 ## Entrypoint detection
 
-The frontend distinguishes between two paths:
+All sources use the same deterministic resolution rules described in
+[Query options](#query-options). The `file` parameters select the initial editor
+tabs; `entrypoint` selects the execution target independently of those tabs.
+An explicit `entrypoint` must exist. Without one, the resolver looks for a
+top-level `main` in the initial Dart files, in tab order, then in
+`<root>/lib/main.dart`. Detection uses the Dart parser, so comments, strings,
+getters, and class methods do not count.
 
-- the **initial editor file**, which is opened after the project is loaded;
-- the **run entrypoint**, which is passed to the compiler and executed.
+For Gists, root-level Dart files move into `lib/`. Both `file` and `entrypoint`
+accept their original source paths and use the loader's mapping.
 
-They are usually the same file. The `main` query parameter lets archive and
-package links show one file while running another.
+After successful preparation, the resolved entrypoint starts automatically
+when present. Run and the keyboard shortcut retain that entrypoint across tab
+changes and SDK switches. Without a `mode` override, execution mode is inferred from
+the current SDK and the entrypoint's location relative to its nearest pubspec.
 
-| Project source  | Initial editor file                                                                                                    | Run entrypoint                                             |
-| :-------------- | :--------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------- |
-| Archive         | `path` when supplied; otherwise the first recognized example file; otherwise `README.md` / `readme.md` when present. | `main` when supplied; otherwise the detected editor file.  |
-| pub.dev package | The first recognized example file listed below.                                                                        | `main` when supplied; otherwise the detected example file. |
-| GitHub Gist     | `lib/main.dart`, then `main.dart`; otherwise the only Dart file; otherwise `README.md` when present.                  | The same detected path. It is auto-run only when it is a Dart file. |
-| Bundled sample  | The entry file recorded in `examples.g.dart`; currently `lib/main.dart` for every sample.                             | The same configured entry file.                            |
-
-For an archive where `path` is omitted, or for a pub.dev package, default file
-detection checks these paths in order and uses the first one present in the
-downloaded archive:
-
-1. `example/main.dart`
-2. `example/lib/main.dart`
-3. `example/<package>.dart`
-4. `example/lib/<package>.dart`
-5. `example/<package>_example.dart`
-6. `example/lib/<package>_example.dart`
-7. `example/example.dart`
-8. `example/lib/example.dart`
-9. `example/example.md`
-10. `example/README.md`
-11. `example/readme.md`
-12. `README.md`
-13. `readme.md`
-
-When loading a Gist, root-level Dart files are first moved under `lib/` while
-non-Dart files stay at the workspace root. Detection then prefers
-`lib/main.dart`, followed by `main.dart`. If neither exists, it uses the only
-Dart file when there is exactly one; if there are zero or multiple Dart files,
-it opens `README.md` when available. Otherwise no initial file is opened. Gist
-and sample URLs do not currently support a `main` override.
-
-After dependency resolution, the frontend automatically runs the resolved
-entrypoint only if its path ends in `.dart`. The Run button is independent
-of that startup choice: it runs the currently active editor file, or
-`lib/main.dart` if no file is active. It does not replace an active non-Dart
-file with `lib/main.dart`. Restart recompiles the entrypoint of the current run;
-Hot Reload is only offered for Flutter applications and recompiles changes for
-that same running entrypoint. For Dart console programs, a successful launch
-immediately restores Run and disables Stop.
-Whether that entrypoint is presented as a Flutter application or a console
-program is determined as described in [SDK detection](#sdk-detection).
+Restart recompiles the current run's entrypoint. Hot Reload is available for
+running Flutter applications. Console programs return to the Run-ready state
+after a successful launch.
 
 ## Startup and workspace lifecycle
 
-The UI is rendered immediately while the dedicated WebAssembly worker and the
-selected project are initialized. Once the worker is ready and the detected
-entry file has been opened, the file tree and editor are usable. Initialization
-then continues in the background:
+The loading UI appears immediately. The frontend loads the source and resolves
+`InitialProjectState`, including the SDK, before creating the worker. It then
+copies the loaded files into a local workspace, opens the initial tabs, and
+waits for worker initialization and synchronization. Preparation continues with:
 
-1. If the loader identified a package root, the frontend flushes pending file
-   changes to the worker and runs `pub get` in that directory.
-2. If the resolved run entrypoint is a Dart file, it is run automatically.
-3. The language server starts and publishes analysis and diagnostics to the
-   editor.
+1. Initial `pub get` at the resolved `root`, if a pubspec exists there.
+2. Automatic execution of the selected entrypoint after successful preparation.
+3. Language-server initialization using the same root.
+
+A failed project reset removes the previous session and displays an error
+dialog with a reload action, including in embed mode. Old session resources
+are disposed after the editor has unmounted, and results from superseded loads
+cannot reactivate the previous session.

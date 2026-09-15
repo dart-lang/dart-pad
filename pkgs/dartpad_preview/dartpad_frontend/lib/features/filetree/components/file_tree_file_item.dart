@@ -112,7 +112,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
   @override
   Component build(BuildContext context) {
     final path = component.node.resource.path;
-    final protected = component.state.protectedEntries.contains(path);
     final openable = component.node.openable;
     final selected = component.selectedPath == path;
     final active = component.selectedPath == null && component.state.activeFile == path;
@@ -151,7 +150,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         if (!openable) 'binary',
       ].join(' '),
       path: path,
-      isDraggable: !protected && !component.state.busy,
+      isDraggable: !component.state.busy,
       attributes: {
         'title': openable ? path : '$path — binary preview is not available',
         'tabindex': '0',
@@ -178,7 +177,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           event,
           path,
           openable: openable,
-          protected: protected,
         ),
       },
       children: [
@@ -201,7 +199,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     web.Event event,
     String path, {
     required bool openable,
-    required bool protected,
   }) {
     final menu = component.contextMenu;
     if (menu == null) {
@@ -215,14 +212,13 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     menu.show(
       mouseEvent.clientX.toDouble(),
       mouseEvent.clientY.toDouble(),
-      _buildContextMenuItems(path, openable: openable, protected: protected),
+      _buildContextMenuItems(path, openable: openable),
     );
   }
 
   List<ContextMenuEntry> _buildContextMenuItems(
     String path, {
     required bool openable,
-    required bool protected,
   }) {
     return [
       if (openable)
@@ -232,22 +228,20 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
             unawaited(_openWorkspaceFile(path));
           },
         ),
-      if (!protected) ...[
-        ContextMenuItem(
-          label: 'Rename',
-          onPressed: () {
-            setState(() {
-              _isRenaming = true;
-            });
-          },
-        ),
-        ContextMenuItem(
-          label: 'Delete',
-          destructive: true,
-          onPressed: () => _confirmDeleteFile(path),
-        ),
-        const ContextMenuDivider(),
-      ],
+      ContextMenuItem(
+        label: 'Rename',
+        onPressed: () {
+          setState(() {
+            _isRenaming = true;
+          });
+        },
+      ),
+      ContextMenuItem(
+        label: 'Delete',
+        destructive: true,
+        onPressed: () => _confirmDeleteFile(path),
+      ),
+      const ContextMenuDivider(),
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {

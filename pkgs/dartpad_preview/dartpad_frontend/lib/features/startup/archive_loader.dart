@@ -13,61 +13,39 @@ import 'package:yaml/yaml.dart';
 import 'project_loader.dart';
 
 /// A loader that downloads a (gzipped) tar archive from a remote URL,
-/// extracts all of its files into a virtual workspace folder, and opens a
-/// target file.
+/// returning its prepared files for the shared project resolver.
 final class ArchiveLoader {
-  /// Creates an archive loader.
-  const ArchiveLoader({
-    required this.archiveUrl,
-    this.packageName,
-    this.filePath,
-    this.pathToMain,
-  });
+  const ArchiveLoader({required this.archiveUrl});
 
-  static Future<ArchiveLoader> forPackage(
-    String packageName, {
-    String? pathToMain,
-  }) async {
-    final String url = 'https://pub.dev/api/packages/$packageName';
-    final http.Response response = await http.get(Uri.parse(url));
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load package $packageName');
-    }
-
-    final Map<String, Object?> json = jsonDecode(response.body) as Map<String, Object?>;
-    if (json case {'latest': {'archive_url': final String archiveUrl}}) {
-      return ArchiveLoader(
-        archiveUrl: archiveUrl,
-        packageName: packageName,
-        pathToMain: pathToMain,
-      );
-    }
-
-    throw Exception('Failed to load package $packageName: Unexpected JSON response.');
-  }
-
-  /// The absolute URL pointing to the tar or gzipped tar archive.
   final String archiveUrl;
 
-  /// The name of the package that the archive belongs to.
-  final String? packageName;
+  static Future<ArchiveLoader> forPackage(String packageName, {String? version}) async {
+    final uri = Uri(
+      scheme: 'https',
+      host: 'pub.dev',
+      pathSegments: [
+        'api',
+        'packages',
+        packageName,
+        if (version != null) ...['versions', version],
+      ],
+    );
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw FormatException(
+        'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
+      );
+    }
+    final Object? json = jsonDecode(response.body);
+    final Object? metadata = version == null && json is Map<String, Object?> ? json['latest'] : json;
+    if (metadata is Map<String, Object?> && metadata['archive_url'] is String) {
+      return ArchiveLoader(archiveUrl: metadata['archive_url'] as String);
+    }
+    throw const FormatException('Unexpected package response.');
+  }
 
-  /// The workspace-relative file path within the project to open in the editor
-  /// after extraction.
-  final String? filePath;
-
-  /// The entrypoint file to be executed in the preview. Defaults to [filePath].
-  final String? pathToMain;
-
-  /// Downloads, decompresses, and extracts all files from the [archiveUrl]
-  /// into the workspace [root].
-  ///
-  /// Scans the archive files to find the nearest parent directory containing
-  /// a `pubspec.yaml` file for the active target file.
-  ///
-  /// The returned entrypoint is either [filePath], a well-known example file
-  /// discovered in package archives, or a fallback `README.md` file.
-  Future<LoadedProject> loadArchive(WorkspaceFolder root) async {
+  /// Downloads and prepares files without starting or writing to a workspace.
+  Future<Project> loadArchive() async {
     final Uri uri = Uri.base.resolve(archiveUrl);
     if (!uri.isAbsolute) {
       throw ArgumentError('archiveUrl must resolve to an absolute URI: $archiveUrl');
@@ -86,7 +64,6 @@ final class ArchiveLoader {
 
     final Archive archive = TarDecoder().decodeBytes(tarBytes);
 
-    final targetFilePath = filePath ?? findDefaultFile(archive);
     final project = Project([
       for (final ArchiveFile file in archive.files)
         if (file.isFile)
@@ -96,19 +73,8 @@ final class ArchiveLoader {
           ),
     ]);
 
-    final entryPath = targetFilePath == null ? null : ProjectLoader.normalizePath(targetFilePath);
-    final mainPath = pathToMain != null ? ProjectLoader.normalizePath(pathToMain!) : entryPath;
-    final projectDir = entryPath == null ? '' : ProjectLoader.findProjectDirectory(project, entryPath) ?? '';
-
     _disableWorkspaceResolution(project);
-    await ProjectLoader.writeFiles(root, project);
-
-    return LoadedProject(
-      projectDir: projectDir,
-      entryPath: entryPath,
-      packageRoot: projectDir,
-      pathToMain: mainPath,
-    );
+    return project;
   }
 
   /// Isolates packages in the loaded archive from a workspace that is not part
@@ -158,8 +124,8 @@ final class ArchiveLoader {
 
   bool _usesWorkspaceResolution(String pubspecContents) {
     try {
-      final rootValue = loadYaml(pubspecContents);
-      return rootValue is Map && rootValue['resolution'] == 'workspace';
+      final Object? rootValue = loadYaml(pubspecContents);
+      return rootValue is Map<Object?, Object?> && rootValue['resolution'] == 'workspace';
     } on YamlException {
       return false;
     }
@@ -169,40 +135,6 @@ final class ArchiveLoader {
     if (path.startsWith('./')) {
       return path.substring(2);
     }
-    if (path.startsWith('/')) {
-      return path.substring(1);
-    }
     return path;
-  }
-
-  /// Finds the default file to open in the archive if none was specified,
-  /// searching for well-known example and README file paths in priority order.
-  String? findDefaultFile(Archive archive) {
-    final List<String> candidateFilenames = [
-      'example/main.dart',
-      'example/lib/main.dart',
-      if (packageName != null) ...[
-        'example/$packageName.dart',
-        'example/lib/$packageName.dart',
-        'example/${packageName}_example.dart',
-        'example/lib/${packageName}_example.dart',
-      ],
-      'example/example.dart',
-      'example/lib/example.dart',
-      'example/example.md',
-      'example/README.md',
-      'example/readme.md',
-      'README.md',
-      'readme.md',
-    ];
-
-    for (final String candidate in candidateFilenames) {
-      final ArchiveFile? file = archive.find(candidate);
-      if (file != null) {
-        return candidate;
-      }
-    }
-
-    return null;
   }
 }
