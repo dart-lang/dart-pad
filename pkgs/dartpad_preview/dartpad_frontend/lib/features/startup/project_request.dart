@@ -177,7 +177,7 @@ final class ProjectRequest {
 
   /// Explicit source-relative tab paths in query order, including duplicates.
   ///
-  /// This list is unmodifiable. Empty enables the default selection: README,
+  /// This list is unmodifiable. Empty selects README.md in the resolved root,
   /// then the resolved entrypoint, or no initial tab if neither exists.
   final List<String> files;
 

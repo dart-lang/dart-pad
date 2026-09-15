@@ -92,7 +92,7 @@ The following options apply to every source:
 
 | Query | Behavior |
 | :--- | :--- |
-| `file=<path>&file=<path>` | Initial tabs, in order; the first tab is active. Defaults to `README.md`, then the resolved entrypoint if the README is absent. |
+| `file=<path>&file=<path>` | Initial tabs, in order; the first tab is active. Defaults to `<root>/README.md`, then the resolved entrypoint if that README is absent. |
 | `root=<path>` | Root for the file tree, language server and initial Pub command. |
 | `sdk=dart` or `sdk=flutter` | SDK kind, optionally followed by `:<version>`. |
 | `entrypoint=<path>` | The file to execute, independently of the active tab. |
@@ -106,17 +106,17 @@ are mapped to the relocated files. For example, `file=main.dart` opens
 
 Defaults are resolved once, in this order:
 
-1. Open the requested files, or `README.md`. If the default README is absent,
-   open the entrypoint once it has been resolved below. The editor starts
-   without tabs only if neither exists. Missing explicitly requested files
-   remain errors.
-2. Find the deepest common ancestor of those file paths and an explicit
-   entrypoint that contains `pubspec.yaml`. Without one, use the source root.
+1. Validate explicitly requested files and the explicit entrypoint. Missing
+   explicitly requested files remain errors.
+2. Use the explicit root, or find the deepest common ancestor of the explicit
+   file paths and entrypoint that contains `pubspec.yaml`. Without one, use
+   the source root. Open the requested files, or `<root>/README.md`. If it is absent, open the resolved
+   entrypoint instead; if neither exists, start without tabs.
 3. Infer Flutter from the root pubspec if `environment.flutter` or the
    top-level `flutter` value is non-null, or any dependency or dev dependency
    uses `sdk: flutter`. Otherwise select Dart.
 4. Find the first initial Dart file declaring a top-level `main`, then try
-   `<root>/lib/main.dart`. Without an entrypoint, the project stays editable
+   `<root>/lib/main.dart`, then `<root>/main.dart`. Without an entrypoint, the project stays editable
    and Run stays disabled for that project session.
 5. Use Flutter mode with a Flutter SDK unless the entrypoint is under `bin/`,
    `test/` or `tool/`, relative to its nearest pubspec. Otherwise use console.
@@ -175,7 +175,7 @@ All sources use the same deterministic resolution rules described in
 tabs; `entrypoint` selects the execution target independently of those tabs.
 An explicit `entrypoint` must exist. Without one, the resolver looks for a
 top-level `main` in the initial Dart files, in tab order, then in
-`<root>/lib/main.dart`. Detection uses the Dart parser, so comments, strings,
+`<root>/lib/main.dart`, then `<root>/main.dart`. Detection uses the Dart parser, so comments, strings,
 getters, and class methods do not count.
 
 For Gists, root-level Dart files move into `lib/`. Both `file` and `entrypoint`

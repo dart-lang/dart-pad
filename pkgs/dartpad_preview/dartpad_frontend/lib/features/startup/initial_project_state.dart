@@ -29,24 +29,18 @@ final class InitialProjectState {
   /// Resolves startup metadata from [contents] without retaining the project.
   factory InitialProjectState.resolve(ProjectRequest request, Project contents, List<SdkInfo> sdks) {
     final explicitFiles = request.files.isEmpty ? const <String>[] : _resolveExplicitFiles(contents, request.files);
-    final readme = contents.resolvePath('README.md');
-    final implicitReadme = request.files.isEmpty && contents.containsFile(readme) ? readme : null;
     final explicitEntrypoint = _resolveOptionalFile(contents, request.entrypoint);
 
     final root = _resolveRoot(request, contents, [
       ...explicitFiles,
-      ?implicitReadme,
       ?explicitEntrypoint,
     ]);
+    final readme = joinWorkspacePath(root, 'README.md');
+    final implicitReadme = request.files.isEmpty && contents.containsFile(readme) ? readme : null;
     final sdk = _resolveSdk(request, contents, root, sdks);
     final entrypoint = _resolveEntrypoint(contents, root, [...explicitFiles, ?implicitReadme], explicitEntrypoint);
     final files = [
-      if (request.files.isNotEmpty)
-        ...explicitFiles
-      else if (implicitReadme != null)
-        implicitReadme
-      else if (entrypoint != null)
-        entrypoint,
+      if (request.files.isNotEmpty) ...explicitFiles else if (implicitReadme != null) implicitReadme else ?entrypoint,
     ];
     final mode = _resolveRunMode(request, contents, sdk, entrypoint);
 
@@ -125,7 +119,7 @@ String? _resolveEntrypoint(
   List<String> files,
   String? explicitEntrypoint,
 ) {
-  final candidates = [...files, joinWorkspacePath(root, 'lib/main.dart')];
+  final candidates = [...files, joinWorkspacePath(root, 'lib/main.dart'), joinWorkspacePath(root, 'main.dart')];
   return explicitEntrypoint ?? candidates.where((path) => _projectFileHasMain(contents, path)).firstOrNull;
 }
 
