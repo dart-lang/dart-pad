@@ -44,9 +44,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   /// Directory name under `lib/projects/` that contains the sample source.
   final String projectDir;
 
-  /// Relative path to the main entry file within the project archive.
-  final String entryPath;
-
   /// Optional path to a logo image served from the web root
   /// (e.g. `"images/flutter_logo_192.png"`).
   final String? icon;
@@ -59,7 +56,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
     required this.id,
     required this.name,
     required this.projectDir,
-    required this.entryPath,
     this.icon,
     this.index = 0,
   });
@@ -70,7 +66,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
       id: json['id'] as String,
       name: json['name'] as String,
       projectDir: json['projectDir'] as String,
-      entryPath: json['entryPath'] as String? ?? 'lib/main.dart',
       icon: json['icon'] as String?,
       index: index,
     );
@@ -99,7 +94,6 @@ class ExampleConfig implements Comparable<ExampleConfig> {
       buf.writeln("  icon: '$icon',");
     }
     buf.writeln("  archivePath: '$archiveRelativeUrl',");
-    buf.writeln("  entryPath: '$entryPath',");
     buf.write(');');
     return buf.toString();
   }
@@ -156,9 +150,9 @@ class ExamplesBuilder {
         fail('README.md missing in $projectPath.');
       }
 
-      final entryFullPath = p.join(projectPath, example.entryPath);
+      final entryFullPath = p.join(projectPath, 'lib/main.dart');
       if (!File(entryFullPath).existsSync()) {
-        fail('Entry file ${example.entryPath} missing in $projectPath.');
+        fail('Entry file lib/main.dart missing in $projectPath.');
       }
     }
 

@@ -18,20 +18,20 @@ final class FileTreeViewModel extends ChangeNotifier {
   FileTreeViewModel({
     required this.tabs,
     required this.workspace,
-  }) : _fullRoot = FileTreeFolderNode(workspace.root) {
+    required String rootPath,
+  }) : rootPath = normalizeWorkspacePath(rootPath),
+       _focusedPath = normalizeWorkspacePath(rootPath),
+       _fullRoot = FileTreeFolderNode(workspace.root.getFolder(normalizeWorkspacePath(rootPath))) {
+    if (!_isWithinRoot(rootPath)) {
+      throw ArgumentError.value(rootPath, 'rootPath', 'Must be a workspace-relative path.');
+    }
     tabs.addListener(_handleTabsChanged);
     _workspaceSubscription = workspace.changeEvents.listen(_handleWorkspaceEvent);
     unawaited(refresh());
   }
 
-  /// Project files that must remain available for DartPad Preview to run.
-  static const Set<String> protectedPaths = {
-    'lib/main.dart',
-    'pubspec.yaml',
-  };
-  static final Set<String> _protectedEntries = Set.unmodifiable(
-    _pathsWithAncestors(protectedPaths),
-  );
+  /// The fixed workspace-relative boundary of this tree
+  final String rootPath;
 
   /// The editor integration used to coordinate file operations with open tabs.
   final FileTreeEditorDelegate tabs;
@@ -43,7 +43,7 @@ final class FileTreeViewModel extends ChangeNotifier {
   LanguageServerClient? languageServerClient;
 
   FileTreeFolderNode _fullRoot;
-  String _focusedPath = '';
+  String _focusedPath;
   StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
   Timer? _refreshDebounce;
   int _refreshGeneration = 0;
@@ -64,9 +64,9 @@ final class FileTreeViewModel extends ChangeNotifier {
     activeFile: tabs.activeFile,
     operationError: _operationError,
     busy: _busy,
-    protectedEntries: _protectedEntries,
     dirtyEntries: Set.unmodifiable(_pathsWithAncestors(tabs.dirtyFiles)),
     focusedPath: _focusedPath,
+    rootPath: rootPath,
   );
 
   /// The actions that the file-tree view can invoke.
@@ -78,20 +78,14 @@ final class FileTreeViewModel extends ChangeNotifier {
     deleteFile: deleteFile,
     deleteFolder: deleteFolder,
     moveEntry: moveEntry,
-    openWorkspaceFile: tabs.openWorkspaceFile,
+    openWorkspaceFile: (path) async {
+      if (_allowPath(path)) {
+        await tabs.openWorkspaceFile(path);
+      }
+    },
     clearOperationError: clearOperationError,
-    navigateUp: navigateUp,
     focusPath: focusPath,
   );
-
-  /// Whether the file at [path] is required by DartPad Preview.
-  bool isProtectedFile(String path) => protectedPaths.contains(normalizeWorkspacePath(path));
-
-  /// Whether [path] is or contains a file required by DartPad Preview.
-  bool isProtectedFolder(String path) {
-    final normalized = normalizeWorkspacePath(path);
-    return protectedPaths.any((protectedPath) => isWithinWorkspaceFolder(protectedPath, normalized));
-  }
 
   /// Whether [path] has unsaved changes.
   ///
@@ -106,6 +100,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Creates a file in the target folder.
   Future<void> createFile(String parentPath, String name) async {
     final targetPath = joinWorkspacePath(parentPath, name);
+    if (!_allowPath(parentPath) || !_allowPath(targetPath)) {
+      return;
+    }
     await _runMutation(() async {
       await workspace.ensureTargetAvailable(
         sourcePath: '',
@@ -121,6 +118,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Creates a folder in the target folder.
   Future<void> createFolder(String parentPath, String name) async {
     final targetPath = joinWorkspacePath(parentPath, name);
+    if (!_allowPath(parentPath) || !_allowPath(targetPath)) {
+      return;
+    }
     await _runMutation(() async {
       await workspace.ensureTargetAvailable(
         sourcePath: '',
@@ -135,6 +135,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Renames the file at [oldPath].
   Future<void> renameFile(String oldPath, String newName) async {
     final newPath = joinWorkspacePath(parentWorkspacePath(oldPath), newName);
+    if (!_allowPath(oldPath) || !_allowPath(newPath)) {
+      return;
+    }
     if (newPath == oldPath) {
       return;
     }
@@ -149,6 +152,9 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Renames the folder at [oldPath].
   Future<void> renameFolder(String oldPath, String newName) async {
     final newPath = joinWorkspacePath(parentWorkspacePath(oldPath), newName);
+    if (!_allowPath(oldPath) || !_allowPath(newPath)) {
+      return;
+    }
     if (newPath == oldPath) {
       return;
     }
@@ -160,10 +166,9 @@ final class FileTreeViewModel extends ChangeNotifier {
     });
   }
 
-  /// Deletes the file at [path] unless it is protected.
+  /// Deletes the file at [path].
   Future<void> deleteFile(String path) async {
-    if (isProtectedFile(path)) {
-      _setOperationError('$path is required by DartPad Preview and cannot be deleted.');
+    if (!_allowPath(path)) {
       return;
     }
     await _runMutation(() async {
@@ -175,10 +180,9 @@ final class FileTreeViewModel extends ChangeNotifier {
     });
   }
 
-  /// Deletes the folder at [path] and its contents unless it is protected.
+  /// Deletes the folder at [path] and its contents.
   Future<void> deleteFolder(String path) async {
-    if (isProtectedFolder(path)) {
-      _setOperationError('$path contains a required project file and cannot be deleted.');
+    if (!_allowPath(path)) {
       return;
     }
     await _runMutation(() async {
@@ -192,6 +196,9 @@ final class FileTreeViewModel extends ChangeNotifier {
 
   /// Moves the entry into [targetFolderPath].
   Future<void> moveEntry(String sourcePath, String targetFolderPath) async {
+    if (!_allowPath(sourcePath) || !_allowPath(targetFolderPath)) {
+      return;
+    }
     final newPath = joinWorkspacePath(
       targetFolderPath,
       basenameWorkspacePath(sourcePath),
@@ -251,14 +258,23 @@ final class FileTreeViewModel extends ChangeNotifier {
   }
 
   void focusPath(String path) {
+    if (!_allowPath(path)) {
+      return;
+    }
     _focusedPath = normalizeWorkspacePath(path);
     _notify();
   }
 
-  void navigateUp() {
-    if (_focusedPath.isNotEmpty) {
-      focusPath(parentWorkspacePath(_focusedPath));
+  bool _isWithinRoot(String path) =>
+      !path.contains('\\') &&
+      isWithinWorkspaceFolder(path, rootPath);
+
+  bool _allowPath(String path) {
+    if (_isWithinRoot(path)) {
+      return true;
     }
+    _setOperationError('The path "$path" is outside the project root.');
+    return false;
   }
 
   Future<void> _runMutation(Future<void> Function() operation) async {
@@ -287,12 +303,16 @@ final class FileTreeViewModel extends ChangeNotifier {
   /// Reloads the visible file-tree structure from the workspace.
   Future<void> refresh() async {
     final generation = ++_refreshGeneration;
-    final resources = await workspace.root.getChildren(recursive: true);
-    final tree = _buildTree(workspace.root, resources);
+    final root = workspace.root.getFolder(rootPath);
+    final resources = await root.getChildren(recursive: true);
+    final tree = _buildTree(root, resources);
     if (_disposed || generation != _refreshGeneration) {
       return;
     }
     _fullRoot = tree;
+    if (tree.findFolder(_focusedPath) == null) {
+      _focusedPath = rootPath;
+    }
     _notify();
   }
 
@@ -320,7 +340,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       }
     }
 
-    final folderPaths = folders.keys.where((path) => path.isNotEmpty).toList()
+    final folderPaths = folders.keys.where((path) => path != root.path).toList()
       ..sort((a, b) => b.length.compareTo(a.length));
     final builtFolders = <String, FileTreeFolderNode>{};
     for (final folderPath in folderPaths) {
