@@ -11,6 +11,7 @@ import 'package:web/web.dart' as web;
 
 import '../../app_styles.dart';
 import '../shared/components/context_menu.dart';
+import '../shared/components/dropdown_menu.dart';
 import '../shared/components/icon_button.dart';
 import '../shared/components/split_panel.dart';
 import '../shared/icons.dart';
@@ -69,6 +70,22 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
     }
   }
 
+  void _startCreateFile() {
+    setState(() {
+      _creatingEntry = FileTreeEntryKind.file;
+      _creatingInFolder = component.state.focusedPath;
+      _selectedPath = null;
+    });
+  }
+
+  void _startCreateFolder() {
+    setState(() {
+      _creatingEntry = FileTreeEntryKind.folder;
+      _creatingInFolder = component.state.focusedPath;
+      _selectedPath = null;
+    });
+  }
+
   @override
   Component build(BuildContext context) {
     final panel = SplitPanel.of(context);
@@ -91,16 +108,40 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
     return aside(classes: 'file-tree', [
       div(classes: 'file-tree-header', [
         const span(classes: 'file-tree-title', [.text('Explorer')]),
-        if (showCollapse)
-          button(
-            classes: 'file-tree-collapse-button',
-            attributes: const {
-              'title': 'Hide file tree',
-              'aria-label': 'Hide file tree',
-            },
-            onClick: panel.collapse,
-            [const Icon('chevron_left', size: 16)],
+        div(classes: 'file-tree-header-buttons', [
+          DropdownMenu(
+            disabled: state.busy,
+            trigger: button(
+              classes: 'file-tree-add-button',
+              attributes: {
+                'title': 'New file or folder',
+                'aria-label': 'New file or folder',
+                if (state.busy) 'disabled': 'true',
+              },
+              [const Icon('add', size: 16)],
+            ),
+            items: [
+              DropdownMenuItem(
+                label: 'New File',
+                onPressed: _startCreateFile,
+              ),
+              DropdownMenuItem(
+                label: 'New Folder',
+                onPressed: _startCreateFolder,
+              ),
+            ],
           ),
+          if (showCollapse)
+            button(
+              classes: 'file-tree-collapse-button',
+              attributes: const {
+                'title': 'Hide file tree',
+                'aria-label': 'Hide file tree',
+              },
+              onClick: panel.collapse,
+              [const Icon('chevron_left', size: 16)],
+            ),
+        ]),
       ]),
       if (state.operationError case final error?)
         div(classes: 'file-tree-error', [
@@ -297,24 +338,12 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       ContextMenuItem(
         label: 'New file',
         disabled: state.busy,
-        onPressed: () {
-          setState(() {
-            _creatingEntry = FileTreeEntryKind.file;
-            _creatingInFolder = state.focusedPath;
-            _selectedPath = null;
-          });
-        },
+        onPressed: _startCreateFile,
       ),
       ContextMenuItem(
         label: 'New folder',
         disabled: state.busy,
-        onPressed: () {
-          setState(() {
-            _creatingEntry = FileTreeEntryKind.folder;
-            _creatingInFolder = state.focusedPath;
-            _selectedPath = null;
-          });
-        },
+        onPressed: _startCreateFolder,
       ),
     ];
   }
@@ -345,6 +374,8 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       ),
       css('.file-tree-header').styles(
         display: .flex,
+        position: const .relative(),
+        zIndex: const ZIndex(105),
         minHeight: 38.px,
         padding: .symmetric(horizontal: 10.px),
         border: .only(
@@ -354,6 +385,11 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         alignItems: .center,
         backgroundColor: colorSurface,
       ),
+      css('.file-tree-header-buttons').styles(
+        display: .flex,
+        alignItems: .center,
+        gap: .all(2.px),
+      ),
       css('.file-tree-title').styles(
         color: colorOnSurface,
         fontSize: 11.px,
@@ -361,7 +397,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         textTransform: .upperCase,
         letterSpacing: 0.7.px,
       ),
-      css('.file-tree-collapse-button, .file-tree-disclosure').styles(
+      css('.file-tree-collapse-button, .file-tree-add-button, .file-tree-disclosure').styles(
         display: .flex,
         padding: .zero,
         border: .none,
@@ -372,9 +408,13 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         color: colorOnSurface,
         backgroundColor: Colors.transparent,
       ),
-      css('.file-tree-collapse-button').styles(width: 24.px, height: 24.px),
-      css('.file-tree-collapse-button:hover, .file-tree-disclosure:hover').styles(
+      css('.file-tree-collapse-button, .file-tree-add-button').styles(width: 24.px, height: 24.px),
+      css('.file-tree-collapse-button:hover, .file-tree-add-button:hover, .file-tree-disclosure:hover').styles(
         backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
+      ),
+      css('.file-tree-add-button:disabled').styles(
+        opacity: 0.45,
+        cursor: .defaultCursor,
       ),
 
       css('.file-tree-list', [
@@ -498,15 +538,26 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         textOverflow: .ellipsis,
         whiteSpace: .noWrap,
       ),
-      css('.file-tree-input-wrapper').styles(position: const .relative()),
+      css('.file-tree-input-wrapper').styles(
+        position: const .relative(),
+        raw: const {'z-index': '150'},
+      ),
+      css('.file-tree-input-container').styles(
+        display: .flex,
+        position: const .relative(),
+        minWidth: .zero,
+        flex: const Flex(grow: 1, basis: .zero),
+      ),
       css('.file-tree-input', [
         css('&').styles(
+          width: 100.percent,
           height: 20.px,
           minWidth: .zero,
+          padding: .symmetric(horizontal: 4.px),
+          boxSizing: .borderBox,
           border: .all(color: colorBorder, width: 1.px),
           radius: .circular(2.px),
           outline: const Outline(style: .none),
-          flex: const Flex(grow: 1, basis: .zero),
           color: colorOnContainer,
           fontSize: 1.em,
           backgroundColor: colorContainer,
@@ -515,17 +566,28 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           border: .all(color: colorError, width: 1.px),
         ),
       ]),
-      css('.file-tree-validation, .file-tree-error').styles(
+      css('.file-tree-error').styles(
         padding: .symmetric(horizontal: 8.px, vertical: 5.px),
         color: colorError,
         fontSize: 11.px,
         backgroundColor: colorErrorSurface,
       ),
       css('.file-tree-validation').styles(
-        position: .absolute(top: 24.px, left: 22.px, right: 6.px),
+        position: const .absolute(
+          top: Unit.expression('calc(100% - 1px)'),
+          left: .zero,
+          right: .zero,
+        ),
         zIndex: const ZIndex(20),
+        padding: .symmetric(horizontal: 6.px, vertical: 4.px),
         margin: .zero,
-        radius: .circular(3.px),
+        boxSizing: .borderBox,
+        border: .all(color: colorError, width: 1.px),
+        radius: .only(bottomLeft: .circular(2.px), bottomRight: .circular(2.px)),
+        color: colorOnContainer,
+        fontSize: 11.px,
+        backgroundColor: colorErrorSurface,
+        raw: const {'line-height': '1.3', 'word-break': 'break-word'},
       ),
     ]),
   ];
