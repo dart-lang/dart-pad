@@ -265,9 +265,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     _notify();
   }
 
-  bool _isWithinRoot(String path) =>
-      !path.contains('\\') &&
-      isWithinWorkspaceFolder(path, rootPath);
+  bool _isWithinRoot(String path) => !path.contains('\\') && isWithinWorkspaceFolder(path, rootPath);
 
   bool _allowPath(String path) {
     if (_isWithinRoot(path)) {
