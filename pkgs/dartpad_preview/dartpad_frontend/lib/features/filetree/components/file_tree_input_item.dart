@@ -8,7 +8,6 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
-import '../../shared/icons.dart';
 import 'file_tree_row.dart';
 
 /// A stateful item representing a text input for creating/renaming.
@@ -20,7 +19,7 @@ class FileTreeInputItem extends StatefulComponent {
     required this.onConfirm,
     required this.onCancel,
     this.initialValue,
-    this.confirmOnBlur = false,
+    this.confirmOnBlur = true,
     this.checkConflict,
     super.key,
   });
@@ -59,6 +58,8 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
   late String value;
   bool _disposed = false;
   bool _userHasEdited = false;
+  bool _showError = false;
+  bool _completed = false;
 
   @override
   void initState() {
@@ -101,8 +102,7 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
 
   @override
   Component build(BuildContext context) {
-    final hasError = validationError != null;
-    final displayError = _userHasEdited ? validationError : null;
+    final displayError = (_userHasEdited || _showError) ? validationError : null;
 
     return FileTreeRow(
       depth: component.depth,
@@ -111,67 +111,67 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
         div(classes: 'file-tree-item input-row', [
           const span(classes: 'file-tree-disclosure spacer', []),
           component.icon,
-          input<String>(
-            id: inputId,
-            classes: 'file-tree-input${displayError != null ? ' invalid' : ''}',
-            value: value,
-            attributes: {
-              'type': 'text',
-              'placeholder': ?component.placeholder,
-              'spellcheck': 'false',
-              'autocomplete': 'off',
-            },
-            onInput: (val) {
-              setState(() {
-                value = val;
-                _userHasEdited = true;
-              });
-            },
-            events: {
-              'blur': (_) {
-                if (component.confirmOnBlur) {
-                  Timer(const Duration(milliseconds: 150), () {
-                    if (_disposed || !mounted) {
-                      return;
-                    }
-                    final trimmed = value.trim();
-                    if (trimmed.isEmpty) {
-                      component.onCancel();
-                    } else if (validationError == null) {
-                      component.onConfirm(trimmed);
+          div(classes: 'file-tree-input-container', [
+            input<String>(
+              id: inputId,
+              classes: 'file-tree-input${displayError != null ? ' invalid' : ''}',
+              value: value,
+              attributes: {
+                'type': 'text',
+                'placeholder': ?component.placeholder,
+                'spellcheck': 'false',
+                'autocomplete': 'off',
+              },
+              onInput: (val) {
+                setState(() {
+                  value = val;
+                  _userHasEdited = true;
+                });
+              },
+              events: {
+                'blur': (_) {
+                  if (component.confirmOnBlur) {
+                    Timer(const Duration(milliseconds: 150), () {
+                      if (_completed || _disposed || !mounted) {
+                        return;
+                      }
+                      final trimmed = value.trim();
+                      if (trimmed.isEmpty) {
+                        _completed = true;
+                        component.onCancel();
+                      } else if (validationError == null) {
+                        _completed = true;
+                        component.onConfirm(trimmed);
+                      } else {
+                        _completed = true;
+                        component.onCancel();
+                      }
+                    });
+                  }
+                },
+                'keydown': (event) {
+                  final keyboardEvent = event as web.KeyboardEvent;
+                  if (keyboardEvent.key == 'Enter') {
+                    keyboardEvent.preventDefault();
+                    if (validationError == null) {
+                      _completed = true;
+                      component.onConfirm(value.trim());
                     } else {
-                      component.onCancel();
+                      setState(() {
+                        _showError = true;
+                      });
                     }
-                  });
-                }
+                  } else if (keyboardEvent.key == 'Escape') {
+                    keyboardEvent.preventDefault();
+                    _completed = true;
+                    component.onCancel();
+                  }
+                },
               },
-              'keydown': (event) {
-                final keyboardEvent = event as web.KeyboardEvent;
-                if (keyboardEvent.key == 'Enter' && !hasError) {
-                  component.onConfirm(value.trim());
-                } else if (keyboardEvent.key == 'Escape') {
-                  component.onCancel();
-                }
-              },
-            },
-          ),
-          button(
-            classes: 'file-tree-action confirm',
-            attributes: {
-              'title': 'Confirm',
-              if (hasError) 'disabled': '',
-            },
-            onClick: hasError ? null : () => component.onConfirm(value.trim()),
-            [const Icon('check', size: 12)],
-          ),
-          button(
-            classes: 'file-tree-action delete',
-            attributes: {'title': 'Cancel'},
-            onClick: component.onCancel,
-            [const Icon('close', size: 12)],
-          ),
+            ),
+            if (displayError case final error?) div(classes: 'file-tree-validation', [.text(error)]),
+          ]),
         ]),
-        if (displayError case final error?) div(classes: 'file-tree-validation', [.text(error)]),
       ],
     );
   }
