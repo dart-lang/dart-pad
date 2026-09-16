@@ -123,7 +123,7 @@ final class ProjectRequest {
     if (gist != null && id != null && gist != id) {
       throw const FormatException('gist and id must identify the same Gist.');
     }
-    if ([url, package, gist ?? id, sample].whereType<String>().length > 1) {
+    if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');
     }
     if (version != null && package == null) {
