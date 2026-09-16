@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
+import 'package:dartpad_frontend/features/shared/dart_source.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';

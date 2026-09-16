@@ -185,12 +185,15 @@ void main() {
 
   test('starts in an idle state and respects blocking prerequisites', () async {
     expect(preview.previewMode, RunMode.flutter);
+    expect(preview.canRun, isTrue);
     expect(preview.canStart, isTrue);
     final task = repository.taskStatus.startTask(TaskKind.pubGet, blocksPreview: true);
+    expect(preview.canRun, isFalse);
     expect(preview.canStart, isFalse);
     await preview.runCode('lib/main.dart');
     expect(sandbox.runCount, 0);
     task.succeed();
+    expect(preview.canRun, isTrue);
     expect(preview.canStart, isTrue);
   });
 
@@ -203,6 +206,7 @@ void main() {
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
     );
+    expect(preview.canRun, isTrue);
     expect(preview.canStart, isFalse);
     await preview.runCurrent();
     expect(sandbox.runCount, 0);
