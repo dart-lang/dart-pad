@@ -81,8 +81,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     expect(addButton, isNotNull);
     expect(addButton!.getAttribute('aria-label'), 'New file or folder');
     expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
@@ -107,8 +106,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -132,8 +130,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -157,8 +154,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     expect(addButton, isNotNull);
     expect(addButton!.getAttribute('disabled'), isNotNull);
   });
@@ -342,8 +338,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -364,8 +359,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -378,7 +372,9 @@ void main() {
     expect(web.document.querySelector('.file-tree-validation'), isNull);
     expect(input!.classList.contains('invalid'), isFalse);
 
-    input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)));
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
     await pumpEventQueue();
 
     final validation = web.document.querySelector('.file-tree-validation');
@@ -400,8 +396,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -416,7 +411,9 @@ void main() {
     input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
     await pumpEventQueue();
 
-    input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)));
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
     await pumpEventQueue();
 
     expect(createdName, 'new_component.dart');
@@ -436,8 +433,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -452,7 +448,9 @@ void main() {
     input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
     await pumpEventQueue();
 
-    input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true)));
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true)),
+    );
     await pumpEventQueue();
 
     expect(createdName, isNull);
@@ -472,8 +470,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
@@ -509,8 +506,7 @@ void main() {
       ),
     );
 
-    final addButton =
-        web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
     addButton!.click();
     await pumpEventQueue();
 
