@@ -6,11 +6,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:dartpad_frontend/features/startup/archive_loader.dart';
-import 'package:dartpad_frontend/features/startup/gist_loader.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
-import 'package:dartpad_frontend/features/startup/project_source_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -21,30 +19,40 @@ void main() {
   for (final version in [null, '1.2.3', '1.2.3+build.2']) {
     test('loads ${version ?? 'latest'} package version via metadata archive_url', () async {
       final requests = <Uri>[];
+      final archive = Uint8List.fromList(TarEncoder().encode(Archive()));
       await http.runWithClient(
         () async {
-          final loader = await ArchiveLoader.forPackage('demo', version: version);
-          expect(loader.archiveUrl, 'https://pub.dev/api/archives/demo-1.2.3.tar.gz');
+          final project = await PackageProjectSource('demo', version: version).loadProject();
+          expect(project.paths, isEmpty);
         },
         () => MockClient((request) async {
           requests.add(request.url);
+          if (request.url.path == '/api/archives/demo-1.2.3.tar.gz') {
+            return http.Response.bytes(archive, 200);
+          }
           final metadata = {'archive_url': 'https://pub.dev/api/archives/demo-1.2.3.tar.gz'};
           return http.Response(jsonEncode(version == null ? {'latest': metadata} : metadata), 200);
         }),
       );
-      expect(requests.single.path, version == null ? '/api/packages/demo' : '/api/packages/demo/versions/$version');
+      expect(requests, [
+        Uri.https('pub.dev', version == null ? '/api/packages/demo' : '/api/packages/demo/versions/$version'),
+        Uri.https('pub.dev', '/api/archives/demo-1.2.3.tar.gz'),
+      ]);
     });
   }
   test('reports missing package versions without loading latest', () async {
     await http.runWithClient(() async {
-      await expectLater(ArchiveLoader.forPackage('demo', version: '0.0.0'), throwsFormatException);
+      await expectLater(
+        const PackageProjectSource('demo', version: '0.0.0').loadProject(),
+        throwsFormatException,
+      );
     }, () => MockClient((_) async => http.Response('Not found', 404)));
   });
   test('maps all flat Gist Dart files and rejects relocation collisions', () async {
     Future<void> check(Map<String, String> files, {bool collision = false}) async {
       await http.runWithClient(
         () async {
-          final future = const GistLoader(gistId: 'abc').loadGist();
+          final future = const GistProjectSource('abc').loadProject();
           if (collision) {
             await expectLater(future, throwsArgumentError);
           } else {
@@ -94,7 +102,7 @@ void main() {
     await http.runWithClient(
       () async {
         final request = ProjectRequest.example('counter');
-        final state = InitialProjectState.resolve(request, await loadProjectSource(request.source), sdks);
+        final state = InitialProjectState.resolve(request, await request.source.loadProject(), sdks);
         expect(state.files, ['README.md']);
         expect(state.entrypoint, 'lib/main.dart');
         expect(state.sdk, sdks.last);

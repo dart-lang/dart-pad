@@ -13,6 +13,7 @@ import '../preview/models/run_mode.dart';
 import '../shared/sdk_info.dart';
 import 'project_loader.dart';
 import 'project_request.dart';
+import 'project_source.dart';
 
 /// Immutable startup options and resolved metadata
 final class InitialProjectState {

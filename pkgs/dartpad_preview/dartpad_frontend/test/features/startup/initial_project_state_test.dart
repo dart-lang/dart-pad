@@ -10,6 +10,7 @@ import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:test/test.dart';
 
 const sdks = [
@@ -42,15 +43,16 @@ void main() {
       expect(() => request.query['file']!.add('x'), throwsUnsupportedError);
     });
 
-    test('types all sources and allows identical gist and id aliases', () {
+    test('types all sources', () {
       expect(ProjectRequest.example().source, isA<SampleProjectSource>());
       final package = ProjectRequest.fromUri(Uri.parse('?package=foo&version=1.2.3')).source as PackageProjectSource;
       expect(package.version, '1.2.3');
       expect((ProjectRequest.fromUri(Uri.parse('?id=abc')).source as GistProjectSource).id, 'abc');
-      expect(ProjectRequest.fromUri(Uri.parse('?gist=abc&id=abc')).source, isA<GistProjectSource>());
+      expect((ProjectRequest.fromUri(Uri.parse('?gist=abc')).source as GistProjectSource).id, 'abc');
     });
 
     for (final query in [
+      '?gist=a&id=a',
       '?gist=a&id=b',
       '?url=a&package=b',
       '?sample=a&gist=b',

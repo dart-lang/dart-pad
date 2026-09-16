@@ -38,7 +38,7 @@ import 'features/shared/task_status.dart';
 import 'features/startup/initial_project_state.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
-import 'features/startup/project_source_loader.dart';
+import 'features/startup/project_source.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
@@ -47,11 +47,13 @@ import 'sdks.g.dart';
 /// Smallest screen width when the screen is considered to be a large screen.
 const minLargeScreenWidth = 866.0;
 
+Future<Project> _loadProjectSource(ProjectSource source) => source.loadProject();
+
 /// The deliberately small first production slice of DartPad.
 final class App extends StatefulComponent {
   const App({
     this.initialUri,
-    this.loadSource = loadProjectSource,
+    this.loadSource = _loadProjectSource,
     this.createRepository = WorkspaceRepository.create,
     super.key,
   });

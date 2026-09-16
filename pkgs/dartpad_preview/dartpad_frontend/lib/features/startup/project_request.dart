@@ -4,57 +4,7 @@
 
 import '../preview/models/run_mode.dart';
 import 'project_loader.dart';
-
-/// The source from which a project's files are loaded.
-///
-/// Describes a bundled sample, remote archive, pub.dev package, or GitHub gist.
-/// Source descriptors do not load files or verify that the source exists.
-sealed class ProjectSource {
-  /// Creates the base descriptor for a concrete project source.
-  const ProjectSource();
-
-  /// Describes a bundled sample; null selects the default sample (`counter`).
-  const factory ProjectSource.example([String? sampleId]) = SampleProjectSource;
-}
-
-/// A bundled example selected by its sample ID.
-final class SampleProjectSource extends ProjectSource {
-  /// Describes [sampleId], or the default sample (`counter`) when null.
-  const SampleProjectSource([this.sampleId]);
-
-  /// Explicit sample ID, or null to use the bundled default. Empty IDs are invalid.
-  final String? sampleId;
-}
-
-/// A tar archive downloaded from a URL, optionally compressed with gzip.
-final class ArchiveProjectSource extends ProjectSource {
-  /// Describes the archive at [url].
-  const ArchiveProjectSource(this.url);
-
-  /// The archive URL, resolved against the page URL when relative.
-  final String url;
-}
-
-/// A package downloaded using archive metadata from pub.dev.
-final class PackageProjectSource extends ProjectSource {
-  /// Describes [package] at [version], or its latest version when null.
-  const PackageProjectSource(this.package, {this.version});
-
-  /// The package name used to request metadata from pub.dev.
-  final String package;
-
-  /// Exact package version, or null to load the latest version from pub.dev.
-  final String? version;
-}
-
-/// A GitHub gist selected by its identifier.
-final class GistProjectSource extends ProjectSource {
-  /// Describes the gist with the supplied [id].
-  const GistProjectSource(this.id);
-
-  /// The gist identifier supplied by the `gist` parameter or its `id` alias.
-  final String id;
-}
+import 'project_source.dart';
 
 /// The immutable, source-relative options supplied by the URL.
 ///
@@ -86,8 +36,8 @@ final class ProjectRequest {
   ///
   /// Reads [Uri.queryParametersAll] without decoding values a second time,
   /// preserving repeated `file` values in order. With no explicit source, the
-  /// request selects the default sample. `gist` and `id` may coexist only when
-  /// they identify the same gist; `version` requires `package`.
+  /// request selects the default sample. `gist` and its `id` alias are mutually
+  /// exclusive; `version` requires `package`.
   ///
   /// Throws a [FormatException] for conflicting sources, invalid option values,
   /// repeated scalar options, or the unsupported `archive`, `path`, and `main`
@@ -120,8 +70,8 @@ final class ProjectRequest {
     final gist = single('gist');
     final id = single('id');
     final sample = single('sample');
-    if (gist != null && id != null && gist != id) {
-      throw const FormatException('gist and id must identify the same Gist.');
+    if (gist != null && id != null) {
+      throw const FormatException('Choose either gist or id, not both.');
     }
     if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');

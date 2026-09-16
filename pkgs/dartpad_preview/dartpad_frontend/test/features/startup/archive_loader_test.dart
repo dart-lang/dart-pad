@@ -9,14 +9,14 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/startup/archive_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('ArchiveLoader', () {
+  group('ArchiveProjectSource', () {
     const String absoluteUrl = 'https://example.com/archive.tar.gz';
 
     Uint8List createTarArchiveFromBytes(Map<String, List<int>> files) {
@@ -41,14 +41,14 @@ void main() {
     }
 
     test('resolves a relative URL against the page URL', () async {
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: 'examples/counter.tar.gz',
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        'examples/counter.tar.gz',
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          await expectLater(loadInto(loader, api.root), throwsException);
+          await expectLater(loadInto(source, api.root), throwsException);
         },
         () => MockClient((http.Request request) async {
           expect(request.url, Uri.base.resolve('examples/counter.tar.gz'));
@@ -58,15 +58,15 @@ void main() {
     });
 
     test('throws Exception if HTTP response is not 200', () async {
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
           expect(
-            () => loadInto(loader, api.root),
+            () => loadInto(source, api.root),
             throwsException,
           );
         },
@@ -85,14 +85,14 @@ void main() {
       };
       final Uint8List archiveBytes = createTarGzArchive(archiveFiles);
 
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          await loadInto(loader, api.root);
+          await loadInto(source, api.root);
         },
         () => MockClient((http.Request request) async {
           expect(request.url.toString(), absoluteUrl);
@@ -121,14 +121,14 @@ void main() {
       };
       final Uint8List archiveBytes = createTarArchive(archiveFiles);
 
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          await loadInto(loader, api.root);
+          await loadInto(source, api.root);
         },
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
@@ -147,13 +147,13 @@ void main() {
         'pubspec.yaml': pubspec,
         'README.md': '# Root package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -175,13 +175,13 @@ void main() {
         'example/pubspec.yaml': examplePubspec,
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -207,13 +207,13 @@ void main() {
         'example/pubspec.yaml': examplePubspec,
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -245,13 +245,13 @@ resolution: workspace
         'pubspec_overrides.yaml': overrides,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -267,13 +267,13 @@ resolution: workspace
         'pubspec_overrides.yaml': '',
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -290,13 +290,13 @@ resolution: workspace
         'pubspec_overrides.yaml': overrides,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -317,13 +317,13 @@ resolution: workspace
         'example/pubspec_overrides.yaml': 'workspace: []\n',
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -343,13 +343,13 @@ resolution: workspace
         'packages/nested/pkg_c/pubspec.yaml': 'name: pkg_c\nresolution: workspace\n',
         'README.md': '# Multi-package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -375,13 +375,13 @@ resolution: workspace
         'pubspec.yaml': pubspec,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -395,13 +395,13 @@ resolution: workspace
       final archiveBytes = createTarArchiveFromBytes({
         'pubspec.yaml': [0xFF],
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loadInto(loader, api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -413,6 +413,6 @@ resolution: workspace
   });
 }
 
-Future<void> loadInto(ArchiveLoader loader, WorkspaceFolder root) async {
-  await ProjectLoader.writeFiles(root, await loader.loadArchive());
+Future<void> loadInto(ArchiveProjectSource source, WorkspaceFolder root) async {
+  await ProjectLoader.writeFiles(root, await source.loadProject());
 }

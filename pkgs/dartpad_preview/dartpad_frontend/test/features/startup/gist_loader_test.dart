@@ -9,14 +9,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/startup/gist_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('GistLoader', () {
+  group('GistProjectSource', () {
     const gistId = 'aa5a315d61ae9438b18d';
     const gistUrl = 'https://api.github.com/gists/$gistId';
 
@@ -29,7 +29,7 @@ void main() {
 
     test('moves flat Dart files into lib and preserves other files', () async {
       final api = MemoryWorkspaceResourceApi();
-      const loader = GistLoader(gistId: gistId);
+      const source = GistProjectSource(gistId);
       final response = gistResponse({
         'pubspec.yaml': {'filename': 'pubspec.yaml', 'content': 'name: gist_project'},
         'main.dart': {'filename': 'main.dart', 'content': "import 'helper.dart'; void main() {}"},
@@ -39,7 +39,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          await loadInto(loader, api.root);
+          await loadInto(source, api.root);
         },
         () => MockClient((request) async {
           expect(request.url.toString(), gistUrl);
@@ -68,7 +68,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          await loadInto(const GistLoader(gistId: gistId), api.root);
+          await loadInto(const GistProjectSource(gistId), api.root);
         },
         () => MockClient((request) async => http.Response(response, 200)),
       );
@@ -88,7 +88,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          await loadInto(const GistLoader(gistId: gistId), api.root);
+          await loadInto(const GistProjectSource(gistId), api.root);
         },
         () => MockClient((request) async {
           if (request.url.toString() == gistUrl) {
@@ -116,7 +116,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            loadInto(const GistLoader(gistId: gistId), api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsException,
           );
         },
@@ -140,7 +140,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            loadInto(const GistLoader(gistId: gistId), api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsArgumentError,
           );
         },
@@ -155,7 +155,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            loadInto(const GistLoader(gistId: gistId), api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsFormatException,
           );
         },
@@ -170,7 +170,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            loadInto(const GistLoader(gistId: gistId), api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsException,
           );
         },
@@ -180,7 +180,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            loadInto(const GistLoader(gistId: gistId), api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsFormatException,
           );
         },
@@ -190,6 +190,6 @@ void main() {
   });
 }
 
-Future<void> loadInto(GistLoader loader, WorkspaceFolder root) async {
-  await ProjectLoader.writeFiles(root, await loader.loadGist());
+Future<void> loadInto(GistProjectSource source, WorkspaceFolder root) async {
+  await ProjectLoader.writeFiles(root, await source.loadProject());
 }
