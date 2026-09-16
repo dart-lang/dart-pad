@@ -9,9 +9,9 @@ import '../workspace/workspace_path.dart';
 /// If [workspaceFolder] is provided, the URI is resolved relative to it.
 /// Otherwise, the last path segment is returned as a fallback.
 String pathFromDiagnosticUri(String uri, {Uri? workspaceFolder}) {
-  final workspacePath = _pathWithinWorkspace(uri, workspaceFolder);
-  if (workspacePath != null) {
-    return workspacePath;
+  final resolvedPath = _pathWithinWorkspace(uri, workspaceFolder);
+  if (resolvedPath != null) {
+    return resolvedPath;
   }
 
   return Uri.decodeFull(uri.split('/').last);
@@ -27,11 +27,11 @@ String? _pathWithinWorkspace(String uri, Uri? workspaceFolder) {
     return null;
   }
 
-  final workspacePath = workspaceFolder.path.endsWith('/') ? workspaceFolder.path : '${workspaceFolder.path}/';
+  final folderPrefix = workspaceFolder.path.endsWith('/') ? workspaceFolder.path : '${workspaceFolder.path}/';
   final isSameLocation = parsedUri.scheme == workspaceFolder.scheme && parsedUri.authority == workspaceFolder.authority;
-  if (isSameLocation && parsedUri.path.startsWith(workspacePath)) {
-    final relativePath = parsedUri.path.substring(workspacePath.length);
-    return workspaceContext.normalize(Uri.decodeFull(relativePath));
+  if (isSameLocation && parsedUri.path.startsWith(folderPrefix)) {
+    final relativePath = parsedUri.path.substring(folderPrefix.length);
+    return normalizeWorkspacePath(Uri.decodeFull(relativePath));
   }
 
   return null;

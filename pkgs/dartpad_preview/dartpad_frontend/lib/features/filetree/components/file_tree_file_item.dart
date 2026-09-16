@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
@@ -127,8 +128,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           setState(() {
             _isRenaming = false;
           });
-          final parentPath = path.contains('/') ? path.substring(0, path.lastIndexOf('/')) : '';
-          final newPath = parentPath.isEmpty ? newName : '$parentPath/$newName';
+          final newPath = joinWorkspacePath(parentWorkspacePath(path), newName);
           await component.actions.renameFile(path, newName);
           component.onSelect(newPath);
         },

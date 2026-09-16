@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import 'project_loader.dart';
 
 /// Loads all files of a GitHub gist into a virtual workspace.
-class GistLoader {
+final class GistLoader {
   const GistLoader({required this.gistId});
 
   /// The GitHub gist identifier.
@@ -34,8 +34,8 @@ class GistLoader {
       throw Exception('Failed to load gist $gistId (${response.statusCode})');
     }
 
-    final json = jsonDecode(response.body);
-    if (json is! Map<String, dynamic>) {
+    final Object? json = jsonDecode(response.body);
+    if (json is! Map<String, Object?>) {
       throw const FormatException('Unexpected gist response.');
     }
     if (json['truncated'] == true) {
@@ -43,7 +43,7 @@ class GistLoader {
     }
 
     final filesJson = json['files'];
-    if (filesJson is! Map<String, dynamic>) {
+    if (filesJson is! Map<String, Object?>) {
       throw const FormatException('Unexpected gist files response.');
     }
 
@@ -63,8 +63,8 @@ class GistLoader {
     );
   }
 
-  Future<ProjectFile> _loadFile(dynamic value) async {
-    if (value is! Map<String, dynamic>) {
+  Future<ProjectFile> _loadFile(Object? value) async {
+    if (value is! Map<String, Object?>) {
       throw const FormatException('Unexpected gist file response.');
     }
 
@@ -105,7 +105,7 @@ class GistLoader {
   List<ProjectFile> _moveRootDartFilesIntoLib(List<ProjectFile> files) {
     return [
       for (final file in files)
-        if (workspaceContext.dirname(file.path).isEmpty && file.path.endsWith('.dart'))
+        if (parentWorkspacePath(file.path).isEmpty && file.path.endsWith('.dart'))
           ProjectFile(path: 'lib/${file.path}', bytes: file.bytes)
         else
           file,
