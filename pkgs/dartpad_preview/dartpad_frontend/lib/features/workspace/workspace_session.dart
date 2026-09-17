@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:jaspr/jaspr.dart' show kDebugMode;
+import 'package:logging/logging.dart';
 
 import '../bottom_panel/view_models/console_view_model.dart';
 import '../bottom_panel/view_models/diagnostics_view_model.dart';
@@ -21,6 +21,7 @@ import '../preview/view_models/preview_view_model.dart';
 import '../shared/analyzer_status.dart';
 import '../shared/app_event_bus.dart';
 import '../shared/components/context_menu.dart';
+import '../shared/events/log_event.dart';
 import '../shared/task_status.dart';
 import '../startup/initial_project_state.dart';
 import 'data/workspace_repository.dart';
@@ -131,9 +132,13 @@ final class WorkspaceSession {
   /// Opens [restoredTabs], or the snapshot's initial tabs when it is null.
   /// An empty list deliberately restores no tabs. A null or unmatched
   /// [activeFile] selects the first restored tab, when one exists.
+  /// Set [continueOnTabOpenError] when restoring a saved project so a failed tab
+  /// does not prevent workspace initialization. Each failure reports a warning
+  /// and opening continues with the remaining tabs.
   Future<void> openProjectFiles({
     List<TabDescriptor>? restoredTabs,
     String? activeFile,
+    bool continueOnTabOpenError = false,
   }) async {
     fileTree.focusPath(initialProject.root);
     final entries =
@@ -145,14 +150,21 @@ final class WorkspaceSession {
       if (_disposed) {
         return;
       }
-      if (entry.origin == EditorTabOrigin.workspace) {
-        await tabs.openWorkspaceFile(entry.path);
-      } else {
-        await tabs.openSystemFile(Uri.parse(entry.path));
+      try {
+        if (entry.origin == EditorTabOrigin.workspace) {
+          await tabs.openWorkspaceFile(entry.path);
+        } else {
+          await tabs.openSystemFile(Uri.parse(entry.path));
+        }
+      } catch (_) {
+        if (!continueOnTabOpenError) {
+          rethrow;
+        }
+        tabs.reportWarning('Some previous tabs are no longer available. Your project files have been restored.');
       }
     }
-    if (!_disposed && entries.isNotEmpty) {
-      final selected = entries.any((entry) => entry.path == activeFile) ? activeFile! : entries.first.path;
+    if (!_disposed && tabs.openTabs.isNotEmpty) {
+      final selected = tabs.openTabs.any((entry) => entry.path == activeFile) ? activeFile! : tabs.openTabs.first.path;
       tabs.switchFile(selected);
     }
   }
@@ -205,6 +217,7 @@ final class WorkspaceSession {
     await _safeCall(diagnostics.dispose);
     await _safeCall(fileTree.dispose);
     await _safeCall(tabs.dispose);
+    await _safeCall(_codemirrorAdapter.dispose);
     await _safeCall(preview.dispose);
     await _safeAwait(preview.closed);
     await _safeCall(console.dispose);
@@ -233,10 +246,10 @@ final class WorkspaceSession {
   Future<void> _safeAwait(FutureOr<void>? future) async {
     try {
       await future;
-    } catch (e) {
-      if (kDebugMode) {
-        print('WorkspaceSession cleanup error: $e');
-      }
+    } catch (e, s) {
+      events.dispatch(
+        LogEvent('WorkspaceSession cleanup error: $e', level: Level.WARNING, error: e, stackTrace: s),
+      );
     }
   }
 
@@ -245,10 +258,10 @@ final class WorkspaceSession {
   Future<void> _safeCall(FutureOr<void> Function() fn) async {
     try {
       await fn();
-    } catch (e) {
-      if (kDebugMode) {
-        print('WorkspaceSession cleanup error: $e');
-      }
+    } catch (e, s) {
+      events.dispatch(
+        LogEvent('WorkspaceSession cleanup error: $e', level: Level.WARNING, error: e, stackTrace: s),
+      );
     }
   }
 }
