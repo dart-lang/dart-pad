@@ -55,6 +55,25 @@ final class InitialProjectState {
     );
   }
 
+  /// Restores resolved metadata without reinterpreting source-relative URL paths
+  /// or requiring an in-progress pubspec edit to be valid YAML.
+  factory InitialProjectState.restore({
+    required ProjectRequest request,
+    required String root,
+    required String? entrypoint,
+    required SdkInfo sdk,
+    required RunMode mode,
+    required bool hasPubspec,
+  }) => InitialProjectState._(
+    request: request,
+    files: const [],
+    root: root,
+    entrypoint: entrypoint,
+    sdk: sdk,
+    mode: mode,
+    hasPubspec: hasPubspec,
+  );
+
   final ProjectRequest request;
   ProjectSource get source => request.source;
   final List<String> files;

@@ -16,16 +16,21 @@ import 'theme_toggle.dart';
 
 /// The main [AppBar] with the DartPad logo, title, theme toggle, and
 /// overflow menu.
-class AppBar extends StatefulComponent {
+final class AppBar extends StatelessComponent {
   const AppBar({
     this.onSelectExample,
+    this.restoreAction,
     this.isEmbedMode = false,
+    this.isSmallScreen = false,
     this.smallScreenTabBar,
     super.key,
   });
 
   /// Called when the user selects an example from the New menu.
   final void Function(Example example)? onSelectExample;
+
+  /// Temporary action beside New for restoring the last matching project.
+  final Component? restoreAction;
 
   /// Whether the application is running in embed mode.
   final bool isEmbedMode;
@@ -34,16 +39,8 @@ class AppBar extends StatefulComponent {
   final SmallScreenTabBar? smallScreenTabBar;
 
   /// Whether this [AppBar] is being rendered in a small-screen layout.
-  bool get isSmallScreen => smallScreenTabBar != null;
+  final bool isSmallScreen;
 
-  @override
-  State<AppBar> createState() => _AppBarState();
-
-  @css
-  static List<StyleRule> get styles => _AppBarState.styles;
-}
-
-class _AppBarState extends State<AppBar> {
   void _openLink(String uri) {
     web.window.open(uri, '_blank');
   }
@@ -61,7 +58,7 @@ class _AppBarState extends State<AppBar> {
         DropdownMenuItem(
           label: example.name,
           leadingImage: example.icon,
-          onPressed: () => component.onSelectExample?.call(example),
+          onPressed: () => onSelectExample?.call(example),
         ),
       );
     }
@@ -71,23 +68,22 @@ class _AppBarState extends State<AppBar> {
 
   @override
   Component build(BuildContext context) {
-    return switch ((component.isEmbedMode, component.isSmallScreen)) {
+    return switch ((isEmbedMode, isSmallScreen)) {
       // Large embedded layouts show neither AppBar nor SmallScreenTabBar.
       (true, false) => const Component.fragment([]),
       // Small embedded layouts show only SmallScreenTabBar.
-      (true, true) => component.smallScreenTabBar ?? const Component.fragment([]),
+      (true, true) => smallScreenTabBar ?? const Component.fragment([]),
       // Large standalone layouts show AppBar.
       (false, false) => _buildAppBar(),
       // Small standalone layouts show AppBar and SmallScreenTabBar.
-      (false, true) => _buildAppBar(component.smallScreenTabBar),
+      (false, true) => _buildAppBar(smallScreenTabBar),
     };
   }
 
   Component _buildAppBar([SmallScreenTabBar? smallScreenTabBar]) {
-    final isNewDisabled = component.onSelectExample == null;
-    final isSmallScreen = component.isSmallScreen;
+    final isNewDisabled = onSelectExample == null;
 
-    final appBar = div(classes: 'app-bar', [
+    final appBar = div(classes: 'app-bar${restoreAction != null ? ' app-bar-with-restore' : ''}', [
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
         const img(
@@ -114,6 +110,7 @@ class _AppBarState extends State<AppBar> {
           ),
           items: _buildExampleItems(),
         ),
+        ?restoreAction,
       ]),
       // Spacer.
       const div(classes: 'app-bar-spacer', []),
@@ -150,7 +147,16 @@ class _AppBarState extends State<AppBar> {
     ]);
   }
 
+  @css
   static List<StyleRule> get styles => [
+    css.media(MediaQuery.screen(maxWidth: 500.px), [
+      // Keep the restore action and overflow menu visible on narrow screens.
+      css(
+        '.app-bar-with-restore .app-bar-title, '
+        '.app-bar-with-restore .app-bar-divider, '
+        '.app-bar-with-restore .app-bar-button-label',
+      ).styles(display: .none),
+    ]),
     css('.app-bar-container').styles(
       display: .flex,
       position: const .relative(),
