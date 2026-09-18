@@ -73,6 +73,92 @@ void main() {
     expect(attempts, 2);
   });
 
+  testClient('renders add button in header with foldable dropdown menu', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    expect(addButton, isNotNull);
+    expect(addButton!.getAttribute('aria-label'), 'New file or folder');
+    expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
+
+    addButton.click();
+    await pumpEventQueue();
+
+    final panel = web.document.querySelector('.dropdown-menu-panel');
+    expect(panel, isNotNull);
+
+    final menuItems = web.document.querySelectorAll('.dropdown-menu-item');
+    expect(menuItems.length, 2);
+    expect(menuItems.item(0)!.textContent, 'New File');
+    expect(menuItems.item(1)!.textContent, 'New Folder');
+  });
+
+  testClient('clicking "New File" in dropdown menu triggers file creation input', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    expect(newFileButton.textContent, 'New File');
+
+    newFileButton.click();
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+    expect(input!.placeholder, 'file');
+  });
+
+  testClient('clicking "New Folder" in dropdown menu triggers folder creation input', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFolderButton = web.document.querySelectorAll('.dropdown-menu-item').item(1) as web.HTMLButtonElement;
+    expect(newFolderButton.textContent, 'New Folder');
+
+    newFolderButton.click();
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+    expect(input!.placeholder, 'folder');
+  });
+
+  testClient('add button is disabled when state is busy', (tester) {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace, busy: true),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    expect(addButton, isNotNull);
+    expect(addButton!.getAttribute('disabled'), isNotNull);
+  });
+
   testClient('does not render collapse button in header when not in a collapsible SplitPanel', (tester) {
     tester.pumpComponent(
       FileTreeView(
@@ -243,6 +329,201 @@ void main() {
       expect(contextMenu.items.whereType<ContextMenuItem>().map((item) => item.label), ['New file', 'New folder']);
     });
   }
+
+  testClient('file creation input does not render confirm or cancel buttons', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.file-tree-input'), isNotNull);
+    expect(web.document.querySelector('.file-tree-action.confirm'), isNull);
+    expect(web.document.querySelector('.file-tree-action.delete'), isNull);
+  });
+
+  testClient('pressing Enter when creation input is empty shows warning message and invalid style', (tester) async {
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+    expect(web.document.querySelector('.file-tree-validation'), isNull);
+    expect(input!.classList.contains('invalid'), isFalse);
+
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+
+    final validation = web.document.querySelector('.file-tree-validation');
+    expect(validation, isNotNull);
+    expect(validation!.textContent, 'A name is required.');
+    expect(input.classList.contains('invalid'), isTrue);
+  });
+
+  testClient('pressing Enter with valid name creates file and clears input', (tester) async {
+    String? createdName;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(
+          createFile: (parent, name) async {
+            createdName = name;
+          },
+        ),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+
+    input!.value = 'new_component.dart';
+    input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+    await pumpEventQueue();
+
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+
+    expect(createdName, 'new_component.dart');
+    expect(web.document.querySelector('.file-tree-input'), isNull);
+  });
+
+  testClient('pressing Escape cancels creation regardless of input content', (tester) async {
+    String? createdName;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(
+          createFile: (parent, name) async {
+            createdName = name;
+          },
+        ),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+
+    input!.value = 'abandoned_file.dart';
+    input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+    await pumpEventQueue();
+
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+
+    expect(createdName, isNull);
+    expect(web.document.querySelector('.file-tree-input'), isNull);
+  });
+
+  testClient('losing focus (blur) with valid name creates file', (tester) async {
+    String? createdName;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(
+          createFile: (parent, name) async {
+            createdName = name;
+          },
+        ),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+
+    input!.value = 'confirmed_by_blur.dart';
+    input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+    await pumpEventQueue();
+
+    input.dispatchEvent(web.FocusEvent('blur', web.FocusEventInit(bubbles: true)));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await pumpEventQueue();
+
+    expect(createdName, 'confirmed_by_blur.dart');
+    expect(web.document.querySelector('.file-tree-input'), isNull);
+  });
+
+  testClient('losing focus (blur) with empty input cancels creation', (tester) async {
+    String? createdName;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(
+          createFile: (parent, name) async {
+            createdName = name;
+          },
+        ),
+      ),
+    );
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement?;
+    addButton!.click();
+    await pumpEventQueue();
+
+    final newFileButton = web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement;
+    newFileButton.click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+
+    input!.dispatchEvent(web.FocusEvent('blur', web.FocusEventInit(bubbles: true)));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await pumpEventQueue();
+
+    expect(createdName, isNull);
+    expect(web.document.querySelector('.file-tree-input'), isNull);
+  });
 }
 
 FileTreeState _state(
@@ -251,6 +532,7 @@ FileTreeState _state(
   bool dirty = false,
   String focusedPath = '',
   String rootPath = '',
+  bool busy = false,
 }) {
   const path = 'example.txt';
   return FileTreeState(
@@ -265,7 +547,7 @@ FileTreeState _state(
     ),
     activeFile: '',
     operationError: null,
-    busy: false,
+    busy: busy,
     dirtyEntries: dirty ? const {path} : const {},
     focusedPath: focusedPath,
     rootPath: rootPath,
@@ -297,13 +579,15 @@ FileTreeState _stateWithFolder(WorkspaceResourceApi workspace) {
 }
 
 FileTreeActions _actions({
-  Future<void> Function(String path)? openWorkspaceFile,
+  Future<void> Function(String parentPath, String name)? createFile,
+  Future<void> Function(String parentPath, String name)? createFolder,
   Future<void> Function(String path)? deleteFile,
+  FutureOr<void> Function(String path)? openWorkspaceFile,
   void Function(String path)? focusPath,
 }) {
   return FileTreeActions(
-    createFile: (_, _) async {},
-    createFolder: (_, _) async {},
+    createFile: createFile ?? (_, _) async {},
+    createFolder: createFolder ?? (_, _) async {},
     renameFile: (_, _) async {},
     renameFolder: (_, _) async {},
     deleteFile: deleteFile ?? _noOpPathAsync,
