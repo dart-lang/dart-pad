@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EditorState, Text } from "@codemirror/state";
+import { Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { LSPPlugin } from "@codemirror/lsp-client";
 
@@ -133,20 +133,6 @@ test("syncFiles returns and clears only unsynchronized changes", () => {
   } finally {
     LSPPlugin.get = originalGet;
   }
-});
-
-test("read-only formatting does not access the LSP plugin", async () => {
-  const view = {
-    state: EditorState.create({ extensions: [EditorState.readOnly.of(true)] }),
-  } as EditorView;
-
-  assert.equal(formatDocument(view), true);
-  assert.equal(
-    await formatDocumentAsync(view, () => {
-      assert.fail("read-only formatting must not access the LSP plugin");
-    }),
-    false,
-  );
 });
 
 test("formatDocumentAsync resolves after formatting edits are dispatched", async () => {

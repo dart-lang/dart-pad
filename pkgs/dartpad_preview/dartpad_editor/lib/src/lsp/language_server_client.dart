@@ -9,17 +9,8 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
 import '../workspace/workspace_events.dart';
-import '../workspace/workspace_path.dart';
 import 'diagnostic.dart';
 import 'diagnostic_uri_resolver.dart';
-
-/// Rejects document edits outside the editable project workspace.
-final class _ExternalWorkspaceEditException implements Exception {
-  const _ExternalWorkspaceEditException();
-
-  @override
-  String toString() => 'External files are read-only.';
-}
 
 /// Base class for analyzer activity notifications.
 sealed class AnalyzerActivity {
@@ -221,18 +212,6 @@ interface class LanguageServerClient {
                     });
                   })
                   .catchError((Object err) {
-                    // Editing external files is intentionally unsupported. Tell
-                    // the language server that the requested edit was not applied,
-                    // without treating this expected rejection as an internal
-                    // JSON-RPC error.
-                    if (err is _ExternalWorkspaceEditException) {
-                      _sendToLanguageServer({
-                        'jsonrpc': '2.0',
-                        'id': id,
-                        'result': {'applied': false, 'failureReason': err.toString()},
-                      });
-                      return;
-                    }
                     _sendToLanguageServer({
                       'jsonrpc': '2.0',
                       'id': id,
@@ -341,18 +320,14 @@ interface class LanguageServerClient {
   }
 
   /// Applies LSP WorkspaceEdit structure (which may contain `changes` or `documentChanges`).
-  ///
-  /// Rejects edits targeting external files before applying any document changes.
   Future<void> applyWorkspaceEdit(Map<String, Object?> edit) async {
-    final documentEdits = <(String, List<Object?>)>[];
-
     if (edit.containsKey('changes')) {
       final changes = edit['changes'] as Map?;
       if (changes != null) {
         for (final entry in changes.entries) {
           final uri = entry.key as String;
           final edits = entry.value as List<Object?>;
-          documentEdits.add((_requireWorkspacePath(uri), edits));
+          await _applyEditsToFile(uri, edits);
         }
       }
     }
@@ -365,23 +340,30 @@ interface class LanguageServerClient {
             final textDoc = change['textDocument'] as Map;
             final uri = textDoc['uri'] as String;
             final edits = change['edits'] as List<Object?>;
-            documentEdits.add((_requireWorkspacePath(uri), edits));
+            await _applyEditsToFile(uri, edits);
           }
         }
       }
     }
-    for (final (path, edits) in documentEdits) {
-      await _documentEditsHandler?.call(path, edits);
-    }
   }
 
-  /// Resolves a workspace URI, rejecting external edit targets.
-  String _requireWorkspacePath(String uri) {
-    final path = relativePathWithinWorkspace(Uri.parse(uri), rootWorkspaceUri);
-    if (path == null) {
-      throw const _ExternalWorkspaceEditException();
+  /// Applies a list of text edits to a specific file URI.
+  ///
+  /// If the file is currently open in the editor, [_documentEditsHandler] intercepts
+  /// and applies the edits in-memory/in-state; otherwise, the edits are applied
+  /// directly to the file on disk.
+  Future<void> _applyEditsToFile(String uri, List<Object?> edits) async {
+    final relativePath = getRelativePath(uri, rootWorkspaceUri.path);
+    await _documentEditsHandler?.call(relativePath, edits);
+  }
+
+  /// Extracts the workspace-relative path from [uriString] by stripping the [folderPath] prefix.
+  static String getRelativePath(String uriString, String folderPath) {
+    final uri = Uri.parse(uriString);
+    if (uri.path.startsWith(folderPath)) {
+      return uri.path.substring(folderPath.length);
     }
-    return path;
+    return uri.path;
   }
 
   /// Applies a list of LSP text edits to [text] and returns the resulting string.

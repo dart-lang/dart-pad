@@ -39828,8 +39828,6 @@ ${text}</tr>
      */
     function renameSymbolAsync(view_1, newName_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, newName, applyWorkspaceEdit, getPlugin = LSPPlugin.get, targetPos) {
-            if (view.state.readOnly)
-                return false;
             const plugin = getPlugin(view);
             const pos = targetPos !== null && targetPos !== void 0 ? targetPos : view.state.selection.main.head;
             const word = view.state.wordAt(pos);
@@ -39864,8 +39862,6 @@ ${text}</tr>
     function startRename(view_1, applyWorkspaceEdit_1) {
         return __awaiter(this, arguments, void 0, function* (view, applyWorkspaceEdit, getPlugin = LSPPlugin.get) {
             var _a, _b;
-            if (view.state.readOnly)
-                return true;
             const pos = view.state.selection.main.head;
             const wordRange = view.state.wordAt(pos);
             const plugin = getPlugin(view);
@@ -40082,7 +40078,7 @@ ${text}</tr>
                 [lspHoverTooltips({ hoverTime: 800 })],
                 [
                     keymap.of([
-                        ...formatKeymap.map((binding) => (Object.assign(Object.assign({}, binding), { run: (view) => { var _a, _b; return view.state.readOnly || ((_b = (_a = binding.run) === null || _a === void 0 ? void 0 : _a.call(binding, view)) !== null && _b !== void 0 ? _b : false); } }))),
+                        ...formatKeymap,
                         ...createRenameKeymap(onWorkspaceEdit),
                         ...jumpToDefinitionKeymap,
                         ...findReferencesKeymap,
@@ -40506,8 +40502,6 @@ ${text}</tr>
      * Starts formatting from a synchronous CodeMirror command such as a keymap.
      */
     const formatDocument = (view) => {
-        if (view.state.readOnly)
-            return true;
         const plugin = LSPPlugin.get(view);
         if (!plugin)
             return false;
@@ -40519,8 +40513,6 @@ ${text}</tr>
      */
     function formatDocumentAsync(view_1) {
         return __awaiter(this, arguments, void 0, function* (view, getPlugin = LSPPlugin.get) {
-            if (view.state.readOnly)
-                return false;
             const plugin = getPlugin(view);
             if (!plugin)
                 return false;

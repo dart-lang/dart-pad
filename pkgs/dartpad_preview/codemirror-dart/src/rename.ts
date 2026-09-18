@@ -233,7 +233,6 @@ export async function renameSymbolAsync(
   getPlugin: PluginLookup = LSPPlugin.get,
   targetPos?: number,
 ): Promise<boolean> {
-  if (view.state.readOnly) return false;
   const plugin = getPlugin(view);
   const pos = targetPos ?? view.state.selection.main.head;
   const word = view.state.wordAt(pos);
@@ -280,7 +279,6 @@ export async function startRename(
   applyWorkspaceEdit: ApplyWorkspaceEdit,
   getPlugin: PluginLookup = LSPPlugin.get,
 ): Promise<boolean> {
-  if (view.state.readOnly) return true;
   const pos = view.state.selection.main.head;
   const wordRange = view.state.wordAt(pos);
   const plugin = getPlugin(view);

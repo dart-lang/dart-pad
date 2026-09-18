@@ -180,11 +180,7 @@ export function createLspClient(
       [lspHoverTooltips({ hoverTime: 800 })],
       [
         keymap.of([
-          ...formatKeymap.map((binding) => ({
-            ...binding,
-            run: (view: EditorView) =>
-              view.state.readOnly || (binding.run?.(view) ?? false),
-          })),
+          ...formatKeymap,
           ...createRenameKeymap(onWorkspaceEdit),
           ...jumpToDefinitionKeymap,
           ...findReferencesKeymap,
