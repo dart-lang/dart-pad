@@ -8,6 +8,7 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -101,6 +102,41 @@ void main() {
     await pumpEventQueue();
     expect(created, isFalse);
     expect(web.document.body!.textContent, contains('SDK not available: dart:0.0.0'));
+  });
+
+  testClient('legacy Flutter API URLs use the preview embed layout and requested split', (tester) async {
+    tester.pumpComponent(
+      App(
+        projectStore: MemoryProjectStore(),
+        initialUri: Uri.parse(
+          '/embed-flutter?sample_id=material.AppBar.1&channel=stable&split=60&run=false',
+        ),
+        loadSource: (source) async {
+          expect(source, isA<FlutterApiDocsProjectSource>());
+          return contents({
+            'pubspec.yaml': 'dependencies:\n  flutter:\n    sdk: flutter',
+            'lib/main.dart': 'void main() {}',
+          });
+        },
+        createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+          expect(sdk.isFlutter, isTrue);
+          return WorkspaceRepository(
+            events: events,
+            taskStatus: taskStatus,
+            sdk: sdk,
+            workspaceResourceApi: localApi!,
+            workspaceFuture: Completer<Workspace>().future,
+          );
+        },
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.app-bar'), isNull);
+    expect(web.document.querySelector('.app-footer'), isNull);
+    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
+    expect(editorShell.style.flexGrow, '0.6');
   });
 
   for (final hasMain in [true, false]) {
