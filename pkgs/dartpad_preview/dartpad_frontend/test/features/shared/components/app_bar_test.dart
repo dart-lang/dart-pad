@@ -105,6 +105,7 @@ void main() {
   testClient('renders AppBar and SmallScreenTabBar on small screens', (tester) {
     tester.pumpComponent(
       AppBar(
+        isSmallScreen: true,
         smallScreenTabBar: SmallScreenTabBar(onTabSelected: (_) {}),
       ),
     );
@@ -114,6 +115,13 @@ void main() {
 
     final smallScreenTabBar = web.document.querySelector('.small-screen-tab-bar');
     expect(smallScreenTabBar, isNotNull);
+  });
+
+  testClient('uses the small layout before workspace tabs exist', (tester) {
+    tester.pumpComponent(const AppBar(isSmallScreen: true));
+    expect(web.document.querySelector('.app-bar'), isNotNull);
+    expect(web.document.querySelector('.app-bar-button-label'), isNull);
+    expect(web.document.querySelector('.small-screen-tab-bar'), isNull);
   });
 
   testClient('renders nothing in large-screen embed mode', (tester) {
@@ -128,6 +136,7 @@ void main() {
     tester.pumpComponent(
       AppBar(
         isEmbedMode: true,
+        isSmallScreen: true,
         smallScreenTabBar: SmallScreenTabBar(
           onTabSelected: (tab) => selectedTab = tab,
         ),
