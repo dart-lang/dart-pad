@@ -322,7 +322,7 @@ class AppState extends State<App> {
             rootWorkspaceUri,
           );
           return workspacePath == null
-              ? session.tabs.openExternalFile(uri)
+              ? session.tabs.openSystemFile(uri)
               : session.tabs.openWorkspaceFile(workspacePath);
         },
       );
@@ -739,7 +739,7 @@ class AppState extends State<App> {
 
   Component _buildEditorOverlay(WorkspaceSession session) {
     return .fragment([
-      if (session.tabs.activeTab?.origin == EditorTabOrigin.workspace)
+      if (session.tabs.activeTab case final tab? when !tab.origin.isReadOnly)
         PubspecEditorActions(
           activeFile: session.tabs.activeFile,
           saveAllFiles: session.tabs.saveAllTabs,

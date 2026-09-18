@@ -77,14 +77,14 @@ final class TabsViewModel extends ChangeNotifier with TabsController<Component> 
     }
   }
 
-  /// Opens an external [uri], reporting and rethrowing failures.
+  /// Opens a system [uri], reporting and rethrowing failures.
   ///
   /// Clears the current error and warning messages on success. Cancellation
   /// propagates without changing the current messages or reporting an error.
   @override
-  Future<void> openExternalFile(Uri uri) async {
+  Future<void> openSystemFile(Uri uri) async {
     try {
-      await super.openExternalFile(uri);
+      await super.openSystemFile(uri);
       clearMessages();
     } on TabOpenCancelledException {
       rethrow;

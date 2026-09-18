@@ -45,7 +45,7 @@ final class WorkspaceSession {
       contextMenu: contextMenu,
       events: repository.events,
       onRun: () => session.runOrHotReload(),
-      readExternalFile: repository.readExternalFile,
+      readSystemFile: repository.readSystemFile,
     );
     final tabs = TabsViewModel(
       workspaceResourceApi: repository.workspaceResourceApi,

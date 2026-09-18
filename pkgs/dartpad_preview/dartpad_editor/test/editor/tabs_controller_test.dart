@@ -180,7 +180,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
   }
 
   @override
-  Future<EditorTab<String>?> createExternalTab(Uri uri) async {
+  Future<EditorTab<String>?> createSystemTab(Uri uri) async {
     creationCount++;
     if (!creationStarted.isCompleted) {
       creationStarted.complete();
@@ -189,7 +189,7 @@ class TestTabAdapter extends EditorTabAdapter<String> {
     final path = uri.toString();
     final tab = TestTab(
       path,
-      origin: EditorTabOrigin.external,
+      origin: EditorTabOrigin.system,
       testKeepAlive: keepAlive,
       dirty: dirty,
       saveError: saveError,
@@ -269,6 +269,8 @@ void main() {
       expect(tabs.openTabs, hasLength(1));
       expect(tabs.activeFile, 'main.dart');
       expect(tabs.activeTab?.path, 'main.dart');
+      expect(tabs.activeTab?.origin, EditorTabOrigin.workspace);
+      expect(tabs.activeTab?.origin.isReadOnly, isFalse);
       expect(adapter.createdTabs['main.dart']!.lifecycleLog, ['activate']);
     });
 
@@ -396,22 +398,23 @@ void main() {
     });
   });
 
-  group('openExternalFile', () {
-    test('opens and deduplicates an external URI without a workspace file', () async {
+  group('openSystemFile', () {
+    test('opens and deduplicates a system URI without a workspace file', () async {
       final uri = Uri.parse('file:///sdk/lib/core/core.dart');
 
-      await tabs.openExternalFile(uri);
-      await tabs.openExternalFile(uri);
+      await tabs.openSystemFile(uri);
+      await tabs.openSystemFile(uri);
 
       expect(tabs.openTabs, hasLength(1));
       expect(tabs.activeFile, uri.toString());
-      expect(tabs.activeTab?.origin, EditorTabOrigin.external);
+      expect(tabs.activeTab?.origin, EditorTabOrigin.system);
+      expect(tabs.activeTab?.origin.isReadOnly, isTrue);
       expect(adapter.creationCount, 1);
     });
 
-    test('workspace removal events do not close external tabs', () async {
+    test('workspace removal events do not close system tabs', () async {
       final uri = Uri.parse('file:///sdk/lib/core/core.dart');
-      await tabs.openExternalFile(uri);
+      await tabs.openSystemFile(uri);
 
       await emitWorkspaceEvent(
         {'type': 'remove', 'path': uri.toString()},

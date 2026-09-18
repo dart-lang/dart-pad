@@ -79,13 +79,13 @@ final class _WorkspaceRepository extends WorkspaceRepository {
     required super.workspaceResourceApi,
     required super.sdk,
     required super.workspaceFuture,
-    required this.externalFiles,
+    required this.systemFiles,
   });
 
-  final Map<Uri, String> externalFiles;
+  final Map<Uri, String> systemFiles;
 
   @override
-  Future<String> readExternalFile(Uri uri) async => externalFiles[uri]!;
+  Future<String> readSystemFile(Uri uri) async => systemFiles[uri]!;
 }
 
 void main() {
@@ -148,7 +148,7 @@ void main() {
 
     await session.dispose(closeWorker: false);
   });
-  test('document actions stay available and are no-ops for external tabs', () async {
+  test('document actions stay available and are no-ops for system tabs', () async {
     final workspace = _Workspace();
     await workspace.writeFileFromText('lib/main.dart', 'void main() {}');
     await workspace.writeFileFromText('pubspec.yaml', 'name: example');
@@ -160,7 +160,7 @@ void main() {
         workspaceResourceApi: workspace,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
-        externalFiles: {uri: 'void main() {}'},
+        systemFiles: {uri: 'void main() {}'},
       ),
     );
     final context = CommandContext(session: session);
@@ -169,7 +169,9 @@ void main() {
       expect(saveFileAction.isEnabled, isNull);
       await session.tabs.openWorkspaceFile('lib/main.dart');
       expect(session.tabs.activeTab!.displayPath, 'lib/main.dart');
-      await session.tabs.openExternalFile(uri);
+      await session.tabs.openSystemFile(uri);
+      expect(session.tabs.activeTab!.origin, EditorTabOrigin.system);
+      expect(session.tabs.activeTab!.isReadOnly, isTrue);
       expect(session.tabs.activeTab!.displayPath, '/pub-cache/example/main.dart');
       expect(session.tabs.activeTab!.path, uri.toString());
       await formatDocumentAction.onExecute(context);
@@ -184,7 +186,6 @@ void main() {
       await session.dispose(closeWorker: false);
     }
   });
-
 }
 
 final class _TestEvent extends AsyncEvent<String> {}

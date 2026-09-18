@@ -10,10 +10,14 @@ import 'tabs_controller.dart';
 /// Identifies whether a tab is backed by a project workspace resource.
 enum EditorTabOrigin {
   /// A regular project file that participates in workspace operations.
-  workspace,
+  workspace(isReadOnly: false),
 
   /// A file outside the project, opened by URI for read-only navigation.
-  external,
+  system(isReadOnly: true);
+
+  const EditorTabOrigin({required this.isReadOnly});
+
+  final bool isReadOnly;
 }
 
 /// Represents a tab in the editor workspace associated with a specific file path.
@@ -28,13 +32,16 @@ abstract class EditorTab<T> {
   /// The file path associated with this tab.
   String path;
 
-  /// Whether this tab belongs to the project workspace or an external URI.
+  /// Whether this tab belongs to the project workspace or a system URI.
   final EditorTabOrigin origin;
 
-  /// The path shown in the UI, without the scheme of an external URI (dont show "file:").
+  /// Whether this tab is read-only.
+  bool get isReadOnly => origin.isReadOnly;
+
+  /// The path shown in the UI, without the scheme of a system URI (dont show "file:").
   String get displayPath => switch (origin) {
     EditorTabOrigin.workspace => path,
-    EditorTabOrigin.external => Uri.parse(path).path,
+    EditorTabOrigin.system => Uri.parse(path).path,
   };
 
   /// The display name of the tab, derived from [displayPath].
@@ -97,6 +104,6 @@ abstract class EditorTabAdapter<T> {
 
   /// Creates a read-only tab for a file outside the project workspace.
   ///
-  /// Adapters that do not support URI-based external files return `null`.
-  Future<EditorTab<T>?> createExternalTab(Uri uri) => Future.value(null);
+  /// Adapters that do not support URI-based system files return `null`.
+  Future<EditorTab<T>?> createSystemTab(Uri uri) => Future.value(null);
 }

@@ -129,6 +129,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
         return codeActionsController.hasQuickFixes(from: from, to: to);
       },
       languageServerClient: languageServerClient,
+      readOnly: origin.isReadOnly,
     );
     codeActionsController = CodeActionsController(
       codeEditor: editor,
@@ -289,17 +290,17 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
   }
 }
 
-/// A read-only external source tab that is disposed when closed.
-final class ExternalCodeMirrorTab extends CodeMirrorTab {
+/// A read-only system source tab that is disposed when closed.
+final class SystemCodeMirrorTab extends CodeMirrorTab {
   /// Creates a tab for [uri] without project write access.
   ///
   /// [onRun] runs or hot reloads the project on Cmd/Ctrl+Enter.
-  ExternalCodeMirrorTab({
+  SystemCodeMirrorTab({
     required Uri uri,
     required String content,
     void Function()? onRun,
     LanguageServerClient? languageServerClient,
-  }) : super._(uri.toString(), EditorTabOrigin.external) {
+  }) : super._(uri.toString(), EditorTabOrigin.system) {
     editor = CodeMirrorEditor(
       container,
       file: path,
@@ -308,7 +309,7 @@ final class ExternalCodeMirrorTab extends CodeMirrorTab {
       onSave: () {},
       onRun: onRun,
       languageServerClient: languageServerClient,
-      readOnly: true,
+      readOnly: origin.isReadOnly,
     );
   }
 }

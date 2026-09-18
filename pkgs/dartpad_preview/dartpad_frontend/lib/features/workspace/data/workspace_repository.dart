@@ -67,10 +67,10 @@ class WorkspaceRepository {
 
   /// Reads a file outside the project workspace directly from the worker.
   ///
-  /// External files, such as SDK and pub-cache sources, intentionally bypass
+  /// System files, such as SDK and pub-cache sources, intentionally bypass
   /// [workspaceResourceApi] so they do not participate in local workspace
   /// synchronization or editing.
-  Future<String> readExternalFile(Uri uri) async {
+  Future<String> readSystemFile(Uri uri) async {
     final workspace = await readyWorkspace;
     return workspace.readFileAsText(uri.toString());
   }

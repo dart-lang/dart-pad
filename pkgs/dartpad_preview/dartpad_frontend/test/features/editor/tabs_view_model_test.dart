@@ -70,8 +70,8 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
 /// Runs the [TabsViewModel] test suite.
 void main() {
   late FakeWorkspaceController workspace;
-  final externalFiles = <Uri, String>{};
-  Completer<void>? externalReadGate;
+  final systemFiles = <Uri, String>{};
+  Completer<void>? systemReadGate;
   var runCount = 0;
   TabsViewModel? tabs;
   DiagnosticsViewModel? diagnostics;
@@ -86,16 +86,16 @@ void main() {
 
   setUp(() async {
     workspace = FakeWorkspaceController();
-    externalFiles.clear();
-    externalReadGate = null;
+    systemFiles.clear();
+    systemReadGate = null;
     runCount = 0;
     tabs = TabsViewModel(
       workspaceResourceApi: workspace,
       adapters: [
         CodeMirrorTabAdapter(
-          readExternalFile: (uri) async {
-            await externalReadGate?.future;
-            return externalFiles[uri]!;
+          readSystemFile: (uri) async {
+            await systemReadGate?.future;
+            return systemFiles[uri]!;
           },
           onRun: () => runCount++,
         ),
@@ -117,15 +117,15 @@ void main() {
     expect(tabs!.errorMessage, 'Could not open missing.dart.');
   });
 
-  test('cancelled external loads propagate without an error message', () async {
+  test('cancelled system loads propagate without an error message', () async {
     final uri = Uri.parse('file:///sdk/core.dart');
-    externalFiles[uri] = 'class Object {}';
-    externalReadGate = Completer<void>();
-    final opening = tabs!.openExternalFile(uri);
+    systemFiles[uri] = 'class Object {}';
+    systemReadGate = Completer<void>();
+    final opening = tabs!.openSystemFile(uri);
     final completed = expectLater(opening, throwsA(isA<TabOpenCancelledException>()));
     await Future<void>.delayed(Duration.zero);
     tabs!.disposeAllTabs();
-    externalReadGate!.complete();
+    systemReadGate!.complete();
     await completed;
     expect(tabs!.errorMessage, isNull);
     expect(tabs!.openTabs, isEmpty);
@@ -139,17 +139,18 @@ void main() {
     expect(tabs!.activeFile, 'lib/main.dart');
   });
 
-  testClient('opens external URIs as navigable read-only tabs', (tester) async {
+  testClient('opens system URIs as navigable read-only tabs', (tester) async {
     final uri = Uri.parse('file:///pub-cache/example/lib/example.dart');
-    externalFiles[uri] = 'class Example {}';
+    systemFiles[uri] = 'class Example {}';
 
-    await tabs!.openExternalFile(uri);
-    final tab = tabs!.activeTab! as ExternalCodeMirrorTab;
+    await tabs!.openSystemFile(uri);
+    final tab = tabs!.activeTab! as SystemCodeMirrorTab;
     tester.pumpComponent(tab.build());
     await pumpEventQueue();
 
     expect(tabs!.activeFile, uri.toString());
-    expect(tab.origin, EditorTabOrigin.external);
+    expect(tab.origin, EditorTabOrigin.system);
+    expect(tab.origin.isReadOnly, isTrue);
     expect(tab.keepAlive, isFalse);
     expect(tab.content, 'class Example {}');
     expect(tab.editor.view.contentDOM.contentEditable, 'true');
@@ -170,10 +171,19 @@ void main() {
     tab.container.dispatchEvent(contextMenuEvent);
     expect(contextMenuEvent.defaultPrevented, isFalse);
 
+    final isMac =
+        web.window.navigator.platform.toLowerCase().contains('mac') ||
+        web.window.navigator.userAgent.toLowerCase().contains('mac');
     tab.editor.focus();
     final saveEvent = web.KeyboardEvent(
       'keydown',
-      web.KeyboardEventInit(key: 's', ctrlKey: true, bubbles: true, cancelable: true),
+      web.KeyboardEventInit(
+        key: 's',
+        ctrlKey: !isMac,
+        metaKey: isMac,
+        bubbles: true,
+        cancelable: true,
+      ),
     );
     tab.editor.view.contentDOM.dispatchEvent(saveEvent);
     expect(saveEvent.defaultPrevented, isTrue);
@@ -181,7 +191,13 @@ void main() {
     tab.editor.view.contentDOM.dispatchEvent(
       web.KeyboardEvent(
         'keydown',
-        web.KeyboardEventInit(key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true),
+        web.KeyboardEventInit(
+          key: 'Enter',
+          ctrlKey: !isMac,
+          metaKey: isMac,
+          bubbles: true,
+          cancelable: true,
+        ),
       ),
     );
     expect(runCount, 1);
@@ -195,6 +211,7 @@ void main() {
     await tabs!.openWorkspaceFile('pubspec.yaml');
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     expect(tab.origin, EditorTabOrigin.workspace);
+    expect(tab.origin.isReadOnly, isFalse);
     expect(tab.keepAlive, isTrue);
 
     await tab.applyEdits([
@@ -222,11 +239,11 @@ void main() {
     expect(tab.hasUnsavedChanges, isFalse);
   });
 
-  test('reports and rethrows external file load failures', () async {
+  test('reports and rethrows system file load failures', () async {
     final uri = Uri.parse('file:///pub-cache/missing.dart');
 
     await expectLater(
-      tabs!.openExternalFile(uri),
+      tabs!.openSystemFile(uri),
       throwsA(anything),
     );
 

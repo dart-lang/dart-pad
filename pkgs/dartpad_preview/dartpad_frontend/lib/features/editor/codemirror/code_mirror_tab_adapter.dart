@@ -21,7 +21,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     this.contextMenu,
     this.events,
     this.onRun,
-    this.readExternalFile,
+    this.readSystemFile,
   });
 
   final ContextMenuController? contextMenu;
@@ -29,7 +29,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   final void Function()? onRun;
 
   /// Reads URI-addressed files that are outside the project workspace.
-  final Future<String> Function(Uri uri)? readExternalFile;
+  final Future<String> Function(Uri uri)? readSystemFile;
 
   TabsController<Component>? _tabs;
   LanguageServerClient? _languageServerClient;
@@ -75,12 +75,12 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   }
 
   @override
-  Future<EditorTab<Component>?> createExternalTab(Uri uri) async {
-    final reader = readExternalFile;
+  Future<EditorTab<Component>?> createSystemTab(Uri uri) async {
+    final reader = readSystemFile;
     if (_tabs == null || reader == null || !isTextFile(uri.path)) {
       return null;
     }
-    return ExternalCodeMirrorTab(
+    return SystemCodeMirrorTab(
       uri: uri,
       content: await reader(uri),
       onRun: onRun,

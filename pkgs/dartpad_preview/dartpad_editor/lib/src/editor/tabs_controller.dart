@@ -98,13 +98,13 @@ abstract mixin class TabsController<T> {
     );
   }
 
-  /// Opens an external [uri] in a read-only tab.
+  /// Opens a system [uri] in a read-only tab.
   ///
   /// Unlike [openWorkspaceFile], this bypasses the project [workspaceResourceApi]. The
-  /// adapter that supports external files is responsible for fetching their
+  /// adapter that supports system files is responsible for fetching their
   /// contents from the URI-aware backing service. An invalidated load throws
   /// [TabOpenCancelledException]
-  Future<void> openExternalFile(Uri uri) async {
+  Future<void> openSystemFile(Uri uri) async {
     if (_disposed) {
       throw StateError('Cannot open a file on a disposed TabsController.');
     }
@@ -112,8 +112,8 @@ abstract mixin class TabsController<T> {
     final path = uri.toString();
     await _openTab(
       path,
-      EditorTabOrigin.external,
-      () => _createExternalTab(uri),
+      EditorTabOrigin.system,
+      () => _createSystemTab(uri),
     );
   }
 
@@ -197,9 +197,9 @@ abstract mixin class TabsController<T> {
     throw UnsupportedError('No editor tab adapter found for $fileName');
   }
 
-  Future<EditorTab<T>> _createExternalTab(Uri uri) async {
+  Future<EditorTab<T>> _createSystemTab(Uri uri) async {
     for (final adapter in adapters) {
-      final tab = await adapter.createExternalTab(uri);
+      final tab = await adapter.createSystemTab(uri);
       if (tab != null) {
         return tab;
       }
