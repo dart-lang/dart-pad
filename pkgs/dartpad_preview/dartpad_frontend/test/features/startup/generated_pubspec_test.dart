@@ -40,6 +40,49 @@ flutter:
 ''');
   });
 
+  test('extracts dependencies from conditional imports and exports', () {
+    final pubspec = generatePubspec([
+      _file('lib/main.dart', '''
+import 'package:http/browser_client.dart'
+    if (dart.library.io) 'package:http_io/io_client.dart';
+'''),
+    ]);
+
+    expect(utf8.decode(pubspec.bytes), '''
+name: app
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  http: any
+  http_io: any
+''');
+  });
+
+  test('extracts directives even when files contain syntax errors', () {
+    final pubspec = generatePubspec([
+      _file('lib/main.dart', '''
+import 'package:args/args.dart';
+
+void broken( {
+  final x =
+'''),
+    ]);
+
+    expect(utf8.decode(pubspec.bytes), '''
+name: app
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  args: any
+''');
+  });
+
   test('omits dependencies when no package directives are present', () {
     final pubspec = generatePubspec([
       _file('lib/main.dart', "import 'dart:async';\nimport 'helper.dart';"),
