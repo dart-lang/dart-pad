@@ -379,7 +379,7 @@ void main() {
 
     final validation = web.document.querySelector('.file-tree-validation');
     expect(validation, isNotNull);
-    expect(validation!.textContent, 'A file or folder name must be provided.');
+    expect(validation!.textContent, 'A name is required.');
     expect(input.classList.contains('invalid'), isTrue);
   });
 
