@@ -112,9 +112,9 @@ final class FileTreeState {
     required this.activeFile,
     required this.operationError,
     required this.busy,
-    required this.protectedEntries,
     required this.dirtyEntries,
     required this.focusedPath,
+    this.rootPath = '',
   });
 
   /// The root node whose children are displayed in the tree.
@@ -129,14 +129,14 @@ final class FileTreeState {
   /// Whether a workspace mutation is in progress.
   final bool busy;
 
-  /// Paths that cannot be renamed, moved, or deleted.
-  final Set<String> protectedEntries;
-
   /// File and ancestor folder paths containing unsaved changes.
   final Set<String> dirtyEntries;
 
   /// The path of the folder currently focused in the file tree.
   final String focusedPath;
+
+  /// The fixed project boundary; focus may only move within this folder.
+  final String rootPath;
 
   /// Checks if creating or renaming an entry with [newName] at [currentPath] conflicts
   /// with any existing resource in the root folder.
@@ -167,7 +167,6 @@ final class FileTreeActions {
     required this.moveEntry,
     required this.openWorkspaceFile,
     required this.clearOperationError,
-    required this.navigateUp,
     required this.focusPath,
   });
 
@@ -197,9 +196,6 @@ final class FileTreeActions {
 
   /// Clears the current operation error.
   final void Function() clearOperationError;
-
-  /// Navigates to the parent folder of the currently focused folder.
-  final void Function() navigateUp;
 
   /// Focuses the file tree on the folder at the supplied path.
   final void Function(String path) focusPath;
