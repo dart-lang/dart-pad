@@ -16,6 +16,21 @@ import 'project_loader.dart';
 /// an SDK dependency and enables the bundled Material icons.
 ProjectFile generatePubspec(Iterable<ProjectFile> files) {
   final dependencies = <String>{};
+
+  void addDependency(String? uriString) {
+    if (uriString == null) {
+      return;
+    }
+    final parsed = Uri.tryParse(uriString);
+    if (parsed?.scheme != 'package' || parsed!.pathSegments.isEmpty) {
+      return;
+    }
+    final package = parsed.pathSegments.first;
+    if (package.isNotEmpty && package != 'app') {
+      dependencies.add(package);
+    }
+  }
+
   for (final file in files) {
     if (!file.path.endsWith('.dart')) {
       continue;
@@ -25,18 +40,11 @@ ProjectFile generatePubspec(Iterable<ProjectFile> files) {
       throwIfDiagnostics: false,
     ).unit;
     for (final directive in unit.directives) {
-      final uri = switch (directive) {
-        ImportDirective(:final uri) => uri.stringValue,
-        ExportDirective(:final uri) => uri.stringValue,
-        _ => null,
-      };
-      final parsed = uri == null ? null : Uri.tryParse(uri);
-      if (parsed?.scheme != 'package' || parsed!.pathSegments.isEmpty) {
-        continue;
-      }
-      final package = parsed.pathSegments.first;
-      if (package.isNotEmpty && package != 'app') {
-        dependencies.add(package);
+      if (directive is NamespaceDirective) {
+        addDependency(directive.uri.stringValue);
+        for (final config in directive.configurations) {
+          addDependency(config.uri.stringValue);
+        }
       }
     }
   }
