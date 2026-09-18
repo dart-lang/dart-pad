@@ -12,6 +12,8 @@ import 'package:dartpad_frontend/features/workspace/data/workspace_repository.da
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../persistence/persistence_fixture.dart';
+
 import 'initial_project_state_test.dart' show contents;
 
 final class _TrackedRepository extends WorkspaceRepository {
@@ -50,6 +52,7 @@ void main() {
     WorkspaceRepository? created;
     tester.pumpComponent(
       App(
+        projectStore: MemoryProjectStore(),
         initialUri: Uri.parse('?file=README.md&file=lib/main.dart'),
         loadSource: (_) => download.future,
         createRepository: ({required events, required sdk, required taskStatus, localApi}) {
@@ -67,6 +70,8 @@ void main() {
     await pumpEventQueue();
     expect(created, isNull);
     expect(web.document.body!.textContent, contains('Loading project'));
+    expect(web.document.querySelector('.app-shell > .task-status-anchor'), isNull);
+    expect(web.document.querySelector('.app-footer .task-status-trigger'), isNotNull);
     download.complete(
       contents({'README.md': '# Project', 'lib/main.dart': 'void main() {}', 'pubspec.yaml': 'name: demo'}),
     );
@@ -76,12 +81,15 @@ void main() {
     final tabs = web.document.querySelectorAll('.editor-tab-name');
     expect([for (var i = 0; i < tabs.length; i++) tabs.item(i)!.textContent], ['README.md', 'main.dart']);
     expect(web.document.querySelector('.editor-tab.active')!.textContent, contains('README.md'));
+    expect(web.document.querySelector('.app-shell > .task-status-anchor'), isNull);
+    expect(web.document.querySelector('.app-footer .task-status-trigger'), isNotNull);
   });
 
   testClient('invalid SDK version shows an actionable error without starting a worker', (tester) async {
     var created = false;
     tester.pumpComponent(
       App(
+        projectStore: MemoryProjectStore(),
         initialUri: Uri.parse('?sdk=dart:0.0.0'),
         loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
         createRepository: ({required events, required sdk, required taskStatus, localApi}) {
@@ -99,6 +107,7 @@ void main() {
     testClient('missing README opens main when available, hasMain=$hasMain', (tester) async {
       tester.pumpComponent(
         App(
+          projectStore: MemoryProjectStore(),
           initialUri: Uri.parse('?sample=counter'),
           loadSource: (_) async => contents({if (hasMain) 'lib/main.dart': 'void main() {}'}),
           createRepository: ({required events, required sdk, required taskStatus, localApi}) => WorkspaceRepository(
@@ -124,6 +133,7 @@ void main() {
     testClient('project load failures show an error dialog with recovery, embed=$embed', (tester) async {
       tester.pumpComponent(
         App(
+          projectStore: MemoryProjectStore(),
           initialUri: Uri.parse('?sample=counter&embed=$embed'),
           loadSource: (_) async => throw const FormatException('Project download failed'),
         ),
@@ -145,6 +155,7 @@ void main() {
     var loads = 0;
     tester.pumpComponent(
       App(
+        projectStore: MemoryProjectStore(),
         initialUri: Uri.parse('?file=README.md'),
         loadSource: (_) async {
           if (++loads > 1) {

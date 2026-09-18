@@ -19,7 +19,7 @@ Future<({TProject project, TWorkspace workspace})> waitForWorkspaceUsable<TWorks
 
 /// Runs [dispose] after the frame that replaces a keyed workspace subtree.
 ///
-/// Call this after scheduling the generation change so Jaspr can unmount the
+/// Call this after scheduling the session replacement so Jaspr can unmount the
 /// old subtree before its session-owned notifiers are disposed.
 void disposeAfterWorkspaceUnmount(
   BuildContext context,

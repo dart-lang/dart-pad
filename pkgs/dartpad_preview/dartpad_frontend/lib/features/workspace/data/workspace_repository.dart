@@ -14,8 +14,8 @@ import '../../shared/task_status.dart';
 import '../../startup/project_loader.dart';
 import 'synced_workspace_resource_api.dart';
 
-/// Owns the complete worker-side workspace lifecycle for the transient app.
-class WorkspaceRepository {
+/// Owns project files and the worker workspace lifecycle.
+base class WorkspaceRepository {
   WorkspaceRepository({
     required this.events,
     required this.taskStatus,
@@ -34,8 +34,10 @@ class WorkspaceRepository {
   final Future<Workspace> _workspaceFuture;
   final Future<Workspace> _readyWorkspaceFuture;
 
+  DartPad? _dartpad;
+
   /// The DartPad runtime instance that owns the WASM worker.
-  DartPad? dartpad;
+  DartPad? get dartpad => _dartpad;
 
   WorkspaceFolder get root => workspaceResourceApi.root;
 
@@ -70,7 +72,7 @@ class WorkspaceRepository {
         TaskKind.initializingDartPadWorker,
         () async {
           final dartpad = await dartpadSdk.dedicatedWorker();
-          repository.dartpad = dartpad;
+          repository._dartpad = dartpad;
           return await dartpad.createWorkspace();
         },
         blocksPreview: true,
@@ -222,7 +224,7 @@ class WorkspaceRepository {
   ///
   /// The caller remains responsible for disposing the previous repository via
   /// [closeWorkspaceOnly] once its UI subtree has unmounted. The worker is
-  /// shared with the new repository (its [dartpad] field is set), but the new
+  /// shared with the new repository (exposed through [dartpad]), but the new
   /// worker workspace is not created until [previousWorkspaceDisposed]
   /// completes. Readiness is exposed through [readyWorkspace].
   static WorkspaceRepository resetAndCreate({
@@ -261,7 +263,7 @@ class WorkspaceRepository {
       sdk: sdk,
       workspaceFuture: workspaceFuture,
       readyWorkspaceFuture: readyWorkspaceFuture,
-    )..dartpad = worker;
+    ).._dartpad = worker;
   }
 
   Future<RunMode> runModeFor(String entrypoint) =>
