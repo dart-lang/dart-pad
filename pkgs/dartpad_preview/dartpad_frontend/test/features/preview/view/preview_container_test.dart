@@ -5,10 +5,10 @@
 @TestOn('browser')
 library;
 
-import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/preview/components/runtime_button.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
+import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
@@ -33,7 +33,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   bool isRunning = true;
 
   @override
-  bool isFlutter = true;
+  RunMode previewMode = RunMode.flutter;
 
   @override
   bool canStart = false;
@@ -61,7 +61,10 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   }
 
   @override
-  Future<void> runCode(String activeFile) async {}
+  Future<void> runCode(String activeFile, {RunMode? mode}) async {}
+
+  @override
+  Future<void> restartCode() async {}
 
   @override
   Future<void> hotReloadCode() async {}
@@ -114,7 +117,7 @@ void main() {
     String height = '1000px',
   }) {
     return div(
-      key: ValueKey('container-$width-$height-${customPreview?.isFlutter ?? preview.isFlutter}'),
+      key: ValueKey('container-$width-$height-${customPreview?.previewMode ?? preview.previewMode}'),
       attributes: {
         'style': 'display: flex; flex-direction: column; width: $width; height: $height;',
       },
@@ -500,7 +503,7 @@ void main() {
   });
 
   testClient('hides all button labels in narrow Dart toolbar (< 180px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '140px'));
     await pumpEventQueue();
 
@@ -509,11 +512,13 @@ void main() {
       final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
       expect(web.window.getComputedStyle(label).display, 'none');
     }
+    tester.pumpComponent(const div([]));
+    await pumpEventQueue();
     dartPreview.dispose();
   });
 
   testClient('expands only the first button in medium Dart toolbar (180px - 269px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '200px'));
     await pumpEventQueue();
 
@@ -523,11 +528,13 @@ void main() {
 
     expect(web.window.getComputedStyle(firstLabel).display, isNot('none'));
     expect(web.window.getComputedStyle(secondLabel).display, 'none');
+    tester.pumpComponent(const div([]));
+    await pumpEventQueue();
     dartPreview.dispose();
   });
 
   testClient('expands all buttons in wide Dart toolbar (>= 270px)', (tester) async {
-    final dartPreview = FakePreviewViewModel()..isFlutter = false;
+    final dartPreview = FakePreviewViewModel()..previewMode = RunMode.console;
     tester.pumpComponent(buildContainer(customPreview: dartPreview, width: '300px'));
     await pumpEventQueue();
 
@@ -536,6 +543,8 @@ void main() {
       final label = btn.querySelector('.runtime-button-label') as web.HTMLElement;
       expect(web.window.getComputedStyle(label).display, isNot('none'));
     }
+    tester.pumpComponent(const div([]));
+    await pumpEventQueue();
     dartPreview.dispose();
   });
 
@@ -576,8 +585,7 @@ void main() {
         web.document.querySelector('.preview-toolbar [aria-label="$label"]') as web.HTMLButtonElement?;
 
     testClient('Dart hides Hot Reload and restores Run immediately after launch', (tester) async {
-      repository.flutterDependency = false;
-      await preview.runCode('lib/main.dart');
+      await preview.runCode('lib/main.dart', mode: RunMode.console);
       tester.pumpComponent(buildPreview());
 
       expect(button('Reload'), isNull);
@@ -585,7 +593,7 @@ void main() {
       expect(button('Run')?.disabled, isFalse);
       expect(button('Stop')?.disabled, isTrue);
 
-      sandbox.consoleController.add((level: ConsoleLevel.log, message: 'timer is still running'));
+      sandbox.consoleController.add('timer is still running');
       await pumpEventQueue();
 
       expect(web.document.querySelector('.console-panel')?.textContent, contains('timer is still running'));
@@ -595,13 +603,19 @@ void main() {
     });
 
     testClient('Flutter keeps Hot Reload and running controls after launch', (tester) async {
-      await preview.runCode('lib/main.dart');
+      await preview.runCode('examples/counter/lib/main.dart', mode: RunMode.flutter);
       tester.pumpComponent(buildPreview());
 
       expect(button('Reload')?.disabled, isFalse);
       expect(button('Restart')?.disabled, isFalse);
       expect(button('Stop')?.disabled, isFalse);
       expect(button('Run'), isNull);
+
+      button('Restart')!.click();
+      await pumpEventQueue();
+      expect(sandbox.hotRestartCount, 1);
+      expect(sandbox.disposeCount, 0);
+      expect(sandbox.path, 'examples/counter/lib/main.dart');
     });
   });
 }

@@ -3,47 +3,88 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad/dartpad.dart';
+import 'package:web/web.dart' as web;
 
-/// A sandboxed environment for code preview.
+/// An isolated execution environment used by the preview.
 abstract interface class PreviewSandbox {
-  void dispose();
-  Future<void> loadModule({required String code});
-  Future<void> runApp(Uri libraryUri);
-  Future<void> runMain(Uri libraryUri);
-  Future<void> hotReload({required String? code, required List<Uri> librariesToReload});
-  Stream<ConsoleMessage> get onConsole;
-  Stream<({String message})> get onError;
-  Stream<({String message})> get onUnhandledRejection;
+  /// The run modes supported by this sandbox.
+  List<String> get modes;
+
+  /// Compiles and runs [path] using [mode].
+  Future<({String log})> run(String path, {required String mode});
+
+  /// Recompiles and restarts the current application.
+  Future<({String log})> hotRestart();
+
+  /// Compiles and hot reloads changes into the current application.
+  Future<({String log})> hotReload();
+
+  /// Standard console messages emitted by the application.
+  Stream<String> get console;
+
+  /// Runtime errors emitted by the application.
+  Stream<String> get errors;
+
+  /// Unhandled asynchronous errors emitted by the application.
+  Stream<String> get unhandledRejections;
+
+  /// Closes the sandbox and releases all associated resources.
+  Future<void> close();
 }
 
-/// A wrapper around [Sandbox] implementing [PreviewSandbox].
-class RealPreviewSandbox implements PreviewSandbox {
-  RealPreviewSandbox(this._sandbox);
-
+final class IframePreviewSandbox implements PreviewSandbox {
+  IframePreviewSandbox._(this._sandbox, this._iframe, this._mount);
   final Sandbox _sandbox;
+  final SandboxedIframe _iframe;
+  final web.HTMLElement _mount;
+  Future<void>? _closing;
+
+  static Future<PreviewSandbox> create(
+    web.Element container, {
+    required Uri assetBaseUrl,
+    required Workspace workspace,
+  }) async {
+    // Own a mount immediately: the SDK can fail after inserting its iframe but
+    // before returning a SandboxedIframe handle (for example, on timeout).
+    final mount = web.HTMLDivElement()
+      ..style.width = '100%'
+      ..style.height = '100%';
+    container.appendChild(mount);
+    SandboxedIframe? iframe;
+    try {
+      iframe = await DartPadSdk(assetBaseUrl: assetBaseUrl).createSandboxedIframe(mount);
+      return IframePreviewSandbox._(await workspace.connectSandboxedIframe(iframe.port), iframe, mount);
+    } catch (_) {
+      mount.remove();
+      await iframe?.close();
+      rethrow;
+    }
+  }
 
   @override
-  void dispose() => _sandbox.dispose();
+  List<String> get modes => _sandbox.modes;
+  @override
+  Future<({String log})> run(String path, {required String mode}) => _sandbox.run(path, mode: mode);
+  @override
+  Future<({String log})> hotRestart() => _sandbox.hotRestart();
+  @override
+  Future<({String log})> hotReload() => _sandbox.hotReload();
+  @override
+  Stream<String> get console => _sandbox.console;
+  @override
+  Stream<String> get errors => _sandbox.errors;
+  @override
+  Stream<String> get unhandledRejections => _sandbox.unhandledRejections;
 
   @override
-  Future<void> loadModule({required String code}) => _sandbox.loadModule(code: code);
+  Future<void> close() => _closing ??= _close();
 
-  @override
-  Future<void> runApp(Uri libraryUri) => _sandbox.runApp(libraryUri);
-
-  @override
-  Future<void> runMain(Uri libraryUri) => _sandbox.runMain(libraryUri);
-
-  @override
-  Future<void> hotReload({required String? code, required List<Uri> librariesToReload}) =>
-      _sandbox.hotReload(code: code, librariesToReload: librariesToReload);
-
-  @override
-  Stream<ConsoleMessage> get onConsole => _sandbox.onConsole;
-
-  @override
-  Stream<({String message})> get onError => _sandbox.onError;
-
-  @override
-  Stream<({String message})> get onUnhandledRejection => _sandbox.onUnhandledRejection;
+  Future<void> _close() async {
+    try {
+      await _sandbox.close();
+    } finally {
+      _mount.remove();
+      await _iframe.close();
+    }
+  }
 }

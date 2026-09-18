@@ -157,6 +157,7 @@ final class WorkspaceSession {
     await _safeCall(fileTree.dispose);
     await _safeCall(tabs.dispose);
     await _safeCall(preview.dispose);
+    await _safeAwait(preview.closed);
     await _safeCall(console.dispose);
     await _safeAwait(
       _languageServerClient?.shutdown().timeout(
