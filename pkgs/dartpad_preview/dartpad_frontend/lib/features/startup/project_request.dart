@@ -21,6 +21,10 @@ final class ProjectRequest {
     this.sdk,
     this.sdkVersion,
     this.mode,
+    required this.isLegacyEmbedMode,
+    required this.isEmbedMode,
+    required this.autoRun,
+    required this.initialSplitRatio,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
 
@@ -45,7 +49,7 @@ final class ProjectRequest {
   /// `root` is valid and explicitly selects the source root.
   ///
   /// Other query parameters, including the independent `embed` UI option, are
-  /// retained in [query] without being interpreted here.
+  /// retained in [query].
   factory ProjectRequest.fromUri(Uri uri) {
     final query = uri.queryParametersAll;
     String? single(String key) {
@@ -70,10 +74,11 @@ final class ProjectRequest {
     final gist = single('gist');
     final id = single('id');
     final sample = single('sample');
+    final apiSample = single('sample_id');
     if (gist != null && id != null) {
       throw const FormatException('Choose either gist or id, not both.');
     }
-    if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
+    if ([url, package, gist ?? id, sample, apiSample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');
     }
     if (version != null && package == null) {
@@ -98,23 +103,44 @@ final class ProjectRequest {
     if (root != null) {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
+    final channel = apiSample == null ? null : single('channel');
+    final isLegacyEmbedMode = apiSample != null || _isLegacyEmbedPath(uri.path);
+    final splitValues = query['split'];
+    final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
+    final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
+    final source = url != null
+        ? ArchiveProjectSource(url)
+        : package != null
+        ? PackageProjectSource(package, version: version)
+        : (gist ?? id) != null
+        ? GistProjectSource((gist ?? id)!)
+        : apiSample != null
+        ? FlutterApiDocsProjectSource(apiSample, channel: channel)
+        : SampleProjectSource(sample);
     return ProjectRequest._(
-      source: url != null
-          ? ArchiveProjectSource(url)
-          : package != null
-          ? PackageProjectSource(package, version: version)
-          : (gist ?? id) != null
-          ? GistProjectSource((gist ?? id)!)
-          : SampleProjectSource(sample),
+      source: source,
       query: query,
       files: files,
       root: root,
       entrypoint: entrypoint,
-      sdk: sdkParts?.first,
+      // TODO: Select channel-specific Flutter SDK bundles once they are
+      // included in the generated SDK assets. Every legacy channel currently
+      // resolves to the one bundled Flutter SDK.
+      sdk: sdkParts?.first ?? (source is FlutterApiDocsProjectSource ? 'flutter' : null),
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
+      isLegacyEmbedMode: isLegacyEmbedMode,
+      isEmbedMode: isLegacyEmbedMode || query['embed']?.contains('true') == true,
+      autoRun: !isLegacyEmbedMode || (query['run']?.length == 1 && query['run']!.single == 'true'),
+      initialSplitRatio: initialSplitRatio,
     );
   }
+
+  /// Whether [uri] requests either the current or legacy embed presentation.
+  static bool isEmbedUri(Uri uri) =>
+      uri.queryParametersAll['embed']?.contains('true') == true ||
+      uri.queryParametersAll.containsKey('sample_id') ||
+      _isLegacyEmbedPath(uri.path);
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
@@ -155,6 +181,18 @@ final class ProjectRequest {
   /// Null infers mode from the SDK and entrypoint; a value fixes the mode.
   final RunMode? mode;
 
+  /// Whether this request uses the historical Flutter embed contract.
+  final bool isLegacyEmbedMode;
+
+  /// Whether the current preview embed presentation should be used.
+  final bool isEmbedMode;
+
+  /// Whether the resolved entrypoint should run after workspace preparation.
+  final bool autoRun;
+
+  /// Initial fraction of the outer split occupied by the code panel.
+  final double initialSplitRatio;
+
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///
   /// Returns a query string prefixed with `?`, or an empty string for no query.
@@ -162,4 +200,9 @@ final class ProjectRequest {
     final encoded = Uri(queryParameters: query).query;
     return encoded.isEmpty ? '' : '?$encoded';
   }
+}
+
+bool _isLegacyEmbedPath(String path) {
+  final normalized = path.startsWith('/') ? path.substring(1) : path;
+  return normalized == 'embed-flutter' || normalized == 'embed-flutter.html';
 }
