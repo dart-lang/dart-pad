@@ -130,8 +130,8 @@ final class _ErrorToastState extends State<ErrorToast> {
     }),
     css('.editor-error-toast').styles(
       display: .flex,
-      position: .absolute(top: 16.px, right: 16.px),
-      zIndex: const ZIndex(20),
+      position: .absolute(top: 64.px, right: 16.px),
+      zIndex: const ZIndex(30),
       maxWidth: 360.px,
       padding: .symmetric(vertical: 10.px, horizontal: 14.px),
       border: .all(color: colorError, width: 1.px),

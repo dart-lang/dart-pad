@@ -15,6 +15,7 @@ import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/components/editor_shell.dart';
 import 'features/editor/components/error_toast.dart';
+import 'features/editor/components/main_editor_actions.dart';
 import 'features/editor/components/pubspec_editor_actions.dart';
 import 'features/editor/components/small_screen_tab_bar.dart';
 import 'features/editor/models/tab_descriptor.dart';
@@ -577,8 +578,10 @@ final class _AppState extends State<App> {
   }
 
   Component _buildEditorOverlay(WorkspaceSession session) {
+    final activeTab = session.tabs.activeTab;
+
     return .fragment([
-      if (session.tabs.activeTab?.origin == EditorTabOrigin.workspace)
+      if (activeTab?.origin == EditorTabOrigin.workspace) ...[
         PubspecEditorActions(
           activeFile: session.tabs.activeFile,
           saveAllFiles: session.tabs.saveAllTabs,
@@ -588,6 +591,15 @@ final class _AppState extends State<App> {
             projectRoot: _projectDir,
           ),
         ),
+        if (activeTab is CodeMirrorTab)
+          MainEditorActions(
+            activeFile: session.tabs.activeFile,
+            getContent: () => activeTab.content,
+            tabUpdates: activeTab.onUpdate,
+            runAvailability: session.preview,
+            onRun: (entrypointPath) => session.preview.runCode(entrypointPath),
+          ),
+      ],
       ErrorToast(
         key: const ValueKey('editor-error-toast'),
         events: session.events,
