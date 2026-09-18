@@ -16,20 +16,24 @@ import 'generated_pubspec.dart';
 import 'project_loader.dart';
 
 part 'archive_project_source.dart';
+part 'flutter_api_docs_project_source.dart';
 part 'gist_project_source.dart';
 part 'package_project_source.dart';
 part 'sample_project_source.dart';
 
 /// The source from which a project's files are loaded.
 ///
-/// Describes and loads a bundled sample, remote archive, pub.dev package, or
-/// GitHub gist.
+/// Describes and loads a bundled sample, remote archive, pub.dev package,
+/// GitHub gist, or generated Flutter API documentation sample.
 sealed class ProjectSource {
   /// Creates the base source for a concrete project source.
   const ProjectSource();
 
   /// Describes a bundled sample; null selects the default sample (`counter`).
   const factory ProjectSource.example([String? sampleId]) = SampleProjectSource;
+
+  /// Describes a generated Flutter API documentation sample.
+  const factory ProjectSource.flutterApiDocs(String sampleId, {String? channel}) = FlutterApiDocsProjectSource;
 
   /// Loads and prepares the files supplied by this source.
   Future<Project> loadProject();

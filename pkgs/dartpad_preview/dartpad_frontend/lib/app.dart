@@ -141,7 +141,7 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _isEmbedMode = (component.initialUri ?? Uri.base).queryParameters['embed'] == 'true';
+    _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
     _persistence = ProjectPersistenceController(
       enabled: !_isEmbedMode,
       store: component.projectStore,
@@ -443,7 +443,7 @@ final class _AppState extends State<App> {
       return;
     }
 
-    if (preparationSucceeded && session.preview.entrypoint != null) {
+    if (preparationSucceeded && project.request.autoRun && session.preview.entrypoint != null) {
       unawaited(session.preview.runCurrent());
     }
     await _initializeAnalyzer(session, workspace, project.root);
@@ -708,10 +708,10 @@ final class _AppState extends State<App> {
               if (_isLargeScreen)
                 SplitPanel(
                   key: _previewSplitKey,
-                  initialValue: 0.7,
+                  initialValue: session.initialProject.request.initialSplitRatio,
                   canCollapseRight: true,
-                  minValue: 0.3,
-                  maxValue: 0.85,
+                  minValue: session.initialProject.request.isLegacyEmbedMode ? 0.05 : 0.3,
+                  maxValue: session.initialProject.request.isLegacyEmbedMode ? 0.95 : 0.85,
                   left: EditorShell(
                     openTabs: session.tabs.openTabs,
                     activeFile: session.tabs.activeFile,

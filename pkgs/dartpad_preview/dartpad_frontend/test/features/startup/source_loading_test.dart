@@ -48,6 +48,53 @@ void main() {
       );
     }, () => MockClient((_) async => http.Response('Not found', 404)));
   });
+  group('FlutterApiDocsProjectSource', () {
+    for (final (channel, host) in [
+      (null, 'api.flutter.dev'),
+      ('stable', 'api.flutter.dev'),
+      ('beta', 'api.flutter.dev'),
+      ('unknown', 'api.flutter.dev'),
+      ('main', 'main-api.flutter.dev'),
+      ('master', 'main-api.flutter.dev'),
+    ]) {
+      test('loads $channel from $host using the bundled Flutter SDK', () async {
+        final query = '?sample_id=material.AppBar.1${channel == null ? '' : '&channel=$channel'}';
+        final request = ProjectRequest.fromUri(Uri.parse(query));
+        final source = request.source as FlutterApiDocsProjectSource;
+        await http.runWithClient(
+          () async {
+            final project = await source.loadProject();
+            expect(project.paths, ['lib/main.dart', 'pubspec.yaml']);
+            expect(utf8.decode(project.readFile('lib/main.dart')!), contains('void main()'));
+            expect(utf8.decode(project.readFile('pubspec.yaml')!), contains('sdk: flutter'));
+            final state = InitialProjectState.resolve(request, project, sdks);
+            expect(state.sdk, sdks.last);
+            expect(state.entrypoint, 'lib/main.dart');
+          },
+          () => MockClient((httpRequest) async {
+            expect(httpRequest.url.host, host);
+            expect(httpRequest.url.path, '/snippets/material.AppBar.1.dart');
+            return http.Response("import 'package:flutter/material.dart';\nvoid main() {}", 200);
+          }),
+        );
+      });
+    }
+
+    test('encodes the sample id as one path segment', () {
+      const source = FlutterApiDocsProjectSource('nested/sample');
+      expect(source.snippetUri.toString(), 'https://api.flutter.dev/snippets/nested%2Fsample.dart');
+    });
+
+    test('reports failed snippet downloads', () async {
+      await http.runWithClient(
+        () => expectLater(
+          const FlutterApiDocsProjectSource('missing.Sample').loadProject(),
+          throwsException,
+        ),
+        () => MockClient((_) async => http.Response('Not found', 404)),
+      );
+    });
+  });
   test('maps all flat Gist Dart files and rejects relocation collisions', () async {
     Future<void> check(Map<String, String> files, {bool collision = false}) async {
       await http.runWithClient(
