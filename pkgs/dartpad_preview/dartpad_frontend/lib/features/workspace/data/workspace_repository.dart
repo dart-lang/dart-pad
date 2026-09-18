@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 
+import '../../preview/models/run_mode.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/error_toast_event.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/sdk_info.dart';
 import '../../shared/task_status.dart';
+import '../../startup/project_loader.dart';
 import 'synced_workspace_resource_api.dart';
 
 /// Owns the complete worker-side workspace lifecycle for the transient app.
@@ -38,25 +38,6 @@ class WorkspaceRepository {
   DartPad? dartpad;
 
   WorkspaceFolder get root => workspaceResourceApi.root;
-
-  /// The workspace that owns generated metadata used for dependency detection.
-  ///
-  /// Pub commands run in the worker workspace. Their filesystem events are
-  /// mirrored back to the local editor workspace asynchronously, so generated
-  /// files such as `.dart_tool/package_config.json` may not be available
-  /// locally when a pub command finishes. Prefer the worker API when it is
-  /// available and retain the local API for unsynchronized repositories and
-  /// tests.
-  WorkspaceFolder get _packageMetadataRoot {
-    final api = workspaceResourceApi;
-    if (api is SyncedWorkspaceResourceApi) {
-      final remoteApi = api.remoteApi;
-      if (remoteApi != null) {
-        return remoteApi.root;
-      }
-    }
-    return api.root;
-  }
 
   /// Base URL where worker and sandbox assets are hosted.
   Uri get assetBaseUrl => sdk.assetBaseUrl;
@@ -283,37 +264,27 @@ class WorkspaceRepository {
     )..dartpad = worker;
   }
 
-  /// Checks if the project containing [filePath] has a dependency on the
-  /// flutter framework by reading its resolved `.dart_tool/package_config.json`.
-  Future<bool> hasFlutterDependency(String filePath) async {
-    WorkspaceFolder folder = _packageMetadataRoot.getFile(filePath).parent;
-    while (true) {
-      final config = folder.getFile('.dart_tool/package_config.json');
-      if (await config.exists()) {
-        try {
-          final content = await config.readContent();
-          final configJson = json.decode(content) as Map<String, dynamic>;
-          final packages = configJson['packages'] as List<dynamic>?;
-          if (packages != null) {
-            for (final pkg in packages) {
-              final map = pkg as Map<String, dynamic>;
-              if (map['name'] == 'flutter') {
-                return true;
-              }
-            }
-            return false;
-          }
-        } catch (_) {
-          // Fall through.
-        }
-      }
+  Future<RunMode> runModeFor(String entrypoint) =>
+      RunMode.resolve(workspace: workspaceResourceApi, sdk: sdk, entrypoint: entrypoint);
 
-      if (folder.isRoot) {
-        break;
-      }
-      folder = folder.parent;
+  /// Copies current bytes into an independent workspace for an SDK switch.
+  Future<MemoryWorkspaceResourceApi> copyFiles() async {
+    await flush();
+    final copy = MemoryWorkspaceResourceApi();
+    try {
+      final resources = await root.getChildren(recursive: true);
+      await ProjectLoader.writeFiles(
+        copy.root,
+        Project([
+          for (final file in resources.whereType<WorkspaceFile>())
+            ProjectFile(path: file.path, bytes: await workspaceResourceApi.readFileAsBytes(file.path)),
+        ]),
+      );
+      return copy;
+    } catch (_) {
+      await copy.dispose();
+      rethrow;
     }
-    return false;
   }
 
   /// Completes all queued local writes before a sandbox compiles sources.
@@ -366,17 +337,3 @@ Future<void> runWorkspacePubCommand({
     events.dispatch(LogEvent(log));
   }
 }
-
-/// Runs Pub Get and forwards its output to the application debug console.
-Future<void> runWorkspacePubGet({
-  required AppEventBus events,
-  required String path,
-  required String projectRoot,
-  required Future<String> Function(String normalizedPath) command,
-}) => runWorkspacePubCommand(
-  events: events,
-  commandName: 'get',
-  path: path,
-  projectRoot: projectRoot,
-  command: command,
-);

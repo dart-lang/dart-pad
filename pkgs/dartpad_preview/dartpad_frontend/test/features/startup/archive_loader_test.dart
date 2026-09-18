@@ -9,13 +9,14 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/startup/archive_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('ArchiveLoader', () {
+  group('ArchiveProjectSource', () {
     const String absoluteUrl = 'https://example.com/archive.tar.gz';
 
     Uint8List createTarArchiveFromBytes(Map<String, List<int>> files) {
@@ -40,15 +41,14 @@ void main() {
     }
 
     test('resolves a relative URL against the page URL', () async {
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: 'examples/counter.tar.gz',
-        filePath: 'lib/main.dart',
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        'examples/counter.tar.gz',
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          await expectLater(loader.loadArchive(api.root), throwsException);
+          await expectLater(loadInto(source, api.root), throwsException);
         },
         () => MockClient((http.Request request) async {
           expect(request.url, Uri.base.resolve('examples/counter.tar.gz'));
@@ -58,16 +58,15 @@ void main() {
     });
 
     test('throws Exception if HTTP response is not 200', () async {
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'lib/main.dart',
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
           expect(
-            () => loader.loadArchive(api.root),
+            () => loadInto(source, api.root),
             throwsException,
           );
         },
@@ -77,7 +76,7 @@ void main() {
       );
     });
 
-    test('downloads, decompresses .tar.gz, finds pubspec and extracts files', () async {
+    test('downloads, decompresses .tar.gz and imports all files', () async {
       final Map<String, String> archiveFiles = {
         'my_project/pubspec.yaml': 'name: my_project\n',
         'my_project/lib/main.dart': 'void main() {}',
@@ -86,18 +85,14 @@ void main() {
       };
       final Uint8List archiveBytes = createTarGzArchive(archiveFiles);
 
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'my_project/lib/main.dart',
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          final result = await loader.loadArchive(api.root);
-          expect(result.projectDir, 'my_project');
-          expect(result.entryPath, 'my_project/lib/main.dart');
-          expect(result.packageRoot, 'my_project');
+          await loadInto(source, api.root);
         },
         () => MockClient((http.Request request) async {
           expect(request.url.toString(), absoluteUrl);
@@ -126,15 +121,14 @@ void main() {
       };
       final Uint8List archiveBytes = createTarArchive(archiveFiles);
 
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'project/lib/main.dart',
+      const ArchiveProjectSource source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
         () async {
-          await loader.loadArchive(api.root);
+          await loadInto(source, api.root);
         },
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
@@ -153,20 +147,18 @@ void main() {
         'pubspec.yaml': pubspec,
         'README.md': '# Root package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
+      await http.runWithClient(
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
       );
 
-      expect(result.packageRoot, '');
       expect(await api.readFileAsText('pubspec.yaml'), pubspec);
       expect(
         await api.readFileAsText('pubspec_overrides.yaml'),
@@ -183,20 +175,18 @@ void main() {
         'example/pubspec.yaml': examplePubspec,
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
+      await http.runWithClient(
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
       );
 
-      expect(result.packageRoot, '');
       expect(await api.readFileAsText('pubspec.yaml'), rootPubspec);
       expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
       expect(
@@ -217,20 +207,18 @@ void main() {
         'example/pubspec.yaml': examplePubspec,
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'example/lib/main.dart',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
+      await http.runWithClient(
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
       );
 
-      expect(result.packageRoot, 'example');
       expect(await api.readFileAsText('pubspec.yaml'), rootPubspec);
       expect(await api.readFileAsText('example/pubspec.yaml'), examplePubspec);
       expect(
@@ -257,14 +245,13 @@ resolution: workspace
         'pubspec_overrides.yaml': overrides,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -280,14 +267,13 @@ resolution: workspace
         'pubspec_overrides.yaml': '',
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -304,14 +290,13 @@ resolution: workspace
         'pubspec_overrides.yaml': overrides,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -332,14 +317,13 @@ resolution: workspace
         'example/pubspec_overrides.yaml': 'workspace: []\n',
         'example/lib/main.dart': 'void main() {}',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'example/lib/main.dart',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -359,14 +343,13 @@ resolution: workspace
         'packages/nested/pkg_c/pubspec.yaml': 'name: pkg_c\nresolution: workspace\n',
         'README.md': '# Multi-package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -392,14 +375,13 @@ resolution: workspace
         'pubspec.yaml': pubspec,
         'README.md': '# Package\n',
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'README.md',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -413,14 +395,13 @@ resolution: workspace
       final archiveBytes = createTarArchiveFromBytes({
         'pubspec.yaml': [0xFF],
       });
-      const loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'pubspec.yaml',
+      const source = ArchiveProjectSource(
+        absoluteUrl,
       );
       final api = MemoryWorkspaceResourceApi();
 
       await http.runWithClient(
-        () => loader.loadArchive(api.root),
+        () => loadInto(source, api.root),
         () => MockClient((http.Request request) async {
           return http.Response.bytes(archiveBytes, 200);
         }),
@@ -429,210 +410,9 @@ resolution: workspace
       expect(await api.readFileAsBytes('pubspec.yaml'), [0xFF]);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
     });
-
-    test('falls back to root folder if no pubspec.yaml is found', () async {
-      final Map<String, String> archiveFiles = {
-        'my_project/lib/main.dart': 'void main() {}',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'my_project/lib/main.dart',
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.projectDir, '');
-      expect(result.entryPath, 'my_project/lib/main.dart');
-      expect(result.packageRoot, '');
-      expect(result.pathToMain, 'my_project/lib/main.dart');
-      expect(await api.fileExist('my_project/lib/main.dart'), isTrue);
-      expect(await api.readFileAsText('my_project/lib/main.dart'), 'void main() {}');
-    });
-
-    test('defaults pathToMain to filePath when pathToMain is not specified', () async {
-      final Map<String, String> archiveFiles = {
-        'my_project/pubspec.yaml': 'name: my_project\n',
-        'my_project/example/hello.dart': 'void main() {}',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'my_project/example/hello.dart',
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'my_project/example/hello.dart');
-      expect(result.pathToMain, 'my_project/example/hello.dart');
-    });
-
-    test('sets explicit pathToMain when specified', () async {
-      final Map<String, String> archiveFiles = {
-        'my_project/pubspec.yaml': 'name: my_project\n',
-        'my_project/example/hello.dart': 'void hello() {}',
-        'my_project/example/main.dart': 'void main() {}',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'my_project/example/hello.dart',
-        pathToMain: 'my_project/example/main.dart',
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'my_project/example/hello.dart');
-      expect(result.pathToMain, 'my_project/example/main.dart');
-    });
-
-    test('falls back to root README.md when filePath is not specified', () async {
-      final Map<String, String> archiveFiles = {
-        'pubspec.yaml': 'name: my_package\n',
-        'lib/main.dart': 'void main() {}',
-        'README.md': '# My Package\n',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'README.md');
-      expect(result.pathToMain, 'README.md');
-      expect(result.projectDir, '');
-      expect(await api.fileExist('README.md'), isTrue);
-      expect(await api.readFileAsText('README.md'), '# My Package\n');
-    });
-
-    test('falls back to readme.md when filePath is not specified', () async {
-      final Map<String, String> archiveFiles = {
-        'pubspec.yaml': 'name: my_package\n',
-        'lib/main.dart': 'void main() {}',
-        'readme.md': '# Readme Lowercase\n',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'readme.md');
-      expect(result.pathToMain, 'readme.md');
-      expect(result.projectDir, '');
-      expect(await api.fileExist('readme.md'), isTrue);
-      expect(await api.readFileAsText('readme.md'), '# Readme Lowercase\n');
-    });
-
-    test('prefers example file over README.md when filePath is not specified', () async {
-      final Map<String, String> archiveFiles = {
-        'pubspec.yaml': 'name: my_package\n',
-        'example/main.dart': 'void main() {}',
-        'README.md': '# My Package\n',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'example/main.dart');
-      expect(result.pathToMain, 'example/main.dart');
-    });
-
-    test('finds example/readme.md over root README.md when filePath is not specified', () async {
-      final Map<String, String> archiveFiles = {
-        'pubspec.yaml': 'name: my_package\n',
-        'example/readme.md': '# Example Readme\n',
-        'README.md': '# Root Readme\n',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'example/readme.md');
-      expect(result.pathToMain, 'example/readme.md');
-    });
-
-    test('prefers explicit filePath over example file and README.md', () async {
-      final Map<String, String> archiveFiles = {
-        'pubspec.yaml': 'name: my_package\n',
-        'example/main.dart': 'void main() {}',
-        'README.md': '# My Package\n',
-        'lib/custom.dart': 'void custom() {}',
-      };
-      final Uint8List archiveBytes = createTarArchive(archiveFiles);
-
-      const ArchiveLoader loader = ArchiveLoader(
-        archiveUrl: absoluteUrl,
-        filePath: 'lib/custom.dart',
-      );
-      final MemoryWorkspaceResourceApi api = MemoryWorkspaceResourceApi();
-
-      final result = await http.runWithClient(
-        () => loader.loadArchive(api.root),
-        () => MockClient((http.Request request) async {
-          return http.Response.bytes(archiveBytes, 200);
-        }),
-      );
-
-      expect(result.entryPath, 'lib/custom.dart');
-      expect(result.pathToMain, 'lib/custom.dart');
-    });
   });
+}
+
+Future<void> loadInto(ArchiveProjectSource source, WorkspaceFolder root) async {
+  await ProjectLoader.writeFiles(root, await source.loadProject());
 }
