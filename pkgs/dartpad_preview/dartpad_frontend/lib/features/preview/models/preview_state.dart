@@ -11,12 +11,45 @@ sealed class PreviewState {
   String? get entrypoint => null;
 }
 
+extension PreviewStateCapabilities on PreviewState {
+  bool get isTransitioning => switch (this) {
+    PreviewStarting() || PreviewRestarting() || PreviewHotReloading() || PreviewStopping() => true,
+    PreviewInitial() || PreviewRunning() || PreviewDartReady() || PreviewCompileError() => false,
+  };
+
+  bool get allowsStart => switch (this) {
+    PreviewInitial() || PreviewDartReady() || PreviewCompileError() => true,
+    PreviewStarting() || PreviewRunning() || PreviewRestarting() || PreviewHotReloading() || PreviewStopping() => false,
+  };
+
+  bool get allowsRestart => switch (this) {
+    PreviewRunning() => true,
+    PreviewInitial() ||
+    PreviewStarting() ||
+    PreviewDartReady() ||
+    PreviewRestarting() ||
+    PreviewHotReloading() ||
+    PreviewStopping() ||
+    PreviewCompileError() => false,
+  };
+
+  bool get allowsStop => switch (this) {
+    PreviewRunning() || PreviewStarting() || PreviewRestarting() || PreviewHotReloading() => true,
+    PreviewStopping() || PreviewDartReady() || PreviewInitial() || PreviewCompileError() => false,
+  };
+
+  bool get hasActivePreview => switch (this) {
+    PreviewRunning() || PreviewRestarting() || PreviewHotReloading() => true,
+    PreviewInitial() || PreviewStarting() || PreviewDartReady() || PreviewStopping() || PreviewCompileError() => false,
+  };
+}
+
 /// The initial state when no preview has started yet.
-class PreviewInitial extends PreviewState {}
+final class PreviewInitial extends PreviewState {}
 
 /// Base class for states that represent an active preview session executing a
 /// specific [entrypoint].
-class _ActivePreviewState extends PreviewState {
+sealed class _ActivePreviewState extends PreviewState {
   _ActivePreviewState(this.entrypoint);
 
   @override
@@ -24,41 +57,47 @@ class _ActivePreviewState extends PreviewState {
 }
 
 /// State representing a fresh startup compilation and execution lifecycle.
-class PreviewStarting extends _ActivePreviewState {
+final class PreviewStarting extends _ActivePreviewState {
   PreviewStarting(super.entrypoint);
 }
 
 /// State representing an active running application preview.
-class PreviewRunning extends _ActivePreviewState {
+final class PreviewRunning extends _ActivePreviewState {
   PreviewRunning(super.entrypoint);
 }
 
 /// State after successfully launching a Dart console program.
 ///
 /// The UI is ready for another run; async main and timers may still be running.
-class PreviewDartReady extends _ActivePreviewState {
+final class PreviewDartReady extends _ActivePreviewState {
   PreviewDartReady(super.entrypoint);
 }
 
 /// State representing an application restart after recompiling current sources.
-class PreviewRestarting extends _ActivePreviewState {
+final class PreviewRestarting extends _ActivePreviewState {
   PreviewRestarting(super.entrypoint);
 }
 
-/// State representing a compiler session hot-reloading code modifications.
-class PreviewHotReloading extends _ActivePreviewState {
+/// State representing a preview sandbox hot-reloading code modifications.
+final class PreviewHotReloading extends _ActivePreviewState {
   PreviewHotReloading(super.entrypoint);
 }
 
 /// State representing an active stop/shutdown execution process.
-class PreviewStopping extends PreviewState {}
+final class PreviewStopping extends PreviewState {}
 
 /// The user action that initiated a preview launch lifecycle.
-enum PreviewLaunchAction { start, restart }
+enum PreviewLaunchAction {
+  /// A fresh startup launch of the preview.
+  start,
+
+  /// An application restart following code modifications or user action.
+  restart,
+}
 
 /// State representing a compiler or runtime failure while compiling the
 /// [entrypoint].
-class PreviewCompileError extends PreviewState {
+final class PreviewCompileError extends PreviewState {
   PreviewCompileError(
     this.entrypoint,
     this.message, {

@@ -9,9 +9,9 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/preview/models/compiler_session.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
+import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -27,849 +27,504 @@ final class FakeWorkspaceResourceApi implements WorkspaceResourceApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<void> pump() => Future<void>.delayed(const Duration(milliseconds: 50));
+Future<void> pump() => Future<void>.delayed(Duration.zero);
 
-class FakeCompilerSession implements CompilerSession {
-  int compileCount = 0;
-  int closeCount = 0;
+final class _CancelFailingStream extends Stream<String> {
+  _CancelFailingStream(this._delegate);
 
-  FutureOr<({String? code, List<String> compiledLibraryUris, String? log})> Function()? onCompile;
-  Future<void> Function()? onClose;
+  final Stream<String> _delegate;
 
   @override
-  Future<({String? code, List<String> compiledLibraryUris, String? log})> compile() async {
-    compileCount++;
-    if (onCompile != null) {
-      return onCompile!();
-    }
-    return (code: 'compiled_code', compiledLibraryUris: <String>['package:app/main.dart'], log: 'compiled log');
+  StreamSubscription<String> listen(
+    void Function(String event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) => _CancelFailingSubscription(
+    _delegate.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError),
+  );
+}
+
+final class _CancelFailingSubscription implements StreamSubscription<String> {
+  _CancelFailingSubscription(this._delegate);
+
+  final StreamSubscription<String> _delegate;
+
+  @override
+  Future<void> cancel() async {
+    await _delegate.cancel();
+    throw StateError('cancel failed');
   }
 
+  @override
+  void onData(void Function(String data)? handleData) => _delegate.onData(handleData);
+
+  @override
+  void onError(Function? handleError) => _delegate.onError(handleError);
+
+  @override
+  void onDone(void Function()? handleDone) => _delegate.onDone(handleDone);
+
+  @override
+  void pause([Future<void>? resumeSignal]) => _delegate.pause(resumeSignal);
+
+  @override
+  void resume() => _delegate.resume();
+
+  @override
+  bool get isPaused => _delegate.isPaused;
+
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => _delegate.asFuture(futureValue);
+}
+
+final class FakePreviewSandbox implements PreviewSandbox {
+  int disposeCount = 0;
+  int runCount = 0;
+  int hotRestartCount = 0;
+  int hotReloadCount = 0;
+  String? path;
+  String? mode;
+  final consoleController = StreamController<String>.broadcast(sync: true);
+  final errorController = StreamController<String>.broadcast(sync: true);
+  final rejectionController = StreamController<String>.broadcast(sync: true);
+  Future<void> Function()? onRun;
+  Future<void> Function()? onRestart;
+  Future<void> Function()? onReload;
+  Future<void> Function()? onClose;
+  Exception? closeError;
+  Stream<String>? consoleStream;
+  @override
+  List<String> modes = ['console', 'flutter'];
+  @override
+  Future<({String log})> run(String path, {required String mode}) async {
+    runCount++;
+    this.path = path;
+    this.mode = mode;
+    await onRun?.call();
+    return (log: 'compiled and ran');
+  }
+
+  @override
+  Future<({String log})> hotRestart() async {
+    hotRestartCount++;
+    await onRestart?.call();
+    return (log: 'restarted');
+  }
+
+  @override
+  Future<({String log})> hotReload() async {
+    hotReloadCount++;
+    await onReload?.call();
+    return (log: 'reloaded');
+  }
+
+  @override
+  Stream<String> get console => consoleStream ?? consoleController.stream;
+  @override
+  Stream<String> get errors => errorController.stream;
+  @override
+  Stream<String> get unhandledRejections => rejectionController.stream;
   @override
   Future<void> close() async {
-    closeCount++;
-    if (onClose != null) {
-      await onClose!();
-    }
-  }
-}
-
-class FakePreviewSandbox implements PreviewSandbox {
-  int disposeCount = 0;
-  int loadModuleCount = 0;
-  int runAppCount = 0;
-  int runMainCount = 0;
-  int hotReloadCount = 0;
-
-  final consoleController = StreamController<ConsoleMessage>.broadcast();
-  final errorController = StreamController<({String message})>.broadcast();
-  final rejectionController = StreamController<({String message})>.broadcast();
-
-  String? loadedCode;
-  Uri? runUri;
-  String? reloadedCode;
-  List<Uri>? reloadedLibraries;
-
-  Future<void> Function({required String code})? onLoadModule;
-  Future<void> Function(Uri libraryUri)? onRunApp;
-  Future<void> Function(Uri libraryUri)? onRunMain;
-  Future<void> Function({required String? code, required List<Uri> librariesToReload})? onHotReload;
-
-  @override
-  void dispose() {
     disposeCount++;
-    consoleController.close();
-    errorController.close();
-    rejectionController.close();
-  }
-
-  @override
-  Future<void> loadModule({required String code}) async {
-    loadModuleCount++;
-    loadedCode = code;
-    if (onLoadModule != null) {
-      await onLoadModule!(code: code);
+    await onClose?.call();
+    await consoleController.close();
+    await errorController.close();
+    await rejectionController.close();
+    if (closeError case final error?) {
+      throw error;
     }
   }
-
-  @override
-  Future<void> runApp(Uri libraryUri) async {
-    runAppCount++;
-    runUri = libraryUri;
-    if (onRunApp != null) {
-      await onRunApp!(libraryUri);
-    }
-  }
-
-  @override
-  Future<void> runMain(Uri libraryUri) async {
-    runMainCount++;
-    runUri = libraryUri;
-    if (onRunMain != null) {
-      await onRunMain!(libraryUri);
-    }
-  }
-
-  @override
-  Future<void> hotReload({required String? code, required List<Uri> librariesToReload}) async {
-    hotReloadCount++;
-    reloadedCode = code;
-    reloadedLibraries = librariesToReload;
-    if (onHotReload != null) {
-      await onHotReload!(code: code, librariesToReload: librariesToReload);
-    }
-  }
-
-  @override
-  Stream<ConsoleMessage> get onConsole => consoleController.stream;
-
-  @override
-  Stream<({String message})> get onError => errorController.stream;
-
-  @override
-  Stream<({String message})> get onUnhandledRejection => rejectionController.stream;
 }
 
-class FakeWorkspaceRepository extends WorkspaceRepository {
-  FakeWorkspaceRepository(
-    AppEventBus events,
-    WorkspaceResourceApi workspaceResourceApi, {
-    SdkInfo? sdk,
-  }) : super(
-         events: events,
-         taskStatus: TaskStatusController(),
-         workspaceResourceApi: workspaceResourceApi,
-         sdk: sdk ?? defaultSdk,
-         workspaceFuture: Completer<Workspace>().future,
-       );
-
-  int startHotReloadCompilerCount = 0;
-  int convertToPackageUriCount = 0;
-  int hasFlutterDependencyCount = 0;
+final class FakeWorkspaceRepository extends WorkspaceRepository {
+  FakeWorkspaceRepository(AppEventBus events, WorkspaceResourceApi api, {SdkInfo? sdk})
+    : super(
+        events: events,
+        taskStatus: TaskStatusController(),
+        workspaceResourceApi: api,
+        sdk: sdk ?? defaultSdk,
+        workspaceFuture: Completer<Workspace>().future,
+      );
   bool flutterDependency = true;
-
-  CompilerSession Function(Uri uri)? onStartHotReloadCompiler;
-  Uri Function(String filePath)? onConvertToPackageUri;
-
   @override
-  Future<CompilerSession> startHotReloadCompiler(Uri uri) async {
-    startHotReloadCompilerCount++;
-    if (onStartHotReloadCompiler != null) {
-      return onStartHotReloadCompiler!(uri);
-    }
-    return FakeCompilerSession();
-  }
-
+  Future<bool> hasFlutterDependency(String path) async => flutterDependency;
+  Future<void> Function()? onFlush;
   @override
-  Future<Uri> convertToPackageUri(String filePath) async {
-    convertToPackageUriCount++;
-    if (onConvertToPackageUri != null) {
-      return onConvertToPackageUri!(filePath);
-    }
-    return Uri.parse('package:app/main.dart');
-  }
-
-  @override
-  Future<bool> hasFlutterDependency(String filePath) async {
-    hasFlutterDependencyCount++;
-    return flutterDependency;
-  }
+  Future<void> flush() async => onFlush?.call();
 }
 
 void main() {
-  group('PreviewViewModel', () {
-    late AppEventBus events;
-    late FakeWorkspaceRepository repository;
-    late List<LogEvent> loggedEvents;
-    late StreamSubscription<LogEvent> logSubscription;
-
-    setUp(() {
-      events = AppEventBus();
-      loggedEvents = [];
-      logSubscription = events.on<LogEvent>().listen(loggedEvents.add);
-      repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
-    });
-
-    tearDown(() async {
-      await logSubscription.cancel();
-      repository.taskStatus.dispose();
-      await events.dispose();
-    });
-
-    test('initial state is correct', () {
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-      );
-
-      expect(viewModel.state, isA<PreviewInitial>());
-      expect(viewModel.canStart, isTrue);
-      expect(viewModel.canRestart, isFalse);
-      expect(viewModel.canHotReload, isFalse);
-      expect(viewModel.canStop, isFalse);
-      expect(viewModel.isRunning, isFalse);
-
-      viewModel.dispose();
-    });
-
-    test('blocking prerequisite disables and rejects compiling actions', () async {
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-      );
-      final pubGet = repository.taskStatus.startTask(
-        TaskKind.pubGet,
-        label: 'Pub get in /',
-        scope: '/',
-        blocksPreview: true,
-      );
-
-      expect(viewModel.canStart, isFalse);
-      await viewModel.runCode('lib/main.dart');
-      expect(viewModel.state, isA<PreviewInitial>());
-      expect(repository.startHotReloadCompilerCount, 0);
-
-      await viewModel.runCode('lib/main.dart');
-      expect(viewModel.state, isA<PreviewInitial>());
-      expect(repository.startHotReloadCompilerCount, 0);
-
-      pubGet.succeed();
-      expect(viewModel.canStart, isTrue);
-      viewModel.dispose();
-    });
-
-    test('runCode compiles and runs successfully', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      final stateChanges = <PreviewState>[];
-      viewModel.addListener(() {
-        stateChanges.add(viewModel.state);
-      });
-
-      await viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(stateChanges, [
-        isA<PreviewStarting>(),
-        isA<PreviewRunning>(),
-      ]);
-
-      expect(viewModel.state, isA<PreviewRunning>());
-      expect(viewModel.canStart, isFalse);
-      expect(viewModel.canRestart, isTrue);
-      expect(viewModel.canHotReload, isTrue);
-      expect(viewModel.canStop, isTrue);
-      expect(viewModel.isRunning, isTrue);
-
-      expect(fakeCompiler.compileCount, 1);
-      expect(fakeSandbox.loadModuleCount, 1);
-      expect(fakeSandbox.loadedCode, 'compiled_code');
-      expect(fakeSandbox.runAppCount, 1);
-      expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
-      expect(
-        repository.taskStatus.entries
-            .where(
-              (entry) => entry.kind == TaskKind.startingPreview || entry.kind == TaskKind.compilingApplication,
-            )
-            .map((entry) => entry.outcome)
-            .toList(),
-        [TaskStatusOutcome.succeeded, TaskStatusOutcome.succeeded],
-      );
-
-      final logMessages = loggedEvents.map((e) => e.message).toList();
-      expect(
-        logMessages,
-        containsAll([
-          'Run lib/main.dart',
-          'Starting compiler...',
-          'Creating hot reload compiler...',
-          'Compilation succeeded.',
-          'Running application...',
-          'App is running.',
-        ]),
-      );
-
-      viewModel.dispose();
-      expect(fakeCompiler.closeCount, 1);
-      expect(fakeSandbox.disposeCount, 1);
-    });
-
-    test('runCode in pure-dart mode (no Flutter dependency) on Flutter SDK runs runApp', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-      repository.flutterDependency = false;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      final stateChanges = <PreviewState>[];
-      viewModel.addListener(() {
-        stateChanges.add(viewModel.state);
-      });
-
-      await viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(stateChanges, [
-        isA<PreviewStarting>(),
-        isA<PreviewDartReady>(),
-      ]);
-
-      expect(viewModel.state, isA<PreviewDartReady>());
-      expect(viewModel.canStart, isTrue);
-      expect(viewModel.canRestart, isFalse);
-      expect(viewModel.canStop, isFalse);
-      expect(viewModel.isRunning, isFalse);
-      expect(viewModel.isFlutter, isFalse);
-
-      expect(viewModel.canHotReload, isFalse);
-      await viewModel.hotReloadCode();
-      expect(fakeSandbox.hotReloadCount, 0);
-
-      expect(fakeCompiler.compileCount, 1);
-      expect(fakeSandbox.loadModuleCount, 1);
-      expect(fakeSandbox.loadedCode, 'compiled_code');
-      expect(fakeSandbox.runAppCount, 1);
-      expect(fakeSandbox.runMainCount, 0);
-      expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
-
-      viewModel.dispose();
-      expect(fakeCompiler.closeCount, 1);
-      expect(fakeSandbox.disposeCount, 1);
-    });
-
-    test('runCode in pure-dart mode on Dart SDK runs runMain directly', () async {
-      final dartSdk = availableSdks.firstWhere((s) => !s.isFlutter);
-      final dartRepository = FakeWorkspaceRepository(
-        events,
-        FakeWorkspaceResourceApi(),
-        sdk: dartSdk,
-      );
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-
-      dartRepository.onStartHotReloadCompiler = (_) => fakeCompiler;
-      dartRepository.flutterDependency = false;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: dartRepository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(viewModel.state, isA<PreviewDartReady>());
-      expect(fakeSandbox.runAppCount, 0);
-      expect(fakeSandbox.runMainCount, 1);
-      expect(fakeSandbox.runUri, Uri.parse('package:app/main.dart'));
-      expect(viewModel.isFlutter, isFalse);
-      expect(viewModel.canHotReload, isFalse);
-
-      await viewModel.hotReloadCode();
-      expect(fakeCompiler.compileCount, 1);
-      expect(fakeSandbox.hotReloadCount, 0);
-
-      viewModel.dispose();
-      dartRepository.taskStatus.dispose();
-    });
-
-    test('Dart launch restores controls without waiting for execution to finish', () async {
-      repository.flutterDependency = false;
-      final fakeSandbox = FakePreviewSandbox();
-      repository.onStartHotReloadCompiler = (_) => FakeCompilerSession();
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      fakeSandbox.consoleController.add((level: ConsoleLevel.log, message: 'done'));
-      await pump();
-
-      expect(viewModel.state, isA<PreviewDartReady>());
-      expect(viewModel.state.entrypoint, 'lib/main.dart');
-      expect(viewModel.canStart, isTrue);
-      expect(viewModel.canRestart, isFalse);
-      expect(viewModel.canHotReload, isFalse);
-      expect(viewModel.canStop, isFalse);
-      expect(viewModel.isRunning, isFalse);
-      expect(viewModel.appLogs.single.message, 'done');
-
-      // Background work can still print, but must not revive the running UI.
-      fakeSandbox.consoleController.add((level: ConsoleLevel.log, message: 'timer tick'));
-      await pump();
-      expect(viewModel.appLogs.last.message, 'timer tick');
-      expect(viewModel.canStart, isTrue);
-      expect(viewModel.canStop, isFalse);
-      expect(viewModel.isRunning, isFalse);
-      expect(fakeSandbox.disposeCount, 0);
-
-      await viewModel.hotReloadCode();
-      expect(fakeSandbox.hotReloadCount, 0);
-
-      viewModel.dispose();
-    });
-
-    test('Dart controls stay busy until the launch request succeeds', () async {
-      repository.flutterDependency = false;
-      final launchCompleted = Completer<void>();
-      final fakeSandbox = FakePreviewSandbox()..onRunApp = (_) => launchCompleted.future;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      final run = viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(viewModel.state, isA<PreviewStarting>());
-      expect(viewModel.canStart, isFalse);
-      expect(viewModel.canHotReload, isFalse);
-      expect(viewModel.canStop, isTrue);
-
-      launchCompleted.complete();
-      await run;
-
-      expect(viewModel.state, isA<PreviewDartReady>());
-      expect(viewModel.canStart, isTrue);
-      expect(viewModel.canStop, isFalse);
-      expect(
-        repository.taskStatus.entries.where((entry) => entry.kind == TaskKind.startingPreview).single.outcome,
-        TaskStatusOutcome.succeeded,
-      );
-
-      viewModel.dispose();
-    });
-
-    test('another Dart run replaces the old sandbox and compiler', () async {
-      repository.flutterDependency = false;
-      final firstSandbox = FakePreviewSandbox();
-      final secondSandbox = FakePreviewSandbox();
-      final firstCompiler = FakeCompilerSession();
-      final secondCompiler = FakeCompilerSession();
-      var compilerIndex = 0;
-      repository.onStartHotReloadCompiler = (_) => compilerIndex++ == 0 ? firstCompiler : secondCompiler;
-      var sandboxIndex = 0;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => sandboxIndex++ == 0 ? firstSandbox : secondSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      firstSandbox.consoleController.add((level: ConsoleLevel.log, message: 'old timer tick'));
-      await pump();
-      expect(viewModel.appLogs, hasLength(1));
-
-      await viewModel.runCode('lib/main.dart');
-
-      expect(firstSandbox.disposeCount, 1);
-      expect(firstCompiler.closeCount, 1);
-      expect(secondCompiler.compileCount, 1);
-      expect(secondSandbox.runAppCount, 1);
-      expect(viewModel.appLogs, isEmpty);
-      expect(viewModel.state, isA<PreviewDartReady>());
-      expect(viewModel.canStart, isTrue);
-
-      viewModel.dispose();
-    });
-
-    test('runCode fails compilation with CompilationFailedException', () async {
-      final fakeCompiler = FakeCompilerSession()..onCompile = () => throw CompilationFailedException('syntax error');
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(viewModel.state, isA<PreviewCompileError>());
-      final errState = viewModel.state as PreviewCompileError;
-      expect(errState.message, 'syntax error');
-      expect(errState.entrypoint, 'lib/main.dart');
-      expect(errState.action, PreviewLaunchAction.start);
-      expect(errState.failedTask, TaskKind.compilingApplication);
-      expect(
-        repository.taskStatus.entries
-            .where(
-              (entry) => entry.kind == TaskKind.startingPreview || entry.kind == TaskKind.compilingApplication,
-            )
-            .map((entry) => entry.outcome)
-            .toList(),
-        [TaskStatusOutcome.failed, TaskStatusOutcome.failed],
-      );
-      expect(loggedEvents.any((e) => e.message == 'Compilation failed' && e.level == Level.SEVERE), isTrue);
-
-      viewModel.dispose();
-    });
-
-    test('runCode fails with generic runtime error', () async {
-      final fakeSandbox = FakePreviewSandbox()..onRunApp = (_) => throw Exception('load crash');
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      await pump();
-
-      expect(viewModel.state, isA<PreviewCompileError>());
-      final errState = viewModel.state as PreviewCompileError;
-      expect(errState.message, contains('load crash'));
-      expect(errState.action, PreviewLaunchAction.start);
-      expect(errState.failedTask, TaskKind.startingPreview);
-      expect(viewModel.canStop, isTrue);
-
-      expect(loggedEvents.any((e) => e.message == 'Run failed' && e.level == Level.SEVERE), isTrue);
-
-      viewModel.dispose();
-    });
-
-    test('runCode from a running state recompiles the latest sources', () async {
-      final fakeSandbox1 = FakePreviewSandbox();
-      final fakeSandbox2 = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-      fakeCompiler.onCompile = () => (
-        code: 'compiled_code_${fakeCompiler.compileCount}',
-        compiledLibraryUris: <String>['package:app/main.dart'],
-        log: 'compiled log',
-      );
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      var currentSandboxIndex = 0;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async {
-          currentSandboxIndex++;
-          return currentSandboxIndex == 1 ? fakeSandbox1 : fakeSandbox2;
-        },
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      expect(fakeCompiler.compileCount, 1);
-      expect(fakeSandbox1.loadModuleCount, 1);
-      expect(viewModel.canRestart, isTrue);
-
-      await viewModel.runCode('lib/main.dart');
-
-      expect(fakeCompiler.compileCount, 2);
-      expect(fakeSandbox1.disposeCount, 1);
-      expect(fakeSandbox2.loadModuleCount, 1);
-      expect(fakeSandbox2.loadedCode, 'compiled_code_2');
-
-      viewModel.dispose();
-    });
-
-    test('restart reports a typed restart failure', () async {
-      final firstSandbox = FakePreviewSandbox();
-      final failingSandbox = FakePreviewSandbox()..onRunApp = (_) => throw StateError('restart failed');
-      final fakeCompiler = FakeCompilerSession();
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      var sandboxIndex = 0;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async {
-          sandboxIndex++;
-          return sandboxIndex == 1 ? firstSandbox : failingSandbox;
-        },
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      await viewModel.runCode('lib/main.dart');
-
-      expect(viewModel.state, isA<PreviewCompileError>());
-      final error = viewModel.state as PreviewCompileError;
-      expect(error.action, PreviewLaunchAction.restart);
-      expect(error.failedTask, TaskKind.restartingPreview);
-      expect(error.message, contains('restart failed'));
-      expect(fakeCompiler.compileCount, 2);
-
-      viewModel.dispose();
-    });
-
-    test('hotReloadCode compiles and reloads successfully', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      expect(viewModel.state, isA<PreviewRunning>());
-
-      // Modify compilation output for reload
-      fakeCompiler.onCompile = () =>
-          (code: 'updated_code', compiledLibraryUris: <String>['package:app/main.dart'], log: 'reload compile log');
-
-      final stateChanges = <PreviewState>[];
-      viewModel.addListener(() {
-        stateChanges.add(viewModel.state);
-      });
-
-      await viewModel.hotReloadCode();
-      await pump();
-
-      expect(stateChanges, [
-        isA<PreviewHotReloading>(),
-        isA<PreviewRunning>(),
-      ]);
-
-      expect(fakeCompiler.compileCount, 2);
-      expect(fakeSandbox.hotReloadCount, 1);
-      expect(fakeSandbox.reloadedCode, 'updated_code');
-      expect(fakeSandbox.reloadedLibraries, [Uri.parse('package:app/main.dart')]);
-
-      expect(loggedEvents.map((e) => e.message), contains('Hot reload completed successfully.'));
-      expect(
-        repository.taskStatus.entries
-            .where(
-              (entry) => entry.kind == TaskKind.hotReload || entry.kind == TaskKind.compilingChanges,
-            )
-            .map((entry) => entry.outcome)
-            .toList(),
-        [TaskStatusOutcome.succeeded, TaskStatusOutcome.succeeded],
-      );
-
-      viewModel.dispose();
-    });
-
-    test('hotReloadCode handles HotReloadRejectedException', () async {
-      final fakeSandbox = FakePreviewSandbox()
-        ..onHotReload = ({code, required librariesToReload}) => throw HotReloadRejectedException('rejected reload');
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      await viewModel.hotReloadCode();
-      await pump();
-
-      expect(viewModel.state, isA<PreviewRunning>());
-      expect(
-        repository.taskStatus.entries.firstWhere((entry) => entry.kind == TaskKind.hotReload).outcome,
-        TaskStatusOutcome.failed,
-      );
-
-      expect(loggedEvents.any((e) => e.message == 'Hot reload rejected' && e.level == Level.WARNING), isTrue);
-
-      viewModel.dispose();
-    });
-
-    test('runCode and hotReloadCode trigger onSaveAll', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      var saveCount = 0;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-        onSaveAll: () async {
-          saveCount++;
-        },
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      expect(saveCount, 1);
-
-      await viewModel.hotReloadCode();
-      expect(saveCount, 2);
-
-      viewModel.dispose();
-    });
-
-    test('runCode does not compile when saving fails', () async {
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        onSaveAll: () => Future<void>.error(StateError('save failed')),
-      );
-
-      await viewModel.runCode('lib/main.dart');
-
-      expect(repository.startHotReloadCompilerCount, 0);
-      expect(viewModel.state, isA<PreviewCompileError>());
-
-      viewModel.dispose();
-    });
-
-    test('hotReloadCode does not compile when saving fails', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-      var failSave = false;
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-        onSaveAll: () async {
-          if (failSave) {
-            throw StateError('save failed');
-          }
-        },
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      failSave = true;
-      await viewModel.hotReloadCode();
-
-      expect(fakeCompiler.compileCount, 1);
-      expect(fakeSandbox.hotReloadCount, 0);
-      expect(viewModel.state, isA<PreviewRunning>());
-
-      viewModel.dispose();
-    });
-
-    test('stopCode stops and resets everything', () async {
-      final fakeSandbox = FakePreviewSandbox();
-      final fakeCompiler = FakeCompilerSession();
-
-      repository.onStartHotReloadCompiler = (_) => fakeCompiler;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-      expect(viewModel.state, isA<PreviewRunning>());
-
-      final stateChanges = <PreviewState>[];
-      viewModel.addListener(() {
-        stateChanges.add(viewModel.state);
-      });
-
-      await viewModel.stopCode();
-
-      expect(stateChanges, [
-        isA<PreviewStopping>(),
-        isA<PreviewInitial>(),
-      ]);
-
-      expect(viewModel.state, isA<PreviewInitial>());
-      expect(fakeSandbox.disposeCount, 1);
-      expect(fakeCompiler.closeCount, 1);
-
-      // A subsequent run compiles again after the previous session was stopped.
-      fakeSandbox.loadModuleCount = 0;
-      await viewModel.runCode('lib/main.dart');
-      expect(fakeCompiler.compileCount, 2);
-
-      viewModel.dispose();
-    });
-
-    test('forwards sandbox console events correctly', () async {
-      final fakeSandbox = FakePreviewSandbox();
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-        createSandbox: (_, {required assetBaseUrl}) async => fakeSandbox,
-      );
-
-      await viewModel.runCode('lib/main.dart');
-
-      fakeSandbox.consoleController.add((level: ConsoleLevel.warn, message: 'warning message'));
-      await pump();
-      fakeSandbox.consoleController.add((level: ConsoleLevel.error, message: 'error message'));
-      await pump();
-      fakeSandbox.consoleController.add((level: ConsoleLevel.info, message: 'info message'));
-      await pump();
-      fakeSandbox.consoleController.add((level: ConsoleLevel.log, message: 'log message'));
-      await pump();
-
-      fakeSandbox.errorController.add((message: 'critical runtime error'));
-      await pump();
-      fakeSandbox.rejectionController.add((message: 'unhandled promise rejection'));
-      await pump();
-
-      final appLogs = loggedEvents.where((e) => e.message.startsWith('[app] ')).toList();
-      expect(appLogs.map((e) => e.message), [
-        '[app] warning message',
-        '[app] error message',
-        '[app] info message',
-        '[app] log message',
-        '[app] critical runtime error',
-        '[app] unhandled promise rejection',
-      ]);
-
-      expect(appLogs[0].level, Level.WARNING);
-      expect(appLogs[1].level, Level.SEVERE);
-      expect(appLogs[2].level, Level.INFO);
-      expect(appLogs[3].level, Level.INFO);
-      expect(appLogs[4].level, Level.SEVERE);
-      expect(appLogs[5].level, Level.SEVERE);
-
-      viewModel.dispose();
-    });
-
-    test('runCode aborts and cleans up if disposed during compilation', () async {
-      final compiler = FakeCompilerSession();
-      final compilerCompleter = Completer<({String? code, List<String> compiledLibraryUris, String? log})>();
-      compiler.onCompile = () => compilerCompleter.future;
-
-      repository.onStartHotReloadCompiler = (_) => compiler;
-
-      final viewModel = PreviewViewModel(
-        workspaceRepository: repository,
-        eventBus: events,
-      );
-
-      final runFuture = viewModel.runCode('lib/main.dart');
-
-      // Dispose the view model while compilation is pending
-      viewModel.dispose();
-
-      // Complete compilation
-      compilerCompleter.complete((
-        code: 'some_code',
-        compiledLibraryUris: <String>['package:app/main.dart'],
-        log: 'log',
-      ));
-
-      await runFuture;
-
-      // The compiler should have been closed/disposed because the view model was disposed
-      expect(compiler.closeCount, 1);
-    });
+  late AppEventBus events;
+  late FakeWorkspaceRepository repository;
+  late FakePreviewSandbox sandbox;
+  late PreviewViewModel preview;
+  late List<LogEvent> logs;
+  late StreamSubscription<LogEvent> subscription;
+  setUp(() {
+    events = AppEventBus();
+    repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
+    sandbox = FakePreviewSandbox();
+    logs = [];
+    subscription = events.on<LogEvent>().listen(logs.add);
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+    );
+  });
+  tearDown(() async {
+    preview.dispose();
+    await preview.closed;
+    await subscription.cancel();
+    repository.taskStatus.dispose();
+    await events.dispose();
+  });
+
+  test('starts in an idle state and respects blocking prerequisites', () async {
+    expect(preview.previewMode, RunMode.flutter);
+    expect(preview.canStart, isTrue);
+    final task = repository.taskStatus.startTask(TaskKind.pubGet, blocksPreview: true);
+    expect(preview.canStart, isFalse);
+    await preview.runCode('lib/main.dart');
+    expect(sandbox.runCount, 0);
+    task.succeed();
+    expect(preview.canStart, isTrue);
+  });
+
+  test('uses explicit console mode with the Flutter SDK and routes early output', () async {
+    sandbox.onRun = () async {
+      sandbox.consoleController.add('early print');
+    };
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+    expect(sandbox.mode, 'console');
+    expect(preview.state, isA<PreviewDartReady>());
+    expect(preview.previewMode, RunMode.console);
+    expect(preview.appLogs.single.message, 'early print');
+    expect(preview.canStart, isTrue);
+    expect(preview.canStop, isFalse);
+    expect(preview.canHotReload, isFalse);
+
+    await preview.stopCode();
+    expect(preview.previewMode, RunMode.console);
+  });
+
+  test('failed console run with the Flutter SDK retains console mode', () async {
+    sandbox.onRun = () async {
+      throw CompilationFailedException('syntax error');
+    };
+
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+
+    expect(preview.state, isA<PreviewCompileError>());
+    expect(preview.previewMode, RunMode.console);
+  });
+
+  test('Flutter start, hot reload, and restart use the same sandbox', () async {
+    await preview.runCode('examples/counter/lib/main.dart', mode: RunMode.flutter);
+    expect(preview.state, isA<PreviewRunning>());
+    expect(sandbox.mode, 'flutter');
+    await preview.hotReloadCode();
+    await preview.restartCode();
+    expect(sandbox.runCount, 1);
+    expect(sandbox.hotReloadCount, 1);
+    expect(sandbox.hotRestartCount, 1);
+    expect(sandbox.disposeCount, 0);
+    expect(sandbox.path, 'examples/counter/lib/main.dart');
+  });
+
+  test('restart is a no-op without a running preview', () async {
+    await preview.restartCode();
+
+    expect(sandbox.runCount, 0);
+    expect(sandbox.hotRestartCount, 0);
+  });
+
+  test('another console run recompiles via hot restart', () async {
+    repository.flutterDependency = false;
+    await preview.runCode('bin/main.dart');
+    expect(sandbox.mode, 'console');
+    expect(preview.state, isA<PreviewDartReady>());
+    await preview.runCode('bin/main.dart');
+    expect(sandbox.runCount, 1);
+    expect(sandbox.hotRestartCount, 1);
+  });
+
+  test('default mode uses resolved dependencies without URL path heuristics', () async {
+    await preview.runCode('tool/check.dart');
+    expect(sandbox.mode, 'flutter');
+  });
+
+  test('Dart SDK defaults to console even if a Flutter dependency is reported', () async {
+    preview.dispose();
+    await preview.closed;
+    repository.taskStatus.dispose();
+    repository = FakeWorkspaceRepository(
+      events,
+      FakeWorkspaceResourceApi(),
+      sdk: const SdkInfo(id: 'dart', name: 'Dart', path: 'dartpad/dart/', dartVersion: '3.14.0'),
+    );
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+    );
+    expect(preview.previewMode, RunMode.console);
+    await preview.runCode('lib/main.dart');
+    expect(sandbox.mode, 'console');
+    expect(preview.state, isA<PreviewDartReady>());
+  });
+
+  test('changed entrypoint or mode creates a new sandbox', () async {
+    final created = <FakePreviewSandbox>[];
+    preview.dispose();
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async {
+        final value = FakePreviewSandbox();
+        created.add(value);
+        return value;
+      },
+    );
+    await preview.runCode('lib/main.dart');
+    await preview.runCode('lib/other.dart');
+    await preview.runCode('lib/other.dart', mode: RunMode.console);
+    expect(created.length, 3);
+    expect(created.take(2).map((s) => s.disposeCount), [1, 1]);
+    expect(created.last.mode, 'console');
+  });
+
+  test('save and flush finish before each run, restart and reload', () async {
+    final order = <String>[];
+    preview.dispose();
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      onSaveAll: () async {
+        order.add('save');
+      },
+    );
+    repository.onFlush = () async {
+      order.add('flush');
+    };
+    sandbox.onRun = () async {
+      order.add('run');
+    };
+    sandbox.onReload = () async {
+      order.add('reload');
+    };
+    sandbox.onRestart = () async {
+      order.add('restart');
+    };
+    await preview.runCode('lib/main.dart');
+    await preview.hotReloadCode();
+    await preview.runCode('lib/main.dart');
+    expect(order, ['save', 'flush', 'run', 'save', 'flush', 'reload', 'save', 'flush', 'restart']);
+  });
+
+  test('failed synchronization prevents compilation', () async {
+    repository.onFlush = () async {
+      throw StateError('write failed');
+    };
+    await preview.runCode('lib/main.dart');
+    expect(sandbox.runCount, 0);
+    expect(preview.state, isA<PreviewCompileError>());
+  });
+
+  test('failed save prevents run and failed reload save preserves running app', () async {
+    var fail = false;
+    preview.dispose();
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      onSaveAll: () async {
+        if (fail) {
+          throw StateError('save failed');
+        }
+      },
+    );
+    await preview.runCode('lib/main.dart');
+    fail = true;
+    await preview.hotReloadCode();
+    expect(sandbox.hotReloadCount, 0);
+    expect(preview.state, isA<PreviewRunning>());
+    await preview.runCode('lib/main.dart');
+    expect(sandbox.hotRestartCount, 0);
+    expect(preview.state, isA<PreviewCompileError>());
+  });
+
+  test('compilation and restart errors retain typed launch context', () async {
+    await preview.runCode('lib/main.dart');
+    sandbox.onRestart = () async {
+      throw CompilationFailedException('syntax error');
+    };
+    await preview.runCode('lib/main.dart');
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.message, 'syntax error');
+    expect(failure.action, PreviewLaunchAction.restart);
+    expect(failure.failedTask, TaskKind.compilingApplication);
+    expect(sandbox.disposeCount, 1);
+  });
+
+  test('cleanup failure still finishes the blocking preview task', () async {
+    sandbox.onRun = () async {
+      throw CompilationFailedException('syntax error');
+    };
+    sandbox.closeError = Exception('close failed');
+
+    await preview.runCode('lib/main.dart');
+    await pump();
+
+    expect(preview.state, isA<PreviewCompileError>());
+    expect(repository.taskStatus.hasBlockingPreviewTask, isFalse);
+    expect(logs.any((event) => event.message == 'Preview cleanup failed'), isTrue);
+  });
+
+  test('rejected hot reload leaves the application running', () async {
+    await preview.runCode('lib/main.dart');
+    sandbox.onReload = () async {
+      throw HotReloadRejectedException('restart required');
+    };
+    await preview.hotReloadCode();
+    await pump();
+    expect(preview.state, isA<PreviewRunning>());
+    expect(logs.any((e) => e.level == Level.WARNING), isTrue);
+    expect(sandbox.disposeCount, 0);
+  });
+
+  test('console errors and promise rejections preserve error severity', () async {
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+    sandbox.consoleController.add('print');
+    sandbox.errorController.add('error');
+    sandbox.rejectionController.add('rejection');
+    expect(preview.appLogs.map((e) => e.level), [Level.INFO, Level.SEVERE, Level.SEVERE]);
+  });
+
+  test('stream errors are captured as severe application output', () async {
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+
+    sandbox.consoleController.addError(StateError('stream failed'));
+
+    expect(preview.appLogs.single.level, Level.SEVERE);
+    expect(preview.appLogs.single.message, contains('Console stream failed'));
+  });
+
+  test('unsupported sandbox mode is rejected before run', () async {
+    sandbox.modes = ['console'];
+    await preview.runCode('lib/main.dart');
+    expect(sandbox.runCount, 0);
+    expect(preview.state, isA<PreviewCompileError>());
+  });
+
+  test('stop during pending run closes resources and ignores late completion', () async {
+    final pending = Completer<void>();
+    sandbox.onRun = () => pending.future;
+    final run = preview.runCode('lib/main.dart');
+    await pump();
+    expect(preview.canStop, isTrue);
+    await preview.stopCode();
+    pending.complete();
+    await run;
+    expect(preview.state, isA<PreviewInitial>());
+    expect(sandbox.disposeCount, 1);
+  });
+
+  test('dispose while creating a sandbox closes the late iframe', () async {
+    final pending = Completer<PreviewSandbox>();
+    preview.dispose();
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) => pending.future,
+    );
+    final run = preview.runCode('lib/main.dart');
+    await pump();
+    preview.dispose();
+    pending.complete(sandbox);
+    await run;
+    expect(sandbox.disposeCount, 1);
+    expect(sandbox.runCount, 0);
+  });
+
+  test('dispose awaits an in-flight sandbox close', () async {
+    await preview.runCode('lib/main.dart');
+    final closeStarted = Completer<void>();
+    final allowClose = Completer<void>();
+    sandbox.onClose = () {
+      closeStarted.complete();
+      return allowClose.future;
+    };
+
+    final stop = preview.stopCode();
+    await closeStarted.future;
+    preview.dispose();
+    var closed = false;
+    unawaited(preview.closed.then((_) => closed = true));
+
+    await pump();
+    expect(closed, isFalse);
+    expect(sandbox.disposeCount, 1);
+
+    allowClose.complete();
+    await preview.closed;
+    await stop;
+    expect(closed, isTrue);
+    expect(sandbox.disposeCount, 1);
+    expect(preview.state, isA<PreviewStopping>());
+  });
+
+  test('concurrent stop callers wait for the complete stop operation', () async {
+    await preview.runCode('lib/main.dart');
+    final closeStarted = Completer<void>();
+    final allowClose = Completer<void>();
+    sandbox.onClose = () {
+      closeStarted.complete();
+      return allowClose.future;
+    };
+
+    final firstStop = preview.stopCode();
+    await closeStarted.future;
+    final secondStop = preview.stopCode();
+    var secondCompleted = false;
+    unawaited(secondStop.then((_) => secondCompleted = true));
+
+    await pump();
+    expect(secondCompleted, isFalse);
+
+    allowClose.complete();
+    await Future.wait([firstStop, secondStop]);
+    expect(secondCompleted, isTrue);
+    expect(preview.state, isA<PreviewInitial>());
+    expect(sandbox.disposeCount, 1);
+  });
+
+  test('subscription cancellation failure still closes the sandbox', () async {
+    final streamController = StreamController<String>.broadcast();
+    sandbox.consoleStream = _CancelFailingStream(streamController.stream);
+    await preview.runCode('lib/main.dart');
+
+    await preview.stopCode();
+
+    expect(sandbox.disposeCount, 1);
+    expect(preview.state, isA<PreviewInitial>());
+    expect(logs.any((event) => event.message == 'Preview output subscription cleanup failed'), isTrue);
+    await streamController.close();
+  });
+
+  test('stop during hot reload cannot revive the old run', () async {
+    await preview.runCode('lib/main.dart');
+    final pending = Completer<void>();
+    sandbox.onReload = () => pending.future;
+    final reload = preview.hotReloadCode();
+    await pump();
+    await preview.stopCode();
+    pending.complete();
+    await reload;
+    expect(preview.state, isA<PreviewInitial>());
+    expect(sandbox.disposeCount, 1);
   });
 }

@@ -29,7 +29,5 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# TODO: Remove this.
-# Until 0.0.4 of dartpad with the new file watcher logic is published, we need
-# to build and keep the SDK runtime assets locally.
+# Runtime bundles are generated from the resolved dartpad package by tool/copy_assets.dart.
 /web/dartpad/

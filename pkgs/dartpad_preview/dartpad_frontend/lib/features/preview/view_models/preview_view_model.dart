@@ -14,259 +14,192 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
-import '../models/compiler_session.dart';
 import '../models/preview_sandbox.dart';
 import '../models/preview_state.dart';
+import '../models/run_mode.dart';
 
-/// View model managing compiler sessions, iframe sandbox state, console
-/// stream bindings, and reactive state updates for the application
-/// preview panel.
+/// Coordinates UI state and synchronization around the SDK-owned compiler/runtime.
 class PreviewViewModel extends ChangeNotifier {
   PreviewViewModel({
-    required this.workspaceRepository,
-    required this.eventBus,
-    this.createSandbox = _createRealSandbox,
-    this.onSaveAll,
-  });
+    required WorkspaceRepository workspaceRepository,
+    required AppEventBus eventBus,
+    Future<PreviewSandbox> Function(web.Element, {required Uri assetBaseUrl})? createSandbox,
+    Future<void> Function()? onSaveAll,
+  }) : this._(workspaceRepository, eventBus, createSandbox, onSaveAll);
 
-  /// Optional callback to persist all unsaved editor files before running or hot reloading.
-  final Future<void> Function()? onSaveAll;
+  PreviewViewModel._(this._workspaceRepository, this._eventBus, this._createSandbox, this._onSaveAll)
+    : _previewMode = _workspaceRepository.sdk.isFlutter ? RunMode.flutter : RunMode.console;
 
-  /// Repository for working with file systems, compiler sessions, and
-  /// package properties.
-  final WorkspaceRepository workspaceRepository;
+  final WorkspaceRepository _workspaceRepository;
+  final AppEventBus _eventBus;
+  final Future<PreviewSandbox> Function(web.Element, {required Uri assetBaseUrl})? _createSandbox;
+  final Future<void> Function()? _onSaveAll;
 
-  /// Global event bus for logging and UI command dispatching.
-  final AppEventBus eventBus;
-
-  /// Creates a sandboxed environment for execution.
-  final Future<PreviewSandbox> Function(web.Node, {required Uri assetBaseUrl}) createSandbox;
-
-  static Future<PreviewSandbox> _createRealSandbox(web.Node container, {required Uri assetBaseUrl}) async {
-    final sandbox = await Sandbox.createIFrame(container, assetBaseUrl: assetBaseUrl);
-    return RealPreviewSandbox(sandbox);
-  }
-
-  PreviewSandbox? _sandbox;
-  CompilerSession? _hotReloadCompiler;
-  bool _disposed = false;
-  StreamSubscription<dynamic>? _sandboxConsoleSubscription;
-  StreamSubscription<dynamic>? _sandboxErrorSubscription;
-  StreamSubscription<dynamic>? _sandboxRejectionSubscription;
-
-  /// The root HTML container element where the preview iframe sandbox is hosted.
-  web.Element get containerElement => _container;
   final web.Element _container = web.document.createElement('div')..className = 'preview';
 
-  /// The current state of compiling, validation, running, or stopping the preview.
-  PreviewState get state => _state;
+  /// The DOM element in which the preview sandbox is mounted.
+  web.Element get containerElement => _container;
+
   PreviewState _state = PreviewInitial();
 
-  /// Whether the running app uses Flutter.
-  bool get isFlutter => _isFlutter;
-  bool _isFlutter = true;
+  /// The current preview lifecycle state.
+  PreviewState get state => _state;
 
-  /// Logs collected from the running application (used in pure Dart mode).
-  List<ConsoleEntry> get appLogs => List.unmodifiable(_appLogs);
+  RunMode _previewMode;
+
+  /// The mode selected for the current or most recent preview launch.
+  RunMode get previewMode => _previewMode;
+
   final List<ConsoleEntry> _appLogs = [];
 
-  /// Whether the compiler or execution setup can be started.
-  bool get canStart =>
-      !_busy &&
-      !workspaceRepository.taskStatus.hasBlockingPreviewTask &&
-      (_state is PreviewInitial || _state is PreviewDartReady || _state is PreviewCompileError);
-
-  /// Whether the running preview can be restarted.
-  bool get canRestart => _canReloadOrRestart;
-
-  /// Whether the running Flutter preview can accept a hot reload.
-  bool get canHotReload => _isFlutter && _canReloadOrRestart;
-
-  bool get _canReloadOrRestart =>
-      !_busy && !workspaceRepository.taskStatus.hasBlockingPreviewTask && _state is PreviewRunning;
-
-  /// Whether the preview run process can be stopped.
-  ///
-  /// For pure Dart console programs, once launched ([PreviewDartReady]), execution
-  /// is untracked and cannot be stopped; [canStart] is restored immediately instead.
-  bool get canStop => _state is! PreviewStopping && _state is! PreviewDartReady && (_busy || _sandbox != null);
-
-  /// Whether the application preview is currently running or executing restarts/reloads.
-  bool get isRunning => _state is PreviewRunning || _state is PreviewRestarting || _state is PreviewHotReloading;
-
-  bool get _busy =>
-      _state is PreviewStarting ||
-      _state is PreviewRestarting ||
-      _state is PreviewHotReloading ||
-      _state is PreviewStopping;
-
-  // Monotonically increasing token for preview operations.
-  //
-  // Async start/hot-reload steps must still own the current token before mutating state,
-  // so stale work cannot revive the preview after a stop or newer run.
+  /// Console entries emitted by the running Dart application.
+  List<ConsoleEntry> get appLogs => List.unmodifiable(_appLogs);
+  PreviewSandbox? _sandbox;
+  String? _runningPath;
+  RunMode? _runningMode;
+  final List<StreamSubscription<String>> _subscriptions = [];
+  bool _disposed = false;
   int _operationId = 0;
 
-  /// Starts the preview for [entrypoint].
+  bool get _launchBlocked => _disposed || _workspaceRepository.taskStatus.hasBlockingPreviewTask;
+
+  /// Whether a new preview launch can be started.
+  bool get canStart => !_launchBlocked && _state.allowsStart;
+
+  /// Whether the running preview can be restarted.
+  bool get canRestart => !_launchBlocked && _state.allowsRestart;
+
+  /// Whether the running Flutter preview can be hot reloaded.
+  bool get canHotReload => _previewMode == RunMode.flutter && canRestart;
+
+  /// Whether the current preview operation or sandbox can be stopped.
+  bool get canStop => !_disposed && _state.allowsStop && (_state.isTransitioning || _sandbox != null);
+
+  /// Whether a Flutter preview is running, restarting, or hot reloading.
+  bool get isRunning => _state.hasActivePreview;
+  bool _current(int id) => !_disposed && id == _operationId;
+
+  Future<void> _saveAndFlush() async {
+    await _onSaveAll?.call();
+    await _workspaceRepository.flush();
+  }
+
+  /// Runs [entrypoint] in the requested [mode].
   ///
-  /// This creates a fresh compiler session, compiles the current
-  /// sources, loads the resulting module into a new sandbox, and runs the app.
-  Future<void> runCode(String entrypoint) async {
-    if (_busy) {
+  /// When [mode] is `null`, the mode is inferred from the selected SDK and the
+  /// entrypoint's Flutter dependency. A Dart SDK always selects console mode.
+  Future<void> runCode(String entrypoint, {RunMode? mode}) async {
+    if (!canStart && !canRestart) {
       return;
     }
-    if (workspaceRepository.taskStatus.hasBlockingPreviewTask) {
-      return;
-    }
-
-    final operationId = _beginOperation();
-    final isRestart =
-        _state is PreviewRunning ||
-        _state is PreviewRestarting ||
-        _state is PreviewHotReloading ||
-        _state is PreviewStopping;
-    final launchAction = isRestart ? PreviewLaunchAction.restart : PreviewLaunchAction.start;
-    final launchTask = isRestart ? TaskKind.restartingPreview : TaskKind.startingPreview;
-    final statusTask = workspaceRepository.taskStatus.startTask(
-      launchTask,
-      blocksPreview: true,
-    );
-
+    final id = ++_operationId;
+    final restart = canRestart;
+    final action = restart ? PreviewLaunchAction.restart : PreviewLaunchAction.start;
+    final kind = restart ? TaskKind.restartingPreview : TaskKind.startingPreview;
+    final task = _workspaceRepository.taskStatus.startTask(kind, blocksPreview: true);
+    _state = restart ? PreviewRestarting(entrypoint) : PreviewStarting(entrypoint);
     _appLogs.clear();
-
-    var failedTask = launchTask;
-    eventBus.dispatch(LogEvent('Run $entrypoint'));
-    eventBus.dispatch(const LogEvent('Starting compiler...'));
-
-    if (isRestart) {
-      _state = PreviewRestarting(entrypoint);
-    } else {
-      _state = PreviewStarting(entrypoint);
-    }
     notifyListeners();
-
+    var failedTask = kind;
     try {
-      if (onSaveAll != null) {
-        await onSaveAll!();
-        if (!_isCurrentOperation(operationId)) {
-          return;
-        }
-      }
-
-      final previousCompiler = _hotReloadCompiler;
-      if (previousCompiler != null) {
-        eventBus.dispatch(const LogEvent('Closing previous compiler session...'));
-        _hotReloadCompiler = null;
-        await previousCompiler.close();
-        if (!_isCurrentOperation(operationId)) {
-          return;
-        }
-      }
-
-      eventBus.dispatch(const LogEvent('Creating hot reload compiler...'));
-      final compiler = await workspaceRepository.startHotReloadCompiler(
-        Uri.parse(entrypoint),
-      );
-      if (!_isCurrentOperation(operationId)) {
-        await compiler.close();
+      await _saveAndFlush();
+      if (!_current(id)) {
         return;
       }
-      _hotReloadCompiler = compiler;
-
-      eventBus.dispatch(const LogEvent('Compiling application...'));
+      // Infer execution mode from SDK capabilities and package dependencies when not explicitly provided.
+      final runMode =
+          mode ??
+          (_workspaceRepository.sdk.isFlutter && await _workspaceRepository.hasFlutterDependency(entrypoint)
+              ? RunMode.flutter
+              : RunMode.console);
+      if (!_current(id)) {
+        return;
+      }
+      if (runMode == RunMode.flutter && !_workspaceRepository.sdk.isFlutter) {
+        throw const FormatException('Flutter mode requires a Flutter SDK.');
+      }
+      // Set routing before run(), which may emit output before its future completes.
+      _previewMode = runMode;
+      final reuse = _sandbox != null && _runningPath == entrypoint && _runningMode == runMode;
+      if (!reuse) {
+        await _closeSandbox();
+        if (!_current(id)) {
+          return;
+        }
+        final PreviewSandbox sandbox;
+        final createSandbox = _createSandbox;
+        if (createSandbox != null) {
+          sandbox = await createSandbox(_container, assetBaseUrl: _workspaceRepository.assetBaseUrl);
+        } else {
+          final workspace = await _workspaceRepository.readyWorkspace;
+          if (!_current(id)) {
+            return;
+          }
+          sandbox = await IframePreviewSandbox.create(
+            _container,
+            assetBaseUrl: _workspaceRepository.assetBaseUrl,
+            workspace: workspace,
+          );
+        }
+        if (!_current(id)) {
+          await sandbox.close();
+          return;
+        }
+        _sandbox = sandbox;
+        _attachOutput(sandbox);
+      }
+      final sandbox = _sandbox!;
+      if (!sandbox.modes.contains(runMode.mode)) {
+        throw FormatException('This SDK does not support ${runMode.mode} mode.');
+      }
+      _eventBus.dispatch(
+        LogEvent('Compiling and ${reuse ? 'restarting' : 'running'} $entrypoint (${runMode.mode})...'),
+      );
       failedTask = TaskKind.compilingApplication;
-      final result = await workspaceRepository.taskStatus.runTask(
+      final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingApplication,
-        compiler.compile,
+        () => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode),
         blocksPreview: true,
       );
-      if (!_isCurrentOperation(operationId)) {
+      if (!_current(id)) {
         return;
       }
-      eventBus.dispatch(LogEvent(result.log ?? ''));
-      eventBus.dispatch(const LogEvent('Compilation succeeded.'));
-      failedTask = launchTask;
-      final codeToLoad = result.code!;
-
-      final previousSandbox = _sandbox;
-      if (previousSandbox != null) {
-        eventBus.dispatch(const LogEvent('Disposing previous preview sandbox...'));
-        await _disposeCurrentSandbox(previousSandbox);
-        if (!_isCurrentOperation(operationId)) {
-          return;
-        }
+      _eventBus.dispatch(LogEvent(result.log));
+      _runningPath = entrypoint;
+      _runningMode = runMode;
+      _state = switch (runMode) {
+        RunMode.flutter => PreviewRunning(entrypoint),
+        RunMode.console => PreviewDartReady(entrypoint),
+      };
+      task.succeed();
+    } catch (error, stack) {
+      if (!_current(id)) {
+        return;
       }
-
-      eventBus.dispatch(const LogEvent('Creating preview sandbox...'));
-      final sandbox = await createSandbox(
-        _container,
-        assetBaseUrl: workspaceRepository.assetBaseUrl,
+      _eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack));
+      _state = PreviewCompileError(
+        entrypoint,
+        error is DartPadException ? error.message : error.toString(),
+        action: action,
+        failedTask: failedTask,
       );
-      if (!_isCurrentOperation(operationId)) {
-        sandbox.dispose();
-        return;
-      }
-      _sandbox = sandbox;
-      await _attachSandboxConsole(sandbox);
-      if (!_isCurrentOperation(operationId)) {
-        await _disposeCurrentSandbox(sandbox);
-        return;
-      }
-
-      eventBus.dispatch(const LogEvent('Loading compiled module...'));
-      await sandbox.loadModule(code: codeToLoad);
-      if (!_isCurrentOperation(operationId)) {
-        await _disposeCurrentSandbox(sandbox);
-        return;
-      }
-
-      final libraryUri = await workspaceRepository.convertToPackageUri(entrypoint);
-      final isFlutterSdk = workspaceRepository.isFlutterSdk;
-      _isFlutter = isFlutterSdk && await workspaceRepository.hasFlutterDependency(entrypoint);
-
-      eventBus.dispatch(const LogEvent('Running application...'));
-      if (isFlutterSdk) {
-        await sandbox.runApp(libraryUri);
-      } else {
-        await sandbox.runMain(libraryUri);
-      }
-      if (!_isCurrentOperation(operationId)) {
-        await _disposeCurrentSandbox(sandbox);
-        return;
-      }
-      eventBus.dispatch(const LogEvent('App is running.'));
-
-      _state = _isFlutter ? PreviewRunning(entrypoint) : PreviewDartReady(entrypoint);
-    } on CompilationFailedException catch (e, st) {
-      if (_isCurrentOperation(operationId)) {
-        eventBus.dispatch(
-          LogEvent('Compilation failed', level: Level.SEVERE, error: e, stackTrace: st),
+      try {
+        await _closeSandbox();
+      } catch (cleanupError, cleanupStack) {
+        _eventBus.dispatch(
+          LogEvent(
+            'Preview cleanup failed',
+            level: Level.SEVERE,
+            error: cleanupError,
+            stackTrace: cleanupStack,
+          ),
         );
-        _state = PreviewCompileError(
-          entrypoint,
-          e.message,
-          action: launchAction,
-          failedTask: failedTask,
-        );
-      }
-    } catch (e, st) {
-      if (_isCurrentOperation(operationId)) {
-        eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: e, stackTrace: st));
-        _state = PreviewCompileError(
-          entrypoint,
-          e.toString(),
-          action: launchAction,
-          failedTask: failedTask,
-        );
+      } finally {
+        task.fail();
       }
     } finally {
-      if (!_isCurrentOperation(operationId)) {
-        statusTask.cancel();
-      } else if (_state is PreviewRunning || _state is PreviewDartReady) {
-        statusTask.succeed();
-      } else if (_state is PreviewCompileError) {
-        statusTask.fail();
-      } else {
-        statusTask.cancel();
+      if (!_current(id)) {
+        task.cancel();
       }
       if (!_disposed) {
         notifyListeners();
@@ -274,230 +207,202 @@ class PreviewViewModel extends ChangeNotifier {
     }
   }
 
-  /// Hot reloads the currently active execution session compiler changes into
-  /// the sandbox.
+  /// Recompiles and restarts the currently running entrypoint.
+  Future<void> restartCode() async {
+    if (!canRestart) {
+      return;
+    }
+    final entrypoint = _runningPath;
+    final mode = _runningMode;
+    if (entrypoint == null || mode == null) {
+      return;
+    }
+    await runCode(entrypoint, mode: mode);
+  }
+
+  /// Hot reloads changes into the running Flutter preview.
   Future<void> hotReloadCode() async {
-    if (!canHotReload) {
+    if (!canHotReload || _sandbox == null) {
       return;
     }
-    final entry = state.entrypoint;
-    if (entry == null) {
-      return;
-    }
-    final operationId = _beginOperation();
-    final statusTask = workspaceRepository.taskStatus.startTask(
-      TaskKind.hotReload,
-      blocksPreview: true,
-    );
-    final sandbox = _sandbox;
-    if (sandbox == null) {
-      statusTask.cancel();
-      return;
-    }
-    eventBus.dispatch(LogEvent('Hot reload $entry'));
-    eventBus.dispatch(const LogEvent('Starting hot reload...'));
-
-    _state = PreviewHotReloading(entry);
+    final id = ++_operationId;
+    final entrypoint = _runningPath!;
+    final sandbox = _sandbox!;
+    final task = _workspaceRepository.taskStatus.startTask(TaskKind.hotReload, blocksPreview: true);
+    _state = PreviewHotReloading(entrypoint);
     notifyListeners();
-    var reloadSucceeded = false;
-
     try {
-      if (onSaveAll != null) {
-        await onSaveAll!();
-        if (!_isCurrentOperation(operationId)) {
-          return;
-        }
+      await _saveAndFlush();
+      if (!_current(id)) {
+        return;
       }
-
-      eventBus.dispatch(const LogEvent('Preparing compiler...'));
-      var compiler = _hotReloadCompiler;
-      if (compiler == null) {
-        final newCompiler = await workspaceRepository.startHotReloadCompiler(
-          Uri.parse(entry),
-        );
-        if (!_isCurrentOperation(operationId)) {
-          await newCompiler.close();
-          return;
-        }
-        _hotReloadCompiler = newCompiler;
-        compiler = newCompiler;
-      }
-
-      eventBus.dispatch(const LogEvent('Compiling changes...'));
-      final result = await workspaceRepository.taskStatus.runTask(
+      final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingChanges,
-        compiler.compile,
+        sandbox.hotReload,
         blocksPreview: true,
       );
-      if (!_isCurrentOperation(operationId)) {
+      if (!_current(id)) {
         return;
       }
-      eventBus.dispatch(LogEvent(result.log ?? ''));
-
-      eventBus.dispatch(const LogEvent('Applying hot reload...'));
-      await sandbox.hotReload(
-        code: result.code,
-        librariesToReload: result.compiledLibraryUris.map(Uri.parse).toList(),
+      _eventBus.dispatch(LogEvent(result.log));
+      task.succeed();
+    } catch (error, stack) {
+      if (!_current(id)) {
+        return;
+      }
+      _eventBus.dispatch(
+        LogEvent(
+          'Hot reload failed',
+          level: error is HotReloadRejectedException ? Level.WARNING : Level.SEVERE,
+          error: error,
+          stackTrace: stack,
+        ),
       );
-      if (!_isCurrentOperation(operationId)) {
-        return;
-      }
-
-      eventBus.dispatch(const LogEvent('Hot reload completed successfully.'));
-      _state = PreviewRunning(entry);
-      reloadSucceeded = true;
-    } on HotReloadRejectedException catch (e, st) {
-      if (_isCurrentOperation(operationId)) {
-        eventBus.dispatch(
-          LogEvent('Hot reload rejected', level: Level.WARNING, error: e, stackTrace: st),
-        );
-        _state = PreviewRunning(entry);
-      }
-    } catch (e, st) {
-      if (_isCurrentOperation(operationId)) {
-        eventBus.dispatch(
-          LogEvent('Hot reload failed', level: Level.SEVERE, error: e, stackTrace: st),
-        );
-        _state = PreviewRunning(entry);
-      }
+      task.fail();
     } finally {
-      if (!_isCurrentOperation(operationId)) {
-        statusTask.cancel();
-      } else if (reloadSucceeded) {
-        statusTask.succeed();
-      } else if (_state is PreviewRunning) {
-        statusTask.fail();
-      } else {
-        statusTask.cancel();
-      }
-      if (!_disposed) {
+      if (_current(id)) {
+        _state = PreviewRunning(entrypoint);
         notifyListeners();
+      } else {
+        task.cancel();
       }
     }
   }
 
-  /// Terminates execution, disposes the preview sandbox, and closes compiler
-  /// sessions.
-  Future<void> stopCode() async {
-    if (_state is PreviewStopping) {
-      return;
+  Future<void>? _stopping;
+
+  /// Stops the current preview and completes after its resources are closed.
+  Future<void> stopCode() {
+    if (_disposed) {
+      return Future.value();
     }
-    final operationId = _beginOperation();
-    final statusTask = workspaceRepository.taskStatus.startTask(
-      TaskKind.stoppingPreview,
-      blocksPreview: true,
+    final stopping = _stopping;
+    if (stopping != null) {
+      return stopping;
+    }
+
+    final completer = Completer<void>();
+    _stopping = completer.future;
+    unawaited(
+      _stopCodeOnce().then(completer.complete, onError: completer.completeError).whenComplete(() {
+        _stopping = null;
+      }),
     );
-    eventBus.dispatch(const LogEvent('Stopping app...'));
+    return completer.future;
+  }
+
+  Future<void> _stopCodeOnce() async {
+    final id = ++_operationId;
+    final task = _workspaceRepository.taskStatus.startTask(TaskKind.stoppingPreview, blocksPreview: true);
     _state = PreviewStopping();
     notifyListeners();
-    var operationStillCurrent = true;
+    try {
+      await _closeSandbox();
+      if (!_current(id)) {
+        task.cancel();
+        return;
+      }
+      _state = PreviewInitial();
+      task.succeed();
+    } catch (error, stack) {
+      if (!_current(id)) {
+        task.cancel();
+        return;
+      }
+      _eventBus.dispatch(LogEvent('Stop failed', level: Level.SEVERE, error: error, stackTrace: stack));
+      _state = PreviewInitial();
+      task.fail();
+    } finally {
+      if (!_disposed) {
+        notifyListeners();
+      }
+    }
+  }
 
+  void _attachOutput(PreviewSandbox sandbox) {
+    void output(String message, Level level) {
+      if (_disposed || !identical(_sandbox, sandbox)) {
+        return;
+      }
+      if (_previewMode == RunMode.flutter ||
+          message.startsWith('Starting application from') ||
+          message.startsWith('Hot restarting application from')) {
+        _eventBus.dispatch(LogEvent('[app] $message', level: level));
+      } else {
+        _appLogs.add(ConsoleEntry(message: message, level: level));
+        notifyListeners();
+      }
+    }
+
+    void streamError(String streamName, Object error, StackTrace stackTrace) {
+      output('$streamName stream failed: $error', Level.SEVERE);
+    }
+
+    _subscriptions.addAll([
+      sandbox.console.listen(
+        (message) => output(message, Level.INFO),
+        onError: (Object error, StackTrace stackTrace) => streamError('Console', error, stackTrace),
+      ),
+      sandbox.errors.listen(
+        (message) => output(message, Level.SEVERE),
+        onError: (Object error, StackTrace stackTrace) => streamError('Error', error, stackTrace),
+      ),
+      sandbox.unhandledRejections.listen(
+        (message) => output(message, Level.SEVERE),
+        onError: (Object error, StackTrace stackTrace) => streamError('Unhandled rejection', error, stackTrace),
+      ),
+    ]);
+  }
+
+  Future<void>? _closingSandbox;
+
+  Future<void> _closeSandbox() => _closingSandbox ??= _closeSandboxOnce();
+
+  Future<void> _closeSandboxOnce() async {
     try {
       final sandbox = _sandbox;
-      if (sandbox != null) {
-        await _disposeCurrentSandbox(sandbox);
-      } else {
-        await _detachSandboxConsole();
+      _sandbox = null;
+      _runningPath = null;
+      _runningMode = null;
+      final subscriptions = List.of(_subscriptions);
+      _subscriptions.clear();
+      try {
+        for (final subscription in subscriptions) {
+          try {
+            await subscription.cancel();
+          } catch (error, stack) {
+            _eventBus.dispatch(
+              LogEvent(
+                'Preview output subscription cleanup failed',
+                level: Level.WARNING,
+                error: error,
+                stackTrace: stack,
+              ),
+            );
+          }
+        }
+      } finally {
+        await sandbox?.close();
       }
-      final hotReloadCompiler = _hotReloadCompiler;
-      _hotReloadCompiler = null;
-      if (hotReloadCompiler != null) {
-        await hotReloadCompiler.close();
-      }
-      eventBus.dispatch(const LogEvent('Stopped app.'));
-    } catch (_) {
-      if (_isCurrentOperation(operationId)) {
-        statusTask.fail();
-      } else {
-        statusTask.cancel();
-      }
-      rethrow;
     } finally {
-      operationStillCurrent = _isCurrentOperation(operationId);
-    }
-
-    if (!operationStillCurrent) {
-      statusTask.cancel();
-      return;
-    }
-
-    _state = PreviewInitial();
-    statusTask.succeed();
-    if (!_disposed) {
-      notifyListeners();
+      _closingSandbox = null;
     }
   }
 
-  Future<void> _attachSandboxConsole(PreviewSandbox sandbox) async {
-    await _detachSandboxConsole();
-    _sandboxConsoleSubscription = sandbox.onConsole.listen((event) {
-      final level = switch (event.level.name) {
-        'warn' => Level.WARNING,
-        'error' => Level.SEVERE,
-        'info' || 'log' => Level.INFO,
-        _ => Level.INFO,
-      };
+  Future<void>? _cleanup;
 
-      final isSystemLog =
-          event.message.startsWith('Starting application from') ||
-          event.message.startsWith('Hot restarting application from');
-
-      if (_isFlutter || isSystemLog) {
-        eventBus.dispatch(LogEvent('[app] ${event.message}', level: level));
-      } else {
-        _appLogs.add(ConsoleEntry(message: event.message, level: level));
-        notifyListeners();
-      }
-    });
-    _sandboxErrorSubscription = sandbox.onError.listen((event) {
-      if (_isFlutter) {
-        eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
-      } else {
-        _appLogs.add(ConsoleEntry(message: event.message, level: Level.SEVERE));
-        notifyListeners();
-      }
-    });
-    _sandboxRejectionSubscription = sandbox.onUnhandledRejection.listen((event) {
-      if (_isFlutter) {
-        eventBus.dispatch(LogEvent('[app] ${event.message}', level: Level.SEVERE));
-      } else {
-        _appLogs.add(ConsoleEntry(message: event.message, level: Level.SEVERE));
-        notifyListeners();
-      }
-    });
-  }
-
-  Future<void> _detachSandboxConsole() async {
-    await _sandboxConsoleSubscription?.cancel();
-    _sandboxConsoleSubscription = null;
-    await _sandboxErrorSubscription?.cancel();
-    _sandboxErrorSubscription = null;
-    await _sandboxRejectionSubscription?.cancel();
-    _sandboxRejectionSubscription = null;
-  }
-
-  int _beginOperation() => ++_operationId;
-
-  bool _isCurrentOperation(int operationId) => _operationId == operationId;
-
-  Future<void> _disposeCurrentSandbox(PreviewSandbox sandbox) async {
-    if (!identical(_sandbox, sandbox)) {
-      return;
-    }
-    await _detachSandboxConsole();
-    _sandbox = null;
-    sandbox.dispose();
-  }
+  /// Completes when resource cleanup triggered by [dispose] has finished.
+  Future<void> get closed => _cleanup ?? Future.value();
 
   @override
   void dispose() {
+    if (_disposed) {
+      return;
+    }
     _disposed = true;
     _operationId++;
-    unawaited(_detachSandboxConsole());
-    _sandbox?.dispose();
-    _sandbox = null;
-    unawaited(_hotReloadCompiler?.close());
-    _hotReloadCompiler = null;
+    _cleanup = _closeSandbox();
+    unawaited(_cleanup);
     super.dispose();
   }
 }

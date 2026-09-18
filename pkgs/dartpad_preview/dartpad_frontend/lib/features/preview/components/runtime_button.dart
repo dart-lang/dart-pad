@@ -13,7 +13,7 @@ import '../view_models/preview_view_model.dart';
 
 /// A button component used to trigger preview runtime actions
 /// (Run, Restart, Reload, Stop).
-class RuntimeButton extends StatelessComponent {
+final class RuntimeButton extends StatelessComponent {
   /// Creates a runtime button with direct configurations.
   const RuntimeButton({
     required this.title,
@@ -46,9 +46,7 @@ class RuntimeButton extends StatelessComponent {
       title: 'Restart',
       icon: 'restart_alt',
       isEnabled: previewViewModel.canRestart,
-      onClick: () => previewViewModel.runCode(
-        previewViewModel.state.entrypoint ?? 'lib/main.dart',
-      ),
+      onClick: previewViewModel.restartCode,
     );
   }
 
