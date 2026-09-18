@@ -75,6 +75,23 @@ test("displayFile waits until the requested editor is mounted", async () => {
   assert.equal(await display, view);
 });
 
+test("displayFile propagates failures from the display callback", async () => {
+  const client = {
+    didOpen() {},
+    didClose() {},
+  };
+  const expectedError = new Error("external file could not be loaded");
+  const workspace = new CMWorkspace(client, async () => {
+    throw expectedError;
+  });
+  const uri = "file:///sdk/lib/core.dart";
+
+  await assert.rejects(workspace.displayFile(uri), expectedError);
+
+  // A failed display must not leave a stale pending callback behind.
+  assert.doesNotThrow(() => workspace.openFile(uri, "dart", fakeView("")));
+});
+
 test("syncFiles returns and clears only unsynchronized changes", () => {
   const client = {
     didOpen() {},

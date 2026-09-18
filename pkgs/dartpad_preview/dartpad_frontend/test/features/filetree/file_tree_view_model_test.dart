@@ -37,7 +37,7 @@ final class FakeTabs extends ChangeNotifier implements FileTreeEditorDelegate {
   void clearMessages() {}
 
   @override
-  Future<void> openFile(String path) async {
+  Future<void> openWorkspaceFile(String path) async {
     openedFiles.add(path);
     currentFile = path;
     notifyListeners();

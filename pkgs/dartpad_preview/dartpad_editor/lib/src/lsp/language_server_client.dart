@@ -97,8 +97,7 @@ interface class LanguageServerClient {
         onDisplayFile: (String uri) async {
           final handler = _displayFileHandler;
           if (handler != null) {
-            final relativePath = getRelativePath(uri, rootWorkspaceUri.path);
-            await handler(relativePath);
+            await handler(Uri.parse(uri));
           }
         },
         onWorkspaceEdit: applyWorkspaceEdit,
@@ -163,7 +162,7 @@ interface class LanguageServerClient {
   /// A handler registered by the editor tab/view model to intercept edits
   /// and apply them in-memory/in-state if the file is currently open in CodeMirror.
   final Future<void> Function(String file, List<Object?> edits)? _documentEditsHandler;
-  final Future<void> Function(String uri)? _displayFileHandler;
+  final Future<void> Function(Uri uri)? _displayFileHandler;
 
   bool Function(String file, String content)? _externalDocumentWriteHandler;
 

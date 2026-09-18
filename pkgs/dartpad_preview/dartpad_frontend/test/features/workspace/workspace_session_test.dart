@@ -12,11 +12,13 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/components/command_palette_actions.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_session.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
+import 'package:web/web.dart' as web;
 
 final class _Workspace implements WorkspaceResourceApi {
   final MemoryWorkspaceResourceApi _delegate = MemoryWorkspaceResourceApi();
@@ -70,7 +72,31 @@ final class _Workspace implements WorkspaceResourceApi {
   Future<void> writeFileFromText(String uri, String content) => _delegate.writeFileFromText(uri, content);
 }
 
+final class _WorkspaceRepository extends WorkspaceRepository {
+  _WorkspaceRepository({
+    required super.events,
+    required super.taskStatus,
+    required super.workspaceResourceApi,
+    required super.sdk,
+    required super.workspaceFuture,
+    required this.systemFiles,
+  });
+
+  final Map<Uri, String> systemFiles;
+
+  @override
+  Future<String> readSystemFile(Uri uri) async => systemFiles[uri]!;
+}
+
 void main() {
+  setUpAll(() async {
+    final script = web.document.createElement('script') as web.HTMLScriptElement;
+    final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
+    script.src = 'packages/codemirror_dart/assets/codemirror-dart.bundle.js';
+    web.document.head!.appendChild(script);
+    await loaded;
+  });
+
   test('creates workspace-scoped models and disposes them once', () async {
     final events = AppEventBus();
     final workspace = _Workspace();
@@ -121,6 +147,44 @@ void main() {
     expect(session.preview.state, isA<PreviewStarting>());
 
     await session.dispose(closeWorker: false);
+  });
+  test('document actions stay available and are no-ops for system tabs', () async {
+    final workspace = _Workspace();
+    await workspace.writeFileFromText('lib/main.dart', 'void main() {}');
+    await workspace.writeFileFromText('pubspec.yaml', 'name: example');
+    final uri = Uri.parse('file:///pub-cache/example/main.dart');
+    final session = WorkspaceSession.create(
+      _WorkspaceRepository(
+        events: AppEventBus(),
+        taskStatus: TaskStatusController(),
+        workspaceResourceApi: workspace,
+        sdk: defaultSdk,
+        workspaceFuture: Completer<Workspace>().future,
+        systemFiles: {uri: 'void main() {}'},
+      ),
+    );
+    final context = CommandContext(session: session);
+    try {
+      expect(formatDocumentAction.isEnabled, isNull);
+      expect(saveFileAction.isEnabled, isNull);
+      await session.tabs.openWorkspaceFile('lib/main.dart');
+      expect(session.tabs.activeTab!.displayPath, 'lib/main.dart');
+      await session.tabs.openSystemFile(uri);
+      expect(session.tabs.activeTab!.origin, EditorTabOrigin.system);
+      expect(session.tabs.activeTab!.isReadOnly, isTrue);
+      expect(session.tabs.activeTab!.displayPath, '/pub-cache/example/main.dart');
+      expect(session.tabs.activeTab!.path, uri.toString());
+      await formatDocumentAction.onExecute(context);
+      await saveFileAction.onExecute(context);
+      expect(session.tabs.activeFile, uri.toString());
+      expect(session.tabs.hasUnsavedChanges, isFalse);
+      expect(session.tabs.errorMessage, isNull);
+      expect(await workspace.readFileAsText('lib/main.dart'), 'void main() {}');
+      expect(await workspace.fileExist(uri.toString()), isFalse);
+      await session.tabs.openWorkspaceFile('pubspec.yaml');
+    } finally {
+      await session.dispose(closeWorker: false);
+    }
   });
 }
 

@@ -8,7 +8,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../../shared/editable_text_file.dart';
+import '../../shared/supported_file_types.dart';
 
 /// Renders an image file from the current workspace inside an editor tab.
 final class ImagePreview extends StatefulComponent {

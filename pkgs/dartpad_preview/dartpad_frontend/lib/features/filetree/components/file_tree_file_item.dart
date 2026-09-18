@@ -164,14 +164,14 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           component.actions.clearOperationError();
           component.onSelect(path);
           if (openable) {
-            unawaited(Future<void>.sync(() => component.actions.openFile(path)));
+            unawaited(_openWorkspaceFile(path));
           }
         },
         'keydown': (web.Event event) {
           final keyboardEvent = event as web.KeyboardEvent;
           if (openable && (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
             component.onSelect(path);
-            unawaited(Future<void>.sync(() => component.actions.openFile(path)));
+            unawaited(_openWorkspaceFile(path));
           }
         },
         'contextmenu': (web.Event event) => _handleContextMenu(
@@ -187,6 +187,14 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
       ],
     );
+  }
+
+  Future<void> _openWorkspaceFile(String path) async {
+    try {
+      await component.actions.openWorkspaceFile(path);
+    } catch (_) {
+      // The tab model has already reported the load failure.
+    }
   }
 
   void _handleContextMenu(
@@ -221,7 +229,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         ContextMenuItem(
           label: 'Open',
           onPressed: () {
-            unawaited(Future<void>.sync(() => component.actions.openFile(path)));
+            unawaited(_openWorkspaceFile(path));
           },
         ),
       if (!protected) ...[

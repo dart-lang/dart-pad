@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../shared/editable_text_file.dart';
+import '../shared/supported_file_types.dart';
 import '../shared/user_facing_errors.dart';
 import 'file_tree_editor_delegate.dart';
 import 'file_tree_models.dart';
@@ -78,7 +78,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     deleteFile: deleteFile,
     deleteFolder: deleteFolder,
     moveEntry: moveEntry,
-    openFile: tabs.openFile,
+    openWorkspaceFile: tabs.openWorkspaceFile,
     clearOperationError: clearOperationError,
     navigateUp: navigateUp,
     focusPath: focusPath,
@@ -114,7 +114,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       final parent = workspace.root.getFolder(parentPath);
       await parent.getFile(name).writeContent('');
       await refresh();
-      await tabs.openFile(targetPath);
+      await tabs.openWorkspaceFile(targetPath);
     });
   }
 

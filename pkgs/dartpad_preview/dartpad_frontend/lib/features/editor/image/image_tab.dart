@@ -5,7 +5,7 @@
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
 
-import '../../shared/editable_text_file.dart';
+import '../../shared/supported_file_types.dart';
 import '../components/image_preview.dart';
 
 /// A read-only editor tab that displays a workspace image.
@@ -30,7 +30,7 @@ final class ImageTabAdapter extends EditorTabAdapter<Component> {
   final WorkspaceResourceApi workspaceResourceApi;
 
   @override
-  Future<EditorTab<Component>?> createTab(String path) async {
+  Future<EditorTab<Component>?> createWorkspaceTab(String path) async {
     if (!isPreviewableImageFile(path)) {
       return null;
     }

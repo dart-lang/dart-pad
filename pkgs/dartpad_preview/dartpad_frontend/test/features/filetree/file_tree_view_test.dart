@@ -49,6 +49,30 @@ void main() {
     expect(web.document.querySelector('.file-tree-toolbar'), isNull);
   });
 
+  testClient('handles reported open failures from clicks and keyboard activation', (tester) async {
+    var attempts = 0;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(
+          openWorkspaceFile: (_) async {
+            attempts++;
+            throw StateError('reported load failure');
+          },
+        ),
+      ),
+    );
+
+    final file = web.document.querySelector('.file-tree-item.file')!;
+    file.dispatchEvent(web.MouseEvent('click', web.MouseEventInit(bubbles: true)));
+    await pumpEventQueue();
+    file.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+    expect(attempts, 2);
+  });
+
   testClient('does not render collapse button in header when not in a collapsible SplitPanel', (tester) {
     tester.pumpComponent(
       FileTreeView(
@@ -308,6 +332,7 @@ FileTreeState _stateWithFolder(WorkspaceResourceApi workspace) {
 }
 
 FileTreeActions _actions({
+  Future<void> Function(String path)? openWorkspaceFile,
   Future<void> Function(String path)? deleteFile,
   void Function(String path)? focusPath,
   void Function()? navigateUp,
@@ -320,7 +345,7 @@ FileTreeActions _actions({
     deleteFile: deleteFile ?? _noOpPathAsync,
     deleteFolder: _noOpPathAsync,
     moveEntry: (_, _) async {},
-    openFile: (_) {},
+    openWorkspaceFile: openWorkspaceFile ?? _noOpPathAsync,
     clearOperationError: () {},
     navigateUp: navigateUp ?? () {},
     focusPath: focusPath ?? (_) {},

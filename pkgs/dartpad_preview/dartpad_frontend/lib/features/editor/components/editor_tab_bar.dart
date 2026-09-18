@@ -98,7 +98,7 @@ final class EditorTabBar extends StatelessComponent {
               if (tab.hasUnsavedChanges) 'dirty',
             ].join(' '),
             attributes: {
-              'title': tab.path,
+              'title': tab.displayPath,
               'tabindex': '0',
               'role': 'tab',
               'aria-selected': tab.path == activeFile ? 'true' : 'false',

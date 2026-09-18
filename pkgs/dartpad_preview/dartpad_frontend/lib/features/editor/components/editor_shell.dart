@@ -70,6 +70,8 @@ class EditorShell extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final openTabs = this.openTabs;
+    final activeTab = openTabs?.where((tab) => tab.path == activeFile).firstOrNull;
+    final breadcrumbPath = activeTab?.displayPath ?? activeFile;
     final editorContent = main_(classes: 'editor-host', [
       SplitPanel(
         isVertical: true,
@@ -87,7 +89,7 @@ class EditorShell extends StatelessComponent {
               onCloseFile: onCloseFile!,
               contextMenu: contextMenu,
             ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: activeFile),
+            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
             EditorStack(
               openTabs: openTabs,
               activeFile: activeFile,
