@@ -4,12 +4,11 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:yaml/yaml.dart';
 
 import '../preview/models/run_mode.dart';
+import '../shared/dart_source.dart';
 import '../shared/sdk_info.dart';
 import 'project_loader.dart';
 import 'project_request.dart';
@@ -181,10 +180,6 @@ bool pubspecUsesFlutter(Map<Object?, Object?> pubspec) {
   }
   return false;
 }
-
-bool dartSourceHasMain(String source) => parseString(content: source, throwIfDiagnostics: false).unit.declarations
-    .whereType<FunctionDeclaration>()
-    .any((function) => function.name.lexeme == 'main' && !function.isGetter && !function.isSetter);
 
 bool _projectFileHasMain(Project project, String path) {
   if (!path.endsWith('.dart')) {
