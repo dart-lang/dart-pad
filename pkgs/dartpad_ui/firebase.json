@@ -52,7 +52,7 @@
       ],
       "rewrites": [
         {
-          "source": "**",
+          "source": "!/@(assets|canvaskit)/**",
           "destination": "/index.html"
         }
       ],
@@ -69,6 +69,10 @@
         {
           "source": "**",
           "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "max-age=0, must-revalidate"
+            },
             {
               "key": "Cross-Origin-Opener-Policy",
               "value": "same-origin"
@@ -88,6 +92,15 @@
             {
               "key": "Referrer-Policy",
               "value": "strict-origin-when-cross-origin"
+            }
+          ]
+        },
+        {
+          "source": "404.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "max-age=0, must-revalidate"
             }
           ]
         }
