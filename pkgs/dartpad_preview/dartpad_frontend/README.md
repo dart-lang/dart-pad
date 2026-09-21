@@ -6,10 +6,6 @@ workspace and analyzer, and a sandbox for running Dart and Flutter web code.
 The package is part of the private `pkgs/dartpad_preview` workspace and is not
 published to pub.dev.
 
-Projects live only in the browser's in-memory workspace. Reloading the page or
-choosing another sample creates a fresh workspace; there is currently no
-persistent project storage.
-
 ## What the frontend provides
 
 - A file tree and reusable editor tabs for Dart, YAML, Markdown, images, and
@@ -25,10 +21,12 @@ persistent project storage.
 - Responsive desktop and small-screen layouts, light and dark themes, and an
   embed mode.
 
-Saving writes all dirty tabs to the in-memory workspace. Dart files are
-formatted through the language server before they are written; if formatting
-cannot complete, the file is not saved. Closing a dirty tab asks for
-confirmation before discarding its changes. The file tree is restricted to the resolved project `root`.
+Save, editor focus loss, and switching editor tabs write dirty tabs to the
+in-memory workspace. Dart formatting is attempted before saving; a formatting
+failure does not prevent the file from being saved. Workspace changes are
+synchronized to the worker and persisted locally as described in
+[Persistence](#persistence). Closing a dirty tab asks for confirmation before
+discarding its changes. The file tree is restricted to the resolved project `root`.
 
 ## Development
 
@@ -80,24 +78,24 @@ Tests run in Chrome as configured by `dart_test.yaml`.
 
 Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 
-| Query | Source |
-| :--- | :--- |
-| `url=<url>` | A tar archive; gzip is detected from its bytes. |
-| `package=<name>` | The latest version reported by pub.dev. |
-| `package=<name>&version=<version>` | An exact pub.dev package version. |
-| `gist=<id>` | A GitHub Gist. `id=<id>` is a deprecated alias. |
-| `sample=<id>` | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
+| Query                              | Source                                                                                     |
+| :--------------------------------- | :----------------------------------------------------------------------------------------- |
+| `url=<url>`                        | A tar archive; gzip is detected from its bytes.                                            |
+| `package=<name>`                   | The latest version reported by pub.dev.                                                    |
+| `package=<name>&version=<version>` | An exact pub.dev package version.                                                          |
+| `gist=<id>`                        | A GitHub Gist. `id=<id>` is a deprecated alias.                                            |
+| `sample=<id>`                      | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
 
 The following options apply to every source:
 
-| Query | Behavior |
-| :--- | :--- |
-| `file=<path>&file=<path>` | Initial tabs, in order; the first tab is active. Defaults to `<root>/README.md`, then the resolved entrypoint if that README is absent. |
-| `root=<path>` | Root for the file tree, language server and initial Pub command. |
-| `sdk=dart` or `sdk=flutter` | SDK kind, optionally followed by `:<version>`. |
-| `entrypoint=<path>` | The file to execute, independently of the active tab. |
-| `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK. |
-| `embed=true` | Hides the app bar and footer on desktop and starts with the file tree collapsed. |
+| Query                            | Behavior                                                                                                                                |
+| :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `file=<path>&file=<path>`        | Initial tabs, in order; the first tab is active. Defaults to `<root>/README.md`, then the resolved entrypoint if that README is absent. |
+| `root=<path>`                    | Root for the file tree, language server and initial Pub command.                                                                        |
+| `sdk=dart` or `sdk=flutter`      | SDK kind, optionally followed by `:<version>`.                                                                                          |
+| `entrypoint=<path>`              | The file to execute, independently of the active tab.                                                                                   |
+| `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK.                                                                           |
+| `embed=true`                     | Hides the app bar and footer on desktop and starts with the file tree collapsed.                                                        |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
@@ -189,6 +187,50 @@ the current SDK and the entrypoint's location relative to its nearest pubspec.
 Restart recompiles the current run's entrypoint. Hot Reload is available for
 running Flutter applications. Console programs return to the Run-ready state
 after a successful launch.
+
+## Persistence
+
+IndexedDB retains the ten most recently saved projects. Each project has its
+own ID. Autosave updates that entry; opening a fresh project creates another
+entry and removes the oldest if needed.
+
+Changes to files in the frontend workspace trigger an IndexedDB save. This
+includes saving editor files, creating, moving or deleting files and folders,
+and changes received from the worker. Worker synchronization and IndexedDB
+persistence run independently.
+
+Snapshots also include binary assets, empty folders, SDK selection, root,
+entrypoint, run mode, and open/active tabs. Generated `.dart_tool` and `build`
+directories and external SDK/package sources are excluded. Changes to open or
+active editor tabs, SDK selection, entrypoint, and run mode also update the
+stored project.
+
+Without query parameters, DartPad restores the newest project. With query
+parameters, it loads and immediately saves a fresh project. If an older entry
+matches all decoded query options, the toolbar offers
+**Restore last project** for 30 seconds. The button's bottom border shows
+the remaining time. Clicking restores the matching entry's latest stored
+contents. The project being left, including edits saved before clicking,
+remains in the history (subject to the ten-entry limit).
+
+Project switches wait for the normal editor Save to finish before flushing
+pending IndexedDB writes. Stopping an unchanged session does not save it again.
+
+Multiple browser tabs can edit the same project without ownership checks,
+warnings, or pausing persistence. The last completed IndexedDB write wins,
+replacing the full stored snapshot atomically; snapshots are not merged.
+Other browser tabs keep their current editor contents until they restore or
+reload, and can overwrite the stored snapshot with their next write.
+If an open project's entry was evicted from the ten-project history, its next
+save adds it back under the same ID, removing the oldest entry if needed.
+
+Restore failures show **Restoring your project failed.** and **Start fresh**.
+Starting fresh retains the failed entry in history. If the URL source fails to
+load but a matching saved entry exists, the restore button still offers recovery.
+Storage failures are reported without discarding editor contents.
+
+Persistence is disabled in embed mode (`embed=true`): no history reads, writes,
+or restore offers occur.
 
 ## Startup and workspace lifecycle
 

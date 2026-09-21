@@ -11,6 +11,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import 'app_styles.dart';
 import 'features/bottom_panel/views/bottom_panel.dart';
 import 'features/editor/codemirror/code_mirror_tab.dart';
 import 'features/editor/components/editor_shell.dart';
@@ -20,6 +21,12 @@ import 'features/editor/components/pubspec_editor_actions.dart';
 import 'features/editor/components/small_screen_tab_bar.dart';
 import 'features/editor/models/tab_descriptor.dart';
 import 'features/filetree/file_tree_view.dart';
+import 'features/persistence/persisted_project_state.dart';
+import 'features/persistence/persistence_notice_banner.dart';
+import 'features/persistence/project_persistence_controller.dart';
+import 'features/persistence/project_persistence_state.dart';
+import 'features/persistence/project_store.dart';
+import 'features/persistence/restore_last_project_button.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
@@ -31,7 +38,7 @@ import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/split_panel.dart';
-import 'features/shared/components/task_status_indicator.dart';
+import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/sdk_info.dart';
@@ -54,12 +61,14 @@ Future<Project> _loadProjectSource(ProjectSource source) => source.loadProject()
 final class App extends StatefulComponent {
   const App({
     this.initialUri,
+    this.projectStore,
     this.loadSource = _loadProjectSource,
     this.createRepository = WorkspaceRepository.create,
     super.key,
   });
 
   final Uri? initialUri;
+  final ProjectStore? projectStore;
   final Future<Project> Function(ProjectSource source) loadSource;
   final WorkspaceRepository Function({
     required AppEventBus events,
@@ -79,21 +88,44 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
+
+  late final ProjectPersistenceController _persistence;
+
+  /// Request used to open the current project, including its original query.
+  Uri _projectUri = Uri();
+
   bool _isLargeScreen = true;
+
+  /// Owns the workspace currently rendered and its worker resources.
   WorkspaceSession? _activeSession;
+
+  /// Access for UI callbacks that require an existing workspace session.
   WorkspaceSession get _session => _activeSession!;
+
+  /// Tracks source loading and file import before a worker session is ready.
   final TaskStatusController _loadingTasks = TaskStatusController();
+
+  /// Incremented for each project load and on disposal. Async work compares its
+  /// captured generation with this value to ignore superseded results.
   int _loadGeneration = 0;
-  int _activeLoadGeneration = 0;
 
-  /// Incremented on every workspace reset. Used as a [ValueKey] so Jaspr
-  /// unmounts the old workspace subtree (including CodeMirror NodeContainers)
-  /// rather than trying to update them in-place.
-  int _workspaceGeneration = 0;
+  /// Load generation that installed [_activeSession], used to reject callbacks
+  /// from that session once a newer project load has started.
+  int _sessionLoadGeneration = 0;
 
+  /// Blocks project resets and SDK switches during workspace preparation.
+  /// Cleared when the worker is ready. File editing can start before that.
   bool _isInitializingWorkspace = true;
+
+  /// Project root relative to the workspace; an empty string means its root.
   String get _projectDir => _activeSession?.initialProject.root ?? '';
+
+  /// Failure shown when source loading, workspace preparation or SDK switching fails.
   String? _workspacePreparationFailure;
+
+  /// Original request to retry without restoring after saved-project import
+  /// fails. Also selects the restore failure message and Start fresh action.
+  Uri? _failedRestoreUri;
   bool _isCommandPaletteOpen = false;
 
   GlobalStateKey<SplitPanelState> _previewSplitKey = GlobalStateKey<SplitPanelState>();
@@ -108,91 +140,209 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = (component.initialUri ?? Uri.base).queryParameters['embed'] == 'true';
+    _persistence = ProjectPersistenceController(
+      enabled: !_isEmbedMode,
+      store: component.projectStore,
+      restoreProject: (id) => _loadProject(_projectUri, restoreProjectId: id),
+    )..addListener(_onPersistenceChanged);
     _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
     _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
       _updateScreenSize();
     });
     _keySubscription = web.EventStreamProviders.keyDownEvent.forTarget(web.document).listen(_handleGlobalKeyDown);
 
-    unawaited(_loadInitialProject(component.initialUri ?? Uri.base));
+    unawaited(_loadProject(component.initialUri ?? Uri.base));
   }
 
-  Future<void> _loadInitialProject(Uri uri) async {
+  /// Opens either the URL's source or a saved project, including subsequent
+  /// project switches. Only the latest load may replace the visible session.
+  Future<void> _loadProject(Uri uri, {bool startFresh = false, String? restoreProjectId}) async {
     final generation = ++_loadGeneration;
     setState(() {
+      _projectUri = uri;
       _isInitializingWorkspace = true;
       _workspacePreparationFailure = null;
+      _failedRestoreUri = null;
     });
-    final localApi = MemoryWorkspaceResourceApi();
-    var transferredToRepository = false;
+    PersistenceLoadStrategy? loadStrategy;
     try {
-      final project = await _loadingTasks.runTask(TaskKind.loadingCode, () async {
+      await _loadingTasks.runTask(TaskKind.loadingCode, () async {
         final request = ProjectRequest.fromUri(uri);
-        final contents = await component.loadSource(request.source);
-        final initialProject = InitialProjectState.resolve(request, contents, availableSdks);
-        if (mounted && generation == _loadGeneration) {
-          await ProjectLoader.writeFiles(localApi.root, contents);
-        }
-        return initialProject;
-      }, blocksPreview: true);
-      if (!mounted || generation != _loadGeneration) {
-        await localApi.dispose();
-        return;
-      }
-      final oldSession = _activeSession;
-      final worker = oldSession?.repository.dartpad;
-      final reuseWorker = worker != null && oldSession!.repository.sdk == project.sdk;
-      final previousDisposed = Completer<void>();
-      final events = AppEventBus();
-      final taskStatus = TaskStatusController();
-      final repository = reuseWorker
-          ? WorkspaceRepository.resetAndCreate(
-              events: events,
-              worker: worker,
-              sdk: project.sdk,
-              taskStatus: taskStatus,
-              localApi: localApi,
-              previousWorkspaceDisposed: previousDisposed.future,
-            )
-          : component.createRepository(events: events, sdk: project.sdk, taskStatus: taskStatus, localApi: localApi);
-      transferredToRepository = true;
-      final session = WorkspaceSession.create(repository, initialProject: project, initialMode: project.mode);
-      oldSession?.preview.removeListener(_onPreviewStateChanged);
-      session.preview.addListener(_onPreviewStateChanged);
-      setState(() {
-        _workspaceGeneration++;
-        _previewSplitKey = GlobalStateKey<SplitPanelState>();
-        _activeSession = session;
-        _activeLoadGeneration = generation;
-      });
-      if (oldSession != null) {
-        disposeAfterWorkspaceUnmount(context, () async {
-          try {
-            await oldSession.dispose(closeWorker: !reuseWorker);
-          } finally {
-            previousDisposed.complete();
+        final previous = _activeSession;
+        try {
+          // A restore click can arrive while the blur-triggered Save is still
+          // formatting. Keep persistence attached until that Save finishes.
+          await previous?.tabs.saveAllTabs();
+        } catch (_) {
+          if (_isCurrentLoad(generation)) {
+            setState(() => _isInitializingWorkspace = false);
+            previous?.events.dispatch(const ErrorToastEvent('Could not save files before switching projects.'));
           }
-        });
-      }
-      unawaited(_initializeWorkspace(session));
+          return;
+        }
+        if (!_isCurrentLoad(generation)) {
+          return;
+        }
+        final strategy = await _persistence.prepareLoad(
+          request,
+          startFresh: startFresh,
+          restoreProjectId: restoreProjectId,
+        );
+        loadStrategy = strategy;
+        if (!_isCurrentLoad(generation)) {
+          return;
+        }
+        final project = switch (strategy.restoreProjectId) {
+          final id? => await _loadSavedProject(id),
+          null => await _loadProjectFromSource(request),
+        };
+        if (!_isCurrentLoad(generation)) {
+          return;
+        }
+        await _openProject(project, generation: generation, restoreCandidateId: strategy.offerProjectId);
+      }, blocksPreview: true);
     } catch (error) {
-      if (!transferredToRepository) {
-        await localApi.dispose();
+      if (_isCurrentLoad(generation)) {
+        _showProjectLoadFailure(
+          error,
+          uri: uri,
+          restoring: restoreProjectId != null || loadStrategy?.restoreProjectId != null,
+          restoreCandidateId: loadStrategy?.offerProjectId,
+        );
       }
-      if (!mounted || generation != _loadGeneration) {
+    }
+  }
+
+  bool _isCurrentLoad(int generation) => mounted && generation == _loadGeneration;
+
+  Future<_LoadedProject> _loadProjectFromSource(ProjectRequest request) async {
+    final contents = await component.loadSource(request.source);
+    return _LoadedProject(
+      initialState: InitialProjectState.resolve(request, contents, availableSdks),
+      contents: contents,
+    );
+  }
+
+  Future<_LoadedProject> _loadSavedProject(String id) async {
+    final saved = await _persistence.read(id);
+    return _LoadedProject(
+      initialState: saved.state.initialProject(availableSdks),
+      contents: saved.state.project,
+      saved: saved,
+    );
+  }
+
+  /// Imports files before creating worker resources. Until a session takes
+  /// ownership, this method also cleans up cancelled or failed imports.
+  Future<void> _openProject(_LoadedProject project, {required int generation, String? restoreCandidateId}) async {
+    final localApi = MemoryWorkspaceResourceApi();
+    WorkspaceSession? session;
+    try {
+      final snapshot = project.saved?.state;
+      await _writeProject(localApi, contents: project.contents, snapshot: snapshot);
+      if (!_isCurrentLoad(generation)) {
         return;
       }
-      final oldSession = _activeSession;
-      oldSession?.preview.removeListener(_onPreviewStateChanged);
-      setState(() {
-        _activeSession = null;
-        _isCommandPaletteOpen = false;
-        _isInitializingWorkspace = false;
-        _workspacePreparationFailure = error.toString();
-      });
-      if (oldSession != null) {
-        disposeAfterWorkspaceUnmount(context, () => oldSession.dispose(closeWorker: true));
+      session = _replaceWorkspaceSession(project.initialState, localApi: localApi, generation: generation);
+      if (snapshot != null) {
+        _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }
+      unawaited(
+        _initializeWorkspace(
+          session,
+          tabs: snapshot?.tabs
+              .where((tab) => tab.origin == EditorTabOrigin.system || snapshot.files.containsKey(tab.path))
+              .toList(),
+          activeFile: snapshot?.activeFile,
+          restoring: snapshot != null,
+          projectId: project.saved?.id,
+          restoreCandidateId: restoreCandidateId,
+        ),
+      );
+    } finally {
+      if (session == null) {
+        await localApi.dispose();
+      }
+    }
+  }
+
+  /// Installs a session and retires the old one after its editor subtree has
+  /// unmounted. A compatible worker is reused after that disposal barrier.
+  WorkspaceSession _replaceWorkspaceSession(
+    InitialProjectState project, {
+    required MemoryWorkspaceResourceApi localApi,
+    required int generation,
+  }) {
+    final oldSession = _activeSession;
+    final worker = oldSession?.repository.dartpad;
+    final reuseWorker = worker != null && oldSession!.repository.sdk == project.sdk;
+    final previousDisposed = Completer<void>();
+    final events = AppEventBus();
+    final taskStatus = TaskStatusController();
+    final repository = reuseWorker
+        ? WorkspaceRepository.resetAndCreate(
+            events: events,
+            worker: worker,
+            sdk: project.sdk,
+            taskStatus: taskStatus,
+            localApi: localApi,
+            previousWorkspaceDisposed: previousDisposed.future,
+          )
+        : component.createRepository(events: events, sdk: project.sdk, taskStatus: taskStatus, localApi: localApi);
+    final session = WorkspaceSession.create(repository, initialProject: project, initialMode: project.mode);
+    oldSession?.preview.removeListener(_onPreviewStateChanged);
+    session.preview.addListener(_onPreviewStateChanged);
+    setState(() {
+      _previewSplitKey = GlobalStateKey<SplitPanelState>();
+      _activeSession = session;
+      _sessionLoadGeneration = generation;
+    });
+    if (oldSession != null) {
+      disposeAfterWorkspaceUnmount(context, () async {
+        try {
+          await oldSession.dispose(closeWorker: !reuseWorker);
+        } finally {
+          previousDisposed.complete();
+        }
+      });
+    }
+    return session;
+  }
+
+  void _showProjectLoadFailure(Object error, {required Uri uri, required bool restoring, String? restoreCandidateId}) {
+    final oldSession = _activeSession;
+    oldSession?.preview.removeListener(_onPreviewStateChanged);
+    setState(() {
+      _activeSession = null;
+      _isCommandPaletteOpen = false;
+      _isInitializingWorkspace = false;
+      _workspacePreparationFailure = error.toString();
+      _failedRestoreUri = restoring ? uri : null;
+    });
+    if (oldSession != null) {
+      disposeAfterWorkspaceUnmount(context, () => oldSession.dispose(closeWorker: true));
+    }
+    if (!restoring && restoreCandidateId != null) {
+      _persistence.offerRestore(restoreCandidateId);
+    }
+  }
+
+  Future<void> _writeProject(
+    MemoryWorkspaceResourceApi api, {
+    required Project contents,
+    PersistedProjectState? snapshot,
+  }) async {
+    await ProjectLoader.writeFiles(api.root, contents);
+    if (snapshot != null) {
+      for (final folder in snapshot.folders) {
+        await api.createFolder(folder);
+      }
+    }
+  }
+
+  void _onPersistenceChanged() {
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -221,20 +371,31 @@ final class _AppState extends State<App> {
   }
 
   bool _isCurrent(WorkspaceSession session) =>
-      mounted && _activeLoadGeneration == _loadGeneration && identical(_activeSession, session);
+      mounted && _sessionLoadGeneration == _loadGeneration && identical(_activeSession, session);
 
-  /// Loads the workspace and project. Once the initial file has been opened,
-  /// the workspace is usable and another reset may be requested. Pub and LSP
-  /// initialization deliberately continue in the background.
+  /// Opens the initial tabs and starts persistence before waiting for the worker.
+  /// Once the worker is ready, resets are enabled again while Pub and LSP
+  /// initialization continue in the background.
   Future<void> _initializeWorkspace(
     WorkspaceSession session, {
     List<TabDescriptor>? tabs,
     String? activeFile,
+    bool restoring = false,
+    String? projectId,
+    String? restoreCandidateId,
   }) async {
     try {
-      await session.openProjectFiles(restoredTabs: tabs, activeFile: activeFile);
+      await session.openProjectFiles(restoredTabs: tabs, activeFile: activeFile, continueOnTabOpenError: restoring);
       if (!_isCurrent(session)) {
         return;
+      }
+      _persistence.attach(session, projectId: projectId);
+      await _persistence.flush();
+      if (!_isCurrent(session)) {
+        return;
+      }
+      if (restoreCandidateId != null) {
+        _persistence.offerRestore(restoreCandidateId);
       }
       final workspace = await session.repository.readyWorkspace;
       if (!_isCurrent(session)) {
@@ -385,7 +546,7 @@ final class _AppState extends State<App> {
     if (web.window.location.search != newSearch) {
       web.window.history.pushState(null, '', newSearch.isEmpty ? web.window.location.pathname : newSearch);
     }
-    unawaited(_loadInitialProject(Uri.base.replace(queryParameters: request.query)));
+    unawaited(_loadProject(Uri.base.replace(queryParameters: request.query)));
   }
 
   /// Rebuilds worker resources from a copy of the current workspace, keeping the snapshot.
@@ -412,6 +573,7 @@ final class _AppState extends State<App> {
         await localApi.dispose();
         return;
       }
+      await _persistence.stop();
       final paths = oldSession.tabSnapshot;
       final activeFile = oldSession.tabs.activeFile;
       final next = WorkspaceSession.create(
@@ -428,12 +590,11 @@ final class _AppState extends State<App> {
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
-        _workspaceGeneration++;
         _previewSplitKey = GlobalStateKey<SplitPanelState>();
         _activeSession = next;
         _workspacePreparationFailure = null;
       });
-      unawaited(_initializeWorkspace(next, tabs: paths, activeFile: activeFile));
+      unawaited(_initializeWorkspace(next, tabs: paths, activeFile: activeFile, projectId: _persistence.projectId));
       disposeAfterWorkspaceUnmount(context, () => oldSession.dispose(closeWorker: true));
     } catch (error) {
       if (!_isCurrent(oldSession)) {
@@ -447,52 +608,126 @@ final class _AppState extends State<App> {
   }
 
   @override
-  Component build(BuildContext context) {
+  Component build(BuildContext context) => _buildWorkspace(context);
+
+  Component? get _restoreAction {
+    final offer = _persistence.restoreOffer;
+    return offer == null
+        ? null
+        : RestoreLastProjectButton(
+            key: ValueKey(offer.projectId),
+            onRestore: () => unawaited(_persistence.restoreLastProject()),
+            onCancel: () => _persistence.dismissRestoreOffer(),
+          );
+  }
+
+  TaskStatusController get _activeTaskStatus {
+    final session = _activeSession;
+    if (session == null || _loadingTasks.current?.isRunning == true) {
+      return _loadingTasks;
+    }
+    return session.taskStatus;
+  }
+
+  Component _buildWorkspace(BuildContext context) {
     final session = _activeSession;
     if (session == null) {
-      return div(classes: 'app-shell', [
-        if (!_isEmbedMode)
+      return div(
+        classes: 'app-shell',
+        [
+          if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
+          if (!_isEmbedMode)
+            AppBar(
+              isSmallScreen: !_isLargeScreen,
+              restoreAction: _restoreAction,
+              onSelectExample: _isInitializingWorkspace
+                  ? null
+                  : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
+              isEmbedMode: _isEmbedMode,
+            ),
+          div(classes: 'app-workspace-container', [
+            div(classes: 'app-workspace', [
+              if (_failedRestoreUri case final uri?)
+                div(
+                  classes: 'restore-project-failure',
+                  attributes: const {'role': 'alert'},
+                  [
+                    const h2([.text('Restoring your project failed.')]),
+                    const p([
+                      .text(
+                        'Start fresh to load the original project. Your previous work will remain in your saved history.',
+                      ),
+                    ]),
+                    button(
+                      onClick: () => unawaited(_loadProject(uri, startFresh: true)),
+                      const [.text('Start fresh')],
+                    ),
+                  ],
+                )
+              else if (_workspacePreparationFailure case final failure?)
+                ErrorDialog(errorMessage: failure)
+              else
+                const p([.text('Loading project...')]),
+            ]),
+            if (!_isEmbedMode)
+              Footer(
+                taskStatus: _activeTaskStatus,
+                isSmallScreen: !_isLargeScreen,
+                currentSdk: _currentSdk,
+                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
+              ),
+          ]),
+        ],
+      );
+    }
+    return div(
+      classes: 'app-shell',
+      [
+        if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
+        if (!_isEmbedMode || !_isLargeScreen)
           AppBar(
+            isSmallScreen: !_isLargeScreen,
+            restoreAction: _restoreAction,
             onSelectExample: _isInitializingWorkspace
                 ? null
                 : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
             isEmbedMode: _isEmbedMode,
+            smallScreenTabBar: !_isLargeScreen
+                ? SmallScreenTabBar(
+                    selectedTab: _selectedSmallScreenTab,
+                    onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+                  )
+                : null,
           ),
-        TaskStatusIndicator(controller: _loadingTasks),
-        if (_workspacePreparationFailure case final failure?)
-          ErrorDialog(errorMessage: failure)
-        else
-          const p([.text('Loading project...')]),
-      ]);
-    }
-    return div(classes: 'app-shell', [
-      if (_isInitializingWorkspace) TaskStatusIndicator(controller: _loadingTasks),
-      if (!_isEmbedMode || !_isLargeScreen)
-        AppBar(
-          onSelectExample: _isInitializingWorkspace
-              ? null
-              : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
-          isEmbedMode: _isEmbedMode,
-          smallScreenTabBar: !_isLargeScreen
-              ? SmallScreenTabBar(
-                  selectedTab: _selectedSmallScreenTab,
-                  onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+        ListenableBuilder(
+          // Replacing the session must unmount its editors, including CodeMirror
+          // NodeContainers. Starting a load keeps the existing subtree intact.
+          key: ValueKey(session),
+          listenable: session.tabs,
+          builder: (context) => div(classes: 'app-workspace-container', [
+            div(classes: 'app-workspace', [
+              if (_isLargeScreen)
+                SplitPanel(
+                  key: _previewSplitKey,
+                  initialValue: 0.7,
+                  canCollapseRight: true,
+                  minValue: 0.3,
+                  maxValue: 0.85,
+                  left: EditorShell(
+                    openTabs: session.tabs.openTabs,
+                    activeFile: session.tabs.activeFile,
+                    fileTree: _buildFileTree(session),
+                    editorOverlay: _buildEditorOverlay(session),
+                    onSwitchFile: session.tabs.switchFile,
+                    onCloseFile: session.tabs.closeFile,
+                    bottomPanel: _buildBottomPanel(session),
+                    contextMenu: session.contextMenu,
+                    isEmbedMode: _isEmbedMode,
+                  ),
+                  right: _buildPreviewPanel(session),
                 )
-              : null,
-        ),
-      ListenableBuilder(
-        key: ValueKey(_workspaceGeneration),
-        listenable: session.tabs,
-        builder: (context) => div(classes: 'app-workspace-container', [
-          div(classes: 'app-workspace', [
-            if (_isLargeScreen)
-              SplitPanel(
-                key: _previewSplitKey,
-                initialValue: 0.7,
-                canCollapseRight: true,
-                minValue: 0.3,
-                maxValue: 0.85,
-                left: EditorShell(
+              else
+                EditorShell(
                   openTabs: session.tabs.openTabs,
                   activeFile: session.tabs.activeFile,
                   fileTree: _buildFileTree(session),
@@ -502,56 +737,43 @@ final class _AppState extends State<App> {
                   bottomPanel: _buildBottomPanel(session),
                   contextMenu: session.contextMenu,
                   isEmbedMode: _isEmbedMode,
+                  smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
                 ),
-                right: _buildPreviewPanel(session),
-              )
-            else
-              EditorShell(
-                openTabs: session.tabs.openTabs,
-                activeFile: session.tabs.activeFile,
-                fileTree: _buildFileTree(session),
-                editorOverlay: _buildEditorOverlay(session),
-                onSwitchFile: session.tabs.switchFile,
-                onCloseFile: session.tabs.closeFile,
-                bottomPanel: _buildBottomPanel(session),
-                contextMenu: session.contextMenu,
-                isEmbedMode: _isEmbedMode,
-                smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
+            ]),
+            if (!_isEmbedMode)
+              Footer(
+                taskStatus: _activeTaskStatus,
+                statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
+                isSmallScreen: !_isLargeScreen,
+                currentSdk: _currentSdk,
+                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
               ),
           ]),
-          if (!_isEmbedMode)
-            Footer(
-              taskStatus: session.taskStatus,
-              statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
-              isSmallScreen: !_isLargeScreen,
-              currentSdk: _currentSdk,
-              onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-            ),
-        ]),
-      ),
-      ListenableBuilder(
-        listenable: session.contextMenu,
-        builder: (context) => ContextMenu(
-          key: const ValueKey('active-context-menu'),
-          x: session.contextMenu.x,
-          y: session.contextMenu.y,
-          items: session.contextMenu.items,
-          isOpen: session.contextMenu.isOpen,
-          onClose: session.contextMenu.hide,
         ),
-      ),
-      if (_isCommandPaletteOpen)
-        CommandPalette.fromSession(
-          key: const ValueKey('active-command-palette'),
-          session: session,
-          projectDir: _projectDir,
-          onClose: () {
-            setState(() {
-              _isCommandPaletteOpen = false;
-            });
-          },
+        ListenableBuilder(
+          listenable: session.contextMenu,
+          builder: (context) => ContextMenu(
+            key: const ValueKey('active-context-menu'),
+            x: session.contextMenu.x,
+            y: session.contextMenu.y,
+            items: session.contextMenu.items,
+            isOpen: session.contextMenu.isOpen,
+            onClose: session.contextMenu.hide,
+          ),
         ),
-    ]);
+        if (_isCommandPaletteOpen)
+          CommandPalette.fromSession(
+            key: const ValueKey('active-command-palette'),
+            session: session,
+            projectDir: _projectDir,
+            onClose: () {
+              setState(() {
+                _isCommandPaletteOpen = false;
+              });
+            },
+          ),
+      ],
+    );
   }
 
   Component _buildBottomPanel(WorkspaceSession session) {
@@ -669,14 +891,36 @@ final class _AppState extends State<App> {
   void dispose() {
     _resizeSubscription?.cancel();
     _keySubscription?.cancel();
+    _persistence.removeListener(_onPersistenceChanged);
+    _persistence.dispose();
     _loadGeneration++;
     _activeSession?.preview.removeListener(_onPreviewStateChanged);
-    unawaited(_activeSession?.dispose(closeWorker: true));
+    final session = _activeSession;
+    unawaited(
+      _persistence.closed.whenComplete(() => session?.dispose(closeWorker: true)).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        Logger('App').warning('App cleanup failed.', error, stackTrace);
+      }),
+    );
     _loadingTasks.dispose();
     super.dispose();
   }
 
   static List<StyleRule> get styles => [
+    ...RestoreLastProjectButton.styles,
+    css('.restore-project-failure').styles(padding: .all(28.px)),
+    css('.restore-project-failure button').styles(
+      padding: .symmetric(vertical: 10.px, horizontal: 16.px),
+      border: .all(color: colorPrimary, width: 1.px),
+      radius: .circular(6.px),
+      cursor: .pointer,
+      color: colorOnPrimary,
+      fontSize: 14.px,
+      backgroundColor: colorPrimary,
+    ),
+    ...PersistenceNoticeBanner.styles,
     ...ContextMenu.styles,
     ...CommandPalette.styles,
     css('.app-shell').styles(
@@ -701,4 +945,14 @@ final class _AppState extends State<App> {
       flex: const Flex(grow: 1, basis: .zero),
     ),
   ];
+}
+
+/// Source contents and resolved startup options, before workspace creation.
+/// A saved entry additionally supplies its identity and previous editor tabs.
+final class _LoadedProject {
+  const _LoadedProject({required this.initialState, required this.contents, this.saved});
+
+  final InitialProjectState initialState;
+  final Project contents;
+  final StoredProject? saved;
 }
