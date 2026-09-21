@@ -6,6 +6,25 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('relativePathWithinWorkspace accepts only URIs within the workspace', () {
+    final cases = <(String, String, String?)>[
+      ('file:///workspace/project/lib/main.dart', 'file:///workspace/project/', 'lib/main.dart'),
+      ('file:///other/path/main.dart', 'file:///workspace/project/', null),
+      ('https://host/workspace/project/main.dart', 'file:///workspace/project/', null),
+      ('file:///workspace-extra/main.dart', 'file:///workspace/', null),
+    ];
+
+    for (final (uri, workspaceRoot, expected) in cases) {
+      expect(
+        relativePathWithinWorkspace(
+          Uri.parse(uri),
+          Uri.parse(workspaceRoot),
+        ),
+        expected,
+      );
+    }
+  });
+
   test('normalizeWorkspacePath canonicalizes POSIX paths and the root', () {
     final cases = {
       'lib/main.dart': 'lib/main.dart',

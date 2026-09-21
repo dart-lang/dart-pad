@@ -34,6 +34,6 @@ Future<LoadedProject> loadSampleProject(
 const String exampleProjectEntryPath = 'lib/main.dart';
 
 /// Opens the default example files and leaves the Dart source active.
-Future<void> openExampleProject(Future<void> Function(String path) openFile) {
-  return openFile(exampleProjectEntryPath);
+Future<void> openExampleProject(Future<void> Function(String path) openWorkspaceFile) {
+  return openWorkspaceFile(exampleProjectEntryPath);
 }
