@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 import '../../bottom_panel/models/console_entry.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/run_availability.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../models/preview_sandbox.dart';
@@ -19,7 +20,7 @@ import '../models/preview_state.dart';
 import '../models/run_mode.dart';
 
 /// Coordinates UI state and synchronization around the SDK-owned compiler/runtime.
-interface class PreviewViewModel extends ChangeNotifier {
+interface class PreviewViewModel extends ChangeNotifier implements RunAvailability {
   /// Starts with an [initialMode] for the SDK and entrypoint.
   ///
   /// A null [modeOverride] allows inference on subsequent runs; a value keeps
@@ -88,6 +89,10 @@ interface class PreviewViewModel extends ChangeNotifier {
 
   bool get _launchBlocked => _disposed || _workspaceRepository.taskStatus.hasBlockingPreviewTask;
 
+  /// Whether an explicitly supplied entrypoint can be launched now.
+  @override
+  bool get canRun => !_launchBlocked && (_state.allowsStart || _state.allowsRestart);
+
   /// Whether a new preview launch can be started.
   bool get canStart => _entrypoint != null && !_launchBlocked && _state.allowsStart;
 
@@ -114,7 +119,7 @@ interface class PreviewViewModel extends ChangeNotifier {
   /// Without an override, infer the mode from the SDK and the entrypoint's
   /// location relative to its nearest package root.
   Future<void> runCode(String entrypoint, {RunMode? mode}) async {
-    if (_launchBlocked || (!_state.allowsStart && !_state.allowsRestart)) {
+    if (!canRun) {
       return;
     }
     _entrypoint = entrypoint;

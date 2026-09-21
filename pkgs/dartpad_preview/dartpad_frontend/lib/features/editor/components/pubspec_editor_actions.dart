@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
 import '../../shared/events/log_event.dart';
+import 'editor_floating_action.dart';
 
 /// Displays a path-aware Pub get action for an active Pub metadata file.
 ///
@@ -41,32 +42,9 @@ final class PubspecEditorActions extends StatefulComponent {
 
   @override
   State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
-
-  @css
-  static List<StyleRule> get styles => [
-    css('.pubspec-editor-actions', [
-      css('&').styles(
-        display: .flex,
-        position: .absolute(right: 32.px, top: 16.px),
-        zIndex: const ZIndex(20),
-        alignItems: .center,
-      ),
-      css('.dp-button').styles(
-        shadow: BoxShadow(
-          offsetX: 0.px,
-          offsetY: 2.px,
-          blur: 6.px,
-          color: const Color.rgba(0, 0, 0, 0.20),
-        ),
-      ),
-    ]),
-    css('html[data-theme="dark"] .pubspec-editor-actions .dp-button').styles(
-      shadow: .none,
-    ),
-  ];
 }
 
-class _PubspecEditorActionsState extends State<PubspecEditorActions> {
+final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
   bool _busy = false;
 
   /// Saves all files and runs Pub Get in [path].
@@ -123,16 +101,14 @@ class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     // with an element when this component is nested in the editor overlay.
     return div(classes: 'pubspec-editor-actions-host', [
       if (isPubspecFile)
-        div(
-          classes: 'pubspec-editor-actions',
-          attributes: {'aria-busy': _busy ? 'true' : 'false'},
-          [
-            Button(
-              label: 'Pub get',
-              disabled: _busy,
-              onClick: () => unawaited(_pubGet(directory)),
-            ),
-          ],
+        EditorFloatingAction(
+          className: 'pubspec-editor-actions',
+          busy: _busy,
+          child: Button(
+            label: 'Pub get',
+            disabled: _busy,
+            onClick: () => unawaited(_pubGet(directory)),
+          ),
         ),
     ]);
   }

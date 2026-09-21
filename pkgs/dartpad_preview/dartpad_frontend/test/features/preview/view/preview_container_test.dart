@@ -39,6 +39,9 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   bool canStart = false;
 
   @override
+  bool canRun = true;
+
+  @override
   bool canRestart = true;
 
   @override
@@ -53,6 +56,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   void setRunning({required bool value}) {
     isRunning = value;
     canStart = !value;
+    canRun = true;
     canRestart = value;
     canHotReload = value;
     canStop = value;
