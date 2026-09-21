@@ -10,11 +10,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 
 import 'project_loader.dart';
 
-/// Generates a root pubspec for a collection of standalone Dart files.
-///
-/// Package imports and exports become dependencies. Flutter is represented as
-/// an SDK dependency and enables the bundled Material icons.
-ProjectFile generatePubspec(Iterable<ProjectFile> files) {
+/// Infers dependencies from package imports and exports in standalone Dart files.
+Set<String> inferPackageDependencies(Iterable<ProjectFile> files) {
   final dependencies = <String>{};
 
   void addDependency(String? uriString) {
@@ -26,7 +23,7 @@ ProjectFile generatePubspec(Iterable<ProjectFile> files) {
       return;
     }
     final package = parsed.pathSegments.first;
-    if (package.isNotEmpty && package != 'app') {
+    if (package.isNotEmpty) {
       dependencies.add(package);
     }
   }
@@ -49,13 +46,22 @@ ProjectFile generatePubspec(Iterable<ProjectFile> files) {
     }
   }
 
+  dependencies.remove('_');
+  return dependencies;
+}
+
+/// Generates a root pubspec using the selected runtime's SDK constraint.
+///
+/// Flutter is represented as an SDK dependency and enables the bundled Material
+/// icons. Dependency inference is separate so startup can select the SDK first.
+ProjectFile generatePubspec(Iterable<String> dependencies, {required String sdkConstraint}) {
   final sortedDependencies = dependencies.toList()..sort();
   final pubspec = StringBuffer('''
-name: app
+name: _
 publish_to: none
 
 environment:
-  sdk: ^3.12.0
+  sdk: $sdkConstraint
 ''');
   if (sortedDependencies.isNotEmpty) {
     pubspec.writeln('\ndependencies:');
@@ -79,4 +85,14 @@ flutter:
     path: 'pubspec.yaml',
     bytes: Uint8List.fromList(utf8.encode(pubspec.toString())),
   );
+}
+
+/// Uses the bundled SDK's version, including prereleases of that version.
+String generatedSdkConstraint(String dartVersion) {
+  // Manifest versions can include build descriptions or an `-edge` suffix.
+  final match = RegExp(r'^(\d+\.\d+\.\d+)(?=$|[-+\s])').firstMatch(dartVersion.trim());
+  if (match == null) {
+    throw FormatException('Invalid Dart SDK version', dartVersion);
+  }
+  return '^${match.group(1)}-0';
 }
