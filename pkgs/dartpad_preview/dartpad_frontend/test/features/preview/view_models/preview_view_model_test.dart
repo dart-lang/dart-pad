@@ -24,6 +24,8 @@ import 'package:test/test.dart';
 
 final class FakeWorkspaceResourceApi implements WorkspaceResourceApi {
   @override
+  Future<bool> fileExist(String uri) async => uri == 'pubspec.yaml';
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -147,9 +149,6 @@ final class FakeWorkspaceRepository extends WorkspaceRepository {
         sdk: sdk ?? defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
       );
-  bool flutterDependency = true;
-  @override
-  Future<bool> hasFlutterDependency(String path) async => flutterDependency;
   Future<void> Function()? onFlush;
   @override
   Future<void> flush() async => onFlush?.call();
@@ -169,6 +168,8 @@ void main() {
     logs = [];
     subscription = events.on<LogEvent>().listen(logs.add);
     preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
@@ -191,6 +192,43 @@ void main() {
     expect(sandbox.runCount, 0);
     task.succeed();
     expect(preview.canStart, isTrue);
+  });
+
+  test('without an initial entrypoint Run stays disabled until a file is explicitly run', () async {
+    preview.dispose();
+    await preview.closed;
+    preview = PreviewViewModel(
+      initialMode: RunMode.console,
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+    );
+    expect(preview.canStart, isFalse);
+    await preview.runCurrent();
+    expect(sandbox.runCount, 0);
+    await preview.runCode('tool/check.dart');
+    expect(preview.entrypoint, 'tool/check.dart');
+    expect(sandbox.mode, 'console');
+    await preview.runCurrent();
+    expect(sandbox.hotRestartCount, 1);
+  });
+
+  test('explicit console override remains active when selecting a different run file', () async {
+    preview.dispose();
+    await preview.closed;
+    preview = PreviewViewModel(
+      initialMode: RunMode.console,
+      workspaceRepository: repository,
+      eventBus: events,
+      initialEntrypoint: 'lib/main.dart',
+      modeOverride: RunMode.console,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+    );
+    expect(preview.previewMode, RunMode.console);
+    expect(sandbox.runCount, 0);
+    await preview.runCurrent();
+    expect(sandbox.mode, 'console');
+    expect(preview.entrypoint, 'lib/main.dart');
   });
 
   test('uses explicit console mode with the Flutter SDK and routes early output', () async {
@@ -242,7 +280,6 @@ void main() {
   });
 
   test('another console run recompiles via hot restart', () async {
-    repository.flutterDependency = false;
     await preview.runCode('bin/main.dart');
     expect(sandbox.mode, 'console');
     expect(preview.state, isA<PreviewDartReady>());
@@ -251,12 +288,23 @@ void main() {
     expect(sandbox.hotRestartCount, 1);
   });
 
-  test('default mode uses resolved dependencies without URL path heuristics', () async {
-    await preview.runCode('tool/check.dart');
-    expect(sandbox.mode, 'flutter');
+  test('tool entrypoint starts in resolved console mode even with Flutter SDK', () async {
+    preview.dispose();
+    await preview.closed;
+    preview = PreviewViewModel(
+      workspaceRepository: repository,
+      eventBus: events,
+      initialEntrypoint: 'tool/check.dart',
+      initialMode: await repository.runModeFor('tool/check.dart'),
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+    );
+    expect(preview.previewMode, RunMode.console);
+    expect(sandbox.runCount, 0);
+    await preview.runCurrent();
+    expect(sandbox.mode, 'console');
   });
 
-  test('Dart SDK defaults to console even if a Flutter dependency is reported', () async {
+  test('Dart SDK defaults to console', () async {
     preview.dispose();
     await preview.closed;
     repository.taskStatus.dispose();
@@ -266,6 +314,8 @@ void main() {
       sdk: const SdkInfo(id: 'dart', name: 'Dart', path: 'dartpad/dart/', dartVersion: '3.14.0'),
     );
     preview = PreviewViewModel(
+      initialMode: RunMode.console,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
@@ -280,6 +330,8 @@ void main() {
     final created = <FakePreviewSandbox>[];
     preview.dispose();
     preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async {
@@ -300,6 +352,8 @@ void main() {
     final order = <String>[];
     preview.dispose();
     preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
@@ -338,6 +392,8 @@ void main() {
     var fail = false;
     preview.dispose();
     preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) async => sandbox,
@@ -437,6 +493,8 @@ void main() {
     final pending = Completer<PreviewSandbox>();
     preview.dispose();
     preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
       workspaceRepository: repository,
       eventBus: events,
       createSandbox: (_, {required assetBaseUrl}) => pending.future,

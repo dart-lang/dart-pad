@@ -17,9 +17,17 @@ final class ProjectFile {
   final Uint8List bytes;
 }
 
-/// An in-memory collection of files that can be imported into a workspace.
+/// A temporary collection of loaded files for project resolution and import.
+///
+/// Retains the supplied byte buffers without copying them. Once imported, the
+/// workspace owns the current files and this collection need not be retained.
 final class Project {
-  Project(Iterable<ProjectFile> files) {
+  /// Collects [files] and copies the optional gist [pathMapping].
+  ///
+  /// File paths are normalized with [ProjectLoader.normalizePath]. Invalid paths
+  /// or multiple files resolving to the same path throw an [ArgumentError].
+  Project(Iterable<ProjectFile> files, {Map<String, String> pathMapping = const {}})
+    : pathMapping = Map.unmodifiable(pathMapping) {
     for (final file in files) {
       final path = ProjectLoader.normalizePath(file.path);
       if (_files.containsKey(path)) {
@@ -31,54 +39,57 @@ final class Project {
 
   final Map<String, Uint8List> _files = {};
 
-  /// The normalized workspace-relative paths in this project.
-  Iterable<String> get paths => _files.keys;
+  /// An unmodifiable mapping from original source paths to workspace paths.
+  ///
+  /// Only the gist loader supplies this mapping: it moves root-level Dart files
+  /// into `lib/`, for example `main.dart` to `lib/main.dart`, and maps other files
+  /// to their unchanged paths. Archives, packages, and samples use an empty map
+  /// and preserve their directory structure. Mapping keys and values are
+  /// normalized paths.
+  final Map<String, String> pathMapping;
 
-  /// The files in this project.
+  /// Normalizes a source [path] and returns its mapped workspace path, if any.
+  ///
+  /// Only gist projects use [pathMapping] to account for root-level Dart files
+  /// moved into `lib/`. For archives, packages, and samples, this simply returns
+  /// the normalized path. Does not check whether the target file exists.
+  /// Invalid source paths throw an [ArgumentError].
+  String resolvePath(String path) {
+    final normalized = ProjectLoader.normalizePath(path);
+    return pathMapping[normalized] ?? normalized;
+  }
+
+  /// The normalized workspace-relative paths in this project.
+  ///
+  /// Returns an unmodifiable snapshot in file insertion order.
+  Iterable<String> get paths => List.unmodifiable(_files.keys);
+
+  /// The current files in insertion order, produced lazily when iterated.
+  ///
+  /// Each returned file references the stored byte buffer without copying it.
   Iterable<ProjectFile> get files => _files.entries.map(
     (entry) => ProjectFile(path: entry.key, bytes: entry.value),
   );
 
-  /// Whether the project contains a file at [path].
+  /// Whether a file exists at the normalized workspace-relative [path].
+  ///
+  /// Invalid paths throw an [ArgumentError].
   bool containsFile(String path) {
     return _files.containsKey(ProjectLoader.normalizePath(path));
   }
 
-  /// Returns the bytes at [path], or `null` when the file does not exist.
-  Uint8List? readFile(String path) {
-    return _files[ProjectLoader.normalizePath(path)];
-  }
+  /// Returns the stored byte buffer at the workspace-relative [path].
+  ///
+  /// Returns `null` when the file does not exist. Invalid paths throw an
+  /// [ArgumentError]. The returned bytes are shared with this project.
+  Uint8List? readFile(String path) => _files[ProjectLoader.normalizePath(path)];
 
-  /// Adds or replaces the file at [path].
+  /// Adds or replaces a file at the workspace-relative [path] with [bytes].
+  ///
+  /// Retains the buffer without copying it. Invalid paths throw an [ArgumentError].
   void writeFile(String path, Uint8List bytes) {
     _files[ProjectLoader.normalizePath(path)] = bytes;
   }
-}
-
-/// The workspace state produced by a project loader.
-///
-final class LoadedProject {
-  const LoadedProject({
-    required this.projectDir,
-    required this.entryPath,
-    required this.packageRoot,
-    this.pathToMain,
-  });
-
-  /// Workspace-relative folder shown as the root of the file tree.
-  final String projectDir;
-
-  /// Workspace-relative file opened after the project is loaded.
-  final String? entryPath;
-
-  /// Workspace-relative root of the Dart package containing [entryPath].
-  ///
-  /// This is `null` when no Dart package was detected and an empty string when
-  /// the package is rooted at the complete workspace.
-  final String? packageRoot;
-
-  /// Workspace-relative Dart entrypoint executed in the preview.
-  final String? pathToMain;
 }
 
 /// Resolves [packageRoot] to the editor and language-server root URI.
@@ -147,9 +158,9 @@ final class ProjectLoader {
   }
 
   /// Normalizes [path] and verifies that it remains inside the workspace.
-  static String normalizePath(String path) {
+  static String normalizePath(String path, {bool allowRoot = false}) {
     final normalized = normalizeWorkspacePath(path);
-    if (normalized.isEmpty ||
+    if ((!allowRoot && normalized.isEmpty) ||
         workspacePath.isAbsolute(normalized) ||
         normalized == '..' ||
         normalized.startsWith('../')) {

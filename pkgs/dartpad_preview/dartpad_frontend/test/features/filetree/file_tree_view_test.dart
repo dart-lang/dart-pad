@@ -218,66 +218,31 @@ void main() {
     expect(focusedPath, 'src');
   });
 
-  testClient('tree background context menu provides "Navigate up" when focused on a subfolder', (tester) async {
-    var navigateUpCalled = false;
-    final contextMenu = ContextMenuController();
+  for (final focusedPath in ['', 'example', 'example/assets']) {
+    testClient('tree background context menu offers creation actions at $focusedPath', (tester) async {
+      final contextMenu = ContextMenuController();
 
-    tester.pumpComponent(
-      FileTreeView(
-        state: _state(workspace, focusedPath: 'subfolder'),
-        actions: _actions(
-          navigateUp: () {
-            navigateUpCalled = true;
-          },
+      tester.pumpComponent(
+        FileTreeView(
+          state: _state(workspace, focusedPath: focusedPath, rootPath: focusedPath.isEmpty ? '' : 'example'),
+          actions: _actions(),
+          contextMenu: contextMenu,
         ),
-        contextMenu: contextMenu,
-      ),
-    );
+      );
 
-    final treeList = web.document.querySelector('.file-tree-list') as web.HTMLElement;
-    treeList.dispatchEvent(
-      web.MouseEvent(
-        'contextmenu',
-        web.MouseEventInit(clientX: 50, clientY: 50, bubbles: true, cancelable: true),
-      ),
-    );
-    await pumpEventQueue();
+      final treeList = web.document.querySelector('.file-tree-list') as web.HTMLElement;
+      treeList.dispatchEvent(
+        web.MouseEvent(
+          'contextmenu',
+          web.MouseEventInit(clientX: 50, clientY: 50, bubbles: true, cancelable: true),
+        ),
+      );
+      await pumpEventQueue();
 
-    expect(contextMenu.isOpen, isTrue);
-    final navigateUpItem = contextMenu.items.whereType<ContextMenuItem>().firstWhere(
-      (item) => item.label == 'Navigate up',
-    );
-    navigateUpItem.onPressed();
-
-    expect(navigateUpCalled, isTrue);
-  });
-
-  testClient('tree background context menu does not provide "Navigate up" at workspace root', (tester) async {
-    final contextMenu = ContextMenuController();
-
-    tester.pumpComponent(
-      FileTreeView(
-        state: _state(workspace, focusedPath: ''),
-        actions: _actions(),
-        contextMenu: contextMenu,
-      ),
-    );
-
-    final treeList = web.document.querySelector('.file-tree-list') as web.HTMLElement;
-    treeList.dispatchEvent(
-      web.MouseEvent(
-        'contextmenu',
-        web.MouseEventInit(clientX: 50, clientY: 50, bubbles: true, cancelable: true),
-      ),
-    );
-    await pumpEventQueue();
-
-    expect(contextMenu.isOpen, isTrue);
-    final hasNavigateUp = contextMenu.items.whereType<ContextMenuItem>().any(
-      (item) => item.label == 'Navigate up',
-    );
-    expect(hasNavigateUp, isFalse);
-  });
+      expect(contextMenu.isOpen, isTrue);
+      expect(contextMenu.items.whereType<ContextMenuItem>().map((item) => item.label), ['New file', 'New folder']);
+    });
+  }
 }
 
 FileTreeState _state(
@@ -285,6 +250,7 @@ FileTreeState _state(
   bool openable = true,
   bool dirty = false,
   String focusedPath = '',
+  String rootPath = '',
 }) {
   const path = 'example.txt';
   return FileTreeState(
@@ -300,9 +266,9 @@ FileTreeState _state(
     activeFile: '',
     operationError: null,
     busy: false,
-    protectedEntries: const {},
     dirtyEntries: dirty ? const {path} : const {},
     focusedPath: focusedPath,
+    rootPath: rootPath,
   );
 }
 
@@ -325,7 +291,6 @@ FileTreeState _stateWithFolder(WorkspaceResourceApi workspace) {
     activeFile: '',
     operationError: null,
     busy: false,
-    protectedEntries: const {},
     dirtyEntries: const {},
     focusedPath: '',
   );
@@ -335,7 +300,6 @@ FileTreeActions _actions({
   Future<void> Function(String path)? openWorkspaceFile,
   Future<void> Function(String path)? deleteFile,
   void Function(String path)? focusPath,
-  void Function()? navigateUp,
 }) {
   return FileTreeActions(
     createFile: (_, _) async {},
@@ -347,7 +311,6 @@ FileTreeActions _actions({
     moveEntry: (_, _) async {},
     openWorkspaceFile: openWorkspaceFile ?? _noOpPathAsync,
     clearOperationError: () {},
-    navigateUp: navigateUp ?? () {},
     focusPath: focusPath ?? (_) {},
   );
 }

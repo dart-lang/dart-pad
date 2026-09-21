@@ -18,7 +18,6 @@ import 'package:dartpad_frontend/features/editor/components/code_action_panel.da
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
-import 'package:dartpad_frontend/features/startup/example_project.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -102,7 +101,7 @@ void main() {
       ],
     );
     diagnostics = DiagnosticsViewModel(tabs: tabs!);
-    await openExampleProject(tabs!.openWorkspaceFile);
+    await tabs!.openWorkspaceFile('lib/main.dart');
   });
 
   tearDown(() async {

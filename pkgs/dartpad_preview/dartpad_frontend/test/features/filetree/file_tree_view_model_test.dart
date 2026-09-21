@@ -159,10 +159,10 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
         if (folder.isNotEmpty &&
             folder.startsWith(prefix) &&
             (recursive || !folder.substring(prefix.length).contains('/')))
-          (path: folder, type: 'folder'),
+          (path: folder.substring(prefix.length), type: 'folder'),
       for (final file in files.keys)
         if (file.startsWith(prefix) && (recursive || !file.substring(prefix.length).contains('/')))
-          (path: file, type: 'file'),
+          (path: file.substring(prefix.length), type: 'file'),
     ];
   }
 
@@ -196,6 +196,7 @@ void main() {
     viewModel = FileTreeViewModel(
       tabs: tabs,
       workspace: workspace,
+      rootPath: '',
     )..languageServerClient = workspace.languageServerClient;
     await viewModel.refresh();
   });
@@ -204,6 +205,108 @@ void main() {
     viewModel.dispose();
     tabs.dispose();
     await workspace.changeEventsController.close();
+  });
+
+  group('project root boundary', () {
+    setUp(() async {
+      viewModel.dispose();
+      workspace
+        ..addTextFile('example/pubspec.yaml', 'name: example')
+        ..addTextFile('example/lib/main.dart', 'void main() {}')
+        ..addTextFile('example/assets/notes.txt', 'notes')
+        ..addTextFile('example-other/notes.txt', 'outside');
+      viewModel = FileTreeViewModel(
+        tabs: tabs,
+        workspace: workspace,
+        rootPath: 'example',
+      )..languageServerClient = workspace.languageServerClient;
+    });
+
+    test('starts scoped and loads only the project subtree', () async {
+      expect(viewModel.state.root.resource.path, 'example');
+      expect(viewModel.state.focusedPath, 'example');
+      await viewModel.refresh();
+      expect(viewModel.state.root.children.map((node) => node.resource.path), [
+        'example/assets',
+        'example/lib',
+        'example/pubspec.yaml',
+      ]);
+      expect(viewModel.state.root.exists('lib/main.dart'), isFalse);
+    });
+
+    test('focus rejects ancestors, siblings and traversal', () async {
+      await viewModel.refresh();
+      for (final path in ['', '..', 'example/..', 'example-other', '/example', r'example\..']) {
+        viewModel.focusPath(path);
+        expect(viewModel.state.focusedPath, 'example', reason: path);
+        expect(viewModel.state.root.resource.path, 'example', reason: path);
+        expect(viewModel.state.operationError, contains('outside the project root'));
+      }
+    });
+
+    test('deleted focus falls back to project root', () async {
+      await viewModel.refresh();
+      viewModel.focusPath('example/assets');
+      await viewModel.deleteFolder('example/assets');
+      expect(viewModel.state.focusedPath, 'example');
+      expect(viewModel.state.root.resource.path, 'example');
+    });
+
+    final invalidOperations = <String, Future<void> Function(FileTreeViewModel)>{
+      'create file outside': (model) => model.createFile('', 'outside.txt'),
+      'create folder outside': (model) => model.createFolder('', 'outside'),
+      'create with traversal': (model) => model.createFile('example', '../outside.txt'),
+      'create folder with traversal': (model) => model.createFolder('example', '../outside'),
+      'rename outside file': (model) => model.renameFile('example-other/notes.txt', 'new.txt'),
+      'rename outside folder': (model) => model.renameFolder('example-other', 'new'),
+      'rename file out of root': (model) => model.renameFile('example/assets/notes.txt', '../../outside.txt'),
+      'rename folder out of root': (model) => model.renameFolder('example/assets', '../outside'),
+      'delete outside file': (model) => model.deleteFile('example-other/notes.txt'),
+      'delete ancestor': (model) => model.deleteFolder(''),
+      'move out of root': (model) => model.moveEntry('example/assets/notes.txt', ''),
+      'move into root from outside': (model) => model.moveEntry('example-other/notes.txt', 'example'),
+    };
+    for (final operation in invalidOperations.entries) {
+      test('rejects ${operation.key} before saving, LSP or filesystem mutations', () async {
+        final files = Map<String, Uint8List>.of(workspace.files);
+        final folders = Set<String>.of(workspace.folders);
+        await operation.value(viewModel);
+        expect(viewModel.state.operationError, isNotNull);
+        expect(workspace.files, files);
+        expect(workspace.folders, folders);
+        expect(operationLog, isEmpty);
+        expect(tabs.openedFiles, isEmpty);
+      });
+    }
+
+    test('allows creating, renaming, moving and deleting within root', () async {
+      await viewModel.createFolder('example', 'new');
+      await viewModel.createFile('example/new', 'file.txt');
+      await viewModel.renameFile('example/new/file.txt', 'renamed.txt');
+      await viewModel.moveEntry('example/new/renamed.txt', 'example/assets');
+      expect(workspace.files, contains('example/assets/renamed.txt'));
+      await viewModel.deleteFile('example/assets/renamed.txt');
+      await viewModel.deleteFolder('example/new');
+      expect(viewModel.state.operationError, isNull);
+      expect(workspace.files, isNot(contains('example/assets/renamed.txt')));
+      expect(workspace.folders, isNot(contains('example/new')));
+    });
+
+    test('allows deleting the whole project without changing files outside it', () async {
+      await viewModel.deleteFolder('example');
+      expect(workspace.files.keys.where((path) => path.startsWith('example/')), isEmpty);
+      expect(workspace.folders, isNot(contains('example')));
+      expect(workspace.files, contains('lib/main.dart'));
+      expect(workspace.files, contains('example-other/notes.txt'));
+      expect(viewModel.state.root.children, isEmpty);
+      expect(viewModel.state.operationError, isNull);
+    });
+
+    test('tree actions cannot open files outside root', () async {
+      await viewModel.actions.openWorkspaceFile('example-other/notes.txt');
+      expect(tabs.openedFiles, isEmpty);
+      expect(viewModel.state.operationError, contains('outside the project root'));
+    });
   });
 
   test('builds a folders-first tree and marks top-level dot entries as ignored', () async {
@@ -260,7 +363,6 @@ void main() {
     }
     expect(files.singleWhere((file) => file.resource.path.endsWith('.bmp')).openable, isFalse);
     expect(files.singleWhere((file) => file.resource.path.endsWith('.avif')).openable, isFalse);
-    expect(viewModel.state.protectedEntries, containsAll(['lib', 'lib/main.dart', 'pubspec.yaml']));
     expect(viewModel.state.dirtyEntries, containsAll(['lib', 'lib/main.dart']));
   });
 
@@ -360,18 +462,6 @@ void main() {
     expect(viewModel.state.operationError, 'Workspace operation failed.');
   });
 
-  test('protects main.dart, pubspec.yaml, and containing folders', () async {
-    expect(viewModel.isProtectedFile('lib/main.dart'), isTrue);
-    expect(viewModel.isProtectedFile('pubspec.yaml'), isTrue);
-    expect(viewModel.isProtectedFolder('lib'), isTrue);
-
-    await viewModel.deleteFile('lib/main.dart');
-    await viewModel.deleteFolder('lib');
-
-    expect(workspace.files, contains('lib/main.dart'));
-    expect(viewModel.state.operationError, contains('required project file'));
-  });
-
   test('reports moving a folder into itself or a descendant as an operation error', () async {
     workspace
       ..folders.add('assets')
@@ -404,41 +494,5 @@ void main() {
     // Root children should be my_project's children ('lib' and 'pubspec.yaml')
     final rootChildren = viewModel.state.root.children;
     expect(rootChildren.map((node) => node.resource.path), containsAll(['my_project/lib', 'my_project/pubspec.yaml']));
-  });
-
-  test('navigates up until the full filesystem (workspace root) is shown', () async {
-    workspace
-      ..addTextFile('a/b/c/project/pubspec.yaml', 'name: project')
-      ..addTextFile('a/b/c/project/lib/main.dart', 'void main() {}');
-    await viewModel.refresh();
-
-    viewModel.focusPath('a/b/c/project');
-    expect(viewModel.state.focusedPath, 'a/b/c/project');
-    expect(viewModel.state.root.resource.path, 'a/b/c/project');
-
-    // Navigate up to a/b/c
-    viewModel.navigateUp();
-    expect(viewModel.state.focusedPath, 'a/b/c');
-    expect(viewModel.state.root.resource.path, 'a/b/c');
-
-    // Navigate up to a/b
-    viewModel.navigateUp();
-    expect(viewModel.state.focusedPath, 'a/b');
-    expect(viewModel.state.root.resource.path, 'a/b');
-
-    // Navigate up to a
-    viewModel.navigateUp();
-    expect(viewModel.state.focusedPath, 'a');
-    expect(viewModel.state.root.resource.path, 'a');
-
-    // Navigate up to workspace root
-    viewModel.navigateUp();
-    expect(viewModel.state.focusedPath, '');
-    expect(viewModel.state.root.resource.path, '');
-
-    // Navigate up further does nothing
-    viewModel.navigateUp();
-    expect(viewModel.state.focusedPath, '');
-    expect(viewModel.state.root.resource.path, '');
   });
 }

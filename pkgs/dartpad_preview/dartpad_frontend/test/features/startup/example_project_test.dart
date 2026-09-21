@@ -8,8 +8,7 @@ library;
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/startup/example_project.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -25,14 +24,9 @@ void main() {
   }
 
   test('throws ArgumentError for an unknown sample ID', () async {
-    final api = MemoryWorkspaceResourceApi();
-
     await expectLater(
       http.runWithClient(
-        () => loadSampleProject(
-          api.root,
-          sampleId: 'unknown-sample',
-        ),
+        () => const SampleProjectSource('unknown-sample').loadProject(),
         () => MockClient((_) async => http.Response.bytes(counterArchive(), 200)),
       ),
       throwsA(isA<ArgumentError>()),
@@ -40,11 +34,9 @@ void main() {
   });
 
   test('throws when the sample archive is unavailable', () async {
-    final api = MemoryWorkspaceResourceApi();
-
     await expectLater(
       http.runWithClient(
-        () => loadSampleProject(api.root, sampleId: 'dart'),
+        () => const SampleProjectSource('dart').loadProject(),
         () => MockClient((_) async => http.Response('Not Found', 404)),
       ),
       throwsA(isA<Exception>()),
@@ -52,13 +44,11 @@ void main() {
   });
 
   test('loads a valid sample successfully', () async {
-    final api = MemoryWorkspaceResourceApi();
-
     final project = await http.runWithClient(
-      () => loadSampleProject(api.root),
+      const SampleProjectSource().loadProject,
       () => MockClient((_) async => http.Response.bytes(counterArchive(), 200)),
     );
 
-    expect(project.entryPath, 'lib/main.dart');
+    expect(project.containsFile('lib/main.dart'), isTrue);
   });
 }
