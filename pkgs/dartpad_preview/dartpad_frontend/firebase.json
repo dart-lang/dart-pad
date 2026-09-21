@@ -7,9 +7,23 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
+    "headers": [
       {
         "source": "**",
+        "headers": [
+          { "key": "Cache-Control", "value": "max-age=0, must-revalidate" }
+        ]
+      },
+      {
+        "source": "404.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "max-age=0, must-revalidate" }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "!/@(assets)/**",
         "destination": "/index.html"
       }
     ]
