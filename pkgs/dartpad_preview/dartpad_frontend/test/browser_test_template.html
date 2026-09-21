@@ -1,0 +1,52 @@
+<!-- Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file. -->
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{testName}}</title>
+    <script>
+      // The pinned pre-release Jaspr client opens its development hot-reload
+      // channel for every ClientAppBinding, including bindings created by
+      // jaspr_test. The Dart test server does not provide that endpoint, so the
+      // SSE client otherwise reports an asynchronous error after five seconds.
+      // Keep native EventSource behavior for every endpoint used by the app.
+      const NativeEventSource = window.EventSource;
+
+      class JasprTestEventSource extends EventTarget {
+        constructor(url, options) {
+          super();
+          this.url = new URL(url, window.location.href).href;
+          this.withCredentials = options?.withCredentials ?? false;
+          this.readyState = EventSource.CONNECTING;
+
+          queueMicrotask(() => {
+            this.readyState = EventSource.OPEN;
+            this.dispatchEvent(new Event("open"));
+            queueMicrotask(() => {
+              this.dispatchEvent(new MessageEvent("control", { data: "close" }));
+            });
+          });
+        }
+
+        close() {
+          this.readyState = EventSource.CLOSED;
+        }
+      }
+
+      window.EventSource = new Proxy(NativeEventSource, {
+        construct(target, args) {
+          const url = new URL(args[0], window.location.href);
+          if (url.pathname === "/$jasprEventsHandler") {
+            return new JasprTestEventSource(...args);
+          }
+          return Reflect.construct(target, args);
+        },
+      });
+    </script>
+    {{testScript}}
+    <script src="packages/test/dart.js"></script>
+  </head>
+</html>

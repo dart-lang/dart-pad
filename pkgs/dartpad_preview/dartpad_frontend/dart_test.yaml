@@ -5,3 +5,4 @@
 # Tests require a browser platform because transitive dependencies
 # (codemirror_dart, dartpad, web) use dart:js_interop.
 platforms: [chrome]
+custom_html_template_path: test/browser_test_template.html
