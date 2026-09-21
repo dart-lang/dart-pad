@@ -3,23 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 
-import '../editor/codemirror/code_mirror_tab.dart';
 import '../editor/models/tab_descriptor.dart';
 import '../workspace/workspace_session.dart';
 import 'persisted_project_state.dart';
 import 'project_store.dart';
 
-/// Saves recovery snapshots without invoking Save, formatting, or the worker.
+/// Persists saved workspace files and session metadata, independently of worker sync.
 final class WorkspacePersistenceController {
   WorkspacePersistenceController({
     required this.session,
     required this.store,
-    required this.ownerId,
     this._projectId,
     required this.onError,
     this.debounce = const Duration(milliseconds: 300),
@@ -31,37 +28,48 @@ final class WorkspacePersistenceController {
         _changed();
       }
     });
-    _storeSubscription = store.changes.listen((id) {
-      if (id == _projectId) {
-        unawaited(checkOwnership());
-      }
-    });
     _entrypoint = session.preview.entrypoint;
     _mode = session.preview.previewMode.name;
-    session.tabs.addListener(_changed);
+    _tabs = session.tabSnapshot;
+    _activeFile = session.tabs.activeFile;
+    session.tabs.addListener(_tabsChanged);
     session.preview.addListener(_previewChanged);
     _changed();
   }
 
   final WorkspaceSession session;
   final ProjectStore store;
-  final String ownerId;
   String? _projectId;
   String? get projectId => _projectId;
   final void Function(Object error) onError;
   final Duration debounce;
   final Duration maxDelay;
   late final StreamSubscription<WorkspaceChangeEvent> _filesSubscription;
-  late final StreamSubscription<String> _storeSubscription;
   Timer? _debounceTimer;
   Timer? _maxTimer;
   Future<void>? _writing;
   Future<void>? _stopping;
   bool _dirty = false;
   bool _stopped = false;
-  bool _conflicted = false;
   String? _entrypoint;
   late String _mode;
+  late List<TabDescriptor> _tabs;
+  String? _activeFile;
+
+  void _tabsChanged() {
+    final tabs = session.tabSnapshot;
+    final activeFile = session.tabs.activeFile;
+    if (activeFile == _activeFile &&
+        tabs.length == _tabs.length &&
+        Iterable<int>.generate(tabs.length).every(
+          (i) => tabs[i].path == _tabs[i].path && tabs[i].origin == _tabs[i].origin,
+        )) {
+      return;
+    }
+    _tabs = tabs;
+    _activeFile = activeFile;
+    _changed();
+  }
 
   void _previewChanged() {
     final entrypoint = session.preview.entrypoint;
@@ -75,7 +83,7 @@ final class WorkspacePersistenceController {
   }
 
   void _changed() {
-    if (_stopped || _conflicted) {
+    if (_stopped) {
       return;
     }
     _dirty = true;
@@ -89,7 +97,7 @@ final class WorkspacePersistenceController {
     if (_writing case final writing?) {
       return writing;
     }
-    if (!_dirty || _conflicted) {
+    if (!_dirty) {
       return Future.value();
     }
     return _writing = _save().whenComplete(() => _writing = null);
@@ -97,64 +105,29 @@ final class WorkspacePersistenceController {
 
   Future<void> _save() async {
     try {
-      while (_dirty && !_conflicted) {
+      while (_dirty) {
         _dirty = false;
-        final snapshot = await capture();
-        // Capture may yield during file reads. Retry if editor or FS changed.
+        final snapshot = await _capture();
+        // Capture may yield during file reads. Retry if files or metadata changed.
         if (_dirty) {
           continue;
         }
-        if (_conflicted) {
-          return;
-        }
         final id = _projectId;
         if (id == null) {
-          _projectId = (await store.create(snapshot, ownerId: ownerId)).id;
+          _projectId = (await store.create(snapshot)).id;
         } else {
-          await store.write(id, snapshot, ownerId: ownerId);
+          await store.write(id, snapshot);
         }
       }
     } catch (error) {
-      if (error is ProjectStoreConflict) {
-        _ownershipLost();
-      } else {
-        // Keep the snapshot pending for the next edit or explicit flush.
-        // Do not retry here: persistent failures must not create a busy loop.
-        _dirty = true;
-        onError(error);
-      }
+      // Keep the snapshot pending for the next workspace change or explicit flush.
+      // Do not retry here: persistent failures must not create a busy loop.
+      _dirty = true;
+      onError(error);
     }
   }
 
-  /// Checks whether this tab still owns the current project in [store],
-  /// reporting [ProjectStoreConflict] via [onError] if ownership was lost.
-  Future<void> checkOwnership() async {
-    final id = _projectId;
-    if (_stopped || _conflicted || id == null) {
-      return;
-    }
-    try {
-      final project = await store.read(id);
-      if (!_stopped && id == _projectId && (project == null || project.ownerId != ownerId)) {
-        _ownershipLost();
-      }
-    } catch (error) {
-      if (!_stopped) {
-        onError(error);
-      }
-    }
-  }
-
-  void _ownershipLost() {
-    if (_conflicted || _stopped) {
-      return;
-    }
-    _conflicted = true;
-    _cancelTimers();
-    onError(const ProjectStoreConflict());
-  }
-
-  Future<PersistedProjectState> capture() async {
+  Future<PersistedProjectState> _capture() async {
     final api = session.repository.workspaceResourceApi;
     final resources = await api.listDirectory(uri: '', recursive: true);
     final files = <String, Uint8List>{};
@@ -167,12 +140,6 @@ final class WorkspacePersistenceController {
         folders.add(resource.path);
       } else if (await api.fileExist(resource.path)) {
         files[resource.path] = Uint8List.fromList(await api.readFileAsBytes(resource.path));
-      }
-    }
-    // Do not let stale, clean editor buffers overwrite newer worker writes.
-    for (final tab in session.tabs.allTabs.whereType<WorkspaceCodeMirrorTab>()) {
-      if (tab.hasUnsavedChanges && files.containsKey(tab.path)) {
-        files[tab.path] = Uint8List.fromList(utf8.encode(tab.content));
       }
     }
     return PersistedProjectState(
@@ -196,15 +163,14 @@ final class WorkspacePersistenceController {
   Future<void> stop() => _stopping ??= _stop();
 
   Future<void> _stop() async {
-    // Editor notifications are asynchronous; include a final keystroke even
-    // when the session is replaced before its notification is delivered.
-    _changed();
+    // Local file writes enqueue asynchronous change notifications. Let those
+    // arrive before removing the listener, without inventing a change on stop.
+    await Future<void>.delayed(Duration.zero);
     _stopped = true;
     _cancelTimers();
-    session.tabs.removeListener(_changed);
+    session.tabs.removeListener(_tabsChanged);
     session.preview.removeListener(_previewChanged);
     await _filesSubscription.cancel();
-    await _storeSubscription.cancel();
     await flush();
   }
 

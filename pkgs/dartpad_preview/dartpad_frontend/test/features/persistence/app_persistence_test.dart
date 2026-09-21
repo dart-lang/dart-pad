@@ -5,8 +5,12 @@
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/app.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/workspace/data/synced_workspace_resource_api.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
@@ -33,40 +37,41 @@ void main() {
     sourceLoads = 0;
   });
 
-  App app(String query, {Future<Project> Function()? load, Duration offerDuration = const Duration(seconds: 30)}) =>
-      App(
-        initialUri: Uri.parse(query),
-        projectStore: store,
-        restoreOfferDuration: offerDuration,
-        loadSource: (_) async {
-          sourceLoads++;
-          return load != null
-              ? await load()
-              : testProjectContents({'lib/main.dart': 'void main() { print("fresh"); }'});
-        },
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) {
-          final repository = WorkspaceRepository(
-            events: events,
-            sdk: sdk,
-            taskStatus: taskStatus,
-            workspaceResourceApi: localApi!,
-            workspaceFuture: Completer<Workspace>().future,
-          );
-          repositories.add(repository);
-          return repository;
-        },
+  App app(
+    String query, {
+    Future<Project> Function()? load,
+    Duration offerDuration = const Duration(seconds: 30),
+    WorkspaceResourceApi Function(WorkspaceResourceApi)? wrapWorkspace,
+  }) => App(
+    initialUri: Uri.parse(query),
+    projectStore: store,
+    restoreOfferDuration: offerDuration,
+    loadSource: (_) async {
+      sourceLoads++;
+      return load != null ? await load() : testProjectContents({'lib/main.dart': 'void main() { print("fresh"); }'});
+    },
+    createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+      final repository = WorkspaceRepository(
+        events: events,
+        sdk: sdk,
+        taskStatus: taskStatus,
+        workspaceResourceApi: wrapWorkspace?.call(localApi!) ?? localApi!,
+        workspaceFuture: Completer<Workspace>().future,
       );
+      repositories.add(repository);
+      return repository;
+    },
+  );
 
-  testClient('without query restores the latest entry and transfers ownership', (tester) async {
-    final latest = await store.create(savedProject(text: 'most recent'), ownerId: 'another-tab');
+  testClient('without query restores the latest entry', (tester) async {
+    final latest = await store.create(savedProject(text: 'most recent'));
     tester.pumpComponent(app(''));
     await pumpEventQueue();
     expect(sourceLoads, 0);
     expect(await repositories.single.workspaceResourceApi.readFileAsText('lib/main.dart'), 'most recent');
     expect(await repositories.single.workspaceResourceApi.folderExist('empty'), isTrue);
     expect(store.entries, hasLength(2));
-    expect(store.entries[latest.id]!.ownerId, matches(RegExp(r'^[0-9a-f-]{36}$')));
-    expect(store.entries[latest.id]!.ownerId, isNot('another-tab'));
+    expect(store.state, same(store.entries[latest.id]!.state));
     expect(web.document.querySelector('.restore-last-project'), isNull);
   });
 
@@ -87,7 +92,7 @@ void main() {
     await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited fresh project');
     await pumpEventQueue();
     // Read the latest snapshot at click time, not the copy from startup.
-    await store.write('saved', savedProject(text: 'latest previous work'), ownerId: 'previous-tab');
+    await store.write('saved', savedProject(text: 'latest previous work'));
     (restore as web.HTMLElement).click();
     await pumpEventQueue();
     expect(sourceLoads, 1);
@@ -96,7 +101,80 @@ void main() {
     expect(web.document.querySelector('.cm-content')!.textContent, contains('latest previous work'));
     expect(String.fromCharCodes(store.entries[freshId]!.state.files['lib/main.dart']!), 'edited fresh project');
     expect(store.entries, hasLength(2));
-    expect(store.entries['saved']!.ownerId, store.entries[freshId]!.ownerId);
+  });
+
+  testClient('restore waits for an already running editor save before stopping persistence', (tester) async {
+    final workspaces = <_DelayedSaveWorkspace>[];
+    tester.pumpComponent(
+      app(
+        '?sample=counter',
+        wrapWorkspace: (local) {
+          final workspace = _DelayedSaveWorkspace(local);
+          workspaces.add(workspace);
+          return workspace;
+        },
+      ),
+    );
+    await pumpEventQueue();
+    final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
+    final shell = find.byType(EditorShell).evaluate().single.component as EditorShell;
+    final tab = shell.openTabs!.single as WorkspaceCodeMirrorTab;
+    final gate = Completer<void>();
+    workspaces.single.writeGate = gate.future;
+    tab.editor.text = 'void main() { print("saved before restore"); }';
+    // Blur uses this same callback; the normal save is still pending when clicked.
+    tab.onSaveAll();
+    await workspaces.single.writeStarted.future;
+    final restore = web.document.querySelector('.restore-last-project')! as web.HTMLElement;
+    restore.click();
+    try {
+      await pumpEventQueue();
+      expect(repositories, hasLength(1));
+      expect(tab.hasUnsavedChanges, isTrue);
+    } finally {
+      gate.complete();
+    }
+    await pumpEventQueue();
+    expect(repositories, hasLength(2));
+    expect(
+      String.fromCharCodes(store.entries[freshId]!.state.files['lib/main.dart']!),
+      'void main() { print("saved before restore"); }',
+    );
+    expect(web.document.querySelector('.cm-content')!.textContent, contains('previous work'));
+  });
+
+  testClient('failed editor save keeps the current project and allows retrying restore', (tester) async {
+    final workspaces = <_DelayedSaveWorkspace>[];
+    tester.pumpComponent(
+      app(
+        '?sample=counter',
+        wrapWorkspace: (local) {
+          final workspace = _DelayedSaveWorkspace(local);
+          workspaces.add(workspace);
+          return workspace;
+        },
+      ),
+    );
+    await pumpEventQueue();
+    final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
+    final shell = find.byType(EditorShell).evaluate().single.component as EditorShell;
+    final tab = shell.openTabs!.single as WorkspaceCodeMirrorTab;
+    tab.editor.text = 'void main() { print("keep this edit"); }';
+    workspaces.single.writeError = StateError('temporary save failure');
+    (web.document.querySelector('.restore-last-project')! as web.HTMLElement).click();
+    await pumpEventQueue();
+    expect(repositories, hasLength(1));
+    expect(tab.hasUnsavedChanges, isTrue);
+    expect(web.document.querySelector('.cm-content')!.textContent, contains('keep this edit'));
+
+    workspaces.single.writeError = null;
+    (web.document.querySelector('.restore-last-project')! as web.HTMLElement).click();
+    await pumpEventQueue();
+    expect(repositories, hasLength(2));
+    expect(
+      String.fromCharCodes(store.entries[freshId]!.state.files['lib/main.dart']!),
+      'void main() { print("keep this edit"); }',
+    );
   });
 
   testClient('disposing during a restore waits for the previous session to finish saving', (tester) async {
@@ -184,38 +262,24 @@ void main() {
     expect(store.writes, 0);
   });
 
-  for (final useLatest in [true, false]) {
-    testClient('ownership conflict pauses editing and resolves with useLatest=$useLatest', (tester) async {
-      tester.pumpComponent(app(''));
-      await pumpEventQueue();
-      final owner = store.entries['saved']!.ownerId;
-      await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'my version');
-      await pumpEventQueue();
-      await store.claim('saved', ownerId: 'new-tab');
-      await store.write('saved', savedProject(text: 'new changes'), ownerId: 'new-tab');
-      await pumpEventQueue();
-      final dialog = web.document.querySelector('#project-conflict-dialog')! as web.HTMLDialogElement;
-      expect(dialog.open, isTrue);
-      expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isTrue);
-      expect(dialog.dispatchEvent(web.Event('cancel', web.EventInit(cancelable: true))), isFalse);
-      await Future<void>.delayed(const Duration(milliseconds: 350));
-      expect(String.fromCharCodes(store.entries['saved']!.state.files['lib/main.dart']!), 'new changes');
-      (dialog.querySelectorAll('button').item(useLatest ? 0 : 1)! as web.HTMLElement).click();
-      await pumpEventQueue();
-      expect(web.document.querySelector('#project-conflict-dialog'), isNull);
-      expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isFalse);
-      expect(
-        await repositories.last.workspaceResourceApi.readFileAsText('lib/main.dart'),
-        useLatest ? 'new changes' : 'my version',
-      );
-      expect(store.entries, hasLength(useLatest ? 1 : 2));
-      expect(store.entries['saved']!.ownerId, useLatest ? owner : 'new-tab');
-      if (!useLatest) {
-        expect(String.fromCharCodes(store.state!.files['lib/main.dart']!), 'my version');
-        expect(String.fromCharCodes(store.entries['saved']!.state.files['lib/main.dart']!), 'new changes');
-      }
-    });
-  }
+  testClient('another tab saving leaves editing enabled and the last autosave wins', (tester) async {
+    tester.pumpComponent(app(''));
+    await pumpEventQueue();
+    await store.write('saved', savedProject(text: 'other tab'));
+    web.document.dispatchEvent(web.Event('visibilitychange'));
+    await pumpEventQueue();
+    expect(web.document.querySelector('dialog'), isNull);
+    expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isFalse);
+    expect(web.document.querySelector('.cm-content')!.textContent, contains('previous work'));
+
+    await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'my latest edit');
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    expect(String.fromCharCodes(store.entries['saved']!.state.files['lib/main.dart']!), 'my latest edit');
+    expect(store.entries, hasLength(1));
+    expect(repositories, hasLength(1));
+    expect(web.document.querySelector('dialog'), isNull);
+    expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isFalse);
+  });
 
   for (final query in ['', '?sample=counter']) {
     testClient('failed restore offers Start fresh and retains the failed entry: $query', (tester) async {
@@ -243,7 +307,7 @@ void main() {
   }
 
   for (final query in ['?embed=true', '?sample=counter&embed=true']) {
-    testClient('embed mode bypasses all history and ownership operations: $query', (tester) async {
+    testClient('embed mode bypasses all history operations: $query', (tester) async {
       final previous = savedProject(query: query);
       store = MemoryProjectStore(previous);
       tester.pumpComponent(app(query));
@@ -271,4 +335,28 @@ void main() {
     expect(store.entries, hasLength(2));
     expect(web.document.querySelector('.restore-last-project'), isNotNull);
   });
+}
+
+/// Holds a normal editor save before it reaches the local filesystem.
+final class _DelayedSaveWorkspace extends SyncedWorkspaceResourceApi {
+  _DelayedSaveWorkspace(WorkspaceResourceApi local)
+    : super(localApi: local, remoteApi: Completer<WorkspaceResourceApi>().future);
+
+  Future<void>? writeGate;
+  Object? writeError;
+  final writeStarted = Completer<void>();
+
+  @override
+  Future<void> writeFileFromText(String uri, String content) async {
+    if (writeGate case final gate?) {
+      if (!writeStarted.isCompleted) {
+        writeStarted.complete();
+      }
+      await gate;
+    }
+    if (writeError case final error?) {
+      Error.throwWithStackTrace(error, StackTrace.current);
+    }
+    await super.writeFileFromText(uri, content);
+  }
 }

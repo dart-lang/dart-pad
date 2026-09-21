@@ -32,12 +32,11 @@ PersistedProjectState savedProject({
 final class MemoryProjectStore implements ProjectStore {
   MemoryProjectStore([PersistedProjectState? state]) {
     if (state != null) {
-      entries['saved'] = StoredProject(id: 'saved', ownerId: 'previous-tab', updatedAt: ++_clock, state: state);
+      entries['saved'] = StoredProject(id: 'saved', updatedAt: ++_clock, state: state);
     }
   }
 
   final entries = <String, StoredProject>{};
-  final _changes = StreamController<String>.broadcast();
   int _clock = 0;
   int _sequence = 0;
   int writes = 0;
@@ -51,9 +50,6 @@ final class MemoryProjectStore implements ProjectStore {
 
   PersistedProjectState? get state => _sorted.firstOrNull?.state;
   List<StoredProject> get _sorted => entries.values.toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-
-  @override
-  Stream<String> get changes => _changes.stream;
 
   void _checkRead() {
     reads++;
@@ -75,35 +71,15 @@ final class MemoryProjectStore implements ProjectStore {
   }
 
   @override
-  Future<StoredProject> create(PersistedProjectState state, {required String ownerId}) async {
+  Future<StoredProject> create(PersistedProjectState state) async {
     await _beforeWrite();
-    final result = _put('new-${++_sequence}', ownerId, state);
-    for (final entry in _sorted.skip(10)) {
-      entries.remove(entry.id);
-      _changes.add(entry.id);
-    }
-    return result;
+    return _put('new-${++_sequence}', state);
   }
 
   @override
-  Future<StoredProject> claim(String id, {required String ownerId}) async {
+  Future<void> write(String id, PersistedProjectState state) async {
     await _beforeWrite();
-    final previous = entries[id];
-    if (previous == null) {
-      throw const ProjectStoreConflict();
-    }
-    final result = _put(id, ownerId, previous.state);
-    _changes.add(id);
-    return result;
-  }
-
-  @override
-  Future<void> write(String id, PersistedProjectState state, {required String ownerId}) async {
-    await _beforeWrite();
-    if (entries[id]?.ownerId != ownerId) {
-      throw const ProjectStoreConflict();
-    }
-    _put(id, ownerId, state);
+    _put(id, state);
   }
 
   Future<void> _beforeWrite() async {
@@ -113,9 +89,13 @@ final class MemoryProjectStore implements ProjectStore {
     }
   }
 
-  StoredProject _put(String id, String ownerId, PersistedProjectState state) {
+  StoredProject _put(String id, PersistedProjectState state) {
     writes++;
-    return entries[id] = StoredProject(id: id, ownerId: ownerId, updatedAt: ++_clock, state: state);
+    final result = entries[id] = StoredProject(id: id, updatedAt: ++_clock, state: state);
+    for (final entry in _sorted.skip(10)) {
+      entries.remove(entry.id);
+    }
+    return result;
   }
 
   @override
@@ -124,7 +104,6 @@ final class MemoryProjectStore implements ProjectStore {
     if (!closed.isCompleted) {
       closed.complete();
     }
-    unawaited(_changes.close());
     if (closeError case final error?) {
       Error.throwWithStackTrace(error, StackTrace.current);
     }

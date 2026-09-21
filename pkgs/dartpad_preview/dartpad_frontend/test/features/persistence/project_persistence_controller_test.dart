@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/persistence/project_persistence_controller.dart';
-import 'package:dartpad_frontend/features/persistence/project_persistence_state.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
@@ -62,7 +61,6 @@ void main() {
     controller.attach(previous);
     await controller.flush();
     final id = controller.projectId!;
-    final owner = store.entries[id]!.ownerId;
     await controller.stop();
 
     final replacement = await createSession('replacement session');
@@ -70,7 +68,6 @@ void main() {
     await controller.flush();
     expect(store.entries, hasLength(1));
     expect(controller.projectId, id);
-    expect(store.entries[id]!.ownerId, owner);
     expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'replacement session');
 
     // A subsequent fresh project must not accidentally reuse the retained ID.
@@ -82,28 +79,34 @@ void main() {
     expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'replacement session');
   });
 
-  test('failed Keep my version keeps the conflict pending and can be retried', () async {
-    controller.attach(await createSession('my changes'));
+  test('another tab can write without interrupting this session or creating a copy', () async {
+    final session = await createSession('my changes');
+    controller.attach(session);
     await controller.flush();
     final id = controller.projectId!;
-    await store.claim(id, ownerId: 'another-tab');
-    await store.write(id, savedProject(text: 'their changes'), ownerId: 'another-tab');
+    await store.write(id, savedProject(text: 'their changes'));
     await pumpEventQueue();
-    expect(controller.conflict, ProjectOwnershipConflict.awaitingChoice);
-
-    store.writeError = StateError('temporarily unavailable');
-    await controller.resolveConflict(useLatest: false);
-    expect(controller.conflict, ProjectOwnershipConflict.awaitingChoice);
-    expect(controller.notice, isA<ProjectSaveFailed>());
-    expect(store.entries, hasLength(1));
-
-    store.writeError = null;
-    await controller.resolveConflict(useLatest: false);
-    expect(controller.hasConflict, isFalse);
-    expect(store.entries, hasLength(2));
-    expect(utf8.decode(store.entries[controller.projectId]!.state.files['lib/main.dart']!), 'my changes');
+    expect(controller.notice, isNull);
     expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'their changes');
-    expect(store.entries[id]!.ownerId, 'another-tab');
+
+    await session.repository.workspaceResourceApi.writeFileFromText('lib/main.dart', 'my latest changes');
+    await pumpEventQueue();
+    await controller.flush();
+    expect(controller.notice, isNull);
+    expect(controller.projectId, id);
+    expect(store.entries, hasLength(1));
+    expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'my latest changes');
+  });
+
+  test('stopping an unchanged tab preserves a newer save from another tab', () async {
+    controller.attach(await createSession('old local version'));
+    await controller.flush();
+    final id = controller.projectId!;
+    await store.write(id, savedProject(text: 'newer other tab version'));
+    final writes = store.writes;
+    await controller.stop();
+    expect(store.writes, writes);
+    expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'newer other tab version');
   });
 
   test('disposal waits for an existing stop before closing the store exactly once', () async {

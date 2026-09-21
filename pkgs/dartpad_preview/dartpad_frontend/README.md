@@ -21,10 +21,12 @@ published to pub.dev.
 - Responsive desktop and small-screen layouts, light and dark themes, and an
   embed mode.
 
-Saving writes all dirty tabs to the in-memory workspace. Dart files are
-formatted through the language server before they are written; if formatting
-cannot complete, the file is not saved. Closing a dirty tab asks for
-confirmation before discarding its changes. The file tree is restricted to the resolved project `root`.
+Save, editor focus loss, and switching editor tabs write dirty tabs to the
+in-memory workspace. Dart formatting is attempted before saving; a formatting
+failure does not prevent the file from being saved. Workspace changes are
+synchronized to the worker and persisted locally as described in
+[Persistence](#persistence). Closing a dirty tab asks for confirmation before
+discarding its changes. The file tree is restricted to the resolved project `root`.
 
 ## Development
 
@@ -189,31 +191,38 @@ after a successful launch.
 ## Persistence
 
 IndexedDB retains the ten most recently saved projects. Each project has its
-own ID and the UUID of its owning browser tab. Autosave updates that entry;
-opening a fresh project creates another entry and removes the oldest if needed.
-Reloading the page creates a new tab UUID.
+own ID. Autosave updates that entry; opening a fresh project creates another
+entry and removes the oldest if needed.
 
-Snapshots come from the frontend workspace, with current unsaved editor text
-applied on top. They include binary assets, empty folders, SDK selection, root,
+Changes to files in the frontend workspace trigger an IndexedDB save. This
+includes saving editor files, creating, moving or deleting files and folders,
+and changes received from the worker. Worker synchronization and IndexedDB
+persistence run independently.
+
+Snapshots also include binary assets, empty folders, SDK selection, root,
 entrypoint, run mode, and open/active tabs. Generated `.dart_tool` and `build`
-directories and external SDK/package sources are excluded. Saving a snapshot
-does not format code or mark dirty editor buffers as saved.
+directories and external SDK/package sources are excluded. Changes to open or
+active editor tabs, SDK selection, entrypoint, and run mode also update the
+stored project.
 
-Without query parameters, DartPad restores the newest project and takes over
-its ownership. With query parameters, it loads and immediately saves a fresh
-project. If an older entry matches all decoded query options, the toolbar offers
+Without query parameters, DartPad restores the newest project. With query
+parameters, it loads and immediately saves a fresh project. If an older entry
+matches all decoded query options, the toolbar offers
 **Restore last project** for 30 seconds. The button's bottom border shows
-the remaining time. Clicking restores the matching entry's latest stored contents and
-takes ownership. The project being left, including edits made before clicking,
+the remaining time. Clicking restores the matching entry's latest stored
+contents. The project being left, including edits saved before clicking,
 remains in the history (subject to the ten-entry limit).
 
-Another tab taking ownership pauses autosave in the old tab and opens a neutral
-conflict dialog. **Keep my version** saves that tab's current contents as a new
-entry. **Use latest version** loads the existing entry and takes ownership back.
-Ownership is checked atomically on every write. Cross-tab notifications and a
-check when the page becomes visible detect ownership changes even without an
-edit. Entries evicted from the ten-project history also stop accepting writes;
-their still-open tabs can keep their version as a new entry.
+Project switches wait for the normal editor Save to finish before flushing
+pending IndexedDB writes. Stopping an unchanged session does not save it again.
+
+Multiple browser tabs can edit the same project without ownership checks,
+warnings, or pausing persistence. The last completed IndexedDB write wins,
+replacing the full stored snapshot atomically; snapshots are not merged.
+Other browser tabs keep their current editor contents until they restore or
+reload, and can overwrite the stored snapshot with their next write.
+If an open project's entry was evicted from the ten-project history, its next
+save adds it back under the same ID, removing the oldest entry if needed.
 
 Restore failures show **Restoring your project failed.** and **Start fresh**.
 Starting fresh retains the failed entry in history. If the URL source fails to
@@ -221,12 +230,7 @@ load but a matching saved entry exists, the restore button still offers recovery
 Storage failures are reported without discarding editor contents.
 
 Persistence is disabled in embed mode (`embed=true`): no history reads, writes,
-restore offers or ownership transfers occur. Embedded sessions leave standalone
-projects untouched.
-
-Writes are debounced by 300 ms, with a maximum delay of one second during
-continuous editing. Session changes flush pending writes. Browser termination
-can still interrupt an in-flight save.
+or restore offers occur.
 
 ## Startup and workspace lifecycle
 

@@ -15,7 +15,7 @@ import 'project_persistence_state.dart';
 import 'project_store.dart';
 import 'workspace_persistence_controller.dart';
 
-/// Coordinates history, restore offers and ownership for one browser tab.
+/// Coordinates history, restore offers and autosave for one browser tab.
 ///
 /// The app owns project loading and session replacement. This controller owns
 /// the store and attaches a [WorkspacePersistenceController] to each session
@@ -37,7 +37,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
           if (web.document.visibilityState == 'hidden') {
             unawaited(_autosave?.flush());
           } else {
-            unawaited(_autosave?.checkOwnership());
             _expireRestoreOffer();
           }
         });
@@ -50,8 +49,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
   final Future<void> Function(String projectId) _restoreProject;
   final Duration restoreOfferDuration;
 
-  /// Unique to this app instance, including after a page reload.
-  final String _ownerId = web.window.crypto.randomUUID();
   bool _available;
   bool _disposed = false;
   WorkspacePersistenceController? _autosave;
@@ -64,10 +61,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
   PersistenceNotice? _notice;
   PersistenceNotice? get notice => _notice;
 
-  ProjectOwnershipConflict _conflict = .none;
-  ProjectOwnershipConflict get conflict => _conflict;
-  bool get hasConflict => _conflict != .none;
-
   ProjectRestoreOffer? _restoreOffer;
   ProjectRestoreOffer? get restoreOffer => _restoreOffer;
   Timer? _restoreOfferTimer;
@@ -75,14 +68,13 @@ final class ProjectPersistenceController extends ChangeNotifier {
   StreamSubscription<web.Event>? _pageHideSubscription;
 
   /// Stops the previous session before inspecting history. The caller checks
-  /// its load generation before claiming or opening the selected project.
+  /// its load generation before opening the selected project.
   Future<PersistenceLoadStrategy> prepareLoad(
     ProjectRequest request, {
     bool startFresh = false,
     String? restoreProjectId,
   }) async {
     _clearRestoreOffer();
-    _conflict = .none;
     _notify();
     await stop();
     final history = await _readHistory();
@@ -114,9 +106,15 @@ final class ProjectPersistenceController extends ChangeNotifier {
     }
   }
 
-  /// Reads the latest snapshot and transfers ownership in one transaction.
-  /// Attachment happens only after the app successfully opens its files.
-  Future<StoredProject> claim(String id) => _store!.claim(id, ownerId: _ownerId);
+  /// Reads the latest snapshot. Attachment happens only after the app
+  /// successfully opens its files.
+  Future<StoredProject> read(String id) async {
+    final project = await _store!.read(id);
+    if (project == null) {
+      throw StateError('The saved project is no longer available.');
+    }
+    return project;
+  }
 
   void reportRestoredSdk({required SdkInfo saved, required SdkInfo actual}) {
     if (saved.dartVersion != actual.dartVersion || saved.flutterVersion != actual.flutterVersion) {
@@ -137,11 +135,10 @@ final class ProjectPersistenceController extends ChangeNotifier {
     autosave = WorkspacePersistenceController(
       session: session,
       store: _store!,
-      ownerId: _ownerId,
       projectId: projectId,
-      onError: (error) {
+      onError: (_) {
         if (identical(_autosave, autosave)) {
-          _reportError(error);
+          _reportSaveFailure();
         }
       },
     );
@@ -171,7 +168,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
   }
 
   void offerRestore(String projectId) {
-    if (_disposed || hasConflict) {
+    if (_disposed) {
       return;
     }
     _clearRestoreOffer();
@@ -208,49 +205,11 @@ final class ProjectPersistenceController extends ChangeNotifier {
     _restoreOffer = null;
   }
 
-  Future<void> resolveConflict({required bool useLatest}) async {
-    final autosave = _autosave;
-    if (_disposed || _conflict != .awaitingChoice || autosave == null) {
-      return;
-    }
-    _conflict = .resolving;
-    _notify();
-    try {
-      if (useLatest) {
-        await _restoreProject(autosave.projectId!);
-      } else {
-        final snapshot = await autosave.capture();
-        final saved = await _store!.create(snapshot, ownerId: _ownerId);
-        if (_disposed || !identical(_autosave, autosave)) {
-          return;
-        }
-        await stop();
-        if (_disposed) {
-          return;
-        }
-        attach(autosave.session, projectId: saved.id);
-        _conflict = .none;
-      }
-    } catch (error) {
-      _reportError(error);
-    } finally {
-      if (_conflict == .resolving) {
-        _conflict = .awaitingChoice;
-      }
-      _notify();
-    }
-  }
-
-  void _reportError(Object error) {
+  void _reportSaveFailure() {
     if (_disposed) {
       return;
     }
-    if (error is ProjectStoreConflict) {
-      _clearRestoreOffer();
-      _conflict = .awaitingChoice;
-    } else {
-      _notice = const ProjectSaveFailed();
-    }
+    _notice = const ProjectSaveFailed();
     _notify();
   }
 

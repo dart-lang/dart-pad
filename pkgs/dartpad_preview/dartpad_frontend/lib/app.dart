@@ -23,7 +23,6 @@ import 'features/editor/models/tab_descriptor.dart';
 import 'features/filetree/file_tree_view.dart';
 import 'features/persistence/persisted_project_state.dart';
 import 'features/persistence/persistence_notice_banner.dart';
-import 'features/persistence/project_conflict_dialog.dart';
 import 'features/persistence/project_persistence_controller.dart';
 import 'features/persistence/project_persistence_state.dart';
 import 'features/persistence/project_store.dart';
@@ -39,6 +38,7 @@ import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/split_panel.dart';
+import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/sdk_info.dart';
@@ -171,6 +171,21 @@ final class _AppState extends State<App> {
     try {
       await _loadingTasks.runTask(TaskKind.loadingCode, () async {
         final request = ProjectRequest.fromUri(uri);
+        final previous = _activeSession;
+        try {
+          // A restore click can arrive while the blur-triggered Save is still
+          // formatting. Keep persistence attached until that Save finishes.
+          await previous?.tabs.saveAllTabs();
+        } catch (_) {
+          if (_isCurrentLoad(generation)) {
+            setState(() => _isInitializingWorkspace = false);
+            previous?.events.dispatch(const ErrorToastEvent('Could not save files before switching projects.'));
+          }
+          return;
+        }
+        if (!_isCurrentLoad(generation)) {
+          return;
+        }
         final strategy = await _persistence.prepareLoad(
           request,
           startFresh: startFresh,
@@ -212,7 +227,7 @@ final class _AppState extends State<App> {
   }
 
   Future<_LoadedProject> _loadSavedProject(String id) async {
-    final saved = await _persistence.claim(id);
+    final saved = await _persistence.read(id);
     return _LoadedProject(
       initialState: saved.state.initialProject(availableSdks),
       contents: saved.state.project,
@@ -527,7 +542,7 @@ final class _AppState extends State<App> {
   }
 
   void _resetWorkspace(ProjectRequest request) {
-    if (_isInitializingWorkspace || _persistence.hasConflict) {
+    if (_isInitializingWorkspace) {
       return;
     }
     final newSearch = request.search;
@@ -540,7 +555,7 @@ final class _AppState extends State<App> {
   /// Rebuilds worker resources from a copy of the current workspace, keeping the snapshot.
   Future<void> _switchSdk(SdkInfo newSdk) async {
     final oldSession = _activeSession;
-    if (oldSession == null || _isInitializingWorkspace || _persistence.hasConflict || newSdk == _currentSdk) {
+    if (oldSession == null || _isInitializingWorkspace || newSdk == _currentSdk) {
       return;
     }
     setState(() => _isInitializingWorkspace = true);
@@ -596,15 +611,7 @@ final class _AppState extends State<App> {
   }
 
   @override
-  Component build(BuildContext context) => Component.fragment([
-    _buildWorkspace(context),
-    if (_persistence.hasConflict)
-      ProjectConflictDialog(
-        busy: _persistence.conflict == ProjectOwnershipConflict.resolving,
-        onUseLatest: () => unawaited(_persistence.resolveConflict(useLatest: true)),
-        onKeepVersion: () => unawaited(_persistence.resolveConflict(useLatest: false)),
-      ),
-  ]);
+  Component build(BuildContext context) => _buildWorkspace(context);
 
   Component? get _restoreAction {
     final offer = _persistence.restoreOffer;
@@ -631,7 +638,6 @@ final class _AppState extends State<App> {
     if (session == null) {
       return div(
         classes: 'app-shell',
-        attributes: {if (_persistence.hasConflict) 'inert': ''},
         [
           if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
           if (!_isEmbedMode)
@@ -680,7 +686,6 @@ final class _AppState extends State<App> {
     }
     return div(
       classes: 'app-shell',
-      attributes: {if (_persistence.hasConflict) 'inert': ''},
       [
         if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
         if (!_isEmbedMode || !_isLargeScreen)
@@ -871,7 +876,7 @@ final class _AppState extends State<App> {
   }
 
   void _handleGlobalKeyDown(web.KeyboardEvent event) {
-    if (_persistence.hasConflict || event.defaultPrevented || event.repeat) {
+    if (event.defaultPrevented || event.repeat) {
       return;
     }
     final isModifier = isMac ? event.metaKey : event.ctrlKey;
@@ -908,7 +913,6 @@ final class _AppState extends State<App> {
   }
 
   static List<StyleRule> get styles => [
-    ...ProjectConflictDialog.styles,
     ...RestoreLastProjectButton.styles,
     css('.restore-project-failure').styles(padding: .all(28.px)),
     css('.restore-project-failure button').styles(

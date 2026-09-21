@@ -14,25 +14,13 @@ import 'persisted_project_state.dart';
 import 'project_store.dart';
 
 /// Keeps ten projects. Metadata and binary files are committed together;
-/// ownership checks and history eviction run in the same transaction.
+/// the last write wins and history eviction runs in the same transaction.
 final class IndexedDbProjectStore implements ProjectStore {
-  IndexedDbProjectStore({this.databaseName = 'dartpad-preview-project'}) {
-    _channel = web.BroadcastChannel('$databaseName-changes');
-    _channel.onmessage = ((web.MessageEvent event) {
-      if (!_closed) {
-        _changes.add((event.data as JSString).toDart);
-      }
-    }).toJS;
-  }
+  IndexedDbProjectStore({this.databaseName = 'dartpad-preview-project'});
 
   final String databaseName;
-  late final web.BroadcastChannel _channel;
-  final _changes = StreamController<String>.broadcast();
   Future<web.IDBDatabase>? _database;
   bool _closed = false;
-
-  @override
-  Stream<String> get changes => _changes.stream;
 
   Future<web.IDBDatabase> _open() async {
     if (_closed) {
@@ -106,23 +94,14 @@ final class IndexedDbProjectStore implements ProjectStore {
   }
 
   @override
-  Future<StoredProject> create(PersistedProjectState state, {required String ownerId}) =>
-      _commit(web.window.crypto.randomUUID(), ownerId: ownerId, state: state, create: true);
+  Future<StoredProject> create(PersistedProjectState state) => _commit(web.window.crypto.randomUUID(), state);
 
   @override
-  Future<StoredProject> claim(String id, {required String ownerId}) => _commit(id, ownerId: ownerId);
-
-  @override
-  Future<void> write(String id, PersistedProjectState state, {required String ownerId}) async {
-    await _commit(id, ownerId: ownerId, state: state);
+  Future<void> write(String id, PersistedProjectState state) async {
+    await _commit(id, state);
   }
 
-  Future<StoredProject> _commit(
-    String id, {
-    required String ownerId,
-    PersistedProjectState? state,
-    bool create = false,
-  }) async {
+  Future<StoredProject> _commit(String id, PersistedProjectState state) async {
     final db = await _open();
     final transaction = db.transaction('projects'.toJS, 'readwrite');
     final done = _complete(transaction);
@@ -130,30 +109,17 @@ final class IndexedDbProjectStore implements ProjectStore {
     final request = projects.getAll();
     StoredProject? committed;
     Object? failure;
-    final evicted = <String>[];
     request.onsuccess = ((web.Event event) {
       try {
         final records = (request.result as JSArray<JSObject>).toDart;
-        JSObject? existing;
         var updatedAt = DateTime.now().millisecondsSinceEpoch;
         for (final record in records) {
-          if (_string(record, 'id') == id) {
-            existing = record;
-          }
           final timestamp = record.getProperty<JSNumber>('updatedAt'.toJS).toDartInt;
           if (timestamp >= updatedAt) {
             updatedAt = timestamp + 1;
           }
         }
-        if (!create && (existing == null || (state != null && _string(existing, 'ownerId') != ownerId))) {
-          throw const ProjectStoreConflict();
-        }
-        committed = StoredProject(
-          id: id,
-          ownerId: ownerId,
-          updatedAt: updatedAt,
-          state: state ?? _decode(existing!).state,
-        );
+        committed = StoredProject(id: id, updatedAt: updatedAt, state: state);
         projects.put(_encode(committed!), id.toJS);
         final older = records.where((record) => _string(record, 'id') != id).toList()
           ..sort(
@@ -165,7 +131,6 @@ final class IndexedDbProjectStore implements ProjectStore {
         for (final record in older.skip(9)) {
           final removedId = _string(record, 'id');
           projects.delete(removedId.toJS);
-          evicted.add(removedId);
         }
       } catch (error) {
         failure = error;
@@ -180,26 +145,18 @@ final class IndexedDbProjectStore implements ProjectStore {
       }
       rethrow;
     }
-    if (!_closed) {
-      for (final changedId in [id, ...evicted]) {
-        _channel.postMessage(changedId.toJS);
-      }
-    }
     return committed!;
   }
 
   @override
   void close() {
     _closed = true;
-    _channel.close();
-    unawaited(_changes.close());
     unawaited(_database?.then((db) => db.close(), onError: (Object _) {}));
   }
 }
 
 JSObject _encode(StoredProject project) => JSObject()
   ..setProperty('id'.toJS, project.id.toJS)
-  ..setProperty('ownerId'.toJS, project.ownerId.toJS)
   ..setProperty('updatedAt'.toJS, project.updatedAt.toJS)
   ..setProperty('metadata'.toJS, jsonEncode(project.state.metadata()).toJS)
   ..setProperty(
@@ -216,7 +173,6 @@ String _string(JSObject value, String key) => value.getProperty<JSString>(key.to
 
 StoredProject _decode(JSObject value) => StoredProject(
   id: _string(value, 'id'),
-  ownerId: _string(value, 'ownerId'),
   updatedAt: value.getProperty<JSNumber>('updatedAt'.toJS).toDartInt,
   state: PersistedProjectState.decode(
     jsonDecode(_string(value, 'metadata')) as Map<String, Object?>,

@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/persistence/indexed_db_project_store.dart';
 import 'package:dartpad_frontend/features/persistence/persisted_project_state.dart';
-import 'package:dartpad_frontend/features/persistence/project_store.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
@@ -33,7 +32,7 @@ void main() {
         'assets/image.bin': Uint8List.fromList([0, 255, 128, 10]),
       },
     );
-    final saved = await store.create(state, ownerId: 'tab-a');
+    final saved = await store.create(state);
     final reopened = IndexedDbProjectStore(databaseName: name);
     addTearDown(reopened.close);
     final restored = (await reopened.read(saved.id))!;
@@ -43,7 +42,6 @@ void main() {
     expect(restored.state.tabs.single.path, state.tabs.single.path);
     expect(restored.state.activeFile, state.activeFile);
     expect(restored.state.sdk.dartVersion, state.sdk.dartVersion);
-    expect(restored.ownerId, 'tab-a');
   });
 
   test('updates and removes files within one entry while retaining other projects', () async {
@@ -53,9 +51,8 @@ void main() {
           'old.txt': Uint8List.fromList([1]),
         },
       ),
-      ownerId: 'tab-a',
     );
-    final second = await store.create(savedProject(), ownerId: 'tab-b');
+    final second = await store.create(savedProject());
     await store.write(
       first.id,
       savedProject(
@@ -63,7 +60,6 @@ void main() {
           'new.txt': Uint8List.fromList([2]),
         },
       ),
-      ownerId: 'tab-a',
     );
     final history = await store.list();
     expect(history.map((entry) => entry.id), [first.id, second.id]);
@@ -71,52 +67,56 @@ void main() {
     expect(history.last.state.files, contains('lib/main.dart'));
   });
 
-  test('ownership is transferred atomically and old owners cannot overwrite files', () async {
-    final saved = await store.create(savedProject(), ownerId: 'tab-a');
+  test('writes from either connection replace the full snapshot: last write wins', () async {
+    final saved = await store.create(savedProject());
     final second = IndexedDbProjectStore(databaseName: name);
     addTearDown(second.close);
-    await store.write(saved.id, savedProject(text: 'newer'), ownerId: 'tab-a');
-    final claimed = await second.claim(saved.id, ownerId: 'tab-b');
-    expect(String.fromCharCodes(claimed.state.files['lib/main.dart']!), 'newer');
-    expect(claimed.ownerId, 'tab-b');
-    await expectLater(
-      store.write(saved.id, savedProject(text: 'stale'), ownerId: 'tab-a'),
-      throwsA(isA<ProjectStoreConflict>()),
+    final initial = (await second.read(saved.id))!;
+    await second.write(saved.id, savedProject(text: 'second tab'));
+    expect(utf8.decode((await store.read(saved.id))!.state.files['lib/main.dart']!), 'second tab');
+    // The first tab can still save its older snapshot after the second tab writes.
+    await store.write(saved.id, initial.state);
+    expect(utf8.decode((await second.read(saved.id))!.state.files['lib/main.dart']!), contains('previous work'));
+    await second.write(
+      saved.id,
+      savedProject(
+        files: {
+          'binary.bin': Uint8List.fromList([0, 255]),
+        },
+      ),
     );
-    await second.write(saved.id, savedProject(text: 'new owner'), ownerId: 'tab-b');
-    expect(String.fromCharCodes((await store.read(saved.id))!.state.files['lib/main.dart']!), 'new owner');
+    final latest = (await store.read(saved.id))!;
+    expect(latest.state.files.keys, ['binary.bin']);
+    expect(latest.state.files['binary.bin'], [0, 255]);
+    expect(await store.list(), hasLength(1));
   });
 
-  test('keeps the ten most recently updated entries and rejects evicted writers', () async {
+  test('keeps ten entries and recreates an evicted project on its next write', () async {
     final ids = <String>[];
     for (var i = 0; i < 10; i++) {
-      ids.add((await store.create(savedProject(text: 'project $i'), ownerId: 'tab-$i')).id);
+      ids.add((await store.create(savedProject(text: 'project $i'))).id);
     }
-    await store.write(ids.first, savedProject(text: 'recent edit'), ownerId: 'tab-0');
-    final newest = await store.create(savedProject(), ownerId: 'tab-10');
+    await store.write(ids.first, savedProject(text: 'recent edit'));
+    final newest = await store.create(savedProject());
     final history = await store.list();
     expect(history, hasLength(10));
     expect(history.first.id, newest.id);
     expect(history[1].id, ids.first);
     expect(await store.read(ids[1]), isNull);
-    await expectLater(store.write(ids[1], savedProject(), ownerId: 'tab-1'), throwsA(isA<ProjectStoreConflict>()));
-  });
-
-  test('notifies other tabs of ownership changes without waiting for an edit', () async {
-    final saved = await store.create(savedProject(), ownerId: 'tab-a');
-    final second = IndexedDbProjectStore(databaseName: name);
-    addTearDown(second.close);
-    final changed = store.changes.firstWhere((id) => id == saved.id);
-    await second.claim(saved.id, ownerId: 'tab-b');
-    expect(await changed.timeout(const Duration(seconds: 2)), saved.id);
+    await store.write(ids[1], savedProject(text: 'back from an open tab'));
+    final updated = await store.list();
+    expect(updated, hasLength(10));
+    expect(updated.first.id, ids[1]);
+    expect(utf8.decode(updated.first.state.files['lib/main.dart']!), 'back from an open tab');
+    expect(await store.read(ids[2]), isNull);
   });
 
   test('concurrent creators preserve both projects', () async {
     final second = IndexedDbProjectStore(databaseName: name);
     addTearDown(second.close);
     final created = await Future.wait([
-      store.create(savedProject(text: 'A'), ownerId: 'tab-a'),
-      second.create(savedProject(text: 'B'), ownerId: 'tab-b'),
+      store.create(savedProject(text: 'A')),
+      second.create(savedProject(text: 'B')),
     ]);
     expect(created[0].id, isNot(created[1].id));
     expect(await store.list(), hasLength(2));
@@ -145,8 +145,8 @@ void main() {
     blocker.close();
     await deleted.future;
     expect(await retry, isEmpty);
-    final saved = await store.create(savedProject(), ownerId: 'tab-a');
-    expect((await store.read(saved.id))!.ownerId, 'tab-a');
+    final saved = await store.create(savedProject());
+    expect((await store.read(saved.id))!.id, saved.id);
   });
 
   test('closed storage cannot reopen a database', () async {

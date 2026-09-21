@@ -61,7 +61,6 @@ void main() {
     controller = WorkspacePersistenceController(
       session: session,
       store: store,
-      ownerId: 'this-tab',
       onError: errors.add,
     );
     await api.changeEventsReady;
@@ -72,20 +71,62 @@ void main() {
     expect(errors, isEmpty);
   });
 
-  test('captures current unsaved editor text without formatting or marking it saved', () async {
+  test('typing alone does not write; normal Save persists the same files sent to the worker', () async {
+    await controller.flush();
+    final writes = store.writes;
     final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     tab.editor.text = 'void main(){print("unsaved");}';
     await pumpEventQueue();
     await controller.flush();
-    expect(utf8.decode(store.state!.files['lib/main.dart']!), 'void main(){print("unsaved");}');
+    expect(store.writes, writes);
+    expect(utf8.decode(store.state!.files['lib/main.dart']!), 'void main() {}');
     expect(await api.readFileAsText('lib/main.dart'), 'void main() {}');
     expect(tab.hasUnsavedChanges, isTrue);
+
+    await session.tabs.saveAllTabs();
+    await api.flush();
+    await pumpEventQueue();
+    await controller.flush();
+    expect(store.writes, writes + 1);
+    expect(utf8.decode(store.state!.files['lib/main.dart']!), tab.content);
+    expect(await remote.readFileAsText('lib/main.dart'), tab.content);
+    expect(tab.hasUnsavedChanges, isFalse);
     expect(store.state!.activeFile, 'lib/main.dart');
     expect(store.state!.query, session.initialProject.request.query);
-    tab.discardUnsavedChanges();
+  });
+
+  test('a snapshot triggered by another file excludes unsaved editor text', () async {
+    final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
+    tab.editor.text = 'unsaved';
+    await remote.writeFileFromText('pubspec.lock', 'worker output');
     await pumpEventQueue();
     await controller.flush();
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'void main() {}');
+    expect(utf8.decode(store.state!.files['pubspec.lock']!), 'worker output');
+    expect(tab.hasUnsavedChanges, isTrue);
+
+    await controller.stop();
+    expect(utf8.decode(store.state!.files['lib/main.dart']!), 'void main() {}');
+    expect(tab.content, 'unsaved');
+  });
+
+  test('tab metadata is persisted without a file write', () async {
+    await api.writeFileFromText('notes.txt', 'notes');
+    await pumpEventQueue();
+    await controller.flush();
+    final writes = store.writes;
+    await session.tabs.openWorkspaceFile('notes.txt');
+    await controller.flush();
+    expect(store.writes, writes + 1);
+    expect(store.state!.tabs.map((tab) => tab.path), ['lib/main.dart', 'notes.txt']);
+    expect(store.state!.activeFile, 'notes.txt');
+
+    session.tabs.switchFile('lib/main.dart');
+    await controller.flush();
+    expect(store.state!.activeFile, 'lib/main.dart');
+    session.tabs.closeFile('notes.txt');
+    await controller.flush();
+    expect(store.state!.tabs.map((tab) => tab.path), ['lib/main.dart']);
   });
 
   test('new projects save immediately and include worker output but exclude generated caches', () async {
@@ -115,10 +156,11 @@ void main() {
     expect(store.state!.files, isNot(contains('build/output.js')));
   });
 
-  test('stop flushes pending edits before session disposal', () async {
+  test('stop flushes saved workspace changes before their notifications arrive', () async {
+    await controller.flush();
     final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     tab.editor.text = 'latest';
-    await pumpEventQueue();
+    await tab.save();
     await controller.stop();
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'latest');
     final writes = store.writes;
@@ -126,15 +168,17 @@ void main() {
     await pumpEventQueue();
     expect(store.writes, writes);
   });
-  test('edits made during an in-flight commit are written afterwards', () async {
+  test('workspace saves during an in-flight commit are written afterwards', () async {
     final barrier = Completer<void>();
     store.writeBarrier = barrier.future;
     final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     tab.editor.text = 'first';
+    await tab.save();
     await pumpEventQueue();
     final flush = controller.flush();
     await pumpEventQueue();
     tab.editor.text = 'second';
+    await tab.save();
     await pumpEventQueue();
     barrier.complete();
     await flush;
@@ -142,19 +186,21 @@ void main() {
     expect(store.writes, 2);
   });
 
-  test('storage failure leaves editor intact and retries on the next edit', () async {
+  test('storage failure leaves saved files intact and retries on the next save', () async {
     store.writeError = StateError('quota exceeded');
     final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     tab.editor.text = 'keep me';
+    await tab.save();
     await pumpEventQueue();
     await controller.flush();
     expect(errors, hasLength(1));
     expect(tab.content, 'keep me');
-    expect(tab.hasUnsavedChanges, isTrue);
+    expect(tab.hasUnsavedChanges, isFalse);
     expect(store.writes, 0);
     errors.clear();
     store.writeError = null;
     tab.editor.text = 'retry me';
+    await tab.save();
     await pumpEventQueue();
     await controller.flush();
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'retry me');
@@ -167,6 +213,7 @@ void main() {
       }
       final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
       tab.editor.text = 'pending recovery';
+      await tab.save();
       await pumpEventQueue();
       store.writeError = StateError('temporary failure');
       await controller.flush();
@@ -175,7 +222,7 @@ void main() {
       store.writeError = null;
       await controller.flush();
       expect(utf8.decode(store.state!.files['lib/main.dart']!), 'pending recovery');
-      expect(tab.hasUnsavedChanges, isTrue);
+      expect(tab.hasUnsavedChanges, isFalse);
     });
   }
 
@@ -212,43 +259,42 @@ void main() {
     expect(store.writes, 1);
   });
 
-  test('ownership changes pause saving even without a local edit', () async {
+  test('other tabs can save while local editing and autosave continue', () async {
     await controller.flush();
     final id = controller.projectId!;
-    await store.claim(id, ownerId: 'another-tab');
+    await store.write(id, savedProject(text: 'another tab'));
     await pumpEventQueue();
-    expect(errors, hasLength(1));
-    errors.clear();
+    expect(errors, isEmpty);
     final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     tab.editor.text = 'local work';
+    await tab.save();
     await pumpEventQueue();
     await controller.flush();
-    expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'void main() {}');
+    expect(utf8.decode(store.entries[id]!.state.files['lib/main.dart']!), 'local work');
     expect(tab.content, 'local work');
   });
 
-  test('maximum delay saves during continuous typing instead of waiting for idle', () async {
+  test('maximum delay persists continuous workspace writes instead of waiting for idle', () async {
     await controller.stop();
     controller = WorkspacePersistenceController(
       session: session,
       store: store,
-      ownerId: 'this-tab',
       onError: errors.add,
       debounce: const Duration(seconds: 5),
       maxDelay: const Duration(milliseconds: 40),
     );
-    final tab = session.tabs.activeTab! as WorkspaceCodeMirrorTab;
     var edits = 0;
-    final typing = Timer.periodic(const Duration(milliseconds: 10), (_) {
-      tab.editor.text = 'typing ${edits++}';
+    final writing = Timer.periodic(const Duration(milliseconds: 10), (_) {
+      unawaited(api.writeFileFromText('lib/main.dart', 'saved ${edits++}'));
     });
     try {
       await Future<void>.delayed(const Duration(milliseconds: 150));
       expect(store.writes, greaterThan(0));
     } finally {
-      typing.cancel();
+      writing.cancel();
     }
+    await pumpEventQueue();
     await controller.flush();
-    expect(utf8.decode(store.state!.files['lib/main.dart']!), tab.content);
+    expect(utf8.decode(store.state!.files['lib/main.dart']!), await api.readFileAsText('lib/main.dart'));
   });
 }

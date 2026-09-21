@@ -8,7 +8,7 @@ import '../shared/sdk_info.dart';
 final class PersistenceLoadStrategy {
   const PersistenceLoadStrategy({this.restoreProjectId, this.offerProjectId});
 
-  /// Claim and open this entry instead of loading the URL's source.
+  /// Read and open this entry instead of loading the URL's source.
   final String? restoreProjectId;
 
   /// Offer this previous entry after loading and saving the fresh project.
@@ -23,8 +23,6 @@ final class ProjectRestoreOffer {
   final DateTime expires;
   final Duration duration;
 }
-
-enum ProjectOwnershipConflict { none, awaitingChoice, resolving }
 
 /// Persistence outcomes rendered by the UI; contains no presentation text.
 sealed class PersistenceNotice {
