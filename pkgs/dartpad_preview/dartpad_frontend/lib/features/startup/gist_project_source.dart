@@ -48,9 +48,11 @@ final class GistProjectSource extends ProjectSource {
       for (final path in original.paths)
         path: parentWorkspacePath(path).isEmpty && path.endsWith('.dart') ? 'lib/$path' : path,
     };
-    return Project([
+    final projectFiles = [
       for (final file in original.files) ProjectFile(path: mapping[file.path]!, bytes: file.bytes),
-    ], pathMapping: mapping);
+    ];
+    // Startup generates a missing pubspec after selecting the runtime SDK.
+    return Project(projectFiles, pathMapping: mapping);
   }
 }
 

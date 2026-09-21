@@ -9,7 +9,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/shared/sdk_info.dart';
+import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -72,6 +75,42 @@ void main() {
         },
         () => MockClient((request) async => http.Response(response, 200)),
       );
+    });
+
+    test('startup generates a missing pubspec after loading and selecting the SDK', () async {
+      final api = MemoryWorkspaceResourceApi();
+      final response = gistResponse({
+        'main.dart': {
+          'filename': 'main.dart',
+          'content': "import 'package:flutter/material.dart';\nvoid main() {}",
+        },
+      });
+
+      await http.runWithClient(
+        () async {
+          final request = ProjectRequest.fromUri(Uri.parse('?gist=$gistId'));
+          final project = await request.source.loadProject();
+          expect(project.containsFile('pubspec.yaml'), isFalse);
+          final state = InitialProjectState.resolve(request, project, const [
+            SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.3'),
+            SdkInfo(
+              id: 'flutter',
+              name: 'Flutter',
+              path: 'flutter/',
+              dartVersion: '3.14.0 (build 3.14.0-201.0.dev)',
+              flutterVersion: '3.48.0',
+            ),
+          ]);
+          expect(state.sdk.isFlutter, isTrue);
+          expect(state.hasPubspec, isTrue);
+          await ProjectLoader.writeFiles(api.root, project);
+        },
+        () => MockClient((request) async => http.Response(response, 200)),
+      );
+
+      expect(await api.readFileAsText('pubspec.yaml'), contains('sdk: ^3.14.0-0'));
+      expect(await api.readFileAsText('pubspec.yaml'), contains('sdk: flutter'));
+      expect(await api.readFileAsText('pubspec.yaml'), contains('uses-material-design: true'));
     });
 
     test('loads a truncated file from its raw URL', () async {

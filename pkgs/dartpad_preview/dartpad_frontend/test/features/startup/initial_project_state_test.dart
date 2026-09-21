@@ -76,6 +76,92 @@ void main() {
   });
 
   group('InitialProjectState', () {
+    group('generated Gist pubspec', () {
+      const available = [
+        SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.3'),
+        SdkInfo(id: 'dart-dev', name: 'Dart dev', path: 'dart-dev/', dartVersion: '3.15.0-edge'),
+        SdkInfo(
+          id: 'flutter',
+          name: 'Flutter',
+          path: 'flutter/',
+          dartVersion: '3.14.0 (build 3.14.0-201.0.dev)',
+          flutterVersion: '3.48.0',
+        ),
+      ];
+
+      for (final (query, importsFlutter, sdkIndex, constraint) in [
+        ('?gist=abc', false, 0, '^3.13.3-0'),
+        ('?gist=abc', true, 2, '^3.14.0-0'),
+        ('?gist=abc&sdk=flutter:3.48.0', false, 2, '^3.14.0-0'),
+        ('?gist=abc&sdk=dart', true, 0, '^3.13.3-0'),
+        ('?gist=abc&sdk=dart:3.15.0-edge', false, 1, '^3.15.0-0'),
+      ]) {
+        test('uses selected SDK for $query, Flutter import=$importsFlutter', () {
+          final project = contents({
+            'lib/main.dart': '${importsFlutter ? "import 'package:flutter/material.dart';" : ""} void main() {}',
+          });
+          final state = InitialProjectState.resolve(ProjectRequest.fromUri(Uri.parse(query)), project, available);
+          expect(state.sdk, available[sdkIndex]);
+          expect(state.hasPubspec, isTrue);
+          expect(state.mode, available[sdkIndex].isFlutter ? RunMode.flutter : RunMode.console);
+          expect(utf8.decode(project.readFile('pubspec.yaml')!), contains('sdk: $constraint'));
+        });
+      }
+
+      test('preserves existing pubspecs byte for byte', () {
+        for (final pubspec in ['name: existing', 'name: existing\nenvironment:\n  sdk: ^3.10.0\n']) {
+          final project = contents({'pubspec.yaml': pubspec, 'lib/main.dart': 'void main() {}'});
+          InitialProjectState.resolve(ProjectRequest.fromUri(Uri.parse('?gist=abc')), project, available);
+          expect(utf8.decode(project.readFile('pubspec.yaml')!), pubspec);
+        }
+      });
+
+      test('opens the generated pubspec when explicitly requested', () {
+        final project = contents({'lib/main.dart': 'void main() {}'});
+        final state = InitialProjectState.resolve(
+          ProjectRequest.fromUri(Uri.parse('?gist=abc&file=pubspec.yaml')),
+          project,
+          available,
+        );
+        expect(state.files, ['pubspec.yaml']);
+        expect(state.entrypoint, 'lib/main.dart');
+        expect(state.hasPubspec, isTrue);
+        expect(utf8.decode(project.readFile('pubspec.yaml')!), contains('sdk: ^3.13.3-0'));
+      });
+
+      test('uses the nested package SDK when an entrypoint selects that package', () {
+        final project = contents({
+          'example/pubspec.yaml': 'name: example\ndependencies:\n  flutter:\n    sdk: flutter',
+          'example/lib/main.dart': 'void main() {}',
+        });
+        final state = InitialProjectState.resolve(
+          ProjectRequest.fromUri(Uri.parse('?gist=abc&entrypoint=example/lib/main.dart')),
+          project,
+          available,
+        );
+        expect(state.root, 'example');
+        expect(state.sdk, available.last);
+        expect(utf8.decode(project.readFile('pubspec.yaml')!), contains('sdk: ^3.14.0-0'));
+        expect(
+          utf8.decode(project.readFile('example/pubspec.yaml')!),
+          'name: example\ndependencies:\n  flutter:\n    sdk: flutter',
+        );
+      });
+
+      test('fails for an unavailable SDK without generating a pubspec', () {
+        final project = contents({'lib/main.dart': 'void main() {}'});
+        expect(
+          () => InitialProjectState.resolve(
+            ProjectRequest.fromUri(Uri.parse('?gist=abc&sdk=dart:1.0.0')),
+            project,
+            available,
+          ),
+          throwsFormatException,
+        );
+        expect(project.containsFile('pubspec.yaml'), isFalse);
+      });
+    });
+
     test('Flutter detection handles typed YAML mappings with heterogeneous values', () {
       const pubspec = <Object?, Object?>{
         42: 'non-string key',
