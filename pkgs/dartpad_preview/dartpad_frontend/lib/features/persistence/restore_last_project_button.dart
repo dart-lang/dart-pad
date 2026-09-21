@@ -4,75 +4,125 @@
 
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:web/web.dart' as web;
 
 import '../../app_styles.dart';
 
-/// A button with an animated countdown timer that offers restoring the last matching project before [expires].
-final class RestoreLastProjectButton extends StatefulComponent {
-  const RestoreLastProjectButton({required this.expires, required this.duration, required this.onRestore, super.key});
+/// A button that offers restoring the last matching project, with a distinct pill-shaped dismiss button.
+final class RestoreLastProjectButton extends StatelessComponent {
+  const RestoreLastProjectButton({
+    required this.onRestore,
+    required this.onCancel,
+    super.key,
+  });
 
-  final DateTime expires;
-  final Duration duration;
   final VoidCallback onRestore;
-
-  @override
-  State<RestoreLastProjectButton> createState() => _RestoreLastProjectButtonState();
-
-  @css
-  static List<StyleRule> get styles => [
-    css('.restore-last-project').styles(
-      position: const .relative(),
-      padding: .symmetric(horizontal: 10.px, vertical: 8.px),
-      border: .none,
-      radius: .circular(6.px),
-      overflow: .hidden,
-      cursor: .pointer,
-      color: colorOnPrimary,
-      fontSize: 13.px,
-      whiteSpace: .noWrap,
-      backgroundColor: colorPrimary,
-    ),
-    css('.restore-last-project-timer').styles(
-      position: .absolute(left: 0.px, right: 0.px, bottom: 0.px),
-      height: 2.px,
-      backgroundColor: colorOnPrimary,
-      raw: {
-        'transform-origin': 'left',
-        'animation': 'restore-offer-countdown var(--restore-remaining) linear forwards',
-      },
-    ),
-    css.keyframes('restore-offer-countdown', {
-      'from': const Styles(raw: {'transform': 'scaleX(var(--restore-fraction))'}),
-      'to': const Styles(raw: {'transform': 'scaleX(0)'}),
-    }),
-  ];
-}
-
-final class _RestoreLastProjectButtonState extends State<RestoreLastProjectButton> {
-  late final int _remaining;
-  late final double _fraction;
-
-  @override
-  void initState() {
-    super.initState();
-    _remaining = component.expires
-        .difference(DateTime.now())
-        .inMilliseconds
-        .clamp(0, component.duration.inMilliseconds);
-    _fraction = component.duration.inMilliseconds == 0 ? 0 : _remaining / component.duration.inMilliseconds;
-  }
+  final VoidCallback onCancel;
 
   @override
   Component build(BuildContext context) => button(
     classes: 'restore-last-project',
     attributes: {
+      'type': 'button',
       'title': 'Restore the most recent project opened with this link',
-      'style': '--restore-remaining: ${_remaining}ms; --restore-fraction: $_fraction;',
     },
-    onClick: component.onRestore,
+    onClick: onRestore,
+    events: {
+      'keydown': (event) {
+        final key = (event as web.KeyboardEvent).key;
+        if (key == 'Escape') {
+          event.preventDefault();
+          onCancel();
+        }
+      },
+    },
     [
-      const span([.text('Restore last project')]),
-      const span(classes: 'restore-last-project-timer', attributes: {'aria-hidden': 'true'}, []),
+      const span(classes: 'restore-last-project-label', [.text('Restore last project')]),
+      span(
+        classes: 'restore-last-project-dismiss restore-last-project-cancel',
+        attributes: {
+          'role': 'button',
+          'tabindex': '0',
+          'title': 'Dismiss',
+          'aria-label': 'Dismiss restore offer',
+        },
+        events: {
+          'click': (event) {
+            event.stopPropagation();
+            onCancel();
+          },
+          'keydown': (event) {
+            final key = (event as web.KeyboardEvent).key;
+            if (key == 'Enter' || key == ' ') {
+              event.preventDefault();
+              event.stopPropagation();
+              onCancel();
+            }
+          },
+        },
+        [
+          const span([.text('Dismiss')]),
+        ],
+      ),
     ],
   );
+
+  @css
+  static List<StyleRule> get styles => [
+    css('.restore-last-project').styles(
+      display: .inlineFlex,
+      position: const .relative(),
+      height: 32.px,
+      padding: .only(left: 12.px, right: 4.px),
+      boxSizing: .borderBox,
+      border: .none,
+      radius: .circular(8.px),
+      cursor: .pointer,
+      userSelect: .none,
+      alignItems: .center,
+      gap: Gap.all(10.px),
+      color: Colors.white,
+      fontSize: 13.px,
+      fontWeight: FontWeight.w500,
+      whiteSpace: .noWrap,
+      backgroundColor: colorPrimary,
+      raw: {
+        'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.15)',
+        'transition': 'background-color 0.15s ease, filter 0.15s ease',
+      },
+    ),
+    css('.restore-last-project:hover').styles(
+      raw: {'filter': 'brightness(1.08)'},
+    ),
+    css('.restore-last-project-label').styles(
+      display: .inlineBlock,
+      lineHeight: 1.em,
+    ),
+    css('.restore-last-project-dismiss').styles(
+      display: .inlineFlex,
+      height: 24.px,
+      padding: .symmetric(horizontal: 11.px),
+      margin: .zero,
+      boxSizing: .borderBox,
+      border: .all(color: const Color.rgba(255, 255, 255, 0.18), width: 1.px),
+      radius: .circular(999.px),
+      cursor: .pointer,
+      justifyContent: .center,
+      alignItems: .center,
+      color: Colors.white,
+      fontSize: 11.5.px,
+      fontWeight: FontWeight.w600,
+      raw: {
+        'background-color': 'rgba(15, 23, 42, 0.38)',
+        'box-shadow': 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
+        'transition': 'background-color 0.15s ease, border-color 0.15s ease',
+      },
+    ),
+    css('.restore-last-project-dismiss:hover').styles(
+      raw: {
+        'background-color': 'rgba(15, 23, 42, 0.65)',
+        'border-color': 'rgba(255, 255, 255, 0.35)',
+      },
+    ),
+  ];
 }

@@ -127,4 +127,13 @@ void main() {
     expect(store.closes, 1);
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'pending save');
   });
+
+  test('offerRestore sets offer and dismissRestoreOffer clears it without timer', () async {
+    controller.offerRestore('test-project');
+    expect(controller.restoreOffer, isNotNull);
+    expect(controller.restoreOffer!.projectId, 'test-project');
+
+    controller.dismissRestoreOffer();
+    expect(controller.restoreOffer, isNull);
+  });
 }

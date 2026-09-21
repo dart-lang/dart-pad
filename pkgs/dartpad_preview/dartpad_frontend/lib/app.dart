@@ -62,7 +62,6 @@ final class App extends StatefulComponent {
   const App({
     this.initialUri,
     this.projectStore,
-    this.restoreOfferDuration = const Duration(seconds: 30),
     this.loadSource = _loadProjectSource,
     this.createRepository = WorkspaceRepository.create,
     super.key,
@@ -70,7 +69,6 @@ final class App extends StatefulComponent {
 
   final Uri? initialUri;
   final ProjectStore? projectStore;
-  final Duration restoreOfferDuration;
   final Future<Project> Function(ProjectSource source) loadSource;
   final WorkspaceRepository Function({
     required AppEventBus events,
@@ -145,7 +143,6 @@ final class _AppState extends State<App> {
     _persistence = ProjectPersistenceController(
       enabled: !_isEmbedMode,
       store: component.projectStore,
-      restoreOfferDuration: component.restoreOfferDuration,
       restoreProject: (id) => _loadProject(_projectUri, restoreProjectId: id),
     )..addListener(_onPersistenceChanged);
     _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
@@ -619,9 +616,8 @@ final class _AppState extends State<App> {
         ? null
         : RestoreLastProjectButton(
             key: ValueKey(offer.projectId),
-            expires: offer.expires,
-            duration: offer.duration,
             onRestore: () => unawaited(_persistence.restoreLastProject()),
+            onCancel: () => _persistence.dismissRestoreOffer(),
           );
   }
 

@@ -17,11 +17,9 @@ final class PersistenceLoadStrategy {
 
 /// A matching history entry that can still be restored from the toolbar.
 final class ProjectRestoreOffer {
-  const ProjectRestoreOffer({required this.projectId, required this.expires, required this.duration});
+  const ProjectRestoreOffer({required this.projectId});
 
   final String projectId;
-  final DateTime expires;
-  final Duration duration;
 }
 
 /// Persistence outcomes rendered by the UI; contains no presentation text.

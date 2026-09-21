@@ -40,12 +40,10 @@ void main() {
   App app(
     String query, {
     Future<Project> Function()? load,
-    Duration offerDuration = const Duration(seconds: 30),
     WorkspaceResourceApi Function(WorkspaceResourceApi)? wrapWorkspace,
   }) => App(
     initialUri: Uri.parse(query),
     projectStore: store,
-    restoreOfferDuration: offerDuration,
     loadSource: (_) async {
       sourceLoads++;
       return load != null ? await load() : testProjectContents({'lib/main.dart': 'void main() { print("fresh"); }'});
@@ -84,9 +82,10 @@ void main() {
     expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isFalse);
     expect(web.document.querySelector('.cm-content')!.textContent, contains('fresh'));
     final restore = web.document.querySelector('.app-bar-left .restore-last-project')!;
-    expect(restore.textContent, 'Restore last project');
-    expect(restore.querySelector('.restore-last-project-timer'), isNotNull);
-    expect(restore.getAttribute('style'), contains('--restore-remaining:'));
+    expect(restore.textContent, contains('Restore last project'));
+    expect(restore.querySelector('.restore-last-project-timer'), isNull);
+    expect(restore.querySelector('.restore-last-project-cancel'), isNotNull);
+    expect(restore.querySelector('.restore-last-project-dismiss')!.textContent, 'Dismiss');
 
     final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
     await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited fresh project');
@@ -213,11 +212,21 @@ void main() {
     expect(records.where((record) => identical(record.error, failure)).single.message, 'App cleanup failed.');
   });
 
-  testClient('restore offer expires without replacing previous work', (tester) async {
-    tester.pumpComponent(app('?sample=counter', offerDuration: const Duration(milliseconds: 100)));
+  testClient('restore offer does not expire with time', (tester) async {
+    tester.pumpComponent(app('?sample=counter'));
     await pumpEventQueue();
     expect(web.document.querySelector('.restore-last-project'), isNotNull);
     await Future<void>.delayed(const Duration(milliseconds: 150));
+    expect(web.document.querySelector('.restore-last-project'), isNotNull);
+  });
+
+  testClient('canceling restore offer dismisses button without replacing previous work', (tester) async {
+    tester.pumpComponent(app('?sample=counter'));
+    await pumpEventQueue();
+    expect(web.document.querySelector('.restore-last-project'), isNotNull);
+    final cancel = web.document.querySelector('.restore-last-project-cancel')! as web.HTMLElement;
+    cancel.click();
+    await pumpEventQueue();
     expect(web.document.querySelector('.restore-last-project'), isNull);
     expect(web.document.querySelector('.cm-content')!.textContent, contains('fresh'));
     expect(String.fromCharCodes(store.entries['saved']!.state.files['lib/main.dart']!), contains('previous work'));

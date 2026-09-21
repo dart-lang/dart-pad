@@ -25,7 +25,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
     required bool enabled,
     required this._restoreProject,
     ProjectStore? store,
-    this.restoreOfferDuration = const Duration(seconds: 30),
   }) : _store = enabled ? store ?? IndexedDbProjectStore() : null,
        _available = enabled {
     if (!enabled) {
@@ -36,8 +35,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
         .listen((_) {
           if (web.document.visibilityState == 'hidden') {
             unawaited(_autosave?.flush());
-          } else {
-            _expireRestoreOffer();
           }
         });
     _pageHideSubscription = web.EventStreamProviders.pageHideEvent.forTarget(web.window).listen((_) {
@@ -47,7 +44,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
 
   final ProjectStore? _store;
   final Future<void> Function(String projectId) _restoreProject;
-  final Duration restoreOfferDuration;
 
   bool _available;
   bool _disposed = false;
@@ -63,7 +59,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
 
   ProjectRestoreOffer? _restoreOffer;
   ProjectRestoreOffer? get restoreOffer => _restoreOffer;
-  Timer? _restoreOfferTimer;
   StreamSubscription<web.Event>? _visibilitySubscription;
   StreamSubscription<web.Event>? _pageHideSubscription;
 
@@ -172,36 +167,25 @@ final class ProjectPersistenceController extends ChangeNotifier {
       return;
     }
     _clearRestoreOffer();
-    _restoreOffer = ProjectRestoreOffer(
-      projectId: projectId,
-      expires: DateTime.now().add(restoreOfferDuration),
-      duration: restoreOfferDuration,
-    );
-    _restoreOfferTimer = Timer(restoreOfferDuration, () {
-      _clearRestoreOffer();
-      _notify();
-    });
+    _restoreOffer = ProjectRestoreOffer(projectId: projectId);
+    _notify();
+  }
+
+  void dismissRestoreOffer() {
+    if (_disposed || _restoreOffer == null) {
+      return;
+    }
+    _clearRestoreOffer();
     _notify();
   }
 
   Future<void> restoreLastProject() async {
-    _expireRestoreOffer();
     if (_restoreOffer case final offer?) {
       await _restoreProject(offer.projectId);
     }
   }
 
-  void _expireRestoreOffer() {
-    final offer = _restoreOffer;
-    if (offer != null && !DateTime.now().isBefore(offer.expires)) {
-      _clearRestoreOffer();
-      _notify();
-    }
-  }
-
   void _clearRestoreOffer() {
-    _restoreOfferTimer?.cancel();
-    _restoreOfferTimer = null;
     _restoreOffer = null;
   }
 
