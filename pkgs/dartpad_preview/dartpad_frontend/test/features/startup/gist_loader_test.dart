@@ -9,13 +9,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
-import 'package:dartpad_frontend/features/startup/gist_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('GistLoader', () {
+  group('GistProjectSource', () {
     const gistId = 'aa5a315d61ae9438b18d';
     const gistUrl = 'https://api.github.com/gists/$gistId';
 
@@ -26,9 +27,9 @@ void main() {
       return jsonEncode({'truncated': truncated, 'files': files});
     }
 
-    test('moves flat Dart files into lib and finds a project root and entrypoint', () async {
+    test('moves flat Dart files into lib and preserves other files', () async {
       final api = MemoryWorkspaceResourceApi();
-      const loader = GistLoader(gistId: gistId);
+      const source = GistProjectSource(gistId);
       final response = gistResponse({
         'pubspec.yaml': {'filename': 'pubspec.yaml', 'content': 'name: gist_project'},
         'main.dart': {'filename': 'main.dart', 'content': "import 'helper.dart'; void main() {}"},
@@ -38,10 +39,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await loader.loadGist(api.root);
-          expect(result.projectDir, '');
-          expect(result.entryPath, 'lib/main.dart');
-          expect(result.packageRoot, '');
+          await loadInto(source, api.root);
         },
         () => MockClient((request) async {
           expect(request.url.toString(), gistUrl);
@@ -58,40 +56,7 @@ void main() {
       expect(await api.readFileAsText('README.md'), '# Gist');
     });
 
-    test('uses the configured entrypoint fallbacks', () async {
-      final testCases = <({Map<String, String> files, String? entryPath})>[
-        (
-          files: {'main.dart': 'void main() {}'},
-          entryPath: 'lib/main.dart',
-        ),
-        (files: {'lib/main.dart': 'void main() {}'}, entryPath: 'lib/main.dart'),
-        (files: {'example.dart': 'void main() {}'}, entryPath: 'lib/example.dart'),
-        (files: {'README.md': '# Read me'}, entryPath: 'README.md'),
-        (files: {'notes.txt': 'No entrypoint'}, entryPath: null),
-      ];
-
-      for (final testCase in testCases) {
-        final files = testCase.files.map(
-          (name, content) => MapEntry(
-            name,
-            <String, Object?>{'filename': name, 'content': content},
-          ),
-        );
-        final api = MemoryWorkspaceResourceApi();
-
-        await http.runWithClient(
-          () async {
-            final result = await const GistLoader(gistId: gistId).loadGist(api.root);
-            expect(result.entryPath, testCase.entryPath);
-            expect(result.projectDir, '');
-            expect(result.packageRoot, isNull);
-          },
-          () => MockClient((request) async => http.Response(gistResponse(files), 200)),
-        );
-      }
-    });
-
-    test('finds the nearest pubspec directory of the selected entrypoint', () async {
+    test('preserves nested package files', () async {
       final api = MemoryWorkspaceResourceApi();
       final response = gistResponse({
         'packages/demo/pubspec.yaml': {'filename': 'packages/demo/pubspec.yaml', 'content': 'name: demo'},
@@ -103,10 +68,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
-          expect(result.projectDir, 'packages/demo');
-          expect(result.entryPath, 'packages/demo/lib/main.dart');
-          expect(result.packageRoot, 'packages/demo');
+          await loadInto(const GistProjectSource(gistId), api.root);
         },
         () => MockClient((request) async => http.Response(response, 200)),
       );
@@ -126,8 +88,7 @@ void main() {
 
       await http.runWithClient(
         () async {
-          final result = await const GistLoader(gistId: gistId).loadGist(api.root);
-          expect(result.entryPath, 'lib/main.dart');
+          await loadInto(const GistProjectSource(gistId), api.root);
         },
         () => MockClient((request) async {
           if (request.url.toString() == gistUrl) {
@@ -155,7 +116,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            const GistLoader(gistId: gistId).loadGist(api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsException,
           );
         },
@@ -179,7 +140,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            const GistLoader(gistId: gistId).loadGist(api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsArgumentError,
           );
         },
@@ -194,7 +155,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            const GistLoader(gistId: gistId).loadGist(api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsFormatException,
           );
         },
@@ -209,7 +170,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            const GistLoader(gistId: gistId).loadGist(api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsException,
           );
         },
@@ -219,7 +180,7 @@ void main() {
       await http.runWithClient(
         () async {
           await expectLater(
-            const GistLoader(gistId: gistId).loadGist(api.root),
+            loadInto(const GistProjectSource(gistId), api.root),
             throwsFormatException,
           );
         },
@@ -227,4 +188,8 @@ void main() {
       );
     });
   });
+}
+
+Future<void> loadInto(GistProjectSource source, WorkspaceFolder root) async {
+  await ProjectLoader.writeFiles(root, await source.loadProject());
 }

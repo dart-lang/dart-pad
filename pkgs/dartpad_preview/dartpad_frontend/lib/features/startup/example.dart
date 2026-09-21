@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Metadata for a packaged example project.
-class Example {
+final class Example {
   /// The display name of the example.
   final String name;
 
@@ -19,16 +19,12 @@ class Example {
   /// The path to the packaged archive containing the example project.
   final String archivePath;
 
-  /// The relative path to the main entry file within the example project.
-  final String entryPath;
-
   const Example({
     required this.name,
     required this.id,
     this.subcategory,
     this.icon,
     required this.archivePath,
-    required this.entryPath,
   });
 
   @override

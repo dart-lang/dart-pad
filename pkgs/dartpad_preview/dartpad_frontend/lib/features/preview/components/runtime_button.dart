@@ -23,19 +23,15 @@ final class RuntimeButton extends StatelessComponent {
     super.key,
   });
 
-  /// Factory constructor for a 'Run' button that runs the [activeFile]
-  /// or falls back to 'lib/main.dart' if no active file is present.
+  /// Runs the explicitly selected project entrypoint.
   factory RuntimeButton.run({
     required PreviewViewModel previewViewModel,
-    required String activeFile,
   }) {
     return RuntimeButton(
       title: 'Run',
       icon: 'play_arrow',
       isEnabled: previewViewModel.canStart,
-      onClick: () => previewViewModel.runCode(
-        activeFile.isNotEmpty ? activeFile : 'lib/main.dart',
-      ),
+      onClick: previewViewModel.runCurrent,
     );
   }
 
