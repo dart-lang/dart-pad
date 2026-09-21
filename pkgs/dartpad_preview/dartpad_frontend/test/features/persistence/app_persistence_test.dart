@@ -82,10 +82,12 @@ void main() {
     expect(web.document.querySelector('.app-shell')!.hasAttribute('inert'), isFalse);
     expect(web.document.querySelector('.cm-content')!.textContent, contains('fresh'));
     final restore = web.document.querySelector('.app-bar-left .restore-last-project')!;
-    expect(restore.textContent, contains('Restore last project'));
+    expect(restore.textContent, contains('Restore project'));
     expect(restore.querySelector('.restore-last-project-timer'), isNull);
     expect(restore.querySelector('.restore-last-project-cancel'), isNotNull);
-    expect(restore.querySelector('.restore-last-project-dismiss')!.textContent, 'Dismiss');
+    final dismiss = restore.querySelector('.restore-last-project-dismiss')!;
+    expect(dismiss.getAttribute('title'), 'Dismiss');
+    expect(dismiss.textContent, 'close');
 
     final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
     await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited fresh project');
@@ -124,8 +126,8 @@ void main() {
     // Blur uses this same callback; the normal save is still pending when clicked.
     tab.onSaveAll();
     await workspaces.single.writeStarted.future;
-    final restore = web.document.querySelector('.restore-last-project')! as web.HTMLElement;
-    restore.click();
+    final restore = web.document.querySelector('.restore-last-project')!;
+    (restore as web.HTMLElement).click();
     try {
       await pumpEventQueue();
       expect(repositories, hasLength(1));

@@ -7,8 +7,9 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../app_styles.dart';
+import '../shared/icons.dart';
 
-/// A button that offers restoring the last matching project, with a distinct pill-shaped dismiss button.
+/// A button that offers restoring the last matching project, with a distinct circular dismiss button.
 final class RestoreLastProjectButton extends StatelessComponent {
   const RestoreLastProjectButton({
     required this.onRestore,
@@ -37,7 +38,7 @@ final class RestoreLastProjectButton extends StatelessComponent {
       },
     },
     [
-      const span(classes: 'restore-last-project-label', [.text('Restore last project')]),
+      const span(classes: 'restore-last-project-label', [.text('Restore project')]),
       span(
         classes: 'restore-last-project-dismiss restore-last-project-cancel',
         attributes: {
@@ -61,7 +62,7 @@ final class RestoreLastProjectButton extends StatelessComponent {
           },
         },
         [
-          const span([.text('Dismiss')]),
+          const Icon('close', size: 14),
         ],
       ),
     ],
@@ -73,14 +74,14 @@ final class RestoreLastProjectButton extends StatelessComponent {
       display: .inlineFlex,
       position: const .relative(),
       height: 32.px,
-      padding: .only(left: 12.px, right: 4.px),
+      padding: .only(left: 12.px, right: 6.px),
       boxSizing: .borderBox,
       border: .none,
       radius: .circular(8.px),
       cursor: .pointer,
       userSelect: .none,
       alignItems: .center,
-      gap: Gap.all(10.px),
+      gap: Gap.all(8.px),
       color: Colors.white,
       fontSize: 13.px,
       fontWeight: FontWeight.w500,
@@ -100,19 +101,20 @@ final class RestoreLastProjectButton extends StatelessComponent {
     ),
     css('.restore-last-project-dismiss').styles(
       display: .inlineFlex,
-      height: 24.px,
-      padding: .symmetric(horizontal: 11.px),
+      width: 20.px,
+      height: 20.px,
+      padding: .zero,
       margin: .zero,
       boxSizing: .borderBox,
-      border: .all(color: const Color.rgba(255, 255, 255, 0.18), width: 1.px),
+      border: .all(color: const Color.rgba(255, 255, 255, 0.2), width: 1.px),
       radius: .circular(999.px),
       cursor: .pointer,
       justifyContent: .center,
       alignItems: .center,
+      flex: const .shrink(0),
       color: Colors.white,
-      fontSize: 11.5.px,
-      fontWeight: FontWeight.w600,
       raw: {
+        'line-height': '1',
         'background-color': 'rgba(15, 23, 42, 0.38)',
         'box-shadow': 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
         'transition': 'background-color 0.15s ease, border-color 0.15s ease',
@@ -121,7 +123,7 @@ final class RestoreLastProjectButton extends StatelessComponent {
     css('.restore-last-project-dismiss:hover').styles(
       raw: {
         'background-color': 'rgba(15, 23, 42, 0.65)',
-        'border-color': 'rgba(255, 255, 255, 0.35)',
+        'border-color': 'rgba(255, 255, 255, 0.4)',
       },
     ),
   ];

@@ -132,5 +132,5 @@ final class PersistedProjectState {
   }
 }
 
-/// Generated files can be rebuilt; user assets and lockfiles are retained.
-bool isPersistentProjectPath(String path) => !path.split('/').any((part) => part == '.dart_tool' || part == 'build');
+/// Excludes `.dart_tool/` metadata because Pub regenerates it.
+bool isPersistentProjectPath(String path) => !path.split('/').contains('.dart_tool');

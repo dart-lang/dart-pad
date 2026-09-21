@@ -147,13 +147,10 @@ void main() {
     await api.createFolder('assets');
     await api.writeFileFromBytes('assets/image.bin', Uint8List.fromList([0, 255, 128]));
     await api.deleteFileSystemEntity('lib/main.dart');
-    await remote.createFolder('build');
-    await remote.writeFileFromText('build/output.js', 'generated');
     await pumpEventQueue();
     await controller.flush();
     expect(store.state!.files['assets/image.bin'], [0, 255, 128]);
     expect(store.state!.files, isNot(contains('lib/main.dart')));
-    expect(store.state!.files, isNot(contains('build/output.js')));
   });
 
   test('stop flushes saved workspace changes before their notifications arrive', () async {

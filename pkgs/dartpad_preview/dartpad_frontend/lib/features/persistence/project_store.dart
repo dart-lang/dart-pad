@@ -8,6 +8,7 @@ import 'persisted_project_state.dart';
 final class StoredProject {
   const StoredProject({required this.id, required this.updatedAt, required this.state});
 
+  /// Opaque local identifier for this history entry, stable across updates.
   final String id;
   final int updatedAt;
   final PersistedProjectState state;
