@@ -255,6 +255,7 @@ void main() {
       final buttons = web.document.querySelectorAll('.context-menu-item');
       final firstEnabledButton = buttons.item(1) as web.HTMLButtonElement;
 
+      await _waitForFocus(firstEnabledButton);
       expect(web.document.activeElement, equals(firstEnabledButton));
     });
 
@@ -348,7 +349,11 @@ void main() {
 
       await pumpEventQueue();
 
+      final buttons = web.document.querySelectorAll('.context-menu-item');
+      final item1 = buttons.item(0) as web.HTMLButtonElement;
+
       // Item 1 is focused by default -> trigger with Enter
+      await _waitForFocus(item1);
       web.document.dispatchEvent(
         web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
       );
@@ -357,7 +362,6 @@ void main() {
       expect(closedCount, 1);
 
       // Move focus to Item 2 -> trigger with Space
-      final buttons = web.document.querySelectorAll('.context-menu-item');
       final item2 = buttons.item(1) as web.HTMLButtonElement;
       item2.focus();
 
@@ -553,6 +557,18 @@ void main() {
 }
 
 void _noop() {}
+
+Future<void> _waitForFocus(web.HTMLElement element) async {
+  // Focus is scheduled after mount and can land after pumpEventQueue under CI load.
+  if (web.document.activeElement == element) {
+    return;
+  }
+  try {
+    await web.EventStreamProviders.focusEvent.forTarget(element).first.timeout(const Duration(seconds: 5));
+  } on TimeoutException {
+    // Let the caller's expectation report the active element.
+  }
+}
 
 class _FakeEditorTab extends EditorTab<Component> {
   _FakeEditorTab(super.path);
