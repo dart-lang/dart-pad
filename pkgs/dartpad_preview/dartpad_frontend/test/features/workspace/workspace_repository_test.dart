@@ -484,41 +484,25 @@ void main() {
     });
   });
 
-  group('convertToPackageUri', () {
-    test('reads package_config.json from the worker before it is mirrored locally', () async {
-      final localApi = MemoryWorkspaceResourceApi();
-      final remoteApi = MemoryWorkspaceResourceApi();
-      await remoteApi.root.getFile('example/.dart_tool/package_config.json').writeContent('''
-      {
-        "configVersion": 2,
-        "packages": [
-          {
-            "name": "provider_example",
-            "rootUri": "../",
-            "packageUri": "lib/",
-            "languageVersion": "3.0"
-          }
-        ]
-      }
-      ''');
-      final syncedApi = SyncedWorkspaceResourceApi(
-        localApi: localApi,
-        remoteApi: Future.value(remoteApi),
-      );
-      await syncedApi.apiReady;
-      final repository = WorkspaceRepository(
-        events: AppEventBus(),
-        taskStatus: TaskStatusController(),
-        workspaceResourceApi: syncedApi,
-        sdk: defaultSdk,
-        workspaceFuture: Completer<Workspace>().future,
-      );
-
-      expect(await localApi.fileExist('example/.dart_tool/package_config.json'), isFalse);
-      expect(
-        await repository.convertToPackageUri('example/lib/main.dart'),
-        Uri.parse('package:provider_example/main.dart'),
-      );
-    });
+  test('flush propagates pending local writes to the worker', () async {
+    final local = MemoryWorkspaceResourceApi();
+    final remote = MemoryWorkspaceResourceApi();
+    final api = SyncedWorkspaceResourceApi(localApi: local, remoteApi: Future.value(remote));
+    await api.apiReady;
+    final events = AppEventBus();
+    final tasks = TaskStatusController();
+    final repository = WorkspaceRepository(
+      events: events,
+      taskStatus: tasks,
+      workspaceResourceApi: api,
+      sdk: defaultSdk,
+      workspaceFuture: Completer<Workspace>().future,
+    );
+    await api.writeFileFromText('main.dart', 'void main() {}');
+    await repository.flush();
+    expect(await remote.readFileAsText('main.dart'), 'void main() {}');
+    await api.dispose();
+    tasks.dispose();
+    await events.dispose();
   });
 }
