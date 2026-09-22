@@ -67,7 +67,7 @@ void main() {
   });
   tearDown(() async {
     await controller.stop();
-    await session.dispose(closeWorker: false);
+    await session.dispose();
     expect(errors, isEmpty);
   });
 

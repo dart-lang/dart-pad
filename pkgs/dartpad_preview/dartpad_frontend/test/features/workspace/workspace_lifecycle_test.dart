@@ -5,8 +5,6 @@
 @TestOn('browser')
 library;
 
-import 'dart:async';
-
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_lifecycle.dart';
 import 'package:jaspr/dom.dart';
@@ -15,29 +13,6 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  test('workspace remains initializing until workspace and entry file are ready', () async {
-    final workspaceReady = Completer<String>();
-    final entryFileReady = Completer<String>();
-    var usable = false;
-
-    final resultFuture = waitForWorkspaceUsable(
-      workspaceReady: workspaceReady.future,
-      projectReady: entryFileReady.future,
-    );
-    unawaited(resultFuture.then((_) => usable = true));
-
-    workspaceReady.complete('workspace');
-    await pumpEventQueue();
-    expect(usable, isFalse);
-
-    entryFileReady.complete('lib/main.dart');
-    expect(await resultFuture, (
-      workspace: 'workspace',
-      project: 'lib/main.dart',
-    ));
-    expect(usable, isTrue);
-  });
-
   testClient('unmounts the keyed subtree before disposing its session', (
     tester,
   ) async {
@@ -47,7 +22,7 @@ void main() {
     (web.document.querySelector('button')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(operations, ['unmount:0', 'dispose:0', 'create:1']);
+    expect(operations, ['create:1', 'unmount:0', 'dispose:0']);
   });
 
   testClient('unmounts SplitPanel subtree when GlobalStateKey is refreshed on reset', (
@@ -59,7 +34,7 @@ void main() {
     (web.document.querySelector('button')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(operations, ['unmount:0', 'dispose:0', 'create:1']);
+    expect(operations, ['create:1', 'unmount:0', 'dispose:0']);
   });
 }
 
@@ -77,18 +52,12 @@ final class _ResetHarnessState extends State<_ResetHarness> {
 
   void reset() {
     final oldGeneration = generation;
-    final previousWorkspaceDisposed = Completer<void>();
-    unawaited(
-      previousWorkspaceDisposed.future.then((_) {
-        component.operations.add('create:${oldGeneration + 1}');
-      }),
-    );
+    component.operations.add('create:${oldGeneration + 1}');
     setState(() {
       generation++;
     });
     disposeAfterWorkspaceUnmount(context, () async {
       component.operations.add('dispose:$oldGeneration');
-      previousWorkspaceDisposed.complete();
     });
   }
 
@@ -145,19 +114,13 @@ final class _SplitPanelResetHarnessState extends State<_SplitPanelResetHarness> 
 
   void reset() {
     final oldGeneration = generation;
-    final previousWorkspaceDisposed = Completer<void>();
-    unawaited(
-      previousWorkspaceDisposed.future.then((_) {
-        component.operations.add('create:${oldGeneration + 1}');
-      }),
-    );
+    component.operations.add('create:${oldGeneration + 1}');
     setState(() {
       generation++;
       previewSplitKey = GlobalStateKey<SplitPanelState>();
     });
     disposeAfterWorkspaceUnmount(context, () async {
       component.operations.add('dispose:$oldGeneration');
-      previousWorkspaceDisposed.complete();
     });
   }
 

@@ -78,22 +78,6 @@ final class _Workspace implements WorkspaceResourceApi {
   Future<void> writeFileFromText(String uri, String content) => _delegate.writeFileFromText(uri, content);
 }
 
-final class _WorkspaceRepository extends WorkspaceRepository {
-  _WorkspaceRepository({
-    required super.events,
-    required super.taskStatus,
-    required super.workspaceResourceApi,
-    required super.sdk,
-    required super.workspaceFuture,
-    required this.systemFiles,
-  });
-
-  final Map<Uri, String> systemFiles;
-
-  @override
-  Future<String> readSystemFile(Uri uri) async => systemFiles[uri]!;
-}
-
 void main() {
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
@@ -120,8 +104,8 @@ void main() {
     expect(session.events, same(events));
     expect(session.taskStatus, same(repository.taskStatus));
 
-    await session.dispose(closeWorker: false);
-    await session.dispose(closeWorker: false);
+    await session.dispose();
+    await session.dispose();
 
     expect(workspace.disposeCount, 1);
     expect(
@@ -154,7 +138,7 @@ void main() {
     session.runOrHotReload();
     expect(session.preview.state, isA<PreviewStarting>());
 
-    await session.dispose(closeWorker: false);
+    await session.dispose();
   });
 
   test('initial tabs open in order and tab changes leave the entrypoint and initial metadata intact', () async {
@@ -195,7 +179,7 @@ void main() {
       expect(session.initialProject, same(initial));
       expect(initial.files, ['README.md', 'lib/main.dart']);
     } finally {
-      await session.dispose(closeWorker: false);
+      await session.dispose();
     }
   });
 
@@ -216,13 +200,13 @@ void main() {
       final api = _Workspace();
       await ProjectLoader.writeFiles(api.root, contents);
       final systemUri = Uri.parse('file:///pub-cache/demo/main.dart');
-      _WorkspaceRepository repository(WorkspaceResourceApi api, {required bool dart}) => _WorkspaceRepository(
+      WorkspaceRepository repository(WorkspaceResourceApi api, {required bool dart}) => WorkspaceRepository(
         events: AppEventBus(),
         taskStatus: TaskStatusController(),
         workspaceResourceApi: api,
         sdk: dart ? availableSdks.firstWhere((sdk) => !sdk.isFlutter) : initial.sdk,
         workspaceFuture: Completer<Workspace>().future,
-        systemFiles: {systemUri: 'void main() {}'},
+        customReadSystemFile: (uri) async => uri == systemUri ? 'void main() {}' : '',
       );
       final old = WorkspaceSession.create(
         repository(api, dart: false),
@@ -237,7 +221,7 @@ void main() {
       await api.writeFileFromText('lib/main.dart', 'void main() { print(42); }');
       await api.deleteFileSystemEntity('pubspec.yaml');
       final copy = await old.repository.copyFiles();
-      await old.dispose(closeWorker: false);
+      await old.dispose();
       final next = WorkspaceSession.create(
         repository(copy, dart: true),
         initialProject: initial,
@@ -267,7 +251,7 @@ void main() {
         expect(next.tabs.activeFile, systemUri.toString());
         expect(next.tabs.openTabs.map((tab) => tab.path), ['README.md', systemUri.toString()]);
       } finally {
-        await next.dispose(closeWorker: false);
+        await next.dispose();
       }
     },
   );
@@ -308,7 +292,7 @@ void main() {
       expect(await api.fileExist('example/tool/start.dart'), isFalse);
       expect(await api.fileExist('example/tool/other.dart'), isTrue);
     } finally {
-      await session.dispose(closeWorker: false);
+      await session.dispose();
     }
   });
   test('document actions stay available and are no-ops for system tabs', () async {
@@ -319,13 +303,13 @@ void main() {
     final session = WorkspaceSession.create(
       initialProject: testProject(),
       initialMode: RunMode.flutter,
-      _WorkspaceRepository(
+      WorkspaceRepository(
         events: AppEventBus(),
         taskStatus: TaskStatusController(),
         workspaceResourceApi: workspace,
         sdk: defaultSdk,
         workspaceFuture: Completer<Workspace>().future,
-        systemFiles: {uri: 'void main() {}'},
+        customReadSystemFile: (u) async => u == uri ? 'void main() {}' : '',
       ),
     );
     final context = CommandContext(session: session);
@@ -348,7 +332,7 @@ void main() {
       expect(await workspace.fileExist(uri.toString()), isFalse);
       await session.tabs.openWorkspaceFile('pubspec.yaml');
     } finally {
-      await session.dispose(closeWorker: false);
+      await session.dispose();
     }
   });
 }

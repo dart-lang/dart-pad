@@ -14,8 +14,8 @@ import '../../shared/task_status.dart';
 import '../../startup/project_loader.dart';
 import 'synced_workspace_resource_api.dart';
 
-/// Owns project files and the worker workspace lifecycle.
-base class WorkspaceRepository {
+/// Owns project files and their dedicated worker's lifecycle.
+final class WorkspaceRepository {
   WorkspaceRepository({
     required this.events,
     required this.taskStatus,
@@ -23,8 +23,15 @@ base class WorkspaceRepository {
     required this.sdk,
     required Future<Workspace> workspaceFuture,
     Future<Workspace>? readyWorkspaceFuture,
+    this.dartpad,
+    this.onFlush,
+    this.customReadSystemFile,
   }) : _workspaceFuture = workspaceFuture,
-       _readyWorkspaceFuture = readyWorkspaceFuture ?? workspaceFuture;
+       _readyWorkspaceFuture = readyWorkspaceFuture ?? workspaceFuture {
+    // Startup may fail while callers are still opening tabs or saving files.
+    // Handle errors immediately; later awaits still receive the original error.
+    _readyWorkspaceFuture.ignore();
+  }
 
   /// Shared event bus for lifecycle and diagnostic logging.
   final AppEventBus events;
@@ -34,10 +41,23 @@ base class WorkspaceRepository {
   final Future<Workspace> _workspaceFuture;
   final Future<Workspace> _readyWorkspaceFuture;
 
-  DartPad? _dartpad;
+  /// Optional system file reader override, used for tests.
+  final Future<String> Function(Uri uri)? customReadSystemFile;
+
+  /// Callback override for [flush] during testing.
+  Future<void> Function()? onFlush;
 
   /// The DartPad runtime instance that owns the WASM worker.
-  DartPad? get dartpad => _dartpad;
+  DartPad? dartpad;
+  bool _isClosed = false;
+  Future<void>? _closeFuture;
+  int _closeCount = 0;
+
+  /// Whether [close] has been initiated.
+  bool get isClosed => _isClosed;
+
+  /// The number of times [close] was called.
+  int get closeCount => _closeCount;
 
   WorkspaceFolder get root => workspaceResourceApi.root;
 
@@ -54,15 +74,22 @@ base class WorkspaceRepository {
   /// [workspaceResourceApi] so they do not participate in local workspace
   /// synchronization or editing.
   Future<String> readSystemFile(Uri uri) async {
+    final customReader = customReadSystemFile;
+    if (customReader != null) {
+      return customReader(uri);
+    }
     final workspace = await readyWorkspace;
     return workspace.readFileAsText(uri.toString());
   }
 
+  /// Starts a dedicated worker and synchronizes [localApi] into its workspace.
+  /// [createWorker] can supply controlled worker startup for lifecycle tests.
   factory WorkspaceRepository.create({
     required AppEventBus events,
     required SdkInfo sdk,
     required TaskStatusController taskStatus,
     WorkspaceResourceApi? localApi,
+    Future<DartPad> Function()? createWorker,
   }) {
     late final WorkspaceRepository repository;
 
@@ -71,8 +98,14 @@ base class WorkspaceRepository {
       return await taskStatus.runTask(
         TaskKind.initializingDartPadWorker,
         () async {
-          final dartpad = await dartpadSdk.dedicatedWorker();
-          repository._dartpad = dartpad;
+          final dartpad = await (createWorker?.call() ?? dartpadSdk.dedicatedWorker());
+          // Closing must not wait for startup, but a late worker still belongs
+          // to this repository and must never outlive it.
+          if (repository._isClosed) {
+            await dartpad.dispose();
+            throw StateError('Workspace repository closed during worker initialization.');
+          }
+          repository.dartpad = dartpad;
           return await dartpad.createWorkspace();
         },
         blocksPreview: true,
@@ -205,65 +238,19 @@ base class WorkspaceRepository {
     }
   }
 
-  Future<void> close() async {
+  /// Closes this workspace and its worker once, including a worker still starting.
+  Future<void> close() {
+    _closeCount++;
+    return _closeFuture ??= _close();
+  }
+
+  Future<void> _close() async {
+    _isClosed = true;
     try {
       await workspaceResourceApi.dispose();
     } finally {
       await dartpad?.dispose();
     }
-  }
-
-  /// Disposes the current workspace API **without** terminating the worker.
-  ///
-  /// During a reset, complete the [resetAndCreate] disposal barrier only after
-  /// this cleanup finishes.
-  Future<void> closeWorkspaceOnly() => workspaceResourceApi.dispose();
-
-  /// Creates a fresh [WorkspaceRepository] reusing the existing DartPad
-  /// [worker].
-  ///
-  /// The caller remains responsible for disposing the previous repository via
-  /// [closeWorkspaceOnly] once its UI subtree has unmounted. The worker is
-  /// shared with the new repository (exposed through [dartpad]), but the new
-  /// worker workspace is not created until [previousWorkspaceDisposed]
-  /// completes. Readiness is exposed through [readyWorkspace].
-  static WorkspaceRepository resetAndCreate({
-    required AppEventBus events,
-    required DartPad worker,
-    required SdkInfo sdk,
-    required TaskStatusController taskStatus,
-    required Future<void> previousWorkspaceDisposed,
-    WorkspaceResourceApi? localApi,
-  }) {
-    final workspaceFuture = (() async {
-      await previousWorkspaceDisposed;
-      final workspace = await taskStatus.runTask(
-        TaskKind.initializingDartPadWorker,
-        worker.createWorkspace,
-        blocksPreview: true,
-      );
-      return workspace;
-    })();
-
-    final api = SyncedWorkspaceResourceApi(
-      localApi: localApi ?? MemoryWorkspaceResourceApi(),
-      remoteApi: workspaceFuture.then(WorkerWorkspaceResourceApi.new),
-      onLocalToRemoteSyncError: (_, _) {
-        events.dispatch(const ErrorToastEvent('Saving failed, try again'));
-      },
-      onRemoteToLocalSyncError: (_, _) {
-        events.dispatch(const ErrorToastEvent('Something went wrong, please try again'));
-      },
-    );
-    final readyWorkspaceFuture = api.apiReady.then((_) => workspaceFuture);
-    return WorkspaceRepository(
-      events: events,
-      taskStatus: taskStatus,
-      workspaceResourceApi: api,
-      sdk: sdk,
-      workspaceFuture: workspaceFuture,
-      readyWorkspaceFuture: readyWorkspaceFuture,
-    ).._dartpad = worker;
   }
 
   Future<RunMode> runModeFor(String entrypoint) =>
@@ -291,6 +278,11 @@ base class WorkspaceRepository {
 
   /// Completes all queued local writes before a sandbox compiles sources.
   Future<void> flush() async {
+    final customFlush = onFlush;
+    if (customFlush != null) {
+      await customFlush();
+      return;
+    }
     final api = workspaceResourceApi;
     if (api is SyncedWorkspaceResourceApi) {
       await api.flush();

@@ -14,13 +14,14 @@ import 'package:dartpad_frontend/features/preview/view_models/preview_view_model
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 import '../view_models/preview_view_model_test.dart'
-    show FakePreviewSandbox, FakeWorkspaceRepository, FakeWorkspaceResourceApi;
+    show FakePreviewSandbox, FakeWorkspaceResourceApi, fakeWorkspaceRepository;
 
 class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   @override
@@ -554,13 +555,13 @@ void main() {
 
   group('runtime controls', () {
     late AppEventBus events;
-    late FakeWorkspaceRepository repository;
+    late WorkspaceRepository repository;
     late FakePreviewSandbox sandbox;
     late PreviewViewModel preview;
 
     setUp(() {
       events = AppEventBus();
-      repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
+      repository = fakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
       sandbox = FakePreviewSandbox();
       preview = PreviewViewModel(
         initialMode: RunMode.flutter,

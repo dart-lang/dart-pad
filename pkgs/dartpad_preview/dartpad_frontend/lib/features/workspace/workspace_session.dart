@@ -26,7 +26,7 @@ import '../shared/task_status.dart';
 import '../startup/initial_project_state.dart';
 import 'data/workspace_repository.dart';
 
-/// Owns every resource whose lifetime is tied to one worker workspace.
+/// Owns a project's worker and every resource tied to its workspace.
 final class WorkspaceSession {
   WorkspaceSession._({
     required this.initialProject,
@@ -205,8 +205,8 @@ final class WorkspaceSession {
     analyzerStatus.update(isAnalyzing: activity.isAnalyzing);
   }
 
-  /// Disposes the complete workspace session at most once.
-  Future<void> dispose({required bool closeWorker}) async {
+  /// Disposes the complete workspace session, including its worker, at most once.
+  Future<void> dispose() async {
     if (_disposed) {
       return;
     }
@@ -233,9 +233,7 @@ final class WorkspaceSession {
 
     contextMenu.hide();
     contextMenu.dispose();
-    await _safeAwait(
-      closeWorker ? repository.close() : repository.closeWorkspaceOnly(),
-    );
+    await _safeAwait(repository.close());
     await _safeAwait(events.dispose());
     analyzerStatus.dispose();
     taskStatus.dispose();

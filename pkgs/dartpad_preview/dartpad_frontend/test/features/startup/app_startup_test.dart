@@ -12,31 +12,13 @@ import 'package:dartpad_frontend/features/workspace/data/workspace_repository.da
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../../worker_fixture.dart';
 import '../persistence/persistence_fixture.dart';
 
 import 'initial_project_state_test.dart' show contents;
 
-final class _TrackedRepository extends WorkspaceRepository {
-  _TrackedRepository({
-    required super.events,
-    required super.sdk,
-    required super.taskStatus,
-    required super.workspaceResourceApi,
-  }) : super(workspaceFuture: Completer<Workspace>().future);
-
-  int closeCount = 0;
-
-  @override
-  Future<Workspace> get readyWorkspace => Future.error(StateError('Test worker unavailable'));
-
-  @override
-  Future<void> close() async {
-    closeCount++;
-    await super.close();
-  }
-}
-
 void main() {
+  TestWorker.captureAssetBaseUrl();
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
@@ -148,10 +130,72 @@ void main() {
     });
   }
 
+  for (final initialSample in ['fibonacci', 'dart']) {
+    testClient('opening Dart Snippet from $initialSample creates a fresh same-SDK worker', (tester) async {
+      final originalUrl = web.window.location.href;
+      addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+      final repositories = <WorkspaceRepository>[];
+      final workers = [await TestWorker.start(), await TestWorker.start()];
+      for (final worker in workers) {
+        addTearDown(worker.dispose);
+      }
+      var loads = 0;
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?sample=$initialSample'),
+          loadSource: (_) async => contents({'lib/main.dart': 'void main() { print(${++loads}); }'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+            final repository = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              dartpad: workers[repositories.length].dartpad,
+              workspaceFuture: Completer<Workspace>().future,
+              readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
+            );
+            repositories.add(repository);
+            return repository;
+          },
+        ),
+      );
+      await pumpEventQueue();
+      final old = repositories.single;
+      expect(workers.first.isClosed, isFalse);
+      (web.document.querySelector('button[aria-label="New"]')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      final items = web.document.querySelectorAll('.dropdown-menu-item');
+      final snippet = [
+        for (var i = 0; i < items.length; i++) items.item(i)!,
+      ].singleWhere((item) => item.textContent!.contains('Dart Snippet'));
+      (snippet as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      expect(loads, 2);
+      expect(repositories, hasLength(2));
+      final next = repositories.last;
+      expect(next.sdk, old.sdk);
+      expect(next.dartpad, isNot(same(old.dartpad)));
+      expect(old.closeCount, 1);
+      expect(workers.first.isClosed, isTrue);
+      expect(next.closeCount, 0);
+      expect(web.document.querySelector('.cm-content')!.textContent, contains('print(2)'));
+
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      expect(old.closeCount, 1);
+      expect(next.closeCount, 1);
+      expect(workers.last.isClosed, isTrue);
+    });
+  }
+
   testClient('failed sample reset removes and disposes the old session', (tester) async {
     final originalUrl = web.window.location.href;
     addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
-    late _TrackedRepository old;
+    late WorkspaceRepository old;
+    final worker = await TestWorker.start();
+    addTearDown(worker.dispose);
     var loads = 0;
     tester.pumpComponent(
       App(
@@ -163,11 +207,14 @@ void main() {
           }
           return contents({'README.md': '# Original project'});
         },
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) => old = _TrackedRepository(
+        createRepository: ({required events, required sdk, required taskStatus, localApi}) => old = WorkspaceRepository(
           events: events,
           sdk: sdk,
           taskStatus: taskStatus,
           workspaceResourceApi: localApi!,
+          dartpad: worker.dartpad,
+          workspaceFuture: Completer<Workspace>().future,
+          readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
         ),
       ),
     );
@@ -182,6 +229,7 @@ void main() {
     expect(web.document.querySelector('.editor-tab'), isNull);
     expect(web.document.querySelector('[role="alertdialog"]')?.textContent, contains('New sample failed'));
     expect(old.closeCount, 1);
+    expect(worker.isClosed, isTrue);
     expect(() => old.taskStatus.startTask(TaskKind.loadingCode), throwsStateError);
   });
 }
