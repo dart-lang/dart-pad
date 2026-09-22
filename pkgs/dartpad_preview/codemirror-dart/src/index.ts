@@ -30,6 +30,7 @@ import { dartpad as dartpadTheme } from "./theme";
 import {
   indentWithTab,
   toggleLineComment,
+  toggleBlockComment,
   cursorMatchingBracket,
 } from "@codemirror/commands";
 import {
@@ -49,12 +50,28 @@ import { gotoDefinitionOnClick } from "./gotoDefinition";
 import { diagnosticHoverToolbar } from "./diagnosticHoverToolbar";
 import { forceSemanticTokensRefresh } from "./semanticHighlighting";
 import { formatDocument, formatDocumentAsync } from "./formatting";
+import { selectAllOccurrences } from "./search";
 import { selectionAction } from "./selectionAction";
 import { renameTooltipField, showRenameMessage, startRename } from "./rename";
 
 export const extraKeymap: readonly KeyBinding[] = [
+  { key: "Mod-Shift-l", run: selectAllOccurrences, preventDefault: true },
+  { key: "Mod-Shift-L", run: selectAllOccurrences, preventDefault: true },
   { key: "Shift-Mod-\\", run: cursorMatchingBracket },
   { key: "Alt-m", run: cursorMatchingBracket },
+  // macOS may report Option+M as "µ" in KeyboardEvent.key.
+  { key: "Alt-µ", run: cursorMatchingBracket, preventDefault: true },
+  { key: "Shift-Alt-f", run: formatDocument, preventDefault: true },
+  { key: "Shift-Alt-F", run: formatDocument, preventDefault: true },
+  // macOS may report Option+Shift+F as "Ï" in KeyboardEvent.key.
+  { key: "Shift-Alt-Ï", run: formatDocument, preventDefault: true },
+  { key: "Mod-Shift-7", run: toggleLineComment },
+  { key: "Mod-Shift-/", run: toggleLineComment },
+  { key: "Mod-Shift-Digit7", run: toggleLineComment },
+  { key: "Shift-Alt-a", run: toggleBlockComment, preventDefault: true },
+  { key: "Shift-Alt-A", run: toggleBlockComment, preventDefault: true },
+  // macOS may report Option+Shift+A as "Å" in KeyboardEvent.key.
+  { key: "Shift-Alt-Å", run: toggleBlockComment, preventDefault: true },
   { key: "Alt--", run: foldCode },
   { key: "Alt-+", run: unfoldCode },
   { key: "Alt-=", run: unfoldCode },
@@ -80,12 +97,10 @@ declare global {
       lintGutter: () => Extension;
       linter: (source: any, config?: any) => Extension;
       LSPPlugin: typeof LSPPlugin;
-      formatDocument: typeof formatDocument;
       formatDocumentAsync: typeof formatDocumentAsync;
       dartpadTheme: Extension;
       showPanel: typeof showPanel;
       syntaxHighlighting: (style: any, options?: any) => Extension;
-      toggleLineComment: any;
 
       // custom extensions
       dartLanguage: typeof dartLanguage;
@@ -161,12 +176,10 @@ window._codemirror = {
   lintGutter,
   linter,
   LSPPlugin,
-  formatDocument,
   formatDocumentAsync,
   dartpadTheme,
   showPanel,
   syntaxHighlighting,
-  toggleLineComment,
 
   // custom extensions
   dartLanguage,
