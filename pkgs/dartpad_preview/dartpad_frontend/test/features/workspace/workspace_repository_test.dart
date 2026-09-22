@@ -19,6 +19,8 @@ import 'package:dartpad_frontend/features/workspace/data/workspace_repository.da
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 
+import '../../worker_fixture.dart';
+
 final class _Workspace implements WorkspaceResourceApi {
   final Set<String> folders = {''};
   final List<String> deletedPaths = [];
@@ -53,6 +55,7 @@ final class _Workspace implements WorkspaceResourceApi {
 }
 
 void main() {
+  TestWorker.captureAssetBaseUrl();
   test('Pub Get logs its path and command output in order', () async {
     final events = AppEventBus();
     final logs = <LogEvent>[];
@@ -314,39 +317,103 @@ void main() {
     await repository.events.dispose();
   });
 
-  group('workspace reset cleanup', () {
-    test('disposes the workspace without disposing the worker', () async {
-      final workspace = _Workspace();
-      final repository = WorkspaceRepository(
-        events: AppEventBus(),
-        taskStatus: TaskStatusController(),
-        workspaceResourceApi: workspace,
+  group('worker cleanup', () {
+    test('retains an early startup error for a later readiness await without an uncaught error', () async {
+      final events = AppEventBus();
+      final tasks = TaskStatusController();
+      final workerReady = Completer<DartPad>();
+      final failure = StateError('Worker startup failed');
+      final repository = WorkspaceRepository.create(
+        events: events,
+        taskStatus: tasks,
         sdk: defaultSdk,
-        workspaceFuture: Completer<Workspace>().future,
+        createWorker: () => workerReady.future,
       );
+      addTearDown(repository.close);
+      addTearDown(events.dispose);
+      addTearDown(tasks.dispose);
 
-      await repository.closeWorkspaceOnly();
+      workerReady.completeError(failure);
+      await pumpEventQueue();
 
-      expect(workspace.disposeCount, 1);
-      expect(repository.dartpad, isNull);
+      await expectLater(repository.readyWorkspace, throwsA(same(failure)));
     });
 
-    test('propagates workspace cleanup failures', () async {
-      final workspace = _Workspace()..disposeError = StateError('workspace already removed');
-      final repository = WorkspaceRepository(
-        events: AppEventBus(),
-        taskStatus: TaskStatusController(),
-        workspaceResourceApi: workspace,
-        sdk: defaultSdk,
-        workspaceFuture: Completer<Workspace>().future,
-      );
+    for (final cleanupFails in [false, true]) {
+      test('closes the workspace and worker once, workspace cleanup fails=$cleanupFails', () async {
+        final workspace = _Workspace();
+        final failure = StateError('workspace already removed');
+        if (cleanupFails) {
+          workspace.disposeError = failure;
+        }
+        final worker = await TestWorker.start();
+        addTearDown(worker.dispose);
+        final events = AppEventBus();
+        final tasks = TaskStatusController();
+        addTearDown(events.dispose);
+        addTearDown(tasks.dispose);
+        final repository = WorkspaceRepository.create(
+          events: events,
+          taskStatus: tasks,
+          sdk: defaultSdk,
+          localApi: workspace,
+          createWorker: () async => worker.dartpad,
+        );
+        await expectLater(repository.readyWorkspace, throwsA(isA<Exception>()));
+        expect(repository.dartpad, same(worker.dartpad));
 
-      await expectLater(
-        repository.closeWorkspaceOnly(),
-        throwsA(isA<StateError>()),
-      );
-      expect(workspace.disposeCount, 1);
-    });
+        final closed = repository.close();
+        expect(repository.close(), same(closed));
+        if (cleanupFails) {
+          await expectLater(closed, throwsA(same(failure)));
+        } else {
+          await closed;
+        }
+        expect(workspace.disposeCount, 1);
+        expect(worker.isClosed, isTrue);
+      });
+    }
+
+    for (final observeReadiness in [true, false]) {
+      test('disposes a late worker after closing, readiness observed=$observeReadiness', () async {
+        final workerReady = Completer<DartPad>();
+        final worker = await TestWorker.start();
+        addTearDown(worker.dispose);
+        final events = AppEventBus();
+        final tasks = TaskStatusController();
+        final repository = WorkspaceRepository.create(
+          events: events,
+          taskStatus: tasks,
+          sdk: defaultSdk,
+          createWorker: () => workerReady.future,
+        );
+        final ready = observeReadiness
+            ? expectLater(
+                repository.readyWorkspace,
+                throwsA(
+                  isA<StateError>().having(
+                    (error) => error.message,
+                    'message',
+                    contains('closed during worker initialization'),
+                  ),
+                ),
+              )
+            : null;
+
+        await repository.close();
+        await events.dispose();
+        tasks.dispose();
+        expect(worker.isClosed, isFalse);
+
+        workerReady.complete(worker.dartpad);
+        await worker.dartpad.done;
+        await ready;
+        await pumpEventQueue();
+        await repository.close();
+        expect(repository.dartpad, isNull);
+        expect(worker.isClosed, isTrue);
+      });
+    }
   });
 
   test('run mode uses nearest pubspec and path with the selected SDK', () async {

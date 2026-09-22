@@ -32,7 +32,7 @@ void main() {
     controller.dispose();
     await controller.closed;
     for (final session in sessions) {
-      await session.dispose(closeWorker: true);
+      await session.dispose();
     }
   });
 

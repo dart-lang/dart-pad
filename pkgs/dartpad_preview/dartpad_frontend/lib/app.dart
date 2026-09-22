@@ -266,29 +266,22 @@ final class _AppState extends State<App> {
     }
   }
 
-  /// Installs a session and retires the old one after its editor subtree has
-  /// unmounted. A compatible worker is reused after that disposal barrier.
+  /// Installs a session with a fresh worker so worker-local changes do not persist.
+  /// Retires the old session after its editor subtree has unmounted.
   WorkspaceSession _replaceWorkspaceSession(
     InitialProjectState project, {
     required MemoryWorkspaceResourceApi localApi,
     required int generation,
   }) {
     final oldSession = _activeSession;
-    final worker = oldSession?.repository.dartpad;
-    final reuseWorker = worker != null && oldSession!.repository.sdk == project.sdk;
-    final previousDisposed = Completer<void>();
     final events = AppEventBus();
     final taskStatus = TaskStatusController();
-    final repository = reuseWorker
-        ? WorkspaceRepository.resetAndCreate(
-            events: events,
-            worker: worker,
-            sdk: project.sdk,
-            taskStatus: taskStatus,
-            localApi: localApi,
-            previousWorkspaceDisposed: previousDisposed.future,
-          )
-        : component.createRepository(events: events, sdk: project.sdk, taskStatus: taskStatus, localApi: localApi);
+    final repository = component.createRepository(
+      events: events,
+      sdk: project.sdk,
+      taskStatus: taskStatus,
+      localApi: localApi,
+    );
     final session = WorkspaceSession.create(repository, initialProject: project, initialMode: project.mode);
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     session.preview.addListener(_onPreviewStateChanged);
@@ -298,13 +291,7 @@ final class _AppState extends State<App> {
       _sessionLoadGeneration = generation;
     });
     if (oldSession != null) {
-      disposeAfterWorkspaceUnmount(context, () async {
-        try {
-          await oldSession.dispose(closeWorker: !reuseWorker);
-        } finally {
-          previousDisposed.complete();
-        }
-      });
+      disposeAfterWorkspaceUnmount(context, oldSession.dispose);
     }
     return session;
   }
@@ -320,7 +307,7 @@ final class _AppState extends State<App> {
       _failedRestoreUri = restoring ? uri : null;
     });
     if (oldSession != null) {
-      disposeAfterWorkspaceUnmount(context, () => oldSession.dispose(closeWorker: true));
+      disposeAfterWorkspaceUnmount(context, oldSession.dispose);
     }
     if (!restoring && restoreCandidateId != null) {
       _persistence.offerRestore(restoreCandidateId);
@@ -595,7 +582,7 @@ final class _AppState extends State<App> {
         _workspacePreparationFailure = null;
       });
       unawaited(_initializeWorkspace(next, tabs: paths, activeFile: activeFile, projectId: _persistence.projectId));
-      disposeAfterWorkspaceUnmount(context, () => oldSession.dispose(closeWorker: true));
+      disposeAfterWorkspaceUnmount(context, oldSession.dispose);
     } catch (error) {
       if (!_isCurrent(oldSession)) {
         return;
@@ -897,7 +884,7 @@ final class _AppState extends State<App> {
     _activeSession?.preview.removeListener(_onPreviewStateChanged);
     final session = _activeSession;
     unawaited(
-      _persistence.closed.whenComplete(() => session?.dispose(closeWorker: true)).catchError((
+      _persistence.closed.whenComplete(() => session?.dispose()).catchError((
         Object error,
         StackTrace stackTrace,
       ) {

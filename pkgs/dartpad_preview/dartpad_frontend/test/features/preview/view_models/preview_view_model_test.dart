@@ -140,30 +140,28 @@ final class FakePreviewSandbox implements PreviewSandbox {
   }
 }
 
-final class FakeWorkspaceRepository extends WorkspaceRepository {
-  FakeWorkspaceRepository(AppEventBus events, WorkspaceResourceApi api, {SdkInfo? sdk})
-    : super(
-        events: events,
-        taskStatus: TaskStatusController(),
-        workspaceResourceApi: api,
-        sdk: sdk ?? defaultSdk,
-        workspaceFuture: Completer<Workspace>().future,
-      );
-  Future<void> Function()? onFlush;
-  @override
-  Future<void> flush() async => onFlush?.call();
-}
+WorkspaceRepository fakeWorkspaceRepository(
+  AppEventBus events,
+  WorkspaceResourceApi api, {
+  SdkInfo? sdk,
+}) => WorkspaceRepository(
+  events: events,
+  taskStatus: TaskStatusController(),
+  workspaceResourceApi: api,
+  sdk: sdk ?? defaultSdk,
+  workspaceFuture: Completer<Workspace>().future,
+);
 
 void main() {
   late AppEventBus events;
-  late FakeWorkspaceRepository repository;
+  late WorkspaceRepository repository;
   late FakePreviewSandbox sandbox;
   late PreviewViewModel preview;
   late List<LogEvent> logs;
   late StreamSubscription<LogEvent> subscription;
   setUp(() {
     events = AppEventBus();
-    repository = FakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
+    repository = fakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
     sandbox = FakePreviewSandbox();
     logs = [];
     subscription = events.on<LogEvent>().listen(logs.add);
@@ -312,7 +310,7 @@ void main() {
     preview.dispose();
     await preview.closed;
     repository.taskStatus.dispose();
-    repository = FakeWorkspaceRepository(
+    repository = fakeWorkspaceRepository(
       events,
       FakeWorkspaceResourceApi(),
       sdk: const SdkInfo(id: 'dart', name: 'Dart', path: 'dartpad/dart/', dartVersion: '3.14.0'),

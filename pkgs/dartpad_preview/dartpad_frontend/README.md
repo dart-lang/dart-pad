@@ -149,8 +149,11 @@ normalized to `^major.minor.patch-0` to include prereleases. The default languag
 version therefore follows the bundled SDK as its assets are updated. Existing
 pubspecs are preserved.
 Editing files, changing tabs or switching
-SDKs does not modify the initial metadata. Choosing a sample creates new metadata
-and a new workspace.
+SDKs does not modify the initial metadata. Every project load creates a fresh
+worker and workspace, including restoring saved work or reopening the same
+sample with the same SDK. This prevents worker-local changes, such as pub-cache
+edits made through the language server, from carrying into another session.
+The previous session and worker are disposed after the old editor unmounts.
 
 The generated `lib/sdks.g.dart` lists the available bundles. An explicit
 version must match the corresponding Dart or Flutter version in this manifest;

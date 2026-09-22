@@ -6,17 +6,6 @@ import 'dart:async';
 
 import 'package:jaspr/jaspr.dart';
 
-/// Waits until both the worker workspace and the loaded project's initial file
-/// are ready for use.
-Future<({TProject project, TWorkspace workspace})> waitForWorkspaceUsable<TWorkspace, TProject>({
-  required Future<TWorkspace> workspaceReady,
-  required Future<TProject> projectReady,
-}) async {
-  final workspace = await workspaceReady;
-  final project = await projectReady;
-  return (workspace: workspace, project: project);
-}
-
 /// Runs [dispose] after the frame that replaces a keyed workspace subtree.
 ///
 /// Call this after scheduling the session replacement so Jaspr can unmount the

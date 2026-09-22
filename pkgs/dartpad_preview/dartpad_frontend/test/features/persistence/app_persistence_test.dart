@@ -17,9 +17,11 @@ import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../project_fixture.dart';
+import '../../worker_fixture.dart';
 import 'persistence_fixture.dart';
 
 void main() {
+  TestWorker.captureAssetBaseUrl();
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
@@ -41,6 +43,7 @@ void main() {
     String query, {
     Future<Project> Function()? load,
     WorkspaceResourceApi Function(WorkspaceResourceApi)? wrapWorkspace,
+    List<TestWorker>? workers,
   }) => App(
     initialUri: Uri.parse(query),
     projectStore: store,
@@ -54,6 +57,7 @@ void main() {
         sdk: sdk,
         taskStatus: taskStatus,
         workspaceResourceApi: wrapWorkspace?.call(localApi!) ?? localApi!,
+        dartpad: workers?[repositories.length].dartpad,
         workspaceFuture: Completer<Workspace>().future,
       );
       repositories.add(repository);
@@ -74,7 +78,11 @@ void main() {
   });
 
   testClient('matching URL saves fresh work immediately and offers a nonblocking restore', (tester) async {
-    tester.pumpComponent(app('?sample=counter'));
+    final workers = [await TestWorker.start(), await TestWorker.start()];
+    for (final worker in workers) {
+      addTearDown(worker.dispose);
+    }
+    tester.pumpComponent(app('?sample=counter', workers: workers));
     await pumpEventQueue();
     expect(sourceLoads, 1);
     expect(store.entries, hasLength(2));
@@ -90,6 +98,7 @@ void main() {
     expect(dismiss.textContent, 'close');
 
     final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
+    final freshRepository = repositories.single;
     await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited fresh project');
     await pumpEventQueue();
     // Read the latest snapshot at click time, not the copy from startup.
@@ -98,6 +107,11 @@ void main() {
     await pumpEventQueue();
     expect(sourceLoads, 1);
     expect(repositories, hasLength(2));
+    expect(repositories.last.sdk, freshRepository.sdk);
+    expect(repositories.last.dartpad, isNot(same(freshRepository.dartpad)));
+    expect(freshRepository.closeCount, 1);
+    expect(workers.first.isClosed, isTrue);
+    expect(repositories.last.closeCount, 0);
     expect(web.document.querySelector('.restore-last-project'), isNull);
     expect(web.document.querySelector('.cm-content')!.textContent, contains('latest previous work'));
     expect(String.fromCharCodes(store.entries[freshId]!.state.files['lib/main.dart']!), 'edited fresh project');
