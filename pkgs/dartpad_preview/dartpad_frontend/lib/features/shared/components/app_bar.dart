@@ -195,10 +195,10 @@ final class AppBar extends StatelessComponent {
     ),
     // Dark theme styles matching dart.dev chrome.
     css('html[data-theme="dark"] .app-bar').styles(
-      backgroundColor: const Color('#1c2834'),
       border: .only(
         bottom: .solid(color: const Color('#394c60'), width: 1.px),
       ),
+      backgroundColor: const Color('#1c2834'),
     ),
     css('html[data-theme="dark"] .app-bar .app-bar-title').styles(
       color: const Color('#f3f4f6'),
