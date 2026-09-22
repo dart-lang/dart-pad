@@ -12,7 +12,10 @@ void main() {
     var now = DateTime.utc(2026, 8, 31, 12);
     withClock(Clock(() => now), () {
       final taskStatus = TaskStatusController();
-      final controller = AnalyzerStatusController(taskStatus);
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: Duration.zero,
+      );
 
       controller.beginInitialization();
       controller.beginInitialization();
@@ -39,7 +42,10 @@ void main() {
     var now = DateTime.utc(2026, 8, 31, 12);
     withClock(Clock(() => now), () {
       final taskStatus = TaskStatusController();
-      final controller = AnalyzerStatusController(taskStatus);
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: Duration.zero,
+      );
 
       controller.beginInitialization();
       now = now.add(const Duration(seconds: 2));
@@ -83,7 +89,10 @@ void main() {
 
   test('fails the pending task and can later recover its activity state', () {
     final taskStatus = TaskStatusController();
-    final controller = AnalyzerStatusController(taskStatus);
+    final controller = AnalyzerStatusController(
+      taskStatus,
+      idleDebounce: Duration.zero,
+    );
 
     controller.beginInitialization();
     controller.markUnavailable();
@@ -133,7 +142,10 @@ void main() {
     var now = DateTime.utc(2026, 8, 31, 12);
     withClock(Clock(() => now), () {
       final taskStatus = TaskStatusController();
-      final controller = AnalyzerStatusController(taskStatus);
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: Duration.zero,
+      );
       controller.beginInitialization();
       now = now.add(const Duration(seconds: 1));
       controller.update(isAnalyzing: false);
@@ -191,7 +203,10 @@ void main() {
 
   test('reset after markUnavailable clears unavailable state', () {
     final taskStatus = TaskStatusController();
-    final controller = AnalyzerStatusController(taskStatus);
+    final controller = AnalyzerStatusController(
+      taskStatus,
+      idleDebounce: Duration.zero,
+    );
 
     controller.markUnavailable();
     expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
@@ -209,5 +224,144 @@ void main() {
 
     controller.dispose();
     taskStatus.dispose();
+  });
+
+  group('idle debouncing', () {
+    test('debounces idle transitions during rapid analyzer bursts', () async {
+      final taskStatus = TaskStatusController();
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: const Duration(milliseconds: 50),
+      );
+
+      controller.beginInitialization();
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.kind, TaskKind.startingAnalyzer);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
+
+      // Simulate rapid reference search burst across multiple files:
+      // true -> false -> true -> false -> true -> false
+      controller.update(isAnalyzing: true);
+      expect(taskStatus.current?.kind, TaskKind.analyzing);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // First file finishes indexing:
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: false);
+      // Remains running (does not flicker to succeeded or disappear)!
+      expect(taskStatus.current?.kind, TaskKind.analyzing);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Second file requested:
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: true);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Second file finishes indexing:
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Third file requested:
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: true);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Third file finishes:
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Now wait until idle timer runs to completion without new requests:
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
+
+      // Exactly one analyzing task was created, not three!
+      final analyzingEntries = taskStatus.entries.where((e) => e.kind == TaskKind.analyzing).toList();
+      expect(analyzingEntries, hasLength(1));
+
+      controller.dispose();
+      taskStatus.dispose();
+    });
+
+    test('markUnavailable immediately fails an active task during debounce', () async {
+      final taskStatus = TaskStatusController();
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: const Duration(milliseconds: 50),
+      );
+
+      controller.beginInitialization();
+      controller.update(isAnalyzing: false);
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: true);
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.kind, TaskKind.analyzing);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      // Mark unavailable during the debounce period:
+      controller.markUnavailable();
+      final analyzingEntry = taskStatus.entries.firstWhere((e) => e.kind == TaskKind.analyzing);
+      expect(analyzingEntry.outcome, TaskStatusOutcome.failed);
+
+      // Advancing past debounce duration does not resurrect or succeed the task
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(analyzingEntry.outcome, TaskStatusOutcome.failed);
+
+      controller.dispose();
+      taskStatus.dispose();
+    });
+
+    test('reset cancels an active task during debounce', () async {
+      final taskStatus = TaskStatusController();
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: const Duration(milliseconds: 50),
+      );
+
+      controller.beginInitialization();
+      controller.update(isAnalyzing: false);
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: true);
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.kind, TaskKind.analyzing);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      controller.reset();
+      expect(taskStatus.entries.where((e) => e.kind == TaskKind.analyzing), isEmpty);
+
+      // Advancing past debounce does not execute
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(taskStatus.entries.where((e) => e.kind == TaskKind.analyzing), isEmpty);
+
+      controller.dispose();
+      taskStatus.dispose();
+    });
+
+    test('dispose cancels an active task and idle timer', () async {
+      final taskStatus = TaskStatusController();
+      final controller = AnalyzerStatusController(
+        taskStatus,
+        idleDebounce: const Duration(milliseconds: 50),
+      );
+
+      controller.beginInitialization();
+      controller.update(isAnalyzing: false);
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      controller.update(isAnalyzing: true);
+      controller.update(isAnalyzing: false);
+      expect(taskStatus.current?.kind, TaskKind.analyzing);
+      expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+
+      controller.dispose();
+      expect(taskStatus.entries.where((e) => e.kind == TaskKind.analyzing), isEmpty);
+
+      // Advancing past debounce does not throw or mutate
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      taskStatus.dispose();
+    });
   });
 }
