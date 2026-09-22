@@ -40075,7 +40075,7 @@ ${text}</tr>
                     },
                 },
                 serverCompletion(),
-                [lspHoverTooltips({ hoverTime: 800 })],
+                [lspHoverTooltips({ hoverTime: 300 })],
                 [
                     keymap.of([
                         ...formatKeymap,
