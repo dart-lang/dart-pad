@@ -250,9 +250,9 @@ class _DropdownMenuState extends State<DropdownMenu> {
         blur: 18.px,
         color: const .rgba(0, 0, 0, 0.15),
       ),
-      backgroundColor: colorContainer,
       color: colorOnContainer,
       fontFamily: _dropdownFontFamily,
+      backgroundColor: colorContainer,
       raw: {
         'width': 'max-content',
         'right': '0',
@@ -270,22 +270,22 @@ class _DropdownMenuState extends State<DropdownMenu> {
     ),
     // Dark mode for dropdown menu panel matching dart.dev chrome
     css('html[data-theme="dark"] .dropdown-menu').styles(
-      backgroundColor: const Color('#1c2834'),
       border: .all(color: const Color('#394c60'), width: 1.px),
-      color: const Color('#f3f4f6'),
       shadow: BoxShadow(
         offsetX: .zero,
         offsetY: 6.px,
         blur: 18.px,
         color: const .rgba(0, 0, 0, 0.35),
       ),
+      color: const Color('#f3f4f6'),
+      backgroundColor: const Color('#1c2834'),
     ),
     // List styling
     css('.dropdown-menu ul').styles(
       display: .flex,
-      flexDirection: .column,
       padding: .zero,
       margin: .zero,
+      flexDirection: .column,
       raw: {'list-style': 'none'},
     ),
     css('.dropdown-menu li').styles(
@@ -310,19 +310,19 @@ class _DropdownMenuState extends State<DropdownMenu> {
     // Items
     css('.dropdown-menu-item').styles(
       display: .flex,
-      alignItems: .center,
-      justifyContent: .start,
-      flexDirection: .row,
       width: 100.percent,
-      gap: Gap.all(8.px),
       padding: .symmetric(horizontal: 10.px, vertical: 6.px),
       border: .none,
       radius: .circular(7.px),
       cursor: .pointer,
+      flexDirection: .row,
+      justifyContent: .start,
+      alignItems: .center,
+      gap: Gap.all(8.px),
       color: .inherit,
-      textDecoration: const TextDecoration(line: .none),
       textAlign: .left,
       fontSize: 14.px,
+      textDecoration: const TextDecoration(line: .none),
       whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
       raw: {
