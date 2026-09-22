@@ -168,9 +168,9 @@ final class AppBar extends StatelessComponent {
       display: .flex,
       position: const .relative(),
       zIndex: const ZIndex(200),
-      height: 48.px,
-      minHeight: 48.px,
-      padding: .symmetric(horizontal: 12.px),
+      height: 52.px,
+      minHeight: 52.px,
+      padding: .symmetric(horizontal: 16.px),
       border: .only(
         bottom: .solid(color: colorBorder, width: 1.px),
       ),
@@ -178,6 +178,31 @@ final class AppBar extends StatelessComponent {
       gap: Gap.all(8.px),
       flex: const .shrink(0),
       backgroundColor: colorSurface,
+    ),
+    // Dark theme styles matching dart.dev chrome.
+    css('html[data-theme="dark"] .app-bar').styles(
+      backgroundColor: const Color('#1c2834'),
+      border: .only(
+        bottom: .solid(color: const Color('#394c60'), width: 1.px),
+      ),
+    ),
+    css('html[data-theme="dark"] .app-bar .app-bar-title').styles(
+      color: const Color('#f3f4f6'),
+    ),
+    css('html[data-theme="dark"] .app-bar .app-bar-divider').styles(
+      backgroundColor: const Color('#394c60'),
+    ),
+    css('html[data-theme="dark"] .app-bar .app-bar-text-button').styles(
+      color: const Color('#f3f4f6'),
+    ),
+    css('html[data-theme="dark"] .app-bar .app-bar-text-button:hover').styles(
+      backgroundColor: const Color('#253446'),
+    ),
+    css('html[data-theme="dark"] .app-bar .icon-button').styles(
+      color: const Color('#a8acad'),
+    ),
+    css('html[data-theme="dark"] .app-bar .icon-button:hover').styles(
+      color: const Color('#40c4ff'),
     ),
     css('.app-bar-left').styles(
       display: .flex,
