@@ -126,7 +126,8 @@ final class AppBar extends StatelessComponent {
         const ThemeToggle(),
         DropdownMenu(
           trigger: const dp.IconButton(
-            icon: 'more_vert',
+            icon: 'apps',
+            iconSize: 28.0,
             tooltip: 'More options',
             label: 'More options',
           ),
@@ -232,7 +233,7 @@ final class AppBar extends StatelessComponent {
       position: const .relative(),
       zIndex: const ZIndex(99),
       alignItems: .center,
-      gap: Gap.all(4.px),
+      gap: Gap.all(8.px),
     ),
     css('.app-bar-logo').styles(
       width: 36.px,
