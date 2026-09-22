@@ -29,7 +29,7 @@ void main() {
 
     final logo = web.document.querySelector('.app-bar-logo') as web.HTMLImageElement?;
     expect(logo, isNotNull);
-    expect(logo!.src, contains('images/dart_logo_192.png'));
+    expect(logo!.src, contains('images/dart-192.svg'));
     expect(logo.alt, 'Dart');
 
     final title = web.document.querySelector('.app-bar-title');

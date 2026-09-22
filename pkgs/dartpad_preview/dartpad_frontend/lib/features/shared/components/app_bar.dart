@@ -14,6 +14,13 @@ import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
 
+const _headerFontFamily = FontFamily.list([
+  FontFamily('Google Sans Flex'),
+  FontFamily('Roboto'),
+  FontFamily('ui-sans'),
+  FontFamilies.sansSerif,
+]);
+
 /// The main [AppBar] with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 final class AppBar extends StatelessComponent {
@@ -87,7 +94,7 @@ final class AppBar extends StatelessComponent {
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
         const img(
-          src: 'images/dart_logo_192.png',
+          src: 'images/dart-192.svg',
           alt: 'Dart',
           classes: 'app-bar-logo',
         ),
@@ -177,7 +184,13 @@ final class AppBar extends StatelessComponent {
       alignItems: .center,
       gap: Gap.all(8.px),
       flex: const .shrink(0),
+      fontFamily: _headerFontFamily,
       backgroundColor: colorSurface,
+      raw: {
+        'font-optical-sizing': 'auto',
+        '-webkit-font-smoothing': 'antialiased',
+        '-moz-osx-font-smoothing': 'grayscale',
+      },
     ),
     // Dark theme styles matching dart.dev chrome.
     css('html[data-theme="dark"] .app-bar').styles(
@@ -222,13 +235,19 @@ final class AppBar extends StatelessComponent {
       gap: Gap.all(4.px),
     ),
     css('.app-bar-logo').styles(
-      width: 32.px,
-      height: 32.px,
+      width: 36.px,
+      height: 36.px,
     ),
     css('.app-bar-title').styles(
+      userSelect: .none,
       color: colorOnContainer,
-      fontSize: 22.px,
+      fontFamily: _headerFontFamily,
+      fontSize: 28.px,
       fontWeight: .w400,
+      lineHeight: 1.25.em,
+      raw: {
+        'font-variant-ligatures': 'none',
+      },
     ),
     css('.app-bar-divider').styles(
       width: 1.px,
@@ -247,7 +266,8 @@ final class AppBar extends StatelessComponent {
       alignItems: .center,
       gap: Gap.all(6.px),
       color: colorOnSurface,
-      fontSize: 13.px,
+      fontFamily: _headerFontFamily,
+      fontSize: 14.px,
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
     ),
