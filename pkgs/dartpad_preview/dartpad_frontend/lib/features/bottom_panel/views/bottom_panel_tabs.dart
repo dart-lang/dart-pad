@@ -7,15 +7,17 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../shared/components/icon_button.dart';
+import '../view_models/console_view_model.dart';
 import 'bottom_panel.dart';
+import 'bottom_panel_indicator.dart';
 
 /// The tab bar for the bottom panel.
-class BottomPanelTabs extends StatelessComponent {
+final class BottomPanelTabs extends StatelessComponent {
   const BottomPanelTabs({
     required this.problemsCount,
+    required this.console,
     required this.activeTab,
     required this.onSelectTab,
-    required this.onClearConsole,
     this.isCollapsed = false,
     this.onCollapse,
     super.key,
@@ -24,14 +26,14 @@ class BottomPanelTabs extends StatelessComponent {
   /// The number of current diagnostics, shown as a badge on the tab.
   final int problemsCount;
 
+  /// Console state observed by the error indicator.
+  final ConsoleViewModel console;
+
   /// The currently active tab.
   final BottomPanelTab activeTab;
 
   /// Called when a tab is clicked.
   final void Function(BottomPanelTab tab) onSelectTab;
-
-  /// Clears the console's output.
-  final void Function() onClearConsole;
 
   /// Whether the bottom panel content is currently collapsed.
   final bool isCollapsed;
@@ -41,38 +43,49 @@ class BottomPanelTabs extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'bottom-panel-tabs', [
-      _BottomPanelTabButton(
-        label: 'Problems',
-        countLabel: problemsCount.toString(),
-        active: !isCollapsed && activeTab == BottomPanelTab.problems,
-        onClick: () => onSelectTab(BottomPanelTab.problems),
-      ),
-      _BottomPanelTabButton(
-        label: 'Console',
-        active: !isCollapsed && activeTab == BottomPanelTab.console,
-        onClick: () => onSelectTab(BottomPanelTab.console),
-      ),
-      const div(classes: 'bottom-panel-tabs-spacer', []),
-      if (!isCollapsed && activeTab == BottomPanelTab.console)
-        IconButton(
-          icon: 'playlist_remove',
-          iconSize: 20,
-          tooltip: 'Clear console',
-          label: 'Clear console',
-          classes: 'bottom-panel-btn',
-          onClick: (_) => onClearConsole(),
+    return div(
+      classes: 'bottom-panel-tabs',
+      attributes: const {'role': 'tablist'},
+      [
+        _BottomPanelTabButton(
+          label: 'Problems',
+          countLabel: problemsCount.toString(),
+          active: !isCollapsed && activeTab == BottomPanelTab.problems,
+          onClick: () => onSelectTab(BottomPanelTab.problems),
         ),
-      if (!isCollapsed && onCollapse != null)
-        IconButton(
-          tooltip: 'Hide bottom panel',
-          label: 'Hide bottom panel',
-          icon: 'expand_more',
-          iconSize: 20,
-          classes: 'bottom-panel-btn',
-          onClick: (_) => onCollapse!(),
+        _BottomPanelTabButton(
+          label: 'Console',
+          active: !isCollapsed && activeTab == BottomPanelTab.console,
+          indicator: ListenableBuilder(
+            listenable: console,
+            builder: (_) => BottomPanelIndicator.error(
+              label: console.hasErrors ? 'Console contains errors' : null,
+              isVisible: console.hasErrors,
+            ),
+          ),
+          onClick: () => onSelectTab(BottomPanelTab.console),
         ),
-    ]);
+        const div(classes: 'bottom-panel-tabs-spacer', []),
+        if (!isCollapsed && activeTab == BottomPanelTab.console)
+          IconButton(
+            icon: 'playlist_remove',
+            iconSize: 20,
+            tooltip: 'Clear console',
+            label: 'Clear console',
+            classes: 'bottom-panel-btn',
+            onClick: (_) => console.clear(),
+          ),
+        if (!isCollapsed && onCollapse != null)
+          IconButton(
+            tooltip: 'Hide bottom panel',
+            label: 'Hide bottom panel',
+            icon: 'expand_more',
+            iconSize: 20,
+            classes: 'bottom-panel-btn',
+            onClick: (_) => onCollapse!(),
+          ),
+      ],
+    );
   }
 
   @css
@@ -133,17 +146,29 @@ class BottomPanelTabs extends StatelessComponent {
   ];
 }
 
-class _BottomPanelTabButton extends StatelessComponent {
+/// A single tab button in [BottomPanelTabs].
+final class _BottomPanelTabButton extends StatelessComponent {
   const _BottomPanelTabButton({
     required this.label,
     this.countLabel,
+    this.indicator,
     required this.active,
     this.onClick,
   });
 
+  /// The text label shown on the tab.
   final String label;
+
+  /// An optional count badge text (e.g. number of problems).
   final String? countLabel;
+
+  /// An optional trailing indicator component (e.g. [BottomPanelIndicator]).
+  final Component? indicator;
+
+  /// Whether this tab is currently selected.
   final bool active;
+
+  /// Click handler for selecting this tab.
   final void Function()? onClick;
 
   @override
@@ -153,9 +178,14 @@ class _BottomPanelTabButton extends StatelessComponent {
     return button(
       classes: classes,
       onClick: onClick,
+      attributes: {
+        'role': 'tab',
+        'aria-selected': active.toString(),
+      },
       [
         span(classes: 'bottom-panel-tab-label', [.text(label)]),
         if (countLabel case final countLabel?) span(classes: 'bottom-panel-tab-count', [.text(countLabel)]),
+        ?indicator,
       ],
     );
   }

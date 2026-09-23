@@ -10,6 +10,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import 'bottom_panel_indicator.dart';
 
 final class ProblemsPanel extends StatelessComponent {
   const ProblemsPanel({
@@ -120,28 +121,6 @@ final class ProblemsPanel extends StatelessComponent {
           left: .solid(color: colorInfo, width: 2.px),
         ),
       ),
-      css('& .problem-severity-badge').styles(
-        display: .inlineFlex,
-        width: 18.px,
-        height: 18.px,
-        radius: .circular(999.px),
-        justifyContent: .center,
-        alignItems: .center,
-        fontSize: 11.px,
-        fontWeight: .w700,
-      ),
-      css('& .problem-severity-badge.error').styles(
-        color: colorOnSurface,
-        backgroundColor: colorError.withOpacity(0.2),
-      ),
-      css('& .problem-severity-badge.warning').styles(
-        color: colorOnSurface,
-        backgroundColor: colorWarning.withOpacity(0.2),
-      ),
-      css('& .problem-severity-badge.info, & .problem-severity-badge.hint').styles(
-        color: colorOnSurface,
-        backgroundColor: colorInfo.withOpacity(0.2),
-      ),
       css('& .problem-message').styles(
         minWidth: .zero,
         overflow: .hidden,
@@ -204,10 +183,7 @@ final class _ProblemRow extends StatelessComponent {
         },
       },
       [
-        span(
-          classes: 'problem-severity-badge $severityClass',
-          [.text(diagnostic.severity.icon)],
-        ),
+        BottomPanelIndicator(severity: diagnostic.severity),
         span(classes: 'problem-message', [.text(diagnostic.message)]),
         span(classes: 'problem-actions', [
           span(classes: 'problem-location', [.text(location)]),
