@@ -577,10 +577,8 @@ class _GeminiCodeEditMenu extends StatelessWidget {
       'emoji-dart': 'Make the app use emojis',
     },
     AppType.flutter: {
-      'pretty':
-          'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
-      'fancy':
-          'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
+      'pretty': 'Make the app pretty by improving the visual design - add proper spacing, consistent typography, a pleasing color scheme, and ensure the overall layout follows Material Design principles',
+      'fancy': 'Make the app fancy by adding rounded corners where appropriate, subtle shadows and animations for interactivity; make tasteful use of gradients and images',
       'emoji':
           'Make the app use emojis by adding appropriate emoji icons and text',
     },

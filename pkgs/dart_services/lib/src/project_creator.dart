@@ -6,6 +6,7 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+
 import 'project_templates.dart';
 import 'sdk.dart';
 import 'utils.dart';
@@ -52,9 +53,8 @@ class ProjectCreator {
       throw StateError('pub get failed ($exitCode)');
     }
 
-    File(
-      path.join(projectPath, 'analysis_options.yaml'),
-    ).writeAsStringSync(_createAnalysisOptionsContents());
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
@@ -101,9 +101,8 @@ class ProjectCreator {
       );
     }
 
-    File(
-      path.join(projectPath, 'analysis_options.yaml'),
-    ).writeAsStringSync(_createAnalysisOptionsContents());
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(_createAnalysisOptionsContents());
   }
 
   String _createAnalysisOptionsContents() {

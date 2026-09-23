@@ -9,7 +9,7 @@ publish_to: none
 resolution: workspace
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
 
 dependencies:
   collection: ^1.19.1
@@ -20,7 +20,7 @@ dependencies:
   flutter_markdown: ^0.7.7+1
   flutter_web_plugins:
     sdk: flutter
-  go_router: ^17.0.1
+  go_router: ^17.5.0
   google_fonts: ^8.0.1
   http: ^1.6.0
   image_picker: ^1.2.1

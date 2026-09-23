@@ -17,10 +17,8 @@ void handleEmbedMessageImpl(AppServices services, {bool runOnInject = false}) {
   web.window.addEventListener(
     'message',
     (web.MessageEvent event) {
-      if (event.data case _SourceCodeMessage(
-        :final type?,
-        :final sourceCode?,
-      ) when type == 'sourceCode') {
+      if (event.data case _SourceCodeMessage(:final type?, :final sourceCode?)
+          when type == 'sourceCode') {
         if (sourceCode.isNotEmpty) {
           services.appModel.sourceCodeController.text = sourceCode;
           if (runOnInject) {
