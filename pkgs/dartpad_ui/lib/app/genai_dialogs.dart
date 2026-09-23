@@ -39,22 +39,17 @@ Future<void> openCodeGenerationDialog(
     context: context,
     builder: (context) => PromptDialog(
       title: resolvedDialogTitle,
-      hint:
-          'Describe what kind of code, features, and/or UI you want Gemini to create.',
+      hint: 'Describe what kind of code, features, and/or UI you want Gemini to create.',
       initialAppType: resolvedAppType,
       flutterPromptButtons: {
-        'to-do app':
-            'Generate a Flutter to-do app with add, remove, and complete task functionality',
-        'login screen':
-            'Generate a Flutter login screen with email and password fields, validation, and a submit button',
-        'tic-tac-toe':
-            'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
+        'to-do app': 'Generate a Flutter to-do app with add, remove, and complete task functionality',
+        'login screen': 'Generate a Flutter login screen with email and password fields, validation, and a submit button',
+        'tic-tac-toe': 'Generate a Flutter tic-tac-toe game with two players, win detection, and a reset button',
         'your last prompt': ?lastPrompt,
       },
       dartPromptButtons: {
         'hello, world': 'Generate a Dart hello world program',
-        'fibonacci':
-            'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
+        'fibonacci': 'Generate a Dart program that prints the first 10 numbers in the Fibonacci sequence',
         'factorial': 'Generate a Dart program that prints the factorial of 5',
         'your last prompt': ?lastPrompt,
       },

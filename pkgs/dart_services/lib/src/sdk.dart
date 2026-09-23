@@ -126,20 +126,18 @@ final class Sdk {
 
     try {
       return jsonDecode(
-            Process.runSync(flutterToolPath, [
-              '--version',
-              '--machine',
-            ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
-          )
-          as Map<String, Object?>;
+        Process.runSync(flutterToolPath, [
+          '--version',
+          '--machine',
+        ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
+      ) as Map<String, Object?>;
     } on FormatException {
       return jsonDecode(
-            Process.runSync(flutterToolPath, [
-              '--version',
-              '--machine',
-            ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
-          )
-          as Map<String, Object?>;
+        Process.runSync(flutterToolPath, [
+          '--version',
+          '--machine',
+        ], workingDirectory: flutterSdkPath).stdout.toString().trim(),
+      ) as Map<String, Object?>;
     }
   }
 

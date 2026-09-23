@@ -107,25 +107,22 @@ void defineTests(bool hasRedis) {
       });
     });
 
-    test(
-      'Verify two caches with different versions give different results for keys',
-      () async {
-        await singleTestOnly.synchronized(() async {
-          logMessages = [];
-          await redisCache.set('differentVersionKey', 'value1');
-          await redisCacheAlt.set('differentVersionKey', 'value2');
-          await expectLater(
-            await redisCache.get('differentVersionKey'),
-            'value1',
-          );
-          await expectLater(
-            await redisCacheAlt.get('differentVersionKey'),
-            'value2',
-          );
-          expect(logMessages, isEmpty);
-        });
-      },
-    );
+    test('Verify two caches with different versions give different results for keys', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        await redisCache.set('differentVersionKey', 'value1');
+        await redisCacheAlt.set('differentVersionKey', 'value2');
+        await expectLater(
+          await redisCache.get('differentVersionKey'),
+          'value1',
+        );
+        await expectLater(
+          await redisCacheAlt.get('differentVersionKey'),
+          'value2',
+        );
+        expect(logMessages, isEmpty);
+      });
+    });
 
     test('Verify disconnected cache logs errors and returns nulls', () async {
       await singleTestOnly.synchronized(() async {
@@ -228,52 +225,46 @@ void defineTests(bool hasRedis) {
       },
     );
 
-    test(
-      'Verify cache that starts out connected but breaks retries until reconnection (slow)',
-      () async {
-        await singleTestOnly.synchronized(() async {
-          logMessages = [];
+    test('Verify cache that starts out connected but breaks retries until reconnection (slow)', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
 
+        redisAltProcess = await startRedisProcessAndDrainIO(9504);
+        final redisCacheHealing = RedisCache(
+          'redis://localhost:9504',
+          sdk,
+          'cversion',
+        );
+        try {
+          await redisCacheHealing.connected;
+          await redisCacheHealing.set('missingKey', 'value');
+          // Kill process out from under the cache.
+          redisAltProcess!.kill();
+          await redisAltProcess!.exitCode;
+          redisAltProcess = null;
+
+          // Try to talk to the cache and get an error. Wait for the disconnect
+          // to be recognized.
+          await expectLater(await redisCacheHealing.get('missingKey'), isNull);
+          await redisCacheHealing.disconnected;
+
+          // Start the server and verify we connect appropriately.
           redisAltProcess = await startRedisProcessAndDrainIO(9504);
-          final redisCacheHealing = RedisCache(
-            'redis://localhost:9504',
-            sdk,
-            'cversion',
+          await redisCacheHealing.connected;
+          expect(
+            logMessages.join('\n'),
+            stringContainsInOrder([
+              'Connected to redis server',
+              'connection terminated with error SocketException',
+              'reconnecting to redis://localhost:9504',
+            ]),
           );
-          try {
-            await redisCacheHealing.connected;
-            await redisCacheHealing.set('missingKey', 'value');
-            // Kill process out from under the cache.
-            redisAltProcess!.kill();
-            await redisAltProcess!.exitCode;
-            redisAltProcess = null;
-
-            // Try to talk to the cache and get an error. Wait for the disconnect
-            // to be recognized.
-            await expectLater(
-              await redisCacheHealing.get('missingKey'),
-              isNull,
-            );
-            await redisCacheHealing.disconnected;
-
-            // Start the server and verify we connect appropriately.
-            redisAltProcess = await startRedisProcessAndDrainIO(9504);
-            await redisCacheHealing.connected;
-            expect(
-              logMessages.join('\n'),
-              stringContainsInOrder([
-                'Connected to redis server',
-                'connection terminated with error SocketException',
-                'reconnecting to redis://localhost:9504',
-              ]),
-            );
-            expect(logMessages.last, contains('Connected to redis server'));
-          } finally {
-            await redisCacheHealing.shutdown();
-          }
-        });
-      },
-    );
+          expect(logMessages.last, contains('Connected to redis server'));
+        } finally {
+          await redisCacheHealing.shutdown();
+        }
+      });
+    });
   }, skip: hasRedis ? null : 'redis-server not installed');
 }
 

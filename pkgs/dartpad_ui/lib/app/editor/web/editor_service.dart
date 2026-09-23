@@ -407,10 +407,9 @@ web.Element _codeMirrorFactory(int viewId) {
   CodeMirror.commands.goLineLeft = ((JSObject? _) => _handleGoLineLeft(
     codeMirrorInstance!,
   )).toJS;
-  CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab =
-      ((JSObject? _) => _indentIfMultiLineSelectionElseInsertSoftTab(
-        codeMirrorInstance!,
-      )).toJS;
+  CodeMirror.commands.indentIfMultiLineSelectionElseInsertSoftTab = ((
+    JSObject? _,
+  ) => _indentIfMultiLineSelectionElseInsertSoftTab(codeMirrorInstance!)).toJS;
   CodeMirror.commands.weHandleElsewhere = ((JSObject? _) => _weHandleElsewhere(
     codeMirrorInstance!,
   )).toJS;

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+
 import 'stub.dart' as stub;
 
 class DartPadHtmlViewImpl extends stub.DartPadHtmlViewImpl {
