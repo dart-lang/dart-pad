@@ -4,3 +4,12 @@ targets:
       build_web_compilers:entrypoint:
         options:
           unsafe-allow-unsupported-modules: true
+          compilers:
+            dart2wasm:
+              args:
+                - -Djaspr.flags.release=true
+                - -O2
+            dart2js:
+              args:
+                - -Djaspr.flags.release=true
+                - -O2
