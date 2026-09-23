@@ -11,7 +11,7 @@ import 'package:jaspr/jaspr.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
-import '../models/console_entry.dart';
+import '../view_models/console_view_model.dart';
 import 'bottom_panel_tabs.dart';
 import 'console_panel.dart';
 import 'problems_panel.dart';
@@ -31,8 +31,7 @@ final class BottomPanel extends StatefulComponent {
     required this.diagnostics,
     required this.hasMoreDiagnostics,
     required this.onOpenDiagnostic,
-    required this.logs,
-    required this.onClearConsole,
+    required this.console,
     required this.events,
     super.key,
   });
@@ -46,11 +45,8 @@ final class BottomPanel extends StatefulComponent {
   /// Called when the user clicks a diagnostic row.
   final void Function(String fileName, Diagnostic diagnostic) onOpenDiagnostic;
 
-  /// Application log lines shown in the debug console.
-  final List<ConsoleEntry> logs;
-
-  /// Clears the debug output.
-  final void Function() onClearConsole;
+  /// Console state used by the indicator and the visible console pane.
+  final ConsoleViewModel console;
 
   /// Workspace events used to react to requests from the preview panel.
   final AppEventBus events;
@@ -62,7 +58,7 @@ final class BottomPanel extends StatefulComponent {
   static List<StyleRule> get styles => _BottomPanelState.styles;
 }
 
-class _BottomPanelState extends State<BottomPanel> {
+final class _BottomPanelState extends State<BottomPanel> {
   BottomPanelTab _activeTab = BottomPanelTab.problems;
   StreamSubscription<OpenConsoleEvent>? _openConsoleSubscription;
 
@@ -83,11 +79,14 @@ class _BottomPanelState extends State<BottomPanel> {
 
   void _listenForOpenConsole() {
     _openConsoleSubscription = component.events.on<OpenConsoleEvent>().listen((_) {
+      if (!mounted) {
+        return;
+      }
       final panel = SplitPanel.of(context, listen: false);
       if (panel != null && panel.isPanelCollapsed) {
         panel.expand();
       }
-      if (mounted && _activeTab != BottomPanelTab.console) {
+      if (_activeTab != BottomPanelTab.console) {
         setState(() {
           _activeTab = BottomPanelTab.console;
         });
@@ -110,6 +109,7 @@ class _BottomPanelState extends State<BottomPanel> {
       [
         BottomPanelTabs(
           problemsCount: component.diagnostics.length,
+          console: component.console,
           activeTab: _activeTab,
           isCollapsed: isCollapsed,
           onSelectTab: (tab) {
@@ -120,7 +120,6 @@ class _BottomPanelState extends State<BottomPanel> {
               _activeTab = tab;
             });
           },
-          onClearConsole: component.onClearConsole,
           onCollapse: panel != null && panel.canCollapse ? panel.collapse : null,
         ),
         if (!isCollapsed) _buildContent(),
@@ -136,8 +135,9 @@ class _BottomPanelState extends State<BottomPanel> {
           hasMoreDiagnostics: component.hasMoreDiagnostics,
           onOpenDiagnostic: component.onOpenDiagnostic,
         ),
-        BottomPanelTab.console => ConsolePanel(
-          logs: component.logs,
+        BottomPanelTab.console => ListenableBuilder(
+          listenable: component.console,
+          builder: (_) => ConsolePanel(logs: component.console.logs),
         ),
       },
     ]);

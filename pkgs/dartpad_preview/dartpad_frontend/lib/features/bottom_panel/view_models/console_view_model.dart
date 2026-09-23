@@ -18,10 +18,14 @@ class ConsoleViewModel extends ChangeNotifier {
   }
 
   final List<ConsoleEntry> _logs = [];
+  bool _hasErrors = false;
   late final StreamSubscription<LogEvent> _subscription;
 
   /// The collected log lines, in arrival order.
   List<ConsoleEntry> get logs => List.unmodifiable(_logs);
+
+  /// Whether a displayed log line has a level above warning.
+  bool get hasErrors => _hasErrors;
 
   void _handleLog(LogEvent event) {
     var changed = _appendLogText(event.message, event.level);
@@ -44,6 +48,9 @@ class ConsoleViewModel extends ChangeNotifier {
       _logs.add(ConsoleEntry(message: line, level: level));
       changed = true;
     }
+    if (changed && level > Level.WARNING) {
+      _hasErrors = true;
+    }
     return changed;
   }
 
@@ -53,6 +60,7 @@ class ConsoleViewModel extends ChangeNotifier {
       return;
     }
     _logs.clear();
+    _hasErrors = false;
     notifyListeners();
   }
 
