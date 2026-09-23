@@ -51,7 +51,9 @@ void main() {
     );
     await pumpEventQueue();
     expect(created, isNull);
-    expect(web.document.body!.textContent, contains('Loading project'));
+    expect(web.document.querySelector('.editor-shell .editor-area'), isNotNull);
+    expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
+    expect(web.document.body!.textContent, isNot(contains('Loading project')));
     expect(web.document.querySelector('.app-shell > .task-status-anchor'), isNull);
     expect(web.document.querySelector('.app-footer .task-status-trigger'), isNotNull);
     download.complete(

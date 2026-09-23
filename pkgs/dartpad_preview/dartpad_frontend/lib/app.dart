@@ -654,7 +654,7 @@ final class _AppState extends State<App> {
               else if (_workspacePreparationFailure case final failure?)
                 ErrorDialog(errorMessage: failure)
               else
-                const p([.text('Loading project...')]),
+                _buildPendingWorkspace(),
             ]),
             if (!_isEmbedMode)
               Footer(
@@ -760,6 +760,36 @@ final class _AppState extends State<App> {
             },
           ),
       ],
+    );
+  }
+
+  /// Keep the editor layout visible while the project source or saved state loads.
+  Component _buildPendingWorkspace() {
+    final editor = EditorShell(
+      openTabs: const [],
+      activeFile: '',
+      fileTree: const aside(classes: 'file-tree', [
+        div(classes: 'file-tree-header', [
+          span(classes: 'file-tree-title', [.text('Explorer')]),
+        ]),
+        div(classes: 'file-tree-list', []),
+      ]),
+      editorOverlay: const .fragment([]),
+      onSwitchFile: (_) {},
+      onCloseFile: (_, {discardChanges = false}) => false,
+      bottomPanel: const div(classes: 'bottom-panel', []),
+      isEmbedMode: _isEmbedMode,
+    );
+    if (!_isLargeScreen) {
+      return editor;
+    }
+    return SplitPanel(
+      initialValue: 0.7,
+      canCollapseRight: true,
+      minValue: 0.3,
+      maxValue: 0.85,
+      left: editor,
+      right: const div(classes: 'preview-container', []),
     );
   }
 
