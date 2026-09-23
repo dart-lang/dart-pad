@@ -13,7 +13,7 @@ dependencies:
   archive: ^4.0.9
   clock: ^1.1.2
   codemirror_dart: any
-  dartpad: any
+  dartpad: 0.0.9
   dartpad_editor: any
   http: ^1.6.0
   jaspr: ^0.23.2
