@@ -14,7 +14,7 @@ import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
 
-const _headerFontFamily = FontFamily.list([
+const FontFamily _headerFontFamily = .list([
   FontFamily('Google Sans Flex'),
   FontFamily('Roboto'),
   FontFamily('ui-sans'),
@@ -194,30 +194,22 @@ final class AppBar extends StatelessComponent {
       },
     ),
     // Dark theme styles matching dart.dev chrome.
-    css('html[data-theme="dark"] .app-bar').styles(
-      border: .only(
-        bottom: .solid(color: const Color('#394c60'), width: 1.px),
-      ),
-      backgroundColor: const Color('#1c2834'),
-    ),
-    css('html[data-theme="dark"] .app-bar .app-bar-title').styles(
-      color: const Color('#f3f4f6'),
-    ),
-    css('html[data-theme="dark"] .app-bar .app-bar-divider').styles(
-      backgroundColor: const Color('#394c60'),
-    ),
-    css('html[data-theme="dark"] .app-bar .app-bar-text-button').styles(
-      color: const Color('#f3f4f6'),
-    ),
-    css('html[data-theme="dark"] .app-bar .app-bar-text-button:hover').styles(
-      backgroundColor: const Color('#253446'),
-    ),
-    css('html[data-theme="dark"] .app-bar .icon-button').styles(
-      color: const Color('#a8acad'),
-    ),
-    css('html[data-theme="dark"] .app-bar .icon-button:hover').styles(
-      color: const Color('#40c4ff'),
-    ),
+    css('html[data-theme="dark"]', [
+      css('.app-bar', [
+        css('&').styles(
+          border: .only(
+            bottom: .solid(color: const Color('#394c60'), width: 1.px),
+          ),
+          backgroundColor: const Color('#1c2834'),
+        ),
+        css('.app-bar-title').styles(color: const Color('#f3f4f6')),
+        css('.app-bar-divider').styles(backgroundColor: const Color('#394c60')),
+        css('.app-bar-text-button').styles(color: const Color('#f3f4f6')),
+        css('.app-bar-text-button:hover').styles(backgroundColor: const Color('#253446')),
+        css('.icon-button').styles(color: const Color('#a8acad')),
+        css('.icon-button:hover').styles(color: const Color('#40c4ff')),
+      ]),
+    ]),
     css('.app-bar-left').styles(
       display: .flex,
       position: const .relative(),

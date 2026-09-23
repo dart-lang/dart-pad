@@ -210,16 +210,17 @@ class _DropdownMenuState extends State<DropdownMenu> {
                           entry.onPressed();
                         },
                         [
-                          if (entry.leadingImage != null)
+                          if (entry.leadingImage case final leadingImage?)
                             img(
-                              src: entry.leadingImage!,
+                              src: leadingImage,
                               alt: '',
                               classes: 'dropdown-menu-item-image',
                               attributes: const {'width': '20', 'height': '20'},
                             ),
-                          if (entry.leadingIcon != null) Icon(entry.leadingIcon!, size: entry.leadingIconSize),
+                          if (entry.leadingIcon case final leadingIcon?) Icon(leadingIcon, size: entry.leadingIconSize),
                           span(classes: 'dropdown-menu-item-name', [.text(entry.label)]),
-                          if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
+                          if (entry.trailingIcon case final trailingIcon?)
+                            Icon(trailingIcon, size: entry.trailingIconSize),
                         ],
                       ),
                     },
@@ -321,6 +322,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
       gap: Gap.all(8.px),
       color: .inherit,
       textAlign: .left,
+      fontFamily: .inherit,
       fontSize: 14.px,
       textDecoration: const TextDecoration(line: .none),
       whiteSpace: .noWrap,
