@@ -4,6 +4,9 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+// Ensures build_web_compilers copies utilities_collection_native.dart into scratchSpace for dart2wasm.
+// ignore: unused_import, implementation_imports
+import 'package:analyzer/src/generated/utilities_collection_native.dart';
 
 /// Whether [source] declares a top-level, non-accessor function named `main`.
 bool dartSourceHasMain(String source) => parseString(content: source, throwIfDiagnostics: false).unit.declarations

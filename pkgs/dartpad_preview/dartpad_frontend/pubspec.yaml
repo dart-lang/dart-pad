@@ -37,5 +37,4 @@ dev_dependencies:
 
 jaspr:
   mode: client
-  flutter: plugins
   styles: standalone

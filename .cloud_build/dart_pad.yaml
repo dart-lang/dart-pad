@@ -24,7 +24,7 @@ steps:
         dart pub get
         (cd ../examples && dart run build_examples.dart)
         dart run tool/copy_assets.dart
-        dart run jaspr_cli:jaspr build -v
+        dart run jaspr_cli:jaspr build --experimental-wasm -v
     dir: pkgs/dartpad_preview/dartpad_frontend
 
   # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)

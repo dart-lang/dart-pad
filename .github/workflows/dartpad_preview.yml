@@ -122,3 +122,9 @@ jobs:
       - name: Run tests
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart test
+
+      - name: Build frontend (wasm)
+        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        run: |
+          dart run tool/copy_assets.dart
+          dart run jaspr_cli:jaspr build --experimental-wasm -v
