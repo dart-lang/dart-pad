@@ -368,7 +368,6 @@ final class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('&.mode-mobile > .preview').styles(
           position: .absolute(top: 50.percent, left: 50.percent),
-          border: .all(color: colorBorder, width: 1.px),
           radius: .circular(12.px),
           overflow: .hidden,
           shadow: BoxShadow(
@@ -387,7 +386,6 @@ final class _PreviewContainerState extends State<PreviewContainer> {
         ),
         css('&.mode-tablet > .preview').styles(
           position: .absolute(top: 50.percent, left: 50.percent),
-          border: .all(color: colorBorder, width: 1.px),
           radius: .circular(12.px),
           overflow: .hidden,
           shadow: BoxShadow(
