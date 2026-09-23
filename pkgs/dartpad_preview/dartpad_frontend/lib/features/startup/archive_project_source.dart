@@ -39,7 +39,10 @@ Future<Project> _loadArchive(String archiveUrl) async {
       if (file.isFile)
         ProjectFile(
           path: _relativeArchivePath(file.name),
-          bytes: file.content,
+          // Archive contents are views into the full tar buffer. MessagePort
+          // clones the entire backing buffer when syncing each file to the
+          // worker, so give each file its own buffer before importing it.
+          bytes: Uint8List.fromList(file.content),
         ),
   ]);
 

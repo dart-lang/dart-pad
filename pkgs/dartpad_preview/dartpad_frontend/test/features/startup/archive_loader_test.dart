@@ -40,6 +40,33 @@ void main() {
       return Uint8List.fromList(encoded);
     }
 
+    for (final compressed in [false, true]) {
+      test('imports file-sized buffers for worker messages, compressed=$compressed', () async {
+        final files = {
+          'lib/main.dart': [0, 127, 255],
+          'assets/data.bin': List<int>.filled(4096, 42),
+          'empty.txt': <int>[],
+        };
+        final tar = createTarArchiveFromBytes(files);
+        final archiveBytes = compressed ? const GZipEncoder().encode(tar) : tar;
+        final api = MemoryWorkspaceResourceApi();
+        addTearDown(api.dispose);
+
+        await http.runWithClient(
+          () => loadInto(const ArchiveProjectSource(absoluteUrl), api.root),
+          () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
+        );
+
+        for (final entry in files.entries) {
+          final bytes = await api.readFileAsBytes(entry.key);
+          expect(bytes, entry.value);
+          // MessagePort clones the entire backing buffer, including bytes
+          // outside the view. Sending a file must not copy the whole archive.
+          expect(bytes.buffer.lengthInBytes, bytes.lengthInBytes, reason: entry.key);
+        }
+      });
+    }
+
     test('resolves a relative URL against the page URL', () async {
       const ArchiveProjectSource source = ArchiveProjectSource(
         'examples/counter.tar.gz',
