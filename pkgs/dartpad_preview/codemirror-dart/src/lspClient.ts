@@ -234,7 +234,7 @@ class CMWorkspaceFile implements WorkspaceFile {
     public version: number,
     public doc: Text,
     public view: EditorView | null,
-  ) { }
+  ) {}
 
   getView() {
     return this.view;
