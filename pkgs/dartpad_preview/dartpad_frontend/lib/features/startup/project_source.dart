@@ -10,8 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:tar/tar.dart';
 import 'package:yaml/yaml.dart';
 
-import 'browser_gzip.dart';
 import 'examples.g.dart';
+import 'gzip/gzip.dart';
 import 'project_loader.dart';
 
 part 'archive_project_source.dart';

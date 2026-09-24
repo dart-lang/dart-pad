@@ -29,7 +29,8 @@ Future<Project> _loadArchive(String archiveUrl) async {
 
   final Uint8List bytes = response.bodyBytes;
   final compressed = bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B;
-  final stream = compressed ? decodeBrowserGzip(bytes) : Stream<List<int>>.value(bytes);
+  final archiveStream = Stream<List<int>>.value(bytes);
+  final stream = compressed ? gzipDecoder.bind(archiveStream) : archiveStream;
   // Drain through EOF so gzip checksum/truncation errors cannot be hidden by
   // the tar end marker. TarReader still permits trailing zero padding.
   final reader = TarReader(stream, disallowTrailingData: true);
