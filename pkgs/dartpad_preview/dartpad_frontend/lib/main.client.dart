@@ -4,7 +4,8 @@
 
 /// The entrypoint for the **client** app.
 ///
-/// This file is compiled to javascript and executed on the client when loading the page.
+/// This file is compiled to WebAssembly (with JavaScript fallback) and executed
+/// on the client when loading the page.
 library;
 
 // Ensures build_web_compilers copies conditional dart2wasm targets into scratchSpace

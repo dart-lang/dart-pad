@@ -133,7 +133,7 @@ Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) asyn
   buffer.writeln(');');
 
   final targetFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
-  await targetFile.writeAsString('$buffer\n');
+  await targetFile.writeAsString(buffer.toString());
   stdout.writeln('Generated ${targetFile.path}');
 
   // Remove any legacy sdks.g.dart in features/shared/ if present

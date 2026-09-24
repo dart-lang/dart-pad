@@ -113,6 +113,15 @@ jobs:
           git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
           git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
 
+      - name: Copy SDK assets and generate sdks.g.dart
+        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        run: dart run tool/copy_assets.dart
+
+      - name: Verify generated SDK manifest is checked in
+        run: |
+          git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/sdks.g.dart
+          git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/sdks.g.dart
+
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
@@ -128,6 +137,4 @@ jobs:
       # catch dart2wasm or build_web_compilers regressions prior to Cloud Build.
       - name: Build frontend (wasm)
         working-directory: pkgs/dartpad_preview/dartpad_frontend
-        run: |
-          dart run tool/copy_assets.dart
-          dart run jaspr_cli:jaspr build --experimental-wasm -v
+        run: dart run jaspr_cli:jaspr build --experimental-wasm -v

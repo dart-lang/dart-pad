@@ -6,9 +6,11 @@ targets:
           # Required because package:analyzer transitively references
           # package:watcher / dart:io in barrel files that are tree-shaken out.
           unsafe-allow-unsupported-modules: true
+        release_options:
           # Compile both main.client.wasm (dart2wasm) and main.client.dart2js.js
-          # (dart2js) so build_web_compilers generates the WasmGC/Wasm-SIMD +
-          # ?force_js=1 fallback switcher in main.client.dart.js.
+          # (dart2js) in release builds (`jaspr build`) so build_web_compilers
+          # generates the WasmGC/Wasm-SIMD + ?force_js=1 fallback switcher in
+          # main.client.dart.js without overriding `jaspr serve` dev builds.
           compilers:
             dart2wasm:
               args:
