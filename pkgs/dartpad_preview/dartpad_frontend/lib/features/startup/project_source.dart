@@ -5,11 +5,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:http/http.dart' as http;
+import 'package:tar/tar.dart';
 import 'package:yaml/yaml.dart';
 
+import 'browser_gzip.dart';
 import 'examples.g.dart';
 import 'project_loader.dart';
 
