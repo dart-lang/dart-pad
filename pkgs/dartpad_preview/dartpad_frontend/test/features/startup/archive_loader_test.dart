@@ -40,6 +40,73 @@ void main() {
       return Uint8List.fromList(encoded);
     }
 
+    for (final compressed in [false, true]) {
+      test('imports file-sized buffers for worker messages, compressed=$compressed', () async {
+        final files = {
+          'lib/main.dart': [0, 127, 255],
+          'assets/data.bin': List<int>.filled(4096, 42),
+          'empty.txt': <int>[],
+        };
+        final tar = createTarArchiveFromBytes(files);
+        final archiveBytes = compressed ? const GZipEncoder().encode(tar) : tar;
+        final api = MemoryWorkspaceResourceApi();
+        addTearDown(api.dispose);
+
+        await http.runWithClient(
+          () => loadInto(const ArchiveProjectSource(absoluteUrl), api.root),
+          () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
+        );
+
+        for (final entry in files.entries) {
+          final bytes = await api.readFileAsBytes(entry.key);
+          expect(bytes, entry.value);
+          // MessagePort clones the entire backing buffer, including bytes
+          // outside the view. Sending a file must not copy the whole archive.
+          expect(bytes.buffer.lengthInBytes, bytes.lengthInBytes, reason: entry.key);
+        }
+      });
+    }
+
+    test('retains distinct files across tar buffers and native gzip chunks', () async {
+      final files = {
+        for (var i = 0; i < 8; i++) 'file$i.bin': List<int>.generate(70001 + i, (offset) => (offset + i) % 256),
+      };
+      final archive = const GZipEncoder().encode(createTarArchiveFromBytes(files));
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      for (final entry in files.entries) {
+        expect(project.readFile(entry.key), entry.value, reason: entry.key);
+        expect(project.readFile(entry.key)!.buffer.lengthInBytes, entry.value.length);
+      }
+    });
+
+    test('accepts gzip archives with trailing zero padding', () async {
+      final archive = createTarGzArchive({'README.md': '# Padded archive'});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes([...archive, ...List<int>.filled(512, 0)], 200)),
+      );
+      expect(project.readFile('README.md'), '# Padded archive'.codeUnits);
+    });
+
+    for (final damage in ['checksum', 'truncated', 'invalid tar']) {
+      test('rejects $damage archives', () async {
+        final tar = createTarArchive({'README.md': '# Invalid archive'});
+        final gzip = createTarGzArchive({'README.md': '# Invalid archive'});
+        final damaged = switch (damage) {
+          'checksum' => Uint8List.fromList(gzip)..[gzip.length - 8] ^= 1,
+          'truncated' => gzip.sublist(0, gzip.length - 4),
+          _ => Uint8List.fromList(tar)..[0] ^= 1,
+        };
+        await http.runWithClient(
+          () => expectLater(const ArchiveProjectSource(absoluteUrl).loadProject(), throwsA(anything)),
+          () => MockClient((_) async => http.Response.bytes(damaged, 200)),
+        );
+      });
+    }
+
     test('resolves a relative URL against the page URL', () async {
       const ArchiveProjectSource source = ArchiveProjectSource(
         'examples/counter.tar.gz',

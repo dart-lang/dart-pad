@@ -28,20 +28,35 @@ Future<Project> _loadArchive(String archiveUrl) async {
   }
 
   final Uint8List bytes = response.bodyBytes;
-  List<int> tarBytes = bytes;
-  if (bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B) {
-    tarBytes = const GZipDecoder().decodeBytes(bytes);
+  final compressed = bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B;
+  final archiveStream = Stream<List<int>>.value(bytes);
+  final stream = compressed ? gzipDecoder.bind(archiveStream) : archiveStream;
+  // Drain through EOF so gzip checksum/truncation errors cannot be hidden by
+  // the tar end marker. TarReader still permits trailing zero padding.
+  final reader = TarReader(stream, disallowTrailingData: true);
+  final files = <ProjectFile>[];
+  try {
+    while (await reader.moveNext()) {
+      final entry = reader.current;
+      if (entry.type != TypeFlag.reg) {
+        continue;
+      }
+      final path = _relativeArchivePath(entry.name);
+      ProjectLoader.normalizePath(path);
+      // Tar streams may reuse buffers. Copy each chunk immediately and retain
+      // only the file's bytes.
+      final contents = Uint8List(entry.size);
+      var offset = 0;
+      await for (final chunk in entry.contents) {
+        contents.setRange(offset, offset + chunk.length, chunk);
+        offset += chunk.length;
+      }
+      files.add(ProjectFile(path: path, bytes: contents));
+    }
+  } finally {
+    await reader.cancel();
   }
-
-  final Archive archive = TarDecoder().decodeBytes(tarBytes);
-  final project = Project([
-    for (final ArchiveFile file in archive.files)
-      if (file.isFile)
-        ProjectFile(
-          path: _relativeArchivePath(file.name),
-          bytes: file.content,
-        ),
-  ]);
+  final project = Project(files);
 
   _disableWorkspaceResolution(project);
   return project;
