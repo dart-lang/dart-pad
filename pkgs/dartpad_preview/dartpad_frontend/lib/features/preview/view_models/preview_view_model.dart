@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 import '../../bottom_panel/models/console_entry.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/log_source.dart';
 import '../../shared/run_availability.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
@@ -350,12 +351,26 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (_disposed || !identical(_sandbox, sandbox)) {
         return;
       }
-      if (_previewMode == RunMode.flutter ||
-          message.startsWith('Starting application from') ||
-          message.startsWith('Hot restarting application from')) {
-        _eventBus.dispatch(LogEvent('[app] $message', level: level));
+      final isRuntimeStatus =
+          message.startsWith('Starting application from') || message.startsWith('Hot restarting application from');
+      if (_previewMode == RunMode.flutter || isRuntimeStatus) {
+        _eventBus.dispatch(
+          LogEvent(
+            message,
+            level: level,
+            source: LogSource.app,
+            isApplicationOutput: !isRuntimeStatus,
+          ),
+        );
       } else {
-        _appLogs.add(ConsoleEntry(message: message, level: level));
+        _appLogs.add(
+          ConsoleEntry(
+            message: message,
+            level: level,
+            source: LogSource.app,
+            isApplicationOutput: true,
+          ),
+        );
         notifyListeners();
       }
     }

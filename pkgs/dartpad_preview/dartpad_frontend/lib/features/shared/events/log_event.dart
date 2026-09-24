@@ -5,6 +5,7 @@
 import 'package:logging/logging.dart';
 
 import '../app_event_bus.dart';
+import '../log_source.dart';
 
 /// Output produced by a project-facing tool, such as `pub get` or a runner.
 /// - [message]: human-readable log text.
@@ -16,6 +17,8 @@ final class LogEvent extends AppEvent {
   const LogEvent(
     this.message, {
     this.level = Level.INFO,
+    this.source = LogSource.system,
+    this.isApplicationOutput = false,
     this.error,
     this.stackTrace,
   });
@@ -25,6 +28,13 @@ final class LogEvent extends AppEvent {
 
   /// Severity level; defaults to [Level.INFO].
   final Level level;
+
+  /// The producer of this output; defaults to [LogSource.system].
+  final LogSource source;
+
+  /// Whether this is output written by the running program rather than a
+  /// runtime status message.
+  final bool isApplicationOutput;
 
   /// Optional error object associated with this log entry.
   final Object? error;

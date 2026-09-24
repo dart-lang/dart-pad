@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/log_source.dart';
 import '../models/console_entry.dart';
 
 /// Collects application log events for display in the console.
@@ -28,13 +29,13 @@ class ConsoleViewModel extends ChangeNotifier {
   bool get hasErrors => _hasErrors;
 
   void _handleLog(LogEvent event) {
-    var changed = _appendLogText(event.message, event.level);
+    var changed = _appendLogText(event.message, event.level, event.source, event.isApplicationOutput);
 
     if (event.error case final error?) {
-      changed |= _appendLogText(error.toString(), event.level);
+      changed |= _appendLogText(error.toString(), event.level, event.source, event.isApplicationOutput);
     }
     if (event.stackTrace case final stackTrace?) {
-      changed |= _appendLogText(stackTrace.toString(), event.level);
+      changed |= _appendLogText(stackTrace.toString(), event.level, event.source, event.isApplicationOutput);
     }
 
     if (changed) {
@@ -42,10 +43,17 @@ class ConsoleViewModel extends ChangeNotifier {
     }
   }
 
-  bool _appendLogText(String text, Level level) {
+  bool _appendLogText(String text, Level level, LogSource source, bool isApplicationOutput) {
     var changed = false;
     for (final line in _splitLogLines(text)) {
-      _logs.add(ConsoleEntry(message: line, level: level));
+      _logs.add(
+        ConsoleEntry(
+          message: line,
+          level: level,
+          source: source,
+          isApplicationOutput: isApplicationOutput,
+        ),
+      );
       changed = true;
     }
     if (changed && level > Level.WARNING) {

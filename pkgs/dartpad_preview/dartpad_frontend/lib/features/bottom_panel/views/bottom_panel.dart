@@ -137,7 +137,11 @@ final class _BottomPanelState extends State<BottomPanel> {
         ),
         BottomPanelTab.console => ListenableBuilder(
           listenable: component.console,
-          builder: (_) => ConsolePanel(logs: component.console.logs),
+          builder: (_) => ConsolePanel(
+            logs: component.console.logs,
+            showSourceLabels: true,
+            highlightApplicationOutput: true,
+          ),
         ),
       },
     ]);

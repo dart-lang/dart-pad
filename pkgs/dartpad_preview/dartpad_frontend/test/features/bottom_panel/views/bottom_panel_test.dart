@@ -12,6 +12,7 @@ import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
+import 'package:dartpad_frontend/features/shared/log_source.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
@@ -136,6 +137,13 @@ void main() {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     events.dispatch(const LogEvent('Running pub get in /'));
+    events.dispatch(
+      const LogEvent(
+        'hello',
+        source: LogSource.app,
+        isApplicationOutput: true,
+      ),
+    );
     await pumpEventQueue();
     tester.pumpComponent(
       BottomPanel(
@@ -155,6 +163,8 @@ void main() {
     await pumpEventQueue();
 
     expect(web.document.querySelector('.console-panel')!.textContent, contains('Running pub get in /'));
+    expect(web.document.querySelector('.log-row.source-app.application-output .log-source')!.textContent, '[app]');
+    expect(web.document.querySelector('.log-row.source-app.application-output .log-message')!.textContent, 'hello');
     final clearButton = web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
     expect(clearButton.disabled, isFalse);
 

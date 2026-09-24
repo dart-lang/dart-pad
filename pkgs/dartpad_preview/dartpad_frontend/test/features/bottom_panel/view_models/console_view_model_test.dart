@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/log_source.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
@@ -30,6 +31,8 @@ void main() {
         LogEvent(
           'Resolving dependencies...\n  dependency resolved\n\nnext step\n',
           level: Level.SEVERE,
+          source: LogSource.app,
+          isApplicationOutput: true,
           error: StateError('failed'),
           stackTrace: StackTrace.fromString('trace one\ntrace two\n'),
         ),
@@ -49,6 +52,8 @@ void main() {
         ],
       );
       expect(viewModel.logs.every((entry) => entry.level == Level.SEVERE), isTrue);
+      expect(viewModel.logs.every((entry) => entry.source == LogSource.app), isTrue);
+      expect(viewModel.logs.every((entry) => entry.isApplicationOutput), isTrue);
     });
 
     test('clears logs and notifies listeners', () async {

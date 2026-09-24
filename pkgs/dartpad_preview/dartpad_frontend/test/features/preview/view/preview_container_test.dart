@@ -13,11 +13,13 @@ import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
+import 'package:dartpad_frontend/features/shared/log_source.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
+import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../view_models/preview_view_model_test.dart'
@@ -520,6 +522,24 @@ void main() {
     tester.pumpComponent(const div([]));
     await pumpEventQueue();
     dartPreview.dispose();
+  });
+
+  testClient('keeps Dart program output unhighlighted in the preview', (tester) async {
+    preview.previewMode = RunMode.console;
+    preview.appLogs.add(
+      const ConsoleEntry(
+        message: 'hello',
+        level: Level.INFO,
+        source: LogSource.app,
+        isApplicationOutput: true,
+      ),
+    );
+
+    tester.pumpComponent(buildContainer());
+
+    final row = web.document.querySelector('.preview-content .log-row')! as web.HTMLElement;
+    expect(row.textContent, 'hello');
+    expect(row.classList.contains('application-output'), isFalse);
   });
 
   testClient('expands only the first button in medium Dart toolbar (180px - 269px)', (tester) async {

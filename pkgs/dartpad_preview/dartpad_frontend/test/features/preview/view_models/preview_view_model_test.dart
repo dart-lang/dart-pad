@@ -15,6 +15,7 @@ import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/preview/view_models/preview_view_model.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/log_source.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
@@ -460,6 +461,31 @@ void main() {
     sandbox.errorController.add('error');
     sandbox.rejectionController.add('rejection');
     expect(preview.appLogs.map((e) => e.level), [Level.INFO, Level.SEVERE, Level.SEVERE]);
+    expect(preview.appLogs.every((entry) => entry.source == LogSource.app), isTrue);
+    expect(preview.appLogs.every((entry) => entry.isApplicationOutput), isTrue);
+  });
+
+  test('Flutter output is dispatched with structured app metadata', () async {
+    await preview.runCode('lib/main.dart', mode: RunMode.flutter);
+
+    sandbox.consoleController.add('printed output');
+    await pump();
+
+    final output = logs.singleWhere((event) => event.message == 'printed output');
+    expect(output.source, LogSource.app);
+    expect(output.isApplicationOutput, isTrue);
+    expect(output.message, isNot(startsWith('[app]')));
+  });
+
+  test('Flutter runtime status retains its app label without output highlighting', () async {
+    await preview.runCode('lib/main.dart', mode: RunMode.flutter);
+
+    sandbox.consoleController.add('Starting application from main method in: package:app/main.dart');
+    await pump();
+
+    final status = logs.singleWhere((event) => event.message.startsWith('Starting application from'));
+    expect(status.source, LogSource.app);
+    expect(status.isApplicationOutput, isFalse);
   });
 
   test('stream errors are captured as severe application output', () async {
