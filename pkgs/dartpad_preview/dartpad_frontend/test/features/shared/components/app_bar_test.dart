@@ -24,8 +24,12 @@ void main() {
     expect(newButton.disabled, isTrue);
   });
 
-  testClient('renders logo and DartPad title', (tester) {
+  testClient('renders preview ribbon, logo and DartPad title', (tester) {
     tester.pumpComponent(const AppBar());
+
+    final ribbon = web.document.querySelector('.app-bar-preview-ribbon');
+    expect(ribbon, isNotNull);
+    expect(ribbon!.textContent, 'PREVIEW');
 
     final logo = web.document.querySelector('.app-bar-logo') as web.HTMLImageElement?;
     expect(logo, isNotNull);
