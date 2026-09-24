@@ -84,6 +84,10 @@ final class AppBar extends StatelessComponent {
     final isNewDisabled = onSelectExample == null;
 
     final appBar = div(classes: 'app-bar${restoreAction != null ? ' app-bar-with-restore' : ''}', [
+      // Flutter-style preview corner ribbon overlay.
+      const div(classes: 'app-bar-preview-ribbon-wrapper', [
+        div(classes: 'app-bar-preview-ribbon', [.text('PREVIEW')]),
+      ]),
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
         const img(
@@ -178,6 +182,39 @@ final class AppBar extends StatelessComponent {
       gap: Gap.all(8.px),
       flex: const .shrink(0),
       backgroundColor: colorSurface,
+      overflow: .hidden,
+    ),
+    css('.app-bar-preview-ribbon-wrapper').styles(
+      position: const .absolute(top: Unit.zero, left: Unit.zero),
+      width: 80.px,
+      height: 80.px,
+      overflow: .hidden,
+      raw: {'pointer-events': 'none'},
+      zIndex: const ZIndex(250),
+    ),
+    css('.app-bar-preview-ribbon').styles(
+      position: const .absolute(),
+      width: 95.px,
+      padding: .symmetric(vertical: 3.px),
+      backgroundColor: const Color('#8B2635'),
+      color: Colors.white,
+      fontSize: 8.5.px,
+      fontWeight: .w900,
+      letterSpacing: 1.2.px,
+      textAlign: .center,
+      shadow: BoxShadow(
+        offsetX: .zero,
+        offsetY: 2.px,
+        blur: 5.px,
+        color: const .rgba(0, 0, 0, 0.35),
+      ),
+      transform: .rotate((-45).deg),
+      raw: {
+        'top': '14px',
+        'left': '-28px',
+        'text-transform': 'uppercase',
+        'user-select': 'none',
+      },
     ),
     css('.app-bar-left').styles(
       display: .flex,
