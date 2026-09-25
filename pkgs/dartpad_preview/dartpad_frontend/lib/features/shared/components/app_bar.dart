@@ -14,6 +14,13 @@ import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
 
+const FontFamily _headerFontFamily = .list([
+  FontFamily('Google Sans Flex'),
+  FontFamily('Roboto'),
+  FontFamily('ui-sans'),
+  FontFamilies.sansSerif,
+]);
+
 /// The main [AppBar] with the DartPad logo, title, theme toggle, and
 /// overflow menu.
 final class AppBar extends StatelessComponent {
@@ -87,7 +94,7 @@ final class AppBar extends StatelessComponent {
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
         const img(
-          src: 'images/dart_logo_192.png',
+          src: 'images/dart-192.svg',
           alt: 'Dart',
           classes: 'app-bar-logo',
         ),
@@ -119,7 +126,8 @@ final class AppBar extends StatelessComponent {
         const ThemeToggle(),
         DropdownMenu(
           trigger: const dp.IconButton(
-            icon: 'more_vert',
+            icon: 'apps',
+            iconSize: 28.0,
             tooltip: 'More options',
             label: 'More options',
           ),
@@ -168,17 +176,40 @@ final class AppBar extends StatelessComponent {
       display: .flex,
       position: const .relative(),
       zIndex: const ZIndex(200),
-      height: 48.px,
-      minHeight: 48.px,
-      padding: .symmetric(horizontal: 12.px),
+      height: 52.px,
+      minHeight: 52.px,
+      padding: .symmetric(horizontal: 16.px),
       border: .only(
         bottom: .solid(color: colorBorder, width: 1.px),
       ),
       alignItems: .center,
       gap: Gap.all(8.px),
       flex: const .shrink(0),
+      fontFamily: _headerFontFamily,
       backgroundColor: colorSurface,
+      raw: {
+        'font-optical-sizing': 'auto',
+        '-webkit-font-smoothing': 'antialiased',
+        '-moz-osx-font-smoothing': 'grayscale',
+      },
     ),
+    // Dark theme styles matching dart.dev chrome.
+    css('html[data-theme="dark"]', [
+      css('.app-bar', [
+        css('&').styles(
+          border: .only(
+            bottom: .solid(color: const Color('#394c60'), width: 1.px),
+          ),
+          backgroundColor: const Color('#1c2834'),
+        ),
+        css('.app-bar-title').styles(color: const Color('#f3f4f6')),
+        css('.app-bar-divider').styles(backgroundColor: const Color('#394c60')),
+        css('.app-bar-text-button').styles(color: const Color('#f3f4f6')),
+        css('.app-bar-text-button:hover').styles(backgroundColor: const Color('#253446')),
+        css('.icon-button').styles(color: const Color('#a8acad')),
+        css('.icon-button:hover').styles(color: const Color('#40c4ff')),
+      ]),
+    ]),
     css('.app-bar-left').styles(
       display: .flex,
       position: const .relative(),
@@ -194,16 +225,22 @@ final class AppBar extends StatelessComponent {
       position: const .relative(),
       zIndex: const ZIndex(99),
       alignItems: .center,
-      gap: Gap.all(4.px),
+      gap: Gap.all(8.px),
     ),
     css('.app-bar-logo').styles(
-      width: 32.px,
-      height: 32.px,
+      width: 36.px,
+      height: 36.px,
     ),
     css('.app-bar-title').styles(
+      userSelect: .none,
       color: colorOnContainer,
-      fontSize: 22.px,
+      fontFamily: _headerFontFamily,
+      fontSize: 28.px,
       fontWeight: .w400,
+      lineHeight: 1.25.em,
+      raw: {
+        'font-variant-ligatures': 'none',
+      },
     ),
     css('.app-bar-divider').styles(
       width: 1.px,
@@ -222,7 +259,8 @@ final class AppBar extends StatelessComponent {
       alignItems: .center,
       gap: Gap.all(6.px),
       color: colorOnSurface,
-      fontSize: 13.px,
+      fontFamily: _headerFontFamily,
+      fontSize: 14.px,
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
     ),

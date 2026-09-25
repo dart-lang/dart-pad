@@ -19,10 +19,11 @@ void main() {
         ],
       ),
     );
-    await pumpEventQueue();
 
+    // Initial state: menu panel is not rendered.
     expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
 
+    // Click trigger to open menu.
     final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
     trigger.click();
     await pumpEventQueue();
@@ -30,9 +31,13 @@ void main() {
     expect(web.document.querySelector('.dropdown-menu-panel'), isNotNull);
     final items = web.document.querySelectorAll('.dropdown-menu-item');
     expect(items.length, 2);
+    expect((items.item(0) as web.HTMLElement).textContent, contains('Item 1'));
+    expect((items.item(1) as web.HTMLElement).textContent, contains('Item 2'));
 
+    // Click trigger again to close menu.
     trigger.click();
     await pumpEventQueue();
+
     expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
   });
 
@@ -47,14 +52,10 @@ void main() {
             isSelected: true,
             onPressed: () {},
           ),
-          DropdownMenuItem(
-            label: 'Normal Item',
-            onPressed: () {},
-          ),
+          DropdownMenuItem(label: 'Normal Item', isSelected: false, onPressed: () {}),
         ],
       ),
     );
-    await pumpEventQueue();
 
     final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
     trigger.click();
@@ -73,6 +74,47 @@ void main() {
     expect(secondItem.className, isNot(contains('active')));
   });
 
+  testClient('renders nav.dropdown-menu with semantic ul/li structure and items', (tester) async {
+    tester.pumpComponent(
+      DropdownMenu(
+        items: [
+          DropdownMenuItem(
+            label: 'Option 1',
+            leadingImage: 'images/dart-192.svg',
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+    await pumpEventQueue();
+
+    final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
+    trigger.click();
+    await pumpEventQueue();
+
+    final nav = web.document.querySelector('nav.dropdown-menu');
+    expect(nav, isNotNull);
+    expect(nav!.getAttribute('role'), 'menu');
+
+    final list = nav.querySelector('ul');
+    expect(list, isNotNull);
+
+    final listItem = list!.querySelector('li');
+    expect(listItem, isNotNull);
+
+    final itemButton = listItem!.querySelector('button.dropdown-menu-item') as web.HTMLButtonElement?;
+    expect(itemButton, isNotNull);
+    expect(itemButton!.getAttribute('role'), 'menuitem');
+
+    final logo = itemButton.querySelector('img.dropdown-menu-item-image') as web.HTMLImageElement?;
+    expect(logo, isNotNull);
+    expect(logo!.src, contains('images/dart-192.svg'));
+
+    final name = itemButton.querySelector('.dropdown-menu-item-name');
+    expect(name, isNotNull);
+    expect(name!.textContent, 'Option 1');
+  });
+
   testClient('invokes onPressed and closes menu on item click', (tester) async {
     var itemClicked = false;
     tester.pumpComponent(
@@ -80,14 +122,16 @@ void main() {
         items: [
           DropdownMenuItem(
             label: 'Click Me',
-            onPressed: () => itemClicked = true,
+            onPressed: () {
+              itemClicked = true;
+            },
           ),
         ],
       ),
     );
-    await pumpEventQueue();
 
-    (web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement).click();
+    final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
+    trigger.click();
     await pumpEventQueue();
 
     final item = web.document.querySelector('.dropdown-menu-item') as web.HTMLButtonElement;
@@ -102,12 +146,9 @@ void main() {
     tester.pumpComponent(
       DropdownMenu(
         disabled: true,
-        items: [
-          DropdownMenuItem(label: 'Disabled Option', onPressed: () {}),
-        ],
+        items: [DropdownMenuItem(label: 'Disabled Item', onPressed: () {})],
       ),
     );
-    await pumpEventQueue();
 
     final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
     trigger.click();

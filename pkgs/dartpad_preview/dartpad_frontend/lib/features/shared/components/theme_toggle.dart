@@ -31,6 +31,7 @@ class ThemeToggleState extends State<ThemeToggle> {
       Document.html(attributes: {'data-theme': isDark ? 'dark' : 'light'}),
       IconButton(
         icon: !isDark ? 'dark_mode' : 'light_mode',
+        iconSize: 24,
         tooltip: 'Toggle Theme',
         label: 'Theme Toggle',
         onClick: (_) {

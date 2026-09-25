@@ -11,6 +11,13 @@ import 'package:web/web.dart' as web;
 import '../../../app_styles.dart';
 import '../icons.dart';
 
+const _dropdownFontFamily = FontFamily.list([
+  FontFamily('Google Sans Flex'),
+  FontFamily('Roboto'),
+  FontFamily('ui-sans'),
+  FontFamilies.sansSerif,
+]);
+
 /// Base type for entries in a [DropdownMenu].
 sealed class DropdownMenuEntry {
   const DropdownMenuEntry();
@@ -153,60 +160,76 @@ class _DropdownMenuState extends State<DropdownMenu> {
 
   @override
   Component build(BuildContext context) {
-    return div(key: _anchorKey, classes: 'dropdown-menu-anchor', [
-      // Trigger button.
-      Component.apply(
-        events: {'click': (_) => _toggleMenu()},
-        child:
-            component.trigger ??
-            const button(
-              classes: 'dropdown-menu-default-trigger',
-              attributes: {'aria-label': 'More options'},
-              [Icon('more_vert', size: 18)],
-            ),
-      ),
-      // Dropdown panel.
-      if (_menuOpen)
-        div(
-          classes: [
-            'dropdown-menu-panel',
-            if (component.alignLeft) 'dropdown-menu-panel-left',
-            if (component.openUp) 'dropdown-menu-panel-up',
-          ].join(' '),
-          [
-            for (final entry in component.items)
-              switch (entry) {
-                DropdownMenuDivider(:final label) => div(
-                  classes: 'dropdown-menu-divider',
-                  [
-                    span([.text(label)]),
-                  ],
-                ),
-                DropdownMenuItem() => button(
-                  classes: [
-                    'dropdown-menu-item',
-                    if (entry.isSelected) 'active',
-                  ].join(' '),
-                  onClick: () {
-                    _closeMenu();
-                    entry.onPressed();
-                  },
-                  [
-                    if (entry.leadingImage != null)
-                      img(
-                        src: entry.leadingImage!,
-                        alt: '',
-                        classes: 'dropdown-menu-item-image',
-                      ),
-                    if (entry.leadingIcon != null) Icon(entry.leadingIcon!, size: entry.leadingIconSize),
-                    span([.text(entry.label)]),
-                    if (entry.trailingIcon != null) Icon(entry.trailingIcon!, size: entry.trailingIconSize),
-                  ],
-                ),
-              },
-          ],
+    return div(
+      key: _anchorKey,
+      classes: 'dropdown dropdown-menu-anchor',
+      attributes: {
+        'data-expanded': _menuOpen ? 'true' : 'false',
+      },
+      [
+        // Trigger button.
+        Component.apply(
+          events: {'click': (_) => _toggleMenu()},
+          child:
+              component.trigger ??
+              const button(
+                classes: 'dropdown-menu-default-trigger',
+                attributes: {'aria-label': 'More options'},
+                [Icon('more_vert', size: 18)],
+              ),
         ),
-    ]);
+        // Dropdown panel (nav.dropdown-menu).
+        if (_menuOpen)
+          nav(
+            classes: [
+              'dropdown-menu',
+              'dropdown-menu-panel',
+              if (component.alignLeft) 'dropdown-menu-panel-left',
+              if (component.openUp) 'dropdown-menu-panel-up',
+            ].join(' '),
+            attributes: const {'role': 'menu'},
+            [
+              ul([
+                for (final entry in component.items)
+                  li([
+                    switch (entry) {
+                      DropdownMenuDivider(:final label) => div(
+                        classes: 'dropdown-menu-divider',
+                        [
+                          span([.text(label)]),
+                        ],
+                      ),
+                      DropdownMenuItem() => button(
+                        classes: [
+                          'dropdown-menu-item',
+                          if (entry.isSelected) 'active',
+                        ].join(' '),
+                        attributes: const {'role': 'menuitem'},
+                        onClick: () {
+                          _closeMenu();
+                          entry.onPressed();
+                        },
+                        [
+                          if (entry.leadingImage case final leadingImage?)
+                            img(
+                              src: leadingImage,
+                              alt: '',
+                              classes: 'dropdown-menu-item-image',
+                              attributes: const {'width': '20', 'height': '20'},
+                            ),
+                          if (entry.leadingIcon case final leadingIcon?) Icon(leadingIcon, size: entry.leadingIconSize),
+                          span(classes: 'dropdown-menu-item-name', [.text(entry.label)]),
+                          if (entry.trailingIcon case final trailingIcon?)
+                            Icon(trailingIcon, size: entry.trailingIconSize),
+                        ],
+                      ),
+                    },
+                  ]),
+              ]),
+            ],
+          ),
+      ],
+    );
   }
 
   static List<StyleRule> get styles => [
@@ -214,21 +237,30 @@ class _DropdownMenuState extends State<DropdownMenu> {
       display: .inlineFlex,
       position: const .relative(),
     ),
-    css('.dropdown-menu-panel').styles(
+    // Dropdown container (nav.dropdown-menu)
+    css('.dropdown-menu').styles(
       position: .absolute(top: 100.percent),
-      zIndex: const ZIndex(99),
+      zIndex: const ZIndex(200),
       minWidth: 120.px,
-      padding: .symmetric(vertical: 4.px),
+      padding: .all(3.px),
       border: .all(color: colorBorder, width: 1.px),
-      radius: .circular(8.px),
+      radius: .circular(9.px),
       shadow: BoxShadow(
         offsetX: .zero,
-        offsetY: 4.px,
-        blur: 12.px,
+        offsetY: 6.px,
+        blur: 18.px,
         color: const .rgba(0, 0, 0, 0.15),
       ),
+      color: colorOnContainer,
+      fontFamily: _dropdownFontFamily,
       backgroundColor: colorContainer,
-      raw: {'right': '0'},
+      raw: {
+        'width': 'max-content',
+        'right': '0',
+        'font-optical-sizing': 'auto',
+        '-webkit-font-smoothing': 'antialiased',
+        '-moz-osx-font-smoothing': 'grayscale',
+      },
     ),
     css('.dropdown-menu-panel-left').styles(
       raw: {'left': '0', 'right': 'auto'},
@@ -237,42 +269,98 @@ class _DropdownMenuState extends State<DropdownMenu> {
       position: .absolute(bottom: 100.percent),
       raw: {'top': 'auto', 'margin-bottom': '4px'},
     ),
+    // Dark mode for dropdown menu panel matching dart.dev chrome
+    css('html[data-theme="dark"] .dropdown-menu').styles(
+      border: .all(color: const Color('#394c60'), width: 1.px),
+      shadow: BoxShadow(
+        offsetX: .zero,
+        offsetY: 6.px,
+        blur: 18.px,
+        color: const .rgba(0, 0, 0, 0.35),
+      ),
+      color: const Color('#f3f4f6'),
+      backgroundColor: const Color('#1c2834'),
+    ),
+    // List styling
+    css('.dropdown-menu ul').styles(
+      display: .flex,
+      padding: .zero,
+      margin: .zero,
+      flexDirection: .column,
+      raw: {'list-style': 'none'},
+    ),
+    css('.dropdown-menu li').styles(
+      padding: .all(2.px),
+      margin: .zero,
+      raw: {'list-style': 'none'},
+    ),
+    // Divider
     css('.dropdown-menu-divider').styles(
-      padding: .only(left: 12.px, right: 12.px, top: 12.px, bottom: 4.px),
+      padding: .only(left: 10.px, right: 10.px, top: 8.px, bottom: 4.px),
       color: colorOnContainer,
-      fontSize: 14.px,
+      fontSize: 12.px,
       fontWeight: .w700,
+      raw: {
+        'text-transform': 'uppercase',
+        'letter-spacing': '0.05em',
+      },
     ),
-    css('.dropdown-menu-divider:first-child').styles(
-      padding: .only(left: 12.px, right: 12.px, top: 6.px, bottom: 4.px),
+    css('html[data-theme="dark"] .dropdown-menu-divider').styles(
+      color: const Color('#a8acad'),
     ),
+    // Items
     css('.dropdown-menu-item').styles(
       display: .flex,
       width: 100.percent,
-      padding: .symmetric(horizontal: 12.px, vertical: 8.px),
+      padding: .symmetric(horizontal: 10.px, vertical: 6.px),
       border: .none,
+      radius: .circular(7.px),
       cursor: .pointer,
+      flexDirection: .row,
+      justifyContent: .start,
       alignItems: .center,
       gap: Gap.all(8.px),
-      color: colorOnContainer,
+      color: .inherit,
       textAlign: .left,
+      fontFamily: .inherit,
       fontSize: 14.px,
+      textDecoration: const TextDecoration(line: .none),
       whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
+      raw: {
+        'user-select': 'none',
+        'box-sizing': 'border-box',
+      },
     ),
     css('.dropdown-menu-item:hover').styles(
-      backgroundColor: colorBorder,
+      backgroundColor: const Color.rgba(0, 0, 0, 0.05),
     ),
+    css('html[data-theme="dark"] .dropdown-menu-item:hover').styles(
+      backgroundColor: const Color.rgba(255, 255, 255, 0.05),
+    ),
+    // Active / Selected state
     css('.dropdown-menu-item.active').styles(
       fontWeight: .w500,
-      backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
+      backgroundColor: const Color.rgba(25, 103, 210, 0.08),
+    ),
+    css('html[data-theme="dark"] .dropdown-menu-item.active').styles(
+      backgroundColor: const Color.rgba(25, 103, 210, 0.18),
     ),
     css('.dropdown-menu-item.active:hover').styles(
-      backgroundColor: colorContainer.highlight(colorOnContainer, 0.2),
+      backgroundColor: const Color.rgba(25, 103, 210, 0.12),
     ),
+    css('html[data-theme="dark"] .dropdown-menu-item.active:hover').styles(
+      backgroundColor: const Color.rgba(25, 103, 210, 0.24),
+    ),
+    // Leading image
     css('.dropdown-menu-item-image').styles(
       width: 20.px,
       height: 20.px,
+      flex: const .shrink(0),
+    ),
+    // Item name
+    css('.dropdown-menu-item-name').styles(
+      flex: const .grow(1),
     ),
   ];
 }
