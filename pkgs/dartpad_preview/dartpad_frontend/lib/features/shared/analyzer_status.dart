@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:clock/clock.dart';
+
 import 'task_status.dart';
 
 /// Tracks analyzer readiness and translates LSP analysis activity into
@@ -11,13 +15,27 @@ import 'task_status.dart';
 /// [TaskKind.startingAnalyzer] task. Later analysis cycles trigger a
 /// [TaskKind.analyzing] task which reuses the same task key, replacing earlier
 /// analysis entries in recent task history.
+///
+/// [idleDebounce] defines how long the controller waits after receiving an
+/// `isAnalyzing: false` event before completing active analysis tasks. This
+/// avoids flickering when the analyzer repeatedly transitions between busy and
+/// idle in quick succession (e.g. while indexing multiple files during reference
+/// search).
 final class AnalyzerStatusController {
-  AnalyzerStatusController(this._taskStatus);
+  AnalyzerStatusController(
+    this._taskStatus, {
+    this.idleDebounce = const Duration(milliseconds: 50),
+  });
 
   final TaskStatusController _taskStatus;
 
+  /// The delay before marking active analysis tasks as succeeded after the
+  /// analyzer reports it is no longer analyzing.
+  final Duration idleDebounce;
+
   TaskStatusHandle? _initializationTask;
   TaskStatusHandle? _currentTask;
+  Timer? _idleTimer;
   bool _initializationFinished = false;
   bool _unavailable = false;
   bool _disposed = false;
@@ -27,6 +45,7 @@ final class AnalyzerStatusController {
     if (_disposed || _initializationTask != null || _initializationFinished) {
       return;
     }
+    _cancelIdleTimer();
     _initializationTask = _taskStatus.startTask(TaskKind.startingAnalyzer);
   }
 
@@ -36,6 +55,7 @@ final class AnalyzerStatusController {
       return;
     }
     if (isAnalyzing) {
+      _cancelIdleTimer();
       _unavailable = false;
       if (_initializationTask != null) {
         return;
@@ -57,10 +77,30 @@ final class AnalyzerStatusController {
       _initializationTask = null;
       _initializationFinished = true;
     }
-    if (_currentTask case final task?) {
-      task.succeed();
-      _currentTask = null;
+
+    if (_currentTask == null) {
+      return;
     }
+
+    if (idleDebounce == Duration.zero) {
+      _currentTask?.succeed();
+      _currentTask = null;
+    } else {
+      final finished = clock.now();
+      _idleTimer?.cancel();
+      _idleTimer = Timer(idleDebounce, () {
+        _idleTimer = null;
+        if (!_disposed) {
+          _currentTask?.succeed(finishedAt: finished);
+          _currentTask = null;
+        }
+      });
+    }
+  }
+
+  void _cancelIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = null;
   }
 
   /// Marks the analyzer as unavailable after startup or stream failure.
@@ -68,6 +108,7 @@ final class AnalyzerStatusController {
     if (_disposed) {
       return;
     }
+    _cancelIdleTimer();
     final hadActiveTask = _initializationTask != null || _currentTask != null;
     if (_initializationTask case final task?) {
       task.fail();
@@ -90,6 +131,7 @@ final class AnalyzerStatusController {
     if (_disposed) {
       return;
     }
+    _cancelIdleTimer();
     _initializationTask?.cancel();
     _initializationTask = null;
     _currentTask?.cancel();
@@ -104,6 +146,7 @@ final class AnalyzerStatusController {
       return;
     }
     _disposed = true;
+    _cancelIdleTimer();
     if (_initializationTask case final task?) {
       task.cancel();
       _initializationTask = null;
