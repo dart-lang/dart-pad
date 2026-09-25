@@ -62,5 +62,24 @@ void main() {
       expect(viewModel.logs, isEmpty);
       expect(notifications, 2);
     });
+
+    test('tracks displayed errors through later logs and clear', () async {
+      expect(viewModel.hasErrors, isFalse);
+
+      events.dispatch(const LogEvent('Warning', level: Level.WARNING));
+      await Future<void>.delayed(Duration.zero);
+      expect(viewModel.hasErrors, isFalse);
+
+      events.dispatch(const LogEvent('Error', level: Level.SEVERE));
+      await Future<void>.delayed(Duration.zero);
+      expect(viewModel.hasErrors, isTrue);
+
+      events.dispatch(const LogEvent('Later info'));
+      await Future<void>.delayed(Duration.zero);
+      expect(viewModel.hasErrors, isTrue);
+
+      viewModel.clear();
+      expect(viewModel.hasErrors, isFalse);
+    });
   });
 }

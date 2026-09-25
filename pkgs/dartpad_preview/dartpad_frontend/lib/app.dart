@@ -795,23 +795,19 @@ final class _AppState extends State<App> {
 
   Component _buildBottomPanel(WorkspaceSession session) {
     return ListenableBuilder(
-      listenable: session.console,
-      builder: (context) => ListenableBuilder(
-        listenable: session.diagnostics,
-        builder: (context) => BottomPanel(
-          diagnostics: session.diagnostics.diagnostics,
-          hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
-          logs: session.console.logs,
-          onClearConsole: session.console.clear,
-          events: session.events,
-          onOpenDiagnostic: (fileName, diagnostic) {
-            unawaited(
-              session.diagnostics.openDiagnostic(fileName, diagnostic).catchError((Object _) {
-                // The tab model has already reported the load failure.
-              }),
-            );
-          },
-        ),
+      listenable: session.diagnostics,
+      builder: (context) => BottomPanel(
+        diagnostics: session.diagnostics.diagnostics,
+        hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
+        console: session.console,
+        events: session.events,
+        onOpenDiagnostic: (fileName, diagnostic) {
+          unawaited(
+            session.diagnostics.openDiagnostic(fileName, diagnostic).catchError((Object _) {
+              // The tab model has already reported the load failure.
+            }),
+          );
+        },
       ),
     );
   }
