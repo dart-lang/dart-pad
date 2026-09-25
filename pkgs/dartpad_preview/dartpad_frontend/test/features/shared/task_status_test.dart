@@ -7,6 +7,35 @@ import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('TaskStatusEntry.durationAt', () {
+    final startedAt = DateTime.utc(2026, 8, 28, 12);
+
+    test('clamps a finish time before the start time to zero', () {
+      final entry = TaskStatusEntry(
+        kind: TaskKind.loadingCode,
+        label: 'Loading code',
+        startedAt: startedAt,
+        finishedAt: startedAt.subtract(const Duration(seconds: 1)),
+        outcome: TaskStatusOutcome.succeeded,
+        blocksPreview: false,
+      );
+
+      expect(entry.durationAt(startedAt), Duration.zero);
+    });
+
+    test('clamps a current time before the start time to zero', () {
+      final entry = TaskStatusEntry(
+        kind: TaskKind.loadingCode,
+        label: 'Loading code',
+        startedAt: startedAt,
+        outcome: TaskStatusOutcome.running,
+        blocksPreview: false,
+      );
+
+      expect(entry.durationAt(startedAt.subtract(const Duration(seconds: 1))), Duration.zero);
+    });
+  });
+
   group('TaskStatusController', () {
     late DateTime now;
     late TaskStatusController controller;

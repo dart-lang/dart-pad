@@ -109,8 +109,11 @@ final class TaskStatusEntry {
   /// Whether the task is still running.
   bool get isRunning => outcome == TaskStatusOutcome.running;
 
-  /// The elapsed or final duration at [now].
-  Duration durationAt(DateTime now) => (finishedAt ?? now).difference(startedAt);
+  /// The elapsed or final duration at [now], never less than zero.
+  Duration durationAt(DateTime now) {
+    final duration = (finishedAt ?? now).difference(startedAt);
+    return duration.isNegative ? Duration.zero : duration;
+  }
 
   TaskStatusEntry _finish(DateTime finishedAt, TaskStatusOutcome outcome) {
     return TaskStatusEntry(
