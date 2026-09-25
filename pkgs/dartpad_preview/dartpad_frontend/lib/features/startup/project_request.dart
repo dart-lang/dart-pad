@@ -123,14 +123,11 @@ final class ProjectRequest {
       files: files,
       root: root,
       entrypoint: entrypoint,
-      // TODO: Select channel-specific Flutter SDK bundles once they are
-      // included in the generated SDK assets. Every legacy channel currently
-      // resolves to the one bundled Flutter SDK.
-      sdk: sdkParts?.first ?? (source is FlutterApiDocsProjectSource ? 'flutter' : null),
+      sdk: sdkParts?.first,
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
       isLegacyEmbedMode: isLegacyEmbedMode,
-      isEmbedMode: isLegacyEmbedMode || query['embed']?.contains('true') == true,
+      isEmbedMode: isEmbedUri(uri),
       autoRun: !isLegacyEmbedMode || (query['run']?.length == 1 && query['run']!.single == 'true'),
       initialSplitRatio: initialSplitRatio,
     );
@@ -138,9 +135,7 @@ final class ProjectRequest {
 
   /// Whether [uri] requests either the current or legacy embed presentation.
   static bool isEmbedUri(Uri uri) =>
-      uri.queryParametersAll['embed']?.contains('true') == true ||
-      uri.queryParametersAll.containsKey('sample_id') ||
-      _isLegacyEmbedPath(uri.path);
+      uri.queryParametersAll['embed']?.contains('true') == true || _isLegacyEmbedPath(uri.path);
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;

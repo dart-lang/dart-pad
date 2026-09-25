@@ -114,8 +114,7 @@ void main() {
         loadSource: (source) async {
           expect(source, isA<FlutterApiDocsProjectSource>());
           return contents({
-            'pubspec.yaml': 'dependencies:\n  flutter:\n    sdk: flutter',
-            'lib/main.dart': 'void main() {}',
+            'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
           });
         },
         createRepository: ({required events, required sdk, required taskStatus, localApi}) {

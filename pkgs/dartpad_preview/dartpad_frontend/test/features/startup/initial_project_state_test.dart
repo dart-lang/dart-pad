@@ -68,9 +68,21 @@ void main() {
       expect(request.isEmbedMode, isTrue);
       expect(request.autoRun, isTrue);
       expect(request.initialSplitRatio, 0.6);
-      expect(request.sdk, 'flutter');
+      expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
       expect(ProjectRequest.isEmbedUri(Uri.parse('/embed-flutter?sample=counter')), isTrue);
+    });
+
+    test('documentation sample selection does not imply embed presentation or an SDK', () {
+      for (final (embedQuery, embedded) in [('', false), ('&embed=false', false), ('&embed=true', true)]) {
+        final uri = Uri.parse('/?sample_id=material.ListTile.2&run=true$embedQuery');
+        final request = ProjectRequest.fromUri(uri);
+        expect(request.isEmbedMode, embedded, reason: uri.toString());
+        expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
+        expect(request.sdk, isNull);
+        expect(request.isLegacyEmbedMode, isTrue);
+        expect(request.autoRun, isTrue);
+      }
     });
 
     test('uses legacy defaults and preserves normal preview autorun', () {
@@ -120,6 +132,21 @@ void main() {
   });
 
   group('InitialProjectState', () {
+    test('documentation samples use normal SDK inference and respect explicit overrides', () {
+      for (final (importsFlutter, sdkQuery, flutterSdk) in [
+        (true, '', true),
+        (false, '', false),
+        (true, '&sdk=dart', false),
+      ]) {
+        final state = resolve('?sample_id=material.ListTile.2$sdkQuery', {
+          'lib/main.dart': '${importsFlutter ? "import 'package:flutter/material.dart';" : ""} void main() {}',
+        });
+        expect(state.sdk.isFlutter, flutterSdk);
+        expect(state.mode, flutterSdk ? RunMode.flutter : RunMode.console);
+        expect(state.hasPubspec, isTrue);
+      }
+    });
+
     group('generated Gist pubspec', () {
       const available = [
         SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.3'),

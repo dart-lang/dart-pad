@@ -85,7 +85,7 @@ Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 | `package=<name>&version=<version>` | An exact pub.dev package version.                                                          |
 | `gist=<id>`                        | A GitHub Gist. `id=<id>` is a deprecated alias.                                            |
 | `sample=<id>`                      | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
-| `sample_id=<id>`                   | A generated Flutter API documentation snippet loaded from the Flutter documentation site. |
+| `sample_id=<id>` (deprecated)      | A generated Flutter API documentation snippet loaded from the Flutter documentation site.  |
 
 The following options apply to every source:
 
@@ -100,9 +100,13 @@ The following options apply to every source:
 
 Legacy Flutter documentation embeds also accept `channel`, `run`, and `split`.
 `main` and `master` load snippets from `main-api.flutter.dev`; other channels
-use `api.flutter.dev`. All channels currently run on the bundled Flutter SDK.
+use `api.flutter.dev`.
 `run=true` starts the snippet after setup, and `split=<5..95>` controls the
 initial percentage occupied by the code panel.
+
+`sample_id` selects the documentation source.
+The legacy `embed-flutter.html` redirect
+adds `embed=true`.
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
@@ -119,10 +123,10 @@ Defaults are resolved once, in this order:
    entrypoint instead; if neither exists, start without tabs.
 3. Infer Flutter from the root pubspec if `environment.flutter` or the
    top-level `flutter` value is non-null, or any dependency or dev dependency
-   uses `sdk: flutter`. For Gists without a root pubspec, infer dependencies from
-   Dart imports and exports and use the inferred Flutter dependency when the
-   source root is selected. Otherwise select Dart. An explicit `sdk` parameter
-   overrides this inference.
+   uses `sdk: flutter`. For Gists and documentation samples without a root
+   pubspec, infer dependencies from Dart imports and exports and use the inferred
+   Flutter dependency when the source root is selected. Otherwise select Dart.
+   An explicit `sdk` parameter overrides this inference.
 4. Find the first initial Dart file declaring a top-level `main`, then try
    `<root>/lib/main.dart`, then `<root>/main.dart`. Without an entrypoint, the project stays editable
    and Run stays disabled for that project session.
