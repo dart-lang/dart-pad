@@ -22,7 +22,7 @@ import 'task_status.dart';
 final class AnalyzerStatusController {
   AnalyzerStatusController(
     this._taskStatus, {
-    this.idleDebounce = const Duration(milliseconds: 250),
+    this.idleDebounce = const Duration(milliseconds: 50),
   });
 
   final TaskStatusController _taskStatus;
