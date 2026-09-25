@@ -45,7 +45,6 @@ The development server is normally available at
 
 ### SDK runtime assets
 
-Starting with `dartpad` 0.0.10, the package no longer bundles runtime assets.
 Generate the worker, sandbox, compiler, and SDK assets in the ignored
 `web/dartpad/` directory by running this from `dartpad_frontend`:
 
