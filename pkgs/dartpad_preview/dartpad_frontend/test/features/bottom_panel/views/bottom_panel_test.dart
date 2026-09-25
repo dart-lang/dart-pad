@@ -31,13 +31,7 @@ void main() {
 
   testClient('shows one console error indicator until logs are cleared', (tester) async {
     final events = AppEventBus();
-    final console = ConsoleViewModel(events: events);
-    addTearDown(() async {
-      tester.pumpComponent(const div([]));
-      await pumpEventQueue();
-      console.dispose();
-      await events.dispose();
-    });
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
         diagnostics: const [],
