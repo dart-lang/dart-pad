@@ -115,7 +115,7 @@ jobs:
 
       - name: Set up SDK assets and generate sdks.g.dart
         working-directory: pkgs/dartpad_preview/dartpad_frontend
-        run: dart run tool/copy_assets.dart
+        run: dart run tool/setup_sdk_assets.dart
 
       - name: Verify generated SDK manifest is checked in
         run: |

@@ -146,7 +146,7 @@ Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) asyn
     ..writeln('// BSD-style license that can be found in the LICENSE file.')
     ..writeln('//')
     ..writeln('// Generated file. Do not edit directly.')
-    ..writeln('// Run `dart tool/copy_assets.dart` to regenerate.')
+    ..writeln('// Run `dart tool/setup_sdk_assets.dart` to regenerate.')
     ..writeln()
     ..writeln("import 'features/shared/sdk_info.dart';")
     ..writeln()

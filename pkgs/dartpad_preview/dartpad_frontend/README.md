@@ -49,12 +49,12 @@ Generate the worker, sandbox, compiler, and SDK assets in the ignored
 `web/dartpad/` directory by running this from `dartpad_frontend`:
 
 ```bash
-dart run tool/copy_assets.dart
+dart run tool/setup_sdk_assets.dart
 ```
 
 The script uses `dart run dartpad setup dart` to download a pinned Dart runtime
 and `dart run dartpad setup flutter` to build a Flutter runtime from a pinned
-Flutter checkout. The revisions are defined in `tool/copy_assets.dart`; the
+Flutter checkout. The revisions are defined in `tool/setup_sdk_assets.dart`; the
 Flutter runtime uses that checkout's matching Dart SDK. This requires network
 access, Git, and `unzip` (`tar` also works on Windows), and downloads a temporary
 Flutter SDK. Both runtimes are prepared before replacing the existing assets.

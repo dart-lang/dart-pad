@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Generated file. Do not edit directly.
-// Run `dart tool/copy_assets.dart` to regenerate.
+// Run `dart tool/setup_sdk_assets.dart` to regenerate.
 
 import 'features/shared/sdk_info.dart';
 
