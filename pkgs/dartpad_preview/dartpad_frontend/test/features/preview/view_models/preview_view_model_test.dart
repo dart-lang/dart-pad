@@ -182,17 +182,27 @@ void main() {
   });
 
   test('starts in an idle state and respects blocking prerequisites', () async {
+    final availabilityChanges = <bool>[];
+    preview.addListener(() => availabilityChanges.add(preview.canRun));
     expect(preview.previewMode, RunMode.flutter);
     expect(preview.canRun, isTrue);
     expect(preview.canStart, isTrue);
+    final analysis = repository.taskStatus.startTask(TaskKind.analyzing);
+    analysis.succeed();
+    expect(availabilityChanges, isEmpty);
     final task = repository.taskStatus.startTask(TaskKind.pubGet, blocksPreview: true);
     expect(preview.canRun, isFalse);
     expect(preview.canStart, isFalse);
+    expect(availabilityChanges, isNotEmpty);
+    expect(availabilityChanges.last, isFalse);
     await preview.runCode('lib/main.dart');
     expect(sandbox.runCount, 0);
     task.succeed();
     expect(preview.canRun, isTrue);
     expect(preview.canStart, isTrue);
+    // With run=false, no preview transition follows startup to refresh Run.
+    expect(preview.state, isA<PreviewInitial>());
+    expect(availabilityChanges.last, isTrue);
   });
 
   test('without an initial entrypoint Run stays disabled until a file is explicitly run', () async {

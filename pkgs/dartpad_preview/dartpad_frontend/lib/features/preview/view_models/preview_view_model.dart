@@ -43,7 +43,12 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     this._entrypoint,
     this._modeOverride,
     this._previewMode,
-  );
+  ) {
+    // Run availability also changes when startup prerequisites finish, even
+    // when run=false leaves the preview in its initial state.
+    _hadBlockingTask = _workspaceRepository.taskStatus.hasBlockingPreviewTask;
+    _workspaceRepository.taskStatus.addListener(_onTaskStatusChanged);
+  }
 
   String? _entrypoint;
   String? get entrypoint => _entrypoint;
@@ -86,6 +91,15 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   final List<StreamSubscription<String>> _subscriptions = [];
   bool _disposed = false;
   int _operationId = 0;
+  late bool _hadBlockingTask;
+
+  void _onTaskStatusChanged() {
+    final blocked = _workspaceRepository.taskStatus.hasBlockingPreviewTask;
+    if (blocked != _hadBlockingTask) {
+      _hadBlockingTask = blocked;
+      notifyListeners();
+    }
+  }
 
   bool get _launchBlocked => _disposed || _workspaceRepository.taskStatus.hasBlockingPreviewTask;
 
@@ -426,6 +440,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       return;
     }
     _disposed = true;
+    _workspaceRepository.taskStatus.removeListener(_onTaskStatusChanged);
     _operationId++;
     _cleanup = _closeSandbox();
     unawaited(_cleanup);
