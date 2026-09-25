@@ -59,9 +59,9 @@ void main() {
       expect(apiDocs.channel, 'stable');
     });
 
-    test('parses legacy Flutter embed presentation options', () {
+    test('parses legacy Flutter embed presentation options after the HTML redirect', () {
       final request = ProjectRequest.fromUri(
-        Uri.parse('/embed-flutter.html?sample_id=material.AppBar.1&channel=stable&split=60&run=true'),
+        Uri.parse('/?sample_id=material.AppBar.1&channel=stable&split=60&run=true&embed=true'),
       );
 
       expect(request.isLegacyEmbedMode, isTrue);
@@ -70,7 +70,7 @@ void main() {
       expect(request.initialSplitRatio, 0.6);
       expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
-      expect(ProjectRequest.isEmbedUri(Uri.parse('/embed-flutter?sample=counter')), isTrue);
+      expect(ProjectRequest.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
     });
 
     test('documentation sample selection does not imply embed presentation or an SDK', () {

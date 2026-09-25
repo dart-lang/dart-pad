@@ -109,7 +109,7 @@ void main() {
       App(
         projectStore: MemoryProjectStore(),
         initialUri: Uri.parse(
-          '/embed-flutter?sample_id=material.AppBar.1&channel=stable&split=60&run=false',
+          '/?sample_id=material.AppBar.1&channel=stable&split=60&run=false&embed=true',
         ),
         loadSource: (source) async {
           expect(source, isA<FlutterApiDocsProjectSource>());

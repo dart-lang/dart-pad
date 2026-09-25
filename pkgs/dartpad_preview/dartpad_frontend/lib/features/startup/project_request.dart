@@ -104,7 +104,7 @@ final class ProjectRequest {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
     final channel = apiSample == null ? null : single('channel');
-    final isLegacyEmbedMode = apiSample != null || _isLegacyEmbedPath(uri.path);
+    final isLegacyEmbedMode = apiSample != null;
     final splitValues = query['split'];
     final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
     final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
@@ -133,9 +133,9 @@ final class ProjectRequest {
     );
   }
 
-  /// Whether [uri] requests either the current or legacy embed presentation.
-  static bool isEmbedUri(Uri uri) =>
-      uri.queryParametersAll['embed']?.contains('true') == true || _isLegacyEmbedPath(uri.path);
+  /// Whether [uri] explicitly requests the embed presentation.
+  /// Legacy HTML entrypoints redirect to this query option before the app loads.
+  static bool isEmbedUri(Uri uri) => uri.queryParametersAll['embed']?.contains('true') == true;
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
@@ -195,9 +195,4 @@ final class ProjectRequest {
     final encoded = Uri(queryParameters: query).query;
     return encoded.isEmpty ? '' : '?$encoded';
   }
-}
-
-bool _isLegacyEmbedPath(String path) {
-  final normalized = path.startsWith('/') ? path.substring(1) : path;
-  return normalized == 'embed-flutter' || normalized == 'embed-flutter.html';
 }

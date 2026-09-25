@@ -85,7 +85,6 @@ Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 | `package=<name>&version=<version>` | An exact pub.dev package version.                                                          |
 | `gist=<id>`                        | A GitHub Gist. `id=<id>` is a deprecated alias.                                            |
 | `sample=<id>`                      | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
-| `sample_id=<id>` (deprecated)      | A generated Flutter API documentation snippet loaded from the Flutter documentation site.  |
 
 The following options apply to every source:
 
@@ -97,16 +96,6 @@ The following options apply to every source:
 | `entrypoint=<path>`              | The file to execute, independently of the active tab.                                                                                   |
 | `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK.                                                                           |
 | `embed=true`                     | Hides the app bar and footer on desktop and starts with the file tree collapsed.                                                        |
-
-Legacy Flutter documentation embeds also accept `channel`, `run`, and `split`.
-`main` and `master` load snippets from `main-api.flutter.dev`; other channels
-use `api.flutter.dev`.
-`run=true` starts the snippet after setup, and `split=<5..95>` controls the
-initial percentage occupied by the code panel.
-
-`sample_id` selects the documentation source.
-The legacy `embed-flutter.html` redirect
-adds `embed=true`.
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
