@@ -84,11 +84,12 @@ final class AnalyzerStatusController {
       _currentTask?.succeed();
       _currentTask = null;
     } else {
+      final finished = clock.now(); // see package:clock for easier testing
       _idleTimer?.cancel();
       _idleTimer = Timer(idleDebounce, () {
         _idleTimer = null;
         if (!_disposed) {
-          _currentTask?.succeed();
+          _currentTask?.succeed(finishedAt: finished);
           _currentTask = null;
         }
       });
