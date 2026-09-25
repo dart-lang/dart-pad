@@ -15,7 +15,7 @@ resolution: workspace
 dependencies:
   analyzer: ^12.1.0
   codemirror_dart: any
-  dartpad: 0.0.9
+  dartpad: 0.0.10
   meta: ^1.19.0
   path: ^1.9.1
   web: ^1.1.1

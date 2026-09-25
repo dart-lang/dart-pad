@@ -10,9 +10,10 @@ resolution: workspace
 
 dependencies:
   analyzer: ^12.1.0
+  archive: ^4.0.9
   clock: ^1.1.2
   codemirror_dart: any
-  dartpad: 0.0.9
+  dartpad: 0.0.10
   dartpad_editor: any
   http: ^1.6.0
   jaspr: ^0.23.2
@@ -26,7 +27,6 @@ dependencies:
   yaml: ^3.1.3
 
 dev_dependencies:
-  archive: ^4.0.9
   build_runner: ^2.10.0
   build_web_compilers: ^4.8.0
   crypto: ^3.0.6
