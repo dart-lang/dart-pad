@@ -229,6 +229,7 @@ final class TaskStatusController extends ChangeNotifier {
     _TaskKey key,
     Object token,
     TaskStatusOutcome outcome,
+    DateTime? finishedAt,
   ) {
     if (_disposed) {
       return;
@@ -237,7 +238,7 @@ final class TaskStatusController extends ChangeNotifier {
     if (task == null || !identical(task.token, token)) {
       return;
     }
-    _tasks[key] = _TrackedTask(token, task.entry._finish(clock.now(), outcome));
+    _tasks[key] = _TrackedTask(token, task.entry._finish(finishedAt ?? clock.now(), outcome));
     notifyListeners();
   }
 
@@ -278,11 +279,11 @@ final class TaskStatusHandle {
   final Object _token;
   bool _finished = false;
 
-  /// Marks the task as successful.
-  void succeed() => _finish(TaskStatusOutcome.succeeded);
+  /// Marks the task as successful at [finishedAt], or at the current time.
+  void succeed({DateTime? finishedAt}) => _finish(TaskStatusOutcome.succeeded, finishedAt);
 
   /// Marks the task as failed.
-  void fail() => _finish(TaskStatusOutcome.failed);
+  void fail() => _finish(TaskStatusOutcome.failed, null);
 
   /// Removes an externally-driven task without recording an outcome.
   void cancel() {
@@ -293,12 +294,12 @@ final class TaskStatusHandle {
     _controller._cancelTask(_key, _token);
   }
 
-  void _finish(TaskStatusOutcome outcome) {
+  void _finish(TaskStatusOutcome outcome, DateTime? finishedAt) {
     if (_finished) {
       return;
     }
     _finished = true;
-    _controller._finishTask(_key, _token, outcome);
+    _controller._finishTask(_key, _token, outcome, finishedAt);
   }
 }
 

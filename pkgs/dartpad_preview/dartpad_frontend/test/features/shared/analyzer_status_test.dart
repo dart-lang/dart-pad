@@ -227,6 +227,35 @@ void main() {
   });
 
   group('idle debouncing', () {
+    test('records the idle time instead of the debounce deadline', () async {
+      var now = DateTime.utc(2026, 8, 31, 12);
+      await withClock(Clock(() => now), () async {
+        final taskStatus = TaskStatusController();
+        final controller = AnalyzerStatusController(
+          taskStatus,
+          idleDebounce: const Duration(milliseconds: 20),
+        );
+
+        controller.beginInitialization();
+        controller.update(isAnalyzing: false);
+        controller.update(isAnalyzing: true);
+        now = now.add(const Duration(milliseconds: 5));
+        controller.update(isAnalyzing: false);
+
+        expect(taskStatus.current?.outcome, TaskStatusOutcome.running);
+        now = now.add(const Duration(milliseconds: 250));
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+
+        final analysis = taskStatus.entries.firstWhere((e) => e.kind == TaskKind.analyzing);
+        expect(analysis.outcome, TaskStatusOutcome.succeeded);
+        expect(analysis.finishedAt, DateTime.utc(2026, 8, 31, 12, 0, 0, 5));
+        expect(analysis.durationAt(now), const Duration(milliseconds: 5));
+
+        controller.dispose();
+        taskStatus.dispose();
+      });
+    });
+
     test('debounces idle transitions during rapid analyzer bursts', () async {
       final taskStatus = TaskStatusController();
       final controller = AnalyzerStatusController(

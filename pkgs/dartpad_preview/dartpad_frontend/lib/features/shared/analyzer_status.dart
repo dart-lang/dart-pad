@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
+
 import 'task_status.dart';
 
 /// Tracks analyzer readiness and translates LSP analysis activity into
