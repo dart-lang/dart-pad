@@ -4,9 +4,21 @@
 
 /// The entrypoint for the **client** app.
 ///
-/// This file is compiled to javascript and executed on the client when loading the page.
+/// This file is compiled to WebAssembly (with JavaScript fallback) and executed
+/// on the client when loading the page.
 library;
 
+// Ensures build_web_compilers copies conditional dart2wasm targets into scratchSpace
+// (`dart2wasmPlatform` supports `dart:ffi` whereas `dart2jsPlatform` does not;
+// `dart compile wasm` sets `dart.library.js=false` and `dart.library.isolate=true`).
+// ignore: unused_import, implementation_imports
+import 'package:analyzer/src/generated/utilities_collection_js.dart'
+    if (dart.library.ffi) 'package:analyzer/src/generated/utilities_collection_native.dart';
+// ignore: unused_import, implementation_imports
+import 'package:archive/src/codecs/lzma/range_decoder_web.dart'
+    if (dart.library.ffi) 'package:archive/src/codecs/lzma/range_decoder_native.dart';
+// ignore: unused_import, implementation_imports
+import 'package:archive/src/util/_crc64_html.dart' if (dart.library.ffi) 'package:archive/src/util/_crc64_io.dart';
 // Client-specific Jaspr import.
 import 'package:jaspr/client.dart';
 
