@@ -112,10 +112,10 @@ Defaults are resolved once, in this order:
    entrypoint instead; if neither exists, start without tabs.
 3. Infer Flutter from the root pubspec if `environment.flutter` or the
    top-level `flutter` value is non-null, or any dependency or dev dependency
-   uses `sdk: flutter`. For Gists without a root pubspec, infer dependencies from
-   Dart imports and exports and use the inferred Flutter dependency when the
-   source root is selected. Otherwise select Dart. An explicit `sdk` parameter
-   overrides this inference.
+   uses `sdk: flutter`. For Gists and documentation samples without a root
+   pubspec, infer dependencies from Dart imports and exports and use the inferred
+   Flutter dependency when the source root is selected. Otherwise select Dart.
+   An explicit `sdk` parameter overrides this inference.
 4. Find the first initial Dart file declaring a top-level `main`, then try
    `<root>/lib/main.dart`, then `<root>/main.dart`. Without an entrypoint, the project stays editable
    and Run stays disabled for that project session.

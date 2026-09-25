@@ -50,6 +50,60 @@ void main() {
       expect(package.version, '1.2.3');
       expect((ProjectRequest.fromUri(Uri.parse('?id=abc')).source as GistProjectSource).id, 'abc');
       expect((ProjectRequest.fromUri(Uri.parse('?gist=abc')).source as GistProjectSource).id, 'abc');
+      final apiDocs =
+          ProjectRequest.fromUri(
+                Uri.parse('?sample_id=material.AppBar.1&channel=stable'),
+              ).source
+              as FlutterApiDocsProjectSource;
+      expect(apiDocs.sampleId, 'material.AppBar.1');
+      expect(apiDocs.channel, 'stable');
+    });
+
+    test('parses legacy Flutter embed presentation options after the HTML redirect', () {
+      final request = ProjectRequest.fromUri(
+        Uri.parse('/?sample_id=material.AppBar.1&channel=stable&split=60&run=true&embed=true'),
+      );
+
+      expect(request.isLegacyEmbedMode, isTrue);
+      expect(request.isEmbedMode, isTrue);
+      expect(request.autoRun, isTrue);
+      expect(request.initialSplitRatio, 0.6);
+      expect(request.sdk, isNull);
+      expect(request.sdkVersion, isNull);
+      expect(ProjectRequest.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
+    });
+
+    test('documentation sample selection does not imply embed presentation or an SDK', () {
+      for (final (embedQuery, embedded) in [('', false), ('&embed=false', false), ('&embed=true', true)]) {
+        final uri = Uri.parse('/?sample_id=material.ListTile.2&run=true$embedQuery');
+        final request = ProjectRequest.fromUri(uri);
+        expect(request.isEmbedMode, embedded, reason: uri.toString());
+        expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
+        expect(request.sdk, isNull);
+        expect(request.isLegacyEmbedMode, isTrue);
+        expect(request.autoRun, isTrue);
+      }
+    });
+
+    test('uses legacy defaults and preserves normal preview autorun', () {
+      for (final query in [
+        '?sample_id=material.AppBar.1',
+        '?sample_id=material.AppBar.1&run=false',
+        '?sample_id=material.AppBar.1&run=anything',
+      ]) {
+        final request = ProjectRequest.fromUri(Uri.parse(query));
+        expect(request.autoRun, isFalse, reason: query);
+        expect(request.initialSplitRatio, 0.7, reason: query);
+      }
+      expect(ProjectRequest.fromUri(Uri.parse('?sample=counter')).autoRun, isTrue);
+      expect(ProjectRequest.fromUri(Uri.parse('?sample=counter&embed=true')).isEmbedMode, isTrue);
+    });
+
+    test('clamps legacy split percentages and defaults invalid values', () {
+      for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
+        final request = ProjectRequest.fromUri(Uri.parse('?sample_id=sample&split=$value'));
+        expect(request.initialSplitRatio, expected);
+      }
     });
 
     for (final query in [
@@ -57,6 +111,8 @@ void main() {
       '?gist=a&id=b',
       '?url=a&package=b',
       '?sample=a&gist=b',
+      '?sample=a&sample_id=b',
+      '?sample_id=',
       '?version=1.0.0',
       '?sdk=other',
       '?sdk=dart:',
@@ -76,6 +132,21 @@ void main() {
   });
 
   group('InitialProjectState', () {
+    test('documentation samples use normal SDK inference and respect explicit overrides', () {
+      for (final (importsFlutter, sdkQuery, flutterSdk) in [
+        (true, '', true),
+        (false, '', false),
+        (true, '&sdk=dart', false),
+      ]) {
+        final state = resolve('?sample_id=material.ListTile.2$sdkQuery', {
+          'lib/main.dart': '${importsFlutter ? "import 'package:flutter/material.dart';" : ""} void main() {}',
+        });
+        expect(state.sdk.isFlutter, flutterSdk);
+        expect(state.mode, flutterSdk ? RunMode.flutter : RunMode.console);
+        expect(state.hasPubspec, isTrue);
+      }
+    });
+
     group('generated Gist pubspec', () {
       const available = [
         SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.3'),
