@@ -29,5 +29,5 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# Runtime bundles are generated from the resolved dartpad package by tool/copy_assets.dart.
+# Runtime bundles are downloaded/built with dartpad setup by tool/copy_assets.dart.
 /web/dartpad/

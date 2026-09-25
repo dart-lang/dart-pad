@@ -45,18 +45,26 @@ The development server is normally available at
 
 ### SDK runtime assets
 
-The worker, sandbox, compiler, and SDK assets are supplied by `package:dartpad`
-and checked into `web/dartpad/`. To refresh them after changing the resolved
-`dartpad` package, run this from `dartpad_frontend`:
+Starting with `dartpad` 0.0.10, the package no longer bundles runtime assets.
+Generate the worker, sandbox, compiler, and SDK assets in the ignored
+`web/dartpad/` directory by running this from `dartpad_frontend`:
 
 ```bash
 dart run tool/copy_assets.dart
 ```
 
-The script replaces `web/dartpad/` with the package's web assets. It also
-reads the SDK versions from each `sdk.tar` and regenerates `lib/sdks.g.dart`,
-which defines the SDK picker and its default. Run the script before serving or
-building if those generated assets are missing or out of date.
+The script uses `dart run dartpad setup dart` to download a pinned Dart runtime
+and `dart run dartpad setup flutter` to build a Flutter runtime from a pinned
+Flutter checkout. The revisions are defined in `tool/copy_assets.dart`; the
+Flutter runtime uses that checkout's matching Dart SDK. This requires network
+access, Git, and `unzip` (`tar` also works on Windows), and downloads a temporary
+Flutter SDK. Both runtimes are prepared before replacing the existing assets.
+
+It also reads the SDK versions from each `sdk.tar` and regenerates
+`lib/sdks.g.dart`, which defines the SDK picker and its default. Commit the
+regenerated manifest when changing the pinned revisions. Run the script before
+serving or building if the assets are missing or out of date. CI and Cloud Build
+use the same script.
 
 Built-in example archives are generated separately by
 `../examples/build_examples.dart`; see [the examples README](../examples/README.md)

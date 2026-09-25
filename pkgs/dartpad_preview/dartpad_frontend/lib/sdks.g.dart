@@ -14,14 +14,14 @@ const availableSdks = <SdkInfo>[
     id: 'flutter',
     name: 'Flutter',
     path: 'dartpad/flutter/',
-    dartVersion: '3.14.0 (build 3.14.0-241.0.dev)',
-    flutterVersion: '3.48.0-1.0.pre-827',
+    dartVersion: '3.14.0 (build 3.14.0-267.0.dev)',
+    flutterVersion: '3.49.0-1.0.pre-151',
   ),
   SdkInfo(
     id: 'dart',
     name: 'Dart',
     path: 'dartpad/dart/',
-    dartVersion: '3.14.0-edge',
+    dartVersion: '3.14.0-edge.e686006ff5b0b3c31731f158a74d1a09ee75b15b',
   ),
 ];
 

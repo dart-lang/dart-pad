@@ -113,7 +113,7 @@ jobs:
           git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
           git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
 
-      - name: Copy SDK assets and generate sdks.g.dart
+      - name: Set up SDK assets and generate sdks.g.dart
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart run tool/copy_assets.dart
 

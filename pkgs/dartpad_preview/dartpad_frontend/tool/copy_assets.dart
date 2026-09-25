@@ -4,47 +4,88 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
-Future<void> main(List<String> args) async {
-  final packageUri = await Isolate.resolvePackageUri(
-    Uri.parse('package:dartpad/dartpad.dart'),
-  );
-  if (packageUri == null) {
-    stderr.writeln('Error: Could not resolve package:dartpad');
-    exitCode = 1;
-    return;
-  }
+// Pin runtime sources independently of the dartpad client package. Update these
+// revisions intentionally and regenerate lib/sdks.g.dart when upgrading SDKs.
+// These specific revisions are not required by dartpad 0.0.10.
 
-  final packageDir = Directory.fromUri(packageUri.resolve('..'));
-  final sourceWebDir = Directory(p.join(packageDir.path, 'web'));
-  if (!sourceWebDir.existsSync()) {
-    stderr.writeln('Error: Missing web/ directory in package:dartpad at ${sourceWebDir.path}');
-    exitCode = 1;
-    return;
-  }
+// Selected on 2026-09-25 from the official Dart archive's latest main build:
+// https://storage.googleapis.com/dart-archive/channels/main/raw/latest/VERSION
+// Downloads the prebuilt DartPad assets for this exact Dart SDK revision.
+const _dartRevision = 'e686006ff5b0b3c31731f158a74d1a09ee75b15b';
 
-  // Resolve dartpad_frontend package root
-  final scriptUri = Platform.script;
-  final frontendRoot = Directory.fromUri(scriptUri.resolve('..'));
+// Selected on 2026-09-25 from the Flutter repository's main/master HEAD using
+// `git ls-remote https://github.com/flutter/flutter.git`.
+// Builds Flutter assets from this checkout using its own matching Dart SDK,
+// independently of _dartRevision above. Displayed SDK versions are extracted
+// from the generated sdk.tar files when writing lib/sdks.g.dart.
+const _flutterRevision = 'afde83da30bcbf7f35a90dba132c92aee8111eb8';
+
+Future<void> main() async {
+  final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
   final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
+  final stagingDir = await Directory.systemTemp.createTemp('dartpad_assets_');
+  final assets = Directory(p.join(stagingDir.path, 'assets'));
 
-  stdout.writeln('Copying assets from ${sourceWebDir.path} to ${targetAssetDir.path}...');
+  try {
+    await _run(Platform.resolvedExecutable, [
+      'run',
+      'dartpad',
+      'setup',
+      'dart',
+      '--channel=main',
+      '--revision=$_dartRevision',
+      '--output=${p.join(assets.path, 'dart')}',
+    ], frontendRoot.path);
 
-  if (targetAssetDir.existsSync()) {
-    targetAssetDir.deleteSync(recursive: true);
+    // Build Flutter assets from a pinned checkout, independently of the Flutter
+    // installation used to build the frontend or available on the developer's PATH.
+    final flutterRoot = p.join(stagingDir.path, 'flutter');
+    // Flutter derives its version from Git tags and history. A depth=1 fetch
+    // of an untagged revision reports 0.0.0-unknown and breaks pub resolution.
+    await _run('git', [
+      'clone',
+      '--filter=blob:none',
+      '--no-checkout',
+      'https://github.com/flutter/flutter.git',
+      flutterRoot,
+    ], frontendRoot.path);
+    await _run('git', ['checkout', '--detach', _flutterRevision], flutterRoot);
+    await _run(Platform.resolvedExecutable, [
+      'run',
+      'dartpad',
+      'setup',
+      'flutter',
+      '--flutter-root=$flutterRoot',
+      '--output=${p.join(assets.path, 'flutter')}',
+    ], frontendRoot.path);
+
+    // Keep the existing assets until both SDKs have been generated successfully.
+    if (targetAssetDir.existsSync()) {
+      await targetAssetDir.delete(recursive: true);
+    }
+    await _copyDirectory(assets, targetAssetDir);
+    await _writeSdkManifest(targetAssetDir, frontendRoot);
+    stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
+  } finally {
+    await stagingDir.delete(recursive: true);
   }
-  await targetAssetDir.create(recursive: true);
+}
 
-  await _copyDirectory(sourceWebDir, targetAssetDir);
-
-  // Generate a synchronous sdks.g.dart manifest in lib/features/shared/
-  await _writeSdkManifest(targetAssetDir, frontendRoot);
-
-  stdout.writeln('Successfully copied DartPad assets to ${targetAssetDir.path}');
+Future<void> _run(String executable, List<String> arguments, String workingDirectory) async {
+  final process = await Process.start(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    mode: ProcessStartMode.inheritStdio,
+  );
+  final result = await process.exitCode;
+  if (result != 0) {
+    throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
+  }
 }
 
 Future<void> _copyDirectory(Directory source, Directory target) async {
