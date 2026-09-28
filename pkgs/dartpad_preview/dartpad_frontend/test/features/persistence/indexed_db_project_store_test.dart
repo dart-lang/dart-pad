@@ -191,6 +191,16 @@ void main() {
     expect(state.matchesQuery(Uri.parse('?sample=counter&file=b&file=a&embed=true').queryParametersAll), isFalse);
     expect(state.matchesQuery(Uri.parse('?sample=counter&file=a&file=b').queryParametersAll), isFalse);
     expect(savedProject(query: '?id=a%20b').matchesQuery(Uri.parse('?id=a+b').queryParametersAll), isTrue);
+    expect(
+      state.matchesQuery(Uri.parse('?sample=counter&file=a&file=b&embed=true&theme=dark').queryParametersAll),
+      isTrue,
+    );
+    expect(
+      savedProject(
+        query: '?sample=counter&theme=light',
+      ).matchesQuery(Uri.parse('?theme=dark&sample=counter').queryParametersAll),
+      isTrue,
+    );
   });
 
   test('restoring tolerates invalid pubspec and renamed URL entrypoint', () {

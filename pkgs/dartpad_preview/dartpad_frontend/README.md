@@ -103,6 +103,7 @@ The following options apply to every source:
 | `entrypoint=<path>`              | The file to execute, independently of the active tab.                                                                                   |
 | `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK.                                                                           |
 | `embed=true`                     | Hides the app bar and footer on desktop and starts with the file tree collapsed.                                                        |
+| `theme=dark` or `theme=light`     | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project.                             |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
@@ -223,9 +224,10 @@ directories and external SDK/package sources are excluded. Changes to open or
 active editor tabs, SDK selection, entrypoint, and run mode also update the
 stored project.
 
-Without query parameters, DartPad restores the newest project. With query
-parameters, it loads and immediately saves a fresh project. If an older entry
-matches all decoded query options, the toolbar offers
+Without project query parameters, DartPad restores the newest project, including
+when `theme` is the only parameter. With project query parameters, it loads and
+immediately saves a fresh project. If an older entry
+matches all decoded project query options (ignoring `theme`), the toolbar offers
 **Restore last project** for 30 seconds. The button's bottom border shows
 the remaining time. Clicking restores the matching entry's latest stored
 contents. The project being left, including edits saved before clicking,

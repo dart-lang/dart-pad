@@ -77,6 +77,17 @@ void main() {
     expect(web.document.querySelector('.restore-last-project'), isNull);
   });
 
+  testClient('theme-only query restores the latest entry', (tester) async {
+    final latest = await store.create(savedProject(text: 'most recent'));
+    tester.pumpComponent(app('?theme=dark'));
+    await pumpEventQueue();
+    expect(sourceLoads, 0);
+    expect(await repositories.single.workspaceResourceApi.readFileAsText('lib/main.dart'), 'most recent');
+    expect(store.entries, hasLength(2));
+    expect(store.state, same(store.entries[latest.id]!.state));
+    expect(web.document.querySelector('.restore-last-project'), isNull);
+  });
+
   testClient('matching URL saves fresh work immediately and offers a nonblocking restore', (tester) async {
     final workers = [await TestWorker.start(), await TestWorker.start()];
     for (final worker in workers) {

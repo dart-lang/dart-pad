@@ -79,7 +79,8 @@ final class ProjectPersistenceController extends ChangeNotifier {
     if (startFresh) {
       return const PersistenceLoadStrategy();
     }
-    if (request.query.isEmpty) {
+    // A theme-only URL changes presentation, not the selected project.
+    if (request.query.keys.every((key) => key == 'theme')) {
       return PersistenceLoadStrategy(restoreProjectId: history.firstOrNull?.id);
     }
     return PersistenceLoadStrategy(

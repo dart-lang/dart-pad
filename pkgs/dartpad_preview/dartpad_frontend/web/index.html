@@ -32,7 +32,10 @@
 
         <!-- Theme initialization - runs before dart code loads -->
         <script>
-            let userTheme = window.localStorage.getItem('dartpad:theme');
+            const queryTheme = new URLSearchParams(window.location.search).get('theme');
+            const userTheme = queryTheme === 'dark' || queryTheme === 'light'
+                ? queryTheme
+                : window.localStorage.getItem('dartpad:theme');
             if (userTheme != null) {
                 document.documentElement.setAttribute('data-theme', userTheme);
             } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
