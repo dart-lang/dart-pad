@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Opt-in integration test using the bundled Flutter SDK, real workers and
-// preview iframes: dart test tool/embed_worker_lifecycle_test.dart
+// Integration test using the bundled Flutter SDK, real workers and preview
+// iframes: dart test test/integration/embed_worker_lifecycle_test.dart
 @TestOn('browser')
 @Timeout(Duration(minutes: 3))
 library;
@@ -66,7 +66,8 @@ void main() {
     final sdk = SdkInfo(
       id: defaultSdk.id,
       name: defaultSdk.name,
-      path: '../web/${defaultSdk.path}',
+      // Browser test URLs are rooted in test/integration/, assets in web/.
+      path: '../../web/${defaultSdk.path}',
       dartVersion: defaultSdk.dartVersion,
       flutterVersion: defaultSdk.flutterVersion,
     );
