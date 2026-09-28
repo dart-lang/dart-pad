@@ -17,6 +17,7 @@ final class ProjectRequest {
     required this.source,
     required Map<String, List<String>> query,
     required List<String> files,
+    this.sampleInitialFile,
     this.root,
     this.entrypoint,
     this.sdk,
@@ -37,9 +38,8 @@ final class ProjectRequest {
   ///
   /// Reads [Uri.queryParametersAll] without decoding values a second time,
   /// preserving repeated `file` values in order. With no explicit source, the
-  /// request selects the default sample. A sample's configured initial file is
-  /// added as a `file` parameter unless the URL already specifies one. `gist`
-  /// and its `id` alias are mutually exclusive; `version` requires `package`.
+  /// request selects the default sample. `gist` and its `id` alias are mutually
+  /// exclusive; `version` requires `package`.
   ///
   /// Throws a [FormatException] for conflicting sources, invalid option values,
   /// repeated scalar options, or the unsupported `archive`, `path`, and `main`
@@ -81,14 +81,11 @@ final class ProjectRequest {
       throw const FormatException('Choose only one project source.');
     }
     final hasExplicitSource = url != null || package != null || gist != null || id != null;
-    Example? selectedExample;
-    if (!hasExplicitSource) {
-      selectedExample = sample == null ? Examples.defaultExample : Examples.getById(sample);
-    }
-    final initialFile = selectedExample?.initialFile;
-    if (!query.containsKey('file') && initialFile != null) {
-      query['file'] = [initialFile];
-    }
+    final selectedExample = hasExplicitSource
+        ? null
+        : sample == null
+        ? Examples.defaultExample
+        : Examples.getById(sample);
     if (version != null && package == null) {
       throw const FormatException('version requires package.');
     }
@@ -121,6 +118,7 @@ final class ProjectRequest {
           : SampleProjectSource(sample),
       query: query,
       files: files,
+      sampleInitialFile: selectedExample?.initialFile,
       root: root,
       entrypoint: entrypoint,
       sdk: sdkParts?.first,
@@ -140,9 +138,15 @@ final class ProjectRequest {
 
   /// Explicit source-relative tab paths in query order, including duplicates.
   ///
-  /// This list is unmodifiable. Empty selects README.md in the resolved root,
-  /// then the resolved entrypoint, or no initial tab if neither exists.
+  /// This list is unmodifiable. When empty and no root or entrypoint is
+  /// specified, a sample's [sampleInitialFile] takes priority. Resolution then
+  /// tries README.md in the resolved root and the resolved entrypoint.
   final List<String> files;
+
+  /// The selected sample's preferred first tab, separate from URL `file` options.
+  ///
+  /// It does not change [query], so history matches the URL that was opened.
+  final String? sampleInitialFile;
 
   /// Null infers the project root. Empty explicitly selects the source root;
   /// a non-empty value names a source-relative directory.

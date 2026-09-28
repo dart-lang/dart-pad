@@ -55,15 +55,31 @@ final class InitialProjectState {
     ]);
     final readme = joinWorkspacePath(root, 'README.md');
     final implicitReadme = request.files.isEmpty && contents.containsFile(readme) ? readme : null;
+    final sampleInitialFile = request.files.isEmpty && request.root == null && request.entrypoint == null
+        ? request.sampleInitialFile
+        : null;
+    final preferredFile = sampleInitialFile == null ? null : contents.resolvePath(sampleInitialFile);
+    final initialFile = preferredFile != null && contents.containsFile(preferredFile) ? preferredFile : null;
     final usesFlutter =
         request.sdk == null &&
         (root.isEmpty && inferredDependencies != null
             ? inferredDependencies.contains('flutter')
             : pubspecUsesFlutter(_pubspec(contents, root)));
     final sdk = _resolveSdk(request, sdks, usesFlutter: usesFlutter);
-    final entrypoint = _resolveEntrypoint(contents, root, [...explicitFiles, ?implicitReadme], explicitEntrypoint);
+    final entrypoint = _resolveEntrypoint(contents, root, [
+      ...explicitFiles,
+      ?initialFile,
+      ?implicitReadme,
+    ], explicitEntrypoint);
     final files = [
-      if (request.files.isNotEmpty) ...explicitFiles else if (implicitReadme != null) implicitReadme else ?entrypoint,
+      if (request.files.isNotEmpty)
+        ...explicitFiles
+      else if (initialFile != null)
+        initialFile
+      else if (implicitReadme != null)
+        implicitReadme
+      else
+        ?entrypoint,
     ];
     if (inferredDependencies != null) {
       final pubspec = generatePubspec(

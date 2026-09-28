@@ -52,6 +52,22 @@ void main() {
       expect((ProjectRequest.fromUri(Uri.parse('?gist=abc')).source as GistProjectSource).id, 'abc');
     });
 
+    test('sample initial file does not change the URL or explicit files', () {
+      final menuRequest = ProjectRequest.example('counter');
+      expect(menuRequest.sampleInitialFile, 'lib/main.dart');
+      expect(menuRequest.files, isEmpty);
+      expect(menuRequest.search, '?sample=counter');
+
+      for (final query in ['', '?sample=counter', '?sample=counter&embed=false']) {
+        final request = ProjectRequest.fromUri(Uri.parse(query));
+        expect(request.files, isEmpty, reason: query);
+        expect(request.search, query);
+        expect(request.sampleInitialFile, 'lib/main.dart');
+      }
+      final explicit = ProjectRequest.fromUri(Uri.parse('?sample=counter&file=README.md'));
+      expect(explicit.files, ['README.md']);
+    });
+
     for (final query in [
       '?gist=a&id=a',
       '?gist=a&id=b',
@@ -199,18 +215,26 @@ void main() {
         expect(() => ProjectLoader.normalizePath(path), throwsArgumentError);
       }
     });
-    test('defaults to README and detects main separately', () {
+    test('sample opens its configured initial file and detects main', () {
       final state = resolve('', {
         'README.md': '# Project',
         'pubspec.yaml': 'name: demo',
         'lib/main.dart': 'void main() {}',
       });
-      expect(state.files, ['README.md']);
+      expect(state.files, ['lib/main.dart']);
       expect(state.root, '');
       expect(state.entrypoint, 'lib/main.dart');
       expect(state.sdk, sdks.first);
       expect(state.mode, RunMode.console);
       expect(state.hasPubspec, isTrue);
+    });
+    test('non-sample source defaults to README and detects main separately', () {
+      final state = resolve('?url=https://example.com/project.tar.gz', {
+        'README.md': '# Project',
+        'lib/main.dart': 'void main() {}',
+      });
+      expect(state.files, ['README.md']);
+      expect(state.entrypoint, 'lib/main.dart');
     });
     test('default README and main use the explicit root', () {
       final state = resolve('?root=example', {
@@ -315,7 +339,7 @@ void main() {
       }
     }
     test('leaves tabs empty when neither main candidate is an entrypoint', () {
-      final state = resolve('', {
+      final state = resolve('?url=https://example.com/project.tar.gz', {
         'lib/main.dart': '// void main() {}',
         'main.dart': 'class App { void main() {} }',
       });

@@ -88,7 +88,7 @@ void main() {
     await check({'main.dart': 'void main() {}', 'helper.dart': 'class Helper {}', 'README.md': '# Gist'});
     await check({'main.dart': 'void main() {}', 'lib/main.dart': 'void main() {}'}, collision: true);
   });
-  test('sample uses the common README and SDK resolver', () async {
+  test('sample opens its configured file and uses the common SDK resolver', () async {
     final archive = Archive();
     for (final entry in {
       'README.md': '# Counter',
@@ -103,7 +103,7 @@ void main() {
       () async {
         final request = ProjectRequest.example('counter');
         final state = InitialProjectState.resolve(request, await request.source.loadProject(), sdks);
-        expect(state.files, ['README.md']);
+        expect(state.files, ['lib/main.dart']);
         expect(state.entrypoint, 'lib/main.dart');
         expect(state.sdk, sdks.last);
       },
