@@ -60,7 +60,7 @@ class EditorShell extends StatelessComponent {
   /// Whether the app is running in embed mode (`?embed=true`).
   ///
   /// When `true`, the file tree starts collapsed into a narrow rail with a
-  /// toggle button.
+  /// toggle button, and the bottom panel (console and problems) starts collapsed.
   final bool isEmbedMode;
 
   /// The preview panel to show when the Output tab is active in a small-screen layout.
@@ -77,6 +77,7 @@ class EditorShell extends StatelessComponent {
         isVertical: true,
         useRatio: true,
         initialValue: 0.75,
+        initialState: isEmbedMode ? const RightCollapsed(0.75) : null,
         minValue: 0.3,
         maxValue: 0.85,
         canCollapseRight: true,

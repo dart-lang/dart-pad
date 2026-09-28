@@ -57,12 +57,34 @@ final class _FakeFileTree extends StatelessComponent {
   }
 }
 
+final class _FakeBottomPanel extends StatelessComponent {
+  const _FakeBottomPanel();
+
+  @override
+  Component build(BuildContext context) {
+    final panel = SplitPanel.of(context);
+    final isCollapsed = panel?.isPanelCollapsed ?? false;
+    return div(
+      id: 'fake-bottom',
+      classes: isCollapsed ? 'collapsed' : 'expanded',
+      [
+        button(
+          id: 'fake-bottom-expand',
+          onClick: panel?.expand,
+          [const Component.text('expand')],
+        ),
+      ],
+    );
+  }
+}
+
 /// Helper that creates an [EditorShell] with sensible defaults.
 EditorShell _createShell({
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
   bool isEmbedMode = false,
   Component? fileTree,
+  Component? bottomPanel,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
   return EditorShell(
@@ -72,7 +94,7 @@ EditorShell _createShell({
     editorOverlay: const div(id: 'editor-overlay', []),
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
-    bottomPanel: const div(id: 'bottom', [Component.text('bottom')]),
+    bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
     isEmbedMode: isEmbedMode,
   );
 }
@@ -119,6 +141,14 @@ void main() {
       tester.pumpComponent(_createShell());
 
       expect(web.document.querySelector('#bottom'), isNotNull);
+    });
+
+    testClient('starts with expanded bottom panel in standard mode', (tester) {
+      tester.pumpComponent(_createShell(isEmbedMode: false, bottomPanel: const _FakeBottomPanel()));
+
+      final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
+      expect(bottom, isNotNull);
+      expect(bottom!.classList.contains('expanded'), isTrue);
     });
   });
 
@@ -204,54 +234,72 @@ void main() {
     testClient('toggle cycle: collapse → expand → collapse', (tester) async {
       tester.pumpComponent(_createShell(isEmbedMode: true));
 
-      // State 1: collapsed (initial).
+      // Initially collapsed.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
 
-      // Expand.
+      // 1. Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
-
-      // State 2: expanded.
-      expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
 
-      // Collapse.
+      // 2. Collapse.
       (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
-
-      // State 3: collapsed again.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+      expect(web.document.querySelector('.file-tree'), isNull);
+
+      // 3. Expand again.
+      (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.file-tree-rail'), isNull);
+      expect(web.document.querySelector('.file-tree'), isNotNull);
     });
 
     testClient('file tree content is visible when expanded', (tester) async {
       tester.pumpComponent(_createShell(isEmbedMode: true));
 
-      // Collapsed: file tree is not rendered in the pane.
-      expect(web.document.querySelector('.file-tree #file-tree'), isNull);
-
-      // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
 
-      // File tree content is now visible inside the pane.
-      expect(web.document.querySelector('.file-tree #file-tree'), isNotNull);
+      expect(web.document.querySelector('#file-tree'), isNotNull);
+      expect(web.document.querySelector('#file-tree')!.textContent, contains('tree'));
     });
 
     testClient('editor host remains through toggle cycles', (tester) async {
       tester.pumpComponent(_createShell(isEmbedMode: true));
 
-      // Collapsed.
       expect(web.document.querySelector('.editor-host'), isNotNull);
 
-      // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
       expect(web.document.querySelector('.editor-host'), isNotNull);
 
-      // Collapse again.
       (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
       expect(web.document.querySelector('.editor-host'), isNotNull);
+    });
+
+    testClient('starts with collapsed bottom panel in embed mode', (tester) {
+      tester.pumpComponent(_createShell(isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+
+      final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
+      expect(bottom, isNotNull);
+      expect(bottom!.classList.contains('collapsed'), isTrue);
+    });
+
+    testClient('expanding collapsed bottom panel updates its state', (tester) async {
+      tester.pumpComponent(_createShell(isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+
+      var bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
+      expect(bottom!.classList.contains('collapsed'), isTrue);
+
+      final expandBtn = web.document.querySelector('#fake-bottom-expand') as web.HTMLButtonElement;
+      expandBtn.click();
+      await pumpEventQueue();
+
+      bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
+      expect(bottom!.classList.contains('expanded'), isTrue);
     });
   });
 
