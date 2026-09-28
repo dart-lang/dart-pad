@@ -352,8 +352,10 @@ void main() {
       final buttons = web.document.querySelectorAll('.context-menu-item');
       final item1 = buttons.item(0) as web.HTMLButtonElement;
 
-      // Item 1 is focused by default -> trigger with Enter
-      await _waitForFocus(item1);
+      // Automatic focus-on-open is covered by the preceding test. Establish a
+      // deterministic starting point before testing keyboard activation.
+      item1.focus();
+      expect(web.document.activeElement, same(item1));
       web.document.dispatchEvent(
         web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
       );
