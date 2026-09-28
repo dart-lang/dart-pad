@@ -50,6 +50,7 @@ final class _MainEditorActionsState extends State<MainEditorActions> {
   static const _contentUpdateDebounce = Duration(milliseconds: 150);
 
   bool _busy = false;
+  int _runGeneration = 0;
   bool _hasMain = false;
   StreamSubscription<void>? _tabUpdatesSub;
   Timer? _contentUpdateTimer;
@@ -114,7 +115,13 @@ final class _MainEditorActionsState extends State<MainEditorActions> {
 
   void _onRunStateChanged() {
     if (mounted) {
-      setState(() {});
+      setState(() {
+        if (_busy && component.runAvailability.canRun) {
+          // A suspended runtime may still be finishing its old Run future.
+          _busy = false;
+          _runGeneration++;
+        }
+      });
     }
   }
 
@@ -135,12 +142,13 @@ final class _MainEditorActionsState extends State<MainEditorActions> {
     setState(() {
       _busy = true;
     });
+    final generation = ++_runGeneration;
     try {
       await component.onRun(component.activeFile);
     } catch (_) {
       // The preview runner owns and displays failures.
     } finally {
-      if (mounted) {
+      if (mounted && generation == _runGeneration) {
         setState(() {
           _busy = false;
         });

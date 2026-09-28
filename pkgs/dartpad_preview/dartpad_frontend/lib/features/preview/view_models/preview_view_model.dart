@@ -31,21 +31,32 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     required RunMode initialMode,
     Future<PreviewSandbox> Function(web.Element, {required Uri assetBaseUrl})? createSandbox,
     Future<void> Function()? onSaveAll,
+    Future<void> Function()? onBeforeRun,
     String? initialEntrypoint,
     RunMode? modeOverride,
-  }) : this._(workspaceRepository, eventBus, createSandbox, onSaveAll, initialEntrypoint, modeOverride, initialMode);
+  }) : this._(
+         workspaceRepository,
+         eventBus,
+         createSandbox,
+         onSaveAll,
+         onBeforeRun,
+         initialEntrypoint,
+         modeOverride,
+         initialMode,
+       );
 
   PreviewViewModel._(
     this._workspaceRepository,
     this._eventBus,
     this._createSandbox,
     this._onSaveAll,
+    this._onBeforeRun,
     this._entrypoint,
     this._modeOverride,
     this._previewMode,
   ) {
     // Run availability also changes when startup prerequisites finish, even
-    // when run=false leaves the preview in its initial state.
+    // when automatic startup is skipped and the preview stays in its initial state.
     _hadBlockingTask = _workspaceRepository.taskStatus.hasBlockingPreviewTask;
     _workspaceRepository.taskStatus.addListener(_onTaskStatusChanged);
   }
@@ -65,6 +76,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   final AppEventBus _eventBus;
   final Future<PreviewSandbox> Function(web.Element, {required Uri assetBaseUrl})? _createSandbox;
   final Future<void> Function()? _onSaveAll;
+  final Future<void> Function()? _onBeforeRun;
 
   final web.Element _container = web.document.createElement('div')..className = 'preview';
 
@@ -147,6 +159,10 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     notifyListeners();
     var failedTask = kind;
     try {
+      await _onBeforeRun?.call();
+      if (!_current(id)) {
+        return;
+      }
       await _saveAndFlush();
       if (!_current(id)) {
         return;
@@ -430,6 +446,17 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   }
 
   Future<void>? _cleanup;
+
+  /// Releases execution resources while leaving the view model reusable. The
+  /// editor may activate again even while the retired sandbox is closing.
+  Future<void> suspend({bool paused = false}) {
+    _operationId++;
+    _state = paused ? PreviewPaused() : PreviewInitial();
+    // Also removes a sandbox whose asynchronous creation has not returned yet.
+    _container.textContent = '';
+    notifyListeners();
+    return _closeSandbox();
+  }
 
   /// Completes when resource cleanup triggered by [dispose] has finished.
   Future<void> get closed => _cleanup ?? Future.value();

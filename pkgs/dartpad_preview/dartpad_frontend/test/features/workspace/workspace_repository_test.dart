@@ -318,6 +318,46 @@ void main() {
   });
 
   group('worker cleanup', () {
+    test('a late worker from a paused runtime cannot replace its resumed worker', () async {
+      final starts = [Completer<DartPad>(), Completer<DartPad>()];
+      var startCount = 0;
+      final retired = await TestWorker.start();
+      final resumed = await TestWorker.start();
+      addTearDown(retired.dispose);
+      addTearDown(resumed.dispose);
+      final events = AppEventBus();
+      final tasks = TaskStatusController();
+      addTearDown(events.dispose);
+      addTearDown(tasks.dispose);
+      final repository = WorkspaceRepository.create(
+        events: events,
+        taskStatus: tasks,
+        sdk: defaultSdk,
+        deferWorker: true,
+        createWorker: () => starts[startCount++].future,
+      );
+      addTearDown(repository.close);
+      expect(startCount, 0);
+
+      final first = expectLater(repository.startWorker(), throwsA(isA<StateError>()));
+      await repository.suspendWorker();
+      expect(repository.hasRuntime, isFalse);
+      expect(repository.isClosed, isFalse);
+      final second = expectLater(repository.startWorker(), throwsA(isA<Exception>()));
+      // The fixture accepts worker creation but rejects workspace requests.
+      starts[1].complete(resumed.dartpad);
+      await second;
+      starts[0].complete(retired.dartpad);
+      await first;
+      await retired.dartpad.done;
+
+      expect(startCount, 2);
+      expect(retired.isClosed, isTrue);
+      expect(resumed.isClosed, isFalse);
+      expect(repository.dartpad, same(resumed.dartpad));
+      expect(repository.hasRuntime, isTrue);
+    });
+
     test('retains an early startup error for a later readiness await without an uncaught error', () async {
       final events = AppEventBus();
       final tasks = TaskStatusController();
