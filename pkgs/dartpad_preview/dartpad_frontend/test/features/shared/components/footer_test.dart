@@ -194,7 +194,9 @@ void main() {
     );
 
     final trigger = web.document.querySelector('.task-status-trigger') as web.HTMLButtonElement;
-    trigger.focus();
+    // Chrome may not move focus in a background CI tab. Exercise the focus
+    // event handled by the component directly.
+    trigger.dispatchEvent(web.FocusEvent('focusin', web.FocusEventInit(bubbles: true)));
     await pumpEventQueue();
     expect(web.document.querySelector('.task-status-popover'), isNotNull);
 
