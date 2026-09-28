@@ -33,6 +33,7 @@ final class PreviewContainer extends StatefulComponent {
     required this.activeFile,
     required this.onOpenConsole,
     this.workspacePreparationFailure,
+    this.initialDeviceMode = DeviceMode.mobile,
     super.key,
   });
 
@@ -51,6 +52,9 @@ final class PreviewContainer extends StatefulComponent {
   /// Opens the workspace Console tab.
   final void Function() onOpenConsole;
 
+  /// The device preview mode selected initially.
+  final DeviceMode initialDeviceMode;
+
   @override
   State<PreviewContainer> createState() => _PreviewContainerState();
 
@@ -62,7 +66,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
   final GlobalNodeKey<web.HTMLElement> _contentKey = GlobalNodeKey();
   web.ResizeObserver? _resizeObserver;
 
-  DeviceMode mode = .mobile;
+  late DeviceMode mode = component.initialDeviceMode;
   bool isRotated = false;
 
   @override
