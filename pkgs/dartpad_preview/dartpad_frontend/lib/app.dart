@@ -27,6 +27,7 @@ import 'features/persistence/project_persistence_controller.dart';
 import 'features/persistence/project_persistence_state.dart';
 import 'features/persistence/project_store.dart';
 import 'features/persistence/restore_last_project_button.dart';
+import 'features/preview/models/device_mode.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
@@ -862,6 +863,7 @@ final class _AppState extends State<App> {
         activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure,
         onOpenConsole: () => _openConsole(session),
+        initialDeviceMode: _isEmbedMode ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }

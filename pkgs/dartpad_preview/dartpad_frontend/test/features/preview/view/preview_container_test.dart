@@ -7,6 +7,7 @@ library;
 
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/preview/components/runtime_button.dart';
+import 'package:dartpad_frontend/features/preview/models/device_mode.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
@@ -120,9 +121,12 @@ void main() {
     FakePreviewViewModel? customPreview,
     String width = '1000px',
     String height = '1000px',
+    DeviceMode initialDeviceMode = DeviceMode.mobile,
   }) {
     return div(
-      key: ValueKey('container-$width-$height-${customPreview?.previewMode ?? preview.previewMode}'),
+      key: ValueKey(
+        'container-$width-$height-${customPreview?.previewMode ?? preview.previewMode}-${initialDeviceMode.name}',
+      ),
       attributes: {
         'style': 'display: flex; flex-direction: column; width: $width; height: $height;',
       },
@@ -132,6 +136,7 @@ void main() {
           taskStatus: taskStatus,
           activeFile: 'lib/main.dart',
           onOpenConsole: () {},
+          initialDeviceMode: initialDeviceMode,
         ),
       ],
     );
@@ -281,6 +286,20 @@ void main() {
       final rotateBtn = findRotateButton();
       expect(rotateBtn, isNotNull);
       expect(rotateBtn!.disabled, isFalse);
+    });
+
+    testClient('defaults to full size mode without rotation button when initialDeviceMode is current', (tester) async {
+      tester.pumpComponent(buildContainer(initialDeviceMode: DeviceMode.current));
+      await pumpEventQueue();
+
+      final trigger = findDropdownTrigger();
+      expect(trigger.textContent, contains('Full size'));
+      expect(trigger.textContent, contains('devices'));
+
+      final content = web.document.querySelector('.preview-content') as web.HTMLElement;
+      expect(content.className, contains('mode-current'));
+
+      expect(findRotateButton(), isNull);
     });
 
     testClient('switches mode to tablet and updates CSS classes', (tester) async {
