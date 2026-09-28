@@ -265,3 +265,32 @@ A failed project reset removes the previous session and displays an error
 dialog with a reload action, including in embed mode. Old session resources
 are disposed after the editor has unmounted, and results from superseded loads
 cannot reactivate the previous session.
+
+### Embedded runtime lifecycle
+
+Coordination applies only when `embed=true` and preserves the existing project
+startup policy. When a page contains several automatically starting embeds, they
+may all attempt to start. The shared runtime coordination below then retains
+the two most recently used instances.
+
+#### Shared runtime limit and pause/resume
+
+Each active or starting embed writes its own `localStorage` entry under
+`dartpad.preview.session-last-seen-<uuid>`, containing a JSON `lastSeen` timestamp.
+Run/Resume, focus and pointer/keyboard interaction update this timestamp. Only
+active runtimes refresh on interaction, including interaction inside the preview
+iframe; editing a paused example does not implicitly resume it.
+
+`maxConcurrentEmbedRuntimes` sets the limit, currently two. The most recently
+used runtimes may remain active. The other instances
+detach LSP, remove the preview iframe and terminate their SDK
+worker. Activation does not wait for cleanup, so three may overlap during a
+single handover.
+Each instance removes its own entry on retirement, pagehide and disposal. Entries
+older than six hours and malformed entries in this namespace are purged when
+the registry is read.
+
+Paused previews show **LSP and Preview paused** and a **Resume** button using the
+same action as Run. CodeMirror tabs, unsaved edits and
+the local filesystem remain alive. The next Run/Resume creates a worker and
+synchronizes those retained files again. Standalone DartPad does not participate.

@@ -14,17 +14,18 @@ sealed class PreviewState {
 extension PreviewStateCapabilities on PreviewState {
   bool get isTransitioning => switch (this) {
     PreviewStarting() || PreviewRestarting() || PreviewHotReloading() || PreviewStopping() => true,
-    PreviewInitial() || PreviewRunning() || PreviewDartReady() || PreviewCompileError() => false,
+    PreviewInitial() || PreviewPaused() || PreviewRunning() || PreviewDartReady() || PreviewCompileError() => false,
   };
 
   bool get allowsStart => switch (this) {
-    PreviewInitial() || PreviewDartReady() || PreviewCompileError() => true,
+    PreviewInitial() || PreviewPaused() || PreviewDartReady() || PreviewCompileError() => true,
     PreviewStarting() || PreviewRunning() || PreviewRestarting() || PreviewHotReloading() || PreviewStopping() => false,
   };
 
   bool get allowsRestart => switch (this) {
     PreviewRunning() => true,
     PreviewInitial() ||
+    PreviewPaused() ||
     PreviewStarting() ||
     PreviewDartReady() ||
     PreviewRestarting() ||
@@ -35,17 +36,25 @@ extension PreviewStateCapabilities on PreviewState {
 
   bool get allowsStop => switch (this) {
     PreviewRunning() || PreviewStarting() || PreviewRestarting() || PreviewHotReloading() => true,
-    PreviewStopping() || PreviewDartReady() || PreviewInitial() || PreviewCompileError() => false,
+    PreviewStopping() || PreviewDartReady() || PreviewInitial() || PreviewPaused() || PreviewCompileError() => false,
   };
 
   bool get hasActivePreview => switch (this) {
     PreviewRunning() || PreviewRestarting() || PreviewHotReloading() => true,
-    PreviewInitial() || PreviewStarting() || PreviewDartReady() || PreviewStopping() || PreviewCompileError() => false,
+    PreviewInitial() ||
+    PreviewPaused() ||
+    PreviewStarting() ||
+    PreviewDartReady() ||
+    PreviewStopping() ||
+    PreviewCompileError() => false,
   };
 }
 
 /// The initial state when no preview has started yet.
 final class PreviewInitial extends PreviewState {}
+
+/// Runtime released to make room for another embed; Run/Resume starts it again.
+final class PreviewPaused extends PreviewState {}
 
 /// Base class for states that represent an active preview session executing a
 /// specific [entrypoint].

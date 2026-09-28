@@ -55,6 +55,11 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   @override
   final List<ConsoleEntry> appLogs = [];
 
+  int runCount = 0;
+
+  @override
+  Future<void> runCurrent() async => runCount++;
+
   void setRunning({required bool value}) {
     isRunning = value;
     canStart = !value;
@@ -140,6 +145,23 @@ void main() {
         ),
       ],
     );
+  }
+
+  for (final mode in RunMode.values) {
+    testClient('paused $mode preview shows Resume and invokes the Run action', (tester) {
+      preview
+        ..state = PreviewPaused()
+        ..isRunning = false
+        ..canStart = true
+        ..previewMode = mode;
+      tester.pumpComponent(buildContainer());
+      final status = web.document.querySelector('.preview-paused')!;
+      expect(status.textContent, contains('LSP and Preview paused'));
+      final resume = status.querySelector('button[aria-label="Resume"]')! as web.HTMLButtonElement;
+      expect(resume.disabled, isFalse);
+      resume.click();
+      expect(preview.runCount, 1);
+    });
   }
 
   web.HTMLButtonElement? findRotateButton() {

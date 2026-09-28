@@ -26,7 +26,7 @@ import '../shared/task_status.dart';
 import '../startup/initial_project_state.dart';
 import 'data/workspace_repository.dart';
 
-/// Owns a project's worker and every resource tied to its workspace.
+/// Owns a project's editors and files, plus its replaceable worker runtime.
 final class WorkspaceSession {
   WorkspaceSession._({
     required this.initialProject,
@@ -53,6 +53,7 @@ final class WorkspaceSession {
     required InitialProjectState initialProject,
     required RunMode initialMode,
     String? entrypoint,
+    Future<void> Function()? onBeforeRun,
   }) {
     final contextMenu = ContextMenuController();
     late final WorkspaceSession session;
@@ -94,6 +95,7 @@ final class WorkspaceSession {
         initialMode: initialMode,
         eventBus: repository.events,
         onSaveAll: tabs.saveAllTabs,
+        onBeforeRun: onBeforeRun,
       ),
       contextMenu: contextMenu,
       codemirrorAdapter: codemirrorAdapter,
@@ -174,6 +176,33 @@ final class WorkspaceSession {
   StreamSubscription<AnalyzerActivity>? _analyzerSubscription;
   bool _disposed = false;
 
+  /// Invalidates pending Pub/LSP initialization when an embed is deactivated.
+  int runtimeGeneration = 0;
+
+  /// Retains editor state and local files, but detaches all runtime consumers
+  /// before terminating the worker. Cleanup does not block another embed.
+  Future<void> suspendRuntime({bool paused = false}) async {
+    runtimeGeneration++;
+    final client = _languageServerClient;
+    _languageServerClient = null;
+    _languageServer = null;
+    final analyzerSubscription = _analyzerSubscription;
+    _analyzerSubscription = null;
+    fileTree.languageServerClient = null;
+    diagnostics.detachLanguageServer();
+    _codemirrorAdapter.attachLanguageServerClient(null);
+    analyzerStatus.reset();
+    taskStatus.cancelRunning();
+    final previewClosed = _safeAwait(preview.suspend(paused: paused));
+    final workerClosed = _safeAwait(repository.suspendWorker());
+    await Future.wait([
+      previewClosed,
+      workerClosed,
+      _safeAwait(analyzerSubscription?.cancel()),
+      _safeAwait(client?.dispose()),
+    ]);
+  }
+
   /// Attaches language-server resources to this session's consumers.
   void attachLanguageServer({
     required LanguageServer server,
@@ -211,6 +240,7 @@ final class WorkspaceSession {
       return;
     }
     _disposed = true;
+    runtimeGeneration++;
 
     await _safeAwait(_analyzerSubscription?.cancel());
     _analyzerSubscription = null;

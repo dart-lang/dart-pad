@@ -42,6 +42,41 @@ void main() {
     expect(registeredKeys.contains('Mod-Enter'), isTrue);
   });
 
+  test('detaching and reattaching LSP retains text, selection and undo history', () async {
+    final parent = web.HTMLDivElement();
+    web.document.body!.appendChild(parent);
+    final client = LanguageServerClient(
+      languageServer: null,
+      rootWorkspaceUri: Uri.parse('file:///workspace/'),
+      editorRootUri: Uri.parse('file:///workspace/'),
+      workspaceChangeEvents: const Stream.empty(),
+      languageServerMessages: const Stream.empty(),
+      sendToLanguageServer: (_) {},
+    );
+    final editor = CodeMirrorEditor(parent, file: 'main.dart', initialDoc: 'void main() {}');
+    addTearDown(() async {
+      editor.destroy();
+      parent.remove();
+      await client.dispose();
+    });
+    editor.attachLanguageServerClient(client);
+    editor.text = '// edited\nvoid main() {}';
+    editor.view.dispatch(cm.TransactionSpec(selection: cm.EditorSelection.single(5)));
+    editor.attachLanguageServerClient(null);
+    editor.attachLanguageServerClient(client);
+    expect(editor.text, '// edited\nvoid main() {}');
+    expect(editor.view.state.selection.main.head, 5);
+
+    final isMac = web.window.navigator.platform.toLowerCase().contains('mac');
+    editor.view.contentDOM.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'z', code: 'KeyZ', ctrlKey: !isMac, metaKey: isMac, bubbles: true, cancelable: true),
+      ),
+    );
+    expect(editor.text, 'void main() {}');
+  });
+
   test('triggers onRun callback on Mod-Enter key event', () async {
     final parent = web.HTMLDivElement();
     web.document.body!.appendChild(parent);
