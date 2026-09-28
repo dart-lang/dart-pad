@@ -186,7 +186,6 @@ final class AppBar extends StatelessComponent {
       border: .only(
         bottom: .solid(color: colorBorder, width: 1.px),
       ),
-      overflow: .hidden,
       alignItems: .center,
       gap: Gap.all(8.px),
       flex: const .shrink(0),
@@ -202,7 +201,7 @@ final class AppBar extends StatelessComponent {
       position: const .absolute(top: Unit.zero, left: Unit.zero),
       zIndex: const ZIndex(250),
       width: 80.px,
-      height: 80.px,
+      height: 100.percent,
       overflow: .hidden,
       raw: {'pointer-events': 'none'},
     ),
