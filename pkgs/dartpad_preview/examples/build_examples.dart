@@ -48,6 +48,9 @@ class ExampleConfig implements Comparable<ExampleConfig> {
   /// (e.g. `"images/flutter_logo_192.png"`).
   final String? icon;
 
+  /// Optional project-relative file to open when this example is selected.
+  final String? initialFile;
+
   /// Original position in `examples.json`, used to preserve declaration order.
   final int index;
 
@@ -57,6 +60,7 @@ class ExampleConfig implements Comparable<ExampleConfig> {
     required this.name,
     required this.projectDir,
     this.icon,
+    this.initialFile,
     this.index = 0,
   });
 
@@ -67,6 +71,7 @@ class ExampleConfig implements Comparable<ExampleConfig> {
       name: json['name'] as String,
       projectDir: json['projectDir'] as String,
       icon: json['icon'] as String?,
+      initialFile: json['initialFile'] as String?,
       index: index,
     );
   }
@@ -92,6 +97,9 @@ class ExampleConfig implements Comparable<ExampleConfig> {
     }
     if (icon != null) {
       buf.writeln("  icon: '$icon',");
+    }
+    if (initialFile != null) {
+      buf.writeln("  initialFile: '$initialFile',");
     }
     buf.writeln("  archivePath: '$archiveRelativeUrl',");
     buf.write(');');

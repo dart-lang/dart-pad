@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
 
@@ -16,6 +17,7 @@ final class ProjectRequest {
     required this.source,
     required Map<String, List<String>> query,
     required List<String> files,
+    this.sampleInitialFile,
     this.root,
     this.entrypoint,
     this.sdk,
@@ -47,7 +49,9 @@ final class ProjectRequest {
   /// Other query parameters, including the independent `embed` UI option, are
   /// retained in [query] without being interpreted here.
   factory ProjectRequest.fromUri(Uri uri) {
-    final query = uri.queryParametersAll;
+    final query = <String, List<String>>{
+      for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.of(entry.value),
+    };
     String? single(String key) {
       final values = query[key];
       if (values == null) {
@@ -76,6 +80,12 @@ final class ProjectRequest {
     if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');
     }
+    final hasExplicitSource = url != null || package != null || gist != null || id != null;
+    final selectedExample = hasExplicitSource
+        ? null
+        : sample == null
+        ? Examples.defaultExample
+        : Examples.getById(sample);
     if (version != null && package == null) {
       throw const FormatException('version requires package.');
     }
@@ -108,6 +118,7 @@ final class ProjectRequest {
           : SampleProjectSource(sample),
       query: query,
       files: files,
+      sampleInitialFile: selectedExample?.initialFile,
       root: root,
       entrypoint: entrypoint,
       sdk: sdkParts?.first,
@@ -127,9 +138,15 @@ final class ProjectRequest {
 
   /// Explicit source-relative tab paths in query order, including duplicates.
   ///
-  /// This list is unmodifiable. Empty selects README.md in the resolved root,
-  /// then the resolved entrypoint, or no initial tab if neither exists.
+  /// This list is unmodifiable. When empty and no root or entrypoint is
+  /// specified, a sample's [sampleInitialFile] takes priority. Resolution then
+  /// tries README.md in the resolved root and the resolved entrypoint.
   final List<String> files;
+
+  /// The selected sample's preferred first tab, separate from URL `file` options.
+  ///
+  /// It does not change [query], so history matches the URL that was opened.
+  final String? sampleInitialFile;
 
   /// Null infers the project root. Empty explicitly selects the source root;
   /// a non-empty value names a source-relative directory.
