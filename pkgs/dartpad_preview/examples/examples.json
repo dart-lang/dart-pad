@@ -3,12 +3,14 @@
     "id": "dart",
     "name": "Dart Snippet",
     "projectDir": "snippet_dart",
+    "initialFile": "lib/main.dart",
     "icon": "images/dart_logo_192.png"
   },
   {
     "id": "flutter",
     "name": "Flutter Snippet",
     "projectDir": "snippet_flutter",
+    "initialFile": "lib/main.dart",
     "icon": "images/flutter_logo_192.png"
   },
   {
@@ -16,6 +18,7 @@
     "id": "fibonacci",
     "name": "Fibonacci",
     "projectDir": "fibonacci",
+    "initialFile": "lib/main.dart",
     "icon": "images/dart_logo_192.png"
   },
   {
@@ -23,6 +26,7 @@
     "id": "counter",
     "name": "Counter",
     "projectDir": "counter",
+    "initialFile": "lib/main.dart",
     "icon": "images/flutter_logo_192.png"
   },
   {
@@ -30,6 +34,7 @@
     "id": "sunflower",
     "name": "Sunflower",
     "projectDir": "sunflower",
+    "initialFile": "lib/main.dart",
     "icon": "images/flutter_logo_192.png"
   },
   {
@@ -37,6 +42,7 @@
     "id": "flame-game",
     "name": "Flame Game",
     "projectDir": "flame_game",
+    "initialFile": "lib/main.dart",
     "icon": "images/flutter_logo_192.png"
   }
 ]

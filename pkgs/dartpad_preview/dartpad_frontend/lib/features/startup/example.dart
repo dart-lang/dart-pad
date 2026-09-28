@@ -16,6 +16,9 @@ final class Example {
   /// The optional icon displayed for the example.
   final String? icon;
 
+  /// The optional project-relative file to open when this example is selected.
+  final String? initialFile;
+
   /// The path to the packaged archive containing the example project.
   final String archivePath;
 
@@ -24,6 +27,7 @@ final class Example {
     required this.id,
     this.subcategory,
     this.icon,
+    this.initialFile,
     required this.archivePath,
   });
 

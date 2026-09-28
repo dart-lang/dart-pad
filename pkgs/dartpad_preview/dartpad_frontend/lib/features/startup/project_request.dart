@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
 
@@ -36,8 +37,9 @@ final class ProjectRequest {
   ///
   /// Reads [Uri.queryParametersAll] without decoding values a second time,
   /// preserving repeated `file` values in order. With no explicit source, the
-  /// request selects the default sample. `gist` and its `id` alias are mutually
-  /// exclusive; `version` requires `package`.
+  /// request selects the default sample. A sample's configured initial file is
+  /// added as a `file` parameter unless the URL already specifies one. `gist`
+  /// and its `id` alias are mutually exclusive; `version` requires `package`.
   ///
   /// Throws a [FormatException] for conflicting sources, invalid option values,
   /// repeated scalar options, or the unsupported `archive`, `path`, and `main`
@@ -47,7 +49,9 @@ final class ProjectRequest {
   /// Other query parameters, including the independent `embed` UI option, are
   /// retained in [query] without being interpreted here.
   factory ProjectRequest.fromUri(Uri uri) {
-    final query = uri.queryParametersAll;
+    final query = <String, List<String>>{
+      for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.of(entry.value),
+    };
     String? single(String key) {
       final values = query[key];
       if (values == null) {
@@ -75,6 +79,15 @@ final class ProjectRequest {
     }
     if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');
+    }
+    final hasExplicitSource = url != null || package != null || gist != null || id != null;
+    Example? selectedExample;
+    if (!hasExplicitSource) {
+      selectedExample = sample == null ? Examples.defaultExample : Examples.getById(sample);
+    }
+    final initialFile = selectedExample?.initialFile;
+    if (!query.containsKey('file') && initialFile != null) {
+      query['file'] = [initialFile];
     }
     if (version != null && package == null) {
       throw const FormatException('version requires package.');
