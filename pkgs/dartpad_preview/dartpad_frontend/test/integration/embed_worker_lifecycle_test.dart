@@ -28,7 +28,7 @@ import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 
-import '../test/project_fixture.dart';
+import '../project_fixture.dart';
 
 int workerCount(String field) {
   final JSObject counts = web.window['embedWorkerCounts'];
