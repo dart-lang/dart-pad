@@ -91,20 +91,21 @@ void main() {
   });
 
   for (final (source, shouldRun) in [
+    ('sample_id=material.AppBar.1', true),
+    ('sample_id=material.AppBar.2', true),
+    ('sample_id=material.AppBar.3', false),
+    ('sample_id=material.AppBar.10', false),
+    ('sample_id=material.ListTile.3', false),
+    ('sample_id=widgets.ListView.7', false),
     ('sample=counter', true),
-    ('sample=counter&run=false', true),
-    ('sample_id=material.AppBar.1&run=true', true),
-    ('sample_id=material.AppBar.3&run=true', true),
-    ('sample_id=material.AppBar.1&run=false', false),
-    ('sample_id=material.AppBar.3&run=false', false),
-    ('sample_id=material.AppBar.1', false),
-    ('sample_id=material.AppBar.1&run=anything', false),
   ]) {
-    testClient('embed startup preserves existing autorun policy for $source', (tester) async {
+    testClient('embed startup for $source: autoRun=$shouldRun', (tester) async {
       final starts = <Completer<DartPad>>[];
+      // Oppose the expected startup choice to verify that run is ignored.
+      final run = !shouldRun;
       tester.pumpComponent(
         App(
-          initialUri: Uri.parse('/?embed=true&$source'),
+          initialUri: Uri.parse('/?embed=true&$source&run=$run'),
           loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
           createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
             expect(deferWorker, isTrue);
@@ -134,7 +135,7 @@ void main() {
     final starts = <Completer<DartPad>>[];
     tester.pumpComponent(
       App(
-        initialUri: Uri.parse('/?sample_id=material.ListTile.3&run=false&embed=true'),
+        initialUri: Uri.parse('/?sample_id=material.ListTile.3&run=true&embed=true'),
         loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
         createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
           expect(deferWorker, isTrue);
@@ -202,7 +203,7 @@ void main() {
       App(
         projectStore: MemoryProjectStore(),
         initialUri: Uri.parse(
-          '/?sample_id=material.AppBar.1&channel=stable&split=60&run=false&embed=true',
+          '/?sample_id=material.AppBar.3&channel=stable&split=60&run=false&embed=true',
         ),
         loadSource: (source) async {
           expect(source, isA<FlutterApiDocsProjectSource>());

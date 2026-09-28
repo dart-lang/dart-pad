@@ -9,9 +9,23 @@ query parameters and fragment. The application only sees this redirected URL.
 Deprecated sample_id selects a generated Flutter API documentation snippet.
 channel=main or channel=master loads snippets from main-api.flutter.dev; other
 channels use api.flutter.dev. This does not change the bundled SDK assets.
-For sample_id requests, run=true starts the snippet after setup; otherwise it
-waits for Run. split=<5..95> controls the initial code panel percentage.
+split=<5..95> controls the initial code panel percentage.
 sample_id alone does not enable embed mode or force a particular SDK.
+The run flag is ignored everywhere. Normal embeds and standalone requests
+start automatically; only embedded sample_id requests use the policy below.
+
+#### Legacy Flutter docs embeds (`sample_id`) — temporary workaround
+
+Within embed mode, the presence of `sample_id` (`legacyDocsMode`) selects the
+legacy Flutter docs startup policy. It is deliberately a workaround for the
+current numbered samples:
+
+- Ignore `run`, including both `run=true` and `run=false`.
+- Auto-start only when the final dot-separated number in `sample_id` is at most
+  `maxConcurrentEmbedRuntimes` (currently 2), for example `material.AppBar.1` or
+  `material.AppBar.2`.
+- Samples numbered 3 or higher, or IDs without a numeric suffix, load their
+  files and editors but wait for Run before creating an SDK worker.
 -->
 <html>
     <head>

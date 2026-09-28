@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Number of embed runtimes retained after a handoff; cleanup may briefly overlap.
+/// Also the highest Flutter docs sample number eligible for automatic startup.
 const maxConcurrentEmbedRuntimes = 2;

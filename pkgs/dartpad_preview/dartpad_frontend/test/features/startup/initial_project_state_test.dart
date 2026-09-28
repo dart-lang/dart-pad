@@ -85,18 +85,50 @@ void main() {
       }
     });
 
-    test('uses legacy defaults and preserves normal preview autorun', () {
+    test('standalone docs samples auto-run regardless of the legacy run parameter', () {
       for (final query in [
         '?sample_id=material.AppBar.1',
         '?sample_id=material.AppBar.1&run=false',
         '?sample_id=material.AppBar.1&run=anything',
+        '?sample_id=material.AppBar.10&run=false',
+        '?sample_id=material.AppBar.10&run=true&run=false',
       ]) {
         final request = ProjectRequest.fromUri(Uri.parse(query));
-        expect(request.autoRun, isFalse, reason: query);
+        expect(request.autoRun, isTrue, reason: query);
         expect(request.initialSplitRatio, 0.7, reason: query);
       }
       expect(ProjectRequest.fromUri(Uri.parse('?sample=counter')).autoRun, isTrue);
       expect(ProjectRequest.fromUri(Uri.parse('?sample=counter&embed=true')).isEmbedMode, isTrue);
+    });
+
+    test('embed autorun uses the trailing sample number regardless of the run flag', () {
+      for (final (sampleId, shouldRun) in [
+        ('material.AppBar.0', true),
+        ('material.AppBar.1', true),
+        ('material.AppBar.2', true),
+        ('material.AppBar.3', false),
+        ('material.AppBar.10', false),
+        ('material.AppBar', false),
+        ('material.ListTile.2', true),
+        ('material.ListTile.3', false),
+        ('material.ListTile.4', false),
+        ('widgets.ListView.7', false),
+      ]) {
+        for (final run in ['', '&run=true', '&run=false', '&run=anything', '&run=true&run=false']) {
+          final uri = Uri.parse('/?embed=true&sample_id=$sampleId$run');
+          expect(ProjectRequest.fromUri(uri).autoRun, shouldRun, reason: uri.toString());
+        }
+      }
+      expect(ProjectRequest.fromUri(Uri.parse('?sample_id=material.AppBar.10&run=true')).autoRun, isTrue);
+    });
+
+    test('embeds without sample_id auto-run even with run=false', () {
+      for (final source in ['', 'sample=counter', 'gist=abc']) {
+        for (final run in ['', '&run=true', '&run=false']) {
+          final uri = Uri.parse('/?embed=true&$source$run');
+          expect(ProjectRequest.fromUri(uri).autoRun, isTrue, reason: uri.toString());
+        }
+      }
     });
 
     test('clamps legacy split percentages and defaults invalid values', () {

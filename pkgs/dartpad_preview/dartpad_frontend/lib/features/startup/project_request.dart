@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import '../shared/embed_runtime_limits.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
 
@@ -103,8 +104,14 @@ final class ProjectRequest {
     if (root != null) {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
-    final channel = apiSample == null ? null : single('channel');
-    final isLegacyEmbedMode = apiSample != null;
+    final legacyDocsMode = apiSample != null;
+    final channel = legacyDocsMode ? single('channel') : null;
+    final isEmbedMode = isEmbedUri(uri);
+    // The legacy run flag is ignored. Only embedded docs samples restrict
+    // automatic startup, using the trailing sample number as a workaround.
+    final sampleNumber = apiSample == null ? null : int.tryParse(apiSample.split('.').last);
+    final autoRun =
+        !isEmbedMode || !legacyDocsMode || (sampleNumber != null && sampleNumber <= maxConcurrentEmbedRuntimes);
     final splitValues = query['split'];
     final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
     final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
@@ -126,9 +133,9 @@ final class ProjectRequest {
       sdk: sdkParts?.first,
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
-      isLegacyEmbedMode: isLegacyEmbedMode,
-      isEmbedMode: isEmbedUri(uri),
-      autoRun: !isLegacyEmbedMode || (query['run']?.length == 1 && query['run']!.single == 'true'),
+      isLegacyEmbedMode: legacyDocsMode,
+      isEmbedMode: isEmbedMode,
+      autoRun: autoRun,
       initialSplitRatio: initialSplitRatio,
     );
   }
