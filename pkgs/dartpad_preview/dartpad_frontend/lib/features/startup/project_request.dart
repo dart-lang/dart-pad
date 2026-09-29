@@ -23,6 +23,10 @@ final class ProjectRequest {
     this.sdk,
     this.sdkVersion,
     this.mode,
+    required this.isLegacyEmbedMode,
+    required this.isEmbedMode,
+    required this.autoRun,
+    required this.initialSplitRatio,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
 
@@ -47,7 +51,7 @@ final class ProjectRequest {
   /// `root` is valid and explicitly selects the source root.
   ///
   /// Other query parameters, including the independent `embed` UI option, are
-  /// retained in [query] without being interpreted here.
+  /// retained in [query].
   factory ProjectRequest.fromUri(Uri uri) {
     final query = <String, List<String>>{
       for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.of(entry.value),
@@ -74,10 +78,11 @@ final class ProjectRequest {
     final gist = single('gist');
     final id = single('id');
     final sample = single('sample');
+    final apiSample = single('sample_id');
     if (gist != null && id != null) {
       throw const FormatException('Choose either gist or id, not both.');
     }
-    if ([url, package, gist ?? id, sample].nonNulls.length > 1) {
+    if ([url, package, gist ?? id, sample, apiSample].nonNulls.length > 1) {
       throw const FormatException('Choose only one project source.');
     }
     final hasExplicitSource = url != null || package != null || gist != null || id != null;
@@ -108,14 +113,22 @@ final class ProjectRequest {
     if (root != null) {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
+    final channel = apiSample == null ? null : single('channel');
+    final isLegacyEmbedMode = apiSample != null;
+    final splitValues = query['split'];
+    final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
+    final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
+    final source = url != null
+        ? ArchiveProjectSource(url)
+        : package != null
+        ? PackageProjectSource(package, version: version)
+        : (gist ?? id) != null
+        ? GistProjectSource((gist ?? id)!)
+        : apiSample != null
+        ? FlutterApiDocsProjectSource(apiSample, channel: channel)
+        : SampleProjectSource(sample);
     return ProjectRequest._(
-      source: url != null
-          ? ArchiveProjectSource(url)
-          : package != null
-          ? PackageProjectSource(package, version: version)
-          : (gist ?? id) != null
-          ? GistProjectSource((gist ?? id)!)
-          : SampleProjectSource(sample),
+      source: source,
       query: query,
       files: files,
       sampleInitialFile: selectedExample?.initialFile,
@@ -124,8 +137,16 @@ final class ProjectRequest {
       sdk: sdkParts?.first,
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
+      isLegacyEmbedMode: isLegacyEmbedMode,
+      isEmbedMode: isEmbedUri(uri),
+      autoRun: !isLegacyEmbedMode || (query['run']?.length == 1 && query['run']!.single == 'true'),
+      initialSplitRatio: initialSplitRatio,
     );
   }
+
+  /// Whether [uri] explicitly requests the embed presentation.
+  /// Legacy HTML entrypoints redirect to this query option before the app loads.
+  static bool isEmbedUri(Uri uri) => uri.queryParametersAll['embed']?.contains('true') == true;
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
@@ -171,6 +192,20 @@ final class ProjectRequest {
 
   /// Null infers mode from the SDK and entrypoint; a value fixes the mode.
   final RunMode? mode;
+
+  /// Whether this request uses the historical Flutter embed contract.
+  final bool isLegacyEmbedMode;
+
+  /// Whether the current preview embed presentation should be used.
+  final bool isEmbedMode;
+
+  /// Whether the resolved entrypoint should run after workspace preparation.
+  /// This is only to support the old docs generator and will be removed in the future.
+  final bool autoRun;
+
+  /// Initial fraction of the outer split occupied by the code panel.
+  /// This is only to support the old docs generator and will be removed in the future.
+  final double initialSplitRatio;
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///
