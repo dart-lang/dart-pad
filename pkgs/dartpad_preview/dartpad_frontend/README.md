@@ -298,3 +298,18 @@ The next Run/Resume saves retained editor buffers, creates a fresh worker,
 synchronizes the local files, runs pub get when needed and reattaches LSP before
 starting the preview. Pending work from a suspended runtime cannot reactivate
 it or overwrite the resumed runtime. Resuming does not wait for old cleanup.
+
+Each active or starting embed writes its own `localStorage` entry under
+`dartpad.preview.session-last-seen-<uuid>`, containing a JSON `lastSeen` timestamp.
+Run/Resume, focus and pointer/keyboard interaction update this timestamp. Only
+active runtimes refresh on interaction, including interaction inside the preview
+iframe; editing a paused example does not implicitly resume it.
+
+`maxConcurrentEmbedRuntimes` sets the limit, currently two. The most recently
+used runtimes may remain active; older instances pause through the session API.
+Activation does not wait for cleanup, so runtimes may briefly overlap during
+a handover. Standalone DartPad does not participate.
+
+Each instance removes its own entry on retirement, pagehide and disposal. Entries
+older than six hours and malformed entries in this namespace are purged when
+the registry is read.
