@@ -83,6 +83,8 @@ Tests run in Chrome as configured by `dart_test.yaml`.
 
 ## Query options
 
+### Project source
+
 Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 
 | Query                              | Source                                                                                     |
@@ -93,7 +95,9 @@ Choose one source. Without a source, DartPad loads the bundled `counter` sample.
 | `gist=<id>`                        | A GitHub Gist. `id=<id>` is a deprecated alias.                                            |
 | `sample=<id>`                      | A bundled sample: `counter`, `sunflower`, `fibonacci`, `flame-game`, `dart`, or `flutter`. |
 
-The following options apply to every source:
+### Workspace options
+
+The following options configure the loaded project, workspace structure, and execution and apply to every source.
 
 | Query                            | Behavior                                                                                                                                |
 | :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
@@ -102,8 +106,13 @@ The following options apply to every source:
 | `sdk=dart` or `sdk=flutter`      | SDK kind, optionally followed by `:<version>`.                                                                                          |
 | `entrypoint=<path>`              | The file to execute, independently of the active tab.                                                                                   |
 | `mode=console` or `mode=flutter` | Explicit execution mode. Flutter mode requires a Flutter SDK.                                                                           |
-| `embed=true`                     | Hides the app bar and footer on desktop and starts with the file tree collapsed.                                                        |
-| `theme=dark` or `theme=light`     | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project.                             |
+
+### Display & layout options
+
+| Query                         | Behavior                                                                                                    |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| `embed=true`                  | Hides the app bar and footer on desktop and starts with the file tree collapsed.                            |
+| `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project. |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
