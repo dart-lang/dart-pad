@@ -64,9 +64,7 @@ void main() {
         Uri.parse('/?sample_id=material.AppBar.1&channel=stable&split=60&run=true&embed=true'),
       );
 
-      expect(request.isLegacyEmbedMode, isTrue);
       expect(request.isEmbedMode, isTrue);
-      expect(request.autoRun, isTrue);
       expect(request.initialSplitRatio, 0.6);
       expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
@@ -80,29 +78,15 @@ void main() {
         expect(request.isEmbedMode, embedded, reason: uri.toString());
         expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
         expect(request.sdk, isNull);
-        expect(request.isLegacyEmbedMode, isTrue);
-        expect(request.autoRun, isTrue);
       }
     });
 
-    test('uses legacy defaults and preserves normal preview autorun', () {
-      for (final query in [
-        '?sample_id=material.AppBar.1',
-        '?sample_id=material.AppBar.1&run=false',
-        '?sample_id=material.AppBar.1&run=anything',
-      ]) {
-        final request = ProjectRequest.fromUri(Uri.parse(query));
-        expect(request.autoRun, isFalse, reason: query);
-        expect(request.initialSplitRatio, 0.7, reason: query);
-      }
-      expect(ProjectRequest.fromUri(Uri.parse('?sample=counter')).autoRun, isTrue);
-      expect(ProjectRequest.fromUri(Uri.parse('?sample=counter&embed=true')).isEmbedMode, isTrue);
-    });
-
-    test('clamps legacy split percentages and defaults invalid values', () {
-      for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
-        final request = ProjectRequest.fromUri(Uri.parse('?sample_id=sample&split=$value'));
-        expect(request.initialSplitRatio, expected);
+    test('clamps split percentages and defaults invalid values for every embed source', () {
+      for (final source in ['sample=counter', 'sample_id=material.AppBar.1']) {
+        for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
+          final request = ProjectRequest.fromUri(Uri.parse('?$source&embed=true&split=$value'));
+          expect(request.initialSplitRatio, expected);
+        }
       }
     });
 

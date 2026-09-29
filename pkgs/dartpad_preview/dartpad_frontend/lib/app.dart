@@ -443,7 +443,7 @@ final class _AppState extends State<App> {
       return;
     }
 
-    if (preparationSucceeded && project.request.autoRun && session.preview.entrypoint != null) {
+    if (!_isEmbedMode && preparationSucceeded && session.preview.entrypoint != null) {
       unawaited(session.preview.runCurrent());
     }
     await _initializeAnalyzer(session, workspace, project.root);
@@ -699,8 +699,8 @@ final class _AppState extends State<App> {
                   key: _previewSplitKey,
                   initialValue: session.initialProject.request.initialSplitRatio,
                   canCollapseRight: true,
-                  minValue: session.initialProject.request.isLegacyEmbedMode ? 0.05 : 0.3,
-                  maxValue: session.initialProject.request.isLegacyEmbedMode ? 0.95 : 0.85,
+                  minValue: _isEmbedMode ? 0.05 : 0.3,
+                  maxValue: _isEmbedMode ? 0.95 : 0.85,
                   left: EditorShell(
                     openTabs: session.tabs.openTabs,
                     activeFile: session.tabs.activeFile,
