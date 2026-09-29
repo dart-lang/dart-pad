@@ -38,7 +38,7 @@ const _dart = Example(
   name: 'Dart Snippet',
   id: 'dart',
   icon: 'images/dart_logo_192.png',
-  initialFile: 'lib/main.dart',
+  initialFile: 'bin/main.dart',
   archivePath: 'examples/dart.tar.gz',
 );
 const _flutter = Example(
@@ -53,7 +53,7 @@ const _fibonacci = Example(
   id: 'fibonacci',
   subcategory: 'Dart',
   icon: 'images/dart_logo_192.png',
-  initialFile: 'lib/main.dart',
+  initialFile: 'bin/main.dart',
   archivePath: 'examples/fibonacci.tar.gz',
 );
 const _counter = Example(

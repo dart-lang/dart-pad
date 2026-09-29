@@ -4,5 +4,4 @@ A Dart sample that demonstrates recursive functions and console output by comput
 
 ## How it works
 
-The `fibonacci` function in `lib/main.dart` recursively computes the \(n\)-th Fibonacci number.
-
+The `fibonacci` function in `bin/main.dart` recursively computes the \(n\)-th Fibonacci number.
