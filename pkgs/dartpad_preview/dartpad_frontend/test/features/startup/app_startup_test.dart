@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
@@ -13,6 +15,7 @@ import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
+import 'package:jaspr/dom.dart' show div;
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -182,6 +185,230 @@ void main() {
         }
       });
     }
+  }
+
+  for (final run in ['', '&run=false', '&run=true', '&run=anything', '&run=true&run=false']) {
+    testClient('embed handshake injects without starting: $run', (tester) async {
+      late WorkspaceRepository repository;
+      final starts = <Completer<DartPad>>[];
+      final originalName = web.window.name;
+      web.window.name = 'flutter-docs-example';
+      addTearDown(() => web.window.name = originalName);
+      final readyMessages = <Object?>[];
+      final subscription = web.EventStreamProviders.messageEvent.forTarget(web.window.parent).listen((event) {
+        final data = event.data;
+        if (data == null || !data.isA<JSObject>()) {
+          return;
+        }
+        final message = data as JSObject;
+        final type = message.getProperty<JSAny?>('type'.toJS)?.dartify();
+        final sender = message.getProperty<JSAny?>('sender'.toJS)?.dartify();
+        if (type == 'ready' && sender == web.window.name) {
+          readyMessages.add({'type': type, 'sender': sender});
+          injectSource("void main() { print('injected'); }");
+        }
+      });
+      addTearDown(subscription.cancel);
+      tester.pumpComponent(
+        App(
+          initialUri: Uri.parse('?embed=true&file=README.md$run'),
+          loadSource: (_) async => contents({
+            'README.md': '# Keep me',
+            'lib/main.dart': 'void main() {}',
+          }),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            return repository = WorkspaceRepository.create(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              localApi: localApi,
+              deferWorker: deferWorker,
+              createWorker: () {
+                final start = Completer<DartPad>();
+                starts.add(start);
+                return start.future;
+              },
+            );
+          },
+        ),
+      );
+      await pumpEventQueue();
+      expect(readyMessages, [
+        {'sender': 'flutter-docs-example', 'type': 'ready'},
+      ]);
+      expect(
+        web.document.querySelector('.editor-tab-slot.active .cm-content')!.textContent,
+        contains("print('injected')"),
+      );
+      expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('injected')"));
+      expect(await repository.workspaceResourceApi.readFileAsText('README.md'), '# Keep me');
+      expect(starts, isEmpty);
+
+      injectSource("void main() { print('updated'); }");
+      await pumpEventQueue();
+      expect(
+        web.document.querySelector('.editor-tab-slot.active .cm-content')!.textContent,
+        contains("print('updated')"),
+      );
+      expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('updated')"));
+      expect(starts, isEmpty);
+      expect(repository.hasRuntime, isFalse);
+      expect(web.document.querySelector('.app-footer'), isNull);
+      expect(web.document.querySelector('.preview iframe'), isNull);
+    });
+  }
+
+  testClient('early embed messages survive asynchronous project loading', (tester) async {
+    final download = Completer<Project>();
+    tester.pumpComponent(
+      App(
+        initialUri: Uri.parse('?embed=true'),
+        loadSource: (_) => download.future,
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+            WorkspaceRepository.create(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              localApi: localApi,
+              deferWorker: deferWorker,
+              createWorker: () => Completer<DartPad>().future,
+            ),
+      ),
+    );
+    injectSource("void main() { print('early'); }");
+    download.complete(contents({'lib/main.dart': 'void main() {}'}));
+    await pumpEventQueue();
+    expect(web.document.querySelector('.cm-content')!.textContent, contains("print('early')"));
+  });
+
+  testClient('seven protocol embeds stay idle and coordinate after manual activation', (tester) async {
+    final repositories = List<WorkspaceRepository?>.filled(7, null);
+    final starts = List<int>.filled(7, 0);
+    tester.pumpComponent(
+      div([
+        for (var i = 0; i < 7; i++)
+          div(classes: 'protocol-$i', [
+            App(
+              initialUri: Uri.parse('?run=true&embed=true'),
+              loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+              createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+                expect(deferWorker, isTrue);
+                return repositories[i] = WorkspaceRepository.create(
+                  events: events,
+                  sdk: sdk,
+                  taskStatus: taskStatus,
+                  localApi: localApi,
+                  deferWorker: deferWorker,
+                  createWorker: () {
+                    starts[i]++;
+                    return Completer<DartPad>().future;
+                  },
+                );
+              },
+            ),
+          ]),
+      ]),
+    );
+    await pumpEventQueue();
+    expect(web.document.querySelectorAll('.cm-editor').length, 7);
+    expect(starts, everyElement(0));
+    injectSource("void main() { print('injected'); }");
+    await pumpEventQueue();
+    for (final repository in repositories) {
+      expect(await repository!.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('injected')"));
+      expect(repository.hasRuntime, isFalse);
+    }
+    expect(starts, everyElement(0));
+    expect(web.document.querySelector('.preview iframe'), isNull);
+
+    Future<void> notifyStorage() async {
+      // These app instances share a test window. Real sibling iframes receive
+      // this notification from the browser when another frame writes storage.
+      web.window.dispatchEvent(
+        web.StorageEvent('storage', web.StorageEventInit(storageArea: web.window.localStorage)),
+      );
+      await pumpEventQueue();
+    }
+
+    for (var i = 0; i < 3; i++) {
+      (web.document.querySelector('.protocol-$i .main-editor-actions button')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      await notifyStorage();
+    }
+    expect(starts, [1, 1, 1, 0, 0, 0, 0]);
+    expect(repositories.map((repository) => repository!.hasRuntime), [false, true, true, false, false, false, false]);
+    expect(web.document.querySelector('.protocol-0 button[aria-label="Resume"]'), isNotNull);
+
+    injectSource("void main() { print('updated while paused'); }");
+    await pumpEventQueue();
+    expect(starts, [1, 1, 1, 0, 0, 0, 0]);
+    expect(repositories.first!.hasRuntime, isFalse);
+    expect(web.document.querySelector('.protocol-0 button[aria-label="Resume"]'), isNotNull);
+    expect(
+      await repositories.first!.workspaceResourceApi.readFileAsText('lib/main.dart'),
+      contains('updated while paused'),
+    );
+
+    (web.document.querySelector('.protocol-0 button[aria-label="Resume"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    await notifyStorage();
+    expect(starts, [2, 1, 1, 0, 0, 0, 0]);
+    expect(repositories.map((repository) => repository!.hasRuntime), [true, false, true, false, false, false, false]);
+  });
+
+  for (final query in ['', '?embed=false']) {
+    testClient('without embed mode, protocol accepts code while the worker is starting: $query', (tester) async {
+      final readyMessages = <Object?>[];
+      final subscription = web.EventStreamProviders.messageEvent.forTarget(web.window.parent).listen((event) {
+        final data = event.data;
+        if (data == null || !data.isA<JSObject>()) {
+          return;
+        }
+        final message = data as JSObject;
+        final type = message.getProperty<JSAny?>('type'.toJS)?.dartify();
+        final sender = message.getProperty<JSAny?>('sender'.toJS)?.dartify();
+        if (type == 'ready' && sender == web.window.name) {
+          readyMessages.add({'type': type, 'sender': sender});
+          injectSource("void main() { print('injected'); }");
+        }
+      });
+      addTearDown(subscription.cancel);
+      late WorkspaceRepository repository;
+      var starts = 0;
+      tester.pumpComponent(
+        App(
+          initialUri: Uri.parse(query),
+          projectStore: MemoryProjectStore(),
+          loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            expect(deferWorker, isFalse);
+            return repository = WorkspaceRepository.create(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              localApi: localApi,
+              deferWorker: deferWorker,
+              createWorker: () {
+                starts++;
+                return Completer<DartPad>().future;
+              },
+            );
+          },
+        ),
+      );
+      await pumpEventQueue();
+      expect(readyMessages, hasLength(1));
+      expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('injected')"));
+      expect(web.document.querySelector('.cm-content')!.textContent, contains("print('injected')"));
+
+      injectSource("void main() { print('updated'); }");
+      await pumpEventQueue();
+      expect(readyMessages, hasLength(1));
+      expect(starts, 1);
+      expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('updated')"));
+      expect(web.document.querySelector('.cm-content')!.textContent, contains("print('updated')"));
+      expect(web.document.querySelector('.app-footer'), isNotNull);
+    });
   }
 
   testClient('embed Run lazily starts the runtime and can resume while retired startup is pending', (tester) async {
@@ -438,4 +665,17 @@ void main() {
     expect(worker.isClosed, isTrue);
     expect(() => old.taskStatus.startTask(TaskKind.loadingCode), throwsStateError);
   });
+}
+
+void injectSource(String source) {
+  web.window.dispatchEvent(
+    web.MessageEvent(
+      'message',
+      web.MessageEventInit(
+        source: web.window.parent,
+        origin: 'https://docs.flutter.dev',
+        data: {'type': 'sourceCode', 'sourceCode': source}.jsify(),
+      ),
+    ),
+  );
 }
