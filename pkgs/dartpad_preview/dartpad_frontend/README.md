@@ -233,8 +233,8 @@ directories and external SDK/package sources are excluded. Changes to open or
 active editor tabs, SDK selection, entrypoint, and run mode also update the
 stored project.
 
-Without project query parameters, DartPad restores the newest project, including
-when `theme` is the only parameter. With project query parameters, it loads and
+Without project options, DartPad restores the newest project.
+With project query parameters, it loads and
 immediately saves a fresh project. If an older entry
 matches all decoded project query options (ignoring `theme`), the toolbar offers
 **Restore last project** for 30 seconds. The button's bottom border shows
