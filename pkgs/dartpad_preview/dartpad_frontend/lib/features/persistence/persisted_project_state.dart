@@ -43,11 +43,14 @@ final class PersistedProjectState {
 
   /// Compare decoded options; parameter order is irrelevant, value order is not.
   bool matchesQuery(Map<String, List<String>> other) {
-    if (query.length != other.length) {
+    // Theme is a presentation option and does not identify a project.
+    final projectQuery = Map<String, List<String>>.of(query)..remove('theme');
+    final otherProjectQuery = Map<String, List<String>>.of(other)..remove('theme');
+    if (projectQuery.length != otherProjectQuery.length) {
       return false;
     }
-    return query.entries.every((entry) {
-      final values = other[entry.key];
+    return projectQuery.entries.every((entry) {
+      final values = otherProjectQuery[entry.key];
       return values != null &&
           values.length == entry.value.length &&
           Iterable<int>.generate(values.length).every((i) => values[i] == entry.value[i]);
