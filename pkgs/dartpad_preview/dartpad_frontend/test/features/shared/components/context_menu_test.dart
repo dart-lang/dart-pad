@@ -237,6 +237,18 @@ void main() {
 
   group('ContextMenu Keyboard Navigation & WAI-ARIA', () {
     testClient('focuses first enabled item on open and skips disabled items', (tester) async {
+      // Parallel browser suites can take focus after the menu opens. Capture
+      // its first focus event before mounting instead of inspecting it later.
+      final firstFocus = Completer<web.HTMLButtonElement>();
+      final focusSubscription = web.EventStreamProviders.focusEvent.forTarget(web.document, useCapture: true).listen((
+        event,
+      ) {
+        if (event.target case final web.HTMLButtonElement button
+            when button.classList.contains('context-menu-item') && !firstFocus.isCompleted) {
+          firstFocus.complete(button);
+        }
+      });
+      addTearDown(focusSubscription.cancel);
       tester.pumpComponent(
         ContextMenu(
           x: 10,
@@ -255,8 +267,7 @@ void main() {
       final buttons = web.document.querySelectorAll('.context-menu-item');
       final firstEnabledButton = buttons.item(1) as web.HTMLButtonElement;
 
-      await _waitForFocus(firstEnabledButton);
-      expect(web.document.activeElement, equals(firstEnabledButton));
+      expect(await firstFocus.future.timeout(const Duration(seconds: 5)), same(firstEnabledButton));
     });
 
     testClient('navigates with ArrowDown, ArrowUp, Home, and End keys, skipping disabled items', (tester) async {
@@ -559,18 +570,6 @@ void main() {
 }
 
 void _noop() {}
-
-Future<void> _waitForFocus(web.HTMLElement element) async {
-  // Focus is scheduled after mount and can land after pumpEventQueue under CI load.
-  if (web.document.activeElement == element) {
-    return;
-  }
-  try {
-    await web.EventStreamProviders.focusEvent.forTarget(element).first.timeout(const Duration(seconds: 5));
-  } on TimeoutException {
-    // Let the caller's expectation report the active element.
-  }
-}
 
 class _FakeEditorTab extends EditorTab<Component> {
   _FakeEditorTab(super.path);
