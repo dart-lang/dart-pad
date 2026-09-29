@@ -200,9 +200,11 @@ final class ProjectRequest {
   final bool isEmbedMode;
 
   /// Whether the resolved entrypoint should run after workspace preparation.
+  /// This is only to support the old docs generator and will be removed in the future.
   final bool autoRun;
 
   /// Initial fraction of the outer split occupied by the code panel.
+  /// This is only to support the old docs generator and will be removed in the future.
   final double initialSplitRatio;
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
