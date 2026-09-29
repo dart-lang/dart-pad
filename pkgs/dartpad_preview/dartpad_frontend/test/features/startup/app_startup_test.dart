@@ -40,8 +40,9 @@ void main() {
         projectStore: MemoryProjectStore(),
         initialUri: Uri.parse('?file=README.md&file=lib/main.dart'),
         loadSource: (_) => download.future,
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
           expect(sdk.isFlutter, isFalse);
+          expect(deferWorker, isFalse);
           return created = WorkspaceRepository(
             events: events,
             taskStatus: taskStatus,
@@ -79,7 +80,7 @@ void main() {
         projectStore: MemoryProjectStore(),
         initialUri: Uri.parse('?sdk=dart:0.0.0'),
         loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
           created = true;
           throw StateError('Must not create a worker');
         },
@@ -118,14 +119,15 @@ void main() {
             projectStore: MemoryProjectStore(),
             initialUri: Uri.parse('/?embed=$embed&$source'),
             loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
-            createRepository: ({required events, required sdk, required taskStatus, localApi}) => WorkspaceRepository(
-              events: events,
-              sdk: sdk,
-              taskStatus: taskStatus,
-              workspaceResourceApi: localApi!,
-              workspaceFuture: Future.value(workspace),
-              onFlush: () => pendingRun.future,
-            ),
+            createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+                WorkspaceRepository(
+                  events: events,
+                  sdk: sdk,
+                  taskStatus: taskStatus,
+                  workspaceResourceApi: localApi!,
+                  workspaceFuture: Future.value(workspace),
+                  onFlush: () => pendingRun.future,
+                ),
           ),
         );
         await pumpEventQueue();
@@ -140,8 +142,82 @@ void main() {
           expect(container.preview.state, isA<PreviewStarting>());
         }
       });
+
+      testClient('worker startup depends only on embed=$embed for $source', (tester) async {
+        final starts = <Completer<DartPad>>[];
+        tester.pumpComponent(
+          App(
+            projectStore: MemoryProjectStore(),
+            initialUri: Uri.parse('/?embed=$embed&$source'),
+            loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+            createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+              expect(deferWorker, embed);
+              return WorkspaceRepository.create(
+                events: events,
+                sdk: sdk,
+                taskStatus: taskStatus,
+                localApi: localApi,
+                deferWorker: deferWorker,
+                createWorker: () {
+                  final start = Completer<DartPad>();
+                  starts.add(start);
+                  return start.future;
+                },
+              );
+            },
+          ),
+        );
+        await pumpEventQueue();
+        expect(web.document.querySelector('.cm-editor'), isNotNull);
+        expect(starts, hasLength(embed ? 0 : 1));
+        if (embed) {
+          expect(web.document.querySelector('.preview iframe'), isNull);
+          final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+          expect(run.disabled, isFalse);
+          run.click();
+          await pumpEventQueue();
+          expect(starts, hasLength(1));
+        }
+      });
     }
   }
+
+  testClient('embed Run lazily starts the runtime while retaining the editor', (tester) async {
+    late WorkspaceRepository repository;
+    final starts = <Completer<DartPad>>[];
+    tester.pumpComponent(
+      App(
+        initialUri: Uri.parse('/?sample_id=material.ListTile.3&run=false&embed=true'),
+        loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+          expect(deferWorker, isTrue);
+          return repository = WorkspaceRepository.create(
+            events: events,
+            sdk: sdk,
+            taskStatus: taskStatus,
+            localApi: localApi,
+            deferWorker: deferWorker,
+            createWorker: () {
+              final start = Completer<DartPad>();
+              starts.add(start);
+              return start.future;
+            },
+          );
+        },
+      ),
+    );
+    await pumpEventQueue();
+    expect(starts, isEmpty);
+    final editor = web.document.querySelector('.cm-editor');
+    expect(editor, isNotNull);
+    final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+    run.click();
+    await pumpEventQueue();
+    expect(starts, hasLength(1));
+    expect(repository.hasRuntime, isTrue);
+    expect(web.document.querySelector('.cm-editor'), same(editor));
+    expect(run.disabled, isTrue);
+  });
 
   for (final source in ['sample=counter', 'sample_id=material.AppBar.1&channel=stable']) {
     for (final split in [5, 60, 95]) {
@@ -154,14 +230,14 @@ void main() {
               'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
               'pubspec.yaml': 'name: demo\ndependencies:\n  flutter:\n    sdk: flutter\n',
             }),
-            createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+            createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
               expect(sdk.isFlutter, isTrue);
+              expect(deferWorker, isTrue);
               return WorkspaceRepository(
                 events: events,
                 taskStatus: taskStatus,
                 sdk: sdk,
                 workspaceResourceApi: localApi!,
-                workspaceFuture: Completer<Workspace>().future,
               );
             },
           ),
@@ -184,13 +260,14 @@ void main() {
           projectStore: MemoryProjectStore(),
           initialUri: Uri.parse('?sample=counter'),
           loadSource: (_) async => contents({if (hasMain) 'lib/main.dart': 'void main() {}'}),
-          createRepository: ({required events, required sdk, required taskStatus, localApi}) => WorkspaceRepository(
-            events: events,
-            sdk: sdk,
-            taskStatus: taskStatus,
-            workspaceResourceApi: localApi!,
-            workspaceFuture: Completer<Workspace>().future,
-          ),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+              WorkspaceRepository(
+                events: events,
+                sdk: sdk,
+                taskStatus: taskStatus,
+                workspaceResourceApi: localApi!,
+                workspaceFuture: Completer<Workspace>().future,
+              ),
         ),
       );
       await pumpEventQueue();
@@ -237,7 +314,7 @@ void main() {
           projectStore: MemoryProjectStore(),
           initialUri: Uri.parse('?sample=$initialSample'),
           loadSource: (_) async => contents({'lib/main.dart': 'void main() { print(${++loads}); }'}),
-          createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
             final repository = WorkspaceRepository(
               events: events,
               sdk: sdk,
@@ -299,15 +376,16 @@ void main() {
           }
           return contents({'README.md': '# Original project'});
         },
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) => old = WorkspaceRepository(
-          events: events,
-          sdk: sdk,
-          taskStatus: taskStatus,
-          workspaceResourceApi: localApi!,
-          dartpad: worker.dartpad,
-          workspaceFuture: Completer<Workspace>().future,
-          readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
-        ),
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+            old = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              dartpad: worker.dartpad,
+              workspaceFuture: Completer<Workspace>().future,
+              readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
+            ),
       ),
     );
     await pumpEventQueue();

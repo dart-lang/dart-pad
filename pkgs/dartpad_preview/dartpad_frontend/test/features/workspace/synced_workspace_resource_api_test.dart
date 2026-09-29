@@ -223,6 +223,53 @@ void main() {
       expect(syncedApi.remoteApi, isNull);
     });
 
+    test('reconnect copies changes made while suspended into a fresh remote', () async {
+      remoteApiCompleter.complete(remoteApi);
+      await syncedApi.apiReady;
+      await syncedApi.disconnect();
+      await syncedApi.writeFileFromText('lib/main.dart', 'edited while suspended');
+      await syncedApi.writeFileFromBytes('asset.bin', Uint8List.fromList([1, 3, 5]));
+      final next = MemoryWorkspaceResourceApi();
+      syncedApi.connect(Future.value(next));
+      await syncedApi.apiReady;
+      expect(await next.readFileAsText('lib/main.dart'), 'edited while suspended');
+      expect(await next.readFileAsBytes('asset.bin'), [1, 3, 5]);
+      await syncedApi.writeFileFromText('lib/main.dart', 'edited after restart');
+      await syncedApi.flush();
+      expect(await next.readFileAsText('lib/main.dart'), 'edited after restart');
+      await syncedApi.dispose();
+    });
+
+    test('late startup from a retired worker cannot replace the new remote', () async {
+      final oldReady = syncedApi.apiReady;
+      await syncedApi.disconnect();
+      final next = MemoryWorkspaceResourceApi();
+      syncedApi.connect(Future.value(next));
+      await syncedApi.apiReady;
+      remoteApiCompleter.complete(remoteApi);
+      await oldReady;
+      expect(syncedApi.remoteApi, same(next));
+      await syncedApi.writeFileFromText('lib/main.dart', 'new activation');
+      await syncedApi.flush();
+      expect(await next.readFileAsText('lib/main.dart'), 'new activation');
+      await syncedApi.dispose();
+    });
+
+    test('an in-flight remote read cannot overwrite local edits after suspension', () async {
+      final old = _DelayedReadWorkspace();
+      remoteApiCompleter.complete(old);
+      await syncedApi.apiReady;
+      old.delayReads = true;
+      await old.writeFileFromText('lib/main.dart', 'old worker result');
+      await old.readStarted.future;
+      await syncedApi.disconnect();
+      await syncedApi.writeFileFromText('lib/main.dart', 'retained edit');
+      old.readResult.complete(Uint8List.fromList('old worker result'.codeUnits));
+      await pumpEventQueue();
+      expect(await syncedApi.readFileAsText('lib/main.dart'), 'retained edit');
+      await syncedApi.dispose();
+    });
+
     test('flush waits for all pending queued writes to finish on remote', () async {
       remoteApiCompleter.complete(remoteApi);
       await syncedApi.apiReady;
@@ -316,6 +363,23 @@ void main() {
       await api.dispose();
     });
   });
+}
+
+final class _DelayedReadWorkspace extends MemoryWorkspaceResourceApi {
+  bool delayReads = false;
+  final readStarted = Completer<void>();
+  final readResult = Completer<Uint8List>();
+
+  @override
+  Future<Uint8List> readFileAsBytes(String uri) {
+    if (!delayReads) {
+      return super.readFileAsBytes(uri);
+    }
+    if (!readStarted.isCompleted) {
+      readStarted.complete();
+    }
+    return readResult.future;
+  }
 }
 
 final class _ErroringChangeEventsWorkspaceResourceApi extends MemoryWorkspaceResourceApi {

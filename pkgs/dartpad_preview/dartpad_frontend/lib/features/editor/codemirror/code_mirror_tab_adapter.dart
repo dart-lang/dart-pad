@@ -95,13 +95,13 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     }
   }
 
-  void attachLanguageServerClient(LanguageServerClient languageServerClient) {
+  void attachLanguageServerClient(LanguageServerClient? languageServerClient) {
     if (identical(_languageServerClient, languageServerClient)) {
       return;
     }
     _languageServerClient = languageServerClient;
     _analysisSubscription?.cancel();
-    _analysisSubscription = languageServerClient.codeMirrorLspClient.analysisStatus.listen((isAnalyzing) {
+    _analysisSubscription = languageServerClient?.codeMirrorLspClient.analysisStatus.listen((isAnalyzing) {
       if (isAnalyzing) {
         return;
       }

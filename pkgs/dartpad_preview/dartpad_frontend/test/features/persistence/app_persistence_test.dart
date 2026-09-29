@@ -51,7 +51,7 @@ void main() {
       sourceLoads++;
       return load != null ? await load() : testProjectContents({'lib/main.dart': 'void main() { print("fresh"); }'});
     },
-    createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+    createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
       final repository = WorkspaceRepository(
         events: events,
         sdk: sdk,

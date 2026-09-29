@@ -13,11 +13,13 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   SyncedWorkspaceResourceApi({
     required this.localApi,
-    required Future<WorkspaceResourceApi> remoteApi,
+    Future<WorkspaceResourceApi>? remoteApi,
     this.onLocalToRemoteSyncError,
     this.onRemoteToLocalSyncError,
   }) {
-    _initRemote(remoteApi);
+    if (remoteApi != null) {
+      connect(remoteApi);
+    }
   }
 
   final WorkspaceResourceApi localApi;
@@ -25,27 +27,38 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   final void Function(Object error, StackTrace stackTrace)? onRemoteToLocalSyncError;
   WorkspaceResourceApi? remoteApi;
   StreamSubscription<WorkspaceChangeEvent>? _remoteSubscription;
-  final Completer<void> _initialSyncCompleter = Completer<void>();
+  Future<void> _apiReady = Future.value();
+  _RemoteInitialization? _initialization;
   bool _isDisposed = false;
 
   Future<void> _remoteQueue = Future<void>.value();
 
   /// Completes when the remote API is initialized and initial file synchronization is complete.
-  Future<void> get apiReady => _initialSyncCompleter.future;
+  Future<void> get apiReady => _apiReady;
 
-  void _initRemote(Future<WorkspaceResourceApi> remoteApiFuture) {
+  /// Attaches a fresh worker after startup or suspension. Local reads and writes
+  /// remain available while it boots and are copied during initial sync.
+  void connect(Future<WorkspaceResourceApi> remoteApiFuture) {
+    if (_isDisposed || _initialization != null) {
+      throw StateError('Disconnect the previous workspace before connecting.');
+    }
+    final initialization = _initialization = _RemoteInitialization();
+    final ready = Completer<void>();
+    _apiReady = ready.future;
     _remoteQueue = _remoteQueue.then((_) async {
       try {
         final api = await remoteApiFuture;
-        if (_isDisposed) {
-          await api.dispose();
+        if (_isDisposed || !identical(initialization, _initialization)) {
+          if (initialization.disposeOnArrival) {
+            await api.dispose();
+          }
           return;
         }
         remoteApi = api;
 
         final resources = await localApi.listDirectory(uri: '', recursive: true);
         for (final r in resources) {
-          if (_isDisposed) {
+          if (_isDisposed || !identical(initialization, _initialization)) {
             return;
           }
           if (r.type == 'folder') {
@@ -56,17 +69,35 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
           }
         }
 
-        _startWatchingRemote(api);
+        if (!_isDisposed && identical(initialization, _initialization)) {
+          _startWatchingRemote(api);
+        }
       } catch (error, stackTrace) {
-        if (!_initialSyncCompleter.isCompleted) {
-          _initialSyncCompleter.completeError(error, stackTrace);
+        if (!ready.isCompleted) {
+          ready.completeError(error, stackTrace);
         }
       } finally {
-        if (!_initialSyncCompleter.isCompleted) {
-          _initialSyncCompleter.complete();
+        if (!ready.isCompleted) {
+          ready.complete();
         }
       }
     });
+  }
+
+  /// Stops synchronization while retaining the local filesystem.
+  Future<void> disconnect({bool disposeRemote = true}) async {
+    _initialization?.disposeOnArrival = disposeRemote;
+    _initialization = null;
+    final api = remoteApi;
+    final subscription = _remoteSubscription;
+    remoteApi = null;
+    _remoteSubscription = null;
+    _remoteQueue = Future.value();
+    _apiReady = Future.value();
+    await subscription?.cancel();
+    if (disposeRemote) {
+      await api?.dispose();
+    }
   }
 
   /// Waits for all currently queued remote filesystem operations and initial synchronization to complete.
@@ -78,13 +109,15 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
       return;
     }
     _remoteQueue = _remoteQueue.then((_) async {
-      if (_isDisposed) {
+      if (_isDisposed || !identical(remoteApi, api)) {
         return;
       }
       try {
         await action(api);
       } catch (error, stackTrace) {
-        onLocalToRemoteSyncError?.call(error, stackTrace);
+        if (!_isDisposed && identical(remoteApi, api)) {
+          onLocalToRemoteSyncError?.call(error, stackTrace);
+        }
       }
     });
   }
@@ -92,59 +125,74 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   void _startWatchingRemote(WorkspaceResourceApi ws) {
     _remoteSubscription = ws.changeEvents.listen(
       (event) async {
-        if (_isDisposed) {
+        if (_isDisposed || !identical(remoteApi, ws)) {
           return;
         }
         try {
           await _applyRemoteChange(ws, event);
         } catch (error, stackTrace) {
-          onRemoteToLocalSyncError?.call(error, stackTrace);
+          if (!_isDisposed && identical(remoteApi, ws)) {
+            onRemoteToLocalSyncError?.call(error, stackTrace);
+          }
         }
       },
       onError: (Object error, StackTrace stackTrace) {
-        onRemoteToLocalSyncError?.call(error, stackTrace);
+        if (!_isDisposed && identical(remoteApi, ws)) {
+          onRemoteToLocalSyncError?.call(error, stackTrace);
+        }
       },
     );
   }
 
   Future<void> _applyRemoteChange(WorkspaceResourceApi ws, WorkspaceChangeEvent event) async {
+    bool current() => !_isDisposed && identical(remoteApi, ws);
     switch (event.type) {
       case WorkspaceChangeEventType.add:
       case WorkspaceChangeEventType.modify:
         if (await ws.folderExist(event.path)) {
-          if (!await localApi.folderExist(event.path)) {
+          if (current() && !await localApi.folderExist(event.path) && current()) {
             await localApi.createFolder(event.path);
           }
         } else if (await ws.fileExist(event.path)) {
           final workerBytes = await ws.readFileAsBytes(event.path);
+          if (!current()) {
+            return;
+          }
           if (await localApi.fileExist(event.path)) {
             final memBytes = await localApi.readFileAsBytes(event.path);
             if (_areBytesEqual(memBytes, workerBytes)) {
               return;
             }
           }
-          await localApi.writeFileFromBytes(event.path, workerBytes);
+          if (current()) {
+            await localApi.writeFileFromBytes(event.path, workerBytes);
+          }
         }
       case WorkspaceChangeEventType.remove:
         if (await localApi.fileExist(event.path) || await localApi.folderExist(event.path)) {
-          await localApi.deleteFileSystemEntity(event.path);
+          if (current()) {
+            await localApi.deleteFileSystemEntity(event.path);
+          }
         }
       case WorkspaceChangeEventType.move:
         final oldPath = event.oldPath;
-        if (oldPath != null) {
+        if (oldPath != null && current()) {
           localApi.addMoveIntention(oldPath, event.path);
         }
         if (await ws.folderExist(event.path)) {
-          if (!await localApi.folderExist(event.path)) {
+          if (current() && !await localApi.folderExist(event.path) && current()) {
             await localApi.createFolder(event.path);
           }
-          if (oldPath != null && await localApi.folderExist(oldPath)) {
+          if (oldPath != null && await localApi.folderExist(oldPath) && current()) {
             await localApi.deleteFileSystemEntity(oldPath);
           }
         } else if (await ws.fileExist(event.path)) {
           final workerBytes = await ws.readFileAsBytes(event.path);
+          if (!current()) {
+            return;
+          }
           await localApi.writeFileFromBytes(event.path, workerBytes);
-          if (oldPath != null && await localApi.fileExist(oldPath)) {
+          if (oldPath != null && await localApi.fileExist(oldPath) && current()) {
             await localApi.deleteFileSystemEntity(oldPath);
           }
         }
@@ -206,10 +254,13 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   @override
   Future<void> dispose() async {
     _isDisposed = true;
-    await _remoteSubscription?.cancel();
+    await disconnect();
     await localApi.dispose();
-    await remoteApi?.dispose();
   }
+}
+
+final class _RemoteInitialization {
+  bool disposeOnArrival = true;
 }
 
 bool _areBytesEqual(Uint8List a, Uint8List b) {

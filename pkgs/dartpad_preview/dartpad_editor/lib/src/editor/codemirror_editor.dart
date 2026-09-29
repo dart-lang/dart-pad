@@ -266,7 +266,8 @@ final class CodeMirrorEditor {
     );
   }
 
-  void attachLanguageServerClient(LanguageServerClient languageServerClient) {
+  /// Reconfigures LSP support. Passing null leaves a normal syntax-highlighted editor.
+  void attachLanguageServerClient(LanguageServerClient? languageServerClient) {
     if (identical(_languageServerClient, languageServerClient)) {
       return;
     }

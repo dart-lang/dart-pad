@@ -245,6 +245,48 @@ void main() {
     expect(button.disabled, isFalse);
   });
 
+  testClient('allows a new Run after suspension without a retired Run enabling duplicate clicks', (tester) async {
+    final runs = <Completer<void>>[];
+    tester.pumpComponent(
+      createActions(
+        activeFile: 'lib/main.dart',
+        getContent: () => 'void main() {}',
+        onRun: (_) {
+          final run = Completer<void>();
+          runs.add(run);
+          return run.future;
+        },
+      ),
+    );
+    final button = web.document.querySelector('[aria-label="Run"]')! as web.HTMLButtonElement;
+    button.click();
+    runState
+      ..canRun = false
+      ..notifyListeners();
+    await pumpEventQueue();
+    expect(button.disabled, isTrue);
+
+    // Suspension makes Run available before the retired Run future completes.
+    runState
+      ..canRun = true
+      ..notifyListeners();
+    await pumpEventQueue();
+    expect(button.disabled, isFalse);
+    button.click();
+    await pumpEventQueue();
+    expect(runs, hasLength(2));
+
+    runs.first.completeError(StateError('Retired startup failed'));
+    await pumpEventQueue();
+    expect(button.disabled, isTrue);
+    button.click();
+    expect(runs, hasLength(2));
+
+    runs.last.complete();
+    await pumpEventQueue();
+    expect(button.disabled, isFalse);
+  });
+
   testClient('ignores repeated clicks while run is in progress', (tester) async {
     final completer = Completer<void>();
     final runs = <String>[];
