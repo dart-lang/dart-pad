@@ -26,6 +26,6 @@ import 'package:jaspr/client.dart';
 import 'app.dart';
 
 void main() {
-  // Attaches the [App] component to the <body> of the page.
-  runApp(const App());
+  // Attaches the [App] component to the #app container.
+  runApp(const App(), attachTo: '#app');
 }
