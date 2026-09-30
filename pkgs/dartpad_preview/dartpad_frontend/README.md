@@ -109,10 +109,11 @@ The following options configure the loaded project, workspace structure, and exe
 
 ### Display & layout options
 
-| Query                         | Behavior                                                                                                    |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the preview. |
-| `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project. |
+| Query                         | Behavior                                                                                                                                                               |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the preview.                                           |
+| `hideFileNavigation=false`    | Controls whether file navigation (file tree, editor tab bar, breadcrumbs) is hidden in embed mode (`embed=true`). Defaults to `true` in embed mode; ignored otherwise. |
+| `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project.                                                            |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths

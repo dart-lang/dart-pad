@@ -89,6 +89,7 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
+  late final bool _hideFileNavigation;
 
   late final ProjectPersistenceController _persistence;
 
@@ -140,7 +141,9 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
+    final initialUri = component.initialUri ?? Uri.base;
+    _isEmbedMode = ProjectRequest.isEmbedUri(initialUri);
+    _hideFileNavigation = ProjectRequest.isHideFileNavigation(initialUri);
     _persistence = ProjectPersistenceController(
       enabled: !_isEmbedMode,
       store: component.projectStore,
@@ -704,13 +707,14 @@ final class _AppState extends State<App> {
                   left: EditorShell(
                     openTabs: session.tabs.openTabs,
                     activeFile: session.tabs.activeFile,
-                    fileTree: _buildFileTree(session),
+                    fileTree: _hideFileNavigation ? null : _buildFileTree(session),
                     editorOverlay: _buildEditorOverlay(session),
                     onSwitchFile: session.tabs.switchFile,
                     onCloseFile: session.tabs.closeFile,
                     bottomPanel: _buildBottomPanel(session),
                     contextMenu: session.contextMenu,
                     isEmbedMode: _isEmbedMode,
+                    hideFileNavigation: _hideFileNavigation,
                   ),
                   right: _buildPreviewPanel(session),
                 )
@@ -718,13 +722,14 @@ final class _AppState extends State<App> {
                 EditorShell(
                   openTabs: session.tabs.openTabs,
                   activeFile: session.tabs.activeFile,
-                  fileTree: _buildFileTree(session),
+                  fileTree: _hideFileNavigation ? null : _buildFileTree(session),
                   editorOverlay: _buildEditorOverlay(session),
                   onSwitchFile: session.tabs.switchFile,
                   onCloseFile: session.tabs.closeFile,
                   bottomPanel: _buildBottomPanel(session),
                   contextMenu: session.contextMenu,
                   isEmbedMode: _isEmbedMode,
+                  hideFileNavigation: _hideFileNavigation,
                   smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
                 ),
             ]),
@@ -769,17 +774,20 @@ final class _AppState extends State<App> {
     final editor = EditorShell(
       openTabs: const [],
       activeFile: '',
-      fileTree: const aside(classes: 'file-tree', [
-        div(classes: 'file-tree-header', [
-          span(classes: 'file-tree-title', [.text('Explorer')]),
-        ]),
-        div(classes: 'file-tree-list', []),
-      ]),
+      fileTree: _hideFileNavigation
+          ? null
+          : const aside(classes: 'file-tree', [
+              div(classes: 'file-tree-header', [
+                span(classes: 'file-tree-title', [.text('Explorer')]),
+              ]),
+              div(classes: 'file-tree-list', []),
+            ]),
       editorOverlay: const .fragment([]),
       onSwitchFile: (_) {},
       onCloseFile: (_, {discardChanges = false}) => false,
       bottomPanel: const div(classes: 'bottom-panel', []),
       isEmbedMode: _isEmbedMode,
+      hideFileNavigation: _hideFileNavigation,
     );
     if (!_isLargeScreen) {
       return editor;
