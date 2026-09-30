@@ -83,6 +83,7 @@ EditorShell _createShell({
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
   bool isEmbedMode = false,
+  bool hideFileNavigation = false,
   Component? fileTree,
   Component? bottomPanel,
 }) {
@@ -90,12 +91,13 @@ EditorShell _createShell({
   return EditorShell(
     openTabs: tabs,
     activeFile: activeFile,
-    fileTree: fileTree ?? const _FakeFileTree(),
+    fileTree: fileTree ?? (hideFileNavigation ? null : const _FakeFileTree()),
     editorOverlay: const div(id: 'editor-overlay', []),
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
     bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
     isEmbedMode: isEmbedMode,
+    hideFileNavigation: hideFileNavigation,
   );
 }
 
@@ -316,6 +318,43 @@ void main() {
 
       expect(web.document.querySelector('.file-tree'), isNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    });
+  });
+  group('EditorShell – hideFileNavigation', () {
+    testClient('hides file tree, rail, tab bar, and breadcrumbs when hideFileNavigation is true', (tester) {
+      tester.pumpComponent(
+        _createShell(
+          isEmbedMode: true,
+          hideFileNavigation: true,
+          activeFile: 'lib/main.dart',
+        ),
+      );
+
+      expect(web.document.querySelector('.file-tree'), isNull);
+      expect(web.document.querySelector('.file-tree-rail'), isNull);
+      expect(web.document.querySelector('#file-tree'), isNull);
+      expect(web.document.querySelector('.editor-tab-bar'), isNull);
+      expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
+      expect(web.document.querySelector('.editor-host'), isNotNull);
+      expect(web.document.querySelector('#editor-overlay'), isNotNull);
+      expect(web.document.querySelector('#bottom'), isNotNull);
+    });
+
+    testClient('shows file tree rail, tab bar, and breadcrumbs when hideFileNavigation is false in embed mode', (
+      tester,
+    ) {
+      tester.pumpComponent(
+        _createShell(
+          isEmbedMode: true,
+          hideFileNavigation: false,
+          activeFile: 'lib/main.dart',
+        ),
+      );
+
+      expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+      expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
+      expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
+      expect(web.document.querySelector('.editor-host'), isNotNull);
     });
   });
 }
