@@ -6,9 +6,10 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
+import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
+import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
-import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -20,6 +21,7 @@ import 'initial_project_state_test.dart' show contents;
 
 void main() {
   TestWorker.captureAssetBaseUrl();
+  final startupWorkerAssets = Uri.base.resolve('../../fixtures/startup_worker/');
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
@@ -88,39 +90,92 @@ void main() {
     expect(web.document.body!.textContent, contains('SDK not available: dart:0.0.0'));
   });
 
-  testClient('legacy Flutter API URLs use the preview embed layout and requested split', (tester) async {
-    tester.pumpComponent(
-      App(
-        projectStore: MemoryProjectStore(),
-        initialUri: Uri.parse(
-          '/?sample_id=material.AppBar.1&channel=stable&split=60&run=false&embed=true',
-        ),
-        loadSource: (source) async {
-          expect(source, isA<FlutterApiDocsProjectSource>());
-          return contents({
-            'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
-          });
-        },
-        createRepository: ({required events, required sdk, required taskStatus, localApi}) {
-          expect(sdk.isFlutter, isTrue);
-          return WorkspaceRepository(
-            events: events,
-            taskStatus: taskStatus,
-            sdk: sdk,
-            workspaceResourceApi: localApi!,
-            workspaceFuture: Completer<Workspace>().future,
-          );
-        },
-      ),
-    );
-    await pumpEventQueue();
+  for (final source in [
+    '',
+    'sample=counter',
+    'sample=counter&run=true',
+    'sample=counter&run=false',
+    'sample_id=material.AppBar.1&run=true',
+    'sample_id=material.AppBar.3&run=true',
+    'sample_id=material.AppBar.1&run=false',
+    'sample_id=material.AppBar.3&run=false',
+    'sample_id=material.AppBar.1',
+    'sample_id=material.AppBar.1&run=anything',
+    'sample_id=material.AppBar.1&run=true&run=false',
+    'gist=abc&run=true',
+    'package=demo&run=true',
+    'url=https://example.com/project.tar.gz&run=true',
+  ]) {
+    for (final embed in [false, true]) {
+      testClient('preview autorun depends only on embed=$embed for $source', (tester) async {
+        final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
+        addTearDown(worker.dispose);
+        final workspace = await worker.createWorkspace();
+        // Hold a started Run before it creates a sandbox or compiles code.
+        final pendingRun = Completer<void>();
+        tester.pumpComponent(
+          App(
+            projectStore: MemoryProjectStore(),
+            initialUri: Uri.parse('/?embed=$embed&$source'),
+            loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+            createRepository: ({required events, required sdk, required taskStatus, localApi}) => WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              workspaceFuture: Future.value(workspace),
+              onFlush: () => pendingRun.future,
+            ),
+          ),
+        );
+        await pumpEventQueue();
+        expect(web.document.querySelector('.cm-editor'), isNotNull);
+        final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
+        expect(container.preview.state, embed ? isA<PreviewInitial>() : isA<PreviewStarting>());
+        if (embed) {
+          final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+          expect(run.disabled, isFalse);
+          run.click();
+          await pumpEventQueue();
+          expect(container.preview.state, isA<PreviewStarting>());
+        }
+      });
+    }
+  }
 
-    expect(web.document.querySelector('.app-bar'), isNull);
-    expect(web.document.querySelector('.app-footer'), isNull);
-    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-    final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
-    expect(editorShell.style.flexGrow, '0.6');
-  });
+  for (final source in ['sample=counter', 'sample_id=material.AppBar.1&channel=stable']) {
+    for (final split in [5, 60, 95]) {
+      testClient('embed layout and split=$split are source-independent for $source', (tester) async {
+        tester.pumpComponent(
+          App(
+            projectStore: MemoryProjectStore(),
+            initialUri: Uri.parse('/?$source&split=$split&embed=true'),
+            loadSource: (_) async => contents({
+              'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
+              'pubspec.yaml': 'name: demo\ndependencies:\n  flutter:\n    sdk: flutter\n',
+            }),
+            createRepository: ({required events, required sdk, required taskStatus, localApi}) {
+              expect(sdk.isFlutter, isTrue);
+              return WorkspaceRepository(
+                events: events,
+                taskStatus: taskStatus,
+                sdk: sdk,
+                workspaceResourceApi: localApi!,
+                workspaceFuture: Completer<Workspace>().future,
+              );
+            },
+          ),
+        );
+        await pumpEventQueue();
+
+        expect(web.document.querySelector('.app-bar'), isNull);
+        expect(web.document.querySelector('.app-footer'), isNull);
+        expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+        final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
+        expect(editorShell.style.flexGrow, (split / 100).toString());
+      });
+    }
+  }
 
   for (final hasMain in [true, false]) {
     testClient('missing README opens main when available, hasMain=$hasMain', (tester) async {

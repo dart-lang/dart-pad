@@ -111,7 +111,7 @@ The following options configure the loaded project, workspace structure, and exe
 
 | Query                         | Behavior                                                                                                    |
 | :---------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `embed=true`                  | Hides the app bar and footer on desktop and starts with the file tree collapsed.                            |
+| `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the preview. |
 | `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project. |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
@@ -187,7 +187,8 @@ a Flutter SDK can run a console entrypoint.
 Every source uses the resolved `root` for initial `pub get` and LSP analysis.
 If that root has no `pubspec.yaml`, the initial Pub command is skipped.
 Pending workspace writes are synchronized before Pub runs. On successful
-preparation, the configured entrypoint starts automatically, when present.
+preparation, the configured entrypoint starts automatically, when present,
+outside embed mode. Embeds always wait for Run.
 
 For archives, packages declaring `resolution: workspace` are isolated through
 package-local `pubspec_overrides.yaml` files containing a null `resolution`.
@@ -207,9 +208,10 @@ getters, and class methods do not count.
 For Gists, root-level Dart files move into `lib/`. Both `file` and `entrypoint`
 accept their original source paths and use the loader's mapping.
 
-After successful preparation, the resolved entrypoint starts automatically
-when present. Run and the keyboard shortcut retain that entrypoint across tab
-changes and SDK switches. Without a `mode` override, execution mode is inferred from
+Outside embed mode, the resolved entrypoint starts automatically after successful
+preparation when present. Embeds always wait for Run. Run and the keyboard
+shortcut retain that entrypoint across tab changes and SDK switches.
+Without a `mode` override, execution mode is inferred from
 the current SDK and the entrypoint's location relative to its nearest pubspec.
 
 Restart recompiles the current run's entrypoint. Hot Reload is available for
@@ -276,3 +278,10 @@ A failed project reset removes the previous session and displays an error
 dialog with a reload action, including in embed mode. Old session resources
 are disposed after the editor has unmounted, and results from superseded loads
 cannot reactivate the previous session.
+
+### Embed startup
+
+Embedded projects (`embed=true`) initialize the worker and language server when
+loaded, but wait for Run before starting the preview.
+Standalone projects run their resolved entrypoint automatically after successful
+preparation. The obsolete `run` query parameter is ignored in all modes.

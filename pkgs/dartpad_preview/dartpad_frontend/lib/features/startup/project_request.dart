@@ -23,9 +23,7 @@ final class ProjectRequest {
     this.sdk,
     this.sdkVersion,
     this.mode,
-    required this.isLegacyEmbedMode,
     required this.isEmbedMode,
-    required this.autoRun,
     required this.initialSplitRatio,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
@@ -114,7 +112,6 @@ final class ProjectRequest {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
     final channel = apiSample == null ? null : single('channel');
-    final isLegacyEmbedMode = apiSample != null;
     final splitValues = query['split'];
     final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
     final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
@@ -137,9 +134,7 @@ final class ProjectRequest {
       sdk: sdkParts?.first,
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
-      isLegacyEmbedMode: isLegacyEmbedMode,
       isEmbedMode: isEmbedUri(uri),
-      autoRun: !isLegacyEmbedMode || (query['run']?.length == 1 && query['run']!.single == 'true'),
       initialSplitRatio: initialSplitRatio,
     );
   }
@@ -193,17 +188,11 @@ final class ProjectRequest {
   /// Null infers mode from the SDK and entrypoint; a value fixes the mode.
   final RunMode? mode;
 
-  /// Whether this request uses the historical Flutter embed contract.
-  final bool isLegacyEmbedMode;
-
   /// Whether the current preview embed presentation should be used.
   final bool isEmbedMode;
 
-  /// Whether the resolved entrypoint should run after workspace preparation.
-  /// This is only to support the old docs generator and will be removed in the future.
-  final bool autoRun;
-
   /// Initial fraction of the outer split occupied by the code panel.
+  /// Defaults to 70%, with the requested value clamped to 5–95%.
   /// This is only to support the old docs generator and will be removed in the future.
   final double initialSplitRatio;
 
