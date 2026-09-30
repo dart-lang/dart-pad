@@ -6,7 +6,7 @@ This package declares example projects that ship with the DartPad preview.
 
 - `examples.json` – list of all examples.
 - `<id>/` – each example is a self-contained Dart / Flutter project with at
-  least `lib/main.dart`, `pubspec.yaml`, and `README.md`.
+  least `lib/main.dart` or `bin/main.dart`, `pubspec.yaml`, and `README.md`.
 - `build_examples.dart` – reads `examples.json`, packages each project into a
   `.tar.gz` archive, copies them to `../dartpad_frontend/web/examples/`, and
   generates `../dartpad_frontend/lib/features/startup/examples.g.dart`.
@@ -14,7 +14,7 @@ This package declares example projects that ship with the DartPad preview.
 ## Adding a New Example
 
 1. Create a new project directory at the package root (e.g. `my_example/`)
-   with at least `lib/main.dart`, `pubspec.yaml`, and `README.md`.
+   with at least `lib/main.dart` or `bin/main.dart`, `pubspec.yaml`, and `README.md`.
 2. Add an entry to `examples.json`:
    ```json
    {
@@ -49,7 +49,7 @@ dart run build_examples.dart
 Run this before `jaspr serve` / `jaspr build`.
 
 Samples use the shared query convention: the configured `initialFile` opens
-first, and `lib/main.dart` is detected as the entrypoint. If `initialFile` is
+first, and `lib/main.dart` or `bin/main.dart` is detected as the entrypoint. If `initialFile` is
 omitted, `README.md` opens when available. An explicit `file` query parameter
 overrides the configured file. SDK and execution mode are inferred from project
 contents.

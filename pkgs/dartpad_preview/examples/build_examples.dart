@@ -158,9 +158,18 @@ class ExamplesBuilder {
         fail('README.md missing in $projectPath.');
       }
 
-      final entryFullPath = p.join(projectPath, 'lib/main.dart');
-      if (!File(entryFullPath).existsSync()) {
-        fail('Entry file lib/main.dart missing in $projectPath.');
+      if (example.initialFile != null) {
+        final initialFullPath = p.join(projectPath, example.initialFile);
+        if (!File(initialFullPath).existsSync()) {
+          fail('Initial file ${example.initialFile} missing in $projectPath.');
+        }
+      }
+
+      final hasEntry =
+          File(p.join(projectPath, 'bin/main.dart')).existsSync() ||
+          File(p.join(projectPath, 'lib/main.dart')).existsSync();
+      if (!hasEntry) {
+        fail('Entry file (bin/main.dart or lib/main.dart) missing in $projectPath.');
       }
     }
 
