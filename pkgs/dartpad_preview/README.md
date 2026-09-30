@@ -39,7 +39,8 @@ Choose one source per URL.
 
 | Query                                                   | Effect                                                                                                   | Default                                          |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `embed=true`                                            | Hide the app bar and footer on desktop, collapse the file tree; wait for Run before runtime startup | Standalone layout; Run the preview automatically |
+| `embed=true`                                            | Hide the app bar, footer, and file navigation; wait for Run before runtime startup | Standalone layout; Run the preview automatically |
+| `hideFileNavigation=true` or `hideFileNavigation=false` | Hide or show the file tree, editor tabs, and breadcrumbs; applies only with `embed=true` | `true` in embeds; `false` otherwise |
 | `theme=dark` or `theme=light`                           | Initial theme                                                                                            | Saved preference, otherwise system theme         |
 
 ### Examples

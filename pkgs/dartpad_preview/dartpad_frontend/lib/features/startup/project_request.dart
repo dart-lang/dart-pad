@@ -24,6 +24,7 @@ final class ProjectRequest {
     this.sdkVersion,
     this.mode,
     required this.isEmbedMode,
+    required this.hideFileNavigation,
     required this.initialSplitRatio,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
@@ -135,6 +136,7 @@ final class ProjectRequest {
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
       isEmbedMode: isEmbedUri(uri),
+      hideFileNavigation: isHideFileNavigation(uri),
       initialSplitRatio: initialSplitRatio,
     );
   }
@@ -142,6 +144,20 @@ final class ProjectRequest {
   /// Whether [uri] explicitly requests the embed presentation.
   /// Legacy HTML entrypoints redirect to this query option before the app loads.
   static bool isEmbedUri(Uri uri) => uri.queryParametersAll['embed']?.contains('true') == true;
+
+  /// Whether [uri] requests hiding file navigation.
+  ///
+  /// Only respected when embed presentation is requested ([isEmbedUri]), where it defaults to true.
+  static bool isHideFileNavigation(Uri uri) {
+    if (!isEmbedUri(uri)) {
+      return false;
+    }
+    final values = uri.queryParametersAll['hideFileNavigation'];
+    if (values == null) {
+      return true;
+    }
+    return !values.any((value) => value.toLowerCase() == 'false');
+  }
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
@@ -190,6 +206,11 @@ final class ProjectRequest {
 
   /// Whether the current preview embed presentation should be used.
   final bool isEmbedMode;
+
+  /// Whether file navigation (file tree, tab bar, and breadcrumbs) should be hidden.
+  ///
+  /// Only respected when [isEmbedMode] is true, where it defaults to true.
+  final bool hideFileNavigation;
 
   /// Initial fraction of the outer split occupied by the code panel.
   /// Defaults to 70%, with the requested value clamped to 5–95%.
