@@ -49,7 +49,7 @@ List<StyleRule> get appStyles => [
   css('html[data-theme="light"]').styles(
     raw: {'color-scheme': 'light'},
   ),
-  css('html, body').styles(
+  css('html, body, #app').styles(
     width: 100.percent,
     height: 100.percent,
     padding: .zero,
@@ -58,6 +58,9 @@ List<StyleRule> get appStyles => [
     color: colorOnSurface,
     fontFamily: defaultFontFamily,
     backgroundColor: colorSurface,
+  ),
+  css('.glue-cookie-notification-bar').styles(
+    raw: {'z-index': '99999'},
   ),
   css('.material-symbols-outlined').styles(
     display: .inlineBlock,
