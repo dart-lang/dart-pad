@@ -109,10 +109,10 @@ The following options configure the loaded project, workspace structure, and exe
 
 ### Display & layout options
 
-| Query                         | Behavior                                                                                                    |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Query                         | Behavior                                                                                                                     |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
 | `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the runtime. |
-| `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project. |
+| `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project.                  |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
 For Gists, flat Dart files are moved into `lib/`; their original query paths
@@ -299,10 +299,7 @@ synchronizes the local files, runs pub get when needed and reattaches LSP before
 starting the preview. Pending work from a suspended runtime cannot reactivate
 it or overwrite the resumed runtime. Resuming does not wait for old cleanup.
 
-Each active or starting embed writes its own `localStorage` entry under
-`dartpad.preview.session-last-seen-<uuid>`, containing a JSON `lastSeen` timestamp.
-Run/Resume, focus and pointer/keyboard interaction update this timestamp. Only
-active runtimes refresh on interaction, including interaction inside the preview
+Only active runtimes refresh on interaction, including interaction inside the preview
 iframe; editing a paused example does not implicitly resume it.
 
 `maxConcurrentEmbedRuntimes` sets the limit, currently two. The most recently
