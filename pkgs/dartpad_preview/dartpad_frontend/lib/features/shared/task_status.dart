@@ -267,7 +267,7 @@ final class TaskStatusController extends ChangeNotifier {
 
   /// Retires tasks belonging to a suspended runtime. Their old handles cannot
   /// update tasks started by a later activation.
-  void cancelRunning() {
+  void cancelAllRunningTasks() {
     _tasks.removeWhere((_, task) => task.entry.isRunning);
     notifyListeners();
   }
