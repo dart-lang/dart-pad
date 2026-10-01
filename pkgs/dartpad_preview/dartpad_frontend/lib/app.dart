@@ -49,6 +49,7 @@ import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
 import 'features/workspace/data/workspace_repository.dart';
+import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
@@ -92,6 +93,7 @@ final class App extends StatefulComponent {
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
   EmbedRuntimeController? _embedRuntime;
+  late final EmbedMessageController _embedMessages;
 
   late final ProjectPersistenceController _persistence;
 
@@ -144,6 +146,7 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
+    _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
         onPause: () {
@@ -386,6 +389,31 @@ final class _AppState extends State<App> {
   bool _isCurrentRuntime(WorkspaceSession session, int generation) =>
       _isCurrent(session) && session.runtimeGeneration == generation;
 
+  Future<void> _injectSourceCode(String sourceCode) async {
+    final session = _activeSession;
+    final entrypoint = session?.preview.entrypoint;
+    if (session == null || entrypoint == null || !_isCurrent(session)) {
+      return;
+    }
+    try {
+      await session.tabs.openWorkspaceFile(entrypoint);
+      if (!_isCurrent(session)) {
+        return;
+      }
+      final tab = session.tabs.getTab(entrypoint) as WorkspaceCodeMirrorTab;
+      tab.editor.text = sourceCode;
+      await session.tabs.saveAllTabs();
+    } catch (error, stackTrace) {
+      if (!_isCurrent(session)) {
+        return;
+      }
+      session.events.dispatch(
+        LogEvent('Could not inject source code.', level: Level.SEVERE, error: error, stackTrace: stackTrace),
+      );
+      session.events.dispatch(const ErrorToastEvent('Could not load source code from the embedding page.'));
+    }
+  }
+
   /// Prepares an embed's worker and language server before running its code.
   ///
   /// Registered as onBeforeRun only in embed mode. Called on Run, Resume or
@@ -452,6 +480,7 @@ final class _AppState extends State<App> {
       if (!_isCurrent(session)) {
         return;
       }
+      _embedMessages.ready();
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
         return;
@@ -654,17 +683,21 @@ final class _AppState extends State<App> {
       await _persistence.stop();
       final paths = oldSession.tabSnapshot;
       final activeFile = oldSession.tabs.activeFile;
-      final next = WorkspaceSession.create(
+      late final WorkspaceSession next;
+      next = WorkspaceSession.create(
         component.createRepository(
           events: AppEventBus(),
           sdk: newSdk,
           taskStatus: TaskStatusController(),
           localApi: localApi,
+          deferWorker: _isEmbedMode,
         ),
         initialProject: oldSession.initialProject,
         initialMode: mode,
         entrypoint: entrypoint,
+        onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(next) : null,
       );
+      _embedRuntime?.observePreview(next.preview.containerElement);
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
@@ -994,6 +1027,7 @@ final class _AppState extends State<App> {
 
   @override
   void dispose() {
+    _embedMessages.dispose();
     _embedRuntime?.dispose();
     _resizeSubscription?.cancel();
     _keySubscription?.cancel();

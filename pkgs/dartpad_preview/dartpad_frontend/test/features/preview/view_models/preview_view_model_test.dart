@@ -223,7 +223,7 @@ void main() {
     );
     final oldRun = preview.runCurrent();
     await pump();
-    repository.taskStatus.cancelRunning();
+    repository.taskStatus.cancelAllRunningTasks();
     await preview.suspend(paused: true);
     expect(preview.state, isA<PreviewPaused>());
     expect(preview.canStart, isTrue);

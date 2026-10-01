@@ -192,7 +192,7 @@ final class WorkspaceSession {
     diagnostics.detachLanguageServer();
     _codemirrorAdapter.attachLanguageServerClient(null);
     analyzerStatus.reset();
-    taskStatus.cancelRunning();
+    taskStatus.cancelAllRunningTasks();
     final previewClosed = _safeAwait(preview.suspend(paused: paused));
     final workerClosed = _safeAwait(repository.suspendWorker());
     await Future.wait([
