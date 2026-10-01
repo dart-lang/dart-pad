@@ -19,6 +19,59 @@ function fakeView(contents: string): EditorView {
   } as unknown as EditorView;
 }
 
+test("work-done progress is advertised and creation is acknowledged", () => {
+  const outgoing: any[] = [];
+  const progress: any[] = [];
+  const bindings = createLspClient(
+    (message) => outgoing.push(JSON.parse(message)),
+    "file:///workspace",
+    () => {},
+    () => {},
+    () => {},
+    [
+      {
+        method: "$/progress",
+        callback: (_client, params) => {
+          progress.push(params);
+          return true;
+        },
+      },
+    ],
+    dartLanguage(() => new Int32Array(0)),
+  );
+
+  try {
+    assert.equal(outgoing[0].method, "initialize");
+    assert.equal(outgoing[0].params.capabilities.window.workDoneProgress, true);
+
+    for (const id of [42, "progress-request"]) {
+      const responsesBefore = outgoing.length;
+      bindings.receiveFromServer(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id,
+          method: "window/workDoneProgress/create",
+          params: { token: "ANALYZING" },
+        }),
+      );
+      assert.deepEqual(outgoing.slice(responsesBefore), [
+        { jsonrpc: "2.0", id, result: null },
+      ]);
+    }
+
+    const params = {
+      token: "ANALYZING",
+      value: { kind: "begin", title: "Analyzing…" },
+    };
+    bindings.receiveFromServer(
+      JSON.stringify({ jsonrpc: "2.0", method: "$/progress", params }),
+    );
+    assert.deepEqual(progress, [params]);
+  } finally {
+    bindings.dispose();
+  }
+});
+
 test("a stale view cannot close its replacement", () => {
   const notifications: string[] = [];
   const client = {

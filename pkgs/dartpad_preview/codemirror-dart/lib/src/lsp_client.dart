@@ -35,11 +35,6 @@ extension type NotificationHandler._(JSObject _) implements JSObject {
   external factory NotificationHandler({JSString method, JSFunction callback});
 }
 
-@anonymous
-extension type AnalyzerStatusParams._(JSObject _) implements JSObject {
-  external bool get isAnalyzing;
-}
-
 /// A bidirectional JS-interop tunnel bounding the CodeMirror LSP Client logic
 /// to a backend Dart LanguageServer RPC connection.
 ///
@@ -90,50 +85,61 @@ class CodeMirrorLspClient {
 
     final notificationHandlers = [
       NotificationHandler(
-        method: r'$/analyzerStatus'.toJS,
-        callback: ((JSObject client, AnalyzerStatusParams params) {
+        method: r'$/progress'.toJS,
+        callback: ((JSObject client, JSAny? params) {
           if (instance._disposed) {
             return true.toJS;
           }
-          final isAnalyzing = params.isAnalyzing;
+          if (params.dartify() case {'token': 'ANALYZING', 'value': {'kind': final String kind}}) {
+            final bool isAnalyzing;
+            switch (kind) {
+              case 'begin':
+                isAnalyzing = true;
+              case 'end':
+                isAnalyzing = false;
+              default:
+                return false.toJS;
+            }
 
-          client.isAnalyzing = isAnalyzing;
-          instance._analysisStatusController.add(isAnalyzing);
+            client.isAnalyzing = isAnalyzing;
+            instance._analysisStatusController.add(isAnalyzing);
 
-          if (isAnalyzing) {
-            if (client.analysisFinished == null) {
-              final completer = Completer<void>();
-              analysisFinishedCompleter = completer;
-              client.analysisFinished = completer.future.toJS;
+            if (isAnalyzing) {
+              if (client.analysisFinished == null) {
+                final completer = Completer<void>();
+                analysisFinishedCompleter = completer;
+                client.analysisFinished = completer.future.toJS;
 
-              analysisTimeout?.cancel();
-              analysisTimeout = Timer(const Duration(seconds: 30), () {
-                if (!completer.isCompleted) {
-                  web.console.warn('Analyzer status timeout reached. Resolving deferred requests.'.toJS);
-                  completer.complete();
-                }
-                if (identical(analysisFinishedCompleter, completer)) {
-                  analysisFinishedCompleter = null;
-                  client.analysisFinished = null;
-                }
+                analysisTimeout?.cancel();
+                analysisTimeout = Timer(const Duration(seconds: 30), () {
+                  if (!completer.isCompleted) {
+                    web.console.warn('Analyzer status timeout reached. Resolving deferred requests.'.toJS);
+                    completer.complete();
+                  }
+                  if (identical(analysisFinishedCompleter, completer)) {
+                    analysisFinishedCompleter = null;
+                    client.analysisFinished = null;
+                  }
+                  analysisTimeout = null;
+                });
+              }
+            } else {
+              final timeout = analysisTimeout;
+              if (timeout != null) {
+                timeout.cancel();
                 analysisTimeout = null;
-              });
-            }
-          } else {
-            final timeout = analysisTimeout;
-            if (timeout != null) {
-              timeout.cancel();
-              analysisTimeout = null;
-            }
+              }
 
-            final completer = analysisFinishedCompleter;
-            if (completer != null && !completer.isCompleted) {
-              completer.complete();
+              final completer = analysisFinishedCompleter;
+              if (completer != null && !completer.isCompleted) {
+                completer.complete();
+              }
+              analysisFinishedCompleter = null;
+              client.analysisFinished = null;
             }
-            analysisFinishedCompleter = null;
-            client.analysisFinished = null;
+            return true.toJS;
           }
-          return true.toJS;
+          return false.toJS;
         }).toJS,
       ),
     ].toJS;

@@ -490,17 +490,6 @@ interface class LanguageServerClient {
   /// message is unrelated to analysis status.
   static bool? analysisStatusFromServerMessage(Map<Object?, Object?> message) {
     final method = message['method'];
-    if (method == r'$/analyzerStatus') {
-      final params = message['params'];
-      if (params is Map) {
-        final isAnalyzing = params['isAnalyzing'];
-        if (isAnalyzing is bool) {
-          return isAnalyzing;
-        }
-      }
-      return null;
-    }
-
     if (method == r'$/progress') {
       final params = message['params'];
       if (params is! Map || params['token'] != 'ANALYZING') {
