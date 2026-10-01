@@ -49,6 +49,7 @@ import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
 import 'features/workspace/data/workspace_repository.dart';
+import 'features/workspace/embed_runtime_controller.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
 import 'sdks.g.dart';
@@ -90,6 +91,7 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
+  EmbedRuntimeController? _embedRuntime;
 
   late final ProjectPersistenceController _persistence;
 
@@ -142,6 +144,17 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
+    if (_isEmbedMode) {
+      _embedRuntime = EmbedRuntimeController(
+        onPause: () {
+          final session = _activeSession;
+          if (session != null) {
+            setState(() => _workspacePreparationFailure = null);
+            unawaited(session.suspendRuntime(paused: true));
+          }
+        },
+      );
+    }
     _persistence = ProjectPersistenceController(
       enabled: !_isEmbedMode,
       store: component.projectStore,
@@ -292,6 +305,7 @@ final class _AppState extends State<App> {
       initialMode: project.mode,
       onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(session) : null,
     );
+    _embedRuntime?.observePreview(session.preview.containerElement);
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     session.preview.addListener(_onPreviewStateChanged);
     setState(() {
@@ -378,12 +392,14 @@ final class _AppState extends State<App> {
   /// Restart; loading an embedded example never calls it. Standalone DartPad
   /// and hot reload skip this hook.
   ///
-  /// Reuses an existing runtime; otherwise saves retained editor buffers,
-  /// starts a worker, runs pub get if needed and attaches LSP. The caller then
-  /// compiles and starts the preview. Generation checks stop preparation if
-  /// this runtime is paused or its session replaced.
+  /// Announces activation through localStorage, allowing older embeds to pause
+  /// without waiting for their cleanup. Reuses an existing runtime; otherwise
+  /// saves retained editor buffers, starts a worker, runs pub get if needed and
+  /// attaches LSP. The caller then compiles and starts the preview. Generation
+  /// checks stop preparation if this runtime is paused or its session replaced.
   Future<void> _prepareEmbeddedRuntime(WorkspaceSession session) async {
     final generation = session.runtimeGeneration;
+    _embedRuntime!.activate();
     if (!_isCurrentRuntime(session, generation)) {
       return;
     }
@@ -413,6 +429,7 @@ final class _AppState extends State<App> {
       }
     } catch (error) {
       if (_isCurrentRuntime(session, generation)) {
+        _embedRuntime!.release();
         unawaited(session.suspendRuntime());
         setState(() => _workspacePreparationFailure = error.toString());
       }
@@ -977,6 +994,7 @@ final class _AppState extends State<App> {
 
   @override
   void dispose() {
+    _embedRuntime?.dispose();
     _resizeSubscription?.cancel();
     _keySubscription?.cancel();
     _persistence.removeListener(_onPersistenceChanged);

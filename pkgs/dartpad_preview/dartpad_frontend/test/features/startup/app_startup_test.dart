@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
@@ -11,6 +12,7 @@ import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
+import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -182,7 +184,7 @@ void main() {
     }
   }
 
-  testClient('embed Run lazily starts the runtime while retaining the editor', (tester) async {
+  testClient('embed Run lazily starts the runtime and can resume while retired startup is pending', (tester) async {
     late WorkspaceRepository repository;
     final starts = <Completer<DartPad>>[];
     tester.pumpComponent(
@@ -216,6 +218,40 @@ void main() {
     expect(starts, hasLength(1));
     expect(repository.hasRuntime, isTrue);
     expect(web.document.querySelector('.cm-editor'), same(editor));
+    expect(run.disabled, isTrue);
+    final firstKey = '${EmbedRuntimeController.storageKeyPrefix}other-a';
+    final secondKey = '${EmbedRuntimeController.storageKeyPrefix}other-b';
+    final timestamp = DateTime.now().millisecondsSinceEpoch + 100;
+    web.window.localStorage.setItem(firstKey, jsonEncode({'lastSeen': timestamp}));
+    web.window.localStorage.setItem(secondKey, jsonEncode({'lastSeen': timestamp + 1}));
+    addTearDown(() {
+      web.window.localStorage.removeItem(firstKey);
+      web.window.localStorage.removeItem(secondKey);
+    });
+    web.window.dispatchEvent(
+      web.StorageEvent(
+        'storage',
+        web.StorageEventInit(
+          key: secondKey,
+          storageArea: web.window.localStorage,
+        ),
+      ),
+    );
+    await pumpEventQueue();
+    expect(repository.hasRuntime, isFalse);
+    expect(web.document.querySelector('.cm-editor'), same(editor));
+    expect(run.disabled, isFalse);
+    expect(web.document.body!.textContent, contains('LSP and Preview paused'));
+    final resume = web.document.querySelector('button[aria-label="Resume"]')! as web.HTMLButtonElement;
+    expect(resume.disabled, isFalse);
+    resume.click();
+    await pumpEventQueue();
+    expect(starts, hasLength(2));
+    expect(web.document.querySelector('button[aria-label="Resume"]'), isNull);
+    starts.first.completeError(StateError('Retired startup failed'));
+    await pumpEventQueue();
+    expect(repository.hasRuntime, isTrue);
+    expect(web.document.body!.textContent, isNot(contains('Retired startup failed')));
     expect(run.disabled, isTrue);
   });
 
