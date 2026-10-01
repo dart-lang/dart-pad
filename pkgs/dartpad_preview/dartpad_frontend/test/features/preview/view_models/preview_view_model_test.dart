@@ -200,9 +200,39 @@ void main() {
     task.succeed();
     expect(preview.canRun, isTrue);
     expect(preview.canStart, isTrue);
-    // With run=false, no preview transition follows startup to refresh Run.
+    // Without automatic startup, no preview transition follows to refresh Run.
     expect(preview.state, isA<PreviewInitial>());
     expect(availabilityChanges.last, isTrue);
+  });
+
+  test('suspending during activation ignores late startup and permits a fresh Run', () async {
+    preview.dispose();
+    final activation = Completer<void>();
+    var activations = 0;
+    preview = PreviewViewModel(
+      initialMode: RunMode.flutter,
+      initialEntrypoint: 'lib/main.dart',
+      workspaceRepository: repository,
+      eventBus: events,
+      createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      onBeforeRun: () async {
+        if (++activations == 1) {
+          await activation.future;
+        }
+      },
+    );
+    final oldRun = preview.runCurrent();
+    await pump();
+    repository.taskStatus.cancelRunning();
+    await preview.suspend(paused: true);
+    expect(preview.state, isA<PreviewPaused>());
+    expect(preview.canStart, isTrue);
+    await preview.runCurrent();
+    expect(sandbox.runCount, 1);
+    activation.complete();
+    await oldRun;
+    expect(sandbox.runCount, 1);
+    expect(preview.state, isA<PreviewRunning>());
   });
 
   test('without an initial entrypoint Run stays disabled until a file is explicitly run', () async {

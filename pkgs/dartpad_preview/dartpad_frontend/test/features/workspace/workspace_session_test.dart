@@ -8,8 +8,10 @@ library;
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
@@ -116,6 +118,36 @@ void main() {
       events.dispatchAsync(_TestEvent()),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('suspension retains dirty editor buffers, cursor, tabs and editable files', () async {
+    final initial = testProject();
+    final api = _Workspace();
+    await api.writeFileFromText('lib/main.dart', 'void main() {}');
+    final repository = WorkspaceRepository(
+      events: AppEventBus(),
+      taskStatus: TaskStatusController(),
+      workspaceResourceApi: api,
+      sdk: initial.sdk,
+    );
+    final session = WorkspaceSession.create(repository, initialProject: initial, initialMode: initial.mode);
+    await session.tabs.openWorkspaceFile('lib/main.dart');
+    final tab = session.tabs.getTab('lib/main.dart')! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    editor.text = 'void main() { print("kept"); }';
+    editor.view.dispatch(cm.TransactionSpec(selection: cm.EditorSelection.single(7)));
+    final state = editor.view.state;
+    await session.suspendRuntime();
+    expect(session.tabs.getTab('lib/main.dart'), same(tab));
+    expect(tab.editor, same(editor));
+    expect(editor.view.state, same(state));
+    expect(tab.hasUnsavedChanges, isTrue);
+    expect(editor.view.state.selection.main.head, 7);
+    expect(api.disposeCount, 0);
+    await session.tabs.saveAllTabs();
+    expect(await api.readFileAsText('lib/main.dart'), 'void main() { print("kept"); }');
+    await session.dispose();
+    expect(api.disposeCount, 1);
   });
 
   test('runOrHotReload calls runCode when preview canStart', () async {

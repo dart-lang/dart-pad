@@ -111,7 +111,7 @@ The following options configure the loaded project, workspace structure, and exe
 
 | Query                         | Behavior                                                                                                    |
 | :---------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the preview. |
+| `embed=true`                  | Hides the app bar and footer on desktop, starts with the file tree collapsed, and waits for Run before starting the runtime. |
 | `theme=dark` or `theme=light` | Sets the initial theme, overriding the saved or system theme. A theme-only URL restores the latest project. |
 
 Explicit paths are relative to the loaded source, even when `root` is set.
@@ -167,9 +167,10 @@ version therefore follows the bundled SDK as its assets are updated. Existing
 pubspecs are preserved.
 Editing files, changing tabs or switching
 SDKs does not modify the initial metadata. Every project load creates a fresh
-worker and workspace, including restoring saved work or reopening the same
-sample with the same SDK. This prevents worker-local changes, such as pub-cache
-edits made through the language server, from carrying into another session.
+workspace and uses a fresh worker when its runtime starts, including restoring
+saved work or reopening the same sample with the same SDK. This prevents
+worker-local changes, such as pub-cache edits made through the language server,
+from carrying into another session.
 The previous session and worker are disposed after the old editor unmounts.
 
 The generated `lib/sdks.g.dart` lists the available bundles. An explicit
@@ -267,8 +268,9 @@ or restore offers occur.
 
 The loading UI appears immediately. The frontend loads the source and resolves
 `InitialProjectState`, including the SDK, before creating the worker. It then
-copies the loaded files into a local workspace, opens the initial tabs, and
-waits for worker initialization and synchronization. Preparation continues with:
+copies the loaded files into a local workspace and opens the initial tabs.
+Standalone sessions wait for worker initialization and synchronization, then
+continue preparation with:
 
 1. Initial `pub get` at the resolved `root`, if a pubspec exists there.
 2. Automatic execution of the selected entrypoint after successful preparation.
@@ -279,9 +281,20 @@ dialog with a reload action, including in embed mode. Old session resources
 are disposed after the editor has unmounted, and results from superseded loads
 cannot reactivate the previous session.
 
-### Embed startup
+### Embedded runtime lifecycle
 
-Embedded projects (`embed=true`) initialize the worker and language server when
-loaded, but wait for Run before starting the preview.
+Embedded projects (`embed=true`) load their files into the editor without starting
+the SDK worker, language server or preview. Run initializes the runtime.
 Standalone projects run their resolved entrypoint automatically after successful
 preparation. The obsolete `run` query parameter is ignored in all modes.
+
+`WorkspaceSession.suspendRuntime(paused: true)` detaches LSP, removes the preview
+iframe and terminates the SDK worker while retaining CodeMirror tabs, unsaved
+edits, cursor position, undo history and the local filesystem. Paused previews
+show **LSP and Preview paused** and a **Resume** button using the same action as
+Run. Editing remains available while paused.
+
+The next Run/Resume saves retained editor buffers, creates a fresh worker,
+synchronizes the local files, runs pub get when needed and reattaches LSP before
+starting the preview. Pending work from a suspended runtime cannot reactivate
+it or overwrite the resumed runtime. Resuming does not wait for old cleanup.

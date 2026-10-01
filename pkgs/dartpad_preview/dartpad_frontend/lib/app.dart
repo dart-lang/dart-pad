@@ -76,6 +76,7 @@ final class App extends StatefulComponent {
     required SdkInfo sdk,
     required TaskStatusController taskStatus,
     WorkspaceResourceApi? localApi,
+    bool deferWorker,
   })
   createRepository;
 
@@ -282,8 +283,15 @@ final class _AppState extends State<App> {
       sdk: project.sdk,
       taskStatus: taskStatus,
       localApi: localApi,
+      deferWorker: _isEmbedMode,
     );
-    final session = WorkspaceSession.create(repository, initialProject: project, initialMode: project.mode);
+    late final WorkspaceSession session;
+    session = WorkspaceSession.create(
+      repository,
+      initialProject: project,
+      initialMode: project.mode,
+      onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(session) : null,
+    );
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     session.preview.addListener(_onPreviewStateChanged);
     setState(() {
@@ -361,9 +369,59 @@ final class _AppState extends State<App> {
   bool _isCurrent(WorkspaceSession session) =>
       mounted && _sessionLoadGeneration == _loadGeneration && identical(_activeSession, session);
 
-  /// Opens the initial tabs and starts persistence before waiting for the worker.
-  /// Once the worker is ready, resets are enabled again while Pub and LSP
-  /// initialization continue in the background.
+  bool _isCurrentRuntime(WorkspaceSession session, int generation) =>
+      _isCurrent(session) && session.runtimeGeneration == generation;
+
+  /// Prepares an embed's worker and language server before running its code.
+  ///
+  /// Registered as onBeforeRun only in embed mode. Called on Run, Resume or
+  /// Restart; loading an embedded example never calls it. Standalone DartPad
+  /// and hot reload skip this hook.
+  ///
+  /// Reuses an existing runtime; otherwise saves retained editor buffers,
+  /// starts a worker, runs pub get if needed and attaches LSP. The caller then
+  /// compiles and starts the preview. Generation checks stop preparation if
+  /// this runtime is paused or its session replaced.
+  Future<void> _prepareEmbeddedRuntime(WorkspaceSession session) async {
+    final generation = session.runtimeGeneration;
+    if (!_isCurrentRuntime(session, generation)) {
+      return;
+    }
+    if (session.repository.hasRuntime) {
+      return;
+    }
+    setState(() => _workspacePreparationFailure = null);
+    try {
+      // Save without LSP before starting so the fresh worker sees dirty buffers.
+      await session.tabs.saveAllTabs();
+      if (!_isCurrentRuntime(session, generation)) {
+        return;
+      }
+      final workspace = await session.repository.startWorker();
+      if (!_isCurrentRuntime(session, generation)) {
+        return;
+      }
+      final ready = await _initializeWorkspaceTools(
+        session,
+        workspace,
+        session.initialProject,
+        autoRun: false,
+        runtimeGeneration: generation,
+      );
+      if (!ready && _isCurrentRuntime(session, generation)) {
+        throw StateError('Could not prepare the example. Try Run again.');
+      }
+    } catch (error) {
+      if (_isCurrentRuntime(session, generation)) {
+        unawaited(session.suspendRuntime());
+        setState(() => _workspacePreparationFailure = error.toString());
+      }
+      rethrow;
+    }
+  }
+
+  /// Opens initial tabs. Embeds wait for activation before creating a worker;
+  /// standalone sessions start persistence and initialize tools immediately.
   Future<void> _initializeWorkspace(
     WorkspaceSession session, {
     List<TabDescriptor>? tabs,
@@ -375,6 +433,10 @@ final class _AppState extends State<App> {
     try {
       await session.openProjectFiles(restoredTabs: tabs, activeFile: activeFile, continueOnTabOpenError: restoring);
       if (!_isCurrent(session)) {
+        return;
+      }
+      if (_isEmbedMode) {
+        setState(() => _isInitializingWorkspace = false);
         return;
       }
       _persistence.attach(session, projectId: projectId);
@@ -405,16 +467,19 @@ final class _AppState extends State<App> {
     }
   }
 
-  Future<void> _initializeWorkspaceTools(
+  Future<bool> _initializeWorkspaceTools(
     WorkspaceSession session,
     Workspace workspace,
-    InitialProjectState project,
-  ) async {
+    InitialProjectState project, {
+    bool autoRun = true,
+    int? runtimeGeneration,
+  }) async {
+    final generation = runtimeGeneration ?? session.runtimeGeneration;
     var preparationSucceeded = true;
     if (project.hasPubspec) {
       final packageRoot = project.root;
-      if (!_isCurrent(session)) {
-        return;
+      if (!_isCurrentRuntime(session, generation)) {
+        return false;
       }
       try {
         await session.repository.pubGet(
@@ -423,7 +488,7 @@ final class _AppState extends State<App> {
         );
       } catch (error, stackTrace) {
         preparationSucceeded = false;
-        if (_isCurrent(session)) {
+        if (_isCurrentRuntime(session, generation)) {
           session.events.dispatch(
             LogEvent(
               'Pub get failed.',
@@ -439,14 +504,15 @@ final class _AppState extends State<App> {
       }
     }
 
-    if (!_isCurrent(session)) {
-      return;
+    if (!_isCurrentRuntime(session, generation)) {
+      return false;
     }
 
-    if (!_isEmbedMode && preparationSucceeded && session.preview.entrypoint != null) {
+    if (autoRun && preparationSucceeded && session.preview.entrypoint != null) {
       unawaited(session.preview.runCurrent());
     }
-    await _initializeAnalyzer(session, workspace, project.root);
+    await _initializeAnalyzer(session, workspace, project.root, generation);
+    return preparationSucceeded;
   }
 
   /// Starts the language server with an editor root derived from [packageRoot].
@@ -459,11 +525,12 @@ final class _AppState extends State<App> {
     WorkspaceSession session,
     Workspace workspace,
     String? packageRoot,
+    int generation,
   ) async {
     try {
       session.analyzerStatus.beginInitialization();
       final languageServer = await workspace.startLanguageServer();
-      if (!_isCurrent(session)) {
+      if (!_isCurrentRuntime(session, generation)) {
         await languageServer.stop();
         return;
       }
@@ -479,6 +546,9 @@ final class _AppState extends State<App> {
         editorRootUri: editorRootUri,
         workspaceChangeEvents: session.repository.workspaceResourceApi.changeEvents,
         documentEditsHandler: (filePath, edits) async {
+          if (!_isCurrentRuntime(session, generation)) {
+            return;
+          }
           final tab = session.tabs.getTab(filePath);
           if (tab is WorkspaceCodeMirrorTab) {
             await tab.applyEdits(edits);
@@ -490,6 +560,9 @@ final class _AppState extends State<App> {
           }
         },
         displayFileHandler: (uri) {
+          if (!_isCurrentRuntime(session, generation)) {
+            return Future.value();
+          }
           final workspacePath = relativePathWithinWorkspace(
             uri,
             rootWorkspaceUri,
@@ -499,7 +572,7 @@ final class _AppState extends State<App> {
               : session.tabs.openWorkspaceFile(workspacePath);
         },
       );
-      if (!_isCurrent(session)) {
+      if (!_isCurrentRuntime(session, generation)) {
         await languageServerClient.dispose();
         await languageServer.stop();
         return;
@@ -511,7 +584,7 @@ final class _AppState extends State<App> {
         projectRoot: packageRoot,
       );
     } catch (error, stackTrace) {
-      if (!_isCurrent(session)) {
+      if (!_isCurrentRuntime(session, generation)) {
         return;
       }
       session.analyzerStatus.markUnavailable();

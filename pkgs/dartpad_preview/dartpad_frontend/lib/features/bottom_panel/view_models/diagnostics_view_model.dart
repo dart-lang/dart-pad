@@ -70,6 +70,13 @@ final class DiagnosticsViewModel extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  void detachLanguageServer() {
+    _diagnosticsSubscription?.cancel();
+    _diagnosticsSubscription = null;
+    _diagnostics = const [];
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _diagnosticsSubscription?.cancel();

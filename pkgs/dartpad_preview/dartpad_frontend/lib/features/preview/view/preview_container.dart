@@ -11,6 +11,7 @@ import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
 import '../../bottom_panel/views/console_panel.dart';
+import '../../shared/components/button.dart';
 import '../../shared/components/button_group.dart';
 import '../../shared/components/icon_button.dart';
 import '../../shared/components/split_panel.dart';
@@ -243,6 +244,15 @@ final class _PreviewContainerState extends State<PreviewContainer> {
         ].join(' '),
         [
           NodeContainer(viewModel.containerElement),
+          if (state is PreviewPaused)
+            div(
+              classes: 'preview-paused',
+              attributes: {'role': 'status'},
+              [
+                const p([.text('LSP and Preview paused')]),
+                Button(label: 'Resume', disabled: !viewModel.canStart, onClick: viewModel.runCurrent),
+              ],
+            ),
           if (taskStatusMode != null)
             PreviewTaskStatus(
               controller: component.taskStatus,
@@ -259,6 +269,16 @@ final class _PreviewContainerState extends State<PreviewContainer> {
   }
 
   static List<StyleRule> get styles => [
+    css('.preview-paused').styles(
+      display: .flex,
+      position: const .absolute(),
+      padding: .all(16.px),
+      flexDirection: .column,
+      alignItems: .center,
+      gap: .all(12.px),
+      color: colorOnSurface,
+      textAlign: .center,
+    ),
     css('.preview-rail', [
       css('&').styles(
         display: .flex,
