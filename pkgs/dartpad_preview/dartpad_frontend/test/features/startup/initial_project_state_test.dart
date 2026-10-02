@@ -81,6 +81,34 @@ void main() {
       }
     });
 
+    test('only the first legacy docs sample auto-runs in embed mode, ignoring run', () {
+      for (final (source, autoRunInEmbed) in [
+        ('', false),
+        ('sample=counter', false),
+        ('gist=abc', false),
+        ('sample_id=material.AppBar.1', true),
+        ('sample_id=material.ListTile.1', true),
+        ('sample_id=material.AppBar.0', false),
+        ('sample_id=material.AppBar.2', false),
+        ('sample_id=material.AppBar.10', false),
+        ('sample_id=material.AppBar.11', false),
+        ('sample_id=material.AppBar.01', false),
+        ('sample_id=material.AppBar', false),
+        ('sample_id=material.AppBar.first', false),
+      ]) {
+        for (final embed in ['', '&embed=false', '&embed=true']) {
+          for (final run in ['', '&run=true', '&run=false', '&run=anything', '&run=true&run=false']) {
+            final uri = Uri.parse('?$source$embed$run');
+            expect(
+              ProjectRequest.fromUri(uri).autoRun,
+              embed != '&embed=true' || autoRunInEmbed,
+              reason: uri.toString(),
+            );
+          }
+        }
+      }
+    });
+
     test('clamps split percentages and defaults invalid values for every embed source', () {
       for (final source in ['sample=counter', 'sample_id=material.AppBar.1']) {
         for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
