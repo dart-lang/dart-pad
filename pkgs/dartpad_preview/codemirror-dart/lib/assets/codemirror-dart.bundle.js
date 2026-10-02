@@ -40046,6 +40046,9 @@ ${text}</tr>
                 renameTooltipField,
                 {
                     clientCapabilities: {
+                        window: {
+                            workDoneProgress: true,
+                        },
                         workspace: {
                             applyEdit: true,
                             workspaceEdit: {
@@ -40097,6 +40100,14 @@ ${text}</tr>
             receiveFromServer: (msg) => {
                 if (disposed)
                     return;
+                // CodeMirror has no server-request handlers. Acknowledge progress
+                // creation here before its default handler rejects the request.
+                const message = JSON.parse(msg);
+                if ("id" in message &&
+                    message.method === "window/workDoneProgress/create") {
+                    transport.send(JSON.stringify({ jsonrpc: "2.0", id: message.id, result: null }));
+                    return;
+                }
                 handlers.forEach((h) => h(msg));
             },
             dispose: () => {

@@ -189,8 +189,11 @@ void main() {
         },
       });
       serverMessages.add({
-        'method': r'$/analyzerStatus',
-        'params': {'isAnalyzing': true},
+        'method': r'$/progress',
+        'params': {
+          'token': 'ANALYZING',
+          'value': {'kind': 'begin', 'title': 'Analyzing…'},
+        },
       });
 
       final activities = await activitiesFuture;
@@ -202,6 +205,17 @@ void main() {
       expect(client.allDiagnostics.single.diagnostic.message, 'A problem');
       expect(client.allDiagnostics.single.diagnostic.severity.name, 'warning');
       expect(codeMirrorClient.receivedMessages, hasLength(2));
+
+      final analysisEnded = client.analyzerActivityStream.first;
+      serverMessages.add({
+        'method': r'$/progress',
+        'params': {
+          'token': 'ANALYZING',
+          'value': {'kind': 'end'},
+        },
+      });
+      expect((await analysisEnded as AnalyzerStatusActivity).isAnalyzing, isFalse);
+      expect(client.isAnalyzing, isFalse);
     });
 
     test('moves and removes cached diagnostics with workspace events', () async {
@@ -530,20 +544,6 @@ void main() {
       final cases = <(Map<String, Object?>, bool)>[
         (
           {
-            'method': r'$/analyzerStatus',
-            'params': {'isAnalyzing': true},
-          },
-          true,
-        ),
-        (
-          {
-            'method': r'$/analyzerStatus',
-            'params': {'isAnalyzing': false},
-          },
-          false,
-        ),
-        (
-          {
             'method': r'$/progress',
             'params': {
               'token': 'ANALYZING',
@@ -571,12 +571,12 @@ void main() {
 
     test('rejects malformed and unrelated status messages', () {
       final messages = <Map<String, Object?>>[
-        {'method': r'$/analyzerStatus'},
+        {'method': r'$/progress'},
         {
           'method': r'$/analyzerStatus',
-          'params': {'isAnalyzing': 'yes'},
+          'params': {'isAnalyzing': true},
         },
-        {'method': r'$/analyzerStatus', 'params': 'invalid'},
+        {'method': r'$/progress', 'params': 'invalid'},
         {
           'method': r'$/progress',
           'params': {

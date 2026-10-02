@@ -21,7 +21,7 @@ void main() {
   late JSFunction initializedCallback;
   late JSFunction displayFileCallback;
   late JSFunction workspaceEditCallback;
-  late JSFunction analyzerStatusCallback;
+  late JSFunction progressCallback;
   late JSObject fakeHandle;
   late JSObject language;
   late String capturedRootUri;
@@ -79,9 +79,9 @@ void main() {
             final handler = notificationHandlers.toDart.single as JSObject;
             expect(
               handler.getProperty<JSString>('method'.toJS).toDart,
-              r'$/analyzerStatus',
+              r'$/progress',
             );
-            analyzerStatusCallback = handler.getProperty<JSFunction>(
+            progressCallback = handler.getProperty<JSFunction>(
               'callback'.toJS,
             );
             return fakeHandle;
@@ -215,10 +215,14 @@ void main() {
     addTearDown(subscription.cancel);
     final jsClient = JSObject();
 
-    analyzerStatusCallback.callAsFunction(
+    progressCallback.callAsFunction(
       null,
       jsClient,
-      {'isAnalyzing': true}.jsify() as JSObject,
+      {
+            'token': 'ANALYZING',
+            'value': {'kind': 'begin', 'title': 'Analyzing…'},
+          }.jsify()
+          as JSObject,
     );
     await pumpEventQueue();
 
@@ -233,20 +237,54 @@ void main() {
     await pumpEventQueue();
     expect(analysisCompleted, isFalse);
 
-    analyzerStatusCallback.callAsFunction(
+    // Other work and progress reports must not finish the ongoing analysis.
+    for (final params in [
+      {
+        'token': 'OTHER',
+        'value': {'kind': 'end'},
+      },
+      {
+        'token': 1,
+        'value': {'kind': 'begin', 'title': 'Other work'},
+      },
+      {
+        'token': 'ANALYZING',
+        'value': {'kind': 'report'},
+      },
+      {'token': 'ANALYZING', 'value': 'invalid'},
+      <String, Object?>{},
+      null,
+    ]) {
+      final handled = progressCallback.callAsFunction(null, jsClient, params.jsify())! as JSBoolean;
+      expect(handled.toDart, isFalse);
+      expect(jsClient.getProperty<JSPromise>('analysisFinished'.toJS), same(analysisFinished));
+    }
+    await pumpEventQueue();
+    expect(statuses, [isTrue]);
+    expect(analysisCompleted, isFalse);
+
+    progressCallback.callAsFunction(
       null,
       jsClient,
-      {'isAnalyzing': true}.jsify() as JSObject,
+      {
+            'token': 'ANALYZING',
+            'value': {'kind': 'begin', 'title': 'Analyzing…'},
+          }.jsify()
+          as JSObject,
     );
     expect(
       jsClient.getProperty<JSPromise>('analysisFinished'.toJS),
       same(analysisFinished),
     );
 
-    analyzerStatusCallback.callAsFunction(
+    progressCallback.callAsFunction(
       null,
       jsClient,
-      {'isAnalyzing': false}.jsify() as JSObject,
+      {
+            'token': 'ANALYZING',
+            'value': {'kind': 'end'},
+          }.jsify()
+          as JSObject,
     );
     await analysisFuture;
     await pumpEventQueue();
@@ -267,10 +305,14 @@ void main() {
     late JSPromise analysisFinished;
 
     fakeAsync((async) {
-      analyzerStatusCallback.callAsFunction(
+      progressCallback.callAsFunction(
         null,
         jsClient,
-        {'isAnalyzing': true}.jsify() as JSObject,
+        {
+              'token': 'ANALYZING',
+              'value': {'kind': 'begin', 'title': 'Analyzing…'},
+            }.jsify()
+            as JSObject,
       );
       analysisFinished = jsClient.getProperty<JSPromise>(
         'analysisFinished'.toJS,
