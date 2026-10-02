@@ -44,6 +44,7 @@ final class WorkspaceRepository {
   Future<Workspace>? _workspaceFuture;
   Future<Workspace>? _readyWorkspaceFuture;
   int _workerGeneration = 0;
+  Completer<void>? _workerStartupAbort;
 
   /// Optional worker factory override, used for lifecycle tests.
   final Future<DartPad> Function()? createWorker;
@@ -134,10 +135,21 @@ final class WorkspaceRepository {
       return readyWorkspace;
     }
     final generation = ++_workerGeneration;
+    final startupAbort = _workerStartupAbort = Completer<void>();
     final workspaceFuture = taskStatus.runTask(
       TaskKind.initializingDartPadWorker,
       () async {
-        final worker = await (createWorker?.call() ?? DartPadSdk(assetBaseUrl: sdk.assetBaseUrl).dedicatedWorker());
+        final DartPad worker;
+        try {
+          worker =
+              await (createWorker?.call() ??
+                  DartPadSdk(assetBaseUrl: sdk.assetBaseUrl).dedicatedWorker(abortTrigger: startupAbort.future));
+        } finally {
+          // An older start must not clear the resumed runtime's abort handle.
+          if (identical(_workerStartupAbort, startupAbort)) {
+            _workerStartupAbort = null;
+          }
+        }
         if (_isClosed || generation != _workerGeneration) {
           // The runtime can be suspended while its SDK loads.
           await worker.dispose();
@@ -163,6 +175,10 @@ final class WorkspaceRepository {
   /// Retires worker resources without disposing project files or editor tabs.
   Future<void> suspendWorker() async {
     _workerGeneration++;
+    final startupAbort = _workerStartupAbort;
+    _workerStartupAbort = null;
+    // Request termination before dedicatedWorker() returns its DartPad handle.
+    startupAbort?.complete();
     final worker = dartpad;
     dartpad = null;
     _workspaceFuture = null;
