@@ -483,6 +483,9 @@ final class _AppState extends State<App> {
       _embedMessages.ready();
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
+        if (session.initialProject.request.autoRun) {
+          unawaited(session.preview.runCurrent());
+        }
         return;
       }
       _persistence.attach(session, projectId: projectId);

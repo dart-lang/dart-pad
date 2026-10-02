@@ -191,6 +191,16 @@ final class ProjectRequest {
   /// Whether the current preview embed presentation should be used.
   final bool isEmbedMode;
 
+  /// Whether the resolved entrypoint should run after workspace preparation.
+  /// Embeds wait for Run except legacy Flutter API docs samples ending in `.1`.
+  /// The obsolete `run` query parameter is ignored.
+  bool get autoRun =>
+      !isEmbedMode ||
+      switch (source) {
+        FlutterApiDocsProjectSource(:final sampleId) => sampleId.endsWith('.1'),
+        _ => false,
+      };
+
   /// Initial fraction of the outer split occupied by the code panel.
   /// Defaults to 70%, with the requested value clamped to 5–95%.
   /// This is only to support the old docs generator and will be removed in the future.
