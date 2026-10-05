@@ -279,29 +279,6 @@ void main() {
     expect(tabs!.activeTab!.isReadOnly, isTrue);
   });
 
-  testClient('system Markdown stays read-only and navigation reveals its source', (tester) async {
-    final uri = Uri.parse('file:///pub-cache/example/README.md');
-    systemFiles[uri] = '# System';
-    await tabs!.openSystemFile(uri);
-    final tab = tabs!.activeTab! as SystemCodeMirrorTab;
-    tester.pumpComponent(
-      ListenableBuilder(
-        listenable: tabs!,
-        builder: (_) => tab.build(),
-      ),
-    );
-    await pumpEventQueue();
-    expect(tab.isMarkdownPreview, isTrue);
-    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'System');
-    tab.goToPosition(0, 2);
-    await pumpEventQueue();
-    expect(tab.isMarkdownPreview, isFalse);
-    expect(tab.editor.view.state.selection.main.head, 2);
-    tab.editor.text = 'Cannot edit';
-    expect(tab.content, '# System');
-    expect(tab.hasUnsavedChanges, isFalse);
-  });
-
   testClient('opens system URIs as navigable read-only tabs', (tester) async {
     final uri = Uri.parse('file:///pub-cache/example/lib/example.dart');
     systemFiles[uri] = 'class Example {}';

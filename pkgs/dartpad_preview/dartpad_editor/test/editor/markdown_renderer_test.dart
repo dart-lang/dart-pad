@@ -60,6 +60,81 @@ Fish & chips < 3 and &amp; entities.
     expect(renderer.container.textContent, contains('Fish & chips < 3 and & entities.'));
   });
 
+  test('omits standalone and multiline HTML comments while preserving surrounding content', () {
+    final renderer = MarkdownRenderer();
+    renderer.render('''
+<!-- Hidden before the heading -->
+# Readme
+
+<!--
+Hidden **formatting** and ![image](https://example.com/hidden.png).
+
+More hidden text.
+-->
+Visible paragraph.
+
+<!-- First --><!-- Second -->Trailing text.
+<div title="<!-- Literal attribute -->">Raw HTML<!-- Hidden in HTML --></div>
+''');
+    final root = renderer.container;
+    expect(root.querySelector('h1')?.textContent, 'Readme');
+    expect(root.querySelector('p')?.textContent, 'Visible paragraph.');
+    expect(root.textContent, isNot(contains('Hidden')));
+    expect(root.textContent, contains('Trailing text.'));
+    expect(root.textContent, contains('<div title="<!-- Literal attribute -->">Raw HTML</div>'));
+    expect(root.querySelector('img, strong, div'), isNull);
+  });
+
+  test('omits inline HTML comments without changing surrounding text and formatting', () {
+    final renderer = MarkdownRenderer();
+    renderer.render('''
+Hello <!-- Hidden -->**world**.
+
+Before<!-- Multiple
+hidden lines -->after.
+
+<!-- -->
+''');
+    final root = renderer.container;
+    expect(root.querySelector('strong')?.textContent, 'world');
+    expect(root.querySelector('p')?.textContent, 'Hello world.');
+    expect(root.textContent, contains('Beforeafter.'));
+    expect(root.textContent, isNot(contains('<!--')));
+    expect(root.textContent, isNot(contains('hidden')));
+  });
+
+  test('preserves literal HTML comments in code and escaped text', () {
+    final renderer = MarkdownRenderer();
+    renderer.render(r'''
+`<!-- Inline code -->`
+
+```html
+<!-- Fenced code -->
+```
+
+    <!-- Indented code -->
+
+\<!-- Escaped comment -->
+
+&lt;!-- Encoded comment --&gt;
+''');
+    final root = renderer.container;
+    expect(root.querySelector('p code')?.textContent, '<!-- Inline code -->');
+    final blocks = root.querySelectorAll('pre code');
+    expect((blocks.item(0) as web.Element).textContent, '<!-- Fenced code -->\n');
+    expect((blocks.item(1) as web.Element).textContent, '<!-- Indented code -->\n');
+    expect(root.textContent, contains('<!-- Escaped comment -->'));
+    expect(root.textContent, contains('<!-- Encoded comment -->'));
+  });
+
+  test('omits unclosed block comments but preserves unclosed inline comments as text', () {
+    final renderer = MarkdownRenderer();
+    renderer.render('Visible <!-- Unclosed inline comment');
+    expect(renderer.container.textContent, 'Visible <!-- Unclosed inline comment');
+    renderer.render('# Visible\n\n<!-- Unclosed block comment\nHidden text.');
+    expect(renderer.container.textContent?.trim(), 'Visible');
+  });
+
   test('blocks executable URLs while keeping regular links and images', () {
     final renderer = MarkdownRenderer();
     renderer.render('''

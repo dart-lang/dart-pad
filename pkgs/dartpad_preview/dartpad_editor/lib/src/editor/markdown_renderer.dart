@@ -17,8 +17,9 @@ bool isMarkdownFile(String path) {
 
 /// Renders GitHub-flavored Markdown into a DOM node without a UI framework.
 ///
-/// Raw HTML stays text and URLs are restricted to safe protocols, so project
-/// documentation cannot execute scripts in the editor's browser context.
+/// HTML comments are omitted, other raw HTML stays text, and URLs are restricted
+/// to safe protocols, so project documentation cannot execute scripts in the
+/// editor's browser context.
 final class MarkdownRenderer {
   MarkdownRenderer({this.onOpenFile, this.loadImage}) : container = web.HTMLDivElement() {
     container.className = 'markdown-preview';
@@ -49,7 +50,12 @@ final class MarkdownRenderer {
     }
     _content = content;
     _documentUri = documentUri;
-    final document = md.Document(extensionSet: md.ExtensionSet.gitHubWeb, encodeHtml: false);
+    final document = md.Document(
+      extensionSet: md.ExtensionSet.gitHubWeb,
+      encodeHtml: false,
+      blockSyntaxes: const [_HtmlBlockWithoutCommentsSyntax()],
+      inlineSyntaxes: [_HtmlCommentSyntax()],
+    );
     final nodes = document.parseLines(const LineSplitter().convert(content));
     container.textContent = '';
     _headings.clear();
@@ -168,6 +174,7 @@ final class MarkdownRenderer {
     }
   }
 
+  //TODO: make regexp readable
   bool _isSafeUrl(String value, {bool image = false}) {
     // Browsers strip control characters from URL schemes before navigating.
     if (RegExp(r'[\x00-\x20\x7f]').hasMatch(value)) {
@@ -178,5 +185,36 @@ final class MarkdownRenderer {
       return false;
     }
     return !uri.hasScheme || const {'http', 'https'}.contains(uri.scheme) || (!image && uri.scheme == 'mailto');
+  }
+}
+
+/// Omits comments during inline parsing, after code spans and escapes have
+/// consumed their literal content.
+final class _HtmlCommentSyntax extends md.InlineSyntax {
+  _HtmlCommentSyntax() : super(r'<!--[\s\S]*?-->', startCharacter: 0x3c);
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) => true;
+}
+
+/// HTML blocks bypass inline parsing, so their comments need separate handling.
+final class _HtmlBlockWithoutCommentsSyntax extends md.HtmlBlockSyntax {
+  const _HtmlBlockWithoutCommentsSyntax();
+
+  // Match whole HTML tags too, keeping comment-like text in quoted attributes.
+  // An unclosed block comment extends to the end of its parsed HTML block.
+  static final _htmlTokens = RegExp(
+    r'<!--[\s\S]*?(?:-->|$)|' + md.InlineHtmlSyntax().pattern.pattern,
+  );
+
+  @override
+  md.Node parse(md.BlockParser parser) {
+    final text = super.parse(parser).textContent;
+    return md.Text(
+      text.replaceAllMapped(_htmlTokens, (match) {
+        final token = match[0]!;
+        return token.startsWith('<!--') ? '' : token;
+      }),
+    );
   }
 }
