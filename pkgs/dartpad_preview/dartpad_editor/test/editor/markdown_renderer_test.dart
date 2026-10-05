@@ -150,11 +150,13 @@ hidden lines -->after.
     expect((links.item(1) as web.Element).hasAttribute('href'), isFalse);
     final safe = links.item(2) as web.Element;
     expect(safe.getAttribute('href'), 'https://dart.dev');
-    expect(safe.getAttribute('rel'), 'noopener noreferrer');
+    expect(safe.getAttribute('rel'), 'noopener noreferrer nofollow ugc');
+    expect(safe.getAttribute('referrerpolicy'), 'no-referrer');
     expect(safe.getAttribute('title'), 'Dart');
     expect((links.item(3) as web.Element).getAttribute('href'), 'mailto:hello@example.com');
     expect(renderer.container.querySelector('img')!.hasAttribute('src'), isFalse);
     expect(renderer.container.querySelector('img[src]')!.getAttribute('src'), 'https://dart.dev/logo.png');
+    expect(renderer.container.querySelector('img[src]')!.getAttribute('referrerpolicy'), 'no-referrer');
   });
 
   test('keeps the DOM for unchanged content and replaces it on edits', () {
@@ -210,6 +212,7 @@ hidden lines -->after.
     await pumpEventQueue();
     expect(loaded.single.path, '/docs/assets/logo.png');
     expect(renderer.container.querySelector('img')!.getAttribute('src'), 'data:image/png;base64,AA==');
+    expect(renderer.container.querySelector('img')!.getAttribute('referrerpolicy'), 'no-referrer');
     final event = web.MouseEvent('click', web.MouseEventInit(cancelable: true));
     renderer.container.querySelector('a')!.dispatchEvent(event);
     expect(event.defaultPrevented, isTrue);

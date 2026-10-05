@@ -34,12 +34,16 @@ final class MarkdownRenderer {
   final Future<void> Function(Uri uri)? onOpenFile;
 
   /// Resolves an image from the host's virtual filesystem to a display URL.
-  /// Only this trusted loader may supply generated data or blob URLs.
+  ///
+  /// Receives document-relative paths controlled by the Markdown author. The
+  /// host must restrict which files it loads. Returned URLs bypass [_isSafeUrl]
+  /// so this trusted loader can supply generated data or blob URLs; it must not
+  /// return untrusted URLs without validating them itself.
   final Future<String?> Function(Uri uri)? loadImage;
 
   static int _nextId = 0;
   final String _idPrefix = 'markdown-${_nextId++}-';
-  final Map<String, web.Element> _headings = {};
+  final Map<String, web.Element> _headingAnchors = {};
   String? _content;
   Uri? _documentUri;
 
@@ -50,6 +54,8 @@ final class MarkdownRenderer {
     }
     _content = content;
     _documentUri = documentUri;
+    container.textContent = '';
+    _headingAnchors.clear();
     final document = md.Document(
       extensionSet: md.ExtensionSet.gitHubWeb,
       encodeHtml: false,
@@ -57,8 +63,6 @@ final class MarkdownRenderer {
       inlineSyntaxes: [_HtmlCommentSyntax()],
     );
     final nodes = document.parseLines(const LineSplitter().convert(content));
-    container.textContent = '';
-    _headings.clear();
     for (final node in nodes) {
       container.appendChild(_buildNode(node));
     }
@@ -70,12 +74,13 @@ final class MarkdownRenderer {
       container.scrollTop = 0;
       return;
     }
-    final heading = _headings[Uri.decodeComponent(fragment)];
-    if (heading != null) {
-      // Scroll only the preview: scrollIntoView can move surrounding app panels.
-      final top = heading.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
-      container.scrollTop = top;
+    final heading = _headingAnchors[Uri.decodeComponent(fragment)];
+    if (heading == null) {
+      return;
     }
+    // Scroll only the preview: scrollIntoView can move surrounding app panels.
+    final top = heading.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+    container.scrollTop = top;
   }
 
   web.Node _buildNode(md.Node node) {
@@ -91,12 +96,13 @@ final class MarkdownRenderer {
       element.setAttribute('title', title);
     }
     if (attributes['href'] case final href? when node.tag == 'a' && _isSafeUrl(href)) {
-      _setLinkDestination(element, href);
+      _configureLink(element, href);
     } else if (node.tag == 'img') {
       element.setAttribute('alt', attributes['alt'] ?? '');
+      element.setAttribute('referrerpolicy', 'no-referrer');
       if (attributes['src'] case final src? when _isSafeUrl(src, image: true)) {
         final uri = Uri.parse(src);
-        if (!uri.hasScheme && !uri.hasAuthority) {
+        if (_isDocumentRelative(uri)) {
           if (_documentUri case final documentUri?) {
             unawaited(_loadImage(element, documentUri.resolveUri(uri)));
           }
@@ -115,18 +121,24 @@ final class MarkdownRenderer {
       element.setAttribute('start', start);
     }
     if (node.generatedId case final id?) {
-      var uniqueId = id;
-      var suffix = 1;
-      while (_headings.containsKey(uniqueId)) {
-        uniqueId = '$id-${suffix++}';
-      }
-      _headings[uniqueId] = element;
-      element.setAttribute('id', '$_idPrefix$uniqueId');
+      _setScrollingAnchorId(element, id);
     }
     return element;
   }
 
-  void _setLinkDestination(web.Element link, String href) {
+  void _setScrollingAnchorId(web.Element element, String id) {
+    var uniqueId = id;
+    var suffix = 1;
+    while (_headingAnchors.containsKey(uniqueId)) {
+      uniqueId = '$id-${suffix++}';
+    }
+    _headingAnchors[uniqueId] = element;
+    element.setAttribute('id', '$_idPrefix$uniqueId');
+  }
+
+  bool _isDocumentRelative(Uri uri) => !uri.hasScheme && !uri.hasAuthority;
+
+  void _configureLink(web.Element link, String href) {
     final uri = Uri.parse(href);
     if (href.startsWith('#')) {
       link.setAttribute('href', Uri(fragment: '$_idPrefix${Uri.decodeComponent(uri.fragment)}').toString());
@@ -139,7 +151,7 @@ final class MarkdownRenderer {
       );
       return;
     }
-    if (!uri.hasScheme && !uri.hasAuthority) {
+    if (_isDocumentRelative(uri)) {
       final documentUri = _documentUri;
       final openFile = onOpenFile;
       if (documentUri == null || openFile == null) {
@@ -158,7 +170,8 @@ final class MarkdownRenderer {
     }
     link.setAttribute('href', href);
     link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
+    link.setAttribute('rel', 'noopener noreferrer nofollow ugc');
+    link.setAttribute('referrerpolicy', 'no-referrer');
   }
 
   Future<void> _loadImage(web.Element image, Uri uri) async {
@@ -174,10 +187,12 @@ final class MarkdownRenderer {
     }
   }
 
-  //TODO: make regexp readable
   bool _isSafeUrl(String value, {bool image = false}) {
-    // Browsers strip control characters from URL schemes before navigating.
-    if (RegExp(r'[\x00-\x20\x7f]').hasMatch(value)) {
+    const asciiSpace = 0x20;
+    const asciiDelete = 0x7f;
+    // Reject ASCII controls (below space), spaces, and DEL before parsing:
+    // browsers can normalize whitespace and control characters in URLs.
+    if (value.codeUnits.any((codeUnit) => codeUnit <= asciiSpace || codeUnit == asciiDelete)) {
       return false;
     }
     final uri = Uri.tryParse(value);
@@ -191,7 +206,7 @@ final class MarkdownRenderer {
 /// Omits comments during inline parsing, after code spans and escapes have
 /// consumed their literal content.
 final class _HtmlCommentSyntax extends md.InlineSyntax {
-  _HtmlCommentSyntax() : super(r'<!--[\s\S]*?-->', startCharacter: 0x3c);
+  _HtmlCommentSyntax() : super(r'<!--[\s\S]*?-->', startCharacter: '<'.codeUnitAt(0));
 
   @override
   bool onMatch(md.InlineParser parser, Match match) => true;
