@@ -35,10 +35,13 @@ final class MarkdownRenderer {
 
   /// Resolves an image from the host's virtual filesystem to a display URL.
   ///
-  /// Receives document-relative paths controlled by the Markdown author. The
-  /// host must restrict which files it loads. Returned URLs bypass [_isSafeUrl]
-  /// so this trusted loader can supply generated data or blob URLs; it must not
-  /// return untrusted URLs without validating them itself.
+  /// The Markdown author chooses the image path. The renderer checks it with
+  /// [_isSafeUrl] and resolves it against the document before calling this loader.
+  /// The loader must check that the resolved file is allowed to be read.
+  ///
+  /// The returned URL is used directly, without another [_isSafeUrl] check, so
+  /// the loader can return data or blob URLs for images it has loaded. It must
+  /// generate the URL itself or validate any URL it gets from an untrusted source.
   final Future<String?> Function(Uri uri)? loadImage;
 
   static int _nextId = 0;
