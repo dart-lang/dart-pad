@@ -60,11 +60,11 @@ Set<String> inferPackageDependencies(Iterable<ProjectFile> files) {
 /// constraints. Dependency inference is separate so startup can select the SDK
 /// first.
 ProjectFile generatePubspec(Iterable<String> dependencies, {required String sdkConstraint}) {
-  final allDependencies = dependencies.toSet();
-  if (allDependencies.contains('flutter')) {
-    allDependencies.addAll(['cupertino_ui', 'material_ui']);
+  final uniqueDependencies = dependencies.toSet();
+  if (uniqueDependencies.contains('flutter')) {
+    uniqueDependencies.addAll(['cupertino_ui', 'material_ui']);
   }
-  final sortedDependencies = allDependencies.toList()..sort();
+  final sortedDependencies = uniqueDependencies.toList()..sort();
   final pubspec = StringBuffer('''
 name: _
 publish_to: none
@@ -75,16 +75,14 @@ environment:
   if (sortedDependencies.isNotEmpty) {
     pubspec.writeln('\ndependencies:');
     for (final dependency in sortedDependencies) {
-      if (dependency == 'flutter') {
-        pubspec.writeln('  flutter:\n    sdk: flutter');
-      } else if (dependency == 'material_ui' || dependency == 'cupertino_ui') {
-        pubspec.writeln('  $dependency:');
-      } else {
-        pubspec.writeln('  $dependency: any');
-      }
+      pubspec.writeln(switch (dependency) {
+        'flutter' => '  flutter:\n    sdk: flutter',
+        'material_ui' || 'cupertino_ui' => '  $dependency:',
+        _ => '  $dependency: any',
+      });
     }
   }
-  if (allDependencies.contains('flutter')) {
+  if (uniqueDependencies.contains('flutter')) {
     pubspec.write('''
 
 flutter:
