@@ -26,7 +26,6 @@ const FontFamily _headerFontFamily = .list([
 final class AppBar extends StatelessComponent {
   const AppBar({
     this.onSelectExample,
-    this.restoreAction,
     this.isEmbedMode = false,
     this.isSmallScreen = false,
     this.smallScreenTabBar,
@@ -35,9 +34,6 @@ final class AppBar extends StatelessComponent {
 
   /// Called when the user selects an example from the New menu.
   final void Function(Example example)? onSelectExample;
-
-  /// Temporary action beside New for restoring the last matching project.
-  final Component? restoreAction;
 
   /// Whether the application is running in embed mode.
   final bool isEmbedMode;
@@ -90,7 +86,7 @@ final class AppBar extends StatelessComponent {
   Component _buildAppBar([SmallScreenTabBar? smallScreenTabBar]) {
     final isNewDisabled = onSelectExample == null;
 
-    final appBar = div(classes: 'app-bar${restoreAction != null ? ' app-bar-with-restore' : ''}', [
+    final appBar = div(classes: 'app-bar', [
       // Flutter-style preview corner ribbon overlay.
       const div(classes: 'app-bar-preview-ribbon-wrapper', [
         div(classes: 'app-bar-preview-ribbon', [.text('PREVIEW')]),
@@ -121,7 +117,6 @@ final class AppBar extends StatelessComponent {
           ),
           items: _buildExampleItems(),
         ),
-        ?restoreAction,
       ]),
       // Spacer.
       const div(classes: 'app-bar-spacer', []),
@@ -161,14 +156,6 @@ final class AppBar extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css.media(MediaQuery.screen(maxWidth: 500.px), [
-      // Keep the restore action and overflow menu visible on narrow screens.
-      css(
-        '.app-bar-with-restore .app-bar-title, '
-        '.app-bar-with-restore .app-bar-divider, '
-        '.app-bar-with-restore .app-bar-button-label',
-      ).styles(display: .none),
-    ]),
     css('.app-bar-container').styles(
       display: .flex,
       position: const .relative(),
