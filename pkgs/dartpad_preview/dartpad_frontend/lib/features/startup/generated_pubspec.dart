@@ -47,15 +47,24 @@ Set<String> inferPackageDependencies(Iterable<ProjectFile> files) {
   }
 
   dependencies.remove('_');
+  if (dependencies.contains('material_ui') || dependencies.contains('cupertino_ui')) {
+    dependencies.add('flutter');
+  }
   return dependencies;
 }
 
 /// Generates a root pubspec using the selected runtime's SDK constraint.
 ///
 /// Flutter is represented as an SDK dependency and enables the bundled Material
-/// icons. Dependency inference is separate so startup can select the SDK first.
+/// icons. Flutter projects include the standalone UI libraries without version
+/// constraints. Dependency inference is separate so startup can select the SDK
+/// first.
 ProjectFile generatePubspec(Iterable<String> dependencies, {required String sdkConstraint}) {
-  final sortedDependencies = dependencies.toList()..sort();
+  final allDependencies = dependencies.toSet();
+  if (allDependencies.contains('flutter')) {
+    allDependencies.addAll(['cupertino_ui', 'material_ui']);
+  }
+  final sortedDependencies = allDependencies.toList()..sort();
   final pubspec = StringBuffer('''
 name: _
 publish_to: none
@@ -68,12 +77,14 @@ environment:
     for (final dependency in sortedDependencies) {
       if (dependency == 'flutter') {
         pubspec.writeln('  flutter:\n    sdk: flutter');
+      } else if (dependency == 'material_ui' || dependency == 'cupertino_ui') {
+        pubspec.writeln('  $dependency:');
       } else {
         pubspec.writeln('  $dependency: any');
       }
     }
   }
-  if (dependencies.contains('flutter')) {
+  if (allDependencies.contains('flutter')) {
     pubspec.write('''
 
 flutter:
