@@ -59,6 +59,7 @@ Future<Project> _loadArchive(String archiveUrl) async {
   final project = Project(files);
 
   _disableWorkspaceResolution(project);
+  stripUnavailableDependencies(project);
   return project;
 }
 

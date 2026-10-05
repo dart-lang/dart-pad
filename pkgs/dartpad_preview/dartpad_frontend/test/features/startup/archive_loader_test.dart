@@ -14,6 +14,7 @@ import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   group('ArchiveProjectSource', () {
@@ -38,6 +39,169 @@ void main() {
       final Uint8List tarBytes = createTarArchive(files);
       final List<int> encoded = const GZipEncoder().encode(tarBytes);
       return Uint8List.fromList(encoded);
+    }
+
+    test('comments out dependencies absent from the imported workspace', () async {
+      const pubspec = '''
+name: material_ui
+dependencies:
+  flutter:
+    sdk: flutter
+  local:
+    path: packages/local
+  missing:
+    path: packages/missing
+dev_dependencies:
+  flutter_goldens:
+    path: ../../script/flutter_goldens
+  remote:
+    git:
+      url: https://example.com/remote.git
+      ref: main
+dependency_overrides:
+  external: {path: ../external}
+''';
+      final archive = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'packages/local/pubspec.yaml': 'name: local\n',
+      });
+      final api = MemoryWorkspaceResourceApi();
+      addTearDown(api.dispose);
+      await http.runWithClient(
+        () => loadInto(const ArchiveProjectSource(absoluteUrl), api.root),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final contents = await api.readFileAsText('pubspec.yaml');
+      final yaml = loadYaml(contents) as YamlMap;
+      expect((yaml['dependencies'] as YamlMap).keys, ['flutter', 'local']);
+      expect(yaml['dev_dependencies'], isEmpty);
+      expect(yaml['dependency_overrides'], isEmpty);
+      expect(contents, contains('# flutter_goldens: # stripped by DartPad'));
+      expect(contents, contains('#     path: ../../script/flutter_goldens'));
+      expect(contents, contains('#       url: https://example.com/remote.git'));
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('preserves parent and sibling packages and warns about unavailable dependencies', () async {
+      const pubspec = '''
+name: example
+dependencies:
+  parent: {path: ..}
+  sibling: {path: ../../sibling}
+  missing: {path: ../../missing}
+dev_dependencies:
+  flutter_goldens:
+    path: ../../../script/flutter_goldens
+  remote: {git: https://example.com/remote.git}
+''';
+      final archive = createTarArchive({
+        'packages/root/pubspec.yaml': 'name: parent\n',
+        'packages/root/example/pubspec.yaml': pubspec,
+        'packages/sibling/pubspec.yaml': 'name: sibling\n',
+        'packages/root/example/pubspec_overrides.yaml': 'dependency_overrides:\n  outside: {path: /external}\n',
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
+      expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling']);
+      expect(project.importWarnings, hasLength(4));
+      expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
+      expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
+      expect(project.importWarnings.join('\n'), contains('uses Git'));
+      expect(project.importWarnings.every((warning) => warning.endsWith('was not loaded.')), isTrue);
+      expect(project.importWarnings.join('\n'), contains('packages/root/example/pubspec_overrides.yaml'));
+    });
+
+    for (final (name, pubspec) in [
+      (
+        'flow section',
+        'name: example\ndependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}\n',
+      ),
+      (
+        'flow document',
+        '{name: example, dependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}}',
+      ),
+      (
+        'CRLF block',
+        'name: example\r\ndependencies:\r\n  keep: any\r\n  outside: {path: ../outside}\r\n  remote: {git: https://example.com/repo.git}',
+      ),
+    ]) {
+      test('retains valid YAML when commenting out dependencies in a $name', () async {
+        final archive = createTarArchive({'pubspec.yaml': pubspec});
+        final project = await http.runWithClient(
+          () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+          () => MockClient((_) async => http.Response.bytes(archive, 200)),
+        );
+        final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+        final yaml = loadYaml(text) as YamlMap;
+        expect(yaml['name'], 'example');
+        expect((yaml['dependencies'] as YamlMap).keys, ['keep']);
+        expect(text, contains('stripped by DartPad'));
+        expect(text, contains('../outside'));
+        expect(text, contains('https://example.com/repo.git'));
+        expect(project.importWarnings, hasLength(2));
+      });
+    }
+
+    for (final (position, dependencies) in [
+      ('first', "{outside: {path: '../outside'}, 'keep' : '^1.0.0',}"),
+      ('middle', "{'keep' : '^1.0.0', outside: {path: '../outside'}, local: { path: 'local' }}"),
+      ('last', "{'keep' : '^1.0.0', outside: {path: '../outside'}}"),
+      (
+        'separated',
+        "{remote: {git: 'https://example.com/repo.git'}, 'keep' : '^1.0.0', outside: {path: '../outside'}}",
+      ),
+      (
+        'adjacent',
+        "{'keep' : '^1.0.0', remote: {git: 'https://example.com/repo.git'}, outside: {path: '../outside'},}",
+      ),
+      ('all', "{remote: {git: 'https://example.com/repo.git'}, outside: {path: '../outside'},}"),
+      (
+        'multiline',
+        '''{
+  'keep' : '^1.0.0', # Preserve this comment, including its comma.
+  outside: {path: '../outside'},
+  local: { path: 'local' },
+}''',
+      ),
+      (
+        'commented separator',
+        '''{
+  'keep' : '^1.0.0' # Preserve this comment, including its comma.
+  , outside: {path: '../outside'}
+}''',
+      ),
+    ]) {
+      test('preserves flow-map source formatting when stripping $position entries', () async {
+        final pubspec = 'name: example\ndependencies: $dependencies # Keep the section comment.\n';
+        final archive = createTarArchive({
+          'pubspec.yaml': pubspec,
+          'local/pubspec.yaml': 'name: local\n',
+        });
+        final project = await http.runWithClient(
+          () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+          () => MockClient((_) async => http.Response.bytes(archive, 200)),
+        );
+        final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+        final yaml = loadYaml(text) as YamlMap;
+        final retained = yaml['dependencies'] as YamlMap;
+        expect(retained.containsKey('outside'), isFalse);
+        expect(retained.containsKey('remote'), isFalse);
+        expect(text, contains("# outside: {path: '../outside'} # stripped by DartPad"));
+        expect(text, contains('# Keep the section comment.'));
+        if (position != 'all') {
+          expect(retained['keep'], '^1.0.0');
+          expect(text, contains("'keep' : '^1.0.0'"));
+        }
+        if (dependencies.contains('# Preserve')) {
+          expect(text, contains('# Preserve this comment,'));
+        }
+        if (position == 'multiline') {
+          expect(text, contains("local: { path: 'local' }"));
+        }
+      });
     }
 
     for (final compressed in [false, true]) {

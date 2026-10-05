@@ -11,12 +11,15 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
+import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
 import 'package:jaspr/dom.dart' show div;
 import 'package:jaspr_test/client_test.dart';
+import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 import '../../worker_fixture.dart';
@@ -94,6 +97,42 @@ void main() {
     await pumpEventQueue();
     expect(created, isFalse);
     expect(web.document.body!.textContent, contains('SDK not available: dart:0.0.0'));
+  });
+
+  testClient('reports stripped import dependencies as warnings before resolving', (tester) async {
+    final project = contents({
+      'pubspec.yaml': 'name: demo\ndev_dependencies:\n  flutter_goldens:\n    path: ../../script/flutter_goldens\n',
+    });
+    stripUnavailableDependencies(project);
+    final logs = <LogEvent>[];
+    WorkspaceRepository? repository;
+    tester.pumpComponent(
+      App(
+        projectStore: MemoryProjectStore(),
+        initialUri: Uri.parse('?package=demo'),
+        loadSource: (_) async => project,
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+          final subscription = events.on<LogEvent>().listen(logs.add);
+          addTearDown(subscription.cancel);
+          return repository = WorkspaceRepository(
+            events: events,
+            sdk: sdk,
+            taskStatus: taskStatus,
+            workspaceResourceApi: localApi!,
+            workspaceFuture: Completer<Workspace>().future,
+          );
+        },
+      ),
+    );
+    await pumpEventQueue();
+    expect(logs, hasLength(1));
+    expect(logs.single.level, Level.WARNING);
+    expect(logs.single.message, contains('Dependency "flutter_goldens"'));
+    expect(logs.single.message, contains('outside the imported workspace'));
+    expect(
+      await repository!.workspaceResourceApi.readFileAsText('pubspec.yaml'),
+      contains('# flutter_goldens: # stripped by DartPad'),
+    );
   });
 
   for (final source in [
