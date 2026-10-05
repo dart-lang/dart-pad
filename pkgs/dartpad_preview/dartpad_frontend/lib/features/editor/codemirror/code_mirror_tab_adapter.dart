@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
@@ -11,6 +13,7 @@ import 'package:web/web.dart' as web;
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/context_menu.dart';
+import '../../shared/events/error_toast_event.dart';
 import '../../shared/supported_file_types.dart';
 import 'code_mirror_tab.dart';
 
@@ -22,6 +25,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     this.events,
     this.onRun,
     this.readSystemFile,
+    this.readSystemFileAsBytes,
   });
 
   final ContextMenuController? contextMenu;
@@ -30,6 +34,9 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
 
   /// Reads URI-addressed files that are outside the project workspace.
   final Future<String> Function(Uri uri)? readSystemFile;
+
+  /// Reads image bytes from SDK and pub-cache files in the worker.
+  final Future<Uint8List> Function(Uri uri)? readSystemFileAsBytes;
 
   TabsController<Component>? _tabs;
   LanguageServerClient? _languageServerClient;
@@ -71,6 +78,8 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       languageServerClient: _languageServerClient,
       contextMenu: contextMenu,
       events: events,
+      onOpenMarkdownFile: _openMarkdownFile,
+      loadMarkdownImage: _loadWorkspaceMarkdownImage,
     );
   }
 
@@ -85,7 +94,64 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       content: await reader(uri),
       onRun: onRun,
       languageServerClient: _languageServerClient,
+      onOpenMarkdownFile: _openMarkdownFile,
+      loadMarkdownImage: _loadSystemMarkdownImage,
     );
+  }
+
+  Future<void> _openMarkdownFile(Uri uri) async {
+    final tabs = _tabs;
+    if (tabs == null) {
+      return;
+    }
+    try {
+      if (!uri.hasScheme) {
+        final path = _workspaceMarkdownPath(uri);
+        if (path == null) {
+          return;
+        }
+        await tabs.openWorkspaceFile(path);
+      } else {
+        // The worker addresses files by path, without URL queries or anchors.
+        await tabs.openSystemFile(uri.resolve(uri.path));
+      }
+      if (tabs.activeTab case final CodeMirrorTab tab when uri.hasFragment) {
+        tab.revealMarkdownFragment(uri.fragment);
+      }
+    } on TabOpenCancelledException {
+      // Closing the workspace while a linked file loads cancels navigation.
+    } catch (_) {
+      events?.dispatch(const ErrorToastEvent('Could not open linked file.'));
+    }
+  }
+
+  Future<String?> _loadWorkspaceMarkdownImage(Uri uri) async {
+    final path = _workspaceMarkdownPath(uri);
+    final mimeType = path == null ? null : imageMimeTypeForPath(path);
+    final tabs = _tabs;
+    if (path == null || mimeType == null || tabs == null) {
+      return null;
+    }
+    final bytes = await tabs.workspaceResourceApi.readFileAsBytes(path);
+    return 'data:$mimeType;base64,${base64Encode(bytes)}';
+  }
+
+  Future<String?> _loadSystemMarkdownImage(Uri uri) async {
+    final mimeType = imageMimeTypeForPath(Uri.decodeComponent(uri.path));
+    final reader = readSystemFileAsBytes;
+    if (mimeType == null || reader == null || _tabs == null) {
+      return null;
+    }
+    final bytes = await reader(uri.resolve(uri.path));
+    return 'data:$mimeType;base64,${base64Encode(bytes)}';
+  }
+
+  String? _workspaceMarkdownPath(Uri uri) {
+    if (uri.hasScheme || uri.hasAuthority || !uri.path.startsWith('/')) {
+      return null;
+    }
+    final path = normalizeWorkspacePath(Uri.decodeComponent(uri.path).substring(1));
+    return isWithinWorkspaceFolder(path, '') ? path : null;
   }
 
   void _saveAll() {

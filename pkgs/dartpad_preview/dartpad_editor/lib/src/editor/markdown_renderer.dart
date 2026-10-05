@@ -1,0 +1,182 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:js_interop';
+
+import 'package:markdown/markdown.dart' as md;
+import 'package:web/web.dart' as web;
+
+/// Whether a file supports Markdown preview and editing.
+bool isMarkdownFile(String path) {
+  final lowerPath = path.toLowerCase();
+  return lowerPath.endsWith('.md') || lowerPath.endsWith('.markdown');
+}
+
+/// Renders GitHub-flavored Markdown into a DOM node without a UI framework.
+///
+/// Raw HTML stays text and URLs are restricted to safe protocols, so project
+/// documentation cannot execute scripts in the editor's browser context.
+final class MarkdownRenderer {
+  MarkdownRenderer({this.onOpenFile, this.loadImage}) : container = web.HTMLDivElement() {
+    container.className = 'markdown-preview';
+    container.setAttribute('role', 'document');
+    container.setAttribute('aria-label', 'Markdown preview');
+    container.tabIndex = 0;
+  }
+
+  final web.HTMLDivElement container;
+
+  /// Opens a document-relative file in the host editor instead of the browser.
+  final Future<void> Function(Uri uri)? onOpenFile;
+
+  /// Resolves an image from the host's virtual filesystem to a display URL.
+  /// Only this trusted loader may supply generated data or blob URLs.
+  final Future<String?> Function(Uri uri)? loadImage;
+
+  static int _nextId = 0;
+  final String _idPrefix = 'markdown-${_nextId++}-';
+  final Map<String, web.Element> _headings = {};
+  String? _content;
+  Uri? _documentUri;
+
+  /// Updates the preview when its content or document URI changes.
+  void render(String content, {Uri? documentUri}) {
+    if (_content == content && _documentUri == documentUri) {
+      return;
+    }
+    _content = content;
+    _documentUri = documentUri;
+    final document = md.Document(extensionSet: md.ExtensionSet.gitHubWeb, encodeHtml: false);
+    final nodes = document.parseLines(const LineSplitter().convert(content));
+    container.textContent = '';
+    _headings.clear();
+    for (final node in nodes) {
+      container.appendChild(_buildNode(node));
+    }
+  }
+
+  /// Reveals an anchor within this preview without navigating the host page.
+  void scrollToFragment(String fragment) {
+    if (fragment.isEmpty) {
+      container.scrollTop = 0;
+      return;
+    }
+    final heading = _headings[Uri.decodeComponent(fragment)];
+    if (heading != null) {
+      // Scroll only the preview: scrollIntoView can move surrounding app panels.
+      final top = heading.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+      container.scrollTop = top;
+    }
+  }
+
+  web.Node _buildNode(md.Node node) {
+    if (node is! md.Element) {
+      return web.document.createTextNode(node.textContent);
+    }
+    final element = web.document.createElement(node.tag);
+    for (final child in node.children ?? <md.Node>[]) {
+      element.appendChild(_buildNode(child));
+    }
+    final attributes = node.attributes;
+    if (attributes['title'] case final title?) {
+      element.setAttribute('title', title);
+    }
+    if (attributes['href'] case final href? when node.tag == 'a' && _isSafeUrl(href)) {
+      _setLinkDestination(element, href);
+    } else if (node.tag == 'img') {
+      element.setAttribute('alt', attributes['alt'] ?? '');
+      if (attributes['src'] case final src? when _isSafeUrl(src, image: true)) {
+        final uri = Uri.parse(src);
+        if (!uri.hasScheme && !uri.hasAuthority) {
+          if (_documentUri case final documentUri?) {
+            unawaited(_loadImage(element, documentUri.resolveUri(uri)));
+          }
+        } else {
+          element.setAttribute('src', src);
+        }
+        element.setAttribute('loading', 'lazy');
+      }
+    } else if (node.tag == 'input') {
+      element.setAttribute('type', 'checkbox');
+      element.setAttribute('disabled', '');
+      if (attributes.containsKey('checked')) {
+        element.setAttribute('checked', '');
+      }
+    } else if (attributes['start'] case final start? when node.tag == 'ol') {
+      element.setAttribute('start', start);
+    }
+    if (node.generatedId case final id?) {
+      var uniqueId = id;
+      var suffix = 1;
+      while (_headings.containsKey(uniqueId)) {
+        uniqueId = '$id-${suffix++}';
+      }
+      _headings[uniqueId] = element;
+      element.setAttribute('id', '$_idPrefix$uniqueId');
+    }
+    return element;
+  }
+
+  void _setLinkDestination(web.Element link, String href) {
+    final uri = Uri.parse(href);
+    if (href.startsWith('#')) {
+      link.setAttribute('href', Uri(fragment: '$_idPrefix${Uri.decodeComponent(uri.fragment)}').toString());
+      link.addEventListener(
+        'click',
+        ((web.Event event) {
+          event.preventDefault();
+          scrollToFragment(uri.fragment);
+        }).toJS,
+      );
+      return;
+    }
+    if (!uri.hasScheme && !uri.hasAuthority) {
+      final documentUri = _documentUri;
+      final openFile = onOpenFile;
+      if (documentUri == null || openFile == null) {
+        return;
+      }
+      final target = documentUri.resolveUri(uri);
+      link.setAttribute('href', target.toString());
+      link.addEventListener(
+        'click',
+        ((web.Event event) {
+          event.preventDefault();
+          unawaited(openFile(target));
+        }).toJS,
+      );
+      return;
+    }
+    link.setAttribute('href', href);
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  }
+
+  Future<void> _loadImage(web.Element image, Uri uri) async {
+    try {
+      final url = await loadImage?.call(uri);
+      // A content edit or rename may replace the image while its bytes load.
+      if (url != null && container.contains(image)) {
+        image.setAttribute('src', url);
+      }
+    } catch (_) {
+      // Missing or unsupported images retain their alt text, without requesting
+      // an unrelated resource from the DartPad web server.
+    }
+  }
+
+  bool _isSafeUrl(String value, {bool image = false}) {
+    // Browsers strip control characters from URL schemes before navigating.
+    if (RegExp(r'[\x00-\x20\x7f]').hasMatch(value)) {
+      return false;
+    }
+    final uri = Uri.tryParse(value);
+    if (uri == null) {
+      return false;
+    }
+    return !uri.hasScheme || const {'http', 'https'}.contains(uri.scheme) || (!image && uri.scheme == 'mailto');
+  }
+}

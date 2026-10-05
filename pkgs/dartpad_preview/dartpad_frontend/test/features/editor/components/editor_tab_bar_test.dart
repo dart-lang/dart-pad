@@ -239,5 +239,64 @@ void main() {
       expect(cleanAction.className, isNot(contains('dirty')));
       expect(cleanAction.querySelector('.editor-tab-dirty-dot'), isNull);
     });
+
+    testClient('renders trailing actions when provided and ignores right click', (tester) async {
+      final contextMenu = ContextMenuController();
+      final tab = _TestEditorTab('lib/clean.dart', unsaved: false);
+
+      tester.pumpComponent(
+        div([
+          EditorTabBar(
+            openTabs: [tab],
+            activeFile: 'lib/clean.dart',
+            onSwitchFile: (_) {},
+            onCloseFile: (_, {discardChanges = false}) => true,
+            contextMenu: contextMenu,
+            trailing: const div(classes: 'test-action-button', [Component.text('Action')]),
+          ),
+          ListenableBuilder(
+            listenable: contextMenu,
+            builder: (context) => contextMenu.isOpen
+                ? ContextMenu(
+                    x: contextMenu.x,
+                    y: contextMenu.y,
+                    items: contextMenu.items,
+                    onClose: contextMenu.hide,
+                  )
+                : const Component.fragment([]),
+          ),
+        ]),
+      );
+
+      final actions = web.document.querySelector('.editor-tab-bar-actions');
+      expect(actions, isNotNull);
+      expect(actions!.querySelector('.test-action-button')?.textContent, 'Action');
+
+      final actionButton = actions.querySelector('.test-action-button') as web.HTMLElement;
+      actionButton.dispatchEvent(
+        web.MouseEvent(
+          'contextmenu',
+          web.MouseEventInit(clientX: 20, clientY: 20, bubbles: true, cancelable: true),
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(contextMenu.isOpen, isFalse);
+    });
+
+    testClient('omits trailing actions container when trailing is null', (tester) async {
+      final tab = _TestEditorTab('lib/clean.dart', unsaved: false);
+
+      tester.pumpComponent(
+        EditorTabBar(
+          openTabs: [tab],
+          activeFile: 'lib/clean.dart',
+          onSwitchFile: (_) {},
+          onCloseFile: (_, {discardChanges = false}) => true,
+        ),
+      );
+
+      expect(web.document.querySelector('.editor-tab-bar-actions'), isNull);
+    });
   });
 }

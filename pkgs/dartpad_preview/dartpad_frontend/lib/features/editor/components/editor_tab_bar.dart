@@ -27,6 +27,7 @@ final class EditorTabBar extends StatelessComponent {
     required this.onCloseFile,
     this.confirmDiscard,
     this.contextMenu,
+    this.trailing,
     super.key,
   });
 
@@ -47,6 +48,10 @@ final class EditorTabBar extends StatelessComponent {
 
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
+
+  /// An optional trailing component displayed on the far right of the tab bar
+  /// (e.g. Markdown preview/edit switch).
+  final Component? trailing;
 
   bool _closeSingleTab(EditorTab<Component> tabToClose) {
     final discardChanges =
@@ -89,54 +94,64 @@ final class EditorTabBar extends StatelessComponent {
         'contextmenu': _handleTabBarContextMenu,
       },
       [
-        for (final tab in openTabs)
-          div(
-            key: ValueKey('tab-${tab.path}'),
-            classes: [
-              'editor-tab',
-              if (tab.path == activeFile) 'active',
-              if (tab.hasUnsavedChanges) 'dirty',
-            ].join(' '),
-            attributes: {
-              'title': tab.displayPath,
-              'tabindex': '0',
-              'role': 'tab',
-              'aria-selected': tab.path == activeFile ? 'true' : 'false',
-            },
-            events: {
-              'click': (_) => onSwitchFile(tab.path),
-              'keydown': (event) {
-                final keyboardEvent = event as web.KeyboardEvent;
-                if (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ') {
-                  onSwitchFile(tab.path);
-                }
-              },
-              'contextmenu': (event) => _handleTabContextMenu(event, tab),
-            },
-            [
-              span(classes: 'editor-tab-name', [.text(tab.name)]),
-              button(
+        div(
+          classes: 'editor-tab-strip',
+          [
+            for (final tab in openTabs)
+              div(
+                key: ValueKey('tab-${tab.path}'),
                 classes: [
-                  'editor-tab-action',
-                  'close',
+                  'editor-tab',
+                  if (tab.path == activeFile) 'active',
                   if (tab.hasUnsavedChanges) 'dirty',
                 ].join(' '),
                 attributes: {
-                  'title': 'Close tab',
-                  'aria-label': 'Close ${tab.name}',
+                  'title': tab.displayPath,
+                  'tabindex': '0',
+                  'role': 'tab',
+                  'aria-selected': tab.path == activeFile ? 'true' : 'false',
                 },
                 events: {
-                  'click': (event) {
-                    event.stopPropagation();
-                    _closeSingleTab(tab);
+                  'click': (_) => onSwitchFile(tab.path),
+                  'keydown': (event) {
+                    final keyboardEvent = event as web.KeyboardEvent;
+                    if (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ') {
+                      onSwitchFile(tab.path);
+                    }
                   },
+                  'contextmenu': (event) => _handleTabContextMenu(event, tab),
                 },
                 [
-                  if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
-                  const Icon('close', size: 12),
+                  span(classes: 'editor-tab-name', [.text(tab.name)]),
+                  button(
+                    classes: [
+                      'editor-tab-action',
+                      'close',
+                      if (tab.hasUnsavedChanges) 'dirty',
+                    ].join(' '),
+                    attributes: {
+                      'title': 'Close tab',
+                      'aria-label': 'Close ${tab.name}',
+                    },
+                    events: {
+                      'click': (event) {
+                        event.stopPropagation();
+                        _closeSingleTab(tab);
+                      },
+                    },
+                    [
+                      if (tab.hasUnsavedChanges) const span(classes: 'editor-tab-dirty-dot', []),
+                      const Icon('close', size: 12),
+                    ],
+                  ),
                 ],
               ),
-            ],
+          ],
+        ),
+        if (trailing != null)
+          div(
+            classes: 'editor-tab-bar-actions',
+            [trailing!],
           ),
       ],
     );
@@ -149,7 +164,7 @@ final class EditorTabBar extends StatelessComponent {
     }
     final mouseEvent = event as web.MouseEvent;
     final target = mouseEvent.target as web.Element?;
-    if (target?.closest('.editor-tab') != null) {
+    if (target?.closest('.editor-tab') != null || target?.closest('.editor-tab-bar-actions') != null) {
       return;
     }
     event.preventDefault();
@@ -219,10 +234,30 @@ final class EditorTabBar extends StatelessComponent {
       css('&').styles(
         display: .flex,
         minHeight: 38.px,
-        overflow: const .only(x: .auto, y: .hidden),
+        justifyContent: .spaceBetween,
+        alignItems: .stretch,
         flex: const .shrink(0),
         backgroundColor: colorSurface,
       ),
+      css('.editor-tab-strip', [
+        css('&').styles(
+          display: .flex,
+          minWidth: .zero,
+          overflow: const .only(x: .auto, y: .hidden),
+          alignItems: .stretch,
+          flex: const Flex(grow: 1, shrink: 1, basis: .zero),
+        ),
+      ]),
+      css('.editor-tab-bar-actions', [
+        css('&').styles(
+          display: .flex,
+          height: 100.percent,
+          padding: .symmetric(vertical: 2.px, horizontal: 6.px),
+          boxSizing: .borderBox,
+          alignItems: .stretch,
+          flex: const .shrink(0),
+        ),
+      ]),
       css('.editor-tab', [
         css('&').styles(
           display: .flex,

@@ -6,6 +6,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -15,9 +16,11 @@ import 'package:dartpad_frontend/features/bottom_panel/view_models/diagnostics_v
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'package:dartpad_frontend/features/editor/components/code_action_panel.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
+import 'package:jaspr/dom.dart' as dom;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -96,6 +99,7 @@ void main() {
             await systemReadGate?.future;
             return systemFiles[uri]!;
           },
+          readSystemFileAsBytes: (uri) async => Uint8List.fromList(systemFiles[uri]!.codeUnits),
           onRun: () => runCount++,
         ),
       ],
@@ -136,6 +140,166 @@ void main() {
       ['lib/main.dart'],
     );
     expect(tabs!.activeFile, 'lib/main.dart');
+  });
+
+  testClient('Markdown opens in preview and switches to edit in the tab bar', (tester) async {
+    workspace.files['README.MD'] = '# Original';
+    await tabs!.openWorkspaceFile('README.MD');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) => EditorShell(
+          openTabs: tabs!.openTabs,
+          activeFile: tabs!.activeFile,
+          fileTree: const dom.div([]),
+          editorOverlay: const Component.fragment([]),
+          onSwitchFile: tabs!.switchFile,
+          onCloseFile: tabs!.closeFile,
+          bottomPanel: const dom.div([]),
+        ),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(tab.isMarkdownPreview, isTrue);
+    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Original');
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isTrue);
+    final switcher = web.document.querySelector('.markdown-view-switch')!;
+    expect(switcher.closest('.editor-tab-bar'), isNotNull);
+    expect(switcher.closest('.editor-tab-bar-actions'), isNotNull);
+    expect(switcher.querySelector('[aria-pressed="true"]')!.textContent, 'Preview');
+
+    (switcher.querySelectorAll('button').item(1) as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(tab.isMarkdownPreview, isFalse);
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isFalse);
+    expect(web.document.querySelector('.markdown-rendered')!.hasAttribute('hidden'), isTrue);
+    editor.text = '# Edited';
+    editor.view.dispatch(TransactionSpec(selection: EditorSelection.single(4)));
+    (switcher.querySelector('button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(tab.isMarkdownPreview, isTrue);
+    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Edited');
+    expect(tab.editor, same(editor));
+    expect(tab.hasUnsavedChanges, isTrue);
+    expect(workspace.files['README.MD'], '# Original');
+    await tab.save();
+    expect(workspace.files['README.MD'], '# Edited');
+    tabs!.switchFile('lib/main.dart');
+    await pumpEventQueue();
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
+    tabs!.switchFile('README.MD');
+    await pumpEventQueue();
+    tab.setMarkdownPreview(preview: false);
+    await pumpEventQueue();
+    expect(editor.view.state.selection.main.head, 4);
+  });
+
+  test('Markdown mode belongs to each tab and survives closing and reopening', () async {
+    workspace.files['README.md'] = '# Readme';
+    workspace.files['other.markdown'] = '# Other';
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    tab.setMarkdownPreview(preview: false);
+    await tabs!.openWorkspaceFile('other.markdown');
+    expect((tabs!.activeTab! as CodeMirrorTab).isMarkdownPreview, isTrue);
+    tabs!.closeTab('README.md');
+    await tabs!.openWorkspaceFile('README.md');
+    expect(tabs!.activeTab, same(tab));
+    expect(tab.isMarkdownPreview, isFalse);
+    tab.rename('README.txt');
+    expect(tab.isMarkdown, isFalse);
+  });
+
+  testClient('Markdown loads project images and opens relative links in editor tabs', (tester) async {
+    final styles = web.HTMLStyleElement()..textContent = '.markdown-preview { height: 80px; overflow: auto; }';
+    web.document.head!.appendChild(styles);
+    // dart2js does not support tear-offs of JS interop methods.
+    // ignore: unnecessary_lambdas
+    addTearDown(() => styles.remove());
+    workspace.files['docs/README.md'] =
+        '[Guide](guide%20intro.md#details)\n\n![Logo](assets/logo.png)\n\n![Parent](../logo.png)';
+    workspace.files['docs/guide intro.md'] = '# Intro\n\n${List.filled(20, 'Paragraph.').join('\n\n')}\n\n# Details';
+    workspace.files['docs/assets/logo.png'] = 'document image';
+    workspace.files['logo.png'] = 'root image';
+    await tabs!.openWorkspaceFile('docs/README.md');
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) =>
+            EditorStack(openTabs: tabs!.openTabs, activeFile: tabs!.activeFile, overlay: const Component.fragment([])),
+      ),
+    );
+    await pumpEventQueue();
+    final preview = web.document.querySelector('.markdown-preview')!;
+    final images = preview.querySelectorAll('img');
+    expect(
+      (images.item(0) as web.Element).getAttribute('src'),
+      'data:image/png;base64,${base64Encode('document image'.codeUnits)}',
+    );
+    expect(
+      (images.item(1) as web.Element).getAttribute('src'),
+      'data:image/png;base64,${base64Encode('root image'.codeUnits)}',
+    );
+    (preview.querySelector('a')! as web.HTMLAnchorElement).click();
+    await pumpEventQueue();
+    expect(tabs!.activeFile, 'docs/guide intro.md');
+    expect((tabs!.activeTab! as CodeMirrorTab).isMarkdownPreview, isTrue);
+    expect(
+      (web.document.querySelector('.editor-tab-slot.active .markdown-preview')! as web.HTMLElement).scrollTop,
+      greaterThan(0),
+    );
+  });
+
+  testClient('system Markdown resolves relative links and images through the worker readers', (tester) async {
+    final uri = Uri.parse('file:///pub-cache/example/docs/README.md');
+    systemFiles[uri] = '[Guide](../guide.md?raw=true#guide)\n\n![Logo](assets/logo.png?raw=true)';
+    systemFiles[uri.resolve('../guide.md')] = '# Guide';
+    systemFiles[uri.resolve('assets/logo.png')] = 'system image';
+    await tabs!.openSystemFile(uri);
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) =>
+            EditorStack(openTabs: tabs!.openTabs, activeFile: tabs!.activeFile, overlay: const Component.fragment([])),
+      ),
+    );
+    await pumpEventQueue();
+    final preview = web.document.querySelector('.markdown-preview')!;
+    expect(
+      preview.querySelector('img')!.getAttribute('src'),
+      'data:image/png;base64,${base64Encode('system image'.codeUnits)}',
+    );
+    (preview.querySelector('a')! as web.HTMLAnchorElement).click();
+    await pumpEventQueue();
+    expect(tabs!.activeFile, uri.resolve('../guide.md').toString());
+    expect(tabs!.activeTab!.isReadOnly, isTrue);
+  });
+
+  testClient('system Markdown stays read-only and navigation reveals its source', (tester) async {
+    final uri = Uri.parse('file:///pub-cache/example/README.md');
+    systemFiles[uri] = '# System';
+    await tabs!.openSystemFile(uri);
+    final tab = tabs!.activeTab! as SystemCodeMirrorTab;
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) => tab.build(),
+      ),
+    );
+    await pumpEventQueue();
+    expect(tab.isMarkdownPreview, isTrue);
+    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'System');
+    tab.goToPosition(0, 2);
+    await pumpEventQueue();
+    expect(tab.isMarkdownPreview, isFalse);
+    expect(tab.editor.view.state.selection.main.head, 2);
+    tab.editor.text = 'Cannot edit';
+    expect(tab.content, '# System');
+    expect(tab.hasUnsavedChanges, isFalse);
   });
 
   testClient('opens system URIs as navigable read-only tabs', (tester) async {
