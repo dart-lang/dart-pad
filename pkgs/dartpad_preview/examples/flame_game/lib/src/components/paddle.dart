@@ -10,13 +10,9 @@ import 'package:flutter/services.dart';
 
 import '../game.dart';
 
-class Paddle extends PositionComponent
-    with DragCallbacks, HasGameReference<BrickBreaker>, KeyboardHandler {
-  Paddle({
-    required this.cornerRadius,
-    required super.position,
-    required super.size,
-  }) : super(anchor: Anchor.center, children: [RectangleHitbox()]);
+class Paddle extends PositionComponent with DragCallbacks, HasGameReference<BrickBreaker>, KeyboardHandler {
+  Paddle({required this.cornerRadius, required super.position, required super.size})
+    : super(anchor: Anchor.center, children: [RectangleHitbox()]);
 
   final Radius cornerRadius;
 
@@ -29,28 +25,17 @@ class Paddle extends PositionComponent
     super.update(dt);
 
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
-        keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      position.x = (position.x - (dt * 500)).clamp(
-        width / 2,
-        game.width - width / 2,
-      );
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
-        keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      position.x = (position.x + (dt * 500)).clamp(
-        width / 2,
-        game.width - width / 2,
-      );
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) || keysPressed.contains(LogicalKeyboardKey.keyA)) {
+      position.x = (position.x - (dt * 500)).clamp(width / 2, game.width - width / 2);
+    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) || keysPressed.contains(LogicalKeyboardKey.keyD)) {
+      position.x = (position.x + (dt * 500)).clamp(width / 2, game.width - width / 2);
     }
   }
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Offset.zero & size.toSize(), cornerRadius),
-      _paint,
-    );
+    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size.toSize(), cornerRadius), _paint);
   }
 
   @override
@@ -59,9 +44,6 @@ class Paddle extends PositionComponent
       return;
     }
     super.onDragUpdate(event);
-    position.x = (position.x + event.localDelta.x).clamp(
-      width / 2,
-      game.width - width / 2,
-    );
+    position.x = (position.x + event.localDelta.x).clamp(width / 2, game.width - width / 2);
   }
 }
