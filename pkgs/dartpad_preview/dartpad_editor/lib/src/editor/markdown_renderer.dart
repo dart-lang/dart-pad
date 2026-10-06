@@ -9,6 +9,8 @@ import 'dart:js_interop';
 import 'package:markdown/markdown.dart' as md;
 import 'package:web/web.dart' as web;
 
+import '../workspace/workspace_path.dart';
+
 /// Whether a file supports Markdown preview and editing.
 bool isMarkdownFile(String path) {
   final lowerPath = path.toLowerCase();
@@ -105,7 +107,7 @@ final class MarkdownRenderer {
       element.setAttribute('referrerpolicy', 'no-referrer');
       if (attributes['src'] case final src? when _isSafeUrl(src, image: true)) {
         final uri = Uri.parse(src);
-        if (_isDocumentRelative(uri)) {
+        if (isDocumentRelativeUri(uri)) {
           if (_documentUri case final documentUri?) {
             unawaited(_loadImage(element, documentUri.resolveUri(uri)));
           }
@@ -139,8 +141,6 @@ final class MarkdownRenderer {
     element.setAttribute('id', '$_idPrefix$uniqueId');
   }
 
-  bool _isDocumentRelative(Uri uri) => !uri.hasScheme && !uri.hasAuthority;
-
   void _configureLink(web.Element link, String href) {
     final uri = Uri.parse(href);
     if (href.startsWith('#')) {
@@ -154,7 +154,7 @@ final class MarkdownRenderer {
       );
       return;
     }
-    if (_isDocumentRelative(uri)) {
+    if (isDocumentRelativeUri(uri)) {
       final documentUri = _documentUri;
       final openFile = onOpenFile;
       if (documentUri == null || openFile == null) {

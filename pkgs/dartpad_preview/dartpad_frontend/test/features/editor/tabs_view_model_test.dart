@@ -256,9 +256,9 @@ void main() {
 
   testClient('system Markdown resolves relative links and images through the worker readers', (tester) async {
     final uri = Uri.parse('file:///pub-cache/example/docs/README.md');
-    systemFiles[uri] = '[Guide](../guide.md?raw=true#guide)\n\n![Logo](assets/logo.png?raw=true)';
+    systemFiles[uri] = '[Guide](../guide.md?raw=true#guide)\n\n![Logo](assets/logo%20image.png?raw=true)';
     systemFiles[uri.resolve('../guide.md')] = '# Guide';
-    systemFiles[uri.resolve('assets/logo.png')] = 'system image';
+    systemFiles[uri.resolve('assets/logo%20image.png')] = 'system image';
     await tabs!.openSystemFile(uri);
     tester.pumpComponent(
       ListenableBuilder(
@@ -277,6 +277,33 @@ void main() {
     await pumpEventQueue();
     expect(tabs!.activeFile, uri.resolve('../guide.md').toString());
     expect(tabs!.activeTab!.isReadOnly, isTrue);
+    final tab = tabs!.activeTab! as CodeMirrorTab;
+    expect(await tab.loadMarkdownImage!(Uri.parse('/logo.png')), isNull);
+    await tab.onOpenMarkdownFile!(Uri.parse('/lib/main.dart'));
+    expect(tabs!.activeFile, uri.resolve('../guide.md').toString());
+  });
+
+  test('Markdown rejects invalid workspace assets and callbacks after disposal', () async {
+    workspace.files['README.md'] = '# Readme';
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as CodeMirrorTab;
+    for (final path in [
+      'relative.png',
+      '//example.com/logo.png',
+      '/%2e%2e%2flogo.png',
+      '/%2foutside.png',
+      'file:///sdk/logo.png',
+    ]) {
+      final uri = Uri.parse(path);
+      expect(await tab.loadMarkdownImage!(uri), isNull, reason: path);
+      await tab.onOpenMarkdownFile!(uri);
+      expect(tabs!.activeFile, 'README.md', reason: path);
+    }
+    expect(await tab.loadMarkdownImage!(Uri.parse('/README.md')), isNull);
+    tabs!.dispose();
+    tabs = null;
+    expect(await tab.loadMarkdownImage!(Uri.parse('/logo.png')), isNull);
+    await tab.onOpenMarkdownFile!(Uri.parse('/README.md'));
   });
 
   testClient('opens system URIs as navigable read-only tabs', (tester) async {

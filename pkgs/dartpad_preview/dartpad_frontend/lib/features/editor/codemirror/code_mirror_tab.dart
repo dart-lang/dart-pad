@@ -147,6 +147,7 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     if (isMarkdownPreview) {
       renderer.render(
         content,
+        // Asset resolution needs a root-relative workspace URI or the existing full system URI.
         documentUri: switch (origin) {
           EditorTabOrigin.workspace => Uri(path: '/$path'),
           EditorTabOrigin.system => Uri.parse(path),
