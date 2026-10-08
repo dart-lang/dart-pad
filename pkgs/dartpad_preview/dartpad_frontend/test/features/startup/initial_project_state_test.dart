@@ -81,6 +81,19 @@ void main() {
       }
     });
 
+    test('hideFileNavigation defaults to true in embed mode and false otherwise', () {
+      expect(ProjectRequest.fromUri(Uri.parse('/')).hideFileNavigation, isFalse);
+      expect(ProjectRequest.fromUri(Uri.parse('/?hideFileNavigation=true')).hideFileNavigation, isFalse);
+      expect(ProjectRequest.fromUri(Uri.parse('/?embed=false&hideFileNavigation=true')).hideFileNavigation, isFalse);
+      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true')).hideFileNavigation, isTrue);
+      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=true')).hideFileNavigation, isTrue);
+      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=false')).hideFileNavigation, isFalse);
+      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=FALSE')).hideFileNavigation, isFalse);
+      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?embed=true')), isTrue);
+      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?embed=true&hideFileNavigation=false')), isFalse);
+      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?hideFileNavigation=true')), isFalse);
+    });
+
     test('clamps split percentages and defaults invalid values for every embed source', () {
       for (final source in ['sample=counter', 'sample_id=material.AppBar.1']) {
         for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {

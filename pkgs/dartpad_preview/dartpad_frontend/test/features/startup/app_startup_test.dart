@@ -509,12 +509,48 @@ void main() {
 
         expect(web.document.querySelector('.app-bar'), isNull);
         expect(web.document.querySelector('.app-footer'), isNull);
-        expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+        expect(web.document.querySelector('.file-tree-rail'), isNull);
+        expect(web.document.querySelector('.file-tree'), isNull);
+        expect(web.document.querySelector('.editor-tab-bar'), isNull);
+        expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
         final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
         expect(editorShell.style.flexGrow, (split / 100).toString());
       });
     }
   }
+
+  testClient('embed mode with hideFileNavigation=false shows file tree rail, tabs, and breadcrumbs', (tester) async {
+    tester.pumpComponent(
+      App(
+        projectStore: MemoryProjectStore(),
+        initialUri: Uri.parse(
+          '/?sample_id=material.AppBar.1&channel=stable&split=60&embed=true&hideFileNavigation=false',
+        ),
+        loadSource: (_) async => contents({
+          'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
+        }),
+        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+          expect(sdk.isFlutter, isTrue);
+          expect(deferWorker, isTrue);
+          return WorkspaceRepository(
+            events: events,
+            taskStatus: taskStatus,
+            sdk: sdk,
+            workspaceResourceApi: localApi!,
+          );
+        },
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(web.document.querySelector('.app-bar'), isNull);
+    expect(web.document.querySelector('.app-footer'), isNull);
+    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
+    expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
+    final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
+    expect(editorShell.style.flexGrow, '0.6');
+  });
 
   for (final hasMain in [true, false]) {
     testClient('missing README opens main when available, hasMain=$hasMain', (tester) async {

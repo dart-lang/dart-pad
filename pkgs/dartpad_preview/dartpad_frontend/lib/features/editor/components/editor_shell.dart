@@ -19,13 +19,14 @@ class EditorShell extends StatelessComponent {
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.fileTree,
+    this.fileTree,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bottomPanel,
     this.contextMenu,
     this.isEmbedMode = false,
+    this.hideFileNavigation = false,
     this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
@@ -46,7 +47,7 @@ class EditorShell extends StatelessComponent {
   final bool Function(String path, {bool discardChanges})? onCloseFile;
 
   /// The file tree component to show in the side panel.
-  final Component fileTree;
+  final Component? fileTree;
 
   /// A component displayed above the active editor content.
   final Component editorOverlay;
@@ -62,6 +63,9 @@ class EditorShell extends StatelessComponent {
   /// When `true`, the file tree starts collapsed into a narrow rail with a
   /// toggle button, and the bottom panel (console and problems) starts collapsed.
   final bool isEmbedMode;
+
+  /// Whether file navigation (file tree, tab bar, and breadcrumbs) should be hidden.
+  final bool hideFileNavigation;
 
   /// The preview panel to show when the Output tab is active in a small-screen layout.
   /// When non-null, the preview panel replaces the editor content.
@@ -83,14 +87,15 @@ class EditorShell extends StatelessComponent {
         canCollapseRight: true,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
-            EditorTabBar(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-              contextMenu: contextMenu,
-            ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+            if (!hideFileNavigation)
+              EditorTabBar(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+                contextMenu: contextMenu,
+              ),
+            if (!hideFileNavigation && activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
             EditorStack(
               openTabs: openTabs,
               activeFile: activeFile,
@@ -104,16 +109,19 @@ class EditorShell extends StatelessComponent {
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
     return div(classes: 'editor-shell', [
-      SplitPanel(
-        initialValue: 200,
-        initialState: isEmbedMode ? const LeftCollapsed(200) : null,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        canCollapseLeft: true,
-        left: fileTree,
-        right: rightContent,
-      ),
+      if (hideFileNavigation || fileTree == null)
+        rightContent
+      else
+        SplitPanel(
+          initialValue: 200,
+          initialState: isEmbedMode ? const LeftCollapsed(200) : null,
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          canCollapseLeft: true,
+          left: fileTree!,
+          right: rightContent,
+        ),
     ]);
   }
 
