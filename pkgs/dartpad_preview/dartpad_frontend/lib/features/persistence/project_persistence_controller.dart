@@ -15,7 +15,7 @@ import 'project_persistence_state.dart';
 import 'project_store.dart';
 import 'workspace_persistence_controller.dart';
 
-/// Coordinates history, restore offers and autosave for one browser tab.
+/// Coordinates history and autosave for one browser tab.
 ///
 /// The app owns project loading and session replacement. This controller owns
 /// the store and attaches a [WorkspacePersistenceController] to each session
@@ -23,7 +23,6 @@ import 'workspace_persistence_controller.dart';
 final class ProjectPersistenceController extends ChangeNotifier {
   ProjectPersistenceController({
     required bool enabled,
-    required this._restoreProject,
     ProjectStore? store,
   }) : _store = enabled ? store ?? IndexedDbProjectStore() : null,
        _available = enabled {
@@ -43,7 +42,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
   }
 
   final ProjectStore? _store;
-  final Future<void> Function(String projectId) _restoreProject;
 
   bool _available;
   bool _disposed = false;
@@ -57,8 +55,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
   PersistenceNotice? _notice;
   PersistenceNotice? get notice => _notice;
 
-  ProjectRestoreOffer? _restoreOffer;
-  ProjectRestoreOffer? get restoreOffer => _restoreOffer;
   StreamSubscription<web.Event>? _visibilitySubscription;
   StreamSubscription<web.Event>? _pageHideSubscription;
 
@@ -69,8 +65,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
     bool startFresh = false,
     String? restoreProjectId,
   }) async {
-    _clearRestoreOffer();
-    _notify();
     await stop();
     final history = await _readHistory();
     if (restoreProjectId != null) {
@@ -83,9 +77,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
     if (request.query.keys.every((key) => key == 'theme')) {
       return PersistenceLoadStrategy(restoreProjectId: history.firstOrNull?.id);
     }
-    return PersistenceLoadStrategy(
-      offerProjectId: history.where((entry) => entry.state.matchesQuery(request.query)).firstOrNull?.id,
-    );
+    return const PersistenceLoadStrategy();
   }
 
   Future<List<StoredProject>> _readHistory() async {
@@ -163,33 +155,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
         });
   }
 
-  void offerRestore(String projectId) {
-    if (_disposed) {
-      return;
-    }
-    _clearRestoreOffer();
-    _restoreOffer = ProjectRestoreOffer(projectId: projectId);
-    _notify();
-  }
-
-  void dismissRestoreOffer() {
-    if (_disposed || _restoreOffer == null) {
-      return;
-    }
-    _clearRestoreOffer();
-    _notify();
-  }
-
-  Future<void> restoreLastProject() async {
-    if (_restoreOffer case final offer?) {
-      await _restoreProject(offer.projectId);
-    }
-  }
-
-  void _clearRestoreOffer() {
-    _restoreOffer = null;
-  }
-
   void _reportSaveFailure() {
     if (_disposed) {
       return;
@@ -215,7 +180,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
     _disposed = true;
     _visibilitySubscription?.cancel();
     _pageHideSubscription?.cancel();
-    _clearRestoreOffer();
     _closing = stop().whenComplete(() => _store?.close());
     super.dispose();
   }
