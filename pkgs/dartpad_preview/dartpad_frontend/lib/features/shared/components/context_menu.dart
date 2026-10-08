@@ -231,7 +231,7 @@ class _ContextMenuState extends State<ContextMenu> {
     }
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
-      if (identical(item, active) || item.contains(active)) {
+      if (item == active || item.contains(active)) {
         return i;
       }
     }
