@@ -13,9 +13,13 @@ analyzer:
   language:
     strict-raw-types: true
 
-# Jaspr has a custom analyzer plugin 'jaspr_lints', which is enabled here.
 # Plugins can only be specified at the workspace root.
 plugins:
+  wasm_interop_lints:
+    path: wasm_interop_lints
+    diagnostics:
+      avoid_js_identity: true
+      avoid_js_int_cast: true
   jaspr_lints:
     version: ^0.7.1
     diagnostics:
