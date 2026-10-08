@@ -227,23 +227,38 @@ void main() {
         expect(sanitized, contains('// 🎯\n'));
       });
 
-      test('blanks documentation imports with unsafe URIs', () {
+      test('blanks documentation imports in comments with unsafe URIs', () {
         const source = '''
 /// @docImport 'other.dart';
 /// @docImport 'package:flutter/material.dart';
 library;
 
+/// @docImport 'package:flutter/widgets.dart';
 /// See [Foo].
 void main() {}
 ''';
         final sanitized = sanitizeSourceForAnalysis(source);
         expect(sanitized.length, source.length);
-        expect('@docImport'.allMatches(sanitized), hasLength(1));
         expect(
           sanitized,
-          contains("/// @docImport 'package:flutter/material.dart';"),
+          startsWith(
+            "///            'other.dart';\n"
+            "///            'package:flutter/material.dart';\n"
+            'library;\n',
+          ),
         );
-        expect(sanitized, contains("///            'other.dart';"));
+        expect(
+          sanitized,
+          contains("/// @docImport 'package:flutter/widgets.dart';"),
+        );
+      });
+
+      test('blanks documentation imports in block comments', () {
+        const source = "/**\n * @docImport 'other.dart';\n */\nlibrary;\n";
+        expect(
+          sanitizeSourceForAnalysis(source),
+          "/**\n *            'other.dart';\n */\nlibrary;\n",
+        );
       });
 
       test('handles overlapping directive ranges', () {

@@ -6,7 +6,6 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/doc_comment.dart' show DocImport;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
@@ -83,16 +82,16 @@ bool isSafeUri(String? uri) {
 
 /// Replaces the parts of [dartSource] that DartPad cannot process with spaces.
 ///
-/// Unsafe directives (see [isSafeDirective]) are blanked out, as is the
-/// `@docImport` tag of any documentation import with an unsafe URI. Line
-/// breaks are kept, so offsets, lines, and columns are unchanged.
+/// Unsafe directives (see [isSafeDirective]) are blanked out, as are the
+/// `@docImport` tags of every documentation comment that imports an unsafe
+/// URI. Line breaks are kept, so offsets, lines, and columns are unchanged.
 ///
 /// The result is parsed again until it is stable. If it does not become
 /// stable, the whole source is blanked out.
 String sanitizeSourceForAnalysis(String dartSource) {
   var sanitized = dartSource;
   for (var round = 0; round < _maxSanitizeRounds; round++) {
-    final ranges = _unsafeRanges(_parse(sanitized));
+    final ranges = _unsafeRanges(sanitized, _parse(sanitized));
     if (ranges.isEmpty) return sanitized;
     sanitized = _blankRanges(sanitized, ranges);
   }
@@ -137,16 +136,22 @@ bool _hasStringLiteral(Directive directive) {
   return false;
 }
 
-/// The source ranges in [unit] that must be blanked out before analysis.
-List<(int, int)> _unsafeRanges(CompilationUnit unit) {
-  final collector = _DocImportCollector();
+/// The source ranges in [unit], parsed from [source], that must be blanked out
+/// before analysis.
+List<(int, int)> _unsafeRanges(String source, CompilationUnit unit) {
+  final collector = _UnsafeDocImportCollector();
   unit.accept(collector);
   return [
     for (final directive in unit.directives)
       if (!isSafeDirective(directive)) (directive.offset, directive.end),
-    for (final docImport in collector.docImports)
-      if (!isSafeDirective(docImport.import))
-        (docImport.offset, docImport.offset + _docImportTag.length),
+    // The tags are found in the text, because the offsets that the analyzer
+    // reports for documentation imports differ between versions.
+    for (final comment in collector.comments)
+      for (final tag
+          in _docImportTag
+              .allMatches(source, comment.offset)
+              .takeWhile((tag) => tag.end <= comment.end))
+        (tag.start, tag.end),
   ];
 }
 
@@ -171,13 +176,18 @@ const int _lineFeed = 0x0A;
 const int _carriageReturn = 0x0D;
 const int _space = 0x20;
 
-/// Collects the documentation imports of every comment in a unit.
-final class _DocImportCollector extends RecursiveAstVisitor<void> {
-  final List<DocImport> docImports = [];
+/// Collects the comments that contain a documentation import with an unsafe
+/// URI.
+final class _UnsafeDocImportCollector extends RecursiveAstVisitor<void> {
+  final List<Comment> comments = [];
 
   @override
   void visitComment(Comment node) {
-    docImports.addAll(node.docImports);
+    if (node.docImports.any(
+      (docImport) => !isSafeDirective(docImport.import),
+    )) {
+      comments.add(node);
+    }
     super.visitComment(node);
   }
 }
