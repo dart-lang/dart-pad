@@ -5,12 +5,13 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../game.dart';
 
-class Paddle extends PositionComponent with DragCallbacks, HasGameReference<BrickBreaker>, KeyboardHandler {
+class Paddle extends PositionComponent
+    with DragCallbacks, HasGameReference<BrickBreaker>, KeyboardHandler {
   Paddle({
     required this.cornerRadius,
     required super.position,
@@ -28,12 +29,14 @@ class Paddle extends PositionComponent with DragCallbacks, HasGameReference<Bric
     super.update(dt);
 
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) || keysPressed.contains(LogicalKeyboardKey.keyA)) {
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA)) {
       position.x = (position.x - (dt * 500)).clamp(
         width / 2,
         game.width - width / 2,
       );
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) || keysPressed.contains(LogicalKeyboardKey.keyD)) {
+    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+        keysPressed.contains(LogicalKeyboardKey.keyD)) {
       position.x = (position.x + (dt * 500)).clamp(
         width / 2,
         game.width - width / 2,
