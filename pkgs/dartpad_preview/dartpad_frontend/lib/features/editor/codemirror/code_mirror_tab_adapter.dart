@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/jaspr.dart';
@@ -13,6 +14,7 @@ import '../../shared/app_event_bus.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/supported_file_types.dart';
 import 'code_mirror_tab.dart';
+import 'markdown_asset_resolver.dart';
 
 /// Creates text tabs and synchronizes them with workspace and LSP changes.
 final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
@@ -22,6 +24,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     this.events,
     this.onRun,
     this.readSystemFile,
+    this.readSystemFileAsBytes,
   });
 
   final ContextMenuController? contextMenu;
@@ -31,7 +34,16 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   /// Reads URI-addressed files that are outside the project workspace.
   final Future<String> Function(Uri uri)? readSystemFile;
 
+  /// Reads image bytes from SDK and pub-cache files in the worker.
+  final Future<Uint8List> Function(Uri uri)? readSystemFileAsBytes;
+
   TabsController<Component>? _tabs;
+  MarkdownAssetResolver _markdownAssets(EditorTabOrigin origin) => MarkdownAssetResolver(
+    origin: origin,
+    getTabs: () => _tabs,
+    readSystemFileAsBytes: readSystemFileAsBytes,
+    events: events,
+  );
   LanguageServerClient? _languageServerClient;
   StreamSubscription<bool>? _analysisSubscription;
   StreamSubscription<web.MouseEvent>? _tooltipSubscription;
@@ -62,6 +74,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       return null;
     }
     final content = await tabs.workspaceResourceApi.root.getFile(path).readContent();
+    final markdownAssets = _markdownAssets(EditorTabOrigin.workspace);
     return WorkspaceCodeMirrorTab(
       path: path,
       content: content,
@@ -71,6 +84,8 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       languageServerClient: _languageServerClient,
       contextMenu: contextMenu,
       events: events,
+      onOpenMarkdownFile: markdownAssets.openLink,
+      loadMarkdownImage: markdownAssets.loadImage,
     );
   }
 
@@ -80,11 +95,14 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
     if (_tabs == null || reader == null || !isTextFile(uri.path)) {
       return null;
     }
+    final markdownAssets = _markdownAssets(EditorTabOrigin.system);
     return SystemCodeMirrorTab(
       uri: uri,
       content: await reader(uri),
       onRun: onRun,
       languageServerClient: _languageServerClient,
+      onOpenMarkdownFile: markdownAssets.openLink,
+      loadMarkdownImage: markdownAssets.loadImage,
     );
   }
 

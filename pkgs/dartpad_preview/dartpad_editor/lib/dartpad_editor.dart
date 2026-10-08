@@ -8,6 +8,7 @@ library;
 export 'src/editor/code_actions_controller.dart';
 export 'src/editor/codemirror_editor.dart';
 export 'src/editor/editor_tab.dart';
+export 'src/editor/markdown_renderer.dart';
 export 'src/editor/tabs_controller.dart';
 export 'src/lsp/diagnostic.dart';
 export 'src/lsp/language_server_client.dart';

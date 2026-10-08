@@ -9,9 +9,11 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
+import '../codemirror/code_mirror_tab.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
+import 'markdown_view_switch.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor.
 class EditorShell extends StatelessComponent {
@@ -72,6 +74,10 @@ class EditorShell extends StatelessComponent {
     final openTabs = this.openTabs;
     final activeTab = openTabs?.where((tab) => tab.path == activeFile).firstOrNull;
     final breadcrumbPath = activeTab?.displayPath ?? activeFile;
+    final trailing = switch (activeTab) {
+      CodeMirrorTab tab when tab.isMarkdown => MarkdownViewSwitch(tab: tab, key: ValueKey('md-switch-${tab.path}')),
+      _ => null,
+    };
     final editorContent = main_(classes: 'editor-host', [
       SplitPanel(
         isVertical: true,
@@ -89,6 +95,7 @@ class EditorShell extends StatelessComponent {
               onSwitchFile: onSwitchFile!,
               onCloseFile: onCloseFile!,
               contextMenu: contextMenu,
+              trailing: trailing,
             ),
             if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
             EditorStack(
@@ -138,41 +145,18 @@ class EditorShell extends StatelessComponent {
     ),
     css('.editor-area').styles(
       display: .flex,
+      position: const .relative(),
+      width: 100.percent,
+      height: 100.percent,
       minWidth: .zero,
       minHeight: .zero,
       overflow: .hidden,
       flexDirection: .column,
-      flex: const Flex(grow: 1, basis: .zero),
+      flex: const Flex(grow: 1),
     ),
-    // -- Embed mode: collapsed file-tree rail --
-    css('.file-tree-rail').styles(
-      display: .flex,
-      width: 36.px,
-      minWidth: 36.px,
-      padding: .only(top: 8.px),
-      border: .only(
-        right: .solid(color: colorBorder, width: 1.px),
-      ),
-      flexDirection: .column,
-      alignItems: .center,
-      flex: const .shrink(0),
-      backgroundColor: colorSurface,
-    ),
-    css('.file-tree-rail-button').styles(
-      display: .flex,
-      width: 28.px,
-      height: 28.px,
-      padding: .zero,
-      border: .none,
-      radius: .circular(6.px),
-      cursor: .pointer,
-      justifyContent: .center,
-      alignItems: .center,
-      color: colorOnSurface,
-      backgroundColor: Colors.transparent,
-    ),
-    css('.file-tree-rail-button:hover').styles(
-      backgroundColor: colorBorder,
-    ),
+    ...EditorTabBar.styles,
+    ...EditorBreadcrumbs.styles,
+    ...MarkdownViewSwitch.styles,
+    ...EditorStack.styles,
   ];
 }

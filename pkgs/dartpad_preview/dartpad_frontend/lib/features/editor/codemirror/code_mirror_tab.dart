@@ -7,6 +7,7 @@ import 'dart:js_interop';
 
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
@@ -18,7 +19,7 @@ import 'editor_context_menu.dart';
 
 /// Shared editor display, navigation, and lifecycle for CodeMirror tabs.
 sealed class CodeMirrorTab extends EditorTab<Component> {
-  CodeMirrorTab._(super.path, EditorTabOrigin origin)
+  CodeMirrorTab._(super.path, EditorTabOrigin origin, {this.onOpenMarkdownFile, this.loadMarkdownImage})
     : container = web.document.createElement('div') as web.HTMLElement,
       super(origin: origin) {
     container.className = 'editor-container';
@@ -30,10 +31,50 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
 
+  /// Routes document-relative links through the editor's tab controller.
+  final Future<void> Function(Uri uri)? onOpenMarkdownFile;
+
+  /// Loads images from the filesystem backing this tab.
+  final Future<String?> Function(Uri uri)? loadMarkdownImage;
+
   EditorViewState? _savedViewState;
   bool _active = false;
   bool _disposed = false;
   Timer? _measureTimer;
+  final StreamController<void> _updates = StreamController<void>.broadcast();
+  MarkdownRenderer? _markdownRenderer;
+  bool _previewMarkdown = true;
+
+  /// Whether this tab supports Markdown preview.
+  bool get isMarkdown => isMarkdownFile(displayPath);
+
+  /// Markdown files initially open in preview, with the editor kept in memory.
+  bool get isMarkdownPreview => isMarkdown && _previewMarkdown;
+
+  @override
+  Stream<void> get onUpdate => _updates.stream;
+
+  /// Switches Markdown display without recreating the editor.
+  void setMarkdownPreview({required bool preview}) {
+    if (!isMarkdown || _previewMarkdown == preview) {
+      return;
+    }
+    if (preview) {
+      _savedViewState = editor.saveViewState();
+      CodeMirrorEditor.hideAllTooltips();
+    }
+    _previewMarkdown = preview;
+    if (!preview) {
+      _scheduleMeasureAndRestore();
+    }
+    _notifyUpdate();
+  }
+
+  void _notifyUpdate() {
+    if (!_disposed) {
+      _updates.add(null);
+    }
+  }
 
   /// The current editor content.
   String get content => editor.text;
@@ -49,14 +90,16 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
-    _savedViewState = editor.saveViewState();
+    if (!isMarkdownPreview) {
+      _savedViewState = editor.saveViewState();
+    }
   }
 
   void _scheduleMeasureAndRestore() {
     _measureTimer?.cancel();
     _measureTimer = Timer(Duration.zero, () {
       _measureTimer = null;
-      if (_disposed || !_active || !container.isConnected) {
+      if (_disposed || !_active || isMarkdownPreview || !container.isConnected) {
         return;
       }
       editor.requestMeasure();
@@ -78,11 +121,52 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     editor.goToPosition(line, character);
   }
 
+  /// Reveals a linked heading after the tab's preview has been mounted.
+  void revealMarkdownFragment(String fragment) {
+    if (!isMarkdown) {
+      return;
+    }
+    setMarkdownPreview(preview: true);
+    Timer(Duration.zero, () {
+      if (!_disposed && _active && isMarkdownPreview) {
+        _markdownRenderer?.scrollToFragment(fragment);
+      }
+    });
+  }
+
   @override
-  Component build() => NodeContainer(
-    container,
-    onAttached: _scheduleMeasureAndRestore,
-  );
+  Component build() {
+    final source = NodeContainer(container, onAttached: _scheduleMeasureAndRestore);
+    if (!isMarkdown) {
+      return source;
+    }
+    final renderer = _markdownRenderer ??= MarkdownRenderer(
+      onOpenFile: onOpenMarkdownFile,
+      loadImage: loadMarkdownImage,
+    );
+    if (isMarkdownPreview) {
+      renderer.render(
+        content,
+        // Asset resolution needs a root-relative workspace URI or the existing full system URI.
+        documentUri: switch (origin) {
+          EditorTabOrigin.workspace => Uri(path: '/$path'),
+          EditorTabOrigin.system => Uri.parse(path),
+        },
+      );
+    }
+    return div(classes: 'markdown-tab', [
+      div(
+        classes: 'markdown-source',
+        attributes: {if (isMarkdownPreview) 'hidden': ''},
+        [source],
+      ),
+      div(
+        classes: 'markdown-rendered',
+        attributes: {if (!isMarkdownPreview) 'hidden': ''},
+        [NodeContainer(renderer.container)],
+      ),
+    ]);
+  }
 
   @override
   void dispose() {
@@ -94,6 +178,7 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _measureTimer?.cancel();
     _measureTimer = null;
     editor.destroy();
+    unawaited(_updates.close());
   }
 }
 
@@ -108,6 +193,8 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     void Function()? onRun,
     this.contextMenu,
     this.events,
+    super.onOpenMarkdownFile,
+    super.loadMarkdownImage,
     LanguageServerClient? languageServerClient,
   }) : _savedContent = content,
        super._(path, EditorTabOrigin.workspace) {
@@ -161,7 +248,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
   late final CodeActionsController codeActionsController;
 
   late final JSFunction _contextMenuHandler;
-  final StreamController<void> _updates = StreamController<void>.broadcast();
   String _savedContent;
   bool _isDirty = false;
 
@@ -170,9 +256,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
 
   @override
   bool get hasUnsavedChanges => _isDirty;
-
-  @override
-  Stream<void> get onUpdate => _updates.stream;
 
   @override
   void onDeactivate() {
@@ -240,12 +323,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     _notifyUpdate();
   }
 
-  void _notifyUpdate() {
-    if (!_disposed) {
-      _updates.add(null);
-    }
-  }
-
   void _showContextMenu(double clientX, double clientY) {
     final menu = contextMenu;
     if (menu == null) {
@@ -286,7 +363,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     container.removeEventListener('contextmenu', _contextMenuHandler);
     codeActionsController.dispose();
     super.dispose();
-    unawaited(_updates.close());
   }
 }
 
@@ -300,6 +376,8 @@ final class SystemCodeMirrorTab extends CodeMirrorTab {
     required String content,
     void Function()? onRun,
     LanguageServerClient? languageServerClient,
+    super.onOpenMarkdownFile,
+    super.loadMarkdownImage,
   }) : super._(uri.toString(), EditorTabOrigin.system) {
     editor = CodeMirrorEditor(
       container,

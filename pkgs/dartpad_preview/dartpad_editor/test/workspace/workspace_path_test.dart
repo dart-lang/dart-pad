@@ -6,6 +6,34 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('document-relative URIs have neither a scheme nor an authority', () {
+    for (final path in ['guide.md', '../guide.md', '/docs/guide.md', '#section']) {
+      expect(isDocumentRelativeUri(Uri.parse(path)), isTrue, reason: path);
+    }
+    for (final path in ['file:///sdk/guide.md', 'https://example.com/guide.md', '//example.com/guide.md']) {
+      expect(isDocumentRelativeUri(Uri.parse(path)), isFalse, reason: path);
+    }
+  });
+
+  test('workspacePathFromUri decodes and normalizes resolved workspace paths', () {
+    final cases = {
+      '/docs/guide%20intro.md?raw=true#details': 'docs/guide intro.md',
+      '/docs/../README.md': 'README.md',
+      '/docs/%2e%2e/README.md': 'README.md',
+      '/assets/logo%2520.png': 'assets/logo%20.png',
+      '/': '',
+      'docs/README.md': null,
+      '//example.com/README.md': null,
+      'file:///sdk/README.md': null,
+      '/%2e%2e%2fREADME.md': null,
+      '/docs/%2e%2e%2f%2e%2e%2fREADME.md': null,
+      '/%2foutside.md': null,
+    };
+    for (final MapEntry(key: uri, value: expected) in cases.entries) {
+      expect(workspacePathFromUri(Uri.parse(uri)), expected, reason: uri);
+    }
+  });
+
   test('relativePathWithinWorkspace accepts only URIs within the workspace', () {
     final cases = <(String, String, String?)>[
       ('file:///workspace/project/lib/main.dart', 'file:///workspace/project/', 'lib/main.dart'),

@@ -62,6 +62,7 @@ final class WorkspaceSession {
       events: repository.events,
       onRun: () => session.runOrHotReload(),
       readSystemFile: repository.readSystemFile,
+      readSystemFileAsBytes: repository.readSystemFileAsBytes,
     );
     final tabs = TabsViewModel(
       workspaceResourceApi: repository.workspaceResourceApi,
