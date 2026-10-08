@@ -22,6 +22,27 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
+  wasm_interop_lints:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/dartpad_preview/wasm_interop_lints
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+
+      - name: Install plugin dependencies
+        run: dart pub get
+
+      - name: Check plugin sources and fixes
+        run: |
+          dart format --output=none --set-exit-if-changed lib test
+          dart analyze --fatal-infos
+          dart test
+
   codemirror:
     runs-on: ubuntu-latest
     steps:
