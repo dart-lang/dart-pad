@@ -89,6 +89,7 @@ class AnalysisServerWrapper {
     analysisServer = await AnalysisServer.create(
       sdkPath: sdkPath,
       serverArgs: serverArgs,
+      processEnvironment: {'GEMINI_API_KEY': ''},
     );
 
     try {
@@ -122,6 +123,21 @@ class AnalysisServerWrapper {
   }
 
   Future<api.CompleteResponse> complete(String source, int offset) async {
+    for (final directive in getAllDirectivesFor(source)) {
+      if (offset >= directive.offset &&
+          offset <= directive.end &&
+          !isSupportedDirective(directive)) {
+        if (directive is! ImportDirective ||
+            (!directive.dartImport && !directive.packageImport)) {
+          return api.CompleteResponse(
+            replacementOffset: offset,
+            replacementLength: 0,
+            suggestions: const [],
+          );
+        }
+      }
+    }
+
     const maxResults = 500;
 
     final results = await _completeImpl(
@@ -181,7 +197,7 @@ class AnalysisServerWrapper {
   Future<api.FixesResponse> fixes(String src, int offset) async {
     final mainFile = _getPathFromName(kMainDart);
 
-    await _loadSources({mainFile: src});
+    await _loadSources(_getOverlayMapWithPaths({kMainDart: src}));
 
     // Wait for analysis of the freshly-loaded overlay
     // to complete before requesting fixes.
@@ -325,46 +341,61 @@ class AnalysisServerWrapper {
       return a.location.charStart.compareTo(b.location.charStart);
     });
 
-    final imports = getAllImportsFor(source);
+    final directives = getAllDirectivesFor(source);
+    final imports = directives.whereType<ImportDirective>().toList();
     final importIssues = <api.AnalysisIssue>[];
 
-    for (final import in imports) {
-      if (import.dartImport) {
-        final libraryName = import.packageName;
-        if (!isSupportedCoreLibrary(libraryName)) {
+    for (final directive in directives) {
+      if (directive is LibraryDirective) {
+        continue;
+      } else if (directive is ImportDirective) {
+        if (directive.dartImport) {
+          final libraryName = directive.packageName;
+          if (!isSupportedCoreLibrary(libraryName)) {
+            importIssues.add(
+              api.AnalysisIssue(
+                kind: 'error',
+                message: "'dart:$libraryName' is not supported by DartPad.",
+                correction:
+                    'Try removing the import and usages of the library.',
+                location: directive.getLocation(source),
+              ),
+            );
+          }
+        } else if (directive.packageImport) {
+          final packageName = directive.packageName;
+
+          if (isDeprecatedPackage(packageName)) {
+            importIssues.add(
+              api.AnalysisIssue(
+                kind: 'warning',
+                message: "Deprecated package: 'package:$packageName'.",
+                correction:
+                    'Try removing the import and usages of the package.',
+                url:
+                    'https://github.com/dart-lang/dart-pad/wiki/'
+                    'Package-and-plugin-support#deprecated-packages',
+                location: directive.getLocation(source),
+              ),
+            );
+          } else if (!isSupportedPackage(packageName)) {
+            importIssues.add(
+              api.AnalysisIssue(
+                kind: 'warning',
+                message: "Unsupported package: 'package:$packageName'.",
+                url:
+                    'https://github.com/dart-lang/dart-pad/wiki/'
+                    'Package-and-plugin-support#currently-supported-packages',
+                location: directive.getLocation(source),
+              ),
+            );
+          }
+        } else {
           importIssues.add(
             api.AnalysisIssue(
               kind: 'error',
-              message: "'dart:$libraryName' is not supported by DartPad.",
-              correction: 'Try removing the import and usages of the library.',
-              location: import.getLocation(source),
-            ),
-          );
-        }
-      } else if (import.packageImport) {
-        final packageName = import.packageName;
-
-        if (isDeprecatedPackage(packageName)) {
-          importIssues.add(
-            api.AnalysisIssue(
-              kind: 'warning',
-              message: "Deprecated package: 'package:$packageName'.",
-              correction: 'Try removing the import and usages of the package.',
-              url:
-                  'https://github.com/dart-lang/dart-pad/wiki/'
-                  'Package-and-plugin-support#deprecated-packages',
-              location: import.getLocation(source),
-            ),
-          );
-        } else if (!isSupportedPackage(packageName)) {
-          importIssues.add(
-            api.AnalysisIssue(
-              kind: 'warning',
-              message: "Unsupported package: 'package:$packageName'.",
-              url:
-                  'https://github.com/dart-lang/dart-pad/wiki/'
-                  'Package-and-plugin-support#currently-supported-packages',
-              location: import.getLocation(source),
+              message: 'Import type not supported.',
+              location: directive.getLocation(source),
             ),
           );
         }
@@ -372,8 +403,8 @@ class AnalysisServerWrapper {
         importIssues.add(
           api.AnalysisIssue(
             kind: 'error',
-            message: 'Import type not supported.',
-            location: import.getLocation(source),
+            message: 'Directive not supported.',
+            location: directive.getLocation(source),
           ),
         );
       }
@@ -391,7 +422,12 @@ class AnalysisServerWrapper {
 
   /// Cleanly shutdown the Analysis Server.
   Future<void> shutdown() async {
-    await analysisServer.server.shutdown().timeout(const Duration(seconds: 1));
+    await analysisServer.server
+        .shutdown()
+        .timeout(const Duration(seconds: 1))
+        // At runtime, it appears that [ServerDomain.shutdown] returns a
+        // `Future<Map<dynamic, dynamic>>`.
+        .catchError((dynamic _) => <dynamic, dynamic>{});
   }
 
   Future<Suggestions2Result> _completeImpl(
@@ -417,7 +453,9 @@ class AnalysisServerWrapper {
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
     final newOverlay = <String, String>{};
     for (final key in overlay.keys) {
-      newOverlay[_getPathFromName(key)] = overlay[key]!;
+      newOverlay[_getPathFromName(key)] = sanitizeSourceForAnalysis(
+        overlay[key]!,
+      );
     }
     return newOverlay;
   }
@@ -497,7 +535,7 @@ extension SourceChangeExtension on SourceChange {
   }
 }
 
-extension AnnotatedNodeExtension on ImportDirective {
+extension AnnotatedNodeExtension on Directive {
   api.Location getLocation(String source) {
     final lines = Lines(source);
     final start = firstTokenAfterCommentAndMetadata;

@@ -200,3 +200,26 @@ bool isSupportedPackage(String package) =>
 /// slated to be removed in a future update.
 bool isDeprecatedPackage(String package) =>
     _deprecatedPackages.contains(package);
+
+/// Returns all directives in [dartSource] that are not supported by DartPad.
+List<Directive> getUnsupportedImports(String dartSource) {
+  return getAllDirectivesFor(dartSource)
+      .where((directive) => !isSupportedDirective(directive))
+      .toList();
+}
+
+/// Whether [directive] is supported by DartPad.
+bool isSupportedDirective(Directive directive) {
+  if (directive is LibraryDirective) {
+    return true;
+  }
+  if (directive is ImportDirective) {
+    if (directive.dartImport) {
+      return isSupportedCoreLibrary(directive.packageName);
+    }
+    if (directive.packageImport) {
+      return isSupportedPackage(directive.packageName);
+    }
+  }
+  return false;
+}

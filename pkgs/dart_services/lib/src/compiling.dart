@@ -29,15 +29,20 @@ class Compiler {
 
   Compiler._(this._sdk, String dartPath)
     : _ddcDriver = BazelWorkerDriver(
-        () => Process.start(dartPath, [
-          path.join(
-            _sdk.dartSdkPath,
-            'bin',
-            'snapshots',
-            'dartdevc.dart.snapshot',
-          ),
-          '--persistent_worker',
-        ]),
+        () => Process.start(
+          dartPath,
+          [
+            path.join(
+              _sdk.dartSdkPath,
+              'bin',
+              'snapshots',
+              'dartdevc.dart.snapshot',
+            ),
+            '--persistent_worker',
+          ],
+          environment: {...Platform.environment}..remove('GEMINI_API_KEY'),
+          includeParentEnvironment: false,
+        ),
         maxWorkers: 1,
       ),
       _projectTemplates = ProjectTemplates.instance;
@@ -68,6 +73,14 @@ class Compiler {
     String? deltaDill,
     required bool useNew,
   }) async {
+    final unsupportedImports = getUnsupportedImports(source);
+    if (unsupportedImports.isNotEmpty) {
+      return DDCCompilationResults.failed([
+        for (final directive in unsupportedImports)
+          CompilationProblem._(_unsupportedDirectiveMessage(directive)),
+      ]);
+    }
+
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
@@ -291,3 +304,16 @@ String _rewritePaths(String output) {
       })
       .join('\n');
 }
+
+String _unsupportedDirectiveMessage(Directive directive) => switch (directive) {
+  ImportDirective(:final uri) =>
+    'unsupported import: ${uri.stringValue ?? uri.toSource()}',
+  ExportDirective(:final uri) =>
+    'unsupported export: ${uri.stringValue ?? uri.toSource()}',
+  PartDirective(:final uri) =>
+    'unsupported part: ${uri.stringValue ?? uri.toSource()}',
+  PartOfDirective() => 'unsupported directive: part of',
+  _ =>
+    'unsupported directive: '
+        '${directive.firstTokenAfterCommentAndMetadata.lexeme}',
+};

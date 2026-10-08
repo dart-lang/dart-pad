@@ -63,6 +63,62 @@ void main() {
     test('isSupportedPackage does not allow random local imports', () {
       expect(isSupportedPackage('foo.dart'), isFalse);
     });
+
+    test('getUnsupportedImports allows supported dart and package imports', () {
+      const source = '''
+library foo;
+import 'dart:async';
+import 'dart:core';
+import 'dart:js_interop';
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+void main() {}
+''';
+      expect(getUnsupportedImports(source), isEmpty);
+    });
+
+    test(
+      'getUnsupportedImports rejects unsupported imports and directives',
+      () {
+        expect(
+          getUnsupportedImports("import 'file:///foo.dart';"),
+          hasLength(1),
+        );
+        expect(getUnsupportedImports("import '/foo.dart';"), hasLength(1));
+        expect(getUnsupportedImports("import 'foo.dart';"), hasLength(1));
+        expect(
+          getUnsupportedImports("import 'http://example.com/foo.dart';"),
+          hasLength(1),
+        );
+        expect(getUnsupportedImports("import 'dart:io';"), hasLength(1));
+        expect(
+          getUnsupportedImports("import 'dart:core/../foo.dart';"),
+          hasLength(1),
+        );
+        expect(
+          getUnsupportedImports("import 'package:unsupported/foo.dart';"),
+          hasLength(1),
+        );
+        expect(
+          getUnsupportedImports("import 'package:flutter/../foo.dart';"),
+          hasLength(1),
+        );
+        expect(
+          getUnsupportedImports("import 'package:flutter//foo.dart';"),
+          hasLength(1),
+        );
+        expect(
+          getUnsupportedImports(
+            "import 'dart:core' if (dart.library.js_interop) 'foo.dart';",
+          ),
+          hasLength(1),
+        );
+        expect(getUnsupportedImports("export 'dart:core';"), hasLength(1));
+        expect(getUnsupportedImports("part 'foo.dart';"), hasLength(1));
+        expect(getUnsupportedImports("part of 'foo.dart';"), hasLength(1));
+      },
+    );
   });
 
   group('flutter web project', () {

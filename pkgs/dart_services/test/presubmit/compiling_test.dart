@@ -159,6 +159,61 @@ void main() {
             contains('Error: Method not found: \'print3\'.'),
           );
         });
+
+        test('bad import - local', () async {
+          const code = '''
+import 'foo.dart';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(result.problems, hasLength(1));
+          expect(
+            result.problems.single.message,
+            equals('unsupported import: foo.dart'),
+          );
+        });
+
+        test('bad import - http', () async {
+          const code = '''
+import 'http://example.com';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(result.problems, hasLength(1));
+          expect(
+            result.problems.single.message,
+            equals('unsupported import: http://example.com'),
+          );
+        });
+
+        test('multiple bad imports', () async {
+          const code = '''
+import 'package:foo';
+import 'package:bar';
+import 'dart:io';
+export 'dart:core';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(
+            result.problems.map((p) => p.message),
+            equals([
+              'unsupported import: package:foo',
+              'unsupported import: package:bar',
+              'unsupported import: dart:io',
+              'unsupported export: dart:core',
+            ]),
+          );
+        });
       });
     }
 

@@ -86,6 +86,37 @@ void main() {
       expect(issue.message, contains('is not supported by DartPad'));
     });
 
+    test('Error on local imports', () async {
+      final results = await analysisServer.analyze('''
+import 'foo.dart';
+import 'package:flutter/../foo.dart';
+
+void main() {}
+''');
+
+      expect(results.issues, hasLength(2));
+      for (final issue in results.issues) {
+        expect(issue.kind, 'error');
+        expect(issue.message, 'Import type not supported.');
+      }
+      expect(results.imports, isEmpty);
+    });
+
+    test('Error on export and part directives', () async {
+      final results = await analysisServer.analyze('''
+export 'dart:core';
+part 'foo.dart';
+
+void main() {}
+''');
+
+      expect(results.issues, hasLength(2));
+      for (final issue in results.issues) {
+        expect(issue.kind, 'error');
+        expect(issue.message, 'Directive not supported.');
+      }
+    });
+
     test('import_dart_core_test', () async {
       // Ensure we can import dart: imports.
       final testCode = "import 'dart:c'; main() { int a = 0; a. }";
