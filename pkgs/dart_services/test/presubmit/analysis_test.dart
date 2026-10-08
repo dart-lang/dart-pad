@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dart_services/src/analysis.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/model.dart' as api;
@@ -102,10 +104,10 @@ void main() {}
       expect(results.imports, isEmpty);
     });
 
-    test('Error on export and part directives', () async {
+    test('Error on unsupported export and part directives', () async {
       final results = await analysisServer.analyze('''
-export 'dart:core';
-part 'foo.dart';
+export 'foo.dart';
+part 'bar.dart';
 
 void main() {}
 ''');
@@ -115,6 +117,50 @@ void main() {}
         expect(issue.kind, 'error');
         expect(issue.message, 'Directive not supported.');
       }
+    });
+
+    test('Allows package exports and conditional imports', () async {
+      final results = await analysisServer.analyze('''
+import 'package:flutter/material.dart'
+    if (dart.library.io) 'package:flutter/cupertino.dart';
+export 'package:flutter/material.dart';
+
+void main() => runApp(const Text('x'));
+''');
+
+      expect(results.issues, isEmpty);
+      expect(results.imports, ['package:flutter/material.dart']);
+    });
+
+    test('Completes partial package URIs', () async {
+      const testCode = "import 'package:';\nvoid main() {}\n";
+      final results = await analysisServer.complete(
+        testCode,
+        testCode.indexOf("';"),
+      );
+      final completions = results.suggestions.map((s) => s.completion);
+      expect(completions, isNotEmpty);
+      expect(completions, everyElement(startsWith('package:')));
+      expect(completions, contains('package:animations/'));
+    });
+
+    test('Ignores unsupported documentation imports', () async {
+      final directory = Directory.systemTemp.createTempSync('dartpad_test');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      File('${directory.path}/other.dart')
+          .writeAsStringSync('/// Other docs.\nvoid otherFunction() {}\n');
+      final testCode =
+          "/// @docImport 'file://${directory.path}/other.dart';\n"
+          'library;\n\n'
+          '/// See [otherFunction].\n'
+          'void main() {}\n';
+
+      final results = await analysisServer.dartdoc(
+        testCode,
+        testCode.indexOf('otherFunction'),
+      );
+      expect(results.dartdoc, isNull);
+      expect(results.elementDescription, isNull);
     });
 
     test('import_dart_core_test', () async {

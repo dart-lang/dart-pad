@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:dart_style/dart_style.dart';
 
 import 'package:dartpad_shared/model.dart' as api;
 import 'package:path/path.dart' as path;
@@ -89,7 +90,7 @@ class AnalysisServerWrapper {
     analysisServer = await AnalysisServer.create(
       sdkPath: sdkPath,
       serverArgs: serverArgs,
-      processEnvironment: {'GEMINI_API_KEY': ''},
+      processEnvironment: childProcessEnvironment,
     );
 
     try {
@@ -126,15 +127,12 @@ class AnalysisServerWrapper {
     for (final directive in getAllDirectivesFor(source)) {
       if (offset >= directive.offset &&
           offset <= directive.end &&
-          !isSupportedDirective(directive)) {
-        if (directive is! ImportDirective ||
-            (!directive.dartImport && !directive.packageImport)) {
-          return api.CompleteResponse(
-            replacementOffset: offset,
-            replacementLength: 0,
-            suggestions: const [],
-          );
-        }
+          !isSafeDirective(directive)) {
+        return api.CompleteResponse(
+          replacementOffset: offset,
+          replacementLength: 0,
+          suggestions: const [],
+        );
       }
     }
 
@@ -231,36 +229,32 @@ class AnalysisServerWrapper {
     );
   }
 
-  /// Format the source [src] of the single passed in file. The [offset] is the
-  /// current cursor location and a modified offset is returned if necessary to
-  /// maintain the cursors original position in the formatted code.
-  Future<api.FormatResponse> format(String src, int? offset) {
-    return _formatImpl(src, offset)
-        .then((FormatResult editResult) {
-          final edits = editResult.edits;
-
-          edits.sort(
-            (SourceEdit e1, SourceEdit e2) =>
-                -1 * e1.offset.compareTo(e2.offset),
-          );
-
-          for (final edit in edits) {
-            src = src.replaceRange(
-              edit.offset,
-              edit.offset + edit.length,
-              edit.replacement,
-            );
-          }
-
-          return api.FormatResponse(
-            source: src,
-            offset: offset == null ? 0 : editResult.selectionOffset,
-          );
-        })
-        .catchError((dynamic error) {
-          _logger.fine('format error: $error');
-          return api.FormatResponse(source: src, offset: offset);
-        });
+  /// Formats [src], the contents of a single file.
+  ///
+  /// The [offset] is the current cursor location. The returned offset is the
+  /// corresponding location in the formatted code. If [src] can't be
+  /// formatted, it is returned unchanged.
+  Future<api.FormatResponse> format(String src, int? offset) async {
+    try {
+      final formatted =
+          DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+              .formatSource(
+                SourceCode(
+                  src,
+                  selectionStart: (offset ?? 0).clamp(0, src.length),
+                  selectionLength: 0,
+                ),
+              );
+      return api.FormatResponse(
+        source: formatted.text,
+        offset: offset == null ? 0 : formatted.selectionStart ?? 0,
+      );
+    } on FormatterException catch (error) {
+      _logger.fine('format error: $error');
+    } on UnexpectedOutputException catch (error) {
+      _logger.warning('format error: $error');
+    }
+    return api.FormatResponse(source: src, offset: offset);
   }
 
   Future<api.DocumentResponse> dartdoc(String src, int offset) async {
@@ -342,77 +336,66 @@ class AnalysisServerWrapper {
     });
 
     final directives = getAllDirectivesFor(source);
-    final imports = directives.whereType<ImportDirective>().toList();
     final importIssues = <api.AnalysisIssue>[];
+    final reportedImports = <String>[];
 
     for (final directive in directives) {
-      if (directive is LibraryDirective) {
+      if (!isSafeDirective(directive)) {
+        importIssues.add(
+          api.AnalysisIssue(
+            kind: 'error',
+            message: directive is ImportDirective
+                ? 'Import type not supported.'
+                : 'Directive not supported.',
+            location: directive.getLocation(source),
+          ),
+        );
         continue;
-      } else if (directive is ImportDirective) {
-        if (directive.dartImport) {
-          final libraryName = directive.packageName;
-          if (!isSupportedCoreLibrary(libraryName)) {
-            importIssues.add(
-              api.AnalysisIssue(
-                kind: 'error',
-                message: "'dart:$libraryName' is not supported by DartPad.",
-                correction:
-                    'Try removing the import and usages of the library.',
-                location: directive.getLocation(source),
-              ),
-            );
-          }
-        } else if (directive.packageImport) {
-          final packageName = directive.packageName;
+      }
+      if (directive is! ImportDirective) continue;
 
-          if (isDeprecatedPackage(packageName)) {
-            importIssues.add(
-              api.AnalysisIssue(
-                kind: 'warning',
-                message: "Deprecated package: 'package:$packageName'.",
-                correction:
-                    'Try removing the import and usages of the package.',
-                url:
-                    'https://github.com/dart-lang/dart-pad/wiki/'
-                    'Package-and-plugin-support#deprecated-packages',
-                location: directive.getLocation(source),
-              ),
-            );
-          } else if (!isSupportedPackage(packageName)) {
-            importIssues.add(
-              api.AnalysisIssue(
-                kind: 'warning',
-                message: "Unsupported package: 'package:$packageName'.",
-                url:
-                    'https://github.com/dart-lang/dart-pad/wiki/'
-                    'Package-and-plugin-support#currently-supported-packages',
-                location: directive.getLocation(source),
-              ),
-            );
-          }
-        } else {
+      reportedImports.add(directive.uri.stringValue!);
+      if (directive.dartImport) {
+        final libraryName = directive.packageName;
+        if (!isSupportedCoreLibrary(libraryName)) {
           importIssues.add(
             api.AnalysisIssue(
               kind: 'error',
-              message: 'Import type not supported.',
+              message: "'dart:$libraryName' is not supported by DartPad.",
+              correction: 'Try removing the import and usages of the library.',
               location: directive.getLocation(source),
             ),
           );
         }
-      } else {
-        importIssues.add(
-          api.AnalysisIssue(
-            kind: 'error',
-            message: 'Directive not supported.',
-            location: directive.getLocation(source),
-          ),
-        );
+      } else if (directive.packageImport) {
+        final packageName = directive.packageName;
+
+        if (isDeprecatedPackage(packageName)) {
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'warning',
+              message: "Deprecated package: 'package:$packageName'.",
+              correction: 'Try removing the import and usages of the package.',
+              url:
+                  'https://github.com/dart-lang/dart-pad/wiki/'
+                  'Package-and-plugin-support#deprecated-packages',
+              location: directive.getLocation(source),
+            ),
+          );
+        } else if (!isSupportedPackage(packageName)) {
+          importIssues.add(
+            api.AnalysisIssue(
+              kind: 'warning',
+              message: "Unsupported package: 'package:$packageName'.",
+              url:
+                  'https://github.com/dart-lang/dart-pad/wiki/'
+                  'Package-and-plugin-support#currently-supported-packages',
+              location: directive.getLocation(source),
+            ),
+          );
+        }
       }
     }
-    final reportedImports = imports
-        .where((import) => import.packageImport || import.dartImport)
-        .map((import) => import.uri.stringValue!)
-        .toList();
 
     return api.AnalysisResponse(
       issues: [...importIssues, ...issues],
@@ -422,12 +405,7 @@ class AnalysisServerWrapper {
 
   /// Cleanly shutdown the Analysis Server.
   Future<void> shutdown() async {
-    await analysisServer.server
-        .shutdown()
-        .timeout(const Duration(seconds: 1))
-        // At runtime, it appears that [ServerDomain.shutdown] returns a
-        // `Future<Map<dynamic, dynamic>>`.
-        .catchError((dynamic _) => <dynamic, dynamic>{});
+    await analysisServer.server.shutdown().timeout(const Duration(seconds: 1));
   }
 
   Future<Suggestions2Result> _completeImpl(
@@ -443,11 +421,6 @@ class AnalysisServerWrapper {
       offset,
       maxResults,
     );
-  }
-
-  Future<FormatResult> _formatImpl(String src, int? offset) async {
-    await _loadSources({mainPath: src});
-    return await analysisServer.edit.format(mainPath, offset ?? 0, 0);
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {

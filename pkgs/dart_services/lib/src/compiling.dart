@@ -14,6 +14,7 @@ import 'common.dart';
 import 'logging.dart';
 import 'project_templates.dart';
 import 'sdk.dart';
+import 'utils.dart' show childProcessEnvironment;
 
 final DartPadLogger _logger = DartPadLogger('compiler');
 
@@ -40,7 +41,7 @@ class Compiler {
             ),
             '--persistent_worker',
           ],
-          environment: {...Platform.environment}..remove('GEMINI_API_KEY'),
+          environment: childProcessEnvironment,
           includeParentEnvironment: false,
         ),
         maxWorkers: 1,
@@ -73,10 +74,10 @@ class Compiler {
     String? deltaDill,
     required bool useNew,
   }) async {
-    final unsupportedImports = getUnsupportedImports(source);
-    if (unsupportedImports.isNotEmpty) {
+    final unsafeDirectives = getUnsafeDirectives(source);
+    if (unsafeDirectives.isNotEmpty) {
       return DDCCompilationResults.failed([
-        for (final directive in unsupportedImports)
+        for (final directive in unsafeDirectives)
           CompilationProblem._(_unsupportedDirectiveMessage(directive)),
       ]);
     }
@@ -313,7 +314,5 @@ String _unsupportedDirectiveMessage(Directive directive) => switch (directive) {
   PartDirective(:final uri) =>
     'unsupported part: ${uri.stringValue ?? uri.toSource()}',
   PartOfDirective() => 'unsupported directive: part of',
-  _ =>
-    'unsupported directive: '
-        '${directive.firstTokenAfterCommentAndMetadata.lexeme}',
+  LibraryDirective() => 'unsupported directive: library',
 };

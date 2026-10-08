@@ -72,133 +72,198 @@ void main() { }
       });
     });
 
-    group('ImportDirectiveExtension', () {
-      ImportDirective parseImport(String source) =>
-          getAllImportsFor(source).single;
-
-      test('validates dart: imports', () {
-        expect(parseImport("import 'dart:core';").dartImport, isTrue);
-        expect(parseImport("import 'dart:io';").dartImport, isTrue);
-        expect(parseImport("import 'dart:ui';").dartImport, isTrue);
-        expect(parseImport("import 'dart:core';").packageName, 'core');
-
-        expect(parseImport("import 'dart:';").dartImport, isFalse);
-        expect(parseImport("import 'dart:.';").dartImport, isFalse);
-        expect(parseImport("import 'dart:..';").dartImport, isFalse);
-        expect(parseImport("import 'dart:core/foo.dart';").dartImport, isFalse);
-        expect(
-          parseImport("import 'dart:core/../foo.dart';").dartImport,
-          isFalse,
-        );
-        expect(parseImport("import 'dart:core?foo=bar';").dartImport, isFalse);
-        expect(parseImport("import 'dart:core#frag';").dartImport, isFalse);
-        expect(parseImport(r"import 'dart:core\foo';").dartImport, isFalse);
-        expect(parseImport("import 'dart:core%2ffoo';").dartImport, isFalse);
-        expect(
-          parseImport(
-            "import 'dart:core' if (dart.library.js_interop) 'foo.dart';",
-          ).dartImport,
-          isFalse,
-        );
+    group('isSafeUri', () {
+      test('accepts dart: and package: URIs', () {
+        for (final uri in [
+          'dart:core',
+          'dart:io',
+          'dart:ui_web',
+          'package:flutter/material.dart',
+          'package:foo/bar/baz.dart',
+          'package:foo/src/a-b.g.dart',
+        ]) {
+          expect(isSafeUri(uri), isTrue, reason: uri);
+        }
       });
 
-      test('validates package: imports', () {
-        expect(
-          parseImport("import 'package:flutter/material.dart';").packageImport,
-          isTrue,
-        );
-        expect(
-          parseImport("import 'package:flutter/material.dart';").packageName,
-          'flutter',
-        );
-        expect(
-          parseImport("import 'package:foo/bar/baz.dart';").packageImport,
-          isTrue,
-        );
+      test('accepts incomplete URIs', () {
+        for (final uri in ['dart:', 'package:', 'package:flutter/']) {
+          expect(isSafeUri(uri), isTrue, reason: uri);
+        }
+      });
 
-        expect(parseImport("import 'package:';").packageImport, isFalse);
-        expect(
-          parseImport("import 'package:flutter/';").packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:/flutter/material.dart';").packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter//foo.dart';").packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter/./material.dart';")
-              .packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter/../foo.dart';").packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter/%2e%2e/foo.dart';")
-              .packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport(r"import 'package:flutter\material.dart';").packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter/material.dart?foo=bar';")
-              .packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'package:flutter/material.dart#frag';")
-              .packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport(
-            "import 'package:flutter/material.dart' "
-            "if (dart.library.js_interop) 'foo.dart';",
-          ).packageImport,
-          isFalse,
-        );
-        expect(
-          parseImport("import 'file:///foo.dart';").packageImport,
-          isFalse,
-        );
-        expect(parseImport("import 'foo.dart';").packageImport, isFalse);
-        expect(parseImport(r"import '$foo';").packageImport, isFalse);
-        expect(parseImport(r"import '$foo';").packageName, isEmpty);
+      test('rejects other URIs', () {
+        for (final uri in [
+          null,
+          '',
+          'foo.dart',
+          '/foo.dart',
+          'file:///foo.dart',
+          'http://example.com/foo.dart',
+          'dart:.',
+          'dart:..',
+          'dart:core/foo.dart',
+          'dart:core?foo=bar',
+          r'dart:core\foo',
+          'dart:core%2ffoo',
+          'package:/flutter/material.dart',
+          'package:flutter//foo.dart',
+          'package:flutter/./material.dart',
+          'package:flutter/../foo.dart',
+          'package:flutter/%2e%2e/foo.dart',
+          r'package:flutter\material.dart',
+          'package:flutter/material.dart?foo=bar',
+          'package:flutter/material.dart#frag',
+          'package:foo-bar/foo.dart',
+          'PACKAGE:flutter/material.dart',
+          ' package:flutter/material.dart',
+        ]) {
+          expect(isSafeUri(uri), isFalse, reason: uri);
+        }
+      });
+    });
+
+    group('isSafeDirective', () {
+      Directive parseDirective(String source) =>
+          getAllDirectivesFor(source).single;
+
+      test('accepts library directives and dart:/package: imports', () {
+        for (final source in [
+          'library;',
+          'library foo.bar;',
+          "@JS('foo') library;",
+          "import 'dart:async' deferred as async;",
+          "import 'package:flutter/material.dart' show Widget;",
+          "import 'package:fl' 'utter/material.dart';",
+          "import 'package:http/http.dart' "
+              "if (dart.library.js_interop) 'package:http/browser_client.dart';",
+          "export 'package:flutter/material.dart';",
+          "export 'dart:math';",
+        ]) {
+          expect(
+            isSafeDirective(parseDirective(source)),
+            isTrue,
+            reason: source,
+          );
+        }
+      });
+
+      test('rejects other directives', () {
+        for (final source in [
+          "import 'foo.dart';",
+          r"import '$foo';",
+          "import 'package:flutter/../foo.dart';",
+          "import 'dart:core' if (dart.library.js_interop) 'foo.dart';",
+          "export 'foo.dart';",
+          "part 'foo.dart';",
+          "part of 'foo.dart';",
+          'part of foo;',
+        ]) {
+          expect(
+            isSafeDirective(parseDirective(source)),
+            isFalse,
+            reason: source,
+          );
+        }
+      });
+
+      test('getUnsafeDirectives returns unsafe directives in order', () {
+        const source = '''
+library;
+import 'dart:io';
+import 'package:unsupported/foo.dart';
+import 'foo.dart';
+export 'bar.dart';
+part 'baz.dart';
+void main() {}
+''';
+        expect(getUnsafeDirectives(source).map((d) => d.toSource()), [
+          "import 'foo.dart';",
+          "export 'bar.dart';",
+          "part 'baz.dart';",
+        ]);
       });
     });
 
     group('sanitizeSourceForAnalysis', () {
-      test('blanks unsupported directives while preserving offsets', () {
+      test('keeps safe sources unchanged', () {
         const source = '''
+/// @docImport 'package:flutter/material.dart';
 library my_lib;
 import 'dart:math';
-import 'other.dart';
-import 'package:flutter/../other.dart';
-export 'foo.dart';
-part 'bar.dart';
+import 'package:flutter/material.dart';
 void main() {
   print(pi);
 }
 ''';
+        expect(sanitizeSourceForAnalysis(source), source);
+      });
+
+      test('blanks unsafe directives while preserving offsets', () {
+        const source =
+            'library my_lib;\r\n'
+            "import 'dart:math';\r\n"
+            "import 'other.dart';\n"
+            "import 'package:flutter/../other.dart';\n"
+            "export 'foo.dart';\n"
+            "part 'bar.dart';\n"
+            "import 'dart:core' if (dart.library.io) 'baz.dart';\n"
+            '// 🎯\n'
+            'void main() {\n'
+            '  print(pi);\n'
+            '}\n';
         final sanitized = sanitizeSourceForAnalysis(source);
         expect(sanitized.length, source.length);
-        expect(sanitized.split('\n').length, source.split('\n').length);
-        expect(sanitized, contains('library my_lib;'));
-        expect(sanitized, contains("import 'dart:math';"));
-        expect(sanitized, isNot(contains('other.dart')));
-        expect(sanitized, isNot(contains('foo.dart')));
-        expect(sanitized, isNot(contains('bar.dart')));
+        expect('\r'.allMatches(sanitized), hasLength(2));
         expect(
-          sanitized.indexOf('void main()'),
-          equals(source.indexOf('void main()')),
+          '\n'.allMatches(sanitized),
+          hasLength('\n'.allMatches(source).length),
         );
+        expect(sanitized, startsWith("library my_lib;\r\nimport 'dart:math';"));
+        for (final name in ['other.dart', 'foo.dart', 'bar.dart', 'baz.dart']) {
+          expect(sanitized, isNot(contains(name)));
+        }
+        expect(sanitized.indexOf('void main()'), source.indexOf('void main()'));
+        expect(sanitized, contains('// 🎯\n'));
+      });
+
+      test('blanks documentation imports with unsafe URIs', () {
+        const source = '''
+/// @docImport 'other.dart';
+/// @docImport 'package:flutter/material.dart';
+library;
+
+/// See [Foo].
+void main() {}
+''';
+        final sanitized = sanitizeSourceForAnalysis(source);
+        expect(sanitized.length, source.length);
+        expect('@docImport'.allMatches(sanitized), hasLength(1));
+        expect(
+          sanitized,
+          contains("/// @docImport 'package:flutter/material.dart';"),
+        );
+        expect(sanitized, contains("///            'other.dart';"));
+      });
+
+      test('handles overlapping directive ranges', () {
+        const source = 'part \n/// doc\nexport ';
+        final sanitized = sanitizeSourceForAnalysis(source);
+        expect(sanitized.length, source.length);
+        expect(getUnsafeDirectives(sanitized), isEmpty);
+      });
+
+      test('result contains no unsafe directives when parsed again', () {
+        for (final source in [
+          'library export {;part of ',
+          "import 'foo.dart' import 'dart:core';",
+          "void main() {}\nimport 'foo.dart';",
+        ]) {
+          final sanitized = sanitizeSourceForAnalysis(source);
+          expect(sanitized.length, source.length, reason: source);
+          expect(getUnsafeDirectives(sanitized), isEmpty, reason: source);
+          expect(sanitizeSourceForAnalysis(sanitized), sanitized);
+        }
       });
     });
   });
