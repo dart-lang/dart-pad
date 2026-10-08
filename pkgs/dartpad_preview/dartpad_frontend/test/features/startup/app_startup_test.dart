@@ -444,7 +444,7 @@ void main() {
     await pumpEventQueue();
     expect(starts, hasLength(1));
     expect(repository.hasRuntime, isTrue);
-    expect(web.document.querySelector('.cm-editor'), same(editor));
+    expect(web.document.querySelector('.cm-editor'), equals(editor));
     expect(run.disabled, isTrue);
     final firstKey = '${EmbedRuntimeController.storageKeyPrefix}other-a';
     final secondKey = '${EmbedRuntimeController.storageKeyPrefix}other-b';
@@ -466,7 +466,7 @@ void main() {
     );
     await pumpEventQueue();
     expect(repository.hasRuntime, isFalse);
-    expect(web.document.querySelector('.cm-editor'), same(editor));
+    expect(web.document.querySelector('.cm-editor'), equals(editor));
     expect(run.disabled, isFalse);
     expect(web.document.body!.textContent, contains('LSP and Preview paused'));
     final resume = web.document.querySelector('button[aria-label="Resume"]')! as web.HTMLButtonElement;

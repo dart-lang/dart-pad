@@ -5,4 +5,7 @@
 # Tests require a browser platform because transitive dependencies
 # (codemirror_dart, dartpad, web) use dart:js_interop.
 platforms: [chrome]
+compilers: [dart2js, dart2wasm]
+# Suites share Chrome focus and localStorage, including the embed runtime registry.
+concurrency: 1
 custom_html_template_path: test/browser_test_template.html

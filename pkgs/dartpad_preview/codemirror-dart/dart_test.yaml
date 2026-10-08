@@ -4,4 +4,5 @@
 
 platforms:
   - chrome
+compilers: [dart2js, dart2wasm]
 custom_html_template_path: test/browser_test_template.html

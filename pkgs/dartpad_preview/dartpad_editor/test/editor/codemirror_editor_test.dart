@@ -6,7 +6,6 @@
 library;
 
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad_editor/dartpad_editor.dart';
@@ -111,8 +110,6 @@ void main() {
         cancelable: true,
       ),
     );
-    (event as JSObject).setProperty('keyCode'.toJS, 13.toJS);
-    (event as JSObject).setProperty('which'.toJS, 13.toJS);
 
     editor.view.contentDOM.dispatchEvent(event);
     await pumpEventQueue();
