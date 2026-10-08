@@ -159,6 +159,81 @@ void main() {
             contains('Error: Method not found: \'print3\'.'),
           );
         });
+
+        test('bad import - local', () async {
+          const code = '''
+import 'foo.dart';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(result.problems, hasLength(1));
+          expect(
+            result.problems.single.message,
+            equals('unsupported import: foo.dart'),
+          );
+        });
+
+        test('bad import - http', () async {
+          const code = '''
+import 'http://example.com';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(result.problems, hasLength(1));
+          expect(
+            result.problems.single.message,
+            equals('unsupported import: http://example.com'),
+          );
+        });
+
+        test('multiple bad directives', () async {
+          const code = '''
+import 'foo.dart';
+import 'dart:core' if (dart.library.io) 'bar.dart';
+export 'baz.dart';
+part 'qux.dart';
+void main() {}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(code, '');
+          expect(result.success, isFalse);
+          expect(
+            result.problems.map((p) => p.message),
+            equals([
+              'unsupported import: foo.dart',
+              'unsupported import: dart:core',
+              'unsupported export: baz.dart',
+              'unsupported part: qux.dart',
+            ]),
+          );
+        });
+
+        test('package outside the allowlist', () async {
+          const code = '''
+import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+
+void main() {
+  usePathUrlStrategy();
+  runApp(const SizedBox());
+}
+''';
+          final result = reloadEndpoint == null
+              ? await restartEndpoint(code)
+              : await reloadEndpoint(
+                  code,
+                  await generateDeltaDill(restartEndpoint, code),
+                );
+          expect(result.problems, isEmpty);
+          expect(result.success, isTrue);
+        });
       });
     }
 
