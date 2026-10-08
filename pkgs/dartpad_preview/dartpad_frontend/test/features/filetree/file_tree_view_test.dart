@@ -524,6 +524,60 @@ void main() {
     expect(createdName, isNull);
     expect(web.document.querySelector('.file-tree-input'), isNull);
   });
+
+  testClient('does not render ignored files and folders', (tester) {
+    tester.pumpComponent(
+      FileTreeView(
+        state: FileTreeState(
+          root: FileTreeFolderNode(
+            WorkspaceFolder(workspace: workspace, path: ''),
+            children: [
+              FileTreeFolderNode(
+                WorkspaceFolder(workspace: workspace, path: '.dart_tool'),
+                isIgnored: true,
+                children: [
+                  FileTreeFileNode(
+                    WorkspaceFile(workspace: workspace, path: '.dart_tool/package_config.json'),
+                    openable: true,
+                    isIgnored: true,
+                  ),
+                ],
+              ),
+              FileTreeFolderNode(
+                WorkspaceFolder(workspace: workspace, path: 'lib'),
+                children: [
+                  FileTreeFileNode(
+                    WorkspaceFile(workspace: workspace, path: 'lib/main.dart'),
+                    openable: true,
+                  ),
+                ],
+              ),
+              FileTreeFileNode(
+                WorkspaceFile(workspace: workspace, path: '.env'),
+                openable: true,
+                isIgnored: true,
+              ),
+              FileTreeFileNode(
+                WorkspaceFile(workspace: workspace, path: 'pubspec.yaml'),
+                openable: true,
+              ),
+            ],
+          ),
+          activeFile: '',
+          operationError: null,
+          busy: false,
+          dirtyEntries: const {},
+          focusedPath: '',
+        ),
+        actions: _actions(),
+      ),
+    );
+
+    expect(web.document.querySelector('.file-tree-item.folder[title=".dart_tool"]'), isNull);
+    expect(web.document.querySelector('.file-tree-item.file[title=".env"]'), isNull);
+    expect(web.document.querySelector('.file-tree-item.folder[title="lib"]'), isNotNull);
+    expect(web.document.querySelector('.file-tree-item.file[title="pubspec.yaml"]'), isNotNull);
+  });
 }
 
 FileTreeState _state(
