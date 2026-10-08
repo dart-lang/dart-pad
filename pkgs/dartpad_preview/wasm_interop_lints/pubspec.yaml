@@ -1,0 +1,22 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+name: wasm_interop_lints
+description: Analyzer rules for portable Dart JavaScript interop.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  analysis_server_plugin: ^0.3.14
+  analyzer: ^12.1.0
+  analyzer_plugin: ^0.14.8
+
+dev_dependencies:
+  analyzer_testing: ^0.2.5
+  dart_flutter_team_lints: ^3.5.2
+  test: ^1.31.0
+  test_reflective_loader: ^0.4.0

@@ -71,8 +71,8 @@ final class EmbedRuntimeController {
       int? lastSeen;
       try {
         final value = jsonDecode(raw ?? 'null');
-        if (value is Map && value['lastSeen'] is int) {
-          lastSeen = value['lastSeen'] as int;
+        if (value case {'lastSeen': final int timestamp}) {
+          lastSeen = timestamp;
         }
       } on FormatException {
         // Malformed entries in our namespace are removed like expired entries.
