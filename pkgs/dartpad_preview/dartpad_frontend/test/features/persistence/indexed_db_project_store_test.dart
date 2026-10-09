@@ -44,6 +44,14 @@ void main() {
     expect(restored.state.sdk.dartVersion, state.sdk.dartVersion);
   });
 
+  test('reserves session ids that count up across connections', () async {
+    expect(await store.reserveSessionId(), 1);
+    final reopened = IndexedDbProjectStore(databaseName: name);
+    addTearDown(reopened.close);
+    expect(await reopened.reserveSessionId(), 2);
+    expect(await store.reserveSessionId(), 3);
+  });
+
   test('updates and removes files within one entry while retaining other projects', () async {
     final first = await store.create(
       savedProject(

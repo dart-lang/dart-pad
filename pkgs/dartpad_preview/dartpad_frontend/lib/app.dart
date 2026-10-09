@@ -202,6 +202,9 @@ final class _AppState extends State<App> {
         if (!_isCurrentLoad(generation)) {
           return;
         }
+        if (strategy.mintedSessionId case final id?) {
+          _writeSessionIdToUrl(uri, id);
+        }
         final project = switch (strategy.restoreProjectId) {
           final id? => await _loadSavedProject(id),
           null => await _loadProjectFromSource(request),
@@ -622,6 +625,14 @@ final class _AppState extends State<App> {
         ),
       );
     }
+  }
+
+  /// Reflects a freshly minted session id in the address bar without pushing a
+  /// new history entry, so back navigation does not land on the bare URL.
+  void _writeSessionIdToUrl(Uri uri, int sessionId) {
+    final query = {...uri.queryParameters, sessionIdQueryParameter: '$sessionId'};
+    final search = Uri(queryParameters: query).query;
+    web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }
 
   void _resetWorkspace(ProjectRequest request) {

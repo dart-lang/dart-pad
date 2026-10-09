@@ -92,7 +92,7 @@ void main() {
 
     final freshId = store.entries.keys.singleWhere((id) => id != 'saved');
     await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited fresh project');
-    await pumpEventQueue();
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     expect(String.fromCharCodes(store.entries[freshId]!.state.files['lib/main.dart']!), 'edited fresh project');
     expect(store.entries, hasLength(2));
   });
@@ -118,6 +118,40 @@ void main() {
     expect(store.entries, hasLength(2));
     expect(String.fromCharCodes(store.state!.files['lib/main.dart']!), contains('fresh'));
     expect(String.fromCharCodes(store.entries['saved']!.state.files['lib/main.dart']!), contains('previous work'));
+  });
+
+  final sourcedQueries = {
+    'sample': '?sample=counter',
+    'gist': '?gist=abc123',
+    'id': '?id=abc123',
+    'package': '?package=some_pkg',
+    'url': '?${Uri(queryParameters: {'url': 'https://example.com/project.tar.gz'}).query}',
+  };
+  for (final MapEntry(key: sourceKind, value: query) in sourcedQueries.entries) {
+    testClient('mints a session id and writes it into the URL for a $sourceKind source', (tester) async {
+      final originalUrl = web.window.location.href;
+      addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+      tester.pumpComponent(app(query));
+      await pumpEventQueue();
+      final params = Uri.parse(web.window.location.href).queryParameters;
+      expect(params['s'], '1');
+      expect(params[sourceKind], Uri.parse(query).queryParameters[sourceKind]);
+    });
+  }
+
+  testClient('increments the minted session id for repeated loads of the same sourced URL', (tester) async {
+    final originalUrl = web.window.location.href;
+    addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+    tester.pumpComponent(app('?sample=counter'));
+    await pumpEventQueue();
+    expect(Uri.parse(web.window.location.href).queryParameters['s'], '1');
+
+    // Re-opening the same sourced URL without its `s` session id (e.g. a second
+    // tab, modeled here as a fresh App instance over the same store) must
+    // not reuse the first session id.
+    tester.pumpComponent(app('?sample=counter'));
+    await pumpEventQueue();
+    expect(Uri.parse(web.window.location.href).queryParameters['s'], '2');
   });
 
   testClient('unavailable storage loads the source and pauses local saving', (tester) async {
