@@ -13,6 +13,7 @@ import 'package:yaml/yaml.dart';
 import 'examples.g.dart';
 import 'gzip/gzip.dart';
 import 'project_loader.dart';
+import 'strip_unavailable_dependencies.dart';
 
 part 'archive_project_source.dart';
 part 'flutter_api_docs_project_source.dart';

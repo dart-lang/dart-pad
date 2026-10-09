@@ -38,6 +38,13 @@ final class Project {
   }
 
   final Map<String, Uint8List> _files = {};
+  final List<String> _importWarnings = [];
+
+  /// Warnings about dependencies omitted while preparing imported pubspecs.
+  List<String> get importWarnings => List.unmodifiable(_importWarnings);
+
+  /// Records a warning to display in the loaded session's resolve log.
+  void addImportWarning(String warning) => _importWarnings.add(warning);
 
   /// An unmodifiable mapping from original source paths to workspace paths.
   ///

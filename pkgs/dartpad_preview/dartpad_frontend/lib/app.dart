@@ -262,6 +262,9 @@ final class _AppState extends State<App> {
         return;
       }
       session = _replaceWorkspaceSession(project.initialState, localApi: localApi, generation: generation);
+      for (final warning in project.contents.importWarnings) {
+        session.events.dispatch(LogEvent(warning, level: Level.WARNING));
+      }
       if (snapshot != null) {
         _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }
