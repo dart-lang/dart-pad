@@ -96,24 +96,29 @@ void main() {
     expect(web.document.body!.textContent, contains('SDK not available: dart:0.0.0'));
   });
 
-  for (final source in [
-    '',
-    'sample=counter',
-    'sample=counter&run=true',
-    'sample=counter&run=false',
-    'sample_id=material.AppBar.1&run=true',
-    'sample_id=material.AppBar.3&run=true',
-    'sample_id=material.AppBar.1&run=false',
-    'sample_id=material.AppBar.3&run=false',
-    'sample_id=material.AppBar.1',
-    'sample_id=material.AppBar.1&run=anything',
-    'sample_id=material.AppBar.1&run=true&run=false',
-    'gist=abc&run=true',
-    'package=demo&run=true',
-    'url=https://example.com/project.tar.gz&run=true',
+  for (final (source, autoRunInEmbed) in [
+    ('', false),
+    ('sample=counter', false),
+    ('sample=counter&run=true', false),
+    ('sample=counter&run=false', false),
+    ('sample_id=material.AppBar.0', false),
+    ('sample_id=material.AppBar.1&run=true', true),
+    ('sample_id=material.AppBar.2', false),
+    ('sample_id=material.AppBar.3&run=true', false),
+    ('sample_id=material.AppBar.1&run=false', true),
+    ('sample_id=material.AppBar.3&run=false', false),
+    ('sample_id=material.AppBar.1', true),
+    ('sample_id=material.AppBar.1&run=anything', true),
+    ('sample_id=material.AppBar.1&run=true&run=false', true),
+    ('sample_id=material.AppBar', false),
+    ('sample_id=material.ListTile.1', true),
+    ('gist=abc&run=true', false),
+    ('package=demo&run=true', false),
+    ('url=https://example.com/project.tar.gz&run=true', false),
   ]) {
     for (final embed in [false, true]) {
-      testClient('preview autorun depends only on embed=$embed for $source', (tester) async {
+      final autoRun = !embed || autoRunInEmbed;
+      testClient('preview autorun=$autoRun with embed=$embed for $source', (tester) async {
         final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
         addTearDown(worker.dispose);
         final workspace = await worker.createWorkspace();
@@ -138,8 +143,8 @@ void main() {
         await pumpEventQueue();
         expect(web.document.querySelector('.cm-editor'), isNotNull);
         final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
-        expect(container.preview.state, embed ? isA<PreviewInitial>() : isA<PreviewStarting>());
-        if (embed) {
+        expect(container.preview.state, autoRun ? isA<PreviewStarting>() : isA<PreviewInitial>());
+        if (!autoRun) {
           final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
           expect(run.disabled, isFalse);
           run.click();
@@ -148,7 +153,7 @@ void main() {
         }
       });
 
-      testClient('worker startup depends only on embed=$embed for $source', (tester) async {
+      testClient('worker startup=$autoRun with embed=$embed for $source', (tester) async {
         final starts = <Completer<DartPad>>[];
         tester.pumpComponent(
           App(
@@ -174,8 +179,8 @@ void main() {
         );
         await pumpEventQueue();
         expect(web.document.querySelector('.cm-editor'), isNotNull);
-        expect(starts, hasLength(embed ? 0 : 1));
-        if (embed) {
+        expect(starts, hasLength(autoRun ? 1 : 0));
+        if (!autoRun) {
           expect(web.document.querySelector('.preview iframe'), isNull);
           final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
           expect(run.disabled, isFalse);
