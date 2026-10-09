@@ -22,6 +22,9 @@ final class IndexedDbProjectStore implements ProjectStore {
   Future<web.IDBDatabase>? _database;
   bool _closed = false;
 
+  static const _nextSessionCounterKey = 'next';
+  static const _currentDatabaseVersion = 2;
+
   Future<web.IDBDatabase> _open() async {
     if (_closed) {
       throw StateError('Local project storage is closed.');
@@ -39,10 +42,9 @@ final class IndexedDbProjectStore implements ProjectStore {
 
   Future<web.IDBDatabase> _openDatabase() async {
     final result = Completer<web.IDBDatabase>();
-    final request = web.window.indexedDB.open(databaseName);
-    request.onupgradeneeded = ((web.Event event) {
-      final db = request.result as web.IDBDatabase;
-      db.createObjectStore('projects');
+    final request = web.window.indexedDB.open(databaseName, _currentDatabaseVersion);
+    request.onupgradeneeded = ((web.IDBVersionChangeEvent event) {
+      _migrateDatabase(request.result as web.IDBDatabase, fromVersion: event.oldVersion);
     }).toJS;
     request.onsuccess = ((web.Event event) {
       final db = request.result as web.IDBDatabase;
@@ -67,6 +69,16 @@ final class IndexedDbProjectStore implements ProjectStore {
       return await result.future;
     } finally {
       timer.cancel();
+    }
+  }
+
+  /// Creates each store added after [fromVersion].
+  void _migrateDatabase(web.IDBDatabase db, {required int fromVersion}) {
+    if (fromVersion < 1) {
+      db.createObjectStore('projects');
+    }
+    if (fromVersion < 2) {
+      db.createObjectStore('sessions');
     }
   }
 
@@ -99,6 +111,24 @@ final class IndexedDbProjectStore implements ProjectStore {
   @override
   Future<void> write(String id, PersistedProjectState state) async {
     await _commit(id, state);
+  }
+
+  // Reserve a session Id for a new request to prevent two new tabs from racing
+  // for a new Id.
+  @override
+  Future<int> reserveSessionId() async {
+    final db = await _open();
+    final transaction = db.transaction('sessions'.toJS, 'readwrite');
+    final done = _complete(transaction);
+    final sessions = transaction.objectStore('sessions');
+    final request = sessions.get(_nextSessionCounterKey.toJS);
+    var reserved = 0;
+    request.onsuccess = ((web.Event event) {
+      reserved = ((request.result as JSNumber?)?.toDartInt ?? 0) + 1;
+      sessions.put(reserved.toJS, _nextSessionCounterKey.toJS);
+    }).toJS;
+    await done;
+    return reserved;
   }
 
   Future<StoredProject> _commit(String id, PersistedProjectState state) async {
