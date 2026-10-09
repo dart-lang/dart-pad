@@ -7,6 +7,12 @@ import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
 
+/// The URL query parameter holding the per-tab session id (`s=<id>`).
+///
+/// Shared so the app, [ProjectRequest] parsing, and the persistence
+/// controller all agree on the same key.
+const String sessionIdQueryParameter = 's';
+
 /// The immutable, source-relative options supplied by the URL.
 ///
 /// Parsing validates query syntax and path safety. Source loading and project
@@ -25,6 +31,7 @@ final class ProjectRequest {
     this.mode,
     required this.isEmbedMode,
     required this.initialSplitRatio,
+    required this.isSourcedRequest,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
 
@@ -136,6 +143,7 @@ final class ProjectRequest {
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
       isEmbedMode: isEmbedUri(uri),
       initialSplitRatio: initialSplitRatio,
+      isSourcedRequest: hasExplicitSource || sample != null || apiSample != null,
     );
   }
 
@@ -195,6 +203,11 @@ final class ProjectRequest {
   /// Defaults to 70%, with the requested value clamped to 5–95%.
   /// This is only to support the old docs generator and will be removed in the future.
   final double initialSplitRatio;
+
+  /// Whether the URL explicitly names a source (`url`/`package`/`gist`/`id`/
+  /// `sample`/`sample_id`), as opposed to a bare URL defaulting to the
+  /// default sample.
+  final bool isSourcedRequest;
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///

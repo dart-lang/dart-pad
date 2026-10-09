@@ -39,6 +39,7 @@ final class MemoryProjectStore implements ProjectStore {
   final entries = <String, StoredProject>{};
   int _clock = 0;
   int _sequence = 0;
+  int _sessionCounter = 0;
   int writes = 0;
   int reads = 0;
   int closes = 0;
@@ -81,6 +82,9 @@ final class MemoryProjectStore implements ProjectStore {
     await _beforeWrite();
     _put(id, state);
   }
+
+  @override
+  Future<int> reserveSessionId() async => ++_sessionCounter;
 
   Future<void> _beforeWrite() async {
     await writeBarrier;

@@ -77,7 +77,29 @@ final class ProjectPersistenceController extends ChangeNotifier {
     if (request.query.keys.every((key) => key == 'theme')) {
       return PersistenceLoadStrategy(restoreProjectId: history.firstOrNull?.id);
     }
+    // A sourced URL with no session id yet needs one minted for this tab going forward.
+    if (_requestNeedsMintedSessionId(request)) {
+      return PersistenceLoadStrategy(mintedSessionId: await _reserveSessionId());
+    }
     return const PersistenceLoadStrategy();
+  }
+
+  bool _requestNeedsMintedSessionId(ProjectRequest request) =>
+      request.isSourcedRequest && !request.query.containsKey(sessionIdQueryParameter);
+
+  /// Returns null when storage is unavailable, leaving the URL without a session id.
+  Future<int?> _reserveSessionId() async {
+    if (!_available || _disposed) {
+      return null;
+    }
+    try {
+      return await _store!.reserveSessionId();
+    } catch (_) {
+      _available = false;
+      _notice = const ProjectHistoryUnavailable();
+      _notify();
+      return null;
+    }
   }
 
   Future<List<StoredProject>> _readHistory() async {
