@@ -96,9 +96,6 @@ final class _AppState extends State<App> {
 
   late final ProjectPersistenceController _persistence;
 
-  /// Request used to open the current project, including its original query.
-  Uri _projectUri = Uri();
-
   bool _isLargeScreen = true;
 
   /// Owns the workspace currently rendered and its worker resources.
@@ -175,7 +172,6 @@ final class _AppState extends State<App> {
   Future<void> _loadProject(Uri uri, {bool startFresh = false}) async {
     final generation = ++_loadGeneration;
     setState(() {
-      _projectUri = uri;
       _isInitializingWorkspace = true;
       _workspacePreparationFailure = null;
       _failedRestoreUri = null;

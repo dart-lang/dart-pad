@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
-import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:jaspr_test/client_test.dart';
