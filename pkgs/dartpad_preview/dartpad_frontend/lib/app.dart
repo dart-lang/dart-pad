@@ -33,15 +33,18 @@ import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
+import 'features/shared/components/collapsible_panel.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
+import 'features/shared/components/icon_button.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
+import 'features/shared/panel_layout_controller.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/startup/initial_project_state.dart';
@@ -92,7 +95,8 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
-  late final bool _hideFileNavigation;
+  late final PanelLayoutController _panels;
+  late final double _initialSplitRatio;
   EmbedRuntimeController? _embedRuntime;
   late final EmbedMessageController _embedMessages;
 
@@ -148,7 +152,8 @@ final class _AppState extends State<App> {
     super.initState();
     final initialUri = component.initialUri ?? Uri.base;
     _isEmbedMode = ProjectRequest.isEmbedUri(initialUri);
-    _hideFileNavigation = ProjectRequest.isHideFileNavigation(initialUri);
+    _initialSplitRatio = ProjectRequest.splitRatioForUri(initialUri);
+    _panels = PanelLayoutController(PanelConfiguration.fromUri(initialUri))..addListener(_onPanelsChanged);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
@@ -371,7 +376,18 @@ final class _AppState extends State<App> {
     }
   }
 
+  void _onPanelsChanged() {
+    setState(() {
+      if (_panels[WorkspacePanel.preview] != PanelPresentation.expanded) {
+        _selectedSmallScreenTab = .code;
+      }
+    });
+  }
+
   void _onPreviewStateChanged() {
+    if (_panels[WorkspacePanel.preview] != PanelPresentation.expanded) {
+      return;
+    }
     final state = _session.preview.state;
     if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
       if (!_isLargeScreen) {
@@ -380,8 +396,6 @@ final class _AppState extends State<App> {
             _selectedSmallScreenTab = .output;
           });
         }
-      } else if (_previewSplitKey.currentState?.isRightCollapsed ?? false) {
-        _previewSplitKey.currentState?.split();
       }
     }
   }
@@ -750,15 +764,7 @@ final class _AppState extends State<App> {
         classes: 'app-shell',
         [
           if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
-          if (!_isEmbedMode)
-            AppBar(
-              isSmallScreen: !_isLargeScreen,
-              restoreAction: _restoreAction,
-              onSelectExample: _isInitializingWorkspace
-                  ? null
-                  : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
-              isEmbedMode: _isEmbedMode,
-            ),
+          _buildAppBar(),
           div(classes: 'app-workspace-container', [
             div(classes: 'app-workspace', [
               if (_failedRestoreUri case final uri?)
@@ -783,13 +789,7 @@ final class _AppState extends State<App> {
               else
                 _buildPendingWorkspace(),
             ]),
-            if (!_isEmbedMode)
-              Footer(
-                taskStatus: _activeTaskStatus,
-                isSmallScreen: !_isLargeScreen,
-                currentSdk: _currentSdk,
-                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-              ),
+            _buildStatusBar(),
           ]),
         ],
       );
@@ -798,21 +798,7 @@ final class _AppState extends State<App> {
       classes: 'app-shell',
       [
         if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
-        if (!_isEmbedMode || !_isLargeScreen)
-          AppBar(
-            isSmallScreen: !_isLargeScreen,
-            restoreAction: _restoreAction,
-            onSelectExample: _isInitializingWorkspace
-                ? null
-                : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
-            isEmbedMode: _isEmbedMode,
-            smallScreenTabBar: !_isLargeScreen
-                ? SmallScreenTabBar(
-                    selectedTab: _selectedSmallScreenTab,
-                    onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
-                  )
-                : null,
-          ),
+        _buildAppBar(),
         ListenableBuilder(
           // Replacing the session must unmount its editors, including CodeMirror
           // NodeContainers. Starting a load keeps the existing subtree intact.
@@ -824,20 +810,25 @@ final class _AppState extends State<App> {
                 SplitPanel(
                   key: _previewSplitKey,
                   initialValue: session.initialProject.request.initialSplitRatio,
+                  controlledState: _panels.splitState(
+                    .preview,
+                    initialValue: session.initialProject.request.initialSplitRatio,
+                  ),
+                  onStateChanged: (state) => _panels.updateSplit(.preview, state),
+                  canCollapseLeft: false,
                   canCollapseRight: true,
                   minValue: _isEmbedMode ? 0.05 : 0.3,
                   maxValue: _isEmbedMode ? 0.95 : 0.85,
                   left: EditorShell(
                     openTabs: session.tabs.openTabs,
                     activeFile: session.tabs.activeFile,
-                    fileTree: _hideFileNavigation ? null : _buildFileTree(session),
+                    fileTree: _buildFileTree(session),
                     editorOverlay: _buildEditorOverlay(session),
                     onSwitchFile: session.tabs.switchFile,
                     onCloseFile: session.tabs.closeFile,
                     bottomPanel: _buildBottomPanel(session),
                     contextMenu: session.contextMenu,
-                    isEmbedMode: _isEmbedMode,
-                    hideFileNavigation: _hideFileNavigation,
+                    panels: _panels,
                   ),
                   right: _buildPreviewPanel(session),
                 )
@@ -845,25 +836,21 @@ final class _AppState extends State<App> {
                 EditorShell(
                   openTabs: session.tabs.openTabs,
                   activeFile: session.tabs.activeFile,
-                  fileTree: _hideFileNavigation ? null : _buildFileTree(session),
+                  fileTree: _buildFileTree(session),
                   editorOverlay: _buildEditorOverlay(session),
                   onSwitchFile: session.tabs.switchFile,
                   onCloseFile: session.tabs.closeFile,
                   bottomPanel: _buildBottomPanel(session),
                   contextMenu: session.contextMenu,
-                  isEmbedMode: _isEmbedMode,
-                  hideFileNavigation: _hideFileNavigation,
-                  smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
+                  panels: _panels,
+                  smallScreenPreviewPanel:
+                      _selectedSmallScreenTab == .output &&
+                          _panels[WorkspacePanel.preview] == PanelPresentation.expanded
+                      ? _buildPreviewPanel(session)
+                      : null,
                 ),
             ]),
-            if (!_isEmbedMode)
-              Footer(
-                taskStatus: _activeTaskStatus,
-                statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
-                isSmallScreen: !_isLargeScreen,
-                currentSdk: _currentSdk,
-                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-              ),
+            _buildStatusBar(),
           ]),
         ),
         ListenableBuilder(
@@ -892,36 +879,70 @@ final class _AppState extends State<App> {
     );
   }
 
+  Component _buildAppBar() => Component.fragment([
+    CollapsiblePanel(
+      panel: .appBar,
+      layout: _panels,
+      child: AppBar(
+        isSmallScreen: !_isLargeScreen,
+        restoreAction: _restoreAction,
+        onSelectExample: _isInitializingWorkspace
+            ? null
+            : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
+      ),
+    ),
+    if (!_isLargeScreen && _panels[WorkspacePanel.preview] != PanelPresentation.hidden)
+      SmallScreenTabBar(
+        selectedTab: _selectedSmallScreenTab,
+        onTabSelected: (tab) {
+          if (tab == .output) {
+            _panels.setPresentation(.preview, .expanded);
+          }
+          setState(() => _selectedSmallScreenTab = tab);
+        },
+      ),
+  ]);
+
+  Component _buildStatusBar() => CollapsiblePanel(
+    panel: .statusBar,
+    layout: _panels,
+    child: Footer(
+      taskStatus: _activeTaskStatus,
+      statusMessage: _activeSession?.tabs.errorMessage ?? _activeSession?.tabs.warningMessage,
+      isSmallScreen: !_isLargeScreen,
+      currentSdk: _currentSdk,
+      onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
+    ),
+  );
+
   /// Keep the editor layout visible while the project source or saved state loads.
   Component _buildPendingWorkspace() {
     final editor = EditorShell(
       openTabs: const [],
       activeFile: '',
-      fileTree: _hideFileNavigation
-          ? null
-          : const aside(classes: 'file-tree', [
-              div(classes: 'file-tree-header', [
-                span(classes: 'file-tree-title', [.text('Explorer')]),
-              ]),
-              div(classes: 'file-tree-list', []),
-            ]),
+      fileTree: const _PendingPanel(.fileTree),
       editorOverlay: const .fragment([]),
       onSwitchFile: (_) {},
       onCloseFile: (_, {discardChanges = false}) => false,
-      bottomPanel: const div(classes: 'bottom-panel', []),
-      isEmbedMode: _isEmbedMode,
-      hideFileNavigation: _hideFileNavigation,
+      bottomPanel: const _PendingPanel(.bottomPanels),
+      panels: _panels,
     );
     if (!_isLargeScreen) {
       return editor;
     }
     return SplitPanel(
-      initialValue: 0.7,
+      initialValue: _initialSplitRatio,
+      controlledState: _panels.splitState(
+        .preview,
+        initialValue: _initialSplitRatio,
+      ),
+      onStateChanged: (state) => _panels.updateSplit(.preview, state),
+      canCollapseLeft: false,
       canCollapseRight: true,
-      minValue: 0.3,
-      maxValue: 0.85,
+      minValue: _isEmbedMode ? 0.05 : 0.3,
+      maxValue: _isEmbedMode ? 0.95 : 0.85,
       left: editor,
-      right: const div(classes: 'preview-container', []),
+      right: const _PendingPanel(.preview),
     );
   }
 
@@ -1035,6 +1056,8 @@ final class _AppState extends State<App> {
 
   @override
   void dispose() {
+    _panels.removeListener(_onPanelsChanged);
+    _panels.dispose();
     _embedMessages.dispose();
     _embedRuntime?.dispose();
     _resizeSubscription?.cancel();
@@ -1103,4 +1126,38 @@ final class _LoadedProject {
   final InitialProjectState initialState;
   final Project contents;
   final StoredProject? saved;
+}
+
+/// Keeps collapse rails usable before the workspace and its views are ready.
+final class _PendingPanel extends StatelessComponent {
+  const _PendingPanel(this.panel);
+
+  final WorkspacePanel panel;
+
+  @override
+  Component build(BuildContext context) {
+    final split = SplitPanel.of(context);
+    final collapsed = split?.isPanelCollapsed ?? false;
+    final expand = IconButton(
+      icon: panel == WorkspacePanel.fileTree ? 'folder_open' : 'expand_more',
+      label: 'Show ${panel.label}',
+      tooltip: 'Show ${panel.label}',
+      onClick: (_) => split?.expand(),
+    );
+    return switch (panel) {
+      WorkspacePanel.fileTree when collapsed => aside(classes: 'file-tree-rail', [expand]),
+      WorkspacePanel.fileTree => const aside(classes: 'file-tree', [
+        div(classes: 'file-tree-header', [
+          span(classes: 'file-tree-title', [.text('Explorer')]),
+        ]),
+        div(classes: 'file-tree-list', []),
+      ]),
+      WorkspacePanel.preview => div(classes: 'preview-container${collapsed ? ' collapsed' : ''}', [
+        if (collapsed) aside(classes: 'preview-rail', [expand]),
+      ]),
+      _ => div(classes: 'bottom-panel${collapsed ? ' collapsed' : ''}', [
+        if (collapsed) div(classes: 'bottom-panel-tabs', [expand]),
+      ]),
+    };
+  }
 }

@@ -351,7 +351,7 @@ void main() {
       expect(sourceLoads, 1);
       expect(repositories, hasLength(1));
       expect(store.reads, 0);
-      expect(web.document.querySelector('.app-bar'), isNull);
+      expect((web.document.querySelector('[data-panel="app_bar"]')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.restore-last-project'), isNull);
       expect(web.document.querySelector('dialog'), isNull);
       await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited in embed');

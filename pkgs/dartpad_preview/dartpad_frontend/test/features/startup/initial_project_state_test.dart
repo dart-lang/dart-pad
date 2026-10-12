@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/dart_source.dart';
+import 'package:dartpad_frontend/features/shared/panel_configuration.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -81,17 +82,13 @@ void main() {
       }
     });
 
-    test('hideFileNavigation defaults to true in embed mode and false otherwise', () {
-      expect(ProjectRequest.fromUri(Uri.parse('/')).hideFileNavigation, isFalse);
-      expect(ProjectRequest.fromUri(Uri.parse('/?hideFileNavigation=true')).hideFileNavigation, isFalse);
-      expect(ProjectRequest.fromUri(Uri.parse('/?embed=false&hideFileNavigation=true')).hideFileNavigation, isFalse);
-      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true')).hideFileNavigation, isTrue);
-      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=true')).hideFileNavigation, isTrue);
-      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=false')).hideFileNavigation, isFalse);
-      expect(ProjectRequest.fromUri(Uri.parse('/?embed=true&hideFileNavigation=FALSE')).hideFileNavigation, isFalse);
-      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?embed=true')), isTrue);
-      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?embed=true&hideFileNavigation=false')), isFalse);
-      expect(ProjectRequest.isHideFileNavigation(Uri.parse('/?hideFileNavigation=true')), isFalse);
+    test('project request retains contextual panel hints', () {
+      final request = ProjectRequest.fromUri(Uri.parse('/?embed=true&panels=+tabs,-preview'));
+      expect(request.panels[WorkspacePanel.tabs], PanelPresentation.expanded);
+      expect(request.panels[WorkspacePanel.preview], PanelPresentation.hidden);
+      final roundTrip = ProjectRequest.fromUri(Uri.parse(request.search));
+      expect(roundTrip.panels[WorkspacePanel.tabs], PanelPresentation.expanded);
+      expect(roundTrip.panels[WorkspacePanel.preview], PanelPresentation.hidden);
     });
 
     test('clamps split percentages and defaults invalid values for every embed source', () {

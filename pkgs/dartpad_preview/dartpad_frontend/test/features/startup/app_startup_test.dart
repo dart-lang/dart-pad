@@ -13,6 +13,7 @@ import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
 import 'package:jaspr/dom.dart' show div;
@@ -253,7 +254,7 @@ void main() {
       expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('updated')"));
       expect(starts, isEmpty);
       expect(repository.hasRuntime, isFalse);
-      expect(web.document.querySelector('.app-footer'), isNull);
+      expect((web.document.querySelector('[data-panel="status_bar"]')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.preview iframe'), isNull);
     });
   }
@@ -507,24 +508,23 @@ void main() {
         );
         await pumpEventQueue();
 
-        expect(web.document.querySelector('.app-bar'), isNull);
-        expect(web.document.querySelector('.app-footer'), isNull);
+        expect((web.document.querySelector('[data-panel="app_bar"]')! as web.HTMLElement).style.display, 'none');
+        expect((web.document.querySelector('[data-panel="status_bar"]')! as web.HTMLElement).style.display, 'none');
         expect(web.document.querySelector('.file-tree-rail'), isNull);
-        expect(web.document.querySelector('.file-tree'), isNull);
-        expect(web.document.querySelector('.editor-tab-bar'), isNull);
-        expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
+        expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, 'none');
+        expect((web.document.querySelector('[data-panel="tabs"]')! as web.HTMLElement).style.display, 'none');
         final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
         expect(editorShell.style.flexGrow, (split / 100).toString());
       });
     }
   }
 
-  testClient('embed mode with hideFileNavigation=false shows file tree rail, tabs, and breadcrumbs', (tester) async {
+  testClient('embed panel hints expand file tree, tabs, and breadcrumbs', (tester) async {
     tester.pumpComponent(
       App(
         projectStore: MemoryProjectStore(),
         initialUri: Uri.parse(
-          '/?sample_id=material.AppBar.1&channel=stable&split=60&embed=true&hideFileNavigation=false',
+          '/?sample_id=material.AppBar.1&channel=stable&split=60&embed=true&panels=+file_tree,+tabs',
         ),
         loadSource: (_) async => contents({
           'lib/main.dart': "import 'package:flutter/material.dart'; void main() {}",
@@ -543,14 +543,110 @@ void main() {
     );
     await pumpEventQueue();
 
-    expect(web.document.querySelector('.app-bar'), isNull);
-    expect(web.document.querySelector('.app-footer'), isNull);
-    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    expect((web.document.querySelector('[data-panel="app_bar"]')! as web.HTMLElement).style.display, 'none');
+    expect((web.document.querySelector('[data-panel="status_bar"]')! as web.HTMLElement).style.display, 'none');
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, isNot('none'));
     expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
     expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
     final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
     expect(editorShell.style.flexGrow, '0.6');
   });
+
+  testClient('standalone minus hints initialize collapsed panels and preserve changes made while loading', (
+    tester,
+  ) async {
+    final download = Completer<Project>();
+    tester.pumpComponent(
+      _panelTestApp(
+        Uri.parse('?sample=dart&split=60&panels=-app_bar,-status_bar,-tabs,-file_tree,-preview,-bottom_panels,-editor'),
+        loadSource: (_) => download.future,
+      ),
+    );
+    await pumpEventQueue();
+    expect(web.document.querySelector('[data-panel="app_bar"]')!.classList.contains('collapsed'), isTrue);
+    expect(web.document.querySelector('[data-panel="status_bar"]')!.classList.contains('collapsed'), isTrue);
+    expect(web.document.querySelector('[data-panel="tabs"]')!.classList.contains('collapsed'), isTrue);
+    expect((web.document.querySelector('.editor-shell')! as web.HTMLElement).style.flexGrow, '1');
+    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    expect(web.document.querySelector('.preview-container')!.classList.contains('collapsed'), isTrue);
+    expect(web.document.querySelector('.bottom-panel')!.classList.contains('collapsed'), isTrue);
+    (web.document.querySelector('button[aria-label="Show file tree"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    download.complete(contents({'lib/main.dart': 'void main() {}'}));
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, isNot('none'));
+    expect(web.document.querySelector('.preview-container')!.classList.contains('collapsed'), isTrue);
+    expect(web.document.querySelector('.bottom-panel')!.classList.contains('collapsed'), isTrue);
+    expect(web.document.querySelector('.cm-editor'), isNotNull);
+  });
+
+  testClient('embed plus hints show chrome and all groups have reversible controls', (tester) async {
+    tester.pumpComponent(
+      _panelTestApp(
+        Uri.parse(
+          '?sample=dart&embed=true&panels=+app_bar,+status_bar,+tabs,+file_tree,+preview,+bottom_panels',
+        ),
+      ),
+    );
+    await pumpEventQueue();
+    final editor = web.document.querySelector('.cm-editor');
+    expect(editor, isNotNull);
+    for (final label in ['app bar', 'status bar', 'editor tabs']) {
+      (web.document.querySelector('button[aria-label="Collapse $label"]')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.cm-editor'), same(editor));
+      (web.document.querySelector('button[aria-label="Show $label"]')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.cm-editor'), same(editor));
+    }
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    expect(web.document.querySelector('.preview-container')!.classList.contains('collapsed'), isFalse);
+    expect(web.document.querySelector('.bottom-panel')!.classList.contains('collapsed'), isFalse);
+  });
+
+  testClient('command palette retains workspace commands without panel commands', (tester) async {
+    tester.pumpComponent(_panelTestApp(Uri.parse('?sample=dart&embed=true&panels=-preview')));
+    await pumpEventQueue();
+    web.document.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(
+          key: 'p',
+          metaKey: true,
+          ctrlKey: true,
+          shiftKey: true,
+          bubbles: true,
+        ),
+      ),
+    );
+    await pumpEventQueue();
+    final palette = web.document.querySelector('#command-palette-list');
+    expect(palette, isNotNull);
+    expect(palette!.textContent, contains('Pub get'));
+    expect(palette.textContent, isNot(contains('Toggle')));
+  });
+
+  for (final hiddenPreview in [false, true]) {
+    testClient('small embed navigation follows preview visibility, hidden=$hiddenPreview', (tester) async {
+      final descriptor = _getOwnPropertyDescriptor(web.window, 'innerWidth'.toJS);
+      _defineProperty(web.window, 'innerWidth'.toJS, {'value': 390, 'configurable': true}.jsify()! as JSObject);
+      addTearDown(() => _defineProperty(web.window, 'innerWidth'.toJS, descriptor));
+      tester.pumpComponent(
+        _panelTestApp(
+          Uri.parse(
+            '?sample=dart&embed=true&panels=${hiddenPreview ? '-' : '+'}preview',
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      expect(web.document.querySelector('.small-screen-tab-bar'), hiddenPreview ? isNull : isNotNull);
+      expect((web.document.querySelector('[data-panel="app_bar"]')! as web.HTMLElement).style.display, 'none');
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+    });
+  }
 
   for (final hasMain in [true, false]) {
     testClient('missing README opens main when available, hasMain=$hasMain', (tester) async {
@@ -592,7 +688,7 @@ void main() {
       expect(web.document.querySelector('[role="alertdialog"]')?.textContent, contains('Project download failed'));
       expect(web.document.querySelector('button[aria-label="Reload Page"]'), isNotNull);
       if (embed) {
-        expect(web.document.querySelector('.app-bar'), isNull);
+        expect((web.document.querySelector('[data-panel="app_bar"]')! as web.HTMLElement).style.display, 'none');
       }
       expect(web.document.querySelector('.editor-tab'), isNull);
     });
@@ -715,3 +811,23 @@ void injectSource(String source) {
     ),
   );
 }
+
+@JS('Object.defineProperty')
+external void _defineProperty(JSObject object, JSString property, JSObject descriptor);
+
+@JS('Object.getOwnPropertyDescriptor')
+external JSObject _getOwnPropertyDescriptor(JSObject object, JSString property);
+
+App _panelTestApp(Uri uri, {Future<Project> Function(ProjectSource source)? loadSource}) => App(
+  initialUri: uri,
+  projectStore: MemoryProjectStore(),
+  loadSource: loadSource ?? (_) async => contents({'lib/main.dart': 'void main() {}'}),
+  createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+      WorkspaceRepository(
+        events: events,
+        sdk: sdk,
+        taskStatus: taskStatus,
+        workspaceResourceApi: localApi!,
+        workspaceFuture: Completer<Workspace>().future,
+      ),
+);
