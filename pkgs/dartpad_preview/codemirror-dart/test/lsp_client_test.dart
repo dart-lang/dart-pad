@@ -74,7 +74,7 @@ void main() {
             displayFileCallback = onDisplayFile;
             workspaceEditCallback = onWorkspaceEdit;
             capturedRootUri = rootUri.toDart;
-            expect(capturedLanguage, same(language));
+            expect(capturedLanguage, equals(language));
 
             final handler = notificationHandlers.toDart.single as JSObject;
             expect(
@@ -257,7 +257,7 @@ void main() {
     ]) {
       final handled = progressCallback.callAsFunction(null, jsClient, params.jsify())! as JSBoolean;
       expect(handled.toDart, isFalse);
-      expect(jsClient.getProperty<JSPromise>('analysisFinished'.toJS), same(analysisFinished));
+      expect(jsClient.getProperty<JSPromise>('analysisFinished'.toJS), equals(analysisFinished));
     }
     await pumpEventQueue();
     expect(statuses, [isTrue]);
@@ -274,7 +274,7 @@ void main() {
     );
     expect(
       jsClient.getProperty<JSPromise>('analysisFinished'.toJS),
-      same(analysisFinished),
+      equals(analysisFinished),
     );
 
     progressCallback.callAsFunction(

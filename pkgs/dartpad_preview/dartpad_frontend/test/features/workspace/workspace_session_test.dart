@@ -140,7 +140,7 @@ void main() {
     await session.suspendRuntime();
     expect(session.tabs.getTab('lib/main.dart'), same(tab));
     expect(tab.editor, same(editor));
-    expect(editor.view.state, same(state));
+    expect(editor.view.state, equals(state));
     expect(tab.hasUnsavedChanges, isTrue);
     expect(editor.view.state.selection.main.head, 7);
     expect(api.disposeCount, 0);

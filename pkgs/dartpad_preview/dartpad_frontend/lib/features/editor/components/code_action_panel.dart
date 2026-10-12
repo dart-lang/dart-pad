@@ -138,7 +138,7 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
     final activeElement = web.document.activeElement;
     var activeIndex = 0;
     for (var i = 0; i < buttons.length; i++) {
-      if (identical(buttons.item(i), activeElement)) {
+      if (buttons.item(i) == activeElement) {
         activeIndex = i;
         break;
       }

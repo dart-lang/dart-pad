@@ -124,7 +124,7 @@ void main() {
         'fromPosition'.toJS,
         ((JSObject position) {
           final map = (position.dartify() as Map).cast<String, Object?>();
-          return map['character']! as int;
+          return (map['character']! as num).toInt();
         }).toJS,
       );
     lspPluginConstructor.setProperty(
@@ -186,7 +186,7 @@ void main() {
     expect(controller.codeActions, hasLength(2));
   });
 
-  test('Ctrl+. requests all code actions at the cursor', () async {
+  test('Mod+. requests all code actions at the cursor', () async {
     editor.view.dom
         .querySelector('.cm-content')!
         .dispatchEvent(
@@ -197,7 +197,8 @@ void main() {
               cancelable: true,
               key: '.',
               code: 'Period',
-              ctrlKey: true,
+              ctrlKey: !web.window.navigator.platform.toLowerCase().contains('mac'),
+              metaKey: web.window.navigator.platform.toLowerCase().contains('mac'),
             ),
           ),
         );

@@ -133,8 +133,8 @@ jobs:
         run: dart test
 
       # Verify the production Jaspr build (dual dart2wasm + dart2js fallback) in
-      # PR presubmit; `dart test` only runs dart2js unit tests and would not
-      # catch dart2wasm or build_web_compilers regressions prior to Cloud Build.
+      # PR presubmit; the browser tests cover both compilers but do not exercise
+      # the production build_web_compilers pipeline prior to Cloud Build.
       - name: Build frontend (wasm)
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart run jaspr_cli:jaspr build --experimental-wasm -v

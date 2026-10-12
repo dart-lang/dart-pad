@@ -204,10 +204,10 @@ final class CodeMirrorEditor {
       final start = range['start'] as Map;
       final end = range['end'] as Map;
 
-      final startLine = start['line'] as int;
-      final startChar = start['character'] as int;
-      final endLine = end['line'] as int;
-      final endChar = end['character'] as int;
+      final startLine = (start['line'] as num).toInt();
+      final startChar = (start['character'] as num).toInt();
+      final endLine = (end['line'] as num).toInt();
+      final endChar = (end['character'] as num).toInt();
 
       final startOffset = doc.line(startLine + 1).from + startChar;
       final endOffset = doc.line(endLine + 1).from + endChar;

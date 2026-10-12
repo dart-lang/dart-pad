@@ -380,13 +380,13 @@ interface class LanguageServerClient {
     parsedEdits.sort((a, b) {
       final startA = (a['range'] as Map)['start'] as Map;
       final startB = (b['range'] as Map)['start'] as Map;
-      final lineA = startA['line'] as int;
-      final lineB = startB['line'] as int;
+      final lineA = (startA['line'] as num).toInt();
+      final lineB = (startB['line'] as num).toInt();
       if (lineA != lineB) {
         return lineB.compareTo(lineA);
       }
-      final charA = startA['character'] as int;
-      final charB = startB['character'] as int;
+      final charA = (startA['character'] as num).toInt();
+      final charB = (startB['character'] as num).toInt();
       return charB.compareTo(charA);
     });
 
@@ -404,10 +404,10 @@ interface class LanguageServerClient {
     final end = range['end'] as Map;
     final newText = edit['newText'] as String;
 
-    final startLine = start['line'] as int;
-    final startChar = start['character'] as int;
-    final endLine = end['line'] as int;
-    final endChar = end['character'] as int;
+    final startLine = (start['line'] as num).toInt();
+    final startChar = (start['character'] as num).toInt();
+    final endLine = (end['line'] as num).toInt();
+    final endChar = (end['character'] as num).toInt();
 
     final newLines = newText.split('\n');
 

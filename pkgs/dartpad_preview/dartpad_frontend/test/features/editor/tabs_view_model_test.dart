@@ -479,7 +479,7 @@ void main() {
     expect(buttons.length, 2);
     expect(buttons.item(0)!.textContent, 'Use const');
     expect(buttons.item(1)!.textContent, 'Suppress lint');
-    expect(web.document.activeElement, same(buttons.item(0)));
+    expect(web.document.activeElement, equals(buttons.item(0)));
 
     buttons
         .item(0)!
@@ -489,7 +489,7 @@ void main() {
             web.KeyboardEventInit(key: 'ArrowDown', bubbles: true, cancelable: true),
           ),
         );
-    expect(web.document.activeElement, same(buttons.item(1)));
+    expect(web.document.activeElement, equals(buttons.item(1)));
 
     buttons
         .item(1)!
@@ -499,7 +499,7 @@ void main() {
             web.KeyboardEventInit(key: 'ArrowUp', bubbles: true, cancelable: true),
           ),
         );
-    expect(web.document.activeElement, same(buttons.item(0)));
+    expect(web.document.activeElement, equals(buttons.item(0)));
 
     buttons
         .item(0)!
@@ -545,7 +545,7 @@ void main() {
     await pumpEventQueue();
 
     expect(controller.showFloatingPanel, isFalse);
-    expect(web.document.activeElement, same(mainTab.editor.view.dom.querySelector('.cm-content')));
+    expect(web.document.activeElement, equals(mainTab.editor.view.dom.querySelector('.cm-content')));
   });
 
   testClient('quick-fix panel reports no results and closes on outside click', (tester) async {
