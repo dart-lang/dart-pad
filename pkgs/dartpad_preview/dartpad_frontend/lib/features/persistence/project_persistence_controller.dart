@@ -52,6 +52,9 @@ final class ProjectPersistenceController extends ChangeNotifier {
   String? _projectId;
   String? get projectId => _autosave?.projectId ?? _projectId;
 
+  /// Session id of the tab's current project, set by [prepareLoad].
+  int? _sessionId;
+
   PersistenceNotice? _notice;
   PersistenceNotice? get notice => _notice;
 
@@ -60,32 +63,46 @@ final class ProjectPersistenceController extends ChangeNotifier {
 
   /// Stops the previous session before inspecting history. The caller checks
   /// its load generation before opening the selected project.
-  Future<PersistenceLoadStrategy> prepareLoad(
-    ProjectRequest request, {
-    bool startFresh = false,
-    String? restoreProjectId,
-  }) async {
+  Future<PersistenceLoadStrategy> prepareLoad(ProjectRequest request, {bool startFresh = false}) async {
     await stop();
     final history = await _readHistory();
-    if (restoreProjectId != null) {
-      return PersistenceLoadStrategy(restoreProjectId: restoreProjectId);
+    _sessionId = null;
+    if (request.isSourcedRequest) {
+      return _resolveSourcedRequest(request, history, startFresh: startFresh);
     }
-    if (startFresh) {
-      return const PersistenceLoadStrategy();
-    }
-    // A theme-only URL changes presentation, not the selected project.
-    if (request.query.keys.every((key) => key == 'theme')) {
-      return PersistenceLoadStrategy(restoreProjectId: history.firstOrNull?.id);
-    }
-    // A sourced URL with no session id yet needs one minted for this tab going forward.
-    if (_requestNeedsMintedSessionId(request)) {
-      return PersistenceLoadStrategy(mintedSessionId: await _reserveSessionId());
-    }
-    return const PersistenceLoadStrategy();
+    return _resolveBareRequest(history, startFresh: startFresh);
   }
 
-  bool _requestNeedsMintedSessionId(ProjectRequest request) =>
-      request.isSourcedRequest && !request.query.containsKey(sessionIdQueryParameter);
+  /// A bare URL always selects the single scratch project.
+  PersistenceLoadStrategy _resolveBareRequest(List<StoredProject> history, {required bool startFresh}) {
+    final scratch = startFresh ? null : history.where((entry) => entry.state.isBareScratch).firstOrNull;
+    return PersistenceLoadStrategy(restoreProjectId: scratch?.id);
+  }
+
+  /// Restores the entry saved under the requested session id.
+  /// Otherwise, given no or an unknown id loads the source under a newly minted id.
+  Future<PersistenceLoadStrategy> _resolveSourcedRequest(
+    ProjectRequest request,
+    List<StoredProject> history, {
+    required bool startFresh,
+  }) async {
+    final requested = _requestedSessionId(request);
+    if (!startFresh && requested != null) {
+      final match = history
+          .where((entry) => entry.state.sessionId == requested && entry.state.matchesQuery(request.query))
+          .firstOrNull;
+      if (match != null) {
+        _sessionId = requested;
+        return PersistenceLoadStrategy(restoreProjectId: match.id);
+      }
+    }
+    final minted = await _reserveSessionId();
+    _sessionId = minted;
+    return PersistenceLoadStrategy(mintedSessionId: minted);
+  }
+
+  int? _requestedSessionId(ProjectRequest request) =>
+      int.tryParse(request.query[sessionIdQueryParameter]?.firstOrNull ?? '');
 
   /// Returns null when storage is unavailable, leaving the URL without a session id.
   Future<int?> _reserveSessionId() async {
@@ -149,6 +166,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
       session: session,
       store: _store!,
       projectId: projectId,
+      sessionId: _sessionId,
       onError: (_) {
         if (identical(_autosave, autosave)) {
           _reportSaveFailure();

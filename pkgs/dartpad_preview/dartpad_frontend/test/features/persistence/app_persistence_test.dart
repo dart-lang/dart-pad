@@ -29,7 +29,7 @@ void main() {
   late List<WorkspaceRepository> repositories;
   late int sourceLoads;
   setUp(() {
-    store = MemoryProjectStore(savedProject());
+    store = MemoryProjectStore(savedProject(query: ''));
     repositories = [];
     sourceLoads = 0;
   });
@@ -56,7 +56,7 @@ void main() {
   );
 
   testClient('without query restores the latest entry', (tester) async {
-    final latest = await store.create(savedProject(text: 'most recent'));
+    final latest = await store.create(savedProject(query: '', text: 'most recent'));
     tester.pumpComponent(app(''));
     await pumpEventQueue();
     expect(sourceLoads, 0);
@@ -67,7 +67,7 @@ void main() {
   });
 
   testClient('theme-only query restores the latest entry', (tester) async {
-    final latest = await store.create(savedProject(text: 'most recent'));
+    final latest = await store.create(savedProject(query: '', text: 'most recent'));
     tester.pumpComponent(app('?theme=dark'));
     await pumpEventQueue();
     expect(sourceLoads, 0);
@@ -166,7 +166,7 @@ void main() {
   testClient('another tab saving leaves editing enabled and the last autosave wins', (tester) async {
     tester.pumpComponent(app(''));
     await pumpEventQueue();
-    await store.write('saved', savedProject(text: 'other tab'));
+    await store.write('saved', savedProject(query: '', text: 'other tab'));
     web.document.dispatchEvent(web.Event('visibilitychange'));
     await pumpEventQueue();
     expect(web.document.querySelector('dialog'), isNull);
@@ -183,8 +183,8 @@ void main() {
   });
 
   testClient('failed restore offers Start fresh and retains the failed entry', (tester) async {
-    final files = savedProject().files;
-    final previous = savedProject(files: {...files, 'lib/./main.dart': files['lib/main.dart']!});
+    final files = savedProject(query: '').files;
+    final previous = savedProject(query: '', files: {...files, 'lib/./main.dart': files['lib/main.dart']!});
     store = MemoryProjectStore(previous);
     tester.pumpComponent(app(''));
     await pumpEventQueue();

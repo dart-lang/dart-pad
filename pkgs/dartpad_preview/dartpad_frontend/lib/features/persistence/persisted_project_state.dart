@@ -25,6 +25,7 @@ final class PersistedProjectState {
     required this.activeFile,
     required this.files,
     required this.folders,
+    this.sessionId,
   });
 
   final Map<String, List<String>> query;
@@ -37,15 +38,25 @@ final class PersistedProjectState {
   final Map<String, Uint8List> files;
   final List<String> folders;
 
+  /// Null for the bare URL scratch project.
+  final int? sessionId;
+
   Project get project => Project([
     for (final entry in files.entries) ProjectFile(path: entry.key, bytes: entry.value),
   ]);
 
+  /// The bare URL's single scratch project: no source, no session id.
+  bool get isBareScratch => sessionId == null && !ProjectRequest.fromUri(Uri(queryParameters: query)).isSourcedRequest;
+
   /// Compare decoded options; parameter order is irrelevant, value order is not.
   bool matchesQuery(Map<String, List<String>> other) {
-    // Theme is a presentation option and does not identify a project.
-    final projectQuery = Map<String, List<String>>.of(query)..remove('theme');
-    final otherProjectQuery = Map<String, List<String>>.of(other)..remove('theme');
+    // Theme is presentation and `s` identifies the session; neither identifies a project.
+    final projectQuery = Map<String, List<String>>.of(query)
+      ..remove('theme')
+      ..remove(sessionIdQueryParameter);
+    final otherProjectQuery = Map<String, List<String>>.of(other)
+      ..remove('theme')
+      ..remove(sessionIdQueryParameter);
     if (projectQuery.length != otherProjectQuery.length) {
       return false;
     }
@@ -90,6 +101,7 @@ final class PersistedProjectState {
     ],
     'activeFile': activeFile,
     'folders': folders,
+    'sessionId': sessionId,
   };
 
   factory PersistedProjectState.decode(Map<String, Object?> data, Map<String, Uint8List> files) {
@@ -131,6 +143,7 @@ final class PersistedProjectState {
       activeFile: data['activeFile'] as String,
       files: files,
       folders: folders,
+      sessionId: data['sessionId'] as int?,
     );
   }
 }
