@@ -626,7 +626,7 @@ final class _AppState extends State<App> {
   /// Reflects a freshly minted session id in the address bar without pushing a
   /// new history entry, so back navigation does not land on the bare URL.
   void _writeSessionIdToUrl(Uri uri, int sessionId) {
-    final query = {...uri.queryParameters, sessionIdQueryParameter: '$sessionId'};
+    final query = {...uri.queryParametersAll, sessionIdQueryParameter: '$sessionId'};
     final search = Uri(queryParameters: query).query;
     web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }
