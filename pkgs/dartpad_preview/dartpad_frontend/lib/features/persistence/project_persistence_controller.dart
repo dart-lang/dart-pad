@@ -119,6 +119,9 @@ final class ProjectPersistenceController extends ChangeNotifier {
   /// Reads the latest snapshot. Attachment happens only after the app
   /// successfully opens its files.
   Future<StoredProject> read(String id) async {
+    if (!_available || _disposed) {
+      throw StateError('Local project storage is unavailable.');
+    }
     final project = await _store!.read(id);
     if (project == null) {
       throw StateError('The saved project is no longer available.');
