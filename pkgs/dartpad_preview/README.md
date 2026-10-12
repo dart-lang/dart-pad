@@ -37,10 +37,38 @@ Choose one source per URL.
 
 ### Appearance and execution
 
-| Query                                                   | Effect                                                                                                   | Default                                          |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `embed=true`                                            | Hide the app bar and footer on desktop, collapse the file tree; wait for Run before runtime startup | Standalone layout; Run the preview automatically |
-| `theme=dark` or `theme=light`                           | Initial theme                                                                                            | Saved preference, otherwise system theme         |
+| Query                         | Effect                                                                                        | Default                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `embed=true`                  | Hide the app bar, footer, and file navigation; wait for Run before runtime startup            | Standalone layout; Run the preview automatically |
+| `panels=<panel-list>`         | Initial panel configuration; `+` expands, `-` collapses in standalone mode or hides in embeds | Inferred from the context; see below             |
+| `theme=dark` or `theme=light` | Initial theme                                                                                 | Saved preference, otherwise system theme         |
+
+### Panel configuration
+
+The URL sets each panel's initial state, but these are interpreted as hints and there are exceptions.
+In the app, users can then expand or collapse panels.
+
+Use comma-separated panel names, each prefixed with `+` or `-`:
+
+```text
+?embed=true&panels=+tabs,-file_tree,-preview
+```
+
+`+` expands a panel. `-` collapses it in standalone mode and hides it in embeds,
+except that `tabs` stay visible in standalone mode and can only be hidden in
+embeds. `bottom_panels` remain accessible as described below.
+
+| Panel           | Group                       | Standalone default | Embed default                                               |
+| --------------- | --------------------------- | ------------------ | ----------------------------------------------------------- |
+| `bottom_panels` | Console and Problems        | Expanded           | Collapsed                                                   |
+| `preview`       | Preview / output            | Expanded           | Expanded                                                    |
+| `tabs`          | Editor tabs and breadcrumbs | Expanded           | Hidden, unless multiple distinct `file` values are supplied |
+| `file_tree`     | File tree                   | Expanded           | Hidden                                                      |
+| `status_bar`    | Status footer               | Expanded           | Hidden                                                      |
+| `app_bar`       | App header                  | Expanded           | Hidden                                                      |
+
+In embeds, `-bottom_panels` collapses instead of hiding so Console and Problems
+remain accessible.
 
 ### Examples
 

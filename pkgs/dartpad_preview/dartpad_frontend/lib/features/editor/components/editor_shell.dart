@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
+import '../../shared/panel_layout_controller.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
@@ -19,13 +20,13 @@ class EditorShell extends StatelessComponent {
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.fileTree,
+    this.fileTree,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bottomPanel,
     this.contextMenu,
-    this.isEmbedMode = false,
+    required this.panels,
     this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
@@ -46,7 +47,7 @@ class EditorShell extends StatelessComponent {
   final bool Function(String path, {bool discardChanges})? onCloseFile;
 
   /// The file tree component to show in the side panel.
-  final Component fileTree;
+  final Component? fileTree;
 
   /// A component displayed above the active editor content.
   final Component editorOverlay;
@@ -57,11 +58,8 @@ class EditorShell extends StatelessComponent {
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
 
-  /// Whether the app is running in embed mode (`?embed=true`).
-  ///
-  /// When `true`, the file tree starts collapsed into a narrow rail with a
-  /// toggle button, and the bottom panel (console and problems) starts collapsed.
-  final bool isEmbedMode;
+  /// Shared panel presentation and split sizes.
+  final PanelLayoutController panels;
 
   /// The preview panel to show when the Output tab is active in a small-screen layout.
   /// When non-null, the preview panel replaces the editor content.
@@ -77,20 +75,24 @@ class EditorShell extends StatelessComponent {
         isVertical: true,
         useRatio: true,
         initialValue: 0.75,
-        initialState: isEmbedMode ? const RightCollapsed(0.75) : null,
+        controlledState: panels.splitState(.bottomPanels, initialValue: 0.75),
+        onStateChanged: (state) => panels.updateSplit(.bottomPanels, state),
         minValue: 0.3,
         maxValue: 0.85,
+        canCollapseLeft: false,
         canCollapseRight: true,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
-            EditorTabBar(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-              contextMenu: contextMenu,
-            ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+            if (panels[WorkspacePanel.tabs] != PanelPresentation.hidden) ...[
+              EditorTabBar(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+                contextMenu: contextMenu,
+              ),
+              if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+            ],
             EditorStack(
               openTabs: openTabs,
               activeFile: activeFile,
@@ -104,16 +106,21 @@ class EditorShell extends StatelessComponent {
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
     return div(classes: 'editor-shell', [
-      SplitPanel(
-        initialValue: 200,
-        initialState: isEmbedMode ? const LeftCollapsed(200) : null,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        canCollapseLeft: true,
-        left: fileTree,
-        right: rightContent,
-      ),
+      if (fileTree == null)
+        rightContent
+      else
+        SplitPanel(
+          initialValue: 200,
+          controlledState: panels.splitState(.fileTree, initialValue: 200, isLeft: true),
+          onStateChanged: (state) => panels.updateSplit(.fileTree, state),
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          canCollapseLeft: true,
+          canCollapseRight: false,
+          left: fileTree!,
+          right: rightContent,
+        ),
     ]);
   }
 

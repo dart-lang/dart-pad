@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/dart_source.dart';
+import 'package:dartpad_frontend/features/shared/panel_configuration.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -79,6 +80,15 @@ void main() {
         expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
         expect(request.sdk, isNull);
       }
+    });
+
+    test('project request retains contextual panel hints', () {
+      final request = ProjectRequest.fromUri(Uri.parse('/?embed=true&panels=+tabs,-preview'));
+      expect(request.panels[WorkspacePanel.tabs], PanelPresentation.expanded);
+      expect(request.panels[WorkspacePanel.preview], PanelPresentation.hidden);
+      final roundTrip = ProjectRequest.fromUri(Uri.parse(request.search));
+      expect(roundTrip.panels[WorkspacePanel.tabs], PanelPresentation.expanded);
+      expect(roundTrip.panels[WorkspacePanel.preview], PanelPresentation.hidden);
     });
 
     test('clamps split percentages and defaults invalid values for every embed source', () {

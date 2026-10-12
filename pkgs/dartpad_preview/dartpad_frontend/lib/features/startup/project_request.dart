@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import '../shared/panel_configuration.dart';
 import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
@@ -24,6 +25,7 @@ final class ProjectRequest {
     this.sdkVersion,
     this.mode,
     required this.isEmbedMode,
+    required this.panels,
     required this.initialSplitRatio,
   }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
        files = List.unmodifiable(files);
@@ -112,9 +114,6 @@ final class ProjectRequest {
       ProjectLoader.normalizePath(root, allowRoot: true);
     }
     final channel = apiSample == null ? null : single('channel');
-    final splitValues = query['split'];
-    final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
-    final initialSplitRatio = ((splitPercent ?? 70).clamp(5, 95)) / 100;
     final source = url != null
         ? ArchiveProjectSource(url)
         : package != null
@@ -135,13 +134,21 @@ final class ProjectRequest {
       sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
       mode: modeValue == null ? null : RunMode.values.byName(modeValue),
       isEmbedMode: isEmbedUri(uri),
-      initialSplitRatio: initialSplitRatio,
+      panels: PanelConfiguration.fromUri(uri),
+      initialSplitRatio: splitRatioForUri(uri),
     );
   }
 
   /// Whether [uri] explicitly requests the embed presentation.
   /// Legacy HTML entrypoints redirect to this query option before the app loads.
   static bool isEmbedUri(Uri uri) => uri.queryParametersAll['embed']?.contains('true') == true;
+
+  /// Reads the legacy split hint independently of project source validation.
+  static double splitRatioForUri(Uri uri) {
+    final values = uri.queryParametersAll['split'];
+    final percent = values?.length == 1 ? int.tryParse(values!.single) : null;
+    return ((percent ?? 70).clamp(5, 95)) / 100;
+  }
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
@@ -190,6 +197,9 @@ final class ProjectRequest {
 
   /// Whether the current preview embed presentation should be used.
   final bool isEmbedMode;
+
+  /// Contextual initial panel presentation derived from URL hints.
+  final PanelConfiguration panels;
 
   /// Initial fraction of the outer split occupied by the code panel.
   /// Defaults to 70%, with the requested value clamped to 5–95%.
