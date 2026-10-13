@@ -50,12 +50,14 @@ final class PersistedProjectState {
 
   /// Compare decoded options; parameter order is irrelevant, value order is not.
   bool matchesQuery(Map<String, List<String>> other) {
-    // Theme is presentation and `s` identifies the session; neither identifies a project.
+    // Theme is presentation, `s` identifies the session, and `file` only adds tabs on restore.
     final projectQuery = Map<String, List<String>>.of(query)
       ..remove('theme')
+      ..remove('file')
       ..remove(sessionIdQueryParameter);
     final otherProjectQuery = Map<String, List<String>>.of(other)
       ..remove('theme')
+      ..remove('file')
       ..remove(sessionIdQueryParameter);
     if (projectQuery.length != otherProjectQuery.length) {
       return false;
@@ -66,6 +68,22 @@ final class PersistedProjectState {
           values.length == entry.value.length &&
           Iterable<int>.generate(values.length).every((i) => values[i] == entry.value[i]);
     });
+  }
+
+  /// Snapshot tabs, then requested `file` paths the snapshot did not open.
+  /// Requested paths missing from [files] are skipped.
+  List<TabDescriptor> restoredTabs(List<String> requestedFiles) {
+    final restored = [
+      for (final tab in tabs)
+        if (tab.origin == EditorTabOrigin.system || files.containsKey(tab.path)) tab,
+    ];
+    final opened = {for (final tab in restored) tab.path};
+    for (final path in requestedFiles.map(ProjectLoader.normalizePath)) {
+      if (files.containsKey(path) && opened.add(path)) {
+        restored.add(TabDescriptor(path: path, origin: EditorTabOrigin.workspace));
+      }
+    }
+    return restored;
   }
 
   SdkInfo resolveSdk(List<SdkInfo> available) =>
