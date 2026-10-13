@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" class="dartpad-light idp-theme-classic">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inline DartPad · theme gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="inline_dartpad.css">
+  <link rel="stylesheet" href="themes.css">
+  <style>
+    /* A slice of dart.dev: fonts, colors and spacing from site-www. */
+    html {
+      --site-ui-fontFamily: 'Google Sans Flex', 'Roboto', ui-sans, sans-serif;
+      --site-code-fontFamily: 'Google Sans Code', 'Roboto Mono', ui-monospace, monospace;
+      --site-base-bgColor: #ffffff;
+      --site-base-fgColor: #212121;
+      --site-base-fgColor-alt: #6a6f71;
+      --site-raised-bgColor: #edf0f2;
+      --site-inset-bgColor: #f9fafb;
+      --site-inset-borderColor: #dadce0;
+      --site-primary-color: #1967d2;
+      --site-link-fgColor: #1967d2;
+      --site-chrome-bgColor: #1c2834;
+      --site-chrome-borderColor: #394c60;
+      --site-chrome-fgColor: #f3f4f6;
+      --site-outline: rgba(194, 198, 214, .75);
+      color-scheme: light;
+    }
+    html.dartpad-dark {
+      --site-base-bgColor: #121317;
+      --site-base-fgColor: #dcdcdc;
+      --site-base-fgColor-alt: #a8acad;
+      --site-raised-bgColor: #1c1e27;
+      --site-inset-bgColor: #202731;
+      --site-inset-borderColor: #485563;
+      --site-link-fgColor: #47b0f8;
+      --site-outline: rgba(95, 100, 119, .75);
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--site-base-bgColor);
+      color: var(--site-base-fgColor);
+      font-family: var(--site-ui-fontFamily);
+      font-size: 1rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--site-link-fgColor); }
+    code { font-family: var(--site-code-fontFamily); font-size: 0.9em; }
+    p > code, li > code {
+      padding: 0.1rem 0.25rem;
+      background: var(--site-raised-bgColor);
+      border: 1px solid var(--site-inset-borderColor);
+      border-radius: 0.25rem;
+      white-space: nowrap;
+    }
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      height: 3.25rem;
+      padding: 0 1.25rem;
+      background: var(--site-chrome-bgColor);
+      border-bottom: 1px solid var(--site-chrome-borderColor);
+      color: var(--site-chrome-fgColor);
+    }
+    .site-header .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: #fff;
+      text-decoration: none;
+    }
+    .site-header .wordmark svg { width: 1.6rem; height: 1.6rem; }
+    .site-header .crumb { color: #aab4c0; font-size: 0.9375rem; }
+    .site-header .spacer { flex: 1; }
+    .site-header .ghost {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--site-chrome-borderColor);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--site-chrome-fgColor);
+      font: inherit;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .site-header .ghost:hover { background: rgba(255, 255, 255, 0.08); }
+    .theme-bar {
+      position: sticky;
+      top: 3.25rem;
+      z-index: 40;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1.5rem;
+      padding: 0.6rem 1.25rem;
+      background: color-mix(in srgb, var(--site-base-bgColor) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--site-outline);
+      font-size: 0.875rem;
+    }
+    .theme-bar .group { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+    .theme-bar .label { color: var(--site-base-fgColor-alt); margin-right: 0.25rem; }
+    .theme-bar button {
+      padding: 0.3rem 0.8rem;
+      border: 1px solid var(--site-inset-borderColor);
+      border-radius: 999px;
+      background: var(--site-base-bgColor);
+      color: var(--site-base-fgColor);
+      font: inherit;
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+    .theme-bar button:hover { border-color: var(--site-primary-color); }
+    .theme-bar button[aria-pressed="true"] {
+      background: var(--site-primary-color);
+      border-color: var(--site-primary-color);
+      color: #fff;
+    }
+    /* "Line numbers" chips: force the palette knob regardless of the theme. */
+    html.idp-lines-on .inline-dartpad { --inline-dartpad-line-numbers: flex; }
+    html.idp-lines-off .inline-dartpad { --inline-dartpad-line-numbers: none; }
+    main {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 6rem;
+    }
+    h1 { font-size: 2.25rem; font-weight: 500; line-height: 1.2; margin: 0 0 0.5rem; }
+    h2 { font-size: 1.5rem; font-weight: 500; margin: 2.75rem 0 0.75rem; }
+    h2 .tag {
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      font-family: var(--site-code-fontFamily);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--site-base-fgColor-alt);
+    }
+    .lede { font-size: 1.125rem; color: var(--site-base-fgColor-alt); margin: 0 0 1.5rem; }
+    .theme-note {
+      margin: 1.5rem 0;
+      padding: 0.75rem 1rem;
+      border-left: 4px solid var(--site-primary-color);
+      background: var(--site-inset-bgColor);
+      border-radius: 0 0.45rem 0.45rem 0;
+    }
+    .theme-note b { font-weight: 600; }
+    /* Plain code blocks, for the documentation on this page. */
+    pre.snippet {
+      margin: 1rem 0;
+      padding: 0.75rem 1rem;
+      overflow: auto;
+      background: var(--site-inset-bgColor);
+      border: 1px solid var(--site-inset-borderColor);
+      border-radius: 0.45rem;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    pre.snippet code { font-size: 1em; }
+    table { border-collapse: collapse; margin: 1rem 0; font-size: 0.9375rem; }
+    th, td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--site-inset-borderColor); text-align: left; vertical-align: top; }
+    th { font-weight: 500; color: var(--site-base-fgColor-alt); }
+    td code { white-space: nowrap; }
+    hr { margin: 3.5rem 0 2.5rem; border: 0; border-top: 1px solid var(--site-inset-borderColor); }
+    footer { margin-top: 4rem; color: var(--site-base-fgColor-alt); font-size: 0.875rem; }
+  </style>
+  <script src="inline_dartpad.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="wordmark" href="#">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#40c4ff" d="M4.1 4.1 2 15.6l6 6 11.5-2.2L4.1 4.1z"/><path fill="#0081c6" d="m4.1 4.1 11.6 2.2 4.3 4.3-.5 8.8L4.1 4.1z"/><path fill="#00a2e8" d="M4.1 4.1 15.7 15.7l3.8 3.7L4.1 4.1z" opacity=".6"/></svg>
+      Dart
+    </a>
+    <span class="crumb">Inline DartPad · theme gallery</span>
+    <span class="spacer"></span>
+    <button class="ghost" id="mode-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
+  </header>
+
+  <div class="theme-bar" id="theme-bar">
+    <div class="group" data-setting="theme">
+      <span class="label">Theme</span>
+      <button type="button" data-value="classic" title="Safe: the default dart.dev code block look">Classic</button>
+      <button type="button" data-value="terminal" title="Safe: a dark terminal with a command bar">Terminal</button>
+      <button type="button" data-value="card" title="Elegant: a floating card with an inset console">Card</button>
+      <button type="button" data-value="overlay" title="Fun: the console floats over the editor's corner">Overlay</button>
+      <button type="button" data-value="minimal" title="Fresh: no box, just an accent rule">Minimal</button>
+      <button type="button" data-value="notebook" title="Smart: notebook cells with In/Out gutter">Notebook</button>
+      <button type="button" data-value="bubbly" title="Cute: round play button and a speech bubble">Bubbly</button>
+      <button type="button" data-value="window" title="Familiar: a small app window">Window</button>
+    </div>
+    <div class="group" data-setting="layout">
+      <span class="label">Console</span>
+      <button type="button" data-value="vertical">Below</button>
+      <button type="button" data-value="horizontal">Right</button>
+    </div>
+    <div class="group" data-setting="lines">
+      <span class="label">Line numbers</span>
+      <button type="button" data-value="theme" title="Whatever the theme decides">Theme</button>
+      <button type="button" data-value="on">On</button>
+      <button type="button" data-value="off">Off</button>
+    </div>
+  </div>
+
+  <main>
+    <h1>Inline DartPad</h1>
+    <p class="lede">
+      Every code block on this page is a <code>&lt;pre data-dartpad-filename&gt;</code> element that
+      <code>inline_dartpad.js</code> upgrades in place: an editor with diagnostics, hover and completion,
+      a run button and a console. No <code>&lt;iframe&gt;</code> per sample; all pads on this origin share one
+      <code>SharedWorker</code>, all pads on a page share one language server, and code runs in sandboxed
+      <code>&lt;iframe&gt;</code>s nobody sees.
+    </p>
+    <p>
+      Edit any example and press <kbd>Run</kbd> or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>. Hover a symbol for
+      documentation, type to get completions, and <kbd>Reset</kbd> appears once you have changed something.
+      The bar above switches between the themes in <a href="themes.css"><code>themes.css</code></a>:
+    </p>
+    <div class="theme-note" id="theme-note"></div>
+
+    <h2>How to use it</h2>
+    <p>Include the stylesheet and the script once per page:</p>
+<pre class="snippet"><code>&lt;link rel="stylesheet" href="inline_dartpad.css"&gt;
+&lt;script src="inline_dartpad.js" defer&gt;&lt;/script&gt;</code></pre>
+    <p>
+      Then write code blocks as usual, with a <code>data-dartpad-filename</code> attribute. Markdown
+      renderers produce exactly this shape, so a fenced code block with the right attributes is enough:
+    </p>
+<pre class="snippet"><code>&lt;pre data-dartpad-filename="hello.dart" data-dartpad-preview="start"&gt;&lt;code&gt;
+void main() {
+  print('Hello, world!');
+}
+&lt;/code&gt;&lt;/pre&gt;</code></pre>
+    <table>
+      <tr><th>attribute</th><th>values</th><th>default</th></tr>
+      <tr><td><code>data-dartpad-filename</code></td><td>a file name; marks the block as a pad</td><td>required</td></tr>
+      <tr><td><code>data-dartpad-preview</code></td><td><code>start</code> runs when scrolled into view, <code>pause</code> waits for the run button, <code>none</code> is just an editor</td><td><code>pause</code></td></tr>
+      <tr><td><code>data-dartpad-layout</code></td><td><code>vertical</code> console below the editor, <code>horizontal</code> to the right of it</td><td><code>vertical</code></td></tr>
+      <tr><td><code>data-dartpad-output</code></td><td>text shown in the console until the program runs</td><td></td></tr>
+    </table>
+    <p>
+      Only <code>dart:</code> libraries are available, there is no <code>pub.dev</code>. Everything is static
+      files served next to <code>inline_dartpad.js</code>: <code>shared-worker.js</code> and the DartPad SDK
+      assets in <code>dartpad/dart/</code> (both on the page's origin), relocatable with <code>data-worker</code>
+      and <code>data-sdk</code> on the <code>&lt;script&gt;</code>.
+    </p>
+
+    <h2>Examples</h2>
+
+    <h2>Hello world <span class="tag">preview="start"</span></h2>
+    <p>Runs by itself the first time it scrolls into view.</p>
+<pre data-dartpad-filename="hello.dart" data-dartpad-preview="start"><code>void main() {
+  print('Hello, world!');
+}
+</code></pre>
+
+    <h2>String interpolation <span class="tag">preview="pause"</span></h2>
+    <p>The default: an editor, a run button and an empty console waiting for you.</p>
+<pre data-dartpad-filename="interpolation.dart" data-dartpad-output="Hello, Dart!
+Dart has 4 letters.
+precomputed: this output was in the HTML, press Run for the real thing"><code>void main() {
+  final name = 'Dart';
+  final version = 3.14;
+  print('Hello from $name ${version.toStringAsFixed(1)}!');
+  print('${name.toUpperCase()} has ${name.length} letters.');
+}
+</code></pre>
+
+    <h2>Just an editor <span class="tag">preview="none"</span></h2>
+    <p>Analysis only: diagnostics, hover and completion, but nothing to run.</p>
+<pre data-dartpad-filename="shapes.dart" data-dartpad-preview="none"><code>abstract class Shape {
+  double get area;
+}
+
+class Circle implements Shape {
+  Circle(this.radius);
+  final double radius;
+
+  @override
+  double get area => 3.14159 * radius * radius;
+}
+</code></pre>
+
+    <h2>Async <span class="tag">Future&lt;void&gt; main()</span></h2>
+    <p>Output arrives as the program produces it.</p>
+<pre data-dartpad-filename="countdown.dart"><code>Future&lt;void&gt; main() async {
+  for (var i = 3; i > 0; i--) {
+    print('$i...');
+    await Future&lt;void&gt;.delayed(const Duration(milliseconds: 400));
+  }
+  print('Liftoff! 🚀');
+}
+</code></pre>
+
+    <h2>Collections and records <span class="tag">preview="start"</span></h2>
+<pre data-dartpad-filename="collections.dart" data-dartpad-preview="start"><code>void main() {
+  final numbers = [for (var i = 1; i &lt;= 5; i++) i * i];
+  final (min, max) = (numbers.first, numbers.last);
+  print('squares: $numbers, min: $min, max: $max');
+
+  final byParity = {
+    for (final n in numbers) n.isEven ? 'even' : 'odd': n,
+  };
+  print(byParity);
+}
+</code></pre>
+
+    <h2>A compile error <span class="tag">the compiler log goes to the console</span></h2>
+<pre data-dartpad-filename="broken.dart"><code>void main() {
+  int count = 'not a number';
+  print(count);
+}
+</code></pre>
+
+    <h2>A runtime error <span class="tag">uncaught errors are reported too</span></h2>
+<pre data-dartpad-filename="crash.dart"><code>void main() {
+  final list = &lt;int&gt;[];
+  print('About to fail...');
+  print(list.first);
+}
+</code></pre>
+
+    <h2>Classes <span class="tag">preview="start"</span></h2>
+<pre data-dartpad-filename="classes.dart" data-dartpad-preview="start"><code>class Point {
+  const Point(this.x, this.y);
+  final double x, y;
+
+  Point operator +(Point other) => Point(x + other.x, y + other.y);
+
+  @override
+  String toString() => 'Point($x, $y)';
+}
+
+void main() {
+  const origin = Point(0, 0);
+  final p = origin + const Point(2, 3) + const Point(1, 1);
+  print(p);
+}
+</code></pre>
+
+    <hr>
+    <h2 id="theming">Customizing the theme</h2>
+    <p>
+      <code>inline_dartpad.css</code> ships the look of dart.dev's code blocks, in light and dark. Pads
+      follow <code>prefers-color-scheme</code>, unless a <code>dartpad-light</code> or
+      <code>dartpad-dark</code> class on an ancestor (<code>&lt;html&gt;</code>, typically) picks a palette,
+      which is how the <kbd>Dark mode</kbd> button above works:
+    </p>
+<pre class="snippet"><code>&lt;html class="dartpad-dark"&gt;</code></pre>
+    <p>
+      Everything else is a <code>--inline-dartpad-*</code> custom property, set on any ancestor. The full
+      list, with the default values, is at the top of
+      <a href="inline_dartpad.css"><code>inline_dartpad.css</code></a>:
+    </p>
+    <table>
+      <tr><th>property</th><th>what it is</th></tr>
+      <tr><td><code>--inline-dartpad-font-ui</code>, <code>-font-mono</code>, <code>-font-size</code></td><td>fonts for the buttons, and for code and console; the base font size</td></tr>
+      <tr><td><code>--inline-dartpad-radius</code>, <code>-border</code>, <code>-shadow</code></td><td>the box around the pad</td></tr>
+      <tr><td><code>--inline-dartpad-line-numbers</code></td><td><code>none</code> or <code>flex</code>, the line-number gutter</td></tr>
+      <tr><td><code>--inline-dartpad-editor-bg</code>, <code>-editor-fg</code>, <code>-gutter-fg</code>, <code>-selection</code>, <code>-active-line</code></td><td>the editor</td></tr>
+      <tr><td><code>--inline-dartpad-console-bg</code>, <code>-console-fg</code>, <code>-console-muted</code>, <code>-console-error</code></td><td>the console, the status line and error output</td></tr>
+      <tr><td><code>--inline-dartpad-accent</code>, <code>-accent-fg</code></td><td>the run button</td></tr>
+      <tr><td><code>--inline-dartpad-popup-bg</code>, <code>-popup-fg</code></td><td>completion and hover popups</td></tr>
+      <tr><td><code>--inline-dartpad-cm-keyword</code>, <code>-cm-string</code>, <code>-cm-comment</code>, …</td><td>syntax highlighting, one per CodeMirror token type</td></tr>
+    </table>
+    <p>For example, rounder pads with line numbers and a different accent, in one part of a site:</p>
+<pre class="snippet"><code>.my-docs .inline-dartpad {
+  --inline-dartpad-radius: 1rem;
+  --inline-dartpad-line-numbers: flex;
+  --inline-dartpad-accent: #0d47a1;
+}</code></pre>
+    <p>
+      For anything beyond colors and metrics, the DOM is small and stable, and the root element carries
+      the pad's state as attributes, so a theme is ordinary CSS:
+    </p>
+<pre class="snippet"><code>.inline-dartpad[data-layout][data-preview][data-state=idle|running][data-modified]
+  .inline-dartpad-editor   &gt; .cm-editor
+  .inline-dartpad-output   &gt; .inline-dartpad-status + .inline-dartpad-console
+  .inline-dartpad-controls &gt; .inline-dartpad-filename + .inline-dartpad-reset + .inline-dartpad-run</code></pre>
+    <p>
+      The eight themes in the bar above are built exactly like that, as <code>.idp-theme-*</code> classes in
+      <a href="themes.css"><code>themes.css</code></a>; copy the one you like into your own stylesheet.
+    </p>
+  </main>
+
+  <script>
+    (() => {
+      const notes = {
+        classic: ['Classic', 'safe', 'the dart.dev code block, no line numbers, with a console below. This is what the script ships with.'],
+        terminal: ['Terminal', 'safe', 'line numbers, and the console is always a dark terminal, with a command bar between code and output.'],
+        card: ['Card', 'elegant', 'no border, a soft shadow, and the console as an inset panel inside the card.'],
+        overlay: ['Overlay', 'fun', 'the console floats over the bottom-right corner of the editor, where code rarely reaches, and stays hidden until the first run.'],
+        minimal: ['Minimal', 'fresh', 'no box, no gutter at all, just an accent rule; the run button is a quiet play glyph.'],
+        notebook: ['Notebook', 'smart', 'notebook cells: a gutter with the play button next to the input cell and an Out label next to the output.'],
+        bubbly: ['Bubbly', 'cute', 'big radii, the dart.dev accent in lavender, a pulsing play button and a speech-bubble console.'],
+        window: ['Window', 'familiar', 'a small app window with a title bar, the file name, line numbers, and a console drawer with its own tab.'],
+      };
+      const html = document.documentElement;
+      const state = {theme: 'classic', layout: 'vertical', mode: 'light', lines: 'theme'};
+      const params = new URLSearchParams(location.hash.slice(1));
+      for (const key of Object.keys(state)) {
+        const value = params.get(key) || localStorage.getItem('idp-' + key);
+        if (value) state[key] = value;
+      }
+
+      const apply = () => {
+        for (const cls of [...html.classList]) {
+          if (cls.startsWith('idp-theme-')) html.classList.remove(cls);
+        }
+        html.classList.add('idp-theme-' + state.theme);
+        html.classList.toggle('dartpad-dark', state.mode === 'dark');
+        html.classList.toggle('dartpad-light', state.mode !== 'dark');
+        html.classList.toggle('idp-lines-on', state.lines === 'on');
+        html.classList.toggle('idp-lines-off', state.lines === 'off');
+        document.getElementById('mode-toggle').textContent = state.mode === 'dark' ? 'Light mode' : 'Dark mode';
+        for (const pad of document.querySelectorAll('.inline-dartpad, pre[data-dartpad-filename]')) {
+          pad.setAttribute(pad.classList.contains('inline-dartpad') ? 'data-layout' : 'data-dartpad-layout', state.layout);
+        }
+        for (const button of document.querySelectorAll('#theme-bar button')) {
+          const setting = button.parentElement.dataset.setting;
+          button.setAttribute('aria-pressed', String(state[setting] === button.dataset.value));
+        }
+        const [name, kind, text] = notes[state.theme] || notes.classic;
+        document.getElementById('theme-note').innerHTML = `<b>${name}</b> <i>(${kind})</i> — ${text}`;
+        const hash = new URLSearchParams(state).toString();
+        history.replaceState(null, '', '#' + hash);
+        for (const key of Object.keys(state)) localStorage.setItem('idp-' + key, state[key]);
+      };
+
+      document.getElementById('theme-bar').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-value]');
+        if (!button) return;
+        state[button.parentElement.dataset.setting] = button.dataset.value;
+        apply();
+      });
+      document.getElementById('mode-toggle').addEventListener('click', () => {
+        state.mode = state.mode === 'dark' ? 'light' : 'dark';
+        apply();
+      });
+      apply();
+      // Pads are mounted after the script runs; keep the layout in sync.
+      new MutationObserver(() => {
+        for (const pad of document.querySelectorAll('.inline-dartpad:not([data-layout="' + state.layout + '"])')) {
+          pad.setAttribute('data-layout', state.layout);
+        }
+      }).observe(document.body, {childList: true, subtree: true});
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+/* Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file. */
+
+/*
+ * Theme gallery for inline DartPad, every theme is selected by a class on an
+ * ancestor (`<html class="idp-theme-card">`) and tweaks the `--inline-dartpad-*`
+ * custom properties and the layout of:
+ *
+ *   .inline-dartpad[data-layout][data-preview][data-state][data-modified]
+ *     .inline-dartpad-editor   > .cm-editor
+ *     .inline-dartpad-output   > .inline-dartpad-status + .inline-dartpad-console
+ *     .inline-dartpad-controls > .inline-dartpad-filename + .inline-dartpad-reset + .inline-dartpad-run
+ *
+ * Dark mode is the `dartpad-dark` class on the same ancestor.
+ */
+
+/* ===== classic ============================================================
+ * The default look: a dart.dev code block with a console below. Nothing to
+ * add, it is what the script ships with.
+ * ========================================================================= */
+
+/* ===== terminal ===========================================================
+ * Safe. The console is a dark terminal in both modes, with a bar between the
+ * editor and the console holding the file name and the buttons.
+ * ========================================================================= */
+.idp-theme-terminal .inline-dartpad {
+  --inline-dartpad-line-numbers: flex;
+  --inline-dartpad-console-bg: #1c2834;
+  --inline-dartpad-console-fg: #e6edf3;
+  --inline-dartpad-console-muted: #8b9cb0;
+  --inline-dartpad-console-error: #ff8a80;
+  --inline-dartpad-accent: #40c4ff;
+  --inline-dartpad-accent-fg: #0b1620;
+  --inline-dartpad-popup-bg: var(--inline-dartpad-editor-bg);
+}
+.idp-theme-terminal .inline-dartpad-controls {
+  position: static;
+  order: 1;
+  padding: 0.35rem 0.5rem 0.35rem 0.9rem;
+  background: #141e28;
+  color: #8b9cb0;
+}
+.idp-theme-terminal .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-controls {
+  order: -1;
+  flex-basis: 100%;
+}
+.idp-theme-terminal .inline-dartpad-output {
+  order: 2;
+}
+.idp-theme-terminal .inline-dartpad-filename {
+  display: inline;
+  margin-right: auto;
+  font-family: var(--inline-dartpad-font-mono);
+  font-size: 0.8125rem;
+}
+.idp-theme-terminal .inline-dartpad-filename::before {
+  content: '$ dart run ';
+  opacity: 0.6;
+}
+.idp-theme-terminal .inline-dartpad[data-preview="none"] .inline-dartpad-filename::before {
+  content: '';
+}
+.idp-theme-terminal .inline-dartpad-reset {
+  background: transparent;
+  color: #c9d6e3;
+  border-color: #394c60;
+}
+.idp-theme-terminal .inline-dartpad-run {
+  font-weight: 600;
+}
+.idp-theme-terminal .inline-dartpad-console {
+  min-height: 3.6em;
+}
+.idp-theme-terminal .inline-dartpad-console > span::before {
+  content: '› ';
+  color: #8b9cb0;
+}
+.idp-theme-terminal .inline-dartpad-console > span.inline-dartpad-error::before {
+  content: '✗ ';
+  color: inherit;
+}
+
+/* ===== card ===============================================================
+ * Elegant. No border, a soft shadow and a larger radius; the console is an
+ * inset panel inside the card and the run button carries the dart.dev
+ * banner gradient.
+ * ========================================================================= */
+.idp-theme-card .inline-dartpad {
+  --inline-dartpad-radius: 14px;
+  --inline-dartpad-border: transparent;
+  --inline-dartpad-editor-bg: #ffffff;
+  --inline-dartpad-console-bg: #f1f4f8;
+  --inline-dartpad-shadow: 0 1px 2px rgba(28, 40, 52, 0.08), 0 10px 32px rgba(28, 40, 52, 0.12);
+  background: var(--inline-dartpad-editor-bg);
+  gap: 0;
+  padding-bottom: 0.6rem;
+}
+.dartpad-dark.idp-theme-card .inline-dartpad {
+  --inline-dartpad-editor-bg: #1c1e27;
+  --inline-dartpad-console-bg: #121317;
+  --inline-dartpad-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+.idp-theme-card .inline-dartpad-editor .cm-content {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.idp-theme-card .inline-dartpad-output {
+  margin: 0 0.6rem;
+  border-radius: 10px;
+}
+.idp-theme-card .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  margin: 0.6rem 0.6rem 0 0;
+}
+.idp-theme-card .inline-dartpad[data-layout="horizontal"] {
+  padding-bottom: 0;
+}
+.idp-theme-card .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-editor {
+  padding-bottom: 0.6rem;
+}
+.idp-theme-card .inline-dartpad-controls {
+  top: 0.6rem;
+  right: 0.7rem;
+}
+.idp-theme-card .inline-dartpad-run {
+  background: linear-gradient(139deg, #1959b3, #134386);
+  box-shadow: 0 2px 6px rgba(25, 89, 179, 0.35);
+}
+.dartpad-dark.idp-theme-card .inline-dartpad-run {
+  background: linear-gradient(139deg, #165399, #5b0fd7);
+  box-shadow: 0 2px 8px rgba(91, 15, 215, 0.4);
+}
+.idp-theme-card .inline-dartpad-reset {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ===== overlay ============================================================
+ * Fun, and the least safe: the console floats over the bottom-right corner
+ * of the editor, where code rarely reaches. It stays out of the way until
+ * the first run.
+ * ========================================================================= */
+.idp-theme-overlay .inline-dartpad {
+  --inline-dartpad-console-bg: rgba(28, 40, 52, 0.9);
+  --inline-dartpad-console-fg: #e6edf3;
+  --inline-dartpad-console-muted: #9fb0c2;
+  --inline-dartpad-console-error: #ff8a80;
+  --inline-dartpad-radius: 10px;
+  display: block;
+}
+.dartpad-dark.idp-theme-overlay .inline-dartpad {
+  --inline-dartpad-console-bg: rgba(9, 12, 18, 0.88);
+}
+.idp-theme-overlay .inline-dartpad-output {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 1;
+  width: min(55%, 32rem);
+  max-height: calc(100% - 3.5rem);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.8125em;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.idp-theme-overlay .inline-dartpad[data-state="idle"] .inline-dartpad-output:has(> .inline-dartpad-console:empty) {
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+}
+.idp-theme-overlay .inline-dartpad-console {
+  min-height: 2.2em;
+  max-height: none;
+}
+.idp-theme-overlay .inline-dartpad[data-preview]:not([data-preview="none"]) .cm-content {
+  padding-bottom: 5.5rem;
+}
+.idp-theme-overlay .inline-dartpad-controls {
+  top: 0.6rem;
+  right: 0.75rem;
+}
+.idp-theme-overlay .inline-dartpad-run {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== minimal ============================================================
+ * Fresh. No box at all: the code sits on the page behind a thin accent rule,
+ * without line numbers; the console is plain text under a dashed rule and
+ * the run button is a quiet play glyph that comes forward on hover.
+ * ========================================================================= */
+.idp-theme-minimal .inline-dartpad {
+  --inline-dartpad-editor-bg: transparent;
+  --inline-dartpad-console-bg: transparent;
+  --inline-dartpad-border: transparent;
+  --inline-dartpad-radius: 0;
+  gap: 0;
+  border: 0;
+  border-left: 3px solid var(--inline-dartpad-accent);
+  background: transparent;
+  overflow: visible;
+}
+.idp-theme-minimal .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  border-left: 1px dashed #c4c7c5;
+}
+.idp-theme-minimal .inline-dartpad-editor .cm-gutters {
+  display: none;
+}
+.idp-theme-minimal .inline-dartpad-editor .cm-content {
+  padding-left: 1rem;
+}
+.idp-theme-minimal .inline-dartpad-editor .cm-activeLine {
+  background: transparent;
+}
+.idp-theme-minimal .inline-dartpad-output {
+  margin-left: 1rem;
+  border-top: 1px dashed #c4c7c5;
+}
+.dartpad-dark.idp-theme-minimal .inline-dartpad-output,
+.dartpad-dark.idp-theme-minimal .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  border-color: #485563;
+}
+.idp-theme-minimal .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  margin-left: 0;
+  border-top: 0;
+  padding-left: 0.5rem;
+}
+.idp-theme-minimal .inline-dartpad-console {
+  padding-left: 0;
+  padding-right: 0;
+  min-height: 0;
+}
+.idp-theme-minimal .inline-dartpad-status {
+  padding-left: 0;
+}
+.idp-theme-minimal .inline-dartpad-console > span::before {
+  content: '› ';
+  color: var(--inline-dartpad-console-muted);
+}
+.idp-theme-minimal .inline-dartpad-controls {
+  top: 0.15rem;
+  right: 0;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.idp-theme-minimal .inline-dartpad:hover .inline-dartpad-controls,
+.idp-theme-minimal .inline-dartpad:focus-within .inline-dartpad-controls,
+.idp-theme-minimal .inline-dartpad[data-state="running"] .inline-dartpad-controls {
+  opacity: 1;
+}
+.idp-theme-minimal .inline-dartpad-run {
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  font-size: 0;
+  border-radius: 50%;
+}
+.idp-theme-minimal .inline-dartpad-run::before {
+  content: '';
+  display: inline-block;
+  margin-left: 0.2rem;
+  border-style: solid;
+  border-width: 0.4rem 0 0.4rem 0.65rem;
+  border-color: transparent transparent transparent currentColor;
+}
+.idp-theme-minimal .inline-dartpad-reset {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+}
+
+/* ===== notebook ===========================================================
+ * Smart. Notebook cells: a narrow gutter on the left carries the play button
+ * for the input cell and an "Out" label for the output cell.
+ * ========================================================================= */
+.idp-theme-notebook .inline-dartpad {
+  --inline-dartpad-radius: 4px;
+  --inline-dartpad-console-bg: transparent;
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 0.4rem 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.idp-theme-notebook .inline-dartpad[data-layout="horizontal"] {
+  grid-template-columns: 3.25rem minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-rows: auto;
+}
+.idp-theme-notebook .inline-dartpad-controls {
+  position: static;
+  grid-column: 1;
+  grid-row: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+}
+.idp-theme-notebook .inline-dartpad-editor {
+  grid-column: 2;
+  grid-row: 1;
+  border: 1px solid var(--inline-dartpad-border);
+  border-radius: var(--inline-dartpad-radius);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.idp-theme-notebook .inline-dartpad:focus-within .inline-dartpad-editor {
+  border-color: var(--inline-dartpad-accent);
+  box-shadow: 0 0 0 1px var(--inline-dartpad-accent);
+}
+.idp-theme-notebook .inline-dartpad-editor .cm-content {
+  padding-right: 0.75rem;
+}
+.idp-theme-notebook .inline-dartpad-output {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+}
+.idp-theme-notebook .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  grid-column: 3;
+  grid-row: 1;
+  margin-left: 0.4rem;
+}
+.idp-theme-notebook .inline-dartpad-output::before {
+  content: 'Out';
+  position: absolute;
+  left: -3.25rem;
+  top: 0.45rem;
+  width: 2.75rem;
+  color: var(--inline-dartpad-console-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: right;
+  padding-right: 0.25rem;
+}
+.idp-theme-notebook .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output::before {
+  position: static;
+  display: block;
+  width: auto;
+  text-align: left;
+  padding: 0.45rem 0 0 0.75rem;
+}
+.idp-theme-notebook .inline-dartpad-console:empty {
+  min-height: 0;
+  padding: 0;
+}
+.idp-theme-notebook .inline-dartpad[data-state="idle"] .inline-dartpad-output:has(> .inline-dartpad-console:empty)::before {
+  content: none;
+}
+.idp-theme-notebook .inline-dartpad-run {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  font-size: 0;
+  border-radius: 50%;
+}
+.idp-theme-notebook .inline-dartpad-run::before {
+  content: '';
+  display: inline-block;
+  margin-left: 0.2rem;
+  border-style: solid;
+  border-width: 0.4rem 0 0.4rem 0.65rem;
+  border-color: transparent transparent transparent currentColor;
+}
+.idp-theme-notebook .inline-dartpad-reset {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.7rem;
+  border-color: transparent;
+  background: transparent;
+  text-decoration: underline;
+}
+
+/* ===== bubbly =============================================================
+ * Cute. Big radii, a lavender tint from the dart.dev accent, a round play
+ * button that pulses while running, and the output in a speech bubble.
+ * ========================================================================= */
+.idp-theme-bubbly .inline-dartpad {
+  --inline-dartpad-radius: 18px;
+  --inline-dartpad-border: #e6dcfb;
+  --inline-dartpad-editor-bg: #faf8ff;
+  --inline-dartpad-console-bg: #efe6ff;
+  --inline-dartpad-console-fg: #3b2a5a;
+  --inline-dartpad-console-muted: #8a79ad;
+  --inline-dartpad-accent: #833ef2;
+  --inline-dartpad-selection: rgba(131, 62, 242, 0.15);
+  --inline-dartpad-active-line: rgba(131, 62, 242, 0.05);
+  gap: 0;
+  background: var(--inline-dartpad-editor-bg);
+  overflow: visible;
+}
+.dartpad-dark.idp-theme-bubbly .inline-dartpad {
+  --inline-dartpad-border: #3b3155;
+  --inline-dartpad-editor-bg: #1f1a2e;
+  --inline-dartpad-console-bg: #2d2444;
+  --inline-dartpad-console-fg: #e9e1ff;
+  --inline-dartpad-console-muted: #a898d0;
+  --inline-dartpad-accent: #b07fff;
+  --inline-dartpad-accent-fg: #1f1a2e;
+}
+.idp-theme-bubbly .inline-dartpad-editor {
+  border-radius: var(--inline-dartpad-radius);
+}
+.idp-theme-bubbly .inline-dartpad-output {
+  position: relative;
+  margin: 0.4rem 0.75rem 0.75rem 2.25rem;
+  border-radius: 16px;
+  border-top-left-radius: 4px;
+}
+.idp-theme-bubbly .inline-dartpad-output::before {
+  content: '';
+  position: absolute;
+  left: -0.55rem;
+  top: 0;
+  border-style: solid;
+  border-width: 0 0.6rem 0.75rem 0;
+  border-color: transparent var(--inline-dartpad-console-bg) transparent transparent;
+}
+.idp-theme-bubbly .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  margin: 0.75rem 0.75rem 0.75rem 0.4rem;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+}
+.idp-theme-bubbly .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output::before {
+  content: none;
+}
+.idp-theme-bubbly .inline-dartpad-console {
+  min-height: 2.4em;
+}
+.idp-theme-bubbly .inline-dartpad-console > span::before {
+  content: '• ';
+  color: var(--inline-dartpad-accent);
+}
+.idp-theme-bubbly .inline-dartpad-controls {
+  top: 0.6rem;
+  right: 0.7rem;
+}
+.idp-theme-bubbly .inline-dartpad-run {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  font-size: 0;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(131, 62, 242, 0.35);
+  transition: transform 0.15s;
+}
+.idp-theme-bubbly .inline-dartpad-run:hover {
+  transform: scale(1.08);
+}
+.idp-theme-bubbly .inline-dartpad-run::before {
+  content: '';
+  display: inline-block;
+  margin-left: 0.25rem;
+  border-style: solid;
+  border-width: 0.45rem 0 0.45rem 0.75rem;
+  border-color: transparent transparent transparent currentColor;
+}
+.idp-theme-bubbly .inline-dartpad[data-state="running"] .inline-dartpad-run {
+  animation: idp-bubbly-pulse 1s ease-in-out infinite;
+}
+@keyframes idp-bubbly-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(131, 62, 242, 0.45); }
+  50% { box-shadow: 0 0 0 0.6rem rgba(131, 62, 242, 0); }
+}
+.idp-theme-bubbly .inline-dartpad-reset {
+  border-radius: 999px;
+  background: #ffffff;
+}
+.dartpad-dark.idp-theme-bubbly .inline-dartpad-reset {
+  background: #2d2444;
+  color: #c9bfe8;
+}
+
+/* ===== window =============================================================
+ * Familiar. A small app window: title bar with three quiet dots and the
+ * file name, the code as the window body and the console as a drawer at
+ * the bottom with its own tab.
+ * ========================================================================= */
+.idp-theme-window .inline-dartpad {
+  --inline-dartpad-line-numbers: flex;
+  --inline-dartpad-radius: 10px;
+  --inline-dartpad-shadow: 0 2px 6px rgba(28, 40, 52, 0.1), 0 14px 40px rgba(28, 40, 52, 0.14);
+  --inline-dartpad-editor-bg: #ffffff;
+  --inline-dartpad-console-bg: #f6f8fa;
+  gap: 0;
+  border-color: #d0d7de;
+  background: var(--inline-dartpad-editor-bg);
+}
+.dartpad-dark.idp-theme-window .inline-dartpad {
+  --inline-dartpad-editor-bg: #161b22;
+  --inline-dartpad-console-bg: #0d1117;
+  --inline-dartpad-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 16px 48px rgba(0, 0, 0, 0.5);
+  border-color: #30363d;
+}
+.idp-theme-window .inline-dartpad-controls {
+  position: static;
+  order: -1;
+  flex-basis: 100%;
+  min-height: 2.25rem;
+  padding: 0.3rem 0.5rem 0.3rem 4.6rem;
+  border-bottom: 1px solid #d0d7de;
+  background: linear-gradient(#eef1f4, #e3e7eb);
+  color: #57606a;
+}
+.dartpad-dark.idp-theme-window .inline-dartpad-controls {
+  border-bottom-color: #30363d;
+  background: linear-gradient(#262c36, #1e242c);
+  color: #9da7b3;
+}
+.idp-theme-window .inline-dartpad-controls::before {
+  content: '';
+  position: absolute;
+  left: 0.9rem;
+  top: 0.8rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #c8ced5;
+  box-shadow: 1.15rem 0 0 #c8ced5, 2.3rem 0 0 #c8ced5;
+}
+.dartpad-dark.idp-theme-window .inline-dartpad-controls::before {
+  background: #3d444d;
+  box-shadow: 1.15rem 0 0 #3d444d, 2.3rem 0 0 #3d444d;
+}
+.idp-theme-window .inline-dartpad-filename {
+  display: inline;
+  margin-right: auto;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.idp-theme-window .inline-dartpad-run {
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+}
+.idp-theme-window .inline-dartpad-reset {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: transparent;
+  border-color: transparent;
+}
+.idp-theme-window .inline-dartpad-output {
+  position: relative;
+  border-top: 1px solid #d0d7de;
+  padding-top: 1.6rem;
+}
+.dartpad-dark.idp-theme-window .inline-dartpad-output {
+  border-top-color: #30363d;
+}
+.idp-theme-window .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  border-top: 0;
+  border-left: 1px solid #d0d7de;
+}
+.dartpad-dark.idp-theme-window .inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  border-left-color: #30363d;
+}
+.idp-theme-window .inline-dartpad-output::before {
+  content: 'Console';
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.25rem 0.75rem;
+  border-right: 1px solid #d0d7de;
+  border-bottom: 1px solid #d0d7de;
+  border-bottom-right-radius: 6px;
+  background: var(--inline-dartpad-editor-bg);
+  color: var(--inline-dartpad-console-muted);
+  font-family: var(--inline-dartpad-font-ui);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dartpad-dark.idp-theme-window .inline-dartpad-output::before {
+  border-color: #30363d;
+}

@@ -1,0 +1,25 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+name: inline_dartpad
+description: >-
+  Upgrades <pre data-dartpad-*> code blocks on a documentation page into
+  lightweight DartPad editors sharing one worker, one language server and one
+  hidden sandbox per page.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.12.0-0
+
+resolution: workspace
+
+dependencies:
+  codemirror_dart: any
+  dartpad: ^0.1.1
+  web: ^1.1.1
+
+dev_dependencies:
+  path: ^1.9.1
+  test: ^1.31.0

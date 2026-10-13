@@ -1,0 +1,386 @@
+/* Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file. */
+
+/* Stylesheet for inline DartPads, include it before the page's own styles.
+ *
+ * Colors and metrics come from the `--inline-dartpad-*` custom properties
+ * below, with a light and a dark palette borrowed from dart.dev. The dark
+ * palette applies when the user prefers a dark color scheme, or when an
+ * ancestor has the `dartpad-dark` class; `dartpad-light` forces the light
+ * palette. Override the custom properties on any ancestor to restyle. */
+
+.inline-dartpad {
+  --inline-dartpad-font-ui: inherit;
+  --inline-dartpad-font-mono: 'Google Sans Code', 'Roboto Mono', ui-monospace, monospace;
+  --inline-dartpad-font-size: 0.9375rem;
+  --inline-dartpad-radius: 0.45rem;
+  --inline-dartpad-border: #dadce0;
+  --inline-dartpad-shadow: none;
+  /* The `display` of the line-number gutter: `none` or `flex`. The lint
+   * gutter stays either way, as the left inset of the code and for
+   * diagnostic markers. */
+  --inline-dartpad-line-numbers: none;
+  --inline-dartpad-editor-bg: #f9fafb;
+  --inline-dartpad-editor-fg: #212121;
+  --inline-dartpad-gutter-fg: #9aa0a6;
+  --inline-dartpad-selection: rgba(25, 103, 210, 0.15);
+  --inline-dartpad-active-line: rgba(25, 103, 210, 0.05);
+  --inline-dartpad-console-bg: #ffffff;
+  --inline-dartpad-console-fg: #212121;
+  --inline-dartpad-console-muted: #6a6f71;
+  --inline-dartpad-console-error: #cd3434;
+  --inline-dartpad-accent: #1967d2;
+  --inline-dartpad-accent-fg: #ffffff;
+  --inline-dartpad-popup-bg: #ffffff;
+  --inline-dartpad-popup-fg: #212121;
+  /* Syntax colors, the DartPad light editor theme. */
+  --inline-dartpad-cm-builtin: #4a4a4a;
+  --inline-dartpad-cm-comment: #5f6368;
+  --inline-dartpad-cm-keyword: #007a27;
+  --inline-dartpad-cm-atom: #2f4960;
+  --inline-dartpad-cm-variable: #0e161f;
+  --inline-dartpad-cm-variable2: #a54a78;
+  --inline-dartpad-cm-string: #bc0056;
+  --inline-dartpad-cm-string2: #983ab3;
+  --inline-dartpad-cm-number: #00786d;
+  --inline-dartpad-cm-attribute: #0e161f;
+  --inline-dartpad-cm-qualifier: #d32923;
+  --inline-dartpad-cm-meta: #00786d;
+  --inline-dartpad-cm-header: #0e161f;
+  --inline-dartpad-cm-operator: #4a4a4a;
+  --inline-dartpad-cm-def: #4a4a4a;
+  --inline-dartpad-cm-tag: #007a27;
+  --inline-dartpad-cm-property: #0e161f;
+}
+
+@media (prefers-color-scheme: dark) {
+  .inline-dartpad {
+    --inline-dartpad-border: #485563;
+    --inline-dartpad-editor-bg: #202731;
+    --inline-dartpad-editor-fg: #dcdcdc;
+    --inline-dartpad-gutter-fg: #6f7a86;
+    --inline-dartpad-selection: rgba(71, 176, 248, 0.25);
+    --inline-dartpad-active-line: rgba(25, 103, 210, 0.12);
+    --inline-dartpad-console-bg: #1c1e27;
+    --inline-dartpad-console-fg: #dcdcdc;
+    --inline-dartpad-console-muted: #a8acad;
+    --inline-dartpad-console-error: #ff5d5d;
+    --inline-dartpad-accent: #1967d2;
+    --inline-dartpad-accent-fg: #ffffff;
+    --inline-dartpad-popup-bg: #1c1e27;
+    --inline-dartpad-popup-fg: #dcdcdc;
+    --inline-dartpad-cm-builtin: #ffffff;
+    --inline-dartpad-cm-comment: #909cc3;
+    --inline-dartpad-cm-keyword: #50e191;
+    --inline-dartpad-cm-atom: #ff916e;
+    --inline-dartpad-cm-variable: #00d2fa;
+    --inline-dartpad-cm-variable2: #ff916e;
+    --inline-dartpad-cm-string: #fa557d;
+    --inline-dartpad-cm-string2: #ff00fa;
+    --inline-dartpad-cm-number: #909090;
+    --inline-dartpad-cm-attribute: #00d2fa;
+    --inline-dartpad-cm-qualifier: #ff9b00;
+    --inline-dartpad-cm-meta: #909090;
+    --inline-dartpad-cm-header: #00d2fa;
+    --inline-dartpad-cm-operator: #ffffff;
+    --inline-dartpad-cm-def: #ffffff;
+    --inline-dartpad-cm-tag: #50e191;
+    --inline-dartpad-cm-property: #00d2fa;
+  }
+}
+
+.dartpad-light .inline-dartpad {
+  --inline-dartpad-border: #dadce0;
+  --inline-dartpad-editor-bg: #f9fafb;
+  --inline-dartpad-editor-fg: #212121;
+  --inline-dartpad-gutter-fg: #9aa0a6;
+  --inline-dartpad-selection: rgba(25, 103, 210, 0.15);
+  --inline-dartpad-active-line: rgba(25, 103, 210, 0.05);
+  --inline-dartpad-console-bg: #ffffff;
+  --inline-dartpad-console-fg: #212121;
+  --inline-dartpad-console-muted: #6a6f71;
+  --inline-dartpad-console-error: #cd3434;
+  --inline-dartpad-accent: #1967d2;
+  --inline-dartpad-accent-fg: #ffffff;
+  --inline-dartpad-popup-bg: #ffffff;
+  --inline-dartpad-popup-fg: #212121;
+  --inline-dartpad-cm-builtin: #4a4a4a;
+  --inline-dartpad-cm-comment: #5f6368;
+  --inline-dartpad-cm-keyword: #007a27;
+  --inline-dartpad-cm-atom: #2f4960;
+  --inline-dartpad-cm-variable: #0e161f;
+  --inline-dartpad-cm-variable2: #a54a78;
+  --inline-dartpad-cm-string: #bc0056;
+  --inline-dartpad-cm-string2: #983ab3;
+  --inline-dartpad-cm-number: #00786d;
+  --inline-dartpad-cm-attribute: #0e161f;
+  --inline-dartpad-cm-qualifier: #d32923;
+  --inline-dartpad-cm-meta: #00786d;
+  --inline-dartpad-cm-header: #0e161f;
+  --inline-dartpad-cm-operator: #4a4a4a;
+  --inline-dartpad-cm-def: #4a4a4a;
+  --inline-dartpad-cm-tag: #007a27;
+  --inline-dartpad-cm-property: #0e161f;
+}
+
+.dartpad-dark .inline-dartpad {
+  --inline-dartpad-border: #485563;
+  --inline-dartpad-editor-bg: #202731;
+  --inline-dartpad-editor-fg: #dcdcdc;
+  --inline-dartpad-gutter-fg: #6f7a86;
+  --inline-dartpad-selection: rgba(71, 176, 248, 0.25);
+  --inline-dartpad-active-line: rgba(25, 103, 210, 0.12);
+  --inline-dartpad-console-bg: #1c1e27;
+  --inline-dartpad-console-fg: #dcdcdc;
+  --inline-dartpad-console-muted: #a8acad;
+  --inline-dartpad-console-error: #ff5d5d;
+  --inline-dartpad-accent: #1967d2;
+  --inline-dartpad-accent-fg: #ffffff;
+  --inline-dartpad-popup-bg: #1c1e27;
+  --inline-dartpad-popup-fg: #dcdcdc;
+  --inline-dartpad-cm-builtin: #ffffff;
+  --inline-dartpad-cm-comment: #909cc3;
+  --inline-dartpad-cm-keyword: #50e191;
+  --inline-dartpad-cm-atom: #ff916e;
+  --inline-dartpad-cm-variable: #00d2fa;
+  --inline-dartpad-cm-variable2: #ff916e;
+  --inline-dartpad-cm-string: #fa557d;
+  --inline-dartpad-cm-string2: #ff00fa;
+  --inline-dartpad-cm-number: #909090;
+  --inline-dartpad-cm-attribute: #00d2fa;
+  --inline-dartpad-cm-qualifier: #ff9b00;
+  --inline-dartpad-cm-meta: #909090;
+  --inline-dartpad-cm-header: #00d2fa;
+  --inline-dartpad-cm-operator: #ffffff;
+  --inline-dartpad-cm-def: #ffffff;
+  --inline-dartpad-cm-tag: #50e191;
+  --inline-dartpad-cm-property: #00d2fa;
+}
+
+/* The editor theme in the CodeMirror bundle sets its `--cm-*` colors on the
+ * editor element itself, shadowing anything set on the pad; so they are
+ * mapped from the pad's palette there. */
+.inline-dartpad .cm-editor {
+  --cm-builtin: var(--inline-dartpad-cm-builtin);
+  --cm-comment: var(--inline-dartpad-cm-comment);
+  --cm-keyword: var(--inline-dartpad-cm-keyword);
+  --cm-atom: var(--inline-dartpad-cm-atom);
+  --cm-variable: var(--inline-dartpad-cm-variable);
+  --cm-variable2: var(--inline-dartpad-cm-variable2);
+  --cm-string: var(--inline-dartpad-cm-string);
+  --cm-string2: var(--inline-dartpad-cm-string2);
+  --cm-number: var(--inline-dartpad-cm-number);
+  --cm-attribute: var(--inline-dartpad-cm-attribute);
+  --cm-qualifier: var(--inline-dartpad-cm-qualifier);
+  --cm-meta: var(--inline-dartpad-cm-meta);
+  --cm-header: var(--inline-dartpad-cm-header);
+  --cm-operator: var(--inline-dartpad-cm-operator);
+  --cm-def: var(--inline-dartpad-cm-def);
+  --cm-tag: var(--inline-dartpad-cm-tag);
+  --cm-property: var(--inline-dartpad-cm-property);
+}
+
+/* Structure: the pad is a flex container whose 1px gaps show its background,
+ * the border color, between the editor and the console; so the same rules
+ * work for the console below (`vertical`) and next to (`horizontal`, wrapping
+ * below when narrow) the editor. */
+.inline-dartpad {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 1rem 0;
+  border: 1px solid var(--inline-dartpad-border);
+  border-radius: var(--inline-dartpad-radius);
+  background: var(--inline-dartpad-border);
+  box-shadow: var(--inline-dartpad-shadow);
+  overflow: hidden;
+  font-family: var(--inline-dartpad-font-ui);
+  font-size: var(--inline-dartpad-font-size);
+  line-height: 1.5;
+  text-align: left;
+}
+.inline-dartpad[data-layout="horizontal"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.inline-dartpad-editor {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--inline-dartpad-editor-bg);
+}
+.inline-dartpad[data-layout="horizontal"] > .inline-dartpad-editor {
+  flex: 3 1 0;
+  min-width: 24rem;
+}
+.inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output {
+  flex: 2 1 0;
+  min-width: 16rem;
+}
+.inline-dartpad-editor .cm-editor {
+  background: var(--inline-dartpad-editor-bg);
+  color: var(--inline-dartpad-editor-fg);
+  font-size: 1em;
+}
+.inline-dartpad-editor .cm-editor.cm-focused {
+  outline: none;
+}
+.inline-dartpad-editor .cm-scroller {
+  overflow: auto;
+  max-height: 60vh;
+  font-family: var(--inline-dartpad-font-mono);
+  line-height: 1.6;
+}
+.inline-dartpad-editor .cm-content {
+  padding: 0.75rem 6rem 0.75rem 0;
+  caret-color: var(--inline-dartpad-editor-fg);
+}
+.inline-dartpad[data-layout="horizontal"] > .inline-dartpad-editor .cm-content {
+  padding-right: 0.75rem;
+}
+.inline-dartpad[data-layout="horizontal"] > .inline-dartpad-output > .inline-dartpad-console::before {
+  content: '';
+  float: right;
+  width: 5.5rem;
+  height: 1.8rem;
+}
+.inline-dartpad-editor .cm-cursor,
+.inline-dartpad-editor .cm-dropCursor {
+  border-left-color: var(--inline-dartpad-editor-fg);
+}
+.inline-dartpad-editor .cm-gutters {
+  background: var(--inline-dartpad-editor-bg) !important;
+  color: var(--inline-dartpad-gutter-fg);
+  border-right: 0;
+  padding-left: 0.25rem;
+}
+.inline-dartpad-editor .cm-foldGutter {
+  display: none !important;
+}
+.inline-dartpad-editor .cm-lineNumbers {
+  display: var(--inline-dartpad-line-numbers) !important;
+}
+.inline-dartpad-editor .cm-activeLine {
+  background: var(--inline-dartpad-active-line);
+}
+.inline-dartpad-editor .cm-editor:not(.cm-focused) .cm-activeLine {
+  background: transparent;
+}
+.inline-dartpad-editor .cm-activeLineGutter {
+  background: transparent;
+  color: var(--inline-dartpad-editor-fg);
+}
+.inline-dartpad-editor .cm-selectionBackground,
+.inline-dartpad-editor .cm-content ::selection {
+  background: var(--inline-dartpad-selection) !important;
+}
+.inline-dartpad-editor .cm-tooltip,
+.inline-dartpad-editor .cm-panels {
+  background: var(--inline-dartpad-popup-bg);
+  color: var(--inline-dartpad-popup-fg);
+  border-color: var(--inline-dartpad-border);
+}
+.inline-dartpad-editor .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: var(--inline-dartpad-selection);
+  color: inherit;
+}
+.inline-dartpad-controls {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.inline-dartpad-filename {
+  display: none;
+}
+.inline-dartpad-run,
+.inline-dartpad-reset {
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: var(--inline-dartpad-font-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.inline-dartpad-run {
+  background: var(--inline-dartpad-accent);
+  color: var(--inline-dartpad-accent-fg);
+}
+.inline-dartpad-run:hover {
+  filter: brightness(1.12);
+}
+.inline-dartpad-run:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.inline-dartpad-reset {
+  background: var(--inline-dartpad-editor-bg);
+  color: var(--inline-dartpad-console-muted);
+  border-color: var(--inline-dartpad-border);
+}
+.inline-dartpad-reset:hover {
+  color: var(--inline-dartpad-editor-fg);
+}
+.inline-dartpad-output {
+  min-width: 0;
+  background: var(--inline-dartpad-console-bg);
+  color: var(--inline-dartpad-console-fg);
+  font-family: var(--inline-dartpad-font-mono);
+  font-size: 0.875em;
+  line-height: 1.5;
+}
+.inline-dartpad-status {
+  padding: 0.5rem 0.75rem 0;
+  color: var(--inline-dartpad-console-muted);
+}
+.inline-dartpad-status:empty {
+  display: none;
+}
+.inline-dartpad-status::before {
+  content: '';
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.5em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.05em;
+  animation: inline-dartpad-spin 0.8s linear infinite;
+}
+@keyframes inline-dartpad-spin {
+  to { transform: rotate(360deg); }
+}
+.inline-dartpad-console {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  min-height: 2.7em;
+  max-height: 40vh;
+  overflow: auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.inline-dartpad-error {
+  color: var(--inline-dartpad-console-error);
+}
+
+/* Holds the sandboxed <iframe>s; `display: none` would stop some browsers
+ * from running scripts in them. */
+.inline-dartpad-sandbox {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
