@@ -258,7 +258,7 @@ final class WorkspaceSession {
     );
     await _safeAwait(_languageServerClient?.dispose());
     _languageServerClient = null;
-    await _safeAwait(_languageServer?.stop());
+    await _safeAwait(_languageServer?.close());
     _languageServer = null;
 
     contextMenu.hide();

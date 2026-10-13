@@ -106,8 +106,8 @@ void main() {
         final server = await workspace.startLanguageServer().timeout(const Duration(seconds: 30));
         final client = LanguageServerClient(
           languageServer: server,
-          rootWorkspaceUri: workspace.workspaceFolder,
-          editorRootUri: workspace.workspaceFolder,
+          rootWorkspaceUri: Uri.directory(workspace.workspaceFolder),
+          editorRootUri: Uri.directory(workspace.workspaceFolder),
           workspaceChangeEvents: repository.workspaceResourceApi.changeEvents,
         );
         session.attachLanguageServer(server: server, client: client);
@@ -131,6 +131,12 @@ void main() {
     expect(session.fileTree.languageServerClient, isNotNull);
     expect(workerCount('live'), 1);
     final worker = repository.dartpad;
+    await session.preview.hotReloadCode();
+    expect(session.preview.state, isA<PreviewRunning>());
+    await session.preview.restartCode();
+    expect(session.preview.state, isA<PreviewRunning>());
+    expect(repository.dartpad, same(worker));
+    expect(workerCount('created'), 1);
     final tab = session.tabs.getTab('lib/main.dart')! as WorkspaceCodeMirrorTab;
     final editor = tab.editor;
     final edited = '${tab.editor.text}\n// retained edit';

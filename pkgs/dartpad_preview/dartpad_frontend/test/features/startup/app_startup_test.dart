@@ -115,7 +115,7 @@ void main() {
     for (final embed in [false, true]) {
       testClient('preview autorun depends only on embed=$embed for $source', (tester) async {
         final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
-        addTearDown(worker.dispose);
+        addTearDown(worker.close);
         final workspace = await worker.createWorkspace();
         // Hold a started Run before it creates a sandbox or compiles code.
         final pendingRun = Completer<void>();

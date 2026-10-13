@@ -11,9 +11,13 @@ export class Worker {
 
   session(port) {
     port.onmessage = ({ data }) => {
+      if (data === null) {
+        port.close();
+        return;
+      }
       const request = JSON.parse(data.payload);
       const result = {
-        createWorkspace: { workspaceId: 1, workspaceFolder: 'file:///workspace/' },
+        createWorkspace: { workspaceId: 1, workspaceFolder: '/workspace/' },
         'workspace/pub': { log: '' },
       }[request.method];
       port.postMessage({

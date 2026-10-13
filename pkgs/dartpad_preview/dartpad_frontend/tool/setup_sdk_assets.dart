@@ -10,19 +10,19 @@ import 'package:path/path.dart' as p;
 
 // Pin runtime sources independently of the dartpad client package. Update these
 // revisions intentionally and regenerate lib/sdks.g.dart when upgrading SDKs.
-// These specific revisions are not required by dartpad 0.0.10.
+// The generated workers must match the protocol used by the dartpad client.
 
-// Selected on 2026-09-25 from the official Dart archive's latest main build:
+// Selected on 2026-10-13 from the official Dart archive's latest main build:
 // https://storage.googleapis.com/dart-archive/channels/main/raw/latest/VERSION
 // Downloads the prebuilt DartPad assets for this exact Dart SDK revision.
-const _dartRevision = 'e686006ff5b0b3c31731f158a74d1a09ee75b15b';
+const _dartRevision = '00ca160f917cb531a91fe61ca5464fca2ad11db6';
 
-// Selected on 2026-09-25 from the Flutter repository's main/master HEAD using
+// Selected on 2026-10-13 from the Flutter repository's main/master HEAD using
 // `git ls-remote https://github.com/flutter/flutter.git`.
 // Builds Flutter assets from this checkout using its own matching Dart SDK,
 // independently of _dartRevision above. Displayed SDK versions are extracted
 // from the generated sdk.tar files when writing lib/sdks.g.dart.
-const _flutterRevision = 'afde83da30bcbf7f35a90dba132c92aee8111eb8';
+const _flutterRevision = 'aeb107b347232b1eae813d0c12cc82c46227e6a8';
 
 Future<void> main() async {
   final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
@@ -60,6 +60,9 @@ Future<void> main() async {
       'setup',
       'flutter',
       '--flutter-root=$flutterRoot',
+      // Build matching web SDK sources instead of relying on Flutter's
+      // prebuilt DDC bundle layout, which changes between Flutter revisions.
+      '--web-sdk=build',
       '--output=${p.join(assets.path, 'flutter')}',
     ], frontendRoot.path);
 

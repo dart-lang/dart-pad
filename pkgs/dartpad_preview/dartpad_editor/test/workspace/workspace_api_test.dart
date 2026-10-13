@@ -55,5 +55,15 @@ void main() {
       expect(events.first.type, WorkspaceChangeEventType.add);
       expect(events.first.path, 'test.dart');
     });
+
+    test('preserves URI punctuation in file change paths', () async {
+      const path = 'notes #100%?.txt';
+      final added = api.changeEvents.first;
+
+      await api.writeFileFromText(path, 'notes');
+
+      expect((await added).path, path);
+      expect(await api.readFileAsText(path), 'notes');
+    });
   });
 }

@@ -403,10 +403,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
         (message) => output(message, Level.SEVERE),
         onError: (Object error, StackTrace stackTrace) => streamError('Error', error, stackTrace),
       ),
-      sandbox.unhandledRejections.listen(
-        (message) => output(message, Level.SEVERE),
-        onError: (Object error, StackTrace stackTrace) => streamError('Unhandled rejection', error, stackTrace),
-      ),
     ]);
   }
 

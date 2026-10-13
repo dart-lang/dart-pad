@@ -91,7 +91,7 @@ abstract mixin class WorkspaceResourceEventsMixin implements WorkspaceResourceAp
       onListen: () {
         subscription = rawChanges.listen(
           (e) {
-            final path = e.uri.path;
+            final path = e.path;
             if (e is FileAddedEvent) {
               final oldPath = _removeMoveIntention(path);
               if (oldPath != null) {
