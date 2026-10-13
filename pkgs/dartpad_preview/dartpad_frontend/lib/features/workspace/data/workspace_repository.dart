@@ -89,7 +89,10 @@ final class WorkspaceRepository {
       return customReader(uri);
     }
     final workspace = await readyWorkspace;
-    return workspace.readFileAsText(uri.toString());
+    // The worker filesystem uses POSIX paths, while LSP and system tabs use
+    // file URIs.
+    final path = uri.toFilePath(windows: false);
+    return workspace.readFileAsText(path);
   }
 
   /// Starts a dedicated worker and synchronizes [localApi] into its workspace.

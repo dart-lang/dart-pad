@@ -29,17 +29,17 @@ class FakeWorkspace implements WorkspaceResourceApi {
   Uri get workspaceFolder => Uri.parse('file:///workspace/');
 
   @override
-  Future<bool> fileExist(String uri) async => files.containsKey(uri);
+  Future<bool> fileExist(String path) async => files.containsKey(path);
 
   @override
-  Future<String> readFileAsText(String uri) async => files[uri]!;
+  Future<String> readFileAsText(String path) async => files[path]!;
 
   @override
-  Future<void> writeFileFromText(String uri, String text) async {
+  Future<void> writeFileFromText(String path, String text) async {
     if (writeError case final error?) {
       throw error;
     }
-    files[uri] = text;
+    files[path] = text;
   }
 
   @override

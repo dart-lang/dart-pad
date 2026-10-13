@@ -131,7 +131,7 @@ final class WorkspacePersistenceController {
 
   Future<PersistedProjectState> _capture() async {
     final api = session.repository.workspaceResourceApi;
-    final resources = await api.listDirectory(uri: '', recursive: true);
+    final resources = await api.listDirectory(path: '', recursive: true);
     final files = <String, Uint8List>{};
     final folders = <String>[];
     for (final resource in resources) {

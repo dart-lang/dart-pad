@@ -24,7 +24,7 @@ import 'package:test/test.dart';
 
 final class FakeWorkspaceResourceApi implements WorkspaceResourceApi {
   @override
-  Future<bool> fileExist(String uri) async => uri == 'pubspec.yaml';
+  Future<bool> fileExist(String path) async => path == 'pubspec.yaml';
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

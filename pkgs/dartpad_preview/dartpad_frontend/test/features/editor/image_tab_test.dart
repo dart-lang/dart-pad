@@ -20,7 +20,7 @@ final class _Workspace implements WorkspaceResourceApi {
   final Uint8List bytes;
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) async => bytes;
+  Future<Uint8List> readFileAsBytes(String path) async => bytes;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

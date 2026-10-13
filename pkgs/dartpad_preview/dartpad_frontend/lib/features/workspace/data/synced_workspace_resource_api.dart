@@ -56,7 +56,7 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
         }
         remoteApi = api;
 
-        final resources = await localApi.listDirectory(uri: '', recursive: true);
+        final resources = await localApi.listDirectory(path: '', recursive: true);
         for (final r in resources) {
           if (_isDisposed || !identical(initialization, _initialization)) {
             return;
@@ -200,44 +200,44 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   }
 
   @override
-  Future<bool> fileExist(String uri) => localApi.fileExist(uri);
+  Future<bool> fileExist(String path) => localApi.fileExist(path);
 
   @override
-  Future<bool> folderExist(String uri) => localApi.folderExist(uri);
+  Future<bool> folderExist(String path) => localApi.folderExist(path);
 
   @override
-  Future<String> readFileAsText(String uri) => localApi.readFileAsText(uri);
+  Future<String> readFileAsText(String path) => localApi.readFileAsText(path);
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) => localApi.readFileAsBytes(uri);
+  Future<Uint8List> readFileAsBytes(String path) => localApi.readFileAsBytes(path);
 
   @override
-  Future<void> writeFileFromText(String uri, String content) async {
-    await localApi.writeFileFromText(uri, content);
-    _queueRemoteAction((ws) => ws.writeFileFromText(uri, content));
+  Future<void> writeFileFromText(String path, String content) async {
+    await localApi.writeFileFromText(path, content);
+    _queueRemoteAction((ws) => ws.writeFileFromText(path, content));
   }
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) async {
-    await localApi.writeFileFromBytes(uri, bytes);
-    _queueRemoteAction((ws) => ws.writeFileFromBytes(uri, bytes));
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) async {
+    await localApi.writeFileFromBytes(path, bytes);
+    _queueRemoteAction((ws) => ws.writeFileFromBytes(path, bytes));
   }
 
   @override
-  Future<void> createFolder(String uri) async {
-    await localApi.createFolder(uri);
-    _queueRemoteAction((ws) => ws.createFolder(uri));
+  Future<void> createFolder(String path) async {
+    await localApi.createFolder(path);
+    _queueRemoteAction((ws) => ws.createFolder(path));
   }
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) async {
-    await localApi.deleteFileSystemEntity(uri);
-    _queueRemoteAction((ws) => ws.deleteFileSystemEntity(uri));
+  Future<void> deleteFileSystemEntity(String path) async {
+    await localApi.deleteFileSystemEntity(path);
+    _queueRemoteAction((ws) => ws.deleteFileSystemEntity(path));
   }
 
   @override
-  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false}) =>
-      localApi.listDirectory(uri: uri, recursive: recursive);
+  Future<List<({String path, String type})>> listDirectory({required String path, bool recursive = false}) =>
+      localApi.listDirectory(path: path, recursive: recursive);
 
   @override
   void addMoveIntention(String oldPath, String newPath) {

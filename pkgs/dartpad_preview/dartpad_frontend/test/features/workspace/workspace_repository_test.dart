@@ -34,12 +34,12 @@ final class _Workspace implements WorkspaceResourceApi {
   Future<void> get changeEventsReady => Future.value();
 
   @override
-  Future<bool> folderExist(String uri) async => folders.contains(uri);
+  Future<bool> folderExist(String path) async => folders.contains(path);
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) async {
-    deletedPaths.add(uri);
-    folders.removeWhere((path) => path == uri || path.startsWith('$uri/'));
+  Future<void> deleteFileSystemEntity(String path) async {
+    deletedPaths.add(path);
+    folders.removeWhere((entryPath) => entryPath == path || entryPath.startsWith('$path/'));
   }
 
   @override

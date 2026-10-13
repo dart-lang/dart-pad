@@ -112,48 +112,48 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
   }
 
   @override
-  Future<bool> fileExist(String uri) async {
-    fileExistChecks.update(uri, (count) => count + 1, ifAbsent: () => 1);
-    return files.containsKey(uri);
+  Future<bool> fileExist(String path) async {
+    fileExistChecks.update(path, (count) => count + 1, ifAbsent: () => 1);
+    return files.containsKey(path);
   }
 
   @override
-  Future<bool> folderExist(String uri) async => folders.contains(uri);
+  Future<bool> folderExist(String path) async => folders.contains(path);
 
   @override
-  Future<String> readFileAsText(String uri) async => String.fromCharCodes(files[uri]!);
+  Future<String> readFileAsText(String path) async => String.fromCharCodes(files[path]!);
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) async => Uint8List.fromList(files[uri]!);
+  Future<Uint8List> readFileAsBytes(String path) async => Uint8List.fromList(files[path]!);
 
   @override
-  Future<void> writeFileFromText(String uri, String content) async {
+  Future<void> writeFileFromText(String path, String content) async {
     textWriteCount++;
-    files[uri] = Uint8List.fromList(content.codeUnits);
+    files[path] = Uint8List.fromList(content.codeUnits);
   }
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) async {
-    files[uri] = Uint8List.fromList(bytes);
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) async {
+    files[path] = Uint8List.fromList(bytes);
   }
 
   @override
-  Future<void> createFolder(String uri) async {
-    folders.add(uri);
+  Future<void> createFolder(String path) async {
+    folders.add(path);
   }
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) async {
-    files.removeWhere((path, _) => path == uri || path.startsWith('$uri/'));
-    folders.removeWhere((path) => path == uri || path.startsWith('$uri/'));
+  Future<void> deleteFileSystemEntity(String path) async {
+    files.removeWhere((entryPath, _) => entryPath == path || entryPath.startsWith('$path/'));
+    folders.removeWhere((entryPath) => entryPath == path || entryPath.startsWith('$path/'));
   }
 
   @override
   Future<List<({String path, String type})>> listDirectory({
-    required String uri,
+    required String path,
     bool recursive = false,
   }) async {
-    final prefix = uri.isEmpty ? '' : '$uri/';
+    final prefix = path.isEmpty ? '' : '$path/';
     return [
       for (final folder in folders)
         if (folder.isNotEmpty &&

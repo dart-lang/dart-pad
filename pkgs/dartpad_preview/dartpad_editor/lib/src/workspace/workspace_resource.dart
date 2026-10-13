@@ -56,7 +56,7 @@ sealed class WorkspaceResource {
   /// resource is a root folder.
   WorkspaceFolder get parent;
 
-  /// Return the full path to this resource.
+  /// Returns the workspace-relative path to this resource.
   String get path;
 
   /// Returns the final path component of this resource.
@@ -217,7 +217,7 @@ final class WorkspaceFolder extends WorkspaceResource {
   /// Return a list of existing children [WorkspaceResource]s (folders and files)
   /// in this folder, in no particular order.
   Future<List<WorkspaceResource>> getChildren({bool recursive = false}) async {
-    final result = await workspace.listDirectory(uri: path, recursive: recursive);
+    final result = await workspace.listDirectory(path: path, recursive: recursive);
     return [
       for (final r in result)
         switch (r.type) {

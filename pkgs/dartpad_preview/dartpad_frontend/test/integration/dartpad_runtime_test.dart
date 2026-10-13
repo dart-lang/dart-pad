@@ -9,6 +9,9 @@ library;
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
@@ -27,16 +30,33 @@ void main() {
         workspace = await worker.createWorkspace();
       });
 
-      test('preserves workspace paths and change events', () async {
+      test('SDK integration preserves workspace paths and change events', () async {
         final api = WorkerWorkspaceResourceApi(workspace);
         addTearDown(api.dispose);
+        final localApi = MemoryWorkspaceResourceApi();
+        final events = AppEventBus();
+        final tasks = TaskStatusController();
+        final repository = WorkspaceRepository(
+          events: events,
+          taskStatus: tasks,
+          workspaceResourceApi: localApi,
+          sdk: sdk,
+          workspaceFuture: Future.value(workspace),
+        );
+        addTearDown(repository.close);
+        addTearDown(events.dispose);
+        addTearDown(tasks.dispose);
 
         const path = 'notes #100%?.txt';
         final changes = api.changeEvents.where((event) => event.path == path).take(2).toList();
         await api.changeEventsReady;
         await workspace.writeFileFromText(path, 'notes');
         expect(await api.readFileAsText(path), 'notes');
-        expect((await api.listDirectory(uri: '')).map((entry) => entry.path), contains(path));
+        expect((await api.listDirectory(path: '')).map((entry) => entry.path), contains(path));
+        // System tabs retain the encoded URI; only the worker read decodes it.
+        final systemUri = Uri.file(workspacePath.join(workspace.workspaceFolder, path), windows: false);
+        expect(await repository.readSystemFile(systemUri), 'notes');
+        expect(await localApi.listDirectory(path: ''), isEmpty);
         await workspace.deleteFileSystemEntity(path);
         expect((await changes).map((event) => event.type), [
           WorkspaceChangeEventType.add,
