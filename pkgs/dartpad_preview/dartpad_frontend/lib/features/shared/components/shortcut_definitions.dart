@@ -26,7 +26,8 @@ enum ShortcutCategory {
   refactoring('Refactoring & code intelligence'),
   editing('Editing'),
   search('Search'),
-  autocompleteFolding('Autocomplete & folding');
+  autocompleteFolding('Autocomplete & folding'),
+  explorer('File explorer');
 
   const ShortcutCategory(this.label);
 
@@ -333,6 +334,13 @@ final class ShortcutDefinition {
     codemirrorKeys: ['Mod-s'],
   );
 
+  // ── File explorer ───────────────────────────────────────────────────────
+  static final deleteFile = ShortcutDefinition.alternatives(
+    label: 'Delete selected file',
+    displayKeys: isMac ? ['Mod + Backspace'] : ['Delete'],
+    category: ShortcutCategory.explorer,
+  );
+
   // ── Global & palette commands ───────────────────────────────────────────
   static const commandPalette = ShortcutDefinition(
     label: 'Open command palette',
@@ -351,6 +359,9 @@ final class ShortcutDefinition {
 final shortcutDefinitions = <ShortcutDefinition>[
   // ── View ─────────────────────────────────────────────────────────────────
   ShortcutDefinition.commandPalette,
+
+  // ── File explorer ───────────────────────────────────────────────────────
+  ShortcutDefinition.deleteFile,
 
   // ── Execution ────────────────────────────────────────────────────────────
   ShortcutDefinition.runOrHotReload,
