@@ -202,7 +202,7 @@ final class _AppState extends State<App> {
           _writeSessionIdToUrl(uri, id);
         }
         final project = switch (strategy.restoreProjectId) {
-          final id? => await _loadSavedProject(id),
+          final id? => await _loadSavedProject(id, request),
           null => await _loadProjectFromSource(request),
         };
         if (!_isCurrentLoad(generation)) {
@@ -222,14 +222,16 @@ final class _AppState extends State<App> {
   Future<_LoadedProject> _loadProjectFromSource(ProjectRequest request) async {
     final contents = await component.loadSource(request.source);
     return _LoadedProject(
+      request: request,
       initialState: InitialProjectState.resolve(request, contents, availableSdks),
       contents: contents,
     );
   }
 
-  Future<_LoadedProject> _loadSavedProject(String id) async {
+  Future<_LoadedProject> _loadSavedProject(String id, ProjectRequest request) async {
     final saved = await _persistence.read(id);
     return _LoadedProject(
+      request: request,
       initialState: saved.state.initialProject(availableSdks),
       contents: saved.state.project,
       saved: saved,
@@ -254,9 +256,7 @@ final class _AppState extends State<App> {
       unawaited(
         _initializeWorkspace(
           session,
-          tabs: snapshot?.tabs
-              .where((tab) => tab.origin == EditorTabOrigin.system || snapshot.files.containsKey(tab.path))
-              .toList(),
+          tabs: snapshot?.restoredTabs(project.request.files),
           activeFile: snapshot?.activeFile,
           restoring: snapshot != null,
           projectId: project.saved?.id,
@@ -1061,9 +1061,17 @@ final class _AppState extends State<App> {
 
 /// Source contents and resolved startup options, before workspace creation.
 /// A saved entry additionally supplies its identity and previous editor tabs.
+/// [request] is the URL that opened the project, which can differ from the
+/// saved query in `file` params.
 final class _LoadedProject {
-  const _LoadedProject({required this.initialState, required this.contents, this.saved});
+  const _LoadedProject({
+    required this.request,
+    required this.initialState,
+    required this.contents,
+    this.saved,
+  });
 
+  final ProjectRequest request;
   final InitialProjectState initialState;
   final Project contents;
   final StoredProject? saved;

@@ -29,7 +29,7 @@ void main() {
   late List<WorkspaceRepository> repositories;
   late int sourceLoads;
   setUp(() {
-    store = MemoryProjectStore(savedProject());
+    store = MemoryProjectStore(savedProject(query: ''));
     repositories = [];
     sourceLoads = 0;
   });
@@ -49,6 +49,7 @@ void main() {
         workspaceResourceApi: localApi!,
         dartpad: workers?[repositories.length].dartpad,
         workspaceFuture: Completer<Workspace>().future,
+        readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
       );
       repositories.add(repository);
       return repository;
@@ -56,7 +57,7 @@ void main() {
   );
 
   testClient('without query restores the latest entry', (tester) async {
-    final latest = await store.create(savedProject(text: 'most recent'));
+    final latest = await store.create(savedProject(query: '', text: 'most recent'));
     tester.pumpComponent(app(''));
     await pumpEventQueue();
     expect(sourceLoads, 0);
@@ -67,7 +68,7 @@ void main() {
   });
 
   testClient('theme-only query restores the latest entry', (tester) async {
-    final latest = await store.create(savedProject(text: 'most recent'));
+    final latest = await store.create(savedProject(query: '', text: 'most recent'));
     tester.pumpComponent(app('?theme=dark'));
     await pumpEventQueue();
     expect(sourceLoads, 0);
@@ -153,6 +154,110 @@ void main() {
     expect(Uri.parse(web.window.location.href).queryParameters['s'], '2');
   });
 
+  /// Picks [name] from the `New` menu, as a user switching projects would.
+  Future<void> chooseNewExample(String name) async {
+    (web.document.querySelector('button[aria-label="New"]')! as web.HTMLElement).click();
+    await pumpEventQueue();
+    final items = web.document.querySelectorAll('.dropdown-menu-item');
+    final item = [
+      for (var i = 0; i < items.length; i++) items.item(i)!,
+    ].singleWhere((item) => item.textContent!.contains(name));
+    (item as web.HTMLElement).click();
+  }
+
+  testClient('bare URL reuses one scratch entry across reloads', (
+    tester,
+  ) async {
+    tester.pumpComponent(app(''));
+    await pumpEventQueue();
+    await repositories.single.workspaceResourceApi.writeFileFromText(
+      'lib/main.dart',
+      'bare edit',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    tester.binding.detachRootComponent();
+    await pumpEventQueue();
+
+    tester.pumpComponent(app(''));
+    await pumpEventQueue();
+    expect(store.entries, hasLength(1));
+    expect(
+      await repositories.last.workspaceResourceApi.readFileAsText(
+        'lib/main.dart',
+      ),
+      'bare edit',
+    );
+  });
+
+  testClient('unknown session id mints a new id and loads the source', (
+    tester,
+  ) async {
+    final originalUrl = web.window.location.href;
+    addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+    tester.pumpComponent(app('?sample=counter&s=99')); // 99 is an unknown session id
+    await pumpEventQueue();
+    expect(sourceLoads, 1);
+    expect(Uri.parse(web.window.location.href).queryParameters['s'], '1');
+    expect(
+      web.document.querySelector('.cm-content')!.textContent,
+      contains('fresh'),
+    );
+  });
+
+  testClient(
+    'switching project with New keeps edits and restores them by session id',
+    (tester) async {
+      final workers = [
+        await TestWorker.start(),
+        await TestWorker.start(),
+        await TestWorker.start(),
+      ];
+      for (final worker in workers) {
+        addTearDown(worker.dispose);
+      }
+      final originalUrl = web.window.location.href;
+      addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+      tester.pumpComponent(app('?sample=counter', workers: workers));
+      await pumpEventQueue();
+      expect(Uri.parse(web.window.location.href).queryParameters['s'], '1');
+      final first = repositories.single;
+      await first.workspaceResourceApi.writeFileFromText(
+        'lib/main.dart',
+        'edited fresh project',
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+
+      await chooseNewExample('Dart Snippet');
+      await pumpEventQueue();
+      expect(sourceLoads, 2);
+      expect(repositories, hasLength(2));
+      expect(first.closeCount, 1);
+      expect(workers.first.isClosed, isTrue);
+      expect(repositories.last.closeCount, 0);
+      expect(
+        web.document.querySelector('.cm-content')!.textContent,
+        contains('fresh'),
+      );
+
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      tester.pumpComponent(app('?sample=counter&s=1', workers: workers));
+      await pumpEventQueue();
+      expect(sourceLoads, 2);
+      expect(repositories, hasLength(3));
+      expect(
+        await repositories.last.workspaceResourceApi.readFileAsText(
+          'lib/main.dart',
+        ),
+        'edited fresh project',
+      );
+      expect(
+        web.document.querySelector('.cm-content')!.textContent,
+        contains('edited fresh project'),
+      );
+    },
+  );
+
   testClient('unavailable storage loads the source and pauses local saving', (tester) async {
     store.readError = StateError('storage denied');
     tester.pumpComponent(app(''));
@@ -166,7 +271,7 @@ void main() {
   testClient('another tab saving leaves editing enabled and the last autosave wins', (tester) async {
     tester.pumpComponent(app(''));
     await pumpEventQueue();
-    await store.write('saved', savedProject(text: 'other tab'));
+    await store.write('saved', savedProject(query: '', text: 'other tab'));
     web.document.dispatchEvent(web.Event('visibilitychange'));
     await pumpEventQueue();
     expect(web.document.querySelector('dialog'), isNull);
@@ -183,8 +288,8 @@ void main() {
   });
 
   testClient('failed restore offers Start fresh and retains the failed entry', (tester) async {
-    final files = savedProject().files;
-    final previous = savedProject(files: {...files, 'lib/./main.dart': files['lib/main.dart']!});
+    final files = savedProject(query: '').files;
+    final previous = savedProject(query: '', files: {...files, 'lib/./main.dart': files['lib/main.dart']!});
     store = MemoryProjectStore(previous);
     tester.pumpComponent(app(''));
     await pumpEventQueue();

@@ -7,7 +7,7 @@ import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
 
-/// The URL query parameter holding the per-tab session id (`s=<id>`).
+/// The URL query parameter holding the per-tab session id.
 ///
 /// Shared so the app, [ProjectRequest] parsing, and the persistence
 /// controller all agree on the same key.
