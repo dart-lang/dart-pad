@@ -24,6 +24,8 @@ dart run tool/setup_sdk_assets.dart
   builds the matching web SDK from source to support the current Flutter asset layout.
 - Revisions are resolved from the channels on each run. When refreshing assets,
   include the regenerated SDK manifest in the change.
+- SDK versions come from each bundle's `version.json`. Missing or invalid version
+  metadata fails setup before the existing runtime assets are replaced.
 
 ## Bundled examples
 

@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
 Future<void> main() async {
@@ -37,12 +36,15 @@ Future<void> main() async {
       '--output=${p.join(assets.path, 'flutter')}',
     ], frontendRoot.path);
 
-    // Keep the existing assets until both SDKs have been generated successfully.
+    // Validate both bundles before replacing the existing assets.
+    final sdkManifest = await generateSdkManifest(assets);
     if (targetAssetDir.existsSync()) {
       await targetAssetDir.delete(recursive: true);
     }
     await _copyDirectory(assets, targetAssetDir);
-    await _writeSdkManifest(targetAssetDir, frontendRoot);
+    final manifestFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
+    await manifestFile.writeAsString(sdkManifest);
+    stdout.writeln('Generated ${manifestFile.path}');
     stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
   } finally {
     await stagingDir.delete(recursive: true);
@@ -74,7 +76,8 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
   }
 }
 
-Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) async {
+/// Generates the SDK manifest from bundle metadata, failing if it is incomplete.
+Future<String> generateSdkManifest(Directory assetRoot) async {
   final sdks = <Map<String, dynamic>>[];
 
   final entries = await assetRoot.list(recursive: false).toList();
@@ -93,26 +96,21 @@ Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) asyn
     if (entity is Directory) {
       final sdkId = p.basename(entity.path);
       final versions = await _readSdkVersions(entity);
-      if (versions != null) {
-        final dartVersion = versions['dartVersion'] as String?;
-        final flutterVersion = versions['flutterVersion'] as String?;
-        if (dartVersion != null) {
-          final isFlutter = flutterVersion != null;
-          sdks.add({
-            'id': sdkId,
-            'name': isFlutter ? 'Flutter' : 'Dart',
-            'path': 'dartpad/$sdkId/',
-            'dartVersion': dartVersion,
-            'flutterVersion': ?flutterVersion,
-          });
-        }
-      }
+      sdks.add({
+        'id': sdkId,
+        'name': versions.flutterVersion != null ? 'Flutter' : 'Dart',
+        'path': 'dartpad/$sdkId/',
+        'dartVersion': versions.dartVersion,
+        'flutterVersion': ?versions.flutterVersion,
+      });
     }
   }
 
-  final defaultSdkId = sdks.any((s) => s['id'] == 'flutter')
-      ? 'flutter'
-      : (sdks.isNotEmpty ? sdks.first['id'] as String : 'default');
+  if (sdks.isEmpty) {
+    throw StateError('No SDK bundles found in ${assetRoot.path}');
+  }
+
+  final defaultSdkId = sdks.any((s) => s['id'] == 'flutter') ? 'flutter' : sdks.first['id'] as String;
 
   final buffer = StringBuffer()
     ..writeln('// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file')
@@ -147,69 +145,41 @@ Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) asyn
   buffer.writeln('  orElse: () => availableSdks.first,');
   buffer.writeln(');');
 
-  final targetFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
-  await targetFile.writeAsString(buffer.toString());
-  stdout.writeln('Generated ${targetFile.path}');
-
-  // Remove any legacy sdks.g.dart in features/shared/ if present
-  final oldGeneratedFile = File(p.join(frontendRoot.path, 'lib', 'features', 'shared', 'sdks.g.dart'));
-  if (oldGeneratedFile.existsSync()) {
-    oldGeneratedFile.deleteSync();
-  }
-
-  // Remove any legacy sdks.json if present
-  final legacyJson = File(p.join(assetRoot.path, 'sdks.json'));
-  if (legacyJson.existsSync()) {
-    legacyJson.deleteSync();
-  }
+  return buffer.toString();
 }
 
-Future<Map<String, dynamic>?> _readSdkVersions(Directory sdkDir) async {
-  final sdkTarFile = File(p.join(sdkDir.path, 'sdk.tar'));
-  if (!sdkTarFile.existsSync()) {
-    return null;
-  }
+Future<({String dartVersion, String? flutterVersion})> _readSdkVersions(Directory sdkDir) async {
+  final versionFile = File(p.join(sdkDir.path, 'version.json'));
   try {
-    final archiveBytes = await sdkTarFile.readAsBytes();
-    final archive = TarDecoder().decodeBytes(archiveBytes);
-
-    ArchiveFile? findFile(bool Function(ArchiveFile file) predicate) {
-      for (final file in archive.files) {
-        if (predicate(file)) {
-          return file;
-        }
-      }
-      return null;
+    final metadata = jsonDecode(await versionFile.readAsString());
+    if (metadata is! Map<String, dynamic>) {
+      throw const FormatException('Expected a JSON object');
     }
 
-    final flutterVersionFile = findFile(
-      (f) => f.name.endsWith('flutter.version.json'),
-    );
-
-    if (flutterVersionFile != null) {
-      final json = jsonDecode(utf8.decode(flutterVersionFile.content)) as Map<String, dynamic>;
-      final dartVersion = (json['dartSdkVersion'] ?? json['dartVersion']) as String?;
-      final flutterVersion = (json['flutterVersion'] ?? json['frameworkVersion']) as String?;
-      return {
-        'dartVersion': ?dartVersion,
-        'flutterVersion': ?flutterVersion,
-      };
+    final dartVersion = metadata['dartVersion'];
+    if (dartVersion is! String || dartVersion.trim().isEmpty) {
+      throw const FormatException('Expected a non-empty dartVersion');
     }
 
-    final dartVersionFile = findFile(
-      (f) => f.name == 'sdk/version' || f.name == '/sdk/version',
-    );
-
-    if (dartVersionFile != null) {
-      final dartVersion = utf8.decode(dartVersionFile.content).trim();
-      return {
-        'dartVersion': dartVersion,
-      };
+    final properties = metadata['properties'];
+    if (properties is! Map<String, dynamic>) {
+      throw const FormatException('Expected a properties object');
+    }
+    final flutterVersion = properties['flutterVersion'];
+    if ((flutterVersion != null && (flutterVersion is! String || flutterVersion.trim().isEmpty)) ||
+        (p.basename(sdkDir.path) == 'flutter' && flutterVersion == null)) {
+      throw const FormatException('Expected a non-empty properties.flutterVersion');
     }
 
-    return null;
-  } catch (e) {
-    stdout.writeln('Warning: Failed to read SDK versions for ${sdkDir.path}: $e');
-    return null;
+    // Flutter previously supplied this display format through flutter.version.json.
+    // Keep Dart-only bundle versions (including edge revisions) verbatim.
+    final displayDartVersion = flutterVersion != null && dartVersion.contains('-')
+        ? '${dartVersion.split('-').first} (build $dartVersion)'
+        : dartVersion;
+    return (dartVersion: displayDartVersion, flutterVersion: flutterVersion as String?);
+  } on FileSystemException catch (error) {
+    throw StateError('Could not read SDK metadata at ${versionFile.path}: ${error.message}');
+  } on FormatException catch (error) {
+    throw StateError('Invalid SDK metadata at ${versionFile.path}: ${error.message}');
   }
 }
