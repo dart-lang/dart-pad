@@ -14,12 +14,17 @@ import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  test('SDK integration preserves workspace paths, console output and asynchronous errors', () async {
-    final sdk = availableSdks.firstWhere((sdk) => sdk.id == 'dart');
-    final assetBaseUrl = Uri.base.resolve('../../web/${sdk.path}');
+  final sdk = availableSdks.firstWhere((sdk) => sdk.id == 'dart');
+  final assetBaseUrl = Uri.base.resolve('../../web/${sdk.path}');
+  late Workspace workspace;
+
+  setUp(() async {
     final worker = await DartPadSdk(assetBaseUrl: assetBaseUrl).dedicatedWorker();
     addTearDown(worker.close);
-    final workspace = await worker.createWorkspace();
+    workspace = await worker.createWorkspace();
+  });
+
+  test('SDK integration preserves workspace paths and change events', () async {
     final api = WorkerWorkspaceResourceApi(workspace);
     addTearDown(api.dispose);
 
@@ -34,33 +39,52 @@ void main() {
       WorkspaceChangeEventType.add,
       WorkspaceChangeEventType.remove,
     ]);
+  });
 
-    await workspace.writeFileFromText('pubspec.yaml', 'name: runtime_test\nenvironment:\n  sdk: ^3.12.0\n');
-    await workspace.pub(command: 'get');
+  group('SDK sandbox integration', () {
+    late PreviewSandbox sandbox;
 
-    final container = web.HTMLDivElement();
-    web.document.body!.appendChild(container);
-    // JS interop methods cannot be used as tear-offs.
-    // ignore: unnecessary_lambdas
-    addTearDown(() => container.remove());
-    final sandbox = await IframePreviewSandbox.create(
-      container,
-      assetBaseUrl: assetBaseUrl,
-      workspace: workspace,
-    );
-    addTearDown(sandbox.close);
-    await workspace.writeFileFromText('main.dart', '''
+    setUp(() async {
+      await workspace.writeFileFromText('pubspec.yaml', 'name: runtime_test\nenvironment:\n  sdk: ^3.12.0\n');
+      await workspace.pub(command: 'get');
+
+      final container = web.HTMLDivElement();
+      web.document.body!.appendChild(container);
+      // JS interop methods cannot be used as tear-offs.
+      // ignore: unnecessary_lambdas
+      addTearDown(() => container.remove());
+      sandbox = await IframePreviewSandbox.create(
+        container,
+        assetBaseUrl: assetBaseUrl,
+        workspace: workspace,
+      );
+      addTearDown(sandbox.close);
+    });
+
+    test('preserves console output', () async {
+      await workspace.writeFileFromText('main.dart', '''
 void main() {
   print('runtime-output');
+}
+''');
+      final output = sandbox.console.firstWhere((message) => message.contains('runtime-output'));
+
+      await sandbox.run('main.dart', mode: 'console');
+
+      expect(await output, contains('runtime-output'));
+    });
+
+    test('forwards unhandled asynchronous errors', () async {
+      await workspace.writeFileFromText('main.dart', '''
+void main() {
   Future<void>.delayed(Duration.zero, () => throw StateError('runtime-async-error'));
 }
 ''');
-    final output = sandbox.console.firstWhere((message) => message.contains('runtime-output'));
-    final error = sandbox.errors.firstWhere((message) => message.contains('runtime-async-error'));
+      final error = sandbox.errors.firstWhere((message) => message.contains('runtime-async-error'));
 
-    await sandbox.run('main.dart', mode: 'console');
+      await sandbox.run('main.dart', mode: 'console');
 
-    expect(await output, contains('runtime-output'));
-    expect(await error, contains('runtime-async-error'));
+      expect(await error, contains('runtime-async-error'));
+    });
   });
 }
