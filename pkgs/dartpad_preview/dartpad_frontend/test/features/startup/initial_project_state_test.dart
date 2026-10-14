@@ -132,6 +132,19 @@ void main() {
   });
 
   group('InitialProjectState', () {
+    for (final package in ['material_ui', 'cupertino_ui']) {
+      for (final source in ['gist=abc', 'sample_id=material.ListTile.2']) {
+        test('selects Flutter for a standalone $package import in $source', () {
+          final state = resolve('?$source', {
+            'lib/main.dart': "import 'package:$package/$package.dart'; void main() {}",
+          });
+          expect(state.sdk.isFlutter, isTrue);
+          expect(state.mode, RunMode.flutter);
+          expect(state.hasPubspec, isTrue);
+        });
+      }
+    }
+
     test('documentation samples use normal SDK inference and respect explicit overrides', () {
       for (final (importsFlutter, sdkQuery, flutterSdk) in [
         (true, '', true),

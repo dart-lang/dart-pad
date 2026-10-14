@@ -52,14 +52,43 @@ environment:
 
 dependencies:
   collection: any
+  cupertino_ui:
   flutter:
     sdk: flutter
+  material_ui:
   path: any
 
 flutter:
   uses-material-design: true
 ''');
   });
+
+  for (final package in ['material_ui', 'cupertino_ui']) {
+    test('infers Flutter and generates UI dependencies for a standalone $package import', () {
+      final dependencies = inferPackageDependencies([
+        _file('lib/main.dart', "import 'package:$package/$package.dart';"),
+      ]);
+      expect(dependencies, contains('flutter'));
+
+      final pubspec = generatePubspec(dependencies, sdkConstraint: '^3.14.0-0');
+      expect(utf8.decode(pubspec.bytes), '''
+name: _
+publish_to: none
+
+environment:
+  sdk: ^3.14.0-0
+
+dependencies:
+  cupertino_ui:
+  flutter:
+    sdk: flutter
+  material_ui:
+
+flutter:
+  uses-material-design: true
+''');
+    });
+  }
 
   test('extracts dependencies from conditional imports and exports', () {
     final pubspec = generatePubspec(

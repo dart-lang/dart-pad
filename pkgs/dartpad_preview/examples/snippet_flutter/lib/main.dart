@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   runApp(
     const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello, Flutter!'),
-        ),
-      ),
+      home: Scaffold(body: Center(child: Text('Hello, Flutter!'))),
     ),
   );
 }
