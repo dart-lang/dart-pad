@@ -6,10 +6,14 @@ import '../shared/sdk_info.dart';
 
 /// Storage decisions made before loading a project's files.
 final class PersistenceLoadStrategy {
-  const PersistenceLoadStrategy({this.restoreProjectId});
+  const PersistenceLoadStrategy({this.restoreProjectId, this.mintedSessionId});
 
   /// Read and open this entry instead of loading the URL's source.
   final String? restoreProjectId;
+
+  /// A freshly minted session id the caller must write into the URL via
+  /// `replaceState`. Null when no new id was minted.
+  final int? mintedSessionId;
 }
 
 /// Persistence outcomes rendered by the UI; contains no presentation text.

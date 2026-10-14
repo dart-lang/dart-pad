@@ -23,5 +23,8 @@ abstract interface class ProjectStore {
   /// Atomically saves files and metadata. The last write wins, including for
   /// entries previously evicted from the history.
   Future<void> write(String id, PersistedProjectState state);
+
+  /// Returns the next session id. Values are never reused, even after history eviction.
+  Future<int> reserveSessionId();
   void close();
 }
