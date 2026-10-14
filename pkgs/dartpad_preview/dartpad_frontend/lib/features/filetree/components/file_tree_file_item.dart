@@ -12,6 +12,7 @@ import 'package:jaspr_content/components/file_icon.dart';
 import 'package:web/web.dart' as web;
 
 import '../../shared/components/context_menu.dart';
+import '../../shared/components/shortcut_definitions.dart';
 import '../file_tree_models.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
@@ -171,6 +172,11 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           if (openable && (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
             component.onSelect(path);
             unawaited(_openWorkspaceFile(path));
+          } else if (isMac
+              ? keyboardEvent.key == 'Backspace' && keyboardEvent.metaKey
+              : keyboardEvent.key == 'Delete') {
+            keyboardEvent.preventDefault();
+            _confirmDeleteFile(path);
           }
         },
         'contextmenu': (web.Event event) => _handleContextMenu(
@@ -239,6 +245,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       ContextMenuItem(
         label: 'Delete',
         destructive: true,
+        shortcut: ShortcutDefinition.deleteFile.resolvedDisplayKey,
         onPressed: () => _confirmDeleteFile(path),
       ),
       const ContextMenuDivider(),
