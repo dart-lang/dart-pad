@@ -30,6 +30,54 @@ void main() {
     return File(p.join(sdkDir.path, 'version.json')).writeAsString(contents);
   }
 
+  test('Flutter checkout follows latest master and retains release tags and history', () async {
+    final source = await Directory(p.join(assets.path, 'source')).create();
+    Future<String> git(List<String> arguments, {Directory? workingDirectory}) async {
+      final result = await Process.run('git', arguments, workingDirectory: (workingDirectory ?? source).path);
+      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+      return (result.stdout as String).trim();
+    }
+
+    await git(['init', '--initial-branch=master']);
+    await git(['config', 'user.name', 'SDK setup test']);
+    await git(['config', 'user.email', 'sdk-setup-test@example.invalid']);
+    await git(['commit', '--allow-empty', '-m', 'Tagged release']);
+    await git(['tag', '3.33.0-1.0.pre']);
+    await git(['commit', '--allow-empty', '-m', 'Shared release ancestor']);
+    final expectedAncestor = await git(['rev-parse', 'HEAD']);
+    await git(['switch', '-c', 'beta']);
+    await git(['commit', '--allow-empty', '-m', 'Beta release']);
+    await git(['tag', '3.49.0-0.2.pre']);
+    await git(['commit', '--allow-empty', '-m', 'Future beta release']);
+    await git(['tag', '3.50.0-0.1.pre']);
+    await git(['switch', 'master']);
+    await git(['commit', '--allow-empty', '-m', 'Untagged master commit']);
+    await git(['commit', '--allow-empty', '-m', 'Future master commit']);
+    final expectedRevision = await git(['rev-parse', 'HEAD']);
+
+    final checkout = await checkoutFlutterSdk(
+      assets,
+      repository: source.uri.toString(),
+    );
+
+    expect(await git(['rev-parse', 'HEAD'], workingDirectory: checkout), expectedRevision);
+    expect(await git(['rev-parse', '--is-shallow-repository'], workingDirectory: checkout), 'false');
+    expect(await git(['tag', '--list'], workingDirectory: checkout), '3.33.0-1.0.pre\n3.49.0-0.2.pre\n3.50.0-0.1.pre');
+    // Flutter's version fallback uses the newest release tag, including tags
+    // from beta/stable branches, and the common ancestor with master.
+    final latestTag = await git([
+      'for-each-ref',
+      '--sort=-v:refname',
+      '--count=1',
+      '--format=%(refname:short)',
+      'refs/tags/[0-9]*.*.*',
+    ], workingDirectory: checkout);
+    expect(latestTag, '3.50.0-0.1.pre');
+    final ancestor = await git(['merge-base', 'HEAD', latestTag], workingDirectory: checkout);
+    expect(ancestor, expectedAncestor);
+    expect(await git(['rev-list', '--count', '$ancestor..HEAD'], workingDirectory: checkout), '2');
+  });
+
   test('reads bundle metadata without sdk.tar and preserves versions and Flutter default', () async {
     const dartVersion = '3.15.0-edge.00ca160f917cb531a91fe61ca5464fca2ad11db6';
     await writeVersion('dart', jsonEncode({'dartVersion': dartVersion, 'properties': <String, Object?>{}}));

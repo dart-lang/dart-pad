@@ -24,12 +24,13 @@ Future<void> main() async {
       '--output=${p.join(assets.path, 'dart')}',
     ], frontendRoot.path);
 
+    final flutterRoot = await checkoutFlutterSdk(stagingDir);
     await _run(Platform.resolvedExecutable, [
       'run',
       'dartpad',
       'setup',
       'flutter',
-      '--channel=master',
+      '--flutter-root=${flutterRoot.path}',
       // Build matching web SDK sources instead of relying on Flutter's
       // prebuilt DDC bundle layout, which changes between Flutter revisions.
       '--web-sdk=build',
@@ -62,6 +63,24 @@ Future<void> _run(String executable, List<String> arguments, String workingDirec
   if (result != 0) {
     throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
   }
+}
+
+/// Checks out the latest Flutter master with the history needed to determine its version.
+Future<Directory> checkoutFlutterSdk(
+  Directory stagingDir, {
+  String repository = 'https://github.com/flutter/flutter.git',
+}) async {
+  final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
+  await _run('git', [
+    'clone',
+    // Flutter's version fallback needs release tags from other branches and
+    // their common ancestors with master, so retain all commit history.
+    '--filter=blob:none',
+    '--branch=master',
+    repository,
+    flutterRoot.path,
+  ], stagingDir.path);
+  return flutterRoot;
 }
 
 Future<void> _copyDirectory(Directory source, Directory target) async {
