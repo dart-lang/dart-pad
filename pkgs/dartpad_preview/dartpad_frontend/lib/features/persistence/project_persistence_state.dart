@@ -6,20 +6,10 @@ import '../shared/sdk_info.dart';
 
 /// Storage decisions made before loading a project's files.
 final class PersistenceLoadStrategy {
-  const PersistenceLoadStrategy({this.restoreProjectId, this.offerProjectId});
+  const PersistenceLoadStrategy({this.restoreProjectId});
 
   /// Read and open this entry instead of loading the URL's source.
   final String? restoreProjectId;
-
-  /// Offer this previous entry after loading and saving the fresh project.
-  final String? offerProjectId;
-}
-
-/// A matching history entry that can still be restored from the toolbar.
-final class ProjectRestoreOffer {
-  const ProjectRestoreOffer({required this.projectId});
-
-  final String projectId;
 }
 
 /// Persistence outcomes rendered by the UI; contains no presentation text.
