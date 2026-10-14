@@ -251,13 +251,13 @@ void main() {
 
   Future<void> emitWorkspaceEvent(Map<String, String> event) async {
     final delivered = workspace.changeEvents.first;
-    final uri = Uri.parse(event['path']!);
+    final eventPath = event['path']!;
     if (event['type'] == 'add') {
-      workspace._changesController.add(FileAddedEvent(uri));
+      workspace._changesController.add(FileAddedEvent(eventPath));
     } else if (event['type'] == 'remove') {
-      workspace._changesController.add(FileRemovedEvent(uri));
+      workspace._changesController.add(FileRemovedEvent(eventPath));
     } else if (event['type'] == 'modify') {
-      workspace._changesController.add(FileModifiedEvent(uri));
+      workspace._changesController.add(FileModifiedEvent(eventPath));
     }
     await delivered;
   }

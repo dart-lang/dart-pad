@@ -89,7 +89,6 @@ final class FakePreviewSandbox implements PreviewSandbox {
   String? mode;
   final consoleController = StreamController<String>.broadcast(sync: true);
   final errorController = StreamController<String>.broadcast(sync: true);
-  final rejectionController = StreamController<String>.broadcast(sync: true);
   Future<void> Function()? onRun;
   Future<void> Function()? onRestart;
   Future<void> Function()? onReload;
@@ -126,14 +125,11 @@ final class FakePreviewSandbox implements PreviewSandbox {
   @override
   Stream<String> get errors => errorController.stream;
   @override
-  Stream<String> get unhandledRejections => rejectionController.stream;
-  @override
   Future<void> close() async {
     disposeCount++;
     await onClose?.call();
     await consoleController.close();
     await errorController.close();
-    await rejectionController.close();
     if (closeError case final error?) {
       throw error;
     }
@@ -498,7 +494,7 @@ void main() {
     await preview.runCode('lib/main.dart', mode: RunMode.console);
     sandbox.consoleController.add('print');
     sandbox.errorController.add('error');
-    sandbox.rejectionController.add('rejection');
+    sandbox.errorController.add('rejection');
     expect(preview.appLogs.map((e) => e.level), [Level.INFO, Level.SEVERE, Level.SEVERE]);
   });
 

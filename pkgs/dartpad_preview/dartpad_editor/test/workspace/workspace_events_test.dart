@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dartpad/src/worker_client.dart'
-    show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
+import 'package:dartpad/dartpad.dart' show FileAddedEvent, FileChangeEvent, FileModifiedEvent, FileRemovedEvent;
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_editor/src/workspace/workspace_events.dart' show WorkspaceResourceEventsMixin;
 import 'package:test/test.dart';
@@ -16,15 +15,15 @@ class FakeWorkspaceChangeStream {
   Stream<FileChangeEvent> get stream => _changes.stream;
 
   void emitAdd(String path) {
-    _changes.add(FileAddedEvent(Uri.parse(path)));
+    _changes.add(FileAddedEvent(path));
   }
 
   void emitRemove(String path) {
-    _changes.add(FileRemovedEvent(Uri.parse(path)));
+    _changes.add(FileRemovedEvent(path));
   }
 
   void emitModify(String path) {
-    _changes.add(FileModifiedEvent(Uri.parse(path)));
+    _changes.add(FileModifiedEvent(path));
   }
 
   Future<void> close() => _changes.close();

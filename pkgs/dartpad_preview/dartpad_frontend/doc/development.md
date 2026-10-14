@@ -7,7 +7,7 @@ dependencies there.
 
 ## SDK runtime assets
 
-Run from `dartpad_frontend` when runtime assets are missing or SDK revisions change:
+Run from `dartpad_frontend` when runtime assets are missing or to refresh SDKs:
 
 ```bash
 dart run tool/setup_sdk_assets.dart
@@ -18,10 +18,12 @@ dart run tool/setup_sdk_assets.dart
 | `web/dartpad/` (ignored) | Worker, sandbox, compiler, and SDK assets            |
 | `lib/sdks.g.dart`        | Available SDK versions and the default SDK selection |
 
-- Revisions are pinned in [setup_sdk_assets.dart](../tool/setup_sdk_assets.dart).
-- The script downloads the pinned Dart runtime and builds the Flutter runtime
-  from a temporary pinned Flutter checkout using its matching Dart SDK.
-- When updating the pins, include the regenerated SDK manifest in the change.
+- [setup_sdk_assets.dart](../tool/setup_sdk_assets.dart) downloads the latest Dart
+  beta runtime and builds the latest Flutter master runtime with its matching Dart SDK.
+- The `dartpad` CLI manages the temporary Flutter checkout. `--web-sdk=build`
+  builds the matching web SDK from source to support the current Flutter asset layout.
+- Revisions are resolved from the channels on each run. When refreshing assets,
+  include the regenerated SDK manifest in the change.
 
 ## Bundled examples
 

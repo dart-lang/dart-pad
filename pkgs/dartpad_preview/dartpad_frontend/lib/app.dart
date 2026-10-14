@@ -555,11 +555,11 @@ final class _AppState extends State<App> {
       session.analyzerStatus.beginInitialization();
       final languageServer = await workspace.startLanguageServer();
       if (!_isCurrentRuntime(session, generation)) {
-        await languageServer.stop();
+        await languageServer.close();
         return;
       }
 
-      final rootWorkspaceUri = workspace.workspaceFolder;
+      final rootWorkspaceUri = Uri.directory(workspace.workspaceFolder);
       final editorRootUri = resolveEditorRootUri(
         rootWorkspaceUri,
         packageRoot,
@@ -598,7 +598,7 @@ final class _AppState extends State<App> {
       );
       if (!_isCurrentRuntime(session, generation)) {
         await languageServerClient.dispose();
-        await languageServer.stop();
+        await languageServer.close();
         return;
       }
 

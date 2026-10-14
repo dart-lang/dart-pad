@@ -140,9 +140,9 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   Stream<FileChangeEvent> get rawFileChanges => _rpWatcher.changes.map((e) {
     final relativePath = workspacePath.relative(e.path, from: '/root');
     return switch (e.type) {
-      .ADD => FileAddedEvent(Uri.parse(relativePath)),
-      .REMOVE => FileRemovedEvent(Uri.parse(relativePath)),
-      .MODIFY || _ => FileModifiedEvent(Uri.parse(relativePath)),
+      .ADD => FileAddedEvent(relativePath),
+      .REMOVE => FileRemovedEvent(relativePath),
+      .MODIFY || _ => FileModifiedEvent(relativePath),
     };
   });
 
@@ -187,7 +187,7 @@ class WorkerWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
 
   @override
   Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false}) =>
-      _workspace.listDirectory(uri: uri, recursive: recursive);
+      _workspace.listDirectory(uri, recursive: recursive);
 
   @override
   Stream<FileChangeEvent> get rawFileChanges => _workspaceWatcher.changes.expand((event) {
@@ -196,36 +196,31 @@ class WorkerWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   });
 
   FileChangeEvent? _mapEventToRelativePath(FileChangeEvent event) {
-    final relativePath = _relativePath(event.uri);
+    final relativePath = _relativePath(event.path);
     if (relativePath == null) {
       return null;
     }
     return switch (event) {
-      FileAddedEvent() => FileAddedEvent(Uri.parse(relativePath)),
-      FileRemovedEvent() => FileRemovedEvent(Uri.parse(relativePath)),
-      FileModifiedEvent() => FileModifiedEvent(Uri.parse(relativePath)),
+      FileAddedEvent() => FileAddedEvent(relativePath),
+      FileRemovedEvent() => FileRemovedEvent(relativePath),
+      FileModifiedEvent() => FileModifiedEvent(relativePath),
     };
   }
 
-  String? _relativePath(Uri uri) {
+  String? _relativePath(String path) {
     final root = _workspace.workspaceFolder;
-    if (!uri.hasScheme) {
-      return uri.path.replaceFirst(RegExp(r'^/+'), '');
+    if (!workspacePath.isAbsolute(path)) {
+      return path;
     }
-
-    if (uri.scheme != root.scheme || uri.authority != root.authority) {
+    if (!workspacePath.isWithin(root, path)) {
       return null;
     }
-    final rootPath = root.path.endsWith('/') ? root.path : '${root.path}/';
-    if (!uri.path.startsWith(rootPath)) {
-      return null;
-    }
-    return Uri.decodeComponent(uri.path.substring(rootPath.length));
+    return workspacePath.relative(path, from: root);
   }
 
   @override
   Future<void> get changeEventsReady => _workspaceWatcher.ready;
 
   @override
-  Future<void> dispose() => _workspace.dispose();
+  Future<void> dispose() => _workspace.close();
 }

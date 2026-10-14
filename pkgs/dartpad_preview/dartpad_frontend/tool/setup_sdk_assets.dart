@@ -8,22 +8,6 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
-// Pin runtime sources independently of the dartpad client package. Update these
-// revisions intentionally and regenerate lib/sdks.g.dart when upgrading SDKs.
-// These specific revisions are not required by dartpad 0.0.10.
-
-// Selected on 2026-09-25 from the official Dart archive's latest main build:
-// https://storage.googleapis.com/dart-archive/channels/main/raw/latest/VERSION
-// Downloads the prebuilt DartPad assets for this exact Dart SDK revision.
-const _dartRevision = 'e686006ff5b0b3c31731f158a74d1a09ee75b15b';
-
-// Selected on 2026-09-25 from the Flutter repository's main/master HEAD using
-// `git ls-remote https://github.com/flutter/flutter.git`.
-// Builds Flutter assets from this checkout using its own matching Dart SDK,
-// independently of _dartRevision above. Displayed SDK versions are extracted
-// from the generated sdk.tar files when writing lib/sdks.g.dart.
-const _flutterRevision = 'afde83da30bcbf7f35a90dba132c92aee8111eb8';
-
 Future<void> main() async {
   final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
   final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
@@ -31,35 +15,25 @@ Future<void> main() async {
   final assets = Directory(p.join(stagingDir.path, 'assets'));
 
   try {
+    // Download the latest Dart beta bundle independently of Flutter's Dart SDK.
     await _run(Platform.resolvedExecutable, [
       'run',
       'dartpad',
       'setup',
       'dart',
-      '--channel=main',
-      '--revision=$_dartRevision',
+      '--channel=beta',
       '--output=${p.join(assets.path, 'dart')}',
     ], frontendRoot.path);
 
-    // Build Flutter assets from a pinned checkout, independently of the Flutter
-    // installation used to build the frontend or available on the developer's PATH.
-    final flutterRoot = p.join(stagingDir.path, 'flutter');
-    // Flutter derives its version from Git tags and history. A depth=1 fetch
-    // of an untagged revision reports 0.0.0-unknown and breaks pub resolution.
-    await _run('git', [
-      'clone',
-      '--filter=blob:none',
-      '--no-checkout',
-      'https://github.com/flutter/flutter.git',
-      flutterRoot,
-    ], frontendRoot.path);
-    await _run('git', ['checkout', '--detach', _flutterRevision], flutterRoot);
     await _run(Platform.resolvedExecutable, [
       'run',
       'dartpad',
       'setup',
       'flutter',
-      '--flutter-root=$flutterRoot',
+      '--channel=master',
+      // Build matching web SDK sources instead of relying on Flutter's
+      // prebuilt DDC bundle layout, which changes between Flutter revisions.
+      '--web-sdk=build',
       '--output=${p.join(assets.path, 'flutter')}',
     ], frontendRoot.path);
 
