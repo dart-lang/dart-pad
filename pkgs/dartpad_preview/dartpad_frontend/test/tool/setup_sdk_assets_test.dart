@@ -6,7 +6,6 @@
 @TestOn('vm')
 library;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -18,176 +17,205 @@ void main() {
   late Directory assets;
 
   setUp(() async {
-    assets = await Directory.systemTemp.createTemp('sdk_manifest_test_');
+    assets = await Directory.systemTemp.createTemp('sdk_metadata_test_');
   });
 
   tearDown(() async {
     await assets.delete(recursive: true);
   });
 
-  Future<File> writeVersion(String sdkId, String contents) async {
+  Future<Directory> writeVersion(String sdkId, String contents) async {
     final sdkDir = await Directory(p.join(assets.path, sdkId)).create();
-    return File(p.join(sdkDir.path, 'version.json')).writeAsString(contents);
+    await File(p.join(sdkDir.path, 'version.json')).writeAsString(contents);
+    return sdkDir;
   }
 
-  test('Flutter checkout follows latest master and retains release tags and history', () async {
-    final source = await Directory(p.join(assets.path, 'source')).create();
-    Future<String> git(List<String> arguments, {Directory? workingDirectory}) async {
-      final result = await Process.run('git', arguments, workingDirectory: (workingDirectory ?? source).path);
-      expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-      return (result.stdout as String).trim();
-    }
-
-    await git(['init', '--initial-branch=master']);
-    await git(['config', 'user.name', 'SDK setup test']);
-    await git(['config', 'user.email', 'sdk-setup-test@example.invalid']);
-    await git(['commit', '--allow-empty', '-m', 'Tagged release']);
-    await git(['tag', '3.33.0-1.0.pre']);
-    await git(['commit', '--allow-empty', '-m', 'Shared release ancestor']);
-    final expectedAncestor = await git(['rev-parse', 'HEAD']);
-    await git(['switch', '-c', 'beta']);
-    await git(['commit', '--allow-empty', '-m', 'Beta release']);
-    await git(['tag', '3.49.0-0.2.pre']);
-    await git(['commit', '--allow-empty', '-m', 'Future beta release']);
-    await git(['tag', '3.50.0-0.1.pre']);
-    await git(['switch', 'master']);
-    await git(['commit', '--allow-empty', '-m', 'Untagged master commit']);
-    await git(['commit', '--allow-empty', '-m', 'Future master commit']);
-    final expectedRevision = await git(['rev-parse', 'HEAD']);
-
+  test('requests Flutter master with blob filtering, full history across branches, and tags', () async {
+    final calls = <({String executable, List<String> arguments, String workingDirectory})>[];
     final checkout = await checkoutFlutterSdk(
       assets,
-      repository: source.uri.toString(),
+      runCommand: (executable, arguments, workingDirectory) async {
+        calls.add((executable: executable, arguments: arguments, workingDirectory: workingDirectory));
+      },
     );
 
-    expect(await git(['rev-parse', 'HEAD'], workingDirectory: checkout), expectedRevision);
-    expect(await git(['rev-parse', '--is-shallow-repository'], workingDirectory: checkout), 'false');
-    expect(await git(['tag', '--list'], workingDirectory: checkout), '3.33.0-1.0.pre\n3.49.0-0.2.pre\n3.50.0-0.1.pre');
-    // Flutter's version fallback uses the newest release tag, including tags
-    // from beta/stable branches, and the common ancestor with master.
-    final latestTag = await git([
-      'for-each-ref',
-      '--sort=-v:refname',
-      '--count=1',
-      '--format=%(refname:short)',
-      'refs/tags/[0-9]*.*.*',
-    ], workingDirectory: checkout);
-    expect(latestTag, '3.50.0-0.1.pre');
-    final ancestor = await git(['merge-base', 'HEAD', latestTag], workingDirectory: checkout);
-    expect(ancestor, expectedAncestor);
-    expect(await git(['rev-list', '--count', '$ancestor..HEAD'], workingDirectory: checkout), '2');
-  });
-
-  test('reads bundle metadata without sdk.tar and preserves versions and Flutter default', () async {
-    const dartVersion = '3.15.0-edge.00ca160f917cb531a91fe61ca5464fca2ad11db6';
-    await writeVersion('dart', jsonEncode({'dartVersion': dartVersion, 'properties': <String, Object?>{}}));
-    await writeVersion(
-      'flutter',
-      jsonEncode({
-        'dartVersion': '3.14.0-315.1.beta',
-        'properties': {'flutterVersion': '3.49.0-1.0.pre-444'},
-      }),
-    );
-
-    final manifest = await generateSdkManifest(assets);
-
-    expect(manifest, contains("const defaultSdkId = 'flutter';"));
-    expect(manifest.indexOf("id: 'flutter'"), lessThan(manifest.indexOf("id: 'dart'")));
+    expect(calls, hasLength(1));
+    expect(calls.single.executable, 'git');
+    final arguments = calls.single.arguments;
+    expect(arguments.first, 'clone');
+    expect(arguments, containsAll(['--filter=blob:none', '--branch=master']));
+    expect(arguments.sublist(arguments.length - 2), [
+      'https://github.com/flutter/flutter.git',
+      p.join(assets.path, 'flutter'),
+    ]);
     expect(
-      manifest,
-      contains('''  SdkInfo(
-    id: 'flutter',
-    name: 'Flutter',
-    path: 'dartpad/flutter/',
-    dartVersion: '3.14.0 (build 3.14.0-315.1.beta)',
-    flutterVersion: '3.49.0-1.0.pre-444',
-  ),'''),
+      arguments,
+      isNot(
+        anyElement(
+          anyOf(
+            '--depth',
+            startsWith('--depth='),
+            '--single-branch',
+            '--no-tags',
+          ),
+        ),
+      ),
     );
-    expect(
-      manifest,
-      contains('''  SdkInfo(
-    id: 'dart',
-    name: 'Dart',
-    path: 'dartpad/dart/',
-    dartVersion: '$dartVersion',
-  ),'''),
-    );
+    expect(calls.single.workingDirectory, assets.path);
+    expect(checkout.path, p.join(assets.path, 'flutter'));
   });
 
-  test('preserves stable Flutter Dart versions without adding a build suffix', () async {
-    await writeVersion(
+  test('keeps a Dart-only prerelease version verbatim', () async {
+    final sdkDir = await writeVersion('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
+
+    expect(await readSdkVersions(sdkDir, isFlutter: false), (
+      dartVersion: '3.15.0-edge.example',
+      flutterVersion: null,
+    ));
+  });
+
+  test('preserves the Flutter Dart prerelease display format', () async {
+    final sdkDir = await writeVersion(
       'flutter',
-      jsonEncode({
-        'dartVersion': '3.13.3',
-        'properties': {'flutterVersion': '3.46.0'},
-      }),
+      '{"dartVersion": "3.15.0-27.0.dev", "properties": {"flutterVersion": "3.49.0-pre"}}',
     );
 
-    expect(await generateSdkManifest(assets), contains("dartVersion: '3.13.3',"));
+    expect(await readSdkVersions(sdkDir, isFlutter: true), (
+      dartVersion: '3.15.0 (build 3.15.0-27.0.dev)',
+      flutterVersion: '3.49.0-pre',
+    ));
   });
 
-  test('selects Dart as default when there is no Flutter bundle', () async {
-    await writeVersion('dart', jsonEncode({'dartVersion': '3.13.3', 'properties': <String, Object?>{}}));
+  test('keeps a stable Flutter Dart version without adding a build suffix', () async {
+    final sdkDir = await writeVersion(
+      'flutter',
+      '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}',
+    );
 
-    expect(await generateSdkManifest(assets), contains("const defaultSdkId = 'dart';"));
+    expect(await readSdkVersions(sdkDir, isFlutter: true), (
+      dartVersion: '3.14.0',
+      flutterVersion: '3.48.0',
+    ));
   });
 
-  test('fails with the metadata path when version.json is missing', () async {
-    final sdkDir = await Directory(p.join(assets.path, 'dart')).create();
-
+  test('reports the metadata path when version.json is missing', () async {
+    final sdkDir = Directory(p.join(assets.path, 'dart'));
     await expectLater(
-      generateSdkManifest(assets),
+      readSdkVersions(sdkDir, isFlutter: false),
       throwsA(
-        isA<StateError>().having((error) => error.message, 'message', contains(p.join(sdkDir.path, 'version.json'))),
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains(p.join(sdkDir.path, 'version.json')),
+        ),
       ),
     );
   });
 
-  for (final (description, contents, reason) in [
-    ('malformed JSON', '{', 'Invalid SDK metadata'),
-    ('non-object JSON', '[]', 'Expected a JSON object'),
-    ('missing Dart version', '{"properties": {}}', 'Expected a non-empty dartVersion'),
-    ('empty Dart version', '{"dartVersion": "  ", "properties": {}}', 'Expected a non-empty dartVersion'),
-    ('non-string Dart version', '{"dartVersion": 3, "properties": {}}', 'Expected a non-empty dartVersion'),
-    ('missing properties', '{"dartVersion": "3.13.3"}', 'Expected a properties object'),
-    ('non-object properties', '{"dartVersion": "3.13.3", "properties": []}', 'Expected a properties object'),
+  // Keep all other fields valid so each fixture isolates its intended failure.
+  // Check the affected file and field without fixing the diagnostic wording.
+  for (final (description, contents, field) in [
+    ('malformed JSON', '{', null),
+    ('a non-object document', '[]', null),
+    ('a missing Dart version', '{"properties": {"flutterVersion": "3.48.0"}}', 'dartVersion'),
     (
-      'missing Flutter version',
-      '{"dartVersion": "3.13.3", "properties": {}}',
-      'Expected a non-empty properties.flutterVersion',
+      'an invalid Dart version',
+      '{"dartVersion": 3, "properties": {"flutterVersion": "3.48.0"}}',
+      'dartVersion',
     ),
+    ('invalid properties', '{"dartVersion": "3.14.0", "properties": []}', 'properties'),
+    ('a missing Flutter version', '{"dartVersion": "3.14.0", "properties": {}}', 'properties.flutterVersion'),
     (
-      'empty Flutter version',
-      '{"dartVersion": "3.13.3", "properties": {"flutterVersion": ""}}',
-      'Expected a non-empty properties.flutterVersion',
-    ),
-    (
-      'non-string Flutter version',
-      '{"dartVersion": "3.13.3", "properties": {"flutterVersion": 3}}',
-      'Expected a non-empty properties.flutterVersion',
+      'an invalid Flutter version',
+      '{"dartVersion": "3.14.0", "properties": {"flutterVersion": " "}}',
+      'properties.flutterVersion',
     ),
   ]) {
-    test('fails for $description instead of silently omitting the SDK', () async {
-      await writeVersion('dart', jsonEncode({'dartVersion': '3.13.3', 'properties': <String, Object?>{}}));
-      final versionFile = await writeVersion('flutter', contents);
-
+    test('rejects $description', () async {
+      final sdkDir = await writeVersion('flutter', contents);
+      var expectedError = isA<StateError>().having(
+        (error) => error.message,
+        'message',
+        contains(p.join(sdkDir.path, 'version.json')),
+      );
+      if (field != null) {
+        expectedError = expectedError.having((error) => error.message, 'message', contains(field));
+      }
       await expectLater(
-        generateSdkManifest(assets),
-        throwsA(
-          isA<StateError>().having(
-            (error) => error.message,
-            'message',
-            allOf(contains(versionFile.path), contains(reason)),
-          ),
-        ),
+        readSdkVersions(sdkDir, isFlutter: true),
+        throwsA(expectedError),
       );
     });
   }
 
-  test('fails for an empty asset directory', () async {
+  test('generates a manifest when both requested bundles have valid metadata', () async {
+    await writeVersion('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
+    await writeVersion('flutter', '{"dartVersion": "3.14.0-1.0.dev", "properties": {"flutterVersion": "3.48.0"}}');
+
+    final manifest = await generateSdkManifest(assets);
+
+    expect(manifest, contains("const defaultSdkId = 'flutter';"));
+    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(2));
+    expect(
+      manifest,
+      stringContainsInOrder([
+        "id: 'flutter'",
+        "name: 'Flutter'",
+        "path: 'dartpad/flutter/'",
+        "dartVersion: '3.14.0 (build 3.14.0-1.0.dev)'",
+        "flutterVersion: '3.48.0'",
+        "id: 'dart'",
+        "name: 'Dart'",
+        "path: 'dartpad/dart/'",
+        "dartVersion: '3.15.0-edge.example'",
+      ]),
+    );
+  });
+
+  test('requires the Dart bundle even when Flutter metadata is valid', () async {
+    await writeVersion('flutter', '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}');
     await expectLater(
       generateSdkManifest(assets),
-      throwsA(isA<StateError>().having((error) => error.message, 'message', contains('No SDK bundles found'))),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains(p.join('dart', 'version.json')),
+        ),
+      ),
     );
+  });
+
+  test('requires the requested Flutter bundle even when Dart metadata is valid', () async {
+    await writeVersion('dart', '{"dartVersion": "3.14.0", "properties": {}}');
+    await expectLater(
+      generateSdkManifest(assets),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains(p.join('flutter', 'version.json')),
+        ),
+      ),
+    );
+  });
+
+  test('allows a Dart-only manifest when Flutter is explicitly not requested', () async {
+    await writeVersion('dart', '{"dartVersion": "3.14.0", "properties": {}}');
+
+    final manifest = await generateSdkManifest(assets, requireFlutter: false);
+
+    expect(manifest, contains("const defaultSdkId = 'dart';"));
+    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(1));
+    expect(
+      manifest,
+      stringContainsInOrder([
+        "id: 'dart'",
+        "name: 'Dart'",
+        "path: 'dartpad/dart/'",
+        "dartVersion: '3.14.0'",
+      ]),
+    );
+    expect(manifest, isNot(contains('flutterVersion:')));
   });
 }

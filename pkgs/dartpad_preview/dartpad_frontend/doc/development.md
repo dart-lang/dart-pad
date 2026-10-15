@@ -26,7 +26,9 @@ dart run tool/setup_sdk_assets.dart
 - Revisions are resolved from the channels on each run. When refreshing assets,
   include the regenerated SDK manifest in the change.
 - SDK versions come from each bundle's `version.json`. Missing or invalid version
-  metadata fails setup before the existing runtime assets are replaced.
+  metadata, including an entirely missing required bundle, fails setup before
+  the existing runtime assets are replaced. The current setup requires both Dart
+  and Flutter; manifest generation can explicitly request Dart only.
 
 ## Bundled examples
 

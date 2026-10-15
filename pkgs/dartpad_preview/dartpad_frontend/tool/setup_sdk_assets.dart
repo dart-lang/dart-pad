@@ -38,7 +38,7 @@ Future<void> main() async {
     ], frontendRoot.path);
 
     // Validate both bundles before replacing the existing assets.
-    final sdkManifest = await generateSdkManifest(assets);
+    final sdkManifest = await generateSdkManifest(assets, requireFlutter: true);
     if (targetAssetDir.existsSync()) {
       await targetAssetDir.delete(recursive: true);
     }
@@ -68,16 +68,16 @@ Future<void> _run(String executable, List<String> arguments, String workingDirec
 /// Checks out the latest Flutter master with the history needed to determine its version.
 Future<Directory> checkoutFlutterSdk(
   Directory stagingDir, {
-  String repository = 'https://github.com/flutter/flutter.git',
+  Future<void> Function(String, List<String>, String) runCommand = _run,
 }) async {
   final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
-  await _run('git', [
+  await runCommand('git', [
     'clone',
     // Flutter's version fallback needs release tags from other branches and
     // their common ancestors with master, so retain all commit history.
     '--filter=blob:none',
     '--branch=master',
-    repository,
+    'https://github.com/flutter/flutter.git',
     flutterRoot.path,
   ], stagingDir.path);
   return flutterRoot;
@@ -95,41 +95,24 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
   }
 }
 
-/// Generates the SDK manifest from bundle metadata, failing if it is incomplete.
-Future<String> generateSdkManifest(Directory assetRoot) async {
+/// Requires Dart and, when requested, Flutter metadata before generating the manifest.
+Future<String> generateSdkManifest(Directory assetRoot, {bool requireFlutter = true}) async {
   final sdks = <Map<String, dynamic>>[];
-
-  final entries = await assetRoot.list(recursive: false).toList();
-  // Sort so flutter comes first by default, then dart, then others
-  entries.sort((a, b) {
-    if (p.basename(a.path) == 'flutter') {
-      return -1;
-    }
-    if (p.basename(b.path) == 'flutter') {
-      return 1;
-    }
-    return a.path.compareTo(b.path);
-  });
-
-  for (final entity in entries) {
-    if (entity is Directory) {
-      final sdkId = p.basename(entity.path);
-      final versions = await _readSdkVersions(entity);
-      sdks.add({
-        'id': sdkId,
-        'name': versions.flutterVersion != null ? 'Flutter' : 'Dart',
-        'path': 'dartpad/$sdkId/',
-        'dartVersion': versions.dartVersion,
-        'flutterVersion': ?versions.flutterVersion,
-      });
-    }
+  // Validate the expected bundles explicitly, including directories that are
+  // entirely missing. Keep Flutter first as the default when it is requested.
+  for (final sdkId in [if (requireFlutter) 'flutter', 'dart']) {
+    final isFlutter = sdkId == 'flutter';
+    final versions = await readSdkVersions(Directory(p.join(assetRoot.path, sdkId)), isFlutter: isFlutter);
+    sdks.add({
+      'id': sdkId,
+      'name': isFlutter ? 'Flutter' : 'Dart',
+      'path': 'dartpad/$sdkId/',
+      'dartVersion': versions.dartVersion,
+      'flutterVersion': ?versions.flutterVersion,
+    });
   }
 
-  if (sdks.isEmpty) {
-    throw StateError('No SDK bundles found in ${assetRoot.path}');
-  }
-
-  final defaultSdkId = sdks.any((s) => s['id'] == 'flutter') ? 'flutter' : sdks.first['id'] as String;
+  final defaultSdkId = requireFlutter ? 'flutter' : 'dart';
 
   final buffer = StringBuffer()
     ..writeln('// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file')
@@ -167,7 +150,11 @@ Future<String> generateSdkManifest(Directory assetRoot) async {
   return buffer.toString();
 }
 
-Future<({String dartVersion, String? flutterVersion})> _readSdkVersions(Directory sdkDir) async {
+/// Reads and validates bundle metadata, preserving DartPad's version display format.
+Future<({String dartVersion, String? flutterVersion})> readSdkVersions(
+  Directory sdkDir, {
+  required bool isFlutter,
+}) async {
   final versionFile = File(p.join(sdkDir.path, 'version.json'));
   try {
     final metadata = jsonDecode(await versionFile.readAsString());
@@ -185,13 +172,18 @@ Future<({String dartVersion, String? flutterVersion})> _readSdkVersions(Director
       throw const FormatException('Expected a properties object');
     }
     final flutterVersion = properties['flutterVersion'];
-    if ((flutterVersion != null && (flutterVersion is! String || flutterVersion.trim().isEmpty)) ||
-        (p.basename(sdkDir.path) == 'flutter' && flutterVersion == null)) {
+    // A Flutter bundle must identify its Flutter SDK in addition to its Dart SDK.
+    if (isFlutter && flutterVersion == null) {
+      throw const FormatException('Expected a non-empty properties.flutterVersion');
+    }
+    if (flutterVersion != null && (flutterVersion is! String || flutterVersion.trim().isEmpty)) {
       throw const FormatException('Expected a non-empty properties.flutterVersion');
     }
 
-    // Flutter previously supplied this display format through flutter.version.json.
-    // Keep Dart-only bundle versions (including edge revisions) verbatim.
+    // version.json contains the raw Dart version: X.Y.Z or X.Y.Z-<prerelease>.
+    // The first '-' separates the core version from the prerelease suffix.
+    // Preserve Flutter's previous display, e.g. 3.15.0-27.0.dev becomes
+    // "3.15.0 (build 3.15.0-27.0.dev)". Dart-only versions stay verbatim.
     final displayDartVersion = flutterVersion != null && dartVersion.contains('-')
         ? '${dartVersion.split('-').first} (build $dartVersion)'
         : dartVersion;
