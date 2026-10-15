@@ -15,9 +15,11 @@ import 'package:dartpad_frontend/features/bottom_panel/view_models/diagnostics_v
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
 import 'package:dartpad_frontend/features/editor/components/code_action_panel.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
+import 'package:jaspr/dom.dart' as dom;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -136,6 +138,82 @@ void main() {
       ['lib/main.dart'],
     );
     expect(tabs!.activeFile, 'lib/main.dart');
+  });
+
+  testClient('Markdown opens in preview and switches modes with a floating action', (tester) async {
+    workspace.files['README.MD'] = '# Original';
+    await tabs!.openWorkspaceFile('README.MD');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) => EditorShell(
+          openTabs: tabs!.openTabs,
+          activeFile: tabs!.activeFile,
+          fileTree: const dom.div([]),
+          editorOverlay: const Component.fragment([]),
+          onSwitchFile: tabs!.switchFile,
+          onCloseFile: tabs!.closeFile,
+          bottomPanel: const dom.div([]),
+        ),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(tab.isMarkdownPreview, isTrue);
+    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Original');
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isTrue);
+    final switcher = web.document.querySelector('.markdown-view-switch')!;
+    expect(switcher.closest('.editor-stack'), isNotNull);
+    expect(switcher.classList.contains('editor-floating-action'), isTrue);
+    expect(web.document.querySelector('.editor-tab-bar .markdown-view-switch'), isNull);
+    expect(switcher.querySelectorAll('button').length, 1);
+    expect(switcher.querySelector('button')!.getAttribute('aria-label'), 'Edit');
+
+    (switcher.querySelector('button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(tab.isMarkdownPreview, isFalse);
+    expect(switcher.querySelector('button')!.getAttribute('aria-label'), 'Preview');
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isFalse);
+    expect(web.document.querySelector('.markdown-rendered')!.hasAttribute('hidden'), isTrue);
+    editor.text = '# Edited';
+    editor.view.dispatch(TransactionSpec(selection: EditorSelection.single(4)));
+    (switcher.querySelector('button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(tab.isMarkdownPreview, isTrue);
+    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Edited');
+    expect(switcher.querySelector('button')!.getAttribute('aria-label'), 'Edit');
+    expect(tab.editor, same(editor));
+    expect(tab.hasUnsavedChanges, isTrue);
+    expect(workspace.files['README.MD'], '# Original');
+    await tab.save();
+    expect(workspace.files['README.MD'], '# Edited');
+    tabs!.switchFile('lib/main.dart');
+    await pumpEventQueue();
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
+    tabs!.switchFile('README.MD');
+    await pumpEventQueue();
+    tab.setMarkdownPreview(preview: false);
+    await pumpEventQueue();
+    expect(editor.view.state.selection.main.head, 4);
+  });
+
+  test('Markdown mode belongs to each tab and survives closing and reopening', () async {
+    workspace.files['README.md'] = '# Readme';
+    workspace.files['other.markdown'] = '# Other';
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    tab.setMarkdownPreview(preview: false);
+    await tabs!.openWorkspaceFile('other.markdown');
+    expect((tabs!.activeTab! as CodeMirrorTab).isMarkdownPreview, isTrue);
+    tabs!.closeTab('README.md');
+    await tabs!.openWorkspaceFile('README.md');
+    expect(tabs!.activeTab, same(tab));
+    expect(tab.isMarkdownPreview, isFalse);
+    tab.rename('README.txt');
+    expect(tab.isMarkdown, isFalse);
   });
 
   testClient('opens system URIs as navigable read-only tabs', (tester) async {

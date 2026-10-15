@@ -16,8 +16,11 @@ dependencies:
   analyzer: ^12.1.0
   codemirror_dart: any
   dartpad: 0.1.1
+  html: ^0.15.6
+  markdown: ^7.3.1
   meta: ^1.19.0
   path: ^1.9.1
+  sanitize_html: ^2.2.0
   web: ^1.1.1
 
 dev_dependencies:
