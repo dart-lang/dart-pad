@@ -7,6 +7,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+// Temporarily retain Dart 3.15.0-27.0.dev: newer workers access Platform.version
+// while starting the analysis server, which is unsupported in the browser.
+const flutterRevision = 'e81f444cc0835365bda671876183e3f9cd149925';
+
 Future<void> main() async {
   final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
   final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
@@ -65,7 +69,7 @@ Future<void> _run(String executable, List<String> arguments, String workingDirec
   }
 }
 
-/// Checks out the latest Flutter master with the history needed to determine its version.
+/// Checks out the pinned Flutter revision with the history needed to determine its version.
 Future<Directory> checkoutFlutterSdk(
   Directory stagingDir, {
   Future<void> Function(String, List<String>, String) runCommand = _run,
@@ -77,9 +81,13 @@ Future<Directory> checkoutFlutterSdk(
     // their common ancestors with master, so retain all commit history.
     '--filter=blob:none',
     '--branch=master',
+    // TODO: Remove --no-checkout once the browser worker regression is fixed.
+    '--no-checkout',
     'https://github.com/flutter/flutter.git',
     flutterRoot.path,
   ], stagingDir.path);
+  // TODO: Remove this checkout and flutterRevision once the browser worker regression is fixed.
+  await runCommand('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
   return flutterRoot;
 }
 

@@ -30,7 +30,7 @@ void main() {
     return sdkDir;
   }
 
-  test('requests Flutter master with blob filtering, full history across branches, and tags', () async {
+  test('checks out pinned Flutter with blob filtering, full history across branches, and tags', () async {
     final calls = <({String executable, List<String> arguments, String workingDirectory})>[];
     final checkout = await checkoutFlutterSdk(
       assets,
@@ -39,11 +39,11 @@ void main() {
       },
     );
 
-    expect(calls, hasLength(1));
-    expect(calls.single.executable, 'git');
-    final arguments = calls.single.arguments;
+    expect(calls, hasLength(2));
+    expect(calls.first.executable, 'git');
+    final arguments = calls.first.arguments;
     expect(arguments.first, 'clone');
-    expect(arguments, containsAll(['--filter=blob:none', '--branch=master']));
+    expect(arguments, containsAll(['--filter=blob:none', '--branch=master', '--no-checkout']));
     expect(arguments.sublist(arguments.length - 2), [
       'https://github.com/flutter/flutter.git',
       p.join(assets.path, 'flutter'),
@@ -61,7 +61,10 @@ void main() {
         ),
       ),
     );
-    expect(calls.single.workingDirectory, assets.path);
+    expect(calls.first.workingDirectory, assets.path);
+    expect(calls.last.executable, 'git');
+    expect(calls.last.arguments, ['checkout', '--detach', flutterRevision]);
+    expect(calls.last.workingDirectory, checkout.path);
     expect(checkout.path, p.join(assets.path, 'flutter'));
   });
 
