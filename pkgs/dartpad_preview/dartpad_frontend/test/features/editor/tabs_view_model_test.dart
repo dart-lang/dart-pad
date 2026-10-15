@@ -6,6 +6,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -98,6 +99,7 @@ void main() {
             await systemReadGate?.future;
             return systemFiles[uri]!;
           },
+          readSystemFileAsBytes: (uri) async => Uint8List.fromList(systemFiles[uri]!.codeUnits),
           onRun: () => runCount++,
         ),
       ],
@@ -214,6 +216,89 @@ void main() {
     expect(tab.isMarkdownPreview, isFalse);
     tab.rename('README.txt');
     expect(tab.isMarkdown, isFalse);
+  });
+
+  testClient('Markdown loads project images and opens relative links in editor tabs', (tester) async {
+    workspace.files['docs/README.md'] =
+        '[Guide](guide%20intro.md#details)\n\n![Logo](assets/logo.png)\n\n![Parent](../logo.png)';
+    workspace.files['docs/guide intro.md'] = '# Guide';
+    workspace.files['docs/assets/logo.png'] = 'document image';
+    workspace.files['logo.png'] = 'root image';
+    await tabs!.openWorkspaceFile('docs/README.md');
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) =>
+            EditorStack(openTabs: tabs!.openTabs, activeFile: tabs!.activeFile, overlay: const Component.fragment([])),
+      ),
+    );
+    await pumpEventQueue();
+    final preview = web.document.querySelector('.markdown-preview')!;
+    final images = preview.querySelectorAll('img');
+    expect(
+      (images.item(0) as web.Element).getAttribute('src'),
+      'data:image/png;base64,${base64Encode('document image'.codeUnits)}',
+    );
+    expect(
+      (images.item(1) as web.Element).getAttribute('src'),
+      'data:image/png;base64,${base64Encode('root image'.codeUnits)}',
+    );
+    (preview.querySelector('a')! as web.HTMLAnchorElement).click();
+    await pumpEventQueue();
+    expect(tabs!.activeFile, 'docs/guide intro.md');
+    expect((tabs!.activeTab! as CodeMirrorTab).isMarkdownPreview, isTrue);
+  });
+
+  testClient('system Markdown resolves relative links and images through the worker readers', (tester) async {
+    final uri = Uri.parse('file:///pub-cache/example/docs/README.md');
+    systemFiles[uri] = '[Guide](../guide.md?raw=true#guide)\n\n![Logo](assets/logo%20image.png?raw=true)';
+    systemFiles[uri.resolve('../guide.md')] = '# Guide';
+    systemFiles[uri.resolve('assets/logo%20image.png')] = 'system image';
+    await tabs!.openSystemFile(uri);
+    tester.pumpComponent(
+      ListenableBuilder(
+        listenable: tabs!,
+        builder: (_) =>
+            EditorStack(openTabs: tabs!.openTabs, activeFile: tabs!.activeFile, overlay: const Component.fragment([])),
+      ),
+    );
+    await pumpEventQueue();
+    final preview = web.document.querySelector('.markdown-preview')!;
+    expect(
+      preview.querySelector('img')!.getAttribute('src'),
+      'data:image/png;base64,${base64Encode('system image'.codeUnits)}',
+    );
+    (preview.querySelector('a')! as web.HTMLAnchorElement).click();
+    await pumpEventQueue();
+    expect(tabs!.activeFile, uri.resolve('../guide.md').toString());
+    expect(tabs!.activeTab!.isReadOnly, isTrue);
+    final tab = tabs!.activeTab! as CodeMirrorTab;
+    expect(await tab.loadMarkdownImage!(Uri.parse('/logo.png')), isNull);
+    await tab.onOpenMarkdownFile!(Uri.parse('/lib/main.dart'));
+    expect(tabs!.activeFile, uri.resolve('../guide.md').toString());
+  });
+
+  test('Markdown rejects invalid workspace assets and callbacks after disposal', () async {
+    workspace.files['README.md'] = '# Readme';
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as CodeMirrorTab;
+    for (final path in [
+      'relative.png',
+      '//example.com/logo.png',
+      '/%2e%2e%2flogo.png',
+      '/%2foutside.png',
+      'file:///sdk/logo.png',
+    ]) {
+      final uri = Uri.parse(path);
+      expect(await tab.loadMarkdownImage!(uri), isNull, reason: path);
+      await tab.onOpenMarkdownFile!(uri);
+      expect(tabs!.activeFile, 'README.md', reason: path);
+    }
+    expect(await tab.loadMarkdownImage!(Uri.parse('/README.md')), isNull);
+    tabs!.dispose();
+    tabs = null;
+    expect(await tab.loadMarkdownImage!(Uri.parse('/logo.png')), isNull);
+    await tab.onOpenMarkdownFile!(Uri.parse('/README.md'));
   });
 
   testClient('opens system URIs as navigable read-only tabs', (tester) async {

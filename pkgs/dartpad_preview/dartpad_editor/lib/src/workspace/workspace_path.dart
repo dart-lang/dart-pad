@@ -7,6 +7,21 @@ import 'package:path/path.dart' as p;
 /// The path context for virtual workspace paths, which always use `/`.
 final p.Context workspacePath = p.posix;
 
+/// Whether [uri] refers to a path relative to a document, including root paths.
+bool isDocumentRelativeUri(Uri uri) => !uri.hasScheme && !uri.hasAuthority;
+
+/// Converts a resolved, root-relative workspace URI into a workspace path.
+///
+/// System URIs, unresolved relative paths, and paths escaping the workspace
+/// after percent-decoding are rejected. Queries and fragments are not file paths.
+String? workspacePathFromUri(Uri uri) {
+  if (!isDocumentRelativeUri(uri) || !uri.path.startsWith('/')) {
+    return null;
+  }
+  final path = normalizeWorkspacePath(Uri.decodeComponent(uri.path).substring(1));
+  return isWithinWorkspaceFolder(path, '') ? path : null;
+}
+
 /// Returns the workspace-relative path for [uri], or `null` when
 /// [uri] is outside [workspaceRoot].
 String? relativePathWithinWorkspace(Uri uri, Uri workspaceRoot) {

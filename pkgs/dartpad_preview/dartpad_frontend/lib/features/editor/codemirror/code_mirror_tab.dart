@@ -19,7 +19,7 @@ import 'editor_context_menu.dart';
 
 /// Shared editor display, navigation, and lifecycle for CodeMirror tabs.
 sealed class CodeMirrorTab extends EditorTab<Component> {
-  CodeMirrorTab._(super.path, EditorTabOrigin origin)
+  CodeMirrorTab._(super.path, EditorTabOrigin origin, {this.onOpenMarkdownFile, this.loadMarkdownImage})
     : container = web.document.createElement('div') as web.HTMLElement,
       super(origin: origin) {
     container.className = 'editor-container';
@@ -30,6 +30,12 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
 
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
+
+  /// Routes document-relative links through the editor's tab controller.
+  final Future<void> Function(Uri uri)? onOpenMarkdownFile;
+
+  /// Loads images from the filesystem backing this tab.
+  final Future<String?> Function(Uri uri)? loadMarkdownImage;
 
   EditorViewState? _savedViewState;
   bool _active = false;
@@ -121,9 +127,19 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     if (!isMarkdown) {
       return source;
     }
-    final renderer = _markdownRenderer ??= MarkdownRenderer();
+    final renderer = _markdownRenderer ??= MarkdownRenderer(
+      onOpenFile: onOpenMarkdownFile,
+      loadImage: loadMarkdownImage,
+    );
     if (isMarkdownPreview) {
-      renderer.render(content);
+      renderer.render(
+        content,
+        // Asset resolution needs a root-relative workspace URI or the existing full system URI.
+        documentUri: switch (origin) {
+          EditorTabOrigin.workspace => Uri(path: '/$path'),
+          EditorTabOrigin.system => Uri.parse(path),
+        },
+      );
     }
     return div(classes: 'markdown-tab', [
       div(
@@ -164,6 +180,8 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     void Function()? onRun,
     this.contextMenu,
     this.events,
+    super.onOpenMarkdownFile,
+    super.loadMarkdownImage,
     LanguageServerClient? languageServerClient,
   }) : _savedContent = content,
        super._(path, EditorTabOrigin.workspace) {
@@ -345,6 +363,8 @@ final class SystemCodeMirrorTab extends CodeMirrorTab {
     required String content,
     void Function()? onRun,
     LanguageServerClient? languageServerClient,
+    super.onOpenMarkdownFile,
+    super.loadMarkdownImage,
   }) : super._(uri.toString(), EditorTabOrigin.system) {
     editor = CodeMirrorEditor(
       container,

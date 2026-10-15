@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
@@ -90,6 +91,12 @@ final class WorkspaceRepository {
     }
     final workspace = await readyWorkspace;
     return workspace.readFileAsText(uri.toString());
+  }
+
+  /// Reads preview image bytes outside the project without synchronizing them.
+  Future<Uint8List> readSystemFileAsBytes(Uri uri) async {
+    final workspace = await readyWorkspace;
+    return workspace.readFileAsBytes(uri.toString());
   }
 
   /// Starts a dedicated worker and synchronizes [localApi] into its workspace.
