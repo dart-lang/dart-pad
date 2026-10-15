@@ -237,17 +237,17 @@ final class EditorTabBar extends StatelessComponent {
           alignItems: .center,
           gap: .all(6.px),
           color: colorOnContainer,
-          backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
+          backgroundColor: colorTabInactive,
         ),
         css('&:hover').styles(
-          backgroundColor: colorContainer.highlight(colorOnContainer, 0.15),
+          backgroundColor: colorTabInactive.highlight(colorOnContainer, 0.05),
         ),
         css('&.active').styles(
           color: colorOnContainer,
-          backgroundColor: colorContainer,
+          backgroundColor: colorTabActive,
         ),
         css('&.active:hover').styles(
-          backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
+          backgroundColor: colorTabActive.highlight(colorOnContainer, 0.05),
         ),
         css('.editor-tab-name').styles(
           minWidth: .zero,
