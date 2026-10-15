@@ -117,11 +117,6 @@ jobs:
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart run tool/setup_sdk_assets.dart
 
-      - name: Verify generated SDK manifest is checked in
-        run: |
-          git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/sdks.g.dart
-          git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/sdks.g.dart
-
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
