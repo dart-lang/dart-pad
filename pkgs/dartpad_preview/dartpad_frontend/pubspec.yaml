@@ -34,6 +34,7 @@ dev_dependencies:
   jaspr_cli: ^0.23.2
   jaspr_test: ^0.23.2
   lints: ^6.0.0
+  process: ^5.0.6
   test: ^1.25.8
 
 jaspr:

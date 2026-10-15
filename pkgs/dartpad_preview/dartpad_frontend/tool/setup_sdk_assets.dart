@@ -6,89 +6,94 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:process/process.dart';
 
 // Temporarily retain Dart 3.15.0-27.0.dev: newer workers access Platform.version
 // while starting the analysis server, which is unsupported in the browser.
 const flutterRevision = 'e81f444cc0835365bda671876183e3f9cd149925';
 
-Future<void> main() async {
-  final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
-  final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
-  final stagingDir = await Directory.systemTemp.createTemp('dartpad_assets_');
-  final assets = Directory(p.join(stagingDir.path, 'assets'));
+Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
-  try {
-    // Download the latest Dart beta bundle independently of Flutter's Dart SDK.
-    await _run(Platform.resolvedExecutable, [
-      'run',
-      'dartpad',
-      'setup',
-      'dart',
-      '--channel=beta',
-      '--output=${p.join(assets.path, 'dart')}',
-    ], frontendRoot.path);
+/// Prepares SDK assets using a single process manager for all external commands.
+class SdkAssetSetup {
+  const SdkAssetSetup({this._processManager = const LocalProcessManager()});
 
-    final flutterRoot = await checkoutFlutterSdk(stagingDir);
-    await _run(Platform.resolvedExecutable, [
-      'run',
-      'dartpad',
-      'setup',
-      'flutter',
-      '--flutter-root=${flutterRoot.path}',
-      // Build matching web SDK sources instead of relying on Flutter's
-      // prebuilt DDC bundle layout, which changes between Flutter revisions.
-      '--web-sdk=build',
-      '--output=${p.join(assets.path, 'flutter')}',
-    ], frontendRoot.path);
+  final ProcessManager _processManager;
 
-    // Validate both bundles before replacing the existing assets.
-    final sdkManifest = await generateSdkManifest(assets, requireFlutter: true);
-    if (targetAssetDir.existsSync()) {
-      await targetAssetDir.delete(recursive: true);
+  Future<void> setup(Directory frontendRoot) async {
+    final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
+    final stagingDir = await Directory.systemTemp.createTemp('dartpad_assets_');
+    final assets = Directory(p.join(stagingDir.path, 'assets'));
+
+    try {
+      // Download the latest Dart beta bundle independently of Flutter's Dart SDK.
+      await _run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        'dart',
+        '--channel=beta',
+        '--output=${p.join(assets.path, 'dart')}',
+      ], frontendRoot.path);
+
+      final flutterRoot = await checkoutFlutterSdk(stagingDir);
+      await _run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        'flutter',
+        '--flutter-root=${flutterRoot.path}',
+        // Build matching web SDK sources instead of relying on Flutter's
+        // prebuilt DDC bundle layout, which changes between Flutter revisions.
+        '--web-sdk=build',
+        '--output=${p.join(assets.path, 'flutter')}',
+      ], frontendRoot.path);
+
+      // Validate both bundles before replacing the existing assets.
+      final sdkManifest = await generateSdkManifest(assets, requireFlutter: true);
+      if (targetAssetDir.existsSync()) {
+        await targetAssetDir.delete(recursive: true);
+      }
+      await _copyDirectory(assets, targetAssetDir);
+      final manifestFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
+      await manifestFile.writeAsString(sdkManifest);
+      stdout.writeln('Generated ${manifestFile.path}');
+      stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
+    } finally {
+      await stagingDir.delete(recursive: true);
     }
-    await _copyDirectory(assets, targetAssetDir);
-    final manifestFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
-    await manifestFile.writeAsString(sdkManifest);
-    stdout.writeln('Generated ${manifestFile.path}');
-    stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
-  } finally {
-    await stagingDir.delete(recursive: true);
   }
-}
 
-Future<void> _run(String executable, List<String> arguments, String workingDirectory) async {
-  final process = await Process.start(
-    executable,
-    arguments,
-    workingDirectory: workingDirectory,
-    mode: ProcessStartMode.inheritStdio,
-  );
-  final result = await process.exitCode;
-  if (result != 0) {
-    throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
+  Future<void> _run(String executable, List<String> arguments, String workingDirectory) async {
+    final process = await _processManager.start(
+      [executable, ...arguments],
+      workingDirectory: workingDirectory,
+      mode: ProcessStartMode.inheritStdio,
+    );
+    final result = await process.exitCode;
+    if (result != 0) {
+      throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
+    }
   }
-}
 
-/// Checks out the pinned Flutter revision with the history needed to determine its version.
-Future<Directory> checkoutFlutterSdk(
-  Directory stagingDir, {
-  Future<void> Function(String, List<String>, String) runCommand = _run,
-}) async {
-  final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
-  await runCommand('git', [
-    'clone',
-    // Flutter's version fallback needs release tags from other branches and
-    // their common ancestors with master, so retain all commit history.
-    '--filter=blob:none',
-    '--branch=master',
-    // TODO: Remove --no-checkout once the browser worker regression is fixed.
-    '--no-checkout',
-    'https://github.com/flutter/flutter.git',
-    flutterRoot.path,
-  ], stagingDir.path);
-  // TODO: Remove this checkout and flutterRevision once the browser worker regression is fixed.
-  await runCommand('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
-  return flutterRoot;
+  /// Checks out the pinned Flutter revision with the history needed to determine its version.
+  Future<Directory> checkoutFlutterSdk(Directory stagingDir) async {
+    final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
+    await _run('git', [
+      'clone',
+      // Flutter's version fallback needs release tags from other branches and
+      // their common ancestors with master, so retain all commit history.
+      '--filter=blob:none',
+      '--branch=master',
+      // TODO: Remove --no-checkout once the browser worker regression is fixed.
+      '--no-checkout',
+      'https://github.com/flutter/flutter.git',
+      flutterRoot.path,
+    ], stagingDir.path);
+    // TODO: Remove this checkout and flutterRevision once the browser worker regression is fixed.
+    await _run('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
+    return flutterRoot;
+  }
 }
 
 Future<void> _copyDirectory(Directory source, Directory target) async {

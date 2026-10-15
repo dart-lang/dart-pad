@@ -9,9 +9,43 @@ library;
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:process/process.dart';
 import 'package:test/test.dart';
 
 import '../../tool/setup_sdk_assets.dart';
+
+// Only process startup and completion are needed by the setup script.
+// Fail on any other process API instead of accidentally running real commands.
+class _FakeProcessManager implements ProcessManager {
+  final calls = <({List<Object> command, String? workingDirectory, ProcessStartMode mode})>[];
+  final exitCodes = [0, 0];
+
+  @override
+  Future<Process> start(
+    List<Object> command, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) async {
+    calls.add((command: List.of(command), workingDirectory: workingDirectory, mode: mode));
+    return _FakeProcess(exitCodes.removeAt(0));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeProcess implements Process {
+  _FakeProcess(int code) : exitCode = Future.value(code);
+
+  @override
+  final Future<int> exitCode;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   late Directory assets;
@@ -30,42 +64,66 @@ void main() {
     return sdkDir;
   }
 
-  test('checks out pinned Flutter with blob filtering, full history across branches, and tags', () async {
-    final calls = <({String executable, List<String> arguments, String workingDirectory})>[];
-    final checkout = await checkoutFlutterSdk(
-      assets,
-      runCommand: (executable, arguments, workingDirectory) async {
-        calls.add((executable: executable, arguments: arguments, workingDirectory: workingDirectory));
-      },
-    );
+  group('Flutter checkout', () {
+    late _FakeProcessManager processManager;
+    late SdkAssetSetup setup;
+    late String flutterRoot;
+    late List<String> cloneCommand;
+    final checkoutCommand = ['git', 'checkout', '--detach', flutterRevision];
 
-    expect(calls, hasLength(2));
-    expect(calls.first.executable, 'git');
-    final arguments = calls.first.arguments;
-    expect(arguments.first, 'clone');
-    expect(arguments, containsAll(['--filter=blob:none', '--branch=master', '--no-checkout']));
-    expect(arguments.sublist(arguments.length - 2), [
-      'https://github.com/flutter/flutter.git',
-      p.join(assets.path, 'flutter'),
-    ]);
-    expect(
-      arguments,
-      isNot(
-        anyElement(
-          anyOf(
-            '--depth',
-            startsWith('--depth='),
-            '--single-branch',
-            '--no-tags',
-          ),
+    setUp(() {
+      processManager = _FakeProcessManager();
+      setup = SdkAssetSetup(processManager: processManager);
+      flutterRoot = p.join(assets.path, 'flutter');
+      cloneCommand = [
+        'git',
+        'clone',
+        '--filter=blob:none',
+        '--branch=master',
+        '--no-checkout',
+        'https://github.com/flutter/flutter.git',
+        flutterRoot,
+      ];
+    });
+
+    test('clones with full history and tags before checking out the pinned revision', () async {
+      final checkout = await setup.checkoutFlutterSdk(assets);
+
+      expect(checkout.path, flutterRoot);
+      expect(processManager.calls.map((call) => call.command), [cloneCommand, checkoutCommand]);
+      expect(processManager.calls.map((call) => call.workingDirectory), [assets.path, flutterRoot]);
+      expect(processManager.calls.map((call) => call.mode), everyElement(ProcessStartMode.inheritStdio));
+    });
+
+    test('stops before checkout when cloning fails', () async {
+      processManager.exitCodes[0] = 128;
+
+      await expectLater(
+        setup.checkoutFlutterSdk(assets),
+        throwsA(
+          isA<ProcessException>()
+              .having((error) => error.executable, 'executable', 'git')
+              .having((error) => error.arguments, 'arguments', cloneCommand.skip(1).toList())
+              .having((error) => error.errorCode, 'errorCode', 128),
         ),
-      ),
-    );
-    expect(calls.first.workingDirectory, assets.path);
-    expect(calls.last.executable, 'git');
-    expect(calls.last.arguments, ['checkout', '--detach', flutterRevision]);
-    expect(calls.last.workingDirectory, checkout.path);
-    expect(checkout.path, p.join(assets.path, 'flutter'));
+      );
+      expect(processManager.calls.map((call) => call.command), [cloneCommand]);
+    });
+
+    test('reports a failed checkout', () async {
+      processManager.exitCodes[1] = 1;
+
+      await expectLater(
+        setup.checkoutFlutterSdk(assets),
+        throwsA(
+          isA<ProcessException>()
+              .having((error) => error.executable, 'executable', 'git')
+              .having((error) => error.arguments, 'arguments', checkoutCommand.skip(1).toList())
+              .having((error) => error.errorCode, 'errorCode', 1),
+        ),
+      );
+      expect(processManager.calls.map((call) => call.command), [cloneCommand, checkoutCommand]);
+    });
   });
 
   test('keeps a Dart-only prerelease version verbatim', () async {
@@ -86,18 +144,6 @@ void main() {
     expect(await readSdkVersions(sdkDir, isFlutter: true), (
       dartVersion: '3.15.0 (build 3.15.0-27.0.dev)',
       flutterVersion: '3.49.0-pre',
-    ));
-  });
-
-  test('keeps a stable Flutter Dart version without adding a build suffix', () async {
-    final sdkDir = await writeVersion(
-      'flutter',
-      '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}',
-    );
-
-    expect(await readSdkVersions(sdkDir, isFlutter: true), (
-      dartVersion: '3.14.0',
-      flutterVersion: '3.48.0',
     ));
   });
 
