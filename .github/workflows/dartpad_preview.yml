@@ -117,6 +117,10 @@ jobs:
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart run tool/setup_sdk_assets.dart
 
+      - name: Verify generated SDK manifest exists
+        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        run: test -f lib/sdks.g.dart
+
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
