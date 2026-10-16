@@ -184,6 +184,8 @@ class SplitPanel extends StatefulComponent {
     this.canCollapseLeft,
     this.canCollapseRight,
     this.initialState,
+    this.state,
+    this.onStateChanged,
     this.initialValue = 0.5,
     this.useRatio = true,
     this.isVertical = false,
@@ -207,6 +209,13 @@ class SplitPanel extends StatefulComponent {
 
   /// The initial collapse or split state. If null, defaults to [Split] with [initialValue].
   final SplitState? initialState;
+
+  /// The current state supplied by the owner. When provided, interactions request changes through
+  /// [onStateChanged] and the owner supplies the resulting state on rebuild.
+  final SplitState? state;
+
+  /// Reports resize, expand, collapse, and hide requests, but not parent updates.
+  final ValueChanged<SplitState>? onStateChanged;
 
   /// The initial split value (either ratio or absolute pixels).
   final double initialValue;
@@ -242,7 +251,9 @@ class SplitPanel extends StatefulComponent {
 }
 
 class SplitPanelState extends State<SplitPanel> {
-  late SplitState _state;
+  late SplitState _localState;
+
+  SplitState get _state => component.state ?? _localState;
 
   /// The current collapse, hidden, or split state.
   SplitState get state => _state;
@@ -282,34 +293,35 @@ class SplitPanelState extends State<SplitPanel> {
 
   /// Collapses the left (or top) panel.
   void collapseLeft() {
-    setState(() => _state = LeftCollapsed(_state.value));
+    _updateState(LeftCollapsed(_state.value));
   }
 
   /// Collapses the right (or bottom) panel.
   void collapseRight() {
-    setState(() => _state = RightCollapsed(_state.value));
+    _updateState(RightCollapsed(_state.value));
   }
 
   /// Hides the left (or top) panel completely.
   void hideLeft() {
-    setState(() => _state = LeftHidden(_state.value));
+    _updateState(LeftHidden(_state.value));
   }
 
   /// Hides the right (or bottom) panel completely.
   void hideRight() {
-    setState(() => _state = RightHidden(_state.value));
+    _updateState(RightHidden(_state.value));
   }
 
   /// Splits the panel to [targetValue] or restores the previous split size.
   void split([double? targetValue]) {
-    setState(() => _state = Split(targetValue ?? _state.value));
+    _updateState(Split(targetValue ?? _state.value));
   }
 
-  void _updateFromDrag(SplitState newState) {
+  void _updateState(SplitState newState) {
     if (_state != newState) {
-      setState(() {
-        _state = newState;
-      });
+      if (component.state == null) {
+        setState(() => _localState = newState);
+      }
+      component.onStateChanged?.call(newState);
     }
   }
 
@@ -323,16 +335,21 @@ class SplitPanelState extends State<SplitPanel> {
   @override
   void initState() {
     super.initState();
-    _state = component.initialState ?? Split(component.initialValue);
+    _localState = component.initialState ?? Split(component.initialValue);
   }
 
   @override
   void didUpdateComponent(SplitPanel oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (component.initialState != null && component.initialState != oldComponent.initialState) {
-      _state = component.initialState!;
+    if (component.state != null) {
+      return;
+    }
+    if (oldComponent.state case final previous?) {
+      _localState = previous;
+    } else if (component.initialState != null && component.initialState != oldComponent.initialState) {
+      _localState = component.initialState!;
     } else if (oldComponent.initialValue != component.initialValue) {
-      _state = Split(component.initialValue);
+      _localState = Split(component.initialValue);
     }
   }
 
@@ -402,7 +419,7 @@ class SplitPanelState extends State<SplitPanel> {
           if (delta > 10) {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
-            _updateFromDrag(Split(newValue));
+            _updateState(Split(newValue));
             if (currentSecondPos > collapseThresholdRight + 15) {
               _dragStartedWhileRightCollapsed = false;
             }
@@ -410,11 +427,11 @@ class SplitPanelState extends State<SplitPanel> {
         } else {
           // Already auto-expanded during this drag gesture
           if (delta < 5) {
-            _updateFromDrag(RightCollapsed(value));
+            _updateState(RightCollapsed(value));
           } else {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
-            _updateFromDrag(Split(newValue));
+            _updateState(Split(newValue));
             if (currentSecondPos > collapseThresholdRight + 15) {
               _dragStartedWhileRightCollapsed = false;
             }
@@ -429,7 +446,7 @@ class SplitPanelState extends State<SplitPanel> {
           if (delta > 10) {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
-            _updateFromDrag(Split(newValue));
+            _updateState(Split(newValue));
             if (currentFirstPos > collapseThresholdLeft + 15) {
               _dragStartedWhileLeftCollapsed = false;
             }
@@ -437,11 +454,11 @@ class SplitPanelState extends State<SplitPanel> {
         } else {
           // Already auto-expanded during this drag gesture
           if (delta < 5) {
-            _updateFromDrag(LeftCollapsed(value));
+            _updateState(LeftCollapsed(value));
           } else {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
-            _updateFromDrag(Split(newValue));
+            _updateState(Split(newValue));
             if (currentFirstPos > collapseThresholdLeft + 15) {
               _dragStartedWhileLeftCollapsed = false;
             }
@@ -456,7 +473,7 @@ class SplitPanelState extends State<SplitPanel> {
         if (currentSecondPos > collapseThresholdRight + 15) {
           final targetSize = currentSecondPos.clamp(effectiveMinSecond, effectiveMaxSecond);
           final newValue = _valueFromSecondSize(targetSize, totalSize);
-          _updateFromDrag(Split(newValue));
+          _updateState(Split(newValue));
         }
         return;
       }
@@ -466,20 +483,20 @@ class SplitPanelState extends State<SplitPanel> {
         if (currentFirstPos > collapseThresholdLeft + 15) {
           final targetSize = currentFirstPos.clamp(effectiveMinFirst, effectiveMaxFirst);
           final newValue = _valueFromFirstSize(targetSize, totalSize);
-          _updateFromDrag(Split(newValue));
+          _updateState(Split(newValue));
         }
         return;
       }
 
       // Expanded: check if dragged too small (below collapseThreshold), auto-collapse
       if (canCollapseRight && currentSecondPos < collapseThresholdRight) {
-        _updateFromDrag(RightCollapsed(value));
+        _updateState(RightCollapsed(value));
       } else if (canCollapseLeft && currentFirstPos < collapseThresholdLeft) {
-        _updateFromDrag(LeftCollapsed(value));
+        _updateState(LeftCollapsed(value));
       } else {
         final targetSize = currentFirstPos.clamp(effectiveMinFirst, totalSize - effectiveMinSecond);
         final newValue = _valueFromFirstSize(targetSize, totalSize);
-        _updateFromDrag(Split(newValue));
+        _updateState(Split(newValue));
       }
     });
 

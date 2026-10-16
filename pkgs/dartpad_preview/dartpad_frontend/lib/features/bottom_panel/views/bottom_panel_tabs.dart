@@ -7,8 +7,8 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../shared/components/icon_button.dart';
+import '../bottom_panel_state.dart';
 import '../view_models/console_view_model.dart';
-import 'bottom_panel.dart';
 import 'bottom_panel_indicator.dart';
 
 /// The tab bar for the bottom panel.
