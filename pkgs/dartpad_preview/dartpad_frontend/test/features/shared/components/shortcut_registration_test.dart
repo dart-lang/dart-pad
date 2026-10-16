@@ -123,8 +123,9 @@ final undocumentedShortcutReasons = <String, String>{
 };
 
 /// Documented shortcuts handled at the app/window level rather than inside CodeMirror.
-const _appLevelShortcuts = <ShortcutDefinition>{
+final _appLevelShortcuts = <ShortcutDefinition>{
   ShortcutDefinition.commandPalette,
+  ShortcutDefinition.deleteFile,
 };
 
 final class _TestLanguageServerClient implements LanguageServerClient {
