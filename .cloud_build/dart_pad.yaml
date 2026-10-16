@@ -27,6 +27,26 @@ steps:
         dart run jaspr_cli:jaspr build --experimental-wasm -v
     dir: pkgs/dartpad_preview/dartpad_frontend
 
+  # Check the built files Firebase will publish before allowing deployment.
+  - name: gcr.io/$PROJECT_ID/flutter:stable
+    id: verify-preview-sdk-assets
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        assetCheckFailed=0
+        for sdk in dart flutter; do
+          for entrypoint in worker.js sandbox.js; do
+            asset="build/jaspr/dartpad/$$sdk/$$entrypoint"
+            if [[ ! -f "$$asset" || ! -s "$$asset" ]]; then
+              echo "Missing or empty SDK entrypoint: $$asset" >&2
+              assetCheckFailed=1
+            fi
+          done
+        done
+        exit "$$assetCheckFailed"
+    dir: pkgs/dartpad_preview/dartpad_frontend
+
   # Deploy dartpad_preview to Firebase Hosting (site: sketch-pad-1cebb)
   - name: gcr.io/$PROJECT_ID/firebase
     args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:preview']
