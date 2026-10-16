@@ -116,16 +116,13 @@ dev_dependencies:
 
     for (final (name, pubspec) in [
       (
-        'flow section',
-        'name: example\ndependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}\n',
-      ),
-      (
         'flow document',
         '{name: example, dependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}}',
       ),
       (
-        'CRLF block',
-        'name: example\r\ndependencies:\r\n  keep: any\r\n  outside: {path: ../outside}\r\n  remote: {git: https://example.com/repo.git}',
+        'mixed line-ending block',
+        'name: example\r\ndependencies:\n  keep: any\n  outside:\n    path: ../outside\n'
+            '  remote:\n    git:\r\n      url: https://example.com/repo.git\n',
       ),
     ]) {
       test('retains valid YAML when commenting out dependencies in a $name', () async {
@@ -145,40 +142,46 @@ dev_dependencies:
       });
     }
 
-    for (final (position, dependencies) in [
-      ('first', "{outside: {path: '../outside'}, 'keep' : '^1.0.0',}"),
-      ('middle', "{'keep' : '^1.0.0', outside: {path: '../outside'}, local: { path: 'local' }}"),
-      ('last', "{'keep' : '^1.0.0', outside: {path: '../outside'}}"),
+    for (final (name, pubspec, retainedDependencies) in [
       (
-        'separated',
-        "{remote: {git: 'https://example.com/repo.git'}, 'keep' : '^1.0.0', outside: {path: '../outside'}}",
+        'descriptor alias',
+        '''
+name: local
+extra: &desc {path: ../missing}
+dev_dependencies:
+  first: {git: https://example.com/first.git}
+  missing: *desc
+  last: {path: ../last}
+''',
+        ['missing'],
       ),
       (
-        'adjacent',
-        "{'keep' : '^1.0.0', remote: {git: 'https://example.com/repo.git'}, outside: {path: '../outside'},}",
+        'anchored descriptor',
+        '''
+name: local
+dev_dependencies:
+  first: {git: https://example.com/first.git}
+  missing: &desc {path: ../missing}
+  last: {path: ../last}
+extra: *desc
+''',
+        ['missing'],
       ),
-      ('all', "{remote: {git: 'https://example.com/repo.git'}, outside: {path: '../outside'},}"),
       (
-        'multiline',
-        '''{
-  'keep' : '^1.0.0', # Preserve this comment, including its comma.
-  outside: {path: '../outside'},
-  local: { path: 'local' },
-}''',
-      ),
-      (
-        'commented separator',
-        '''{
-  'keep' : '^1.0.0' # Preserve this comment, including its comma.
-  , outside: {path: '../outside'}
-}''',
+        'section alias',
+        '''
+name: local
+extra: &deps
+  first: {git: https://example.com/first.git}
+  missing: {path: ../missing}
+dev_dependencies: *deps
+''',
+        ['first', 'missing'],
       ),
     ]) {
-      test('preserves flow-map source formatting when stripping $position entries', () async {
-        final pubspec = 'name: example\ndependencies: $dependencies # Keep the section comment.\n';
+      test('keeps dependencies using $name while stripping other unavailable dependencies', () async {
         final archive = createTarArchive({
-          'pubspec.yaml': pubspec,
-          'local/pubspec.yaml': 'name: local\n',
+          'pubspec.yaml': '${pubspec}dependency_overrides:\n  outside: {path: ../outside}\n',
         });
         final project = await http.runWithClient(
           () => const ArchiveProjectSource(absoluteUrl).loadProject(),
@@ -186,23 +189,57 @@ dev_dependencies:
         );
         final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
         final yaml = loadYaml(text) as YamlMap;
-        final retained = yaml['dependencies'] as YamlMap;
-        expect(retained.containsKey('outside'), isFalse);
-        expect(retained.containsKey('remote'), isFalse);
-        expect(text, contains("# outside: {path: '../outside'} # stripped by DartPad"));
-        expect(text, contains('# Keep the section comment.'));
-        if (position != 'all') {
-          expect(retained['keep'], '^1.0.0');
-          expect(text, contains("'keep' : '^1.0.0'"));
-        }
-        if (dependencies.contains('# Preserve')) {
-          expect(text, contains('# Preserve this comment,'));
-        }
-        if (position == 'multiline') {
-          expect(text, contains("local: { path: 'local' }"));
+        final dependencies = yaml['dev_dependencies'] as YamlMap;
+        expect(dependencies.keys, retainedDependencies);
+        expect(dependencies['missing'], {'path': '../missing'});
+        expect(yaml['dependency_overrides'], isEmpty);
+        expect(text, contains(name == 'section alias' ? '*deps' : '*desc'));
+        for (final dependency in retainedDependencies) {
+          final warning = project.importWarnings.singleWhere(
+            (warning) => warning.startsWith('Dependency "$dependency" in pubspec.yaml'),
+          );
+          expect(warning, contains('left unchanged'));
+          expect(warning, contains('YAML aliases'));
         }
       });
     }
+
+    test('warns about an unsupported alias even when no dependencies are removed', () async {
+      const pubspec = 'name: demo\nextra: &desc {path: ../missing}\ndev_dependencies:\n  missing: *desc\n';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
+      expect(project.importWarnings, hasLength(1));
+      expect(project.importWarnings.single, contains('Dependency "missing" in pubspec.yaml'));
+      expect(project.importWarnings.single, contains('left unchanged'));
+    });
+
+    test('preserves flow-map formatting and comments across multiple removals', () async {
+      const pubspec = '''
+name: example
+dependencies: {
+  outside: {path: '../outside'},
+  remote: {git: 'https://example.com/repo.git'},
+  'keep' : '^1.0.0', # Keep this dependency comment.
+} # Keep the section comment.
+''';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+      final yaml = loadYaml(text) as YamlMap;
+      expect(yaml['dependencies'], {'keep': '^1.0.0'});
+      expect(text, contains("'keep' : '^1.0.0'"));
+      expect(text, contains('# Keep this dependency comment.'));
+      expect(text, contains('# Keep the section comment.'));
+      expect(text, contains("# outside: {path: '../outside'} # stripped by DartPad"));
+      expect(text, contains("# remote: {git: 'https://example.com/repo.git'} # stripped by DartPad"));
+    });
 
     for (final compressed in [false, true]) {
       test('imports file-sized buffers for worker messages, compressed=$compressed', () async {
