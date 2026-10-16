@@ -17,7 +17,7 @@ final class ProjectFile {
   final Uint8List bytes;
 }
 
-/// A temporary collection of loaded files for project resolution and import.
+/// Loaded files and preparation warnings for project resolution and import.
 ///
 /// Retains the supplied byte buffers without copying them. Once imported, the
 /// workspace owns the current files and this collection need not be retained.
@@ -38,6 +38,13 @@ final class Project {
   }
 
   final Map<String, Uint8List> _files = {};
+  final List<String> _importWarnings = [];
+
+  /// Warnings recorded while preparing the imported files.
+  List<String> get importWarnings => List.unmodifiable(_importWarnings);
+
+  /// Records a warning to display in the loaded session's Console.
+  void addImportWarning(String warning) => _importWarnings.add(warning);
 
   /// An unmodifiable mapping from original source paths to workspace paths.
   ///

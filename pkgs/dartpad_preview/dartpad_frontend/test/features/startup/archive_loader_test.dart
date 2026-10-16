@@ -14,6 +14,7 @@ import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   group('ArchiveProjectSource', () {
@@ -39,6 +40,206 @@ void main() {
       final List<int> encoded = const GZipEncoder().encode(tarBytes);
       return Uint8List.fromList(encoded);
     }
+
+    test('comments out dependencies absent from the imported workspace', () async {
+      const pubspec = '''
+name: material_ui
+dependencies:
+  flutter:
+    sdk: flutter
+  local:
+    path: packages/local
+  missing:
+    path: packages/missing
+dev_dependencies:
+  flutter_goldens:
+    path: ../../script/flutter_goldens
+  remote:
+    git:
+      url: https://example.com/remote.git
+      ref: main
+dependency_overrides:
+  external: {path: ../external}
+''';
+      final archive = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'packages/local/pubspec.yaml': 'name: local\n',
+      });
+      final api = MemoryWorkspaceResourceApi();
+      addTearDown(api.dispose);
+      await http.runWithClient(
+        () => loadInto(const ArchiveProjectSource(absoluteUrl), api.root),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final contents = await api.readFileAsText('pubspec.yaml');
+      final yaml = loadYaml(contents) as YamlMap;
+      expect((yaml['dependencies'] as YamlMap).keys, ['flutter', 'local']);
+      expect(yaml['dev_dependencies'], isEmpty);
+      expect(yaml['dependency_overrides'], isEmpty);
+      expect(contents, contains('# flutter_goldens: # stripped by DartPad'));
+      expect(contents, contains('#     path: ../../script/flutter_goldens'));
+      expect(contents, contains('#       url: https://example.com/remote.git'));
+      expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('preserves parent and sibling packages and warns about unavailable dependencies', () async {
+      const pubspec = '''
+name: example
+dependencies:
+  parent: {path: ..}
+  sibling: {path: ../../sibling}
+  missing: {path: ../../missing}
+dev_dependencies:
+  flutter_goldens:
+    path: ../../../script/flutter_goldens
+  remote: {git: https://example.com/remote.git}
+''';
+      final archive = createTarArchive({
+        'packages/root/pubspec.yaml': 'name: parent\n',
+        'packages/root/example/pubspec.yaml': pubspec,
+        'packages/sibling/pubspec.yaml': 'name: sibling\n',
+        'packages/root/example/pubspec_overrides.yaml': 'dependency_overrides:\n  outside: {path: /external}\n',
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
+      expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling']);
+      expect(project.importWarnings, hasLength(4));
+      expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
+      expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
+      expect(project.importWarnings.join('\n'), contains('uses Git'));
+      expect(project.importWarnings.every((warning) => warning.endsWith('was not loaded.')), isTrue);
+      expect(project.importWarnings.join('\n'), contains('packages/root/example/pubspec_overrides.yaml'));
+    });
+
+    for (final (name, pubspec) in [
+      (
+        'flow document',
+        '{name: example, dependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}}',
+      ),
+      (
+        'mixed line-ending block',
+        'name: example\r\ndependencies:\n  keep: any\n  outside:\n    path: ../outside\n'
+            '  remote:\n    git:\r\n      url: https://example.com/repo.git\n',
+      ),
+    ]) {
+      test('retains valid YAML when commenting out dependencies in a $name', () async {
+        final archive = createTarArchive({'pubspec.yaml': pubspec});
+        final project = await http.runWithClient(
+          () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+          () => MockClient((_) async => http.Response.bytes(archive, 200)),
+        );
+        final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+        final yaml = loadYaml(text) as YamlMap;
+        expect(yaml['name'], 'example');
+        expect((yaml['dependencies'] as YamlMap).keys, ['keep']);
+        expect(text, contains('stripped by DartPad'));
+        expect(text, contains('../outside'));
+        expect(text, contains('https://example.com/repo.git'));
+        expect(project.importWarnings, hasLength(2));
+      });
+    }
+
+    for (final (name, pubspec, retainedDependencies) in [
+      (
+        'descriptor alias',
+        '''
+name: local
+extra: &desc {path: ../missing}
+dev_dependencies:
+  first: {git: https://example.com/first.git}
+  missing: *desc
+  last: {path: ../last}
+''',
+        ['missing'],
+      ),
+      (
+        'anchored descriptor',
+        '''
+name: local
+dev_dependencies:
+  first: {git: https://example.com/first.git}
+  missing: &desc {path: ../missing}
+  last: {path: ../last}
+extra: *desc
+''',
+        ['missing'],
+      ),
+      (
+        'section alias',
+        '''
+name: local
+extra: &deps
+  first: {git: https://example.com/first.git}
+  missing: {path: ../missing}
+dev_dependencies: *deps
+''',
+        ['first', 'missing'],
+      ),
+    ]) {
+      test('keeps dependencies using $name while stripping other unavailable dependencies', () async {
+        final archive = createTarArchive({
+          'pubspec.yaml': '${pubspec}dependency_overrides:\n  outside: {path: ../outside}\n',
+        });
+        final project = await http.runWithClient(
+          () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+          () => MockClient((_) async => http.Response.bytes(archive, 200)),
+        );
+        final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+        final yaml = loadYaml(text) as YamlMap;
+        final dependencies = yaml['dev_dependencies'] as YamlMap;
+        expect(dependencies.keys, retainedDependencies);
+        expect(dependencies['missing'], {'path': '../missing'});
+        expect(yaml['dependency_overrides'], isEmpty);
+        expect(text, contains(name == 'section alias' ? '*deps' : '*desc'));
+        for (final dependency in retainedDependencies) {
+          final warning = project.importWarnings.singleWhere(
+            (warning) => warning.startsWith('Dependency "$dependency" in pubspec.yaml'),
+          );
+          expect(warning, contains('left unchanged'));
+          expect(warning, contains('YAML aliases'));
+        }
+      });
+    }
+
+    test('warns about an unsupported alias even when no dependencies are removed', () async {
+      const pubspec = 'name: demo\nextra: &desc {path: ../missing}\ndev_dependencies:\n  missing: *desc\n';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
+      expect(project.importWarnings, hasLength(1));
+      expect(project.importWarnings.single, contains('Dependency "missing" in pubspec.yaml'));
+      expect(project.importWarnings.single, contains('left unchanged'));
+    });
+
+    test('preserves flow-map formatting and comments across multiple removals', () async {
+      const pubspec = '''
+name: example
+dependencies: {
+  outside: {path: '../outside'},
+  remote: {git: 'https://example.com/repo.git'},
+  'keep' : '^1.0.0', # Keep this dependency comment.
+} # Keep the section comment.
+''';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+      final yaml = loadYaml(text) as YamlMap;
+      expect(yaml['dependencies'], {'keep': '^1.0.0'});
+      expect(text, contains("'keep' : '^1.0.0'"));
+      expect(text, contains('# Keep this dependency comment.'));
+      expect(text, contains('# Keep the section comment.'));
+      expect(text, contains("# outside: {path: '../outside'} # stripped by DartPad"));
+      expect(text, contains("# remote: {git: 'https://example.com/repo.git'} # stripped by DartPad"));
+    });
 
     for (final compressed in [false, true]) {
       test('imports file-sized buffers for worker messages, compressed=$compressed', () async {

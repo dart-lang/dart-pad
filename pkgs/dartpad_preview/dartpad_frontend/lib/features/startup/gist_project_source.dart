@@ -52,7 +52,9 @@ final class GistProjectSource extends ProjectSource {
       for (final file in original.files) ProjectFile(path: mapping[file.path]!, bytes: file.bytes),
     ];
     // Startup generates a missing pubspec after selecting the runtime SDK.
-    return Project(projectFiles, pathMapping: mapping);
+    final project = Project(projectFiles, pathMapping: mapping);
+    stripUnavailableDependencies(project);
+    return project;
   }
 }
 
