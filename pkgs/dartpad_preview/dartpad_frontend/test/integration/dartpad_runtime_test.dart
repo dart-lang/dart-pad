@@ -9,6 +9,9 @@ library;
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
@@ -19,6 +22,7 @@ void main() {
     group('${sdk.name} SDK integration', () {
       // Use the generated bundles served directly by package:test.
       final assetBaseUrl = Uri.base.resolve('../../web/${sdk.path}');
+      const specialPath = 'notes #100%?.txt';
       late Workspace workspace;
 
       setUp(() async {
@@ -27,21 +31,53 @@ void main() {
         workspace = await worker.createWorkspace();
       });
 
-      test('preserves workspace paths and change events', () async {
+      WorkspaceRepository createRepository() {
+        final events = AppEventBus();
+        addTearDown(events.dispose);
+        final tasks = TaskStatusController();
+        addTearDown(tasks.dispose);
+        final repository = WorkspaceRepository(
+          events: events,
+          taskStatus: tasks,
+          workspaceResourceApi: MemoryWorkspaceResourceApi(),
+          sdk: sdk,
+          workspaceFuture: Future.value(workspace),
+        );
+        addTearDown(repository.close);
+        return repository;
+      }
+
+      test('preserves workspace paths on round-trip', () async {
         final api = WorkerWorkspaceResourceApi(workspace);
         addTearDown(api.dispose);
 
-        const path = 'notes #100%?.txt';
-        final changes = api.changeEvents.where((event) => event.path == path).take(2).toList();
+        await workspace.writeFileFromText(specialPath, 'notes');
+        expect(await api.readFileAsText(specialPath), 'notes');
+        expect((await api.listDirectory(path: '')).map((entry) => entry.path), contains(specialPath));
+      });
+
+      test('preserves change event paths', () async {
+        final api = WorkerWorkspaceResourceApi(workspace);
+        addTearDown(api.dispose);
+
+        final changes = api.changeEvents.where((event) => event.path == specialPath).take(2).toList();
         await api.changeEventsReady;
-        await workspace.writeFileFromText(path, 'notes');
-        expect(await api.readFileAsText(path), 'notes');
-        expect((await api.listDirectory(uri: '')).map((entry) => entry.path), contains(path));
-        await workspace.deleteFileSystemEntity(path);
+        await workspace.writeFileFromText(specialPath, 'notes');
+        await workspace.deleteFileSystemEntity(specialPath);
         expect((await changes).map((event) => event.type), [
           WorkspaceChangeEventType.add,
           WorkspaceChangeEventType.remove,
         ]);
+      });
+
+      test('decodes system file URIs for worker reads', () async {
+        await workspace.writeFileFromText(specialPath, 'notes');
+        final repository = createRepository();
+
+        // System tabs retain the encoded URI; only the worker read decodes it.
+        final systemUri = Uri.file(workspacePath.join(workspace.workspaceFolder, specialPath), windows: false);
+        expect(await repository.readSystemFile(systemUri), 'notes');
+        expect(await repository.workspaceResourceApi.listDirectory(path: ''), isEmpty);
       });
 
       group('sandbox', () {

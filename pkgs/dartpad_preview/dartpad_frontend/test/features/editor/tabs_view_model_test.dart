@@ -38,29 +38,29 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
   Future<void> get changeEventsReady => Future.value();
 
   @override
-  Future<bool> fileExist(String uri) async => files.containsKey(uri);
+  Future<bool> fileExist(String path) async => files.containsKey(path);
 
   @override
-  Future<bool> folderExist(String uri) async => false;
+  Future<bool> folderExist(String path) async => false;
 
   @override
-  Future<String> readFileAsText(String uri) async {
+  Future<String> readFileAsText(String path) async {
     if (readError case final error?) {
       throw error;
     }
-    return files[uri]!;
+    return files[path]!;
   }
 
   @override
-  Future<void> writeFileFromText(String uri, String content) async {
+  Future<void> writeFileFromText(String path, String content) async {
     if (writeError case final error?) {
       throw error;
     }
-    files[uri] = content;
+    files[path] = content;
   }
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) async => Uint8List.fromList(files[uri]!.codeUnits);
+  Future<Uint8List> readFileAsBytes(String path) async => Uint8List.fromList(files[path]!.codeUnits);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

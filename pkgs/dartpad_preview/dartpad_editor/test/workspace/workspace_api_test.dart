@@ -34,14 +34,14 @@ void main() {
       await api.writeFileFromText('lib/a.dart', 'a');
       await api.writeFileFromText('lib/src/b.dart', 'b');
 
-      final nonRecursive = await api.listDirectory(uri: 'lib', recursive: false);
+      final nonRecursive = await api.listDirectory(path: 'lib', recursive: false);
       expect(nonRecursive, hasLength(2));
       expect(
         nonRecursive.map((e) => e.path),
         containsAll(['src', 'a.dart']),
       );
 
-      final recursive = await api.listDirectory(uri: 'lib', recursive: true);
+      final recursive = await api.listDirectory(path: 'lib', recursive: true);
       expect(recursive, hasLength(3));
     });
 

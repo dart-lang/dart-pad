@@ -14,36 +14,39 @@ import 'workspace_path.dart';
 import 'workspace_resource.dart';
 
 /// Provides access to the files and directories of a virtual workspace.
+///
+/// Paths are workspace-relative file paths using `/`, with an empty string
+/// identifying the root.
 abstract interface class WorkspaceResourceApi {
-  /// Checks whether a file exists at the given [uri].
-  Future<bool> fileExist(String uri);
+  /// Checks whether a file exists at the given [path].
+  Future<bool> fileExist(String path);
 
-  /// Checks whether a folder exists at the given [uri].
-  Future<bool> folderExist(String uri);
+  /// Checks whether a folder exists at the given [path].
+  Future<bool> folderExist(String path);
 
-  /// Reads the file contents at the given [uri] as a UTF-8 string.
-  Future<String> readFileAsText(String uri);
+  /// Reads the file contents at the given [path] as a UTF-8 string.
+  Future<String> readFileAsText(String path);
 
-  /// Reads the file contents at the given [uri] as a byte buffer.
-  Future<Uint8List> readFileAsBytes(String uri);
+  /// Reads the file contents at the given [path] as a byte buffer.
+  Future<Uint8List> readFileAsBytes(String path);
 
-  /// Writes [content] text into the file at the given [uri].
-  Future<void> writeFileFromText(String uri, String content);
+  /// Writes [content] text into the file at the given [path].
+  Future<void> writeFileFromText(String path, String content);
 
-  /// Writes [bytes] into the file at the given [uri].
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes);
+  /// Writes [bytes] into the file at the given [path].
+  Future<void> writeFileFromBytes(String path, Uint8List bytes);
 
-  /// Creates a directory folder at the given [uri].
-  Future<void> createFolder(String uri);
+  /// Creates a directory folder at the given [path].
+  Future<void> createFolder(String path);
 
-  /// Deletes the file or directory at the given [uri].
-  Future<void> deleteFileSystemEntity(String uri);
+  /// Deletes the file or directory at the given [path].
+  Future<void> deleteFileSystemEntity(String path);
 
-  /// Lists the contents of the directory folder at the given [uri].
+  /// Lists the contents of the directory folder at the given [path].
   ///
   /// If [recursive] is true, traverses all subfolders recursively.
-  /// Returns a list of entry records containing the relative path and type ('file' or 'folder').
-  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false});
+  /// Returns entries with paths relative to [path] and type ('file' or 'folder').
+  Future<List<({String path, String type})>> listDirectory({required String path, bool recursive = false});
 
   /// Registers an intention to move/rename a resource from [oldPath] to [newPath].
   void addMoveIntention(String oldPath, String newPath);
@@ -71,40 +74,40 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   late final ResourceWatcher _rpWatcher = _root.watch();
 
   @override
-  Future<bool> fileExist(String uri) => Future.value(_root.getChildAssumingFile(uri).exists);
+  Future<bool> fileExist(String path) => Future.value(_root.getChildAssumingFile(path).exists);
 
   @override
-  Future<bool> folderExist(String uri) => Future.value(_root.getChildAssumingFolder(uri).exists);
+  Future<bool> folderExist(String path) => Future.value(_root.getChildAssumingFolder(path).exists);
 
   @override
-  Future<String> readFileAsText(String uri) => Future.value(_root.getChildAssumingFile(uri).readAsStringSync());
+  Future<String> readFileAsText(String path) => Future.value(_root.getChildAssumingFile(path).readAsStringSync());
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) => Future.value(_root.getChildAssumingFile(uri).readAsBytesSync());
+  Future<Uint8List> readFileAsBytes(String path) => Future.value(_root.getChildAssumingFile(path).readAsBytesSync());
 
   @override
-  Future<void> writeFileFromText(String uri, String content) async {
-    _root.getChildAssumingFile(uri).writeAsStringSync(content);
+  Future<void> writeFileFromText(String path, String content) async {
+    _root.getChildAssumingFile(path).writeAsStringSync(content);
   }
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) async {
-    _root.getChildAssumingFile(uri).writeAsBytesSync(bytes);
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) async {
+    _root.getChildAssumingFile(path).writeAsBytesSync(bytes);
   }
 
   @override
-  Future<void> createFolder(String uri) async {
-    _root.getChildAssumingFolder(uri).create();
+  Future<void> createFolder(String path) async {
+    _root.getChildAssumingFolder(path).create();
   }
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) async {
-    final file = _root.getChildAssumingFile(uri);
+  Future<void> deleteFileSystemEntity(String path) async {
+    final file = _root.getChildAssumingFile(path);
     if (file.exists) {
       file.delete();
       return;
     }
-    final folder = _root.getChildAssumingFolder(uri);
+    final folder = _root.getChildAssumingFolder(path);
     if (folder.exists) {
       folder.delete();
       return;
@@ -112,8 +115,8 @@ class MemoryWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   }
 
   @override
-  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false}) async {
-    final folder = _root.getChildAssumingFolder(uri);
+  Future<List<({String path, String type})>> listDirectory({required String path, bool recursive = false}) async {
+    final folder = _root.getChildAssumingFolder(path);
     if (!folder.exists) {
       return [];
     }
@@ -162,32 +165,32 @@ class WorkerWorkspaceResourceApi with WorkspaceResourceEventsMixin implements Wo
   late final WorkspaceWatcher _workspaceWatcher = _workspace.watch('/');
 
   @override
-  Future<bool> fileExist(String uri) => _workspace.fileExist(uri);
+  Future<bool> fileExist(String path) => _workspace.fileExist(path);
 
   @override
-  Future<bool> folderExist(String uri) => _workspace.folderExist(uri);
+  Future<bool> folderExist(String path) => _workspace.folderExist(path);
 
   @override
-  Future<String> readFileAsText(String uri) => _workspace.readFileAsText(uri);
+  Future<String> readFileAsText(String path) => _workspace.readFileAsText(path);
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) => _workspace.readFileAsBytes(uri);
+  Future<Uint8List> readFileAsBytes(String path) => _workspace.readFileAsBytes(path);
 
   @override
-  Future<void> writeFileFromText(String uri, String content) => _workspace.writeFileFromText(uri, content);
+  Future<void> writeFileFromText(String path, String content) => _workspace.writeFileFromText(path, content);
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) => _workspace.writeFileFromBytes(uri, bytes);
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) => _workspace.writeFileFromBytes(path, bytes);
 
   @override
-  Future<void> createFolder(String uri) => _workspace.createFolder(uri);
+  Future<void> createFolder(String path) => _workspace.createFolder(path);
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) => _workspace.deleteFileSystemEntity(uri);
+  Future<void> deleteFileSystemEntity(String path) => _workspace.deleteFileSystemEntity(path);
 
   @override
-  Future<List<({String path, String type})>> listDirectory({required String uri, bool recursive = false}) =>
-      _workspace.listDirectory(uri, recursive: recursive);
+  Future<List<({String path, String type})>> listDirectory({required String path, bool recursive = false}) =>
+      _workspace.listDirectory(path, recursive: recursive);
 
   @override
   Stream<FileChangeEvent> get rawFileChanges => _workspaceWatcher.changes.expand((event) {
