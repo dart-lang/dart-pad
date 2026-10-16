@@ -41,6 +41,7 @@ import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
+import 'features/shared/panel_layout_controller.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/startup/initial_project_state.dart';
@@ -91,6 +92,7 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
+  late final PanelLayoutController _panels;
   EmbedRuntimeController? _embedRuntime;
   late final EmbedMessageController _embedMessages;
 
@@ -130,8 +132,6 @@ final class _AppState extends State<App> {
   Uri? _failedRestoreUri;
   bool _isCommandPaletteOpen = false;
 
-  GlobalStateKey<SplitPanelState> _previewSplitKey = GlobalStateKey<SplitPanelState>();
-
   SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
   StreamSubscription<web.KeyboardEvent>? _keySubscription;
@@ -142,6 +142,7 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
+    _panels = PanelLayoutController(isEmbedMode: _isEmbedMode)..addListener(_onPanelsChanged);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
@@ -300,7 +301,7 @@ final class _AppState extends State<App> {
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     session.preview.addListener(_onPreviewStateChanged);
     setState(() {
-      _previewSplitKey = GlobalStateKey<SplitPanelState>();
+      _panels.reset(previewRatio: project.request.initialSplitRatio);
       _activeSession = session;
       _sessionLoadGeneration = generation;
     });
@@ -353,6 +354,8 @@ final class _AppState extends State<App> {
     }
   }
 
+  void _onPanelsChanged() => setState(() {});
+
   void _onPreviewStateChanged() {
     final state = _session.preview.state;
     if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
@@ -362,8 +365,8 @@ final class _AppState extends State<App> {
             _selectedSmallScreenTab = .output;
           });
         }
-      } else if (_previewSplitKey.currentState?.isRightCollapsed ?? false) {
-        _previewSplitKey.currentState?.split();
+      } else if (_panels.preview.isRightCollapsed) {
+        _panels.expandPreview();
       }
     }
   }
@@ -693,7 +696,7 @@ final class _AppState extends State<App> {
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
-        _previewSplitKey = GlobalStateKey<SplitPanelState>();
+        _panels.reset(previewRatio: next.initialProject.request.initialSplitRatio);
         _activeSession = next;
         _workspacePreparationFailure = null;
       });
@@ -798,8 +801,8 @@ final class _AppState extends State<App> {
             div(classes: 'app-workspace', [
               if (_isLargeScreen)
                 SplitPanel(
-                  key: _previewSplitKey,
-                  initialValue: session.initialProject.request.initialSplitRatio,
+                  state: _panels.preview,
+                  onStateChanged: _panels.updatePreview,
                   canCollapseRight: true,
                   minValue: _isEmbedMode ? 0.05 : 0.3,
                   maxValue: _isEmbedMode ? 0.95 : 0.85,
@@ -812,7 +815,7 @@ final class _AppState extends State<App> {
                     onCloseFile: session.tabs.closeFile,
                     bottomPanel: _buildBottomPanel(session),
                     contextMenu: session.contextMenu,
-                    isEmbedMode: _isEmbedMode,
+                    panels: _panels,
                   ),
                   right: _buildPreviewPanel(session),
                 )
@@ -826,7 +829,7 @@ final class _AppState extends State<App> {
                   onCloseFile: session.tabs.closeFile,
                   bottomPanel: _buildBottomPanel(session),
                   contextMenu: session.contextMenu,
-                  isEmbedMode: _isEmbedMode,
+                  panels: _panels,
                   smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
                 ),
             ]),
@@ -881,13 +884,14 @@ final class _AppState extends State<App> {
       onSwitchFile: (_) {},
       onCloseFile: (_, {discardChanges = false}) => false,
       bottomPanel: const div(classes: 'bottom-panel', []),
-      isEmbedMode: _isEmbedMode,
+      panels: _panels,
     );
     if (!_isLargeScreen) {
       return editor;
     }
     return SplitPanel(
-      initialValue: 0.7,
+      state: _panels.preview,
+      onStateChanged: _panels.updatePreview,
       canCollapseRight: true,
       minValue: 0.3,
       maxValue: 0.85,
@@ -900,6 +904,7 @@ final class _AppState extends State<App> {
     return ListenableBuilder(
       listenable: session.diagnostics,
       builder: (context) => BottomPanel(
+        panels: _panels,
         diagnostics: session.diagnostics.diagnostics,
         hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
         console: session.console,
@@ -1006,6 +1011,8 @@ final class _AppState extends State<App> {
 
   @override
   void dispose() {
+    _panels.removeListener(_onPanelsChanged);
+    _panels.dispose();
     _embedMessages.dispose();
     _embedRuntime?.dispose();
     _resizeSubscription?.cancel();
