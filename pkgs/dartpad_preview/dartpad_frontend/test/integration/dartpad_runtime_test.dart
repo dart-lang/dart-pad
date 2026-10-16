@@ -14,77 +14,105 @@ import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  final sdk = availableSdks.firstWhere((sdk) => sdk.id == 'dart');
-  final assetBaseUrl = Uri.base.resolve('../../web/${sdk.path}');
-  late Workspace workspace;
+  for (final sdkId in ['dart', 'flutter']) {
+    final sdk = availableSdks.firstWhere((sdk) => sdk.id == sdkId);
+    group('${sdk.name} SDK integration', () {
+      // Use the generated bundles served directly by package:test.
+      final assetBaseUrl = Uri.base.resolve('../../web/${sdk.path}');
+      late Workspace workspace;
 
-  setUp(() async {
-    final worker = await DartPadSdk(assetBaseUrl: assetBaseUrl).dedicatedWorker();
-    addTearDown(worker.close);
-    workspace = await worker.createWorkspace();
-  });
+      setUp(() async {
+        final worker = await DartPadSdk(assetBaseUrl: assetBaseUrl).dedicatedWorker();
+        addTearDown(worker.close);
+        workspace = await worker.createWorkspace();
+      });
 
-  test('SDK integration preserves workspace paths and change events', () async {
-    final api = WorkerWorkspaceResourceApi(workspace);
-    addTearDown(api.dispose);
+      test('preserves workspace paths and change events', () async {
+        final api = WorkerWorkspaceResourceApi(workspace);
+        addTearDown(api.dispose);
 
-    const path = 'notes #100%?.txt';
-    final changes = api.changeEvents.where((event) => event.path == path).take(2).toList();
-    await api.changeEventsReady;
-    await workspace.writeFileFromText(path, 'notes');
-    expect(await api.readFileAsText(path), 'notes');
-    expect((await api.listDirectory(uri: '')).map((entry) => entry.path), contains(path));
-    await workspace.deleteFileSystemEntity(path);
-    expect((await changes).map((event) => event.type), [
-      WorkspaceChangeEventType.add,
-      WorkspaceChangeEventType.remove,
-    ]);
-  });
+        const path = 'notes #100%?.txt';
+        final changes = api.changeEvents.where((event) => event.path == path).take(2).toList();
+        await api.changeEventsReady;
+        await workspace.writeFileFromText(path, 'notes');
+        expect(await api.readFileAsText(path), 'notes');
+        expect((await api.listDirectory(uri: '')).map((entry) => entry.path), contains(path));
+        await workspace.deleteFileSystemEntity(path);
+        expect((await changes).map((event) => event.type), [
+          WorkspaceChangeEventType.add,
+          WorkspaceChangeEventType.remove,
+        ]);
+      });
 
-  group('SDK sandbox integration', () {
-    late PreviewSandbox sandbox;
+      group('sandbox', () {
+        late PreviewSandbox sandbox;
 
-    setUp(() async {
-      await workspace.writeFileFromText('pubspec.yaml', 'name: runtime_test\nenvironment:\n  sdk: ^3.12.0\n');
-      await workspace.pub(command: 'get');
+        setUp(() async {
+          final pubspec = StringBuffer('name: runtime_test\nenvironment:\n  sdk: ^3.12.0\n');
+          if (sdk.isFlutter) {
+            pubspec.write('dependencies:\n  flutter:\n    sdk: flutter\n');
+          }
+          await workspace.writeFileFromText('pubspec.yaml', pubspec.toString());
+          await workspace.pub(command: 'get');
 
-      final container = web.HTMLDivElement();
-      web.document.body!.appendChild(container);
-      // JS interop methods cannot be used as tear-offs.
-      // ignore: unnecessary_lambdas
-      addTearDown(() => container.remove());
-      sandbox = await IframePreviewSandbox.create(
-        container,
-        assetBaseUrl: assetBaseUrl,
-        workspace: workspace,
-      );
-      addTearDown(sandbox.close);
-    });
+          final container = web.HTMLDivElement();
+          web.document.body!.appendChild(container);
+          // JS interop methods cannot be used as tear-offs.
+          // ignore: unnecessary_lambdas
+          addTearDown(() => container.remove());
+          sandbox = await IframePreviewSandbox.create(
+            container,
+            assetBaseUrl: assetBaseUrl,
+            workspace: workspace,
+          );
+          addTearDown(sandbox.close);
+        });
 
-    test('preserves console output', () async {
-      await workspace.writeFileFromText('main.dart', '''
+        test('preserves console output', () async {
+          await workspace.writeFileFromText('main.dart', '''
 void main() {
   print('runtime-output');
 }
 ''');
-      final output = sandbox.console.firstWhere((message) => message.contains('runtime-output'));
+          final output = sandbox.console.firstWhere((message) => message.contains('runtime-output'));
 
-      await sandbox.run('main.dart', mode: 'console');
+          await sandbox.run('main.dart', mode: 'console');
 
-      expect(await output, contains('runtime-output'));
-    });
+          expect(await output, contains('runtime-output'));
+        });
 
-    test('forwards unhandled asynchronous errors', () async {
-      await workspace.writeFileFromText('main.dart', '''
+        test('forwards unhandled asynchronous errors', () async {
+          await workspace.writeFileFromText('main.dart', '''
 void main() {
   Future<void>.delayed(Duration.zero, () => throw StateError('runtime-async-error'));
 }
 ''');
-      final error = sandbox.errors.firstWhere((message) => message.contains('runtime-async-error'));
+          final error = sandbox.errors.firstWhere((message) => message.contains('runtime-async-error'));
 
-      await sandbox.run('main.dart', mode: 'console');
+          await sandbox.run('main.dart', mode: 'console');
 
-      expect(await error, contains('runtime-async-error'));
-    });
+          expect(await error, contains('runtime-async-error'));
+        });
+        if (sdk.isFlutter) {
+          test('renders a Flutter frame', () async {
+            await workspace.writeFileFromText('main.dart', '''
+import 'package:flutter/widgets.dart';
+
+void main() {
+  runApp(const SizedBox());
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print('flutter-frame-rendered');
   });
+}
+''');
+            final rendered = sandbox.console.firstWhere((message) => message.contains('flutter-frame-rendered'));
+
+            await sandbox.run('main.dart', mode: 'flutter');
+
+            expect(await rendered, contains('flutter-frame-rendered'));
+          });
+        }
+      });
+    });
+  }
 }
