@@ -11,6 +11,7 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -18,6 +19,7 @@ import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
 import 'package:jaspr/dom.dart' show div;
+import 'package:jaspr/jaspr.dart' show StatefulElement;
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -138,6 +140,134 @@ void main() {
     );
   });
 
+  group('panel layout retention', () {
+    Future<void> mountApp(ClientTester tester, {required int width}) async {
+      final originalWidth = _getOwnPropertyDescriptor(web.window, 'innerWidth'.toJS);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        if (originalWidth == null) {
+          web.window.delete('innerWidth'.toJS);
+        } else {
+          _defineProperty(web.window, 'innerWidth'.toJS, originalWidth);
+        }
+      });
+      await _resizeWindow(width);
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?embed=true'),
+          loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+              WorkspaceRepository(
+                events: events,
+                sdk: sdk,
+                taskStatus: taskStatus,
+                workspaceResourceApi: localApi!,
+                workspaceFuture: Completer<Workspace>().future,
+              ),
+        ),
+      );
+      await pumpEventQueue();
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+    }
+
+    SplitPanelState splitState(bool Function(SplitPanel) matches) {
+      final element = find
+          .byType(SplitPanel)
+          .evaluate()
+          .singleWhere(
+            (element) => matches(element.component as SplitPanel),
+          );
+      return (element as StatefulElement).state as SplitPanelState;
+    }
+
+    SplitPanelState fileTreeSplit() => splitState((panel) => !panel.useRatio);
+    SplitPanelState bottomSplit() => splitState((panel) => panel.isVertical);
+    SplitPanelState previewSplit() => splitState((panel) => panel.useRatio && !panel.isVertical);
+
+    Future<void> click(String selector) async {
+      (web.document.querySelector(selector)! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+    }
+
+    void expectConsoleSelected() {
+      expect(web.document.querySelector('.console-panel'), isNotNull);
+      expect(
+        web.document.querySelector('.bottom-panel [role="tab"][aria-selected="true"]')!.textContent,
+        startsWith('Console'),
+      );
+      expect(bottomSplit().state, const Split(0.6));
+      final editorArea = web.document.querySelector('.editor-area')! as web.HTMLElement;
+      expect(editorArea.style.flexGrow, '0.6');
+    }
+
+    testClient('desktop panel sizes and Console selection survive a narrow layout and back', (tester) async {
+      await mountApp(tester, width: 1200);
+      await click('button[aria-label="Show file tree"]');
+      fileTreeSplit().split(240);
+      previewSplit().split(0.65);
+      await pumpEventQueue();
+      await click('.bottom-panel [role="tab"]:nth-child(2)');
+      bottomSplit().split(0.6);
+      await pumpEventQueue();
+      await click('button[aria-label="Hide preview"]');
+      expect(web.document.querySelector('.preview-container.collapsed'), isNotNull);
+
+      await _resizeWindow(600);
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+      expect(web.document.querySelector('.preview-container'), isNull);
+      expect(fileTreeSplit().state, const Split(240));
+      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '240px');
+      expectConsoleSelected();
+
+      await _resizeWindow(1200);
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNull);
+      expect(web.document.querySelector('.preview-container.collapsed'), isNotNull);
+      expect(previewSplit().state, const RightCollapsed(0.65));
+      expect(fileTreeSplit().state, const Split(240));
+      expectConsoleSelected();
+
+      await click('button[aria-label="Show preview"]');
+      final editorShell = web.document.querySelector('.editor-shell')! as web.HTMLElement;
+      expect(editorShell.style.flexGrow, '0.65');
+    });
+
+    testClient('Code and Output retain collapsed panels, their sizes, and Console selection', (tester) async {
+      await mountApp(tester, width: 600);
+      await click('button[aria-label="Show file tree"]');
+      fileTreeSplit().split(225);
+      await pumpEventQueue();
+      await click('button[aria-label="Hide file tree"]');
+      await click('.bottom-panel [role="tab"]:nth-child(2)');
+      bottomSplit().split(0.6);
+      await pumpEventQueue();
+      await click('button[aria-label="Hide bottom panel"]');
+
+      await click('.small-screen-tab-bar button:nth-child(2)');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect(web.document.querySelector('.editor-host'), isNull);
+      expect(web.document.querySelector('.bottom-panel'), isNull);
+
+      await click('.small-screen-tab-bar button:first-child');
+      expect(web.document.querySelector('.preview-container'), isNull);
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+      expect(fileTreeSplit().state, const LeftCollapsed(225));
+      expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+      expect(web.document.querySelector('.bottom-panel-content'), isNull);
+      expect(bottomSplit().state, const RightCollapsed(0.6));
+
+      // Reopen via the splitter, without changing the selected tab.
+      bottomSplit().split();
+      await pumpEventQueue();
+      expectConsoleSelected();
+      await click('button[aria-label="Show file tree"]');
+      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '225px');
+    });
+  });
+
   for (final (source, autoRunInEmbed) in [
     ('', false),
     ('sample=counter', false),
@@ -187,11 +317,15 @@ void main() {
         final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
         expect(container.preview.state, autoRun ? isA<PreviewStarting>() : isA<PreviewInitial>());
         if (!autoRun) {
+          (web.document.querySelector('button[aria-label="Hide preview"]')! as web.HTMLButtonElement).click();
+          await pumpEventQueue();
+          expect(web.document.querySelector('.preview-container.collapsed'), isNotNull);
           final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
           expect(run.disabled, isFalse);
           run.click();
           await pumpEventQueue();
           expect(container.preview.state, isA<PreviewStarting>());
+          expect(web.document.querySelector('.preview-container.collapsed'), isNull);
         }
       });
 
@@ -728,3 +862,17 @@ void injectSource(String source) {
     ),
   );
 }
+
+// Headless Chrome cannot reliably resize the test iframe's native viewport.
+// Override the browser input used by App and send its normal resize event.
+Future<void> _resizeWindow(int width) async {
+  _defineProperty(web.window, 'innerWidth'.toJS, {'configurable': true, 'value': width}.jsify() as JSObject);
+  web.window.dispatchEvent(web.Event('resize'));
+  await pumpEventQueue();
+}
+
+@JS('Object.defineProperty')
+external void _defineProperty(JSObject target, JSString property, JSObject descriptor);
+
+@JS('Object.getOwnPropertyDescriptor')
+external JSObject? _getOwnPropertyDescriptor(JSObject target, JSString property);

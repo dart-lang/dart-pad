@@ -13,6 +13,83 @@ import 'package:web/web.dart' as web;
 
 void main() {
   group('SplitPanel', () {
+    testClient('controlled split reports requests and waits for its owner', (tester) async {
+      final key = GlobalStateKey<SplitPanelState>();
+      final requests = <SplitState>[];
+      Component layout(SplitState state) => SplitPanel(
+        key: key,
+        state: state,
+        onStateChanged: requests.add,
+        left: const div(id: 'left-pane', []),
+        right: const div(id: 'right-pane', []),
+      );
+      final owner = ValueNotifier<SplitState>(const Split(0.6));
+      tester.pumpComponent(
+        div([
+          ListenableBuilder(listenable: owner, builder: (_) => layout(owner.value)),
+        ]),
+      );
+      key.currentState!.collapseRight();
+      await pumpEventQueue();
+      expect(requests, const [RightCollapsed(0.6)]);
+      expect(key.currentState!.state, const Split(0.6));
+
+      owner.value = requests.single;
+      await pumpEventQueue();
+      expect(key.currentState!.state, const RightCollapsed(0.6));
+      expect(requests, hasLength(1));
+      key.currentState!.split();
+      await pumpEventQueue();
+      expect(requests, const [RightCollapsed(0.6), Split(0.6)]);
+      owner.value = requests.last;
+      await pumpEventQueue();
+      expect(key.currentState!.state, const Split(0.6));
+    });
+
+    testClient('controlled drag updates the owner and survives remounting', (tester) async {
+      final state = ValueNotifier<SplitState>(const Split(0.5));
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        state.dispose();
+      });
+      final key = GlobalStateKey<SplitPanelState>();
+      Component layout() => ListenableBuilder(
+        listenable: state,
+        builder: (_) => div(
+          styles: Styles(display: .flex, width: 500.px),
+          [
+            SplitPanel(
+              key: key,
+              state: state.value,
+              onStateChanged: (value) => state.value = value,
+              left: const div([]),
+              right: const div([]),
+            ),
+          ],
+        ),
+      );
+      final showPanel = ValueNotifier(true);
+      tester.pumpComponent(
+        div([
+          ListenableBuilder(listenable: showPanel, builder: (_) => showPanel.value ? layout() : const div([])),
+        ]),
+      );
+      final handle = web.document.querySelector('.drag-handle')! as web.HTMLElement;
+      final rect = handle.parentElement!.getBoundingClientRect();
+      handle.dispatchEvent(web.MouseEvent('mousedown', web.MouseEventInit(clientX: (rect.left + 250).round())));
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientX: (rect.left + 300).round())));
+      await pumpEventQueue();
+      web.window.dispatchEvent(web.MouseEvent('mouseup'));
+      await pumpEventQueue();
+      expect(state.value, const Split(0.6));
+      showPanel.value = false;
+      await pumpEventQueue();
+      showPanel.value = true;
+      await pumpEventQueue();
+      expect(key.currentState!.state, const Split(0.6));
+    });
+
     testClient('renders left, right and drag handle', (tester) {
       tester.pumpComponent(
         const SplitPanel(

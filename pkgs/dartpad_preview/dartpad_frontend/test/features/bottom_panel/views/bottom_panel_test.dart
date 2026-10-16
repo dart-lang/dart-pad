@@ -6,18 +6,31 @@
 library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:jaspr/dom.dart';
+import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
+  PanelLayoutController createPanels(ClientTester tester, {bool isEmbedMode = false}) {
+    final panels = PanelLayoutController(isEmbedMode: isEmbedMode);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    return panels;
+  }
+
   ConsoleViewModel createConsole(AppEventBus events, void Function() unmount) {
     final console = ConsoleViewModel(events: events);
     addTearDown(() async {
@@ -34,6 +47,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -89,6 +103,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [
           DiagnosticEntry(
             'main.dart',
@@ -133,6 +148,7 @@ void main() {
     await pumpEventQueue();
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -163,6 +179,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -184,6 +201,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: true,
         console: console,
@@ -203,6 +221,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
+        panels: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -217,6 +236,73 @@ void main() {
     expect(web.document.querySelector('.console-panel'), isNotNull);
   });
 
+  testClient('tab clicks and console requests expand the shared split and survive remounts', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester, isEmbedMode: true);
+    final splitKey = GlobalStateKey<SplitPanelState>();
+    Component layout() => ListenableBuilder(
+      listenable: panels,
+      builder: (_) => SplitPanel(
+        key: splitKey,
+        state: panels.bottomSplit,
+        onStateChanged: panels.updateBottomSplit,
+        canCollapseRight: true,
+        left: const div([]),
+        right: BottomPanel(
+          panels: panels,
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
+      ),
+    );
+    final showPanel = ValueNotifier(true);
+    tester.pumpComponent(
+      div([
+        ListenableBuilder(listenable: showPanel, builder: (_) => showPanel.value ? layout() : const div([])),
+      ]),
+    );
+    expect(web.document.querySelectorAll('[role="tab"]').length, 2);
+    expect(web.document.querySelector('.bottom-panel-content'), isNull);
+
+    (web.document.querySelectorAll('[role="tab"]').item(1) as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(splitKey.currentState!.state, const Split(0.75));
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+
+    splitKey.currentState!.split(0.6);
+    await pumpEventQueue();
+    (web.document.querySelector('button[aria-label="Hide bottom panel"]') as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(panels.bottom, const BottomPanelCollapsed(BottomPanelTab.console, editorFraction: 0.6));
+    expect(splitKey.currentState!.state, const RightCollapsed(0.6));
+    expect(web.document.querySelectorAll('[role="tab"]').length, 2);
+
+    showPanel.value = false;
+    await pumpEventQueue();
+    showPanel.value = true;
+    await pumpEventQueue();
+    expect(web.document.querySelector('.bottom-panel-content'), isNull);
+    expect(splitKey.currentState!.state, const RightCollapsed(0.6));
+
+    // Expanding the splitter preserves selection; a tab click or console event
+    // would select Console again and could mask selection lost on remount.
+    splitKey.currentState!.split();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+    expect(web.document.querySelector('[role="tab"][aria-selected="true"]')!.textContent, startsWith('Console'));
+    splitKey.currentState!.collapseRight();
+    await pumpEventQueue();
+    events.dispatch(const OpenConsoleEvent());
+    await pumpEventQueue();
+    expect(splitKey.currentState!.state, const Split(0.6));
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+    expect(web.document.querySelector('[role="tab"][aria-selected="true"]')!.textContent, startsWith('Console'));
+  });
+
   testClient('hides content when collapsed in SplitPanel', (tester) {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
@@ -226,6 +312,7 @@ void main() {
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(
+          panels: createPanels(tester, isEmbedMode: true),
           diagnostics: const [],
           hasMoreDiagnostics: false,
           console: console,
