@@ -126,17 +126,17 @@ jobs:
       - name: Verify SDK asset entrypoints
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
-          missing=0
+          assetCheckFailed=0
           for sdk in dart flutter; do
             for entrypoint in worker.js sandbox.js; do
               asset="web/dartpad/$sdk/$entrypoint"
               if [[ ! -f "$asset" || ! -s "$asset" ]]; then
                 echo "::error::Missing or empty SDK entrypoint: $asset"
-                missing=1
+                assetCheckFailed=1
               fi
             done
           done
-          exit "$missing"
+          exit "$assetCheckFailed"
 
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
