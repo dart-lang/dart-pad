@@ -32,7 +32,7 @@ ContextMenuItem deleteEntryMenuItem({required void Function() onPressed}) {
   return ContextMenuItem(
     label: 'Delete',
     destructive: true,
-    shortcut: ShortcutDefinition.deleteFile.resolvedDisplayKey,
+    shortcut: ShortcutDefinition.deleteFileTreeRow.resolvedDisplayKey,
     onPressed: onPressed,
   );
 }
