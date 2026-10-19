@@ -20,6 +20,7 @@ final class BottomPanelTabs extends StatelessComponent {
     required this.onSelectTab,
     this.isCollapsed = false,
     this.onCollapse,
+    this.onExpand,
     super.key,
   });
 
@@ -40,6 +41,9 @@ final class BottomPanelTabs extends StatelessComponent {
 
   /// An optional callback invoked to collapse the panel content.
   final VoidCallback? onCollapse;
+
+  /// An optional callback invoked to expand the panel content.
+  final VoidCallback? onExpand;
 
   @override
   Component build(BuildContext context) {
@@ -83,6 +87,15 @@ final class BottomPanelTabs extends StatelessComponent {
             iconSize: 20,
             classes: 'bottom-panel-btn',
             onClick: (_) => onCollapse!(),
+          ),
+        if (isCollapsed && onExpand != null)
+          IconButton(
+            tooltip: 'Show bottom panel',
+            label: 'Show bottom panel',
+            icon: 'expand_more',
+            iconSize: 20,
+            classes: 'bottom-panel-btn bottom-panel-expand-btn',
+            onClick: (_) => onExpand!(),
           ),
       ],
     );
@@ -143,6 +156,7 @@ final class BottomPanelTabs extends StatelessComponent {
       margin: .only(top: 2.px, bottom: 2.px, right: 8.px),
       alignSelf: .center,
     ),
+    css('.bottom-panel-expand-btn > .material-symbols-outlined').styles(transform: .rotate(180.deg)),
   ];
 }
 
