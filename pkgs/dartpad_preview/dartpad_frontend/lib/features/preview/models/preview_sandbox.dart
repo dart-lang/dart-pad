@@ -22,11 +22,8 @@ abstract interface class PreviewSandbox {
   /// Standard console messages emitted by the application.
   Stream<String> get console;
 
-  /// Runtime errors emitted by the application.
+  /// Runtime errors, including unhandled asynchronous errors, emitted by the application.
   Stream<String> get errors;
-
-  /// Unhandled asynchronous errors emitted by the application.
-  Stream<String> get unhandledRejections;
 
   /// Closes the sandbox and releases all associated resources.
   Future<void> close();
@@ -70,11 +67,11 @@ final class IframePreviewSandbox implements PreviewSandbox {
   @override
   Future<({String log})> hotReload() => _sandbox.hotReload();
   @override
-  Stream<String> get console => _sandbox.console;
+  Stream<String> get console =>
+      _sandbox.console.where((event) => event.level != ConsoleLevel.error).map((event) => event.message);
   @override
-  Stream<String> get errors => _sandbox.errors;
-  @override
-  Stream<String> get unhandledRejections => _sandbox.unhandledRejections;
+  Stream<String> get errors =>
+      _sandbox.console.where((event) => event.level == ConsoleLevel.error).map((event) => event.message);
 
   @override
   Future<void> close() => _closing ??= _close();

@@ -139,8 +139,8 @@ void main() {
       final server = await workspace.startLanguageServer().timeout(const Duration(seconds: 30));
       final client = LanguageServerClient(
         languageServer: server,
-        rootWorkspaceUri: workspace.workspaceFolder,
-        editorRootUri: workspace.workspaceFolder,
+        rootWorkspaceUri: Uri.directory(workspace.workspaceFolder),
+        editorRootUri: Uri.directory(workspace.workspaceFolder),
         workspaceChangeEvents: session.repository.workspaceResourceApi.changeEvents,
       );
       session.attachLanguageServer(server: server, client: client);

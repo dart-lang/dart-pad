@@ -36,7 +36,7 @@ void main() {
       expect(await syncedApi.readFileAsText('lib/main.dart'), 'local main');
       expect(await syncedApi.readFileAsBytes('lib/main.dart'), Uint8List.fromList('local main'.codeUnits));
 
-      final list = await syncedApi.listDirectory(uri: 'lib');
+      final list = await syncedApi.listDirectory(path: 'lib');
       expect(list.map((e) => e.path), contains('main.dart'));
 
       remoteApiCompleter.complete(remoteApi);
@@ -371,9 +371,9 @@ final class _DelayedReadWorkspace extends MemoryWorkspaceResourceApi {
   final readResult = Completer<Uint8List>();
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) {
+  Future<Uint8List> readFileAsBytes(String path) {
     if (!delayReads) {
-      return super.readFileAsBytes(uri);
+      return super.readFileAsBytes(path);
     }
     if (!readStarted.isCompleted) {
       readStarted.complete();
@@ -398,11 +398,11 @@ final class _FailingReadWorkspaceResourceApi extends MemoryWorkspaceResourceApi 
   bool failReads = false;
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) {
+  Future<Uint8List> readFileAsBytes(String path) {
     if (failReads) {
       return Future.error(StateError('Reading remote change failed'));
     }
-    return super.readFileAsBytes(uri);
+    return super.readFileAsBytes(path);
   }
 }
 
@@ -412,18 +412,18 @@ final class _FailingWriteWorkspaceResourceApi extends MemoryWorkspaceResourceApi
   bool failWrites;
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) {
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) {
     if (failWrites) {
       return Future.error(StateError('Initial sync failed'));
     }
-    return super.writeFileFromBytes(uri, bytes);
+    return super.writeFileFromBytes(path, bytes);
   }
 
   @override
-  Future<void> writeFileFromText(String uri, String content) {
+  Future<void> writeFileFromText(String path, String content) {
     if (failWrites) {
       return Future.error(StateError('Saving failed'));
     }
-    return super.writeFileFromText(uri, content);
+    return super.writeFileFromText(path, content);
   }
 }

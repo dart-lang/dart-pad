@@ -11,6 +11,10 @@ export class Worker {
 
   session(port) {
     port.onmessage = ({ data }) => {
+      if (data === null) {
+        port.close();
+        return;
+      }
       const request = JSON.parse(data.payload);
       port.postMessage({
         payload: JSON.stringify({

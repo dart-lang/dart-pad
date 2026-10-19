@@ -44,10 +44,10 @@ final class _Workspace implements WorkspaceResourceApi {
   }
 
   @override
-  Future<void> createFolder(String uri) => _delegate.createFolder(uri);
+  Future<void> createFolder(String path) => _delegate.createFolder(path);
 
   @override
-  Future<void> deleteFileSystemEntity(String uri) => _delegate.deleteFileSystemEntity(uri);
+  Future<void> deleteFileSystemEntity(String path) => _delegate.deleteFileSystemEntity(path);
 
   @override
   Future<void> dispose() async {
@@ -56,28 +56,28 @@ final class _Workspace implements WorkspaceResourceApi {
   }
 
   @override
-  Future<bool> fileExist(String uri) => _delegate.fileExist(uri);
+  Future<bool> fileExist(String path) => _delegate.fileExist(path);
 
   @override
-  Future<bool> folderExist(String uri) => _delegate.folderExist(uri);
+  Future<bool> folderExist(String path) => _delegate.folderExist(path);
 
   @override
   Future<List<({String path, String type})>> listDirectory({
-    required String uri,
+    required String path,
     bool recursive = false,
-  }) => _delegate.listDirectory(uri: uri, recursive: recursive);
+  }) => _delegate.listDirectory(path: path, recursive: recursive);
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) => _delegate.readFileAsBytes(uri);
+  Future<Uint8List> readFileAsBytes(String path) => _delegate.readFileAsBytes(path);
 
   @override
-  Future<String> readFileAsText(String uri) => _delegate.readFileAsText(uri);
+  Future<String> readFileAsText(String path) => _delegate.readFileAsText(path);
 
   @override
-  Future<void> writeFileFromBytes(String uri, Uint8List bytes) => _delegate.writeFileFromBytes(uri, bytes);
+  Future<void> writeFileFromBytes(String path, Uint8List bytes) => _delegate.writeFileFromBytes(path, bytes);
 
   @override
-  Future<void> writeFileFromText(String uri, String content) => _delegate.writeFileFromText(uri, content);
+  Future<void> writeFileFromText(String path, String content) => _delegate.writeFileFromText(path, content);
 }
 
 void main() {
@@ -140,7 +140,7 @@ void main() {
     await session.suspendRuntime();
     expect(session.tabs.getTab('lib/main.dart'), same(tab));
     expect(tab.editor, same(editor));
-    expect(editor.view.state, same(state));
+    expect(editor.view.state, equals(state));
     expect(tab.hasUnsavedChanges, isTrue);
     expect(editor.view.state.selection.main.head, 7);
     expect(api.disposeCount, 0);

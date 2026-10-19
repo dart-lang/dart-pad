@@ -243,7 +243,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 });
               },
             ),
-          ...state.root.children.map((child) {
+          ...state.root.children.where((child) => !child.isIgnored).map((child) {
             if (child is FileTreeFolderNode) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),

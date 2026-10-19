@@ -44,6 +44,14 @@ void main() {
     expect(restored.state.sdk.dartVersion, state.sdk.dartVersion);
   });
 
+  test('reserves session ids that count up across connections', () async {
+    expect(await store.reserveSessionId(), 1);
+    final reopened = IndexedDbProjectStore(databaseName: name);
+    addTearDown(reopened.close);
+    expect(await reopened.reserveSessionId(), 2);
+    expect(await store.reserveSessionId(), 3);
+  });
+
   test('updates and removes files within one entry while retaining other projects', () async {
     final first = await store.create(
       savedProject(
@@ -185,14 +193,22 @@ void main() {
     }
   });
 
-  test('query equality preserves repeated value order and includes unknown options', () {
-    final state = savedProject(query: '?sample=counter&file=a&file=b&embed=true');
+  test('query equality includes unknown options and ignores file params', () {
+    final state = savedProject(query: '?sample=counter&embed=true');
+    expect(state.matchesQuery(Uri.parse('?embed=true&sample=counter').queryParametersAll), isTrue);
     expect(state.matchesQuery(Uri.parse('?embed=true&file=a&sample=counter&file=b').queryParametersAll), isTrue);
-    expect(state.matchesQuery(Uri.parse('?sample=counter&file=b&file=a&embed=true').queryParametersAll), isFalse);
-    expect(state.matchesQuery(Uri.parse('?sample=counter&file=a&file=b').queryParametersAll), isFalse);
+    expect(state.matchesQuery(Uri.parse('?sample=counter').queryParametersAll), isFalse);
+    expect(state.matchesQuery(Uri.parse('?sample=flame-game&embed=true').queryParametersAll), isFalse);
+  });
+
+  test('query equality preserves repeated value order', () {
+    final state = savedProject(query: '?sample=counter&tag=a&tag=b&embed=true');
+    expect(state.matchesQuery(Uri.parse('?embed=true&tag=a&sample=counter&tag=b').queryParametersAll), isTrue);
+    expect(state.matchesQuery(Uri.parse('?sample=counter&tag=b&tag=a&embed=true').queryParametersAll), isFalse);
+    expect(state.matchesQuery(Uri.parse('?sample=counter&tag=a&tag=b').queryParametersAll), isFalse);
     expect(savedProject(query: '?id=a%20b').matchesQuery(Uri.parse('?id=a+b').queryParametersAll), isTrue);
     expect(
-      state.matchesQuery(Uri.parse('?sample=counter&file=a&file=b&embed=true&theme=dark').queryParametersAll),
+      state.matchesQuery(Uri.parse('?sample=counter&tag=a&tag=b&file=c&embed=true&theme=dark').queryParametersAll),
       isTrue,
     );
     expect(
@@ -201,6 +217,19 @@ void main() {
       ).matchesQuery(Uri.parse('?theme=dark&sample=counter').queryParametersAll),
       isTrue,
     );
+  });
+
+  test('restored tabs append requested file params the snapshot did not open', () {
+    final state = savedProject(
+      query: '?sample=counter',
+      files: {
+        'lib/main.dart': Uint8List.fromList(utf8.encode('void main() {}')),
+        'README.md': Uint8List.fromList(utf8.encode('# readme')),
+      },
+    );
+    // Readme not in the initial snapshot, main.dart is, and missing.dart should not resolve
+    final restored = state.restoredTabs(['README.md', 'lib/main.dart', 'missing.dart']);
+    expect(restored.map((tab) => tab.path), ['lib/main.dart', 'README.md']);
   });
 
   test('restoring tolerates invalid pubspec and renamed URL entrypoint', () {

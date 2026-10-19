@@ -235,7 +235,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             },
           },
           [
-            if (component.node.children.isNotEmpty) Icon(_isCollapsed ? 'chevron_right' : 'expand_more', size: 16),
+            if (component.node.children.any((child) => !child.isIgnored))
+              Icon(_isCollapsed ? 'chevron_right' : 'expand_more', size: 16),
           ],
         ),
         const FileIcon(
@@ -282,7 +283,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onConfirm: component.onConfirmCreate,
                 onCancel: component.onCancelCreate,
               ),
-            ...component.node.children.whereType<FileTreeFolderNode>().map((child) {
+            ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),
                 node: child,
@@ -319,7 +320,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onConfirm: component.onConfirmCreate,
                 onCancel: component.onCancelCreate,
               ),
-            ...component.node.children.whereType<FileTreeFileNode>().map((child) {
+            ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFileItem(
                 key: ValueKey('file-${child.resource.path}'),
                 node: child,

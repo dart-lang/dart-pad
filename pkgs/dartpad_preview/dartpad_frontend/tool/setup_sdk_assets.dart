@@ -5,86 +5,94 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
+import 'package:process/process.dart';
 
-// Pin runtime sources independently of the dartpad client package. Update these
-// revisions intentionally and regenerate lib/sdks.g.dart when upgrading SDKs.
-// These specific revisions are not required by dartpad 0.0.10.
+// Temporarily retain Dart 3.15.0-27.0.dev: newer workers access Platform.version
+// while starting the analysis server, which is unsupported in the browser.
+const flutterRevision = 'e81f444cc0835365bda671876183e3f9cd149925';
 
-// Selected on 2026-09-25 from the official Dart archive's latest main build:
-// https://storage.googleapis.com/dart-archive/channels/main/raw/latest/VERSION
-// Downloads the prebuilt DartPad assets for this exact Dart SDK revision.
-const _dartRevision = 'e686006ff5b0b3c31731f158a74d1a09ee75b15b';
+Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
-// Selected on 2026-09-25 from the Flutter repository's main/master HEAD using
-// `git ls-remote https://github.com/flutter/flutter.git`.
-// Builds Flutter assets from this checkout using its own matching Dart SDK,
-// independently of _dartRevision above. Displayed SDK versions are extracted
-// from the generated sdk.tar files when writing lib/sdks.g.dart.
-const _flutterRevision = 'afde83da30bcbf7f35a90dba132c92aee8111eb8';
+/// Prepares SDK assets using a single process manager for all external commands.
+class SdkAssetSetup {
+  const SdkAssetSetup({this._processManager = const LocalProcessManager()});
 
-Future<void> main() async {
-  final frontendRoot = Directory.fromUri(Platform.script.resolve('..'));
-  final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
-  final stagingDir = await Directory.systemTemp.createTemp('dartpad_assets_');
-  final assets = Directory(p.join(stagingDir.path, 'assets'));
+  final ProcessManager _processManager;
 
-  try {
-    await _run(Platform.resolvedExecutable, [
-      'run',
-      'dartpad',
-      'setup',
-      'dart',
-      '--channel=main',
-      '--revision=$_dartRevision',
-      '--output=${p.join(assets.path, 'dart')}',
-    ], frontendRoot.path);
+  Future<void> setup(Directory frontendRoot) async {
+    final targetAssetDir = Directory(p.join(frontendRoot.path, 'web', 'dartpad'));
+    final stagingDir = await Directory.systemTemp.createTemp('dartpad_assets_');
+    final assets = Directory(p.join(stagingDir.path, 'assets'));
 
-    // Build Flutter assets from a pinned checkout, independently of the Flutter
-    // installation used to build the frontend or available on the developer's PATH.
-    final flutterRoot = p.join(stagingDir.path, 'flutter');
-    // Flutter derives its version from Git tags and history. A depth=1 fetch
-    // of an untagged revision reports 0.0.0-unknown and breaks pub resolution.
+    try {
+      // Download the latest Dart beta bundle independently of Flutter's Dart SDK.
+      await _run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        'dart',
+        '--channel=beta',
+        '--output=${p.join(assets.path, 'dart')}',
+      ], frontendRoot.path);
+
+      final flutterRoot = await checkoutFlutterSdk(stagingDir);
+      await _run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        'flutter',
+        '--flutter-root=${flutterRoot.path}',
+        // Build matching web SDK sources instead of relying on Flutter's
+        // prebuilt DDC bundle layout, which changes between Flutter revisions.
+        '--web-sdk=build',
+        '--output=${p.join(assets.path, 'flutter')}',
+      ], frontendRoot.path);
+
+      // Validate both bundles before replacing the existing assets.
+      final sdkManifest = await generateSdkManifest(assets, requireFlutter: true);
+      if (targetAssetDir.existsSync()) {
+        await targetAssetDir.delete(recursive: true);
+      }
+      await _copyDirectory(assets, targetAssetDir);
+      final manifestFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
+      await manifestFile.writeAsString(sdkManifest);
+      stdout.writeln('Generated ${manifestFile.path}');
+      stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
+    } finally {
+      await stagingDir.delete(recursive: true);
+    }
+  }
+
+  Future<void> _run(String executable, List<String> arguments, String workingDirectory) async {
+    final process = await _processManager.start(
+      [executable, ...arguments],
+      workingDirectory: workingDirectory,
+      mode: ProcessStartMode.inheritStdio,
+    );
+    final result = await process.exitCode;
+    if (result != 0) {
+      throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
+    }
+  }
+
+  /// Checks out the pinned Flutter revision with the history needed to determine its version.
+  Future<Directory> checkoutFlutterSdk(Directory stagingDir) async {
+    final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
     await _run('git', [
       'clone',
+      // Flutter's version fallback needs release tags from other branches and
+      // their common ancestors with master, so retain all commit history.
       '--filter=blob:none',
+      '--branch=master',
+      // TODO: Remove --no-checkout once the browser worker regression is fixed.
       '--no-checkout',
       'https://github.com/flutter/flutter.git',
-      flutterRoot,
-    ], frontendRoot.path);
-    await _run('git', ['checkout', '--detach', _flutterRevision], flutterRoot);
-    await _run(Platform.resolvedExecutable, [
-      'run',
-      'dartpad',
-      'setup',
-      'flutter',
-      '--flutter-root=$flutterRoot',
-      '--output=${p.join(assets.path, 'flutter')}',
-    ], frontendRoot.path);
-
-    // Keep the existing assets until both SDKs have been generated successfully.
-    if (targetAssetDir.existsSync()) {
-      await targetAssetDir.delete(recursive: true);
-    }
-    await _copyDirectory(assets, targetAssetDir);
-    await _writeSdkManifest(targetAssetDir, frontendRoot);
-    stdout.writeln('Successfully generated DartPad assets at ${targetAssetDir.path}');
-  } finally {
-    await stagingDir.delete(recursive: true);
-  }
-}
-
-Future<void> _run(String executable, List<String> arguments, String workingDirectory) async {
-  final process = await Process.start(
-    executable,
-    arguments,
-    workingDirectory: workingDirectory,
-    mode: ProcessStartMode.inheritStdio,
-  );
-  final result = await process.exitCode;
-  if (result != 0) {
-    throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
+      flutterRoot.path,
+    ], stagingDir.path);
+    // TODO: Remove this checkout and flutterRevision once the browser worker regression is fixed.
+    await _run('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
+    return flutterRoot;
   }
 }
 
@@ -100,45 +108,24 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
   }
 }
 
-Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) async {
+/// Requires Dart and, when requested, Flutter metadata before generating the manifest.
+Future<String> generateSdkManifest(Directory assetRoot, {bool requireFlutter = true}) async {
   final sdks = <Map<String, dynamic>>[];
-
-  final entries = await assetRoot.list(recursive: false).toList();
-  // Sort so flutter comes first by default, then dart, then others
-  entries.sort((a, b) {
-    if (p.basename(a.path) == 'flutter') {
-      return -1;
-    }
-    if (p.basename(b.path) == 'flutter') {
-      return 1;
-    }
-    return a.path.compareTo(b.path);
-  });
-
-  for (final entity in entries) {
-    if (entity is Directory) {
-      final sdkId = p.basename(entity.path);
-      final versions = await _readSdkVersions(entity);
-      if (versions != null) {
-        final dartVersion = versions['dartVersion'] as String?;
-        final flutterVersion = versions['flutterVersion'] as String?;
-        if (dartVersion != null) {
-          final isFlutter = flutterVersion != null;
-          sdks.add({
-            'id': sdkId,
-            'name': isFlutter ? 'Flutter' : 'Dart',
-            'path': 'dartpad/$sdkId/',
-            'dartVersion': dartVersion,
-            'flutterVersion': ?flutterVersion,
-          });
-        }
-      }
-    }
+  // Validate the expected bundles explicitly, including directories that are
+  // entirely missing. Keep Flutter first as the default when it is requested.
+  for (final sdkId in [if (requireFlutter) 'flutter', 'dart']) {
+    final isFlutter = sdkId == 'flutter';
+    final versions = await readSdkVersions(Directory(p.join(assetRoot.path, sdkId)), isFlutter: isFlutter);
+    sdks.add({
+      'id': sdkId,
+      'name': isFlutter ? 'Flutter' : 'Dart',
+      'path': 'dartpad/$sdkId/',
+      'dartVersion': versions.dartVersion,
+      'flutterVersion': ?versions.flutterVersion,
+    });
   }
 
-  final defaultSdkId = sdks.any((s) => s['id'] == 'flutter')
-      ? 'flutter'
-      : (sdks.isNotEmpty ? sdks.first['id'] as String : 'default');
+  final defaultSdkId = requireFlutter ? 'flutter' : 'dart';
 
   final buffer = StringBuffer()
     ..writeln('// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file')
@@ -173,69 +160,50 @@ Future<void> _writeSdkManifest(Directory assetRoot, Directory frontendRoot) asyn
   buffer.writeln('  orElse: () => availableSdks.first,');
   buffer.writeln(');');
 
-  final targetFile = File(p.join(frontendRoot.path, 'lib', 'sdks.g.dart'));
-  await targetFile.writeAsString(buffer.toString());
-  stdout.writeln('Generated ${targetFile.path}');
-
-  // Remove any legacy sdks.g.dart in features/shared/ if present
-  final oldGeneratedFile = File(p.join(frontendRoot.path, 'lib', 'features', 'shared', 'sdks.g.dart'));
-  if (oldGeneratedFile.existsSync()) {
-    oldGeneratedFile.deleteSync();
-  }
-
-  // Remove any legacy sdks.json if present
-  final legacyJson = File(p.join(assetRoot.path, 'sdks.json'));
-  if (legacyJson.existsSync()) {
-    legacyJson.deleteSync();
-  }
+  return buffer.toString();
 }
 
-Future<Map<String, dynamic>?> _readSdkVersions(Directory sdkDir) async {
-  final sdkTarFile = File(p.join(sdkDir.path, 'sdk.tar'));
-  if (!sdkTarFile.existsSync()) {
-    return null;
-  }
+/// Reads and validates bundle metadata, preserving DartPad's version display format.
+Future<({String dartVersion, String? flutterVersion})> readSdkVersions(
+  Directory sdkDir, {
+  required bool isFlutter,
+}) async {
+  final versionFile = File(p.join(sdkDir.path, 'version.json'));
   try {
-    final archiveBytes = await sdkTarFile.readAsBytes();
-    final archive = TarDecoder().decodeBytes(archiveBytes);
-
-    ArchiveFile? findFile(bool Function(ArchiveFile file) predicate) {
-      for (final file in archive.files) {
-        if (predicate(file)) {
-          return file;
-        }
-      }
-      return null;
+    final metadata = jsonDecode(await versionFile.readAsString());
+    if (metadata is! Map<String, dynamic>) {
+      throw const FormatException('Expected a JSON object');
     }
 
-    final flutterVersionFile = findFile(
-      (f) => f.name.endsWith('flutter.version.json'),
-    );
-
-    if (flutterVersionFile != null) {
-      final json = jsonDecode(utf8.decode(flutterVersionFile.content)) as Map<String, dynamic>;
-      final dartVersion = (json['dartSdkVersion'] ?? json['dartVersion']) as String?;
-      final flutterVersion = (json['flutterVersion'] ?? json['frameworkVersion']) as String?;
-      return {
-        'dartVersion': ?dartVersion,
-        'flutterVersion': ?flutterVersion,
-      };
+    final dartVersion = metadata['dartVersion'];
+    if (dartVersion is! String || dartVersion.trim().isEmpty) {
+      throw const FormatException('Expected a non-empty dartVersion');
     }
 
-    final dartVersionFile = findFile(
-      (f) => f.name == 'sdk/version' || f.name == '/sdk/version',
-    );
-
-    if (dartVersionFile != null) {
-      final dartVersion = utf8.decode(dartVersionFile.content).trim();
-      return {
-        'dartVersion': dartVersion,
-      };
+    final properties = metadata['properties'];
+    if (properties is! Map<String, dynamic>) {
+      throw const FormatException('Expected a properties object');
+    }
+    final flutterVersion = properties['flutterVersion'];
+    // A Flutter bundle must identify its Flutter SDK in addition to its Dart SDK.
+    if (isFlutter && flutterVersion == null) {
+      throw const FormatException('Expected a non-empty properties.flutterVersion');
+    }
+    if (flutterVersion != null && (flutterVersion is! String || flutterVersion.trim().isEmpty)) {
+      throw const FormatException('Expected a non-empty properties.flutterVersion');
     }
 
-    return null;
-  } catch (e) {
-    stdout.writeln('Warning: Failed to read SDK versions for ${sdkDir.path}: $e');
-    return null;
+    // version.json contains the raw Dart version: X.Y.Z or X.Y.Z-<prerelease>.
+    // The first '-' separates the core version from the prerelease suffix.
+    // Preserve Flutter's previous display, e.g. 3.15.0-27.0.dev becomes
+    // "3.15.0 (build 3.15.0-27.0.dev)". Dart-only versions stay verbatim.
+    final displayDartVersion = flutterVersion != null && dartVersion.contains('-')
+        ? '${dartVersion.split('-').first} (build $dartVersion)'
+        : dartVersion;
+    return (dartVersion: displayDartVersion, flutterVersion: flutterVersion as String?);
+  } on FileSystemException catch (error) {
+    throw StateError('Could not read SDK metadata at ${versionFile.path}: ${error.message}');
+  } on FormatException catch (error) {
+    throw StateError('Invalid SDK metadata at ${versionFile.path}: ${error.message}');
   }
 }

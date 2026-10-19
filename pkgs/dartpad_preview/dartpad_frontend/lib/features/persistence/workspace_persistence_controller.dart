@@ -18,6 +18,7 @@ final class WorkspacePersistenceController {
     required this.session,
     required this.store,
     this._projectId,
+    this.sessionId,
     required this.onError,
     this.debounce = const Duration(milliseconds: 300),
     this.maxDelay = const Duration(seconds: 1),
@@ -39,6 +40,7 @@ final class WorkspacePersistenceController {
 
   final WorkspaceSession session;
   final ProjectStore store;
+  final int? sessionId;
   String? _projectId;
   String? get projectId => _projectId;
   final void Function(Object error) onError;
@@ -129,7 +131,7 @@ final class WorkspacePersistenceController {
 
   Future<PersistedProjectState> _capture() async {
     final api = session.repository.workspaceResourceApi;
-    final resources = await api.listDirectory(uri: '', recursive: true);
+    final resources = await api.listDirectory(path: '', recursive: true);
     final files = <String, Uint8List>{};
     final folders = <String>[];
     for (final resource in resources) {
@@ -156,6 +158,7 @@ final class WorkspacePersistenceController {
       activeFile: session.tabs.activeFile,
       files: files,
       folders: folders,
+      sessionId: sessionId,
     );
   }
 

@@ -26,7 +26,6 @@ import 'features/persistence/persistence_notice_banner.dart';
 import 'features/persistence/project_persistence_controller.dart';
 import 'features/persistence/project_persistence_state.dart';
 import 'features/persistence/project_store.dart';
-import 'features/persistence/restore_last_project_button.dart';
 import 'features/preview/models/device_mode.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
@@ -97,9 +96,6 @@ final class _AppState extends State<App> {
 
   late final ProjectPersistenceController _persistence;
 
-  /// Request used to open the current project, including its original query.
-  Uri _projectUri = Uri();
-
   bool _isLargeScreen = true;
 
   /// Owns the workspace currently rendered and its worker resources.
@@ -161,7 +157,6 @@ final class _AppState extends State<App> {
     _persistence = ProjectPersistenceController(
       enabled: !_isEmbedMode,
       store: component.projectStore,
-      restoreProject: (id) => _loadProject(_projectUri, restoreProjectId: id),
     )..addListener(_onPersistenceChanged);
     _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
     _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
@@ -174,10 +169,9 @@ final class _AppState extends State<App> {
 
   /// Opens either the URL's source or a saved project, including subsequent
   /// project switches. Only the latest load may replace the visible session.
-  Future<void> _loadProject(Uri uri, {bool startFresh = false, String? restoreProjectId}) async {
+  Future<void> _loadProject(Uri uri, {bool startFresh = false}) async {
     final generation = ++_loadGeneration;
     setState(() {
-      _projectUri = uri;
       _isInitializingWorkspace = true;
       _workspacePreparationFailure = null;
       _failedRestoreUri = null;
@@ -188,8 +182,6 @@ final class _AppState extends State<App> {
         final request = ProjectRequest.fromUri(uri);
         final previous = _activeSession;
         try {
-          // A restore click can arrive while the blur-triggered Save is still
-          // formatting. Keep persistence attached until that Save finishes.
           await previous?.tabs.saveAllTabs();
         } catch (_) {
           if (_isCurrentLoad(generation)) {
@@ -201,32 +193,26 @@ final class _AppState extends State<App> {
         if (!_isCurrentLoad(generation)) {
           return;
         }
-        final strategy = await _persistence.prepareLoad(
-          request,
-          startFresh: startFresh,
-          restoreProjectId: restoreProjectId,
-        );
+        final strategy = await _persistence.prepareLoad(request, startFresh: startFresh);
         loadStrategy = strategy;
         if (!_isCurrentLoad(generation)) {
           return;
         }
+        if (strategy.mintedSessionId case final id?) {
+          _writeSessionIdToUrl(uri, id);
+        }
         final project = switch (strategy.restoreProjectId) {
-          final id? => await _loadSavedProject(id),
+          final id? => await _loadSavedProject(id, request),
           null => await _loadProjectFromSource(request),
         };
         if (!_isCurrentLoad(generation)) {
           return;
         }
-        await _openProject(project, generation: generation, restoreCandidateId: strategy.offerProjectId);
+        await _openProject(project, generation: generation);
       }, blocksPreview: true);
     } catch (error) {
       if (_isCurrentLoad(generation)) {
-        _showProjectLoadFailure(
-          error,
-          uri: uri,
-          restoring: restoreProjectId != null || loadStrategy?.restoreProjectId != null,
-          restoreCandidateId: loadStrategy?.offerProjectId,
-        );
+        _showProjectLoadFailure(error, uri: uri, restoring: loadStrategy?.restoreProjectId != null);
       }
     }
   }
@@ -236,14 +222,16 @@ final class _AppState extends State<App> {
   Future<_LoadedProject> _loadProjectFromSource(ProjectRequest request) async {
     final contents = await component.loadSource(request.source);
     return _LoadedProject(
+      request: request,
       initialState: InitialProjectState.resolve(request, contents, availableSdks),
       contents: contents,
     );
   }
 
-  Future<_LoadedProject> _loadSavedProject(String id) async {
+  Future<_LoadedProject> _loadSavedProject(String id, ProjectRequest request) async {
     final saved = await _persistence.read(id);
     return _LoadedProject(
+      request: request,
       initialState: saved.state.initialProject(availableSdks),
       contents: saved.state.project,
       saved: saved,
@@ -252,7 +240,7 @@ final class _AppState extends State<App> {
 
   /// Imports files before creating worker resources. Until a session takes
   /// ownership, this method also cleans up cancelled or failed imports.
-  Future<void> _openProject(_LoadedProject project, {required int generation, String? restoreCandidateId}) async {
+  Future<void> _openProject(_LoadedProject project, {required int generation}) async {
     final localApi = MemoryWorkspaceResourceApi();
     WorkspaceSession? session;
     try {
@@ -262,19 +250,19 @@ final class _AppState extends State<App> {
         return;
       }
       session = _replaceWorkspaceSession(project.initialState, localApi: localApi, generation: generation);
+      for (final warning in project.contents.importWarnings) {
+        session.events.dispatch(LogEvent(warning, level: Level.WARNING));
+      }
       if (snapshot != null) {
         _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }
       unawaited(
         _initializeWorkspace(
           session,
-          tabs: snapshot?.tabs
-              .where((tab) => tab.origin == EditorTabOrigin.system || snapshot.files.containsKey(tab.path))
-              .toList(),
+          tabs: snapshot?.restoredTabs(project.request.files),
           activeFile: snapshot?.activeFile,
           restoring: snapshot != null,
           projectId: project.saved?.id,
-          restoreCandidateId: restoreCandidateId,
         ),
       );
     } finally {
@@ -322,7 +310,7 @@ final class _AppState extends State<App> {
     return session;
   }
 
-  void _showProjectLoadFailure(Object error, {required Uri uri, required bool restoring, String? restoreCandidateId}) {
+  void _showProjectLoadFailure(Object error, {required Uri uri, required bool restoring}) {
     final oldSession = _activeSession;
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     setState(() {
@@ -334,9 +322,6 @@ final class _AppState extends State<App> {
     });
     if (oldSession != null) {
       disposeAfterWorkspaceUnmount(context, oldSession.dispose);
-    }
-    if (!restoring && restoreCandidateId != null) {
-      _persistence.offerRestore(restoreCandidateId);
     }
   }
 
@@ -473,7 +458,6 @@ final class _AppState extends State<App> {
     String? activeFile,
     bool restoring = false,
     String? projectId,
-    String? restoreCandidateId,
   }) async {
     try {
       await session.openProjectFiles(restoredTabs: tabs, activeFile: activeFile, continueOnTabOpenError: restoring);
@@ -492,9 +476,6 @@ final class _AppState extends State<App> {
       await _persistence.flush();
       if (!_isCurrent(session)) {
         return;
-      }
-      if (restoreCandidateId != null) {
-        _persistence.offerRestore(restoreCandidateId);
       }
       final workspace = await session.repository.readyWorkspace;
       if (!_isCurrent(session)) {
@@ -580,11 +561,11 @@ final class _AppState extends State<App> {
       session.analyzerStatus.beginInitialization();
       final languageServer = await workspace.startLanguageServer();
       if (!_isCurrentRuntime(session, generation)) {
-        await languageServer.stop();
+        await languageServer.close();
         return;
       }
 
-      final rootWorkspaceUri = workspace.workspaceFolder;
+      final rootWorkspaceUri = Uri.directory(workspace.workspaceFolder);
       final editorRootUri = resolveEditorRootUri(
         rootWorkspaceUri,
         packageRoot,
@@ -623,7 +604,7 @@ final class _AppState extends State<App> {
       );
       if (!_isCurrentRuntime(session, generation)) {
         await languageServerClient.dispose();
-        await languageServer.stop();
+        await languageServer.close();
         return;
       }
 
@@ -646,6 +627,14 @@ final class _AppState extends State<App> {
         ),
       );
     }
+  }
+
+  /// Reflects a freshly minted session id in the address bar without pushing a
+  /// new history entry, so back navigation does not land on the bare URL.
+  void _writeSessionIdToUrl(Uri uri, int sessionId) {
+    final query = {...uri.queryParametersAll, sessionIdQueryParameter: '$sessionId'};
+    final search = Uri(queryParameters: query).query;
+    web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }
 
   void _resetWorkspace(ProjectRequest request) {
@@ -724,17 +713,6 @@ final class _AppState extends State<App> {
   @override
   Component build(BuildContext context) => _buildWorkspace(context);
 
-  Component? get _restoreAction {
-    final offer = _persistence.restoreOffer;
-    return offer == null
-        ? null
-        : RestoreLastProjectButton(
-            key: ValueKey(offer.projectId),
-            onRestore: () => unawaited(_persistence.restoreLastProject()),
-            onCancel: () => _persistence.dismissRestoreOffer(),
-          );
-  }
-
   TaskStatusController get _activeTaskStatus {
     final session = _activeSession;
     if (session == null || _loadingTasks.current?.isRunning == true) {
@@ -753,7 +731,6 @@ final class _AppState extends State<App> {
           if (!_isEmbedMode)
             AppBar(
               isSmallScreen: !_isLargeScreen,
-              restoreAction: _restoreAction,
               onSelectExample: _isInitializingWorkspace
                   ? null
                   : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
@@ -801,7 +778,6 @@ final class _AppState extends State<App> {
         if (!_isEmbedMode || !_isLargeScreen)
           AppBar(
             isSmallScreen: !_isLargeScreen,
-            restoreAction: _restoreAction,
             onSelectExample: _isInitializingWorkspace
                 ? null
                 : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
@@ -1052,7 +1028,6 @@ final class _AppState extends State<App> {
   }
 
   static List<StyleRule> get styles => [
-    ...RestoreLastProjectButton.styles,
     css('.restore-project-failure').styles(padding: .all(28.px)),
     css('.restore-project-failure button').styles(
       padding: .symmetric(vertical: 10.px, horizontal: 16.px),
@@ -1092,9 +1067,17 @@ final class _AppState extends State<App> {
 
 /// Source contents and resolved startup options, before workspace creation.
 /// A saved entry additionally supplies its identity and previous editor tabs.
+/// [request] is the URL that opened the project, which can differ from the
+/// saved query in `file` params.
 final class _LoadedProject {
-  const _LoadedProject({required this.initialState, required this.contents, this.saved});
+  const _LoadedProject({
+    required this.request,
+    required this.initialState,
+    required this.contents,
+    this.saved,
+  });
 
+  final ProjectRequest request;
   final InitialProjectState initialState;
   final Project contents;
   final StoredProject? saved;

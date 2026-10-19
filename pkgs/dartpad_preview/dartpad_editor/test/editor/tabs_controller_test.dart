@@ -33,13 +33,13 @@ class FakeWorkspaceApi with WorkspaceResourceEventsMixin implements WorkspaceRes
   void removeFile(String path) => _existingFiles.remove(path);
 
   @override
-  Future<bool> fileExist(String uri) async {
+  Future<bool> fileExist(String path) async {
     await fileExistGate?.future;
-    return _existingFiles.contains(uri);
+    return _existingFiles.contains(path);
   }
 
   @override
-  Future<bool> folderExist(String uri) async => false;
+  Future<bool> folderExist(String path) async => false;
 
   /// Closes the file-change stream.
   void close() {
@@ -251,13 +251,13 @@ void main() {
 
   Future<void> emitWorkspaceEvent(Map<String, String> event) async {
     final delivered = workspace.changeEvents.first;
-    final uri = Uri.parse(event['path']!);
+    final eventPath = event['path']!;
     if (event['type'] == 'add') {
-      workspace._changesController.add(FileAddedEvent(uri));
+      workspace._changesController.add(FileAddedEvent(eventPath));
     } else if (event['type'] == 'remove') {
-      workspace._changesController.add(FileRemovedEvent(uri));
+      workspace._changesController.add(FileRemovedEvent(eventPath));
     } else if (event['type'] == 'modify') {
-      workspace._changesController.add(FileModifiedEvent(uri));
+      workspace._changesController.add(FileModifiedEvent(eventPath));
     }
     await delivered;
   }

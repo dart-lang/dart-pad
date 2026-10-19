@@ -20,6 +20,17 @@ extension ColorHighlight on Color {
   }
 }
 
+final colorTabActive = ColorToken(
+  'tab-active',
+  const Color('#FFFFFF'),
+  dark: colorSurface.highlight(colorOnSurface, 0.1),
+);
+final colorTabInactive = ColorToken(
+  'tab-inactive',
+  colorContainer.highlight(colorOnContainer, 0.1),
+  dark: colorContainer,
+);
+
 final colorError = const ColorToken('error', Color('#F44336'));
 final colorErrorSurface = const ColorToken('error-surface', Color('#FFEBE9'), dark: Color('#351f1f'));
 final colorWarning = const ColorToken('warning', Color('#FBC02C'), dark: Color('#FFEB3A'));
@@ -91,6 +102,8 @@ List<StyleRule> get appStyles => [
     colorOnSurface,
     colorContainer,
     colorOnContainer,
+    colorTabActive,
+    colorTabInactive,
     colorError,
     colorErrorSurface,
     colorWarning,

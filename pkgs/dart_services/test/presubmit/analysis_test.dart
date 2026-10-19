@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dart_services/src/analysis.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dartpad_shared/model.dart' as api;
@@ -84,6 +86,81 @@ void main() {
       expect(results.issues, hasLength(1));
       final issue = results.issues.first;
       expect(issue.message, contains('is not supported by DartPad'));
+    });
+
+    test('Error on local imports', () async {
+      final results = await analysisServer.analyze('''
+import 'foo.dart';
+import 'package:flutter/../foo.dart';
+
+void main() {}
+''');
+
+      expect(results.issues, hasLength(2));
+      for (final issue in results.issues) {
+        expect(issue.kind, 'error');
+        expect(issue.message, 'Import type not supported.');
+      }
+      expect(results.imports, isEmpty);
+    });
+
+    test('Error on unsupported export and part directives', () async {
+      final results = await analysisServer.analyze('''
+export 'foo.dart';
+part 'bar.dart';
+
+void main() {}
+''');
+
+      expect(results.issues, hasLength(2));
+      for (final issue in results.issues) {
+        expect(issue.kind, 'error');
+        expect(issue.message, 'Directive not supported.');
+      }
+    });
+
+    test('Allows package exports and conditional imports', () async {
+      final results = await analysisServer.analyze('''
+import 'package:flutter/material.dart'
+    if (dart.library.io) 'package:flutter/cupertino.dart';
+export 'package:flutter/material.dart';
+
+void main() => runApp(const Text('x'));
+''');
+
+      expect(results.issues, isEmpty);
+      expect(results.imports, ['package:flutter/material.dart']);
+    });
+
+    test('Completes partial package URIs', () async {
+      const testCode = "import 'package:';\nvoid main() {}\n";
+      final results = await analysisServer.complete(
+        testCode,
+        testCode.indexOf("';"),
+      );
+      final completions = results.suggestions.map((s) => s.completion);
+      expect(completions, isNotEmpty);
+      expect(completions, everyElement(startsWith('package:')));
+      expect(completions, contains('package:animations/'));
+    });
+
+    test('Ignores unsupported documentation imports', () async {
+      final directory = Directory.systemTemp.createTempSync('dartpad_test');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      File('${directory.path}/other.dart')
+          .writeAsStringSync('/// Other docs.\nvoid otherFunction() {}\n');
+      final testCode =
+          "/// @docImport 'file://${directory.path}/other.dart';\n"
+          'library;\n\n'
+          '/// See [otherFunction].\n'
+          'void main() {}\n';
+
+      final results = await analysisServer.dartdoc(
+        testCode,
+        testCode.indexOf('otherFunction'),
+      );
+      expect(results.dartdoc, isNull);
+      expect(results.elementDescription, isNull);
     });
 
     test('import_dart_core_test', () async {

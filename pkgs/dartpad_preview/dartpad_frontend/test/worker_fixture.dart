@@ -24,5 +24,5 @@ final class TestWorker {
     return TestWorker._(await DartPadSdk(assetBaseUrl: _assetBaseUrl).dedicatedWorker());
   }
 
-  Future<void> dispose() => dartpad.dispose();
+  Future<void> dispose() => dartpad.close();
 }

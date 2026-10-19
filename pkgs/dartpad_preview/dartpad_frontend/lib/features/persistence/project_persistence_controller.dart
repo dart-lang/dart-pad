@@ -15,7 +15,7 @@ import 'project_persistence_state.dart';
 import 'project_store.dart';
 import 'workspace_persistence_controller.dart';
 
-/// Coordinates history, restore offers and autosave for one browser tab.
+/// Coordinates history and autosave for one browser tab.
 ///
 /// The app owns project loading and session replacement. This controller owns
 /// the store and attaches a [WorkspacePersistenceController] to each session
@@ -23,7 +23,6 @@ import 'workspace_persistence_controller.dart';
 final class ProjectPersistenceController extends ChangeNotifier {
   ProjectPersistenceController({
     required bool enabled,
-    required this._restoreProject,
     ProjectStore? store,
   }) : _store = enabled ? store ?? IndexedDbProjectStore() : null,
        _available = enabled {
@@ -43,7 +42,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
   }
 
   final ProjectStore? _store;
-  final Future<void> Function(String projectId) _restoreProject;
 
   bool _available;
   bool _disposed = false;
@@ -54,38 +52,71 @@ final class ProjectPersistenceController extends ChangeNotifier {
   String? _projectId;
   String? get projectId => _autosave?.projectId ?? _projectId;
 
+  /// Session id of the tab's current project, set by [prepareLoad].
+  int? _sessionId;
+
   PersistenceNotice? _notice;
   PersistenceNotice? get notice => _notice;
 
-  ProjectRestoreOffer? _restoreOffer;
-  ProjectRestoreOffer? get restoreOffer => _restoreOffer;
   StreamSubscription<web.Event>? _visibilitySubscription;
   StreamSubscription<web.Event>? _pageHideSubscription;
 
   /// Stops the previous session before inspecting history. The caller checks
   /// its load generation before opening the selected project.
-  Future<PersistenceLoadStrategy> prepareLoad(
-    ProjectRequest request, {
-    bool startFresh = false,
-    String? restoreProjectId,
-  }) async {
-    _clearRestoreOffer();
-    _notify();
+  Future<PersistenceLoadStrategy> prepareLoad(ProjectRequest request, {bool startFresh = false}) async {
     await stop();
     final history = await _readHistory();
-    if (restoreProjectId != null) {
-      return PersistenceLoadStrategy(restoreProjectId: restoreProjectId);
+    _sessionId = null;
+    if (request.isSourcedRequest) {
+      return _resolveSourcedRequest(request, history, startFresh: startFresh);
     }
-    if (startFresh) {
-      return const PersistenceLoadStrategy();
+    return _resolveBareRequest(history, startFresh: startFresh);
+  }
+
+  /// A bare URL always selects the single scratch project.
+  PersistenceLoadStrategy _resolveBareRequest(List<StoredProject> history, {required bool startFresh}) {
+    final scratch = startFresh ? null : history.where((entry) => entry.state.isBareScratch).firstOrNull;
+    return PersistenceLoadStrategy(restoreProjectId: scratch?.id);
+  }
+
+  /// Restores the entry saved under the requested session id.
+  /// Otherwise, given no or an unknown id loads the source under a newly minted id.
+  Future<PersistenceLoadStrategy> _resolveSourcedRequest(
+    ProjectRequest request,
+    List<StoredProject> history, {
+    required bool startFresh,
+  }) async {
+    final requested = _requestedSessionId(request);
+    if (!startFresh && requested != null) {
+      final match = history
+          .where((entry) => entry.state.sessionId == requested && entry.state.matchesQuery(request.query))
+          .firstOrNull;
+      if (match != null) {
+        _sessionId = requested;
+        return PersistenceLoadStrategy(restoreProjectId: match.id);
+      }
     }
-    // A theme-only URL changes presentation, not the selected project.
-    if (request.query.keys.every((key) => key == 'theme')) {
-      return PersistenceLoadStrategy(restoreProjectId: history.firstOrNull?.id);
+    final minted = await _reserveSessionId();
+    _sessionId = minted;
+    return PersistenceLoadStrategy(mintedSessionId: minted);
+  }
+
+  int? _requestedSessionId(ProjectRequest request) =>
+      int.tryParse(request.query[sessionIdQueryParameter]?.firstOrNull ?? '');
+
+  /// Returns null when storage is unavailable, leaving the URL without a session id.
+  Future<int?> _reserveSessionId() async {
+    if (!_available || _disposed) {
+      return null;
     }
-    return PersistenceLoadStrategy(
-      offerProjectId: history.where((entry) => entry.state.matchesQuery(request.query)).firstOrNull?.id,
-    );
+    try {
+      return await _store!.reserveSessionId();
+    } catch (_) {
+      _available = false;
+      _notice = const ProjectHistoryUnavailable();
+      _notify();
+      return null;
+    }
   }
 
   Future<List<StoredProject>> _readHistory() async {
@@ -105,6 +136,9 @@ final class ProjectPersistenceController extends ChangeNotifier {
   /// Reads the latest snapshot. Attachment happens only after the app
   /// successfully opens its files.
   Future<StoredProject> read(String id) async {
+    if (!_available || _disposed) {
+      throw StateError('Local project storage is unavailable.');
+    }
     final project = await _store!.read(id);
     if (project == null) {
       throw StateError('The saved project is no longer available.');
@@ -132,6 +166,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
       session: session,
       store: _store!,
       projectId: projectId,
+      sessionId: _sessionId,
       onError: (_) {
         if (identical(_autosave, autosave)) {
           _reportSaveFailure();
@@ -163,33 +198,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
         });
   }
 
-  void offerRestore(String projectId) {
-    if (_disposed) {
-      return;
-    }
-    _clearRestoreOffer();
-    _restoreOffer = ProjectRestoreOffer(projectId: projectId);
-    _notify();
-  }
-
-  void dismissRestoreOffer() {
-    if (_disposed || _restoreOffer == null) {
-      return;
-    }
-    _clearRestoreOffer();
-    _notify();
-  }
-
-  Future<void> restoreLastProject() async {
-    if (_restoreOffer case final offer?) {
-      await _restoreProject(offer.projectId);
-    }
-  }
-
-  void _clearRestoreOffer() {
-    _restoreOffer = null;
-  }
-
   void _reportSaveFailure() {
     if (_disposed) {
       return;
@@ -215,7 +223,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
     _disposed = true;
     _visibilitySubscription?.cancel();
     _pageHideSubscription?.cancel();
-    _clearRestoreOffer();
     _closing = stop().whenComplete(() => _store?.close());
     super.dispose();
   }

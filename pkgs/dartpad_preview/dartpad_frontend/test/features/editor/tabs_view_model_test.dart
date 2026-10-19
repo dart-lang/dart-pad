@@ -38,29 +38,29 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
   Future<void> get changeEventsReady => Future.value();
 
   @override
-  Future<bool> fileExist(String uri) async => files.containsKey(uri);
+  Future<bool> fileExist(String path) async => files.containsKey(path);
 
   @override
-  Future<bool> folderExist(String uri) async => false;
+  Future<bool> folderExist(String path) async => false;
 
   @override
-  Future<String> readFileAsText(String uri) async {
+  Future<String> readFileAsText(String path) async {
     if (readError case final error?) {
       throw error;
     }
-    return files[uri]!;
+    return files[path]!;
   }
 
   @override
-  Future<void> writeFileFromText(String uri, String content) async {
+  Future<void> writeFileFromText(String path, String content) async {
     if (writeError case final error?) {
       throw error;
     }
-    files[uri] = content;
+    files[path] = content;
   }
 
   @override
-  Future<Uint8List> readFileAsBytes(String uri) async => Uint8List.fromList(files[uri]!.codeUnits);
+  Future<Uint8List> readFileAsBytes(String path) async => Uint8List.fromList(files[path]!.codeUnits);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -479,7 +479,7 @@ void main() {
     expect(buttons.length, 2);
     expect(buttons.item(0)!.textContent, 'Use const');
     expect(buttons.item(1)!.textContent, 'Suppress lint');
-    expect(web.document.activeElement, same(buttons.item(0)));
+    expect(web.document.activeElement, equals(buttons.item(0)));
 
     buttons
         .item(0)!
@@ -489,7 +489,7 @@ void main() {
             web.KeyboardEventInit(key: 'ArrowDown', bubbles: true, cancelable: true),
           ),
         );
-    expect(web.document.activeElement, same(buttons.item(1)));
+    expect(web.document.activeElement, equals(buttons.item(1)));
 
     buttons
         .item(1)!
@@ -499,7 +499,7 @@ void main() {
             web.KeyboardEventInit(key: 'ArrowUp', bubbles: true, cancelable: true),
           ),
         );
-    expect(web.document.activeElement, same(buttons.item(0)));
+    expect(web.document.activeElement, equals(buttons.item(0)));
 
     buttons
         .item(0)!
@@ -545,7 +545,7 @@ void main() {
     await pumpEventQueue();
 
     expect(controller.showFloatingPanel, isFalse);
-    expect(web.document.activeElement, same(mainTab.editor.view.dom.querySelector('.cm-content')));
+    expect(web.document.activeElement, equals(mainTab.editor.view.dom.querySelector('.cm-content')));
   });
 
   testClient('quick-fix panel reports no results and closes on outside click', (tester) async {

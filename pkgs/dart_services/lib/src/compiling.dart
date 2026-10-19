@@ -14,6 +14,7 @@ import 'common.dart';
 import 'logging.dart';
 import 'project_templates.dart';
 import 'sdk.dart';
+import 'utils.dart' show childProcessEnvironment;
 
 final DartPadLogger _logger = DartPadLogger('compiler');
 
@@ -29,15 +30,20 @@ class Compiler {
 
   Compiler._(this._sdk, String dartPath)
     : _ddcDriver = BazelWorkerDriver(
-        () => Process.start(dartPath, [
-          path.join(
-            _sdk.dartSdkPath,
-            'bin',
-            'snapshots',
-            'dartdevc.dart.snapshot',
-          ),
-          '--persistent_worker',
-        ]),
+        () => Process.start(
+          dartPath,
+          [
+            path.join(
+              _sdk.dartSdkPath,
+              'bin',
+              'snapshots',
+              'dartdevc.dart.snapshot',
+            ),
+            '--persistent_worker',
+          ],
+          environment: childProcessEnvironment,
+          includeParentEnvironment: false,
+        ),
         maxWorkers: 1,
       ),
       _projectTemplates = ProjectTemplates.instance;
@@ -68,6 +74,14 @@ class Compiler {
     String? deltaDill,
     required bool useNew,
   }) async {
+    final unsafeDirectives = getUnsafeDirectives(source);
+    if (unsafeDirectives.isNotEmpty) {
+      return DDCCompilationResults.failed([
+        for (final directive in unsafeDirectives)
+          CompilationProblem._(_unsupportedDirectiveMessage(directive)),
+      ]);
+    }
+
     final imports = getAllImportsFor(source);
 
     final temp = Directory.systemTemp.createTempSync('dartpad');
@@ -291,3 +305,14 @@ String _rewritePaths(String output) {
       })
       .join('\n');
 }
+
+String _unsupportedDirectiveMessage(Directive directive) => switch (directive) {
+  ImportDirective(:final uri) =>
+    'unsupported import: ${uri.stringValue ?? uri.toSource()}',
+  ExportDirective(:final uri) =>
+    'unsupported export: ${uri.stringValue ?? uri.toSource()}',
+  PartDirective(:final uri) =>
+    'unsupported part: ${uri.stringValue ?? uri.toSource()}',
+  PartOfDirective() => 'unsupported directive: part of',
+  LibraryDirective() => 'unsupported directive: library',
+};

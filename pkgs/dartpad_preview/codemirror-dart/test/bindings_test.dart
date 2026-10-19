@@ -59,7 +59,7 @@ void main() {
 
     for (final name in expectedExports) {
       expect(
-        codeMirrorNamespace.hasProperty(name.toJS),
+        codeMirrorNamespace.hasProperty(name.toJS).toDart,
         isTrue,
         reason: 'window._codemirror.$name is missing',
       );

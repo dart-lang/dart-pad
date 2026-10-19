@@ -193,17 +193,18 @@ Future<void> _buildStorageArtifacts(
   final artifactsDir = getDir(path.join('artifacts'));
   artifactsDir.createSync(recursive: true);
 
-  copy(getFile(sdkJsPath), artifactsDir);
-  copy(getFile('$sdkJsPath.map'), artifactsDir);
+  if (getFile(sdkJsPath).existsSync()) {
+    copy(getFile(sdkJsPath), artifactsDir);
+    copy(getFile('$sdkJsPath.map'), artifactsDir);
+  }
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // We only expect these hot reload artifacts to work at version 3.8 and later.
   if (sdk.useNewDdcSdk) {
-    // Later versions of Flutter remove the "sound" suffix from the file. If
-    // the suffixed version does not exist, the unsuffixed version is the sound
-    // file.
+    // Later versions of Flutter remove the "sound" suffix from the file, and
+    // newer versions place the canary DDC SDK under 'ddc/canary/'.
     var newSdkJsPath = path.join(
       sdk.flutterWebSdkPath,
       'ddcLibraryBundle-canvaskit-sound/dart_sdk.js',
@@ -213,6 +214,9 @@ Future<void> _buildStorageArtifacts(
         sdk.flutterWebSdkPath,
         'ddcLibraryBundle-canvaskit/dart_sdk.js',
       );
+    }
+    if (!getFile(newSdkJsPath).existsSync()) {
+      newSdkJsPath = path.join(sdk.flutterWebSdkPath, 'ddc/canary/dart_sdk.js');
     }
     final ddcModuleLoaderPath = path.join(
       sdk.dartSdkPath,

@@ -267,7 +267,7 @@ void main() {
       final buttons = web.document.querySelectorAll('.context-menu-item');
       final firstEnabledButton = buttons.item(1) as web.HTMLButtonElement;
 
-      expect(await firstFocus.future.timeout(const Duration(seconds: 5)), same(firstEnabledButton));
+      expect(await firstFocus.future.timeout(const Duration(seconds: 5)), equals(firstEnabledButton));
     });
 
     testClient('navigates with ArrowDown, ArrowUp, Home, and End keys, skipping disabled items', (tester) async {
@@ -296,7 +296,7 @@ void main() {
       // Establish a deterministic starting point for keyboard navigation.
       // Automatic focus-on-open is covered by the preceding test.
       item1.focus();
-      expect(web.document.activeElement, same(item1));
+      expect(web.document.activeElement, equals(item1));
 
       // ArrowDown skips Item 2 (disabled) and focuses Item 3
       web.document.dispatchEvent(
@@ -366,7 +366,7 @@ void main() {
       // Automatic focus-on-open is covered by the preceding test. Establish a
       // deterministic starting point before testing keyboard activation.
       item1.focus();
-      expect(web.document.activeElement, same(item1));
+      expect(web.document.activeElement, equals(item1));
       web.document.dispatchEvent(
         web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
       );
@@ -507,12 +507,12 @@ void main() {
 
       open.value = true;
       await pumpEventQueue();
-      expect(web.document.querySelector('.context-menu'), same(menu));
+      expect(web.document.querySelector('.context-menu'), equals(menu));
       expect(menu.style.display, 'flex');
 
       open.value = false;
       await pumpEventQueue();
-      expect(web.document.querySelector('.context-menu'), same(menu));
+      expect(web.document.querySelector('.context-menu'), equals(menu));
       expect(menu.style.display, 'none');
     });
 

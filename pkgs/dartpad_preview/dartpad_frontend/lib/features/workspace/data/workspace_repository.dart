@@ -89,7 +89,10 @@ final class WorkspaceRepository {
       return customReader(uri);
     }
     final workspace = await readyWorkspace;
-    return workspace.readFileAsText(uri.toString());
+    // The worker filesystem uses POSIX paths, while LSP and system tabs use
+    // file URIs.
+    final path = uri.toFilePath(windows: false);
+    return workspace.readFileAsText(path);
   }
 
   /// Starts a dedicated worker and synchronizes [localApi] into its workspace.
@@ -140,7 +143,7 @@ final class WorkspaceRepository {
         final worker = await (createWorker?.call() ?? DartPadSdk(assetBaseUrl: sdk.assetBaseUrl).dedicatedWorker());
         if (_isClosed || generation != _workerGeneration) {
           // The runtime can be suspended while its SDK loads.
-          await worker.dispose();
+          await worker.close();
           throw StateError(
             _isClosed
                 ? 'Workspace repository closed during worker initialization.'
@@ -173,7 +176,7 @@ final class WorkspaceRepository {
         await api.disconnect(disposeRemote: false);
       }
     } finally {
-      await worker?.dispose();
+      await worker?.close();
     }
   }
 
@@ -202,7 +205,7 @@ final class WorkspaceRepository {
           if (api is SyncedWorkspaceResourceApi) {
             await api.flush();
           }
-          final result = await workspace.pub(uri: normalizedPath, command: commandName);
+          final result = await workspace.pub(path: normalizedPath, command: commandName);
           return result.log;
         },
       ),

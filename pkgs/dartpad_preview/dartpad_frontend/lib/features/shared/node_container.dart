@@ -40,7 +40,7 @@ class _NodeContainerElement extends LeafRenderObjectElement {
   void updateRenderObject(RenderObject renderObject) {
     final container = component as NodeContainer;
     final nodeRenderObject = renderObject as _NodeContainerRenderObject;
-    assert(identical(nodeRenderObject.node, container.containerNode));
+    assert(nodeRenderObject.node == container.containerNode);
     nodeRenderObject.onAttached = container.onAttached;
   }
 }

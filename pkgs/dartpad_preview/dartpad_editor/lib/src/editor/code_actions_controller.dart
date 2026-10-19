@@ -173,7 +173,7 @@ class CodeActionsController {
     required _ActionsCacheSlot cache,
   }) async {
     final document = codeEditor.view.state.doc;
-    if (identical(document, cache.document) && from == cache.from && to == cache.to) {
+    if (document == cache.document && from == cache.from && to == cache.to) {
       return cache.actions!;
     }
 
@@ -211,7 +211,7 @@ class CodeActionsController {
       'context': context,
     };
     final result = await plugin.client.request('textDocument/codeAction'.toJS, params.jsify() as JSObject).toDart;
-    if (_disposed || !identical(document, codeEditor.view.state.doc)) {
+    if (_disposed || document != codeEditor.view.state.doc) {
       return [];
     }
     final actions = <cm.LSPCodeAction>[];

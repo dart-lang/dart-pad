@@ -74,6 +74,36 @@ String normalizeAbsolutePath(String filePath) {
   return '${Platform.pathSeparator}${path.joinAll(parts)}';
 }
 
+/// The names of the environment variables that [childProcessEnvironment]
+/// passes on, in upper case.
+const Set<String> _childProcessVariables = {
+  'APPDATA',
+  'FLUTTER_ROOT',
+  'HOME',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'LOCALAPPDATA',
+  'PATH',
+  'PUB_CACHE',
+  'SYSTEMROOT',
+  'TEMP',
+  'TMP',
+  'TMPDIR',
+  'USERPROFILE',
+};
+
+/// The environment for child processes that work on user-provided code.
+///
+/// Contains the allowlisted variables of [Platform.environment] with their
+/// values, and every other variable of [Platform.environment] with an empty
+/// value. This keeps other variables out of the child process even when the
+/// parent environment is included.
+Map<String, String> get childProcessEnvironment => {
+  for (final MapEntry(:key, :value) in Platform.environment.entries)
+    key: _childProcessVariables.contains(key.toUpperCase()) ? value : '',
+};
+
 Future<Process> runWithLogging(
   String executable, {
   List<String> arguments = const [],
