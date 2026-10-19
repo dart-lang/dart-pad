@@ -121,6 +121,23 @@ jobs:
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: test -f lib/sdks.g.dart
 
+      # Channel revisions move independently of this repository, so the generated
+      # manifest can differ from the checked-in version snapshot.
+      - name: Verify SDK asset entrypoints
+        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        run: |
+          assetCheckFailed=0
+          for sdk in dart flutter; do
+            for entrypoint in worker.js sandbox.js; do
+              asset="web/dartpad/$sdk/$entrypoint"
+              if [[ ! -f "$asset" || ! -s "$asset" ]]; then
+                echo "::error::Missing or empty SDK entrypoint: $asset"
+                assetCheckFailed=1
+              fi
+            done
+          done
+          exit "$assetCheckFailed"
+
       - name: Check Dart sources
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
