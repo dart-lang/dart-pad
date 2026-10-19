@@ -342,6 +342,62 @@ void main() {
     );
   }
 
+  final renameEntries = {
+    'file': (rowSelector: '.file-tree-item.file', buildState: _state),
+    'folder': (rowSelector: '.file-tree-item.folder', buildState: _stateWithFolder),
+  };
+  for (final entry in renameEntries.entries) {
+    for (final platform in _Platform.values) {
+      testClient(
+        'delete shortcut does not delete ${entry.key} while renaming it on ${platform.name}',
+        skip: platform != _hostPlatform,
+        (tester) async {
+          var confirmCalls = 0;
+          String? deletedPath;
+          final contextMenu = ContextMenuController();
+
+          tester.pumpComponent(
+            FileTreeView(
+              state: entry.value.buildState(workspace),
+              actions: _actions(
+                deleteFile: (path) async {
+                  deletedPath = path;
+                },
+                deleteFolder: (path) async {
+                  deletedPath = path;
+                },
+              ),
+              confirmDelete: (_) {
+                confirmCalls++;
+                return true;
+              },
+              contextMenu: contextMenu,
+            ),
+          );
+
+          final row = web.document.querySelector(entry.value.rowSelector) as web.HTMLElement;
+          row.dispatchEvent(
+            web.MouseEvent(
+              'contextmenu',
+              web.MouseEventInit(clientX: 100, clientY: 100, bubbles: true, cancelable: true),
+            ),
+          );
+          await pumpEventQueue();
+          contextMenu.items.whereType<ContextMenuItem>().firstWhere((item) => item.label == 'Rename').onPressed();
+          await pumpEventQueue();
+
+          final input = web.document.querySelector('.file-tree-input') as web.HTMLElement?;
+          expect(input, isNotNull);
+          input!.dispatchEvent(deleteKeyEvent(platform));
+          await pumpEventQueue();
+
+          expect(confirmCalls, 0);
+          expect(deletedPath, isNull);
+        },
+      );
+    }
+  }
+
   testClient('folder context menu provides "Use as root" option', (tester) async {
     String? focusedPath;
     final contextMenu = ContextMenuController();
@@ -708,6 +764,7 @@ FileTreeActions _actions({
   Future<void> Function(String parentPath, String name)? createFile,
   Future<void> Function(String parentPath, String name)? createFolder,
   Future<void> Function(String path)? deleteFile,
+  Future<void> Function(String path)? deleteFolder,
   FutureOr<void> Function(String path)? openWorkspaceFile,
   void Function(String path)? focusPath,
 }) {
@@ -717,7 +774,7 @@ FileTreeActions _actions({
     renameFile: (_, _) async {},
     renameFolder: (_, _) async {},
     deleteFile: deleteFile ?? _noOpPathAsync,
-    deleteFolder: _noOpPathAsync,
+    deleteFolder: deleteFolder ?? _noOpPathAsync,
     moveEntry: (_, _) async {},
     openWorkspaceFile: openWorkspaceFile ?? _noOpPathAsync,
     clearOperationError: () {},
