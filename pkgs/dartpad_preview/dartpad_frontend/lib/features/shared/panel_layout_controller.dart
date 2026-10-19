@@ -11,8 +11,8 @@ import 'panel_presentation.dart';
 
 /// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController extends ChangeNotifier {
-  PanelLayoutController({required this.isEmbedMode}) {
-    _applyDefaults();
+  PanelLayoutController({required this.isEmbedMode, Iterable<String> files = const []}) {
+    _applyDefaults(files: files);
   }
 
   final bool isEmbedMode;
@@ -21,31 +21,37 @@ final class PanelLayoutController extends ChangeNotifier {
   late BottomPanelState _bottom;
   late PanelPresentation _appBar;
   late PanelPresentation _statusBar;
+  late bool _showEditorTabs;
+  late bool _showBreadcrumbs;
 
   SplitState get preview => _preview;
   SplitState get fileTree => _fileTree;
   BottomPanelState get bottom => _bottom;
   PanelPresentation get appBar => _appBar;
   PanelPresentation get statusBar => _statusBar;
+  bool get showEditorTabs => _showEditorTabs;
+  bool get showBreadcrumbs => _showBreadcrumbs;
 
   SplitState get bottomSplit => switch (_bottom) {
     BottomPanelExpanded(:final editorFraction) => Split(editorFraction),
     BottomPanelCollapsed(:final editorFraction) => RightCollapsed(editorFraction),
   };
 
-  /// A new workspace starts with the same defaults as a newly mounted layout.
-  void reset({required double previewRatio}) {
-    _applyDefaults(previewRatio);
+  /// Apply at the start of a project load, before the user can change its layout.
+  void applyInitialDefaults({required double previewRatio, Iterable<String> files = const []}) {
+    _applyDefaults(previewRatio: previewRatio, files: files);
     notifyListeners();
   }
 
-  void _applyDefaults([double? previewRatio]) {
-    final defaults = isEmbedMode ? PanelDefaults.embed : PanelDefaults.standalone;
-    _preview = previewRatio == null ? defaults.preview : Split(previewRatio);
+  void _applyDefaults({double? previewRatio, required Iterable<String> files}) {
+    final defaults = PanelDefaults.resolve(isEmbedMode: isEmbedMode, files: files, previewRatio: previewRatio);
+    _preview = defaults.preview;
     _fileTree = defaults.fileTree;
     _bottom = defaults.bottom;
     _appBar = defaults.appBar;
     _statusBar = defaults.statusBar;
+    _showEditorTabs = defaults.showEditorTabs;
+    _showBreadcrumbs = defaults.showBreadcrumbs;
   }
 
   void updateAppBar(PanelPresentation state) {
