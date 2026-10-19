@@ -4,6 +4,7 @@
 
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
+import 'panel_presentation.dart';
 
 /// Initial workspace splits before any user interaction.
 ///
@@ -15,12 +16,16 @@ abstract final class PanelDefaults {
   static const fileTreeWidth = 200.0;
 
   static const standalone = (
+    appBar: PanelPresentation.expanded,
+    statusBar: PanelPresentation.expanded,
     preview: Split(previewRatio),
     fileTree: Split(fileTreeWidth),
     bottom: BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
   );
 
   static const embed = (
+    appBar: PanelPresentation.hidden,
+    statusBar: PanelPresentation.hidden,
     preview: Split(previewRatio),
     fileTree: LeftCollapsed(fileTreeWidth),
     bottom: BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
