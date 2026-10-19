@@ -19,84 +19,103 @@ import 'project_loader.dart';
 /// once during import, so later user edits remain under the user's control.
 /// Dependencies requiring unsupported alias edits are preserved with a warning.
 void stripUnavailableDependencies(Project project) {
-  for (final file in project.files.toList()) {
-    final fileName = basenameWorkspacePath(file.path);
-    if (fileName != 'pubspec.yaml' && fileName != 'pubspec_overrides.yaml') {
-      continue;
-    }
-    _stripUnavailableDependenciesInFile(project, file);
+  final pubspecPaths = project.paths.where(
+    (path) => const {'pubspec.yaml', 'pubspec_overrides.yaml'}.contains(basenameWorkspacePath(path)),
+  );
+  for (final path in pubspecPaths) {
+    _stripUnavailableDependenciesInFile(project, path);
   }
 }
 
 /// Prepares one pubspec, keeping dependencies whose alias edits are unsupported.
-void _stripUnavailableDependenciesInFile(Project project, ProjectFile file) {
+void _stripUnavailableDependenciesInFile(Project project, String path) {
+  final pubspec = _readPubspec(project.readFile(path)!);
+  if (pubspec == null) {
+    return;
+  }
+
+  final strippedEntries = <String>[];
+  for (final sectionName in ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
+    final section = pubspec.node.nodes[sectionName];
+    if (section is YamlMap) {
+      strippedEntries.addAll(_stripUnavailableDependenciesInSection(project, path, pubspec, sectionName, section));
+    }
+  }
+  if (strippedEntries.isNotEmpty) {
+    final lineEnding = pubspec.source.contains('\r\n') ? '\r\n' : '\n';
+    final comments = strippedEntries.map((entry) => _commentOutEntry(entry, lineEnding));
+    final updatedSource = '${pubspec.editor}$lineEnding${comments.join(lineEnding)}$lineEnding';
+    project.writeFile(path, Uint8List.fromList(utf8.encode(updatedSource)));
+  }
+}
+
+typedef _Pubspec = ({String source, YamlEditor editor, YamlMap node});
+
+_Pubspec? _readPubspec(Uint8List bytes) {
   final String pubspecSource;
   final YamlEditor pubspecEditor;
   try {
-    pubspecSource = utf8.decode(file.bytes);
+    pubspecSource = utf8.decode(bytes);
     pubspecEditor = YamlEditor(pubspecSource);
   } on FormatException {
     // Leave invalid UTF-8 or YAML unchanged for the normal validation path.
-    return;
+    return null;
   }
   // Keep this snapshot: its spans refer to pubspecSource, even after editor
   // mutations. Reparsing sections from the edited document would shift them.
   final pubspecNode = pubspecEditor.parseAt([]);
   if (pubspecNode is! YamlMap) {
-    return;
+    return null;
   }
+  return (source: pubspecSource, editor: pubspecEditor, node: pubspecNode);
+}
 
-  final strippedDependencyComments = <String>[];
-  final warnings = <String>[];
-  final lineEnding = pubspecSource.contains('\r\n') ? '\r\n' : '\n';
-  final packageDirectory = parentWorkspacePath(file.path);
-  for (final sectionName in ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
-    final dependencySection = pubspecNode.nodes[sectionName];
-    if (dependencySection is! YamlMap) {
+/// Returns the original source of removed entries for commenting out later.
+List<String> _stripUnavailableDependenciesInSection(
+  Project project,
+  String path,
+  _Pubspec pubspec,
+  String sectionName,
+  YamlMap dependencySection,
+) {
+  final strippedEntries = <String>[];
+  final packageDirectory = parentWorkspacePath(path);
+  for (final dependencyEntry in dependencySection.nodes.entries) {
+    final dependencyNameNode = dependencyEntry.key as YamlNode;
+    final dependencyName = dependencyNameNode.value;
+    final dependencyNode = dependencyEntry.value;
+    if (dependencyName is! String || dependencyNode is! YamlMap) {
       continue;
     }
-    for (final dependencyEntry in dependencySection.nodes.entries) {
-      final dependencyNameNode = dependencyEntry.key as YamlNode;
-      final dependencyName = dependencyNameNode.value;
-      final dependencyNode = dependencyEntry.value;
-      if (dependencyName is! String || dependencyNode is! YamlMap) {
-        continue;
-      }
-      final unavailableReason = _unavailableDependencyReason(project, packageDirectory, dependencyNode);
-      if (unavailableReason == null) {
-        continue;
-      }
-      try {
-        // yaml_edit refuses edits to aliases and anchors before changing the
-        // source. Try removal before slicing spans, which may point outside
-        // this entry, and keep only this dependency if the edit is unsupported.
-        pubspecEditor.remove([sectionName, dependencyName]);
-      } on AliasException {
-        warnings.add(
-          'Dependency "$dependencyName" in ${file.path} ($sectionName) was left unchanged: '
-          'editing YAML aliases is not supported.',
-        );
-        continue;
-      }
-      final entryText = pubspecSource
+    final unavailableReason = _unavailableDependencyReason(project, packageDirectory, dependencyNode);
+    if (unavailableReason == null) {
+      continue;
+    }
+    try {
+      // yaml_edit refuses edits to aliases and anchors before changing the
+      // source. Try removal before slicing spans, which may point outside
+      // this entry, and keep only this dependency if the edit is unsupported.
+      pubspec.editor.remove([sectionName, dependencyName]);
+    } on AliasException {
+      project.addImportWarning(
+        'Dependency "$dependencyName" in $path ($sectionName) was left unchanged: '
+        'editing YAML aliases is not supported.',
+      );
+      continue;
+    }
+    strippedEntries.add(
+      pubspec.source
           .substring(
             dependencyNameNode.span.start.offset,
             dependencyNode.span.end.offset,
           )
-          .trimRight();
-      strippedDependencyComments.add(_commentOutEntry(entryText, lineEnding));
-      warnings.add(
-        'Dependency "$dependencyName" in ${file.path} ($sectionName) $unavailableReason and was not loaded.',
-      );
-    }
+          .trimRight(),
+    );
+    project.addImportWarning(
+      'Dependency "$dependencyName" in $path ($sectionName) $unavailableReason and was not loaded.',
+    );
   }
-  if (strippedDependencyComments.isNotEmpty) {
-    final updatedPubspecSource = '$pubspecEditor$lineEnding${strippedDependencyComments.join(lineEnding)}$lineEnding';
-    project.writeFile(file.path, Uint8List.fromList(utf8.encode(updatedPubspecSource)));
-  }
-  for (final warning in warnings) {
-    project.addImportWarning(warning);
-  }
+  return strippedEntries;
 }
 
 String _commentOutEntry(String entryText, String lineEnding) {
