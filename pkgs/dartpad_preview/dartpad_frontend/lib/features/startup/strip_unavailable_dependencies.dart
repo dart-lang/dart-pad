@@ -12,7 +12,7 @@ import 'package:yaml_edit/yaml_edit.dart';
 import 'project_loader.dart';
 
 /// Removes unavailable dependencies and appends their original source as
-/// comments marked `stripped by DartPad` at the end of each pubspec.
+/// comments at the end of each pubspec, including their section and removal reason.
 ///
 /// Path dependencies must point to a package supplied by the same source.
 /// Git dependencies cannot be fetched by the browser runtime. Changes happen
@@ -34,7 +34,7 @@ void _stripUnavailableDependenciesInFile(Project project, String path) {
     return;
   }
 
-  final strippedEntries = <String>[];
+  final strippedEntries = <_StrippedDependency>[];
   for (final sectionName in ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
     final section = pubspec.node.nodes[sectionName];
     if (section is YamlMap) {
@@ -50,6 +50,7 @@ void _stripUnavailableDependenciesInFile(Project project, String path) {
 }
 
 typedef _Pubspec = ({String source, YamlEditor editor, YamlMap node});
+typedef _StrippedDependency = ({String source, String sectionName, String reason});
 
 _Pubspec? _readPubspec(Uint8List bytes) {
   final String pubspecSource;
@@ -70,15 +71,15 @@ _Pubspec? _readPubspec(Uint8List bytes) {
   return (source: pubspecSource, editor: pubspecEditor, node: pubspecNode);
 }
 
-/// Returns the original source of removed entries for commenting out later.
-List<String> _stripUnavailableDependenciesInSection(
+/// Returns removed entries with their original source, section, and reason.
+List<_StrippedDependency> _stripUnavailableDependenciesInSection(
   Project project,
   String path,
   _Pubspec pubspec,
   String sectionName,
   YamlMap dependencySection,
 ) {
-  final strippedEntries = <String>[];
+  final strippedEntries = <_StrippedDependency>[];
   final packageDirectory = parentWorkspacePath(path);
   for (final dependencyEntry in dependencySection.nodes.entries) {
     final dependencyNameNode = dependencyEntry.key as YamlNode;
@@ -98,19 +99,21 @@ List<String> _stripUnavailableDependenciesInSection(
       pubspec.editor.remove([sectionName, dependencyName]);
     } on AliasException {
       project.addImportWarning(
-        'Dependency "$dependencyName" in $path ($sectionName) was left unchanged: '
-        'editing YAML aliases is not supported.',
+        'Dependency "$dependencyName" in $path ($sectionName) $unavailableReason, '
+        'but was left unchanged because it uses a YAML alias or anchor. Consider removing it manually.',
       );
       continue;
     }
-    strippedEntries.add(
-      pubspec.source
+    strippedEntries.add((
+      source: pubspec.source
           .substring(
             dependencyNameNode.span.start.offset,
             dependencyNode.span.end.offset,
           )
           .trimRight(),
-    );
+      sectionName: sectionName,
+      reason: unavailableReason,
+    ));
     project.addImportWarning(
       'Dependency "$dependencyName" in $path ($sectionName) $unavailableReason and was not loaded.',
     );
@@ -118,18 +121,21 @@ List<String> _stripUnavailableDependenciesInSection(
   return strippedEntries;
 }
 
-String _commentOutEntry(String entryText, String lineEnding) {
-  final entryLines = entryText.split(RegExp(r'\r\n|\r|\n'));
+String _commentOutEntry(_StrippedDependency entry, String lineEnding) {
+  final lineBreak = RegExp(r'\r\n|\r|\n');
+  final entryLines = entry.source.split(lineBreak);
   final commentedLines = [for (final line in entryLines) line.isEmpty ? '' : '# $line'];
   if (commentedLines.first.isNotEmpty) {
-    commentedLines[0] += ' # stripped by DartPad';
+    // A YAML path can span multiple lines; keep its explanation on a comment line.
+    final reason = entry.reason.replaceAll(lineBreak, ' ');
+    commentedLines[0] += ' # removed by DartPad from ${entry.sectionName} because it $reason.';
   }
   return commentedLines.join(lineEnding);
 }
 
 String? _unavailableDependencyReason(Project project, String packageDirectory, YamlMap dependencyNode) {
   if (dependencyNode.containsKey('git')) {
-    return 'uses Git, which is unavailable in the browser workspace';
+    return 'uses Git, which is not supported by DartPad';
   }
   final dependencyPath = dependencyNode['path'];
   if (dependencyPath is! String) {

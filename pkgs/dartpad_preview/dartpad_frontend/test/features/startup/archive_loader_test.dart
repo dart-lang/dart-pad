@@ -76,7 +76,34 @@ dependency_overrides:
       expect((yaml['dependencies'] as YamlMap).keys, ['flutter', 'local']);
       expect(yaml['dev_dependencies'], isEmpty);
       expect(yaml['dependency_overrides'], isEmpty);
-      expect(contents, contains('# flutter_goldens: # stripped by DartPad'));
+      expect(
+        contents,
+        contains(
+          '# missing: # removed by DartPad from dependencies because it uses relative path "packages/missing", '
+          'whose target package is not included in the imported workspace.',
+        ),
+      );
+      expect(
+        contents,
+        contains(
+          '# flutter_goldens: # removed by DartPad from dev_dependencies because it uses relative path '
+          '"../../script/flutter_goldens", which is outside the imported workspace.',
+        ),
+      );
+      expect(
+        contents,
+        contains(
+          '# remote: # removed by DartPad from dev_dependencies because it uses Git, '
+          'which is not supported by DartPad.',
+        ),
+      );
+      expect(
+        contents,
+        contains(
+          '# external: {path: ../external} # removed by DartPad from dependency_overrides because it uses '
+          'relative path "../external", which is outside the imported workspace.',
+        ),
+      );
       expect(contents, contains('#     path: ../../script/flutter_goldens'));
       expect(contents, contains('#       url: https://example.com/remote.git'));
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
@@ -112,6 +139,13 @@ dev_dependencies:
       expect(project.importWarnings.join('\n'), contains('uses Git'));
       expect(project.importWarnings.every((warning) => warning.endsWith('was not loaded.')), isTrue);
       expect(project.importWarnings.join('\n'), contains('packages/root/example/pubspec_overrides.yaml'));
+      expect(
+        String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.yaml')!),
+        contains(
+          '# outside: {path: /external} # removed by DartPad from dependency_overrides because it uses '
+          'absolute path "/external", which is outside the imported workspace.',
+        ),
+      );
     });
 
     for (final (name, pubspec) in [
@@ -124,6 +158,11 @@ dev_dependencies:
         'name: example\r\ndependencies:\n  keep: any\n  outside:\n    path: ../outside\n'
             '  remote:\n    git:\r\n      url: https://example.com/repo.git\n',
       ),
+      (
+        'multiline path',
+        'name: example\ndependencies:\n  keep: any\n  outside:\n    path: |-\n      ../outside\n      package\n'
+            '  remote: {git: https://example.com/repo.git}\n',
+      ),
     ]) {
       test('retains valid YAML when commenting out dependencies in a $name', () async {
         final archive = createTarArchive({'pubspec.yaml': pubspec});
@@ -135,7 +174,11 @@ dev_dependencies:
         final yaml = loadYaml(text) as YamlMap;
         expect(yaml['name'], 'example');
         expect((yaml['dependencies'] as YamlMap).keys, ['keep']);
-        expect(text, contains('stripped by DartPad'));
+        expect(text, contains('removed by DartPad from dependencies because it uses relative path "../outside'));
+        expect(
+          text,
+          contains('removed by DartPad from dependencies because it uses Git, which is not supported by DartPad.'),
+        );
         expect(text, contains('../outside'));
         expect(text, contains('https://example.com/repo.git'));
         expect(project.importWarnings, hasLength(2));
@@ -199,7 +242,9 @@ dev_dependencies: *deps
             (warning) => warning.startsWith('Dependency "$dependency" in pubspec.yaml'),
           );
           expect(warning, contains('left unchanged'));
-          expect(warning, contains('YAML aliases'));
+          expect(warning, contains('YAML alias or anchor'));
+          expect(warning, contains(dependency == 'first' ? 'uses Git' : 'uses relative path "../missing"'));
+          expect(warning, contains('Consider removing it manually.'));
         }
       });
     }
@@ -213,8 +258,12 @@ dev_dependencies: *deps
       );
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
       expect(project.importWarnings, hasLength(1));
-      expect(project.importWarnings.single, contains('Dependency "missing" in pubspec.yaml'));
-      expect(project.importWarnings.single, contains('left unchanged'));
+      expect(
+        project.importWarnings.single,
+        'Dependency "missing" in pubspec.yaml (dev_dependencies) uses relative path "../missing", '
+        'which is outside the imported workspace, but was left unchanged because it uses a YAML alias or anchor. '
+        'Consider removing it manually.',
+      );
     });
 
     test('preserves flow-map formatting and comments across multiple removals', () async {
@@ -237,8 +286,8 @@ dependencies: {
       expect(text, contains("'keep' : '^1.0.0'"));
       expect(text, contains('# Keep this dependency comment.'));
       expect(text, contains('# Keep the section comment.'));
-      expect(text, contains("# outside: {path: '../outside'} # stripped by DartPad"));
-      expect(text, contains("# remote: {git: 'https://example.com/repo.git'} # stripped by DartPad"));
+      expect(text, contains("# outside: {path: '../outside'} # removed by DartPad from dependencies"));
+      expect(text, contains("# remote: {git: 'https://example.com/repo.git'} # removed by DartPad from dependencies"));
     });
 
     for (final compressed in [false, true]) {

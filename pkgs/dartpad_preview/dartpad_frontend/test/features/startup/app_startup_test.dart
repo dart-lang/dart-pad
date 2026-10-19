@@ -131,7 +131,10 @@ void main() {
     expect(logs.single.message, contains('outside the imported workspace'));
     expect(
       await repository!.workspaceResourceApi.readFileAsText('pubspec.yaml'),
-      contains('# flutter_goldens: # stripped by DartPad'),
+      contains(
+        '# flutter_goldens: # removed by DartPad from dev_dependencies because it uses relative path '
+        '"../../script/flutter_goldens", which is outside the imported workspace.',
+      ),
     );
   });
 
