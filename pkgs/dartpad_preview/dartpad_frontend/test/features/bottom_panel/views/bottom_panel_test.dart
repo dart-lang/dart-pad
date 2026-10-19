@@ -236,7 +236,7 @@ void main() {
     expect(web.document.querySelector('.console-panel'), isNotNull);
   });
 
-  testClient('tab clicks and console requests expand the shared split and survive remounts', (tester) async {
+  testClient('tab clicks, toggle buttons, and console requests preserve panel state across remounts', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     final panels = createPanels(tester, isEmbedMode: true);
@@ -288,12 +288,19 @@ void main() {
     expect(web.document.querySelector('.bottom-panel-content'), isNull);
     expect(splitKey.currentState!.state, const RightCollapsed(0.6));
 
-    // Expanding the splitter preserves selection; a tab click or console event
+    // The expand button preserves selection; a tab click or console event
     // would select Console again and could mask selection lost on remount.
-    splitKey.currentState!.split();
+    expect(web.document.querySelector('button[aria-label="Hide bottom panel"]'), isNull);
+    final expandButton = web.document.querySelector('button[aria-label="Show bottom panel"]');
+    expect(expandButton, isNotNull);
+    (expandButton! as web.HTMLButtonElement).click();
     await pumpEventQueue();
+    expect(panels.bottom, const BottomPanelExpanded(BottomPanelTab.console, editorFraction: 0.6));
+    expect(splitKey.currentState!.state, const Split(0.6));
     expect(web.document.querySelector('.console-panel'), isNotNull);
     expect(web.document.querySelector('[role="tab"][aria-selected="true"]')!.textContent, startsWith('Console'));
+    expect(web.document.querySelector('button[aria-label="Show bottom panel"]'), isNull);
+    expect(web.document.querySelector('button[aria-label="Hide bottom panel"]'), isNotNull);
     splitKey.currentState!.collapseRight();
     await pumpEventQueue();
     events.dispatch(const OpenConsoleEvent());
