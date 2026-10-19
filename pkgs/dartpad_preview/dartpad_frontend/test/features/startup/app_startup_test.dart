@@ -11,8 +11,10 @@ import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
+import 'package:dartpad_frontend/features/shared/components/collapsible_panel.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/panel_presentation.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
@@ -141,7 +143,7 @@ void main() {
   });
 
   group('panel layout retention', () {
-    Future<void> mountApp(ClientTester tester, {required int width}) async {
+    Future<void> mountApp(ClientTester tester, {required int width, bool embed = true}) async {
       final originalWidth = _getOwnPropertyDescriptor(web.window, 'innerWidth'.toJS);
       addTearDown(() async {
         tester.binding.detachRootComponent();
@@ -156,7 +158,7 @@ void main() {
       tester.pumpComponent(
         App(
           projectStore: MemoryProjectStore(),
-          initialUri: Uri.parse('?embed=true'),
+          initialUri: Uri.parse('?embed=$embed'),
           loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
           createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
               WorkspaceRepository(
@@ -201,6 +203,58 @@ void main() {
       final editorArea = web.document.querySelector('.editor-area')! as web.HTMLElement;
       expect(editorArea.style.flexGrow, '0.6');
     }
+
+    testClient('bars stay visible without toggle buttons across screen sizes', (tester) async {
+      await mountApp(tester, width: 1200, embed: false);
+      expect(web.document.querySelector('.app-bar'), isNotNull);
+      expect(web.document.querySelector('.app-footer'), isNotNull);
+      expect(web.document.querySelector('.collapsible-panel-toggle'), isNull);
+
+      await _resizeWindow(600);
+      expect(web.document.querySelector('.app-bar'), isNotNull);
+      expect(web.document.querySelector('.app-footer'), isNotNull);
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      await click('.small-screen-tab-bar-tab:first-child');
+      expect(web.document.querySelector('.preview-container'), isNull);
+
+      await _resizeWindow(1200);
+      expect(web.document.querySelector('.app-bar'), isNotNull);
+      expect(web.document.querySelector('.app-footer'), isNotNull);
+    });
+
+    testClient('hidden bars have no controls and leave small-screen navigation usable', (tester) async {
+      await mountApp(tester, width: 600, embed: false);
+      final bars = find.byType(CollapsiblePanel).evaluate().map((e) => e.component as CollapsiblePanel).toList();
+      for (final bar in bars) {
+        bar.onStateChanged(PanelPresentation.hidden);
+      }
+      await pumpEventQueue();
+      expect(web.document.querySelector('.collapsible-panel'), isNull);
+      expect(web.document.querySelector('.app-bar'), isNull);
+      expect(web.document.querySelector('.app-footer'), isNull);
+      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      for (final bar in bars) {
+        bar.onStateChanged(PanelPresentation.expanded);
+      }
+      await pumpEventQueue();
+      expect(web.document.querySelector('.app-bar'), isNotNull);
+      expect(web.document.querySelector('.app-footer'), isNotNull);
+    });
+
+    testClient('embed defaults hide bars without reopen controls at every screen size', (tester) async {
+      await mountApp(tester, width: 1200);
+      expect(web.document.querySelector('.collapsible-panel'), isNull);
+      expect(web.document.querySelector('.app-bar'), isNull);
+      expect(web.document.querySelector('.app-footer'), isNull);
+      await _resizeWindow(600);
+      expect(web.document.querySelector('.collapsible-panel'), isNull);
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+    });
 
     testClient('desktop panel sizes and Console selection survive a narrow layout and back', (tester) async {
       await mountApp(tester, width: 1200);
