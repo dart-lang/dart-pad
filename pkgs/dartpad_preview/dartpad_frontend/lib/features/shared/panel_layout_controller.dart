@@ -7,8 +7,9 @@ import 'package:jaspr/jaspr.dart';
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
 import 'panel_defaults.dart';
+import 'panel_presentation.dart';
 
-/// Owns workspace splits and bottom-tab selection independently of mounted views.
+/// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController extends ChangeNotifier {
   PanelLayoutController({required this.isEmbedMode}) {
     _applyDefaults();
@@ -18,10 +19,14 @@ final class PanelLayoutController extends ChangeNotifier {
   late SplitState _preview;
   late SplitState _fileTree;
   late BottomPanelState _bottom;
+  late PanelPresentation _appBar;
+  late PanelPresentation _statusBar;
 
   SplitState get preview => _preview;
   SplitState get fileTree => _fileTree;
   BottomPanelState get bottom => _bottom;
+  PanelPresentation get appBar => _appBar;
+  PanelPresentation get statusBar => _statusBar;
 
   SplitState get bottomSplit => switch (_bottom) {
     BottomPanelExpanded(:final editorFraction) => Split(editorFraction),
@@ -39,6 +44,24 @@ final class PanelLayoutController extends ChangeNotifier {
     _preview = previewRatio == null ? defaults.preview : Split(previewRatio);
     _fileTree = defaults.fileTree;
     _bottom = defaults.bottom;
+    _appBar = defaults.appBar;
+    _statusBar = defaults.statusBar;
+  }
+
+  void updateAppBar(PanelPresentation state) {
+    if (_appBar == state) {
+      return;
+    }
+    _appBar = state;
+    notifyListeners();
+  }
+
+  void updateStatusBar(PanelPresentation state) {
+    if (_statusBar == state) {
+      return;
+    }
+    _statusBar = state;
+    notifyListeners();
   }
 
   void updatePreview(SplitState state) {

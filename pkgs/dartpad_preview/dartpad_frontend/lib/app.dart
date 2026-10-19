@@ -32,6 +32,7 @@ import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
+import 'features/shared/components/collapsible_panel.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
@@ -725,14 +726,7 @@ final class _AppState extends State<App> {
         classes: 'app-shell',
         [
           if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
-          if (!_isEmbedMode)
-            AppBar(
-              isSmallScreen: !_isLargeScreen,
-              onSelectExample: _isInitializingWorkspace
-                  ? null
-                  : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
-              isEmbedMode: _isEmbedMode,
-            ),
+          _buildAppBar(),
           div(classes: 'app-workspace-container', [
             div(classes: 'app-workspace', [
               if (_failedRestoreUri case final uri?)
@@ -757,13 +751,7 @@ final class _AppState extends State<App> {
               else
                 _buildPendingWorkspace(),
             ]),
-            if (!_isEmbedMode)
-              Footer(
-                taskStatus: _activeTaskStatus,
-                isSmallScreen: !_isLargeScreen,
-                currentSdk: _currentSdk,
-                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-              ),
+            _buildStatusBar(),
           ]),
         ],
       );
@@ -772,20 +760,7 @@ final class _AppState extends State<App> {
       classes: 'app-shell',
       [
         if (_persistence.notice case final notice?) PersistenceNoticeBanner(notice: notice),
-        if (!_isEmbedMode || !_isLargeScreen)
-          AppBar(
-            isSmallScreen: !_isLargeScreen,
-            onSelectExample: _isInitializingWorkspace
-                ? null
-                : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
-            isEmbedMode: _isEmbedMode,
-            smallScreenTabBar: !_isLargeScreen
-                ? SmallScreenTabBar(
-                    selectedTab: _selectedSmallScreenTab,
-                    onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
-                  )
-                : null,
-          ),
+        _buildAppBar(showNavigation: true),
         ListenableBuilder(
           // Replacing the session must unmount its editors, including CodeMirror
           // NodeContainers. Starting a load keeps the existing subtree intact.
@@ -827,14 +802,7 @@ final class _AppState extends State<App> {
                   smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
                 ),
             ]),
-            if (!_isEmbedMode)
-              Footer(
-                taskStatus: _activeTaskStatus,
-                statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
-                isSmallScreen: !_isLargeScreen,
-                currentSdk: _currentSdk,
-                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-              ),
+            _buildStatusBar(statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage),
           ]),
         ),
         ListenableBuilder(
@@ -862,6 +830,44 @@ final class _AppState extends State<App> {
       ],
     );
   }
+
+  Component _buildAppBar({bool showNavigation = false}) => Component.fragment([
+    CollapsiblePanel(
+      id: 'app-bar-panel',
+      label: 'app bar',
+      state: _panels.appBar,
+      onStateChanged: _panels.updateAppBar,
+      showToggle: false,
+      child: AppBar(
+        isSmallScreen: !_isLargeScreen,
+        onSelectExample: _isInitializingWorkspace
+            ? null
+            : (example) => _resetWorkspace(ProjectRequest.example(example.id)),
+      ),
+    ),
+    // Navigation must remain reachable even when the app bar is collapsed or hidden.
+    if (showNavigation && !_isLargeScreen)
+      SmallScreenTabBar(
+        selectedTab: _selectedSmallScreenTab,
+        onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+      ),
+  ]);
+
+  Component _buildStatusBar({String? statusMessage}) => CollapsiblePanel(
+    id: 'status-bar-panel',
+    label: 'status bar',
+    state: _panels.statusBar,
+    onStateChanged: _panels.updateStatusBar,
+    showToggle: false,
+    collapseDirection: CollapseDirection.down,
+    child: Footer(
+      taskStatus: _activeTaskStatus,
+      statusMessage: statusMessage,
+      isSmallScreen: !_isLargeScreen,
+      currentSdk: _currentSdk,
+      onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
+    ),
+  );
 
   /// Keep the editor layout visible while the project source or saved state loads.
   Component _buildPendingWorkspace() {
