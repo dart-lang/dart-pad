@@ -64,25 +64,27 @@ void main() {
     expect(changes, ['preview']);
 
     changes.clear();
-    panels.reset(previewRatio: 0.6);
+    panels.applyInitialDefaults(previewRatio: 0.6);
     expect(changes, ['fileTree', 'bottom']);
     expect(panels.previewListenable.value, panels.preview);
     expect(panels.fileTreeListenable.value, panels.fileTree);
     expect(panels.bottomListenable.value, panels.bottom);
 
     changes.clear();
-    panels.reset(previewRatio: 0.6);
+    panels.applyInitialDefaults(previewRatio: 0.6);
     expect(changes, isEmpty);
-    panels.reset(previewRatio: 0.7);
+    panels.applyInitialDefaults(previewRatio: 0.7);
     expect(changes, ['preview']);
   });
 
   for (final embed in [false, true]) {
-    test('defaults and workspace resets retain existing behavior, embed=$embed', () {
+    test('initial defaults apply the presentation for embed=$embed', () {
       final panels = PanelLayoutController(isEmbedMode: embed);
       addTearDown(panels.dispose);
       expect(panels.preview, const Split(0.7));
-      expect(panels.fileTree, embed ? const LeftCollapsed(200) : const Split(200));
+      expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
+      expect(panels.showEditorTabs, !embed);
+      expect(panels.showBreadcrumbs, !embed);
       expect(panels.bottom.isExpanded, !embed);
       expect(panels.bottom.selectedTab, BottomPanelTab.problems);
       expect(panels.bottom.editorFraction, 0.75);
@@ -94,14 +96,37 @@ void main() {
       panels.updatePreview(const RightCollapsed(0.6));
       panels.updateAppBar(PanelPresentationState.collapsed);
       panels.updateStatusBar(PanelPresentationState.collapsed);
-      panels.reset(previewRatio: 0.95);
+      panels.applyInitialDefaults(previewRatio: 0.95);
       expect(panels.preview, const Split(0.95));
-      expect(panels.fileTree, embed ? const LeftCollapsed(200) : const Split(200));
+      expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
       expect(panels.bottom.isExpanded, !embed);
       expect(panels.bottom.selectedTab, BottomPanelTab.problems);
       expect(panels.appBar, embed ? PanelPresentationState.hidden : PanelPresentationState.expanded);
       expect(panels.statusBar, embed ? PanelPresentationState.hidden : PanelPresentationState.expanded);
     });
+
+    for (final files in [
+      <String>[],
+      ['main.dart'],
+      ['main.dart', 'main.dart'],
+      ['main.dart', 'helper.dart', 'main.dart'],
+    ]) {
+      test('navigation uses distinct requested files: $files, embed=$embed', () {
+        final panels = PanelLayoutController(isEmbedMode: embed, files: files);
+        addTearDown(panels.dispose);
+        final visible = !embed || files.toSet().length > 1;
+        expect(panels.showEditorTabs, visible);
+        expect(panels.showBreadcrumbs, visible);
+        expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
+
+        panels.applyInitialDefaults(previewRatio: 0.7);
+        expect(panels.showEditorTabs, !embed);
+        expect(panels.showBreadcrumbs, !embed);
+        panels.applyInitialDefaults(previewRatio: 0.7, files: files);
+        expect(panels.showEditorTabs, visible);
+        expect(panels.showBreadcrumbs, visible);
+      });
+    }
   }
 
   test('bar presentation changes are independent and notify only on changes', () {

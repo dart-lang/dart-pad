@@ -11,14 +11,18 @@ import 'panel_presentation_state.dart';
 
 /// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController {
-  PanelLayoutController({required this.isEmbedMode}) {
-    final defaults = isEmbedMode ? panel_defaults.embed : panel_defaults.standalone;
+  PanelLayoutController({required this.isEmbedMode, Iterable<String> files = const []}) {
+    final defaults = panel_defaults.resolve(isEmbedMode: isEmbedMode, files: files);
     _preview = ValueNotifier(defaults.preview);
     _fileTree = ValueNotifier(defaults.fileTree);
     _bottom = ValueNotifier(defaults.bottom);
     _bottomSplit = _BottomSplitListenable(_bottom);
     _appBar = ValueNotifier(defaults.appBar);
     _statusBar = ValueNotifier(defaults.statusBar);
+    _editorNavigation = ValueNotifier((
+      showEditorTabs: defaults.showEditorTabs,
+      showBreadcrumbs: defaults.showBreadcrumbs,
+    ));
   }
 
   final bool isEmbedMode;
@@ -28,12 +32,15 @@ final class PanelLayoutController {
   late final ValueListenable<SplitState> _bottomSplit;
   late final ValueNotifier<PanelPresentationState> _appBar;
   late final ValueNotifier<PanelPresentationState> _statusBar;
+  late final ValueNotifier<({bool showEditorTabs, bool showBreadcrumbs})> _editorNavigation;
 
   SplitState get preview => _preview.value;
   SplitState get fileTree => _fileTree.value;
   BottomPanelState get bottom => _bottom.value;
   PanelPresentationState get appBar => _appBar.value;
   PanelPresentationState get statusBar => _statusBar.value;
+  bool get showEditorTabs => _editorNavigation.value.showEditorTabs;
+  bool get showBreadcrumbs => _editorNavigation.value.showBreadcrumbs;
 
   /// Changes to the preview split only.
   ValueListenable<SplitState> get previewListenable => _preview;
@@ -53,14 +60,18 @@ final class PanelLayoutController {
   /// Changes to the status-bar presentation only.
   ValueListenable<PanelPresentationState> get statusBarListenable => _statusBar;
 
-  /// A new workspace starts with the same defaults as a newly mounted layout.
-  void reset({required double previewRatio}) {
-    final defaults = isEmbedMode ? panel_defaults.embed : panel_defaults.standalone;
-    _preview.value = Split(previewRatio);
+  /// Changes to the visibility of editor tabs and breadcrumbs only.
+  ValueListenable<({bool showEditorTabs, bool showBreadcrumbs})> get editorNavigationListenable => _editorNavigation;
+
+  /// Apply at the start of a project load, before the user can change its layout.
+  void applyInitialDefaults({required double previewRatio, Iterable<String> files = const []}) {
+    final defaults = panel_defaults.resolve(isEmbedMode: isEmbedMode, files: files, initialPreviewRatio: previewRatio);
+    _preview.value = defaults.preview;
     _fileTree.value = defaults.fileTree;
     _bottom.value = defaults.bottom;
     _appBar.value = defaults.appBar;
     _statusBar.value = defaults.statusBar;
+    _editorNavigation.value = (showEditorTabs: defaults.showEditorTabs, showBreadcrumbs: defaults.showBreadcrumbs);
   }
 
   void updateAppBar(PanelPresentationState state) => _appBar.value = state;
@@ -99,6 +110,7 @@ final class PanelLayoutController {
     _bottom.dispose();
     _appBar.dispose();
     _statusBar.dispose();
+    _editorNavigation.dispose();
   }
 }
 
