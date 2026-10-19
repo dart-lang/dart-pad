@@ -108,6 +108,9 @@ final class _BottomPanelState extends State<BottomPanel> {
           isCollapsed: isCollapsed,
           onSelectTab: component.panels.openBottomPanel,
           onCollapse: panel != null && panel.canCollapse ? component.panels.collapseBottomPanel : null,
+          onExpand: panel != null && panel.canCollapse
+              ? () => component.panels.openBottomPanel(bottom.selectedTab)
+              : null,
         ),
         if (!isCollapsed) _buildContent(),
       ],
