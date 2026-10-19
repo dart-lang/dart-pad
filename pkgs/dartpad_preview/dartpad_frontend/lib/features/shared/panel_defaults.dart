@@ -10,18 +10,23 @@ library;
 
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
+import 'panel_presentation.dart';
 
 const previewRatio = 0.7;
 const editorRatio = 0.75;
 const fileTreeWidth = 200.0;
 
 const standalone = (
+  appBar: PanelPresentation.expanded,
+  statusBar: PanelPresentation.expanded,
   preview: Split(previewRatio),
   fileTree: Split(fileTreeWidth),
   bottom: BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
 );
 
 const embed = (
+  appBar: PanelPresentation.hidden,
+  statusBar: PanelPresentation.hidden,
   preview: Split(previewRatio),
   fileTree: LeftCollapsed(fileTreeWidth),
   bottom: BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
