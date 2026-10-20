@@ -13,6 +13,7 @@ import 'package:web/web.dart' as web;
 
 import '../../shared/components/context_menu.dart';
 import '../file_tree_models.dart';
+import 'file_tree_delete.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
 
@@ -171,6 +172,9 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           if (openable && (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
             component.onSelect(path);
             unawaited(_openWorkspaceFile(path));
+          } else if (isDeleteShortcut(keyboardEvent)) {
+            keyboardEvent.preventDefault();
+            _confirmDelete(path);
           }
         },
         'contextmenu': (web.Event event) => _handleContextMenu(
@@ -236,11 +240,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
           });
         },
       ),
-      ContextMenuItem(
-        label: 'Delete',
-        destructive: true,
-        onPressed: () => _confirmDeleteFile(path),
-      ),
+      deleteEntryMenuItem(onPressed: () => _confirmDelete(path)),
       const ContextMenuDivider(),
       ContextMenuItem(
         label: 'Copy path',
@@ -249,6 +249,19 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         },
       ),
     ];
+  }
+
+  void _confirmDelete(String path) {
+    final dirty = component.state.dirtyEntries.contains(path);
+    final message = dirty
+        ? 'Delete "$path"? Its unsaved editor changes will be lost.'
+        : 'Delete "$path"? This cannot be undone.';
+    confirmDeleteFileTreeRow(
+      path: path,
+      message: message,
+      delete: component.actions.deleteFile,
+      confirmDelete: component.confirmDelete,
+    );
   }
 
   Component _fileIcon(String fileName) {
@@ -263,16 +276,5 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       classes: 'file-tree-icon $colorClass',
       attributes: const {'aria-hidden': 'true', 'width': '12', 'height': '12'},
     );
-  }
-
-  void _confirmDeleteFile(String path) {
-    final dirty = component.state.dirtyEntries.contains(path);
-    final message = dirty
-        ? 'Delete "$path"? Its unsaved editor changes will be lost.'
-        : 'Delete "$path"? This cannot be undone.';
-    final confirmed = component.confirmDelete?.call(message) ?? web.window.confirm(message);
-    if (confirmed) {
-      unawaited(component.actions.deleteFile(path));
-    }
   }
 }

@@ -22,6 +22,7 @@ String resolveDisplayKey(String key, {bool? onMac}) {
 /// Categories for grouping keyboard shortcuts in the shortcuts dialog.
 enum ShortcutCategory {
   view('View'),
+  explorer('File explorer'),
   execution('Execution'),
   refactoring('Refactoring & code intelligence'),
   editing('Editing'),
@@ -333,6 +334,13 @@ final class ShortcutDefinition {
     codemirrorKeys: ['Mod-s'],
   );
 
+  // ── File explorer ───────────────────────────────────────────────────────
+  static final deleteFileTreeRow = ShortcutDefinition(
+    label: 'Delete selected file or folder',
+    displayKey: isMac ? 'Mod + Backspace' : 'Delete',
+    category: ShortcutCategory.explorer,
+  );
+
   // ── Global & palette commands ───────────────────────────────────────────
   static const commandPalette = ShortcutDefinition(
     label: 'Open command palette',
@@ -351,6 +359,9 @@ final class ShortcutDefinition {
 final shortcutDefinitions = <ShortcutDefinition>[
   // ── View ─────────────────────────────────────────────────────────────────
   ShortcutDefinition.commandPalette,
+
+  // ── File explorer ───────────────────────────────────────────────────────
+  ShortcutDefinition.deleteFileTreeRow,
 
   // ── Execution ────────────────────────────────────────────────────────────
   ShortcutDefinition.runOrHotReload,

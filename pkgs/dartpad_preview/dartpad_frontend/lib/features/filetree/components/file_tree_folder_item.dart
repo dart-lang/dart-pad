@@ -14,6 +14,7 @@ import 'package:web/web.dart' as web;
 import '../../shared/components/context_menu.dart';
 import '../../shared/icons.dart';
 import '../file_tree_models.dart';
+import 'file_tree_delete.dart';
 import 'file_tree_file_item.dart';
 import 'file_tree_input_item.dart';
 import 'file_tree_row.dart';
@@ -214,6 +215,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             setState(() {
               _isCollapsed = !_isCollapsed;
             });
+          } else if (isDeleteShortcut(keyboardEvent)) {
+            keyboardEvent.preventDefault();
+            _confirmDelete(path);
           }
         },
         'contextmenu': (web.Event event) => _handleContextMenu(
@@ -338,6 +342,19 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     );
   }
 
+  void _confirmDelete(String path) {
+    final dirty = component.state.dirtyEntries.contains(path);
+    final message = dirty
+        ? 'Delete "$path" and all of its contents? Unsaved editor changes inside it will be lost.'
+        : 'Delete "$path" and all of its contents? This cannot be undone.';
+    confirmDeleteFileTreeRow(
+      path: path,
+      message: message,
+      delete: component.actions.deleteFolder,
+      confirmDelete: component.confirmDelete,
+    );
+  }
+
   void _handleContextMenu(
     web.Event event,
     String path,
@@ -384,11 +401,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           });
         },
       ),
-      ContextMenuItem(
-        label: 'Delete',
-        destructive: true,
-        onPressed: () => _confirmDeleteFolder(path),
-      ),
+      deleteEntryMenuItem(onPressed: () => _confirmDelete(path)),
       const ContextMenuDivider(),
       ContextMenuItem(
         label: 'Use as root',
@@ -404,16 +417,5 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         },
       ),
     ];
-  }
-
-  void _confirmDeleteFolder(String path) {
-    final dirty = component.state.dirtyEntries.contains(path);
-    final message = dirty
-        ? 'Delete "$path" and all of its contents? Unsaved editor changes inside it will be lost.'
-        : 'Delete "$path" and all of its contents? This cannot be undone.';
-    final confirmed = component.confirmDelete?.call(message) ?? web.window.confirm(message);
-    if (confirmed) {
-      unawaited(component.actions.deleteFolder(path));
-    }
   }
 }

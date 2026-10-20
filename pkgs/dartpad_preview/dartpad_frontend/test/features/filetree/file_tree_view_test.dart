@@ -11,6 +11,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
+import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr_test/client_test.dart';
@@ -269,6 +270,133 @@ void main() {
     expect(confirmationMessage, contains('unsaved editor changes'));
     expect(deletedPath, 'example.txt');
   });
+
+  web.KeyboardEvent deleteKeyEvent(_Platform platform) {
+    return switch (platform) {
+      _Platform.macOS => web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'Backspace', metaKey: true, bubbles: true, cancelable: true),
+      ),
+      _Platform.windows => web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'Delete', bubbles: true, cancelable: true),
+      ),
+    };
+  }
+
+  for (final platform in _Platform.values) {
+    testClient(
+      'delete shortcut fires delete confirmation on ${platform.name}',
+      skip: platform != _hostPlatform,
+      (tester) async {
+        var confirmCalls = 0;
+        String? confirmationMessage;
+
+        tester.pumpComponent(
+          FileTreeView(
+            state: _state(workspace),
+            actions: _actions(),
+            confirmDelete: (message) {
+              confirmCalls++;
+              confirmationMessage = message;
+              return false;
+            },
+          ),
+        );
+
+        final file = web.document.querySelector('.file-tree-item.file') as web.HTMLElement;
+        file.dispatchEvent(deleteKeyEvent(platform));
+        await pumpEventQueue();
+
+        expect(confirmCalls, 1);
+        expect(confirmationMessage, contains('This cannot be undone.'));
+      },
+    );
+  }
+
+  for (final platform in _Platform.values) {
+    testClient(
+      'deletes the focused file on shortcut after confirmation on ${platform.name}',
+      skip: platform != _hostPlatform,
+      (tester) async {
+        String? deletedPath;
+
+        tester.pumpComponent(
+          FileTreeView(
+            state: _state(workspace),
+            actions: _actions(
+              deleteFile: (path) async {
+                deletedPath = path;
+              },
+            ),
+            confirmDelete: (_) => true,
+          ),
+        );
+
+        final file = web.document.querySelector('.file-tree-item.file') as web.HTMLElement;
+        file.dispatchEvent(deleteKeyEvent(platform));
+        await pumpEventQueue();
+
+        expect(deletedPath, 'example.txt');
+      },
+    );
+  }
+
+  final renameEntries = {
+    'file': (rowSelector: '.file-tree-item.file', buildState: _state),
+    'folder': (rowSelector: '.file-tree-item.folder', buildState: _stateWithFolder),
+  };
+  for (final entry in renameEntries.entries) {
+    for (final platform in _Platform.values) {
+      testClient(
+        'delete shortcut does not delete ${entry.key} while renaming it on ${platform.name}',
+        skip: platform != _hostPlatform,
+        (tester) async {
+          var confirmCalls = 0;
+          String? deletedPath;
+          final contextMenu = ContextMenuController();
+
+          tester.pumpComponent(
+            FileTreeView(
+              state: entry.value.buildState(workspace),
+              actions: _actions(
+                deleteFile: (path) async {
+                  deletedPath = path;
+                },
+                deleteFolder: (path) async {
+                  deletedPath = path;
+                },
+              ),
+              confirmDelete: (_) {
+                confirmCalls++;
+                return true;
+              },
+              contextMenu: contextMenu,
+            ),
+          );
+
+          final row = web.document.querySelector(entry.value.rowSelector) as web.HTMLElement;
+          row.dispatchEvent(
+            web.MouseEvent(
+              'contextmenu',
+              web.MouseEventInit(clientX: 100, clientY: 100, bubbles: true, cancelable: true),
+            ),
+          );
+          await pumpEventQueue();
+          contextMenu.items.whereType<ContextMenuItem>().firstWhere((item) => item.label == 'Rename').onPressed();
+          await pumpEventQueue();
+
+          final input = web.document.querySelector('.file-tree-input') as web.HTMLElement?;
+          expect(input, isNotNull);
+          input!.dispatchEvent(deleteKeyEvent(platform));
+          await pumpEventQueue();
+
+          expect(confirmCalls, 0);
+          expect(deletedPath, isNull);
+        },
+      );
+    }
+  }
 
   testClient('folder context menu provides "Use as root" option', (tester) async {
     String? focusedPath;
@@ -636,6 +764,7 @@ FileTreeActions _actions({
   Future<void> Function(String parentPath, String name)? createFile,
   Future<void> Function(String parentPath, String name)? createFolder,
   Future<void> Function(String path)? deleteFile,
+  Future<void> Function(String path)? deleteFolder,
   FutureOr<void> Function(String path)? openWorkspaceFile,
   void Function(String path)? focusPath,
 }) {
@@ -645,12 +774,16 @@ FileTreeActions _actions({
     renameFile: (_, _) async {},
     renameFolder: (_, _) async {},
     deleteFile: deleteFile ?? _noOpPathAsync,
-    deleteFolder: _noOpPathAsync,
+    deleteFolder: deleteFolder ?? _noOpPathAsync,
     moveEntry: (_, _) async {},
     openWorkspaceFile: openWorkspaceFile ?? _noOpPathAsync,
     clearOperationError: () {},
     focusPath: focusPath ?? (_) {},
   );
 }
+
+enum _Platform { macOS, windows }
+
+final _hostPlatform = isMac ? _Platform.macOS : _Platform.windows;
 
 Future<void> _noOpPathAsync(String _) async {}
