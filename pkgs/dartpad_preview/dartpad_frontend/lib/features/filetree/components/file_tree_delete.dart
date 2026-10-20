@@ -9,7 +9,7 @@ import 'package:web/web.dart' as web;
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/shortcut_definitions.dart';
 
-/// Whether [event] is the platform delete shortcut
+/// Whether [event] is the platform delete shortcut.
 bool isDeleteShortcut(web.KeyboardEvent event) {
   return isMac ? event.key == 'Backspace' && event.metaKey : event.key == 'Delete';
 }
