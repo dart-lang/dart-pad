@@ -12,6 +12,7 @@ import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
+import 'package:dartpad_frontend/features/startup/query_parameters.dart';
 import 'package:test/test.dart';
 
 const sdks = [
@@ -68,7 +69,7 @@ void main() {
       expect(request.initialSplitRatio, 0.6);
       expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
-      expect(ProjectRequest.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
+      expect(QueryParameters.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
     });
 
     test('documentation sample selection does not imply embed presentation or an SDK', () {
@@ -76,7 +77,7 @@ void main() {
         final uri = Uri.parse('/?sample_id=material.ListTile.2&run=true$embedQuery');
         final request = ProjectRequest.fromUri(uri);
         expect(request.isEmbedMode, embedded, reason: uri.toString());
-        expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
+        expect(QueryParameters.isEmbedUri(uri), embedded, reason: uri.toString());
         expect(request.sdk, isNull);
       }
     });
