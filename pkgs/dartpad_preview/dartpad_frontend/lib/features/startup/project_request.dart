@@ -3,53 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
-import '../shared/panel_defaults.dart' as panel_defaults;
 import 'examples.g.dart';
-import 'project_loader.dart';
 import 'project_source.dart';
-
-/// The URL query parameter holding the per-tab session id.
-///
-/// Shared so the app, [ProjectRequest] parsing, and the persistence
-/// controller all agree on the same key.
-const String sessionIdQueryParameter = 's';
+import 'query_parameters.dart';
 
 /// The immutable, source-relative options supplied by the URL.
 ///
-/// Parsing validates query syntax and path safety. Source loading and project
-/// resolution subsequently check file existence, SDK availability, and inferred
-/// defaults. Explicit file paths are relative to the source, not to [root].
+/// Holds the validated [parameters] and the raw [query] used to rebuild the browser
+/// URL. Source loading and project resolution subsequently check file existence,
+/// SDK availability, and inferred defaults. Explicit file paths are relative to the
+/// source, not to [root].
 final class ProjectRequest {
   ProjectRequest._({
     required this.source,
+    required this.parameters,
     required Map<String, List<String>> query,
-    required List<String> files,
     this.sampleInitialFile,
-    this.root,
-    this.entrypoint,
-    this.sdk,
-    this.sdkVersion,
-    this.mode,
-    required this.isEmbedMode,
-    required this.initialSplitRatio,
-    required this.isSourcedRequest,
-  }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value)))),
-       files = List.unmodifiable(files);
+  }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value))));
 
   /// Creates a request with only the sample selection set.
   ///
   /// A null [sampleId] selects the default sample (`counter`). An empty ID throws
   /// a [FormatException]; whether the sample exists is checked when loading it.
   factory ProjectRequest.example([String? sampleId]) => ProjectRequest.fromUri(
-    Uri(queryParameters: sampleId == null ? null : {'sample': sampleId}),
+    Uri(queryParameters: sampleId == null ? null : {QueryParameters.sample: sampleId}),
   );
 
   /// Parses source selection and initial project options from [uri]'s query.
   ///
-  /// Reads [Uri.queryParametersAll] without decoding values a second time,
-  /// preserving repeated `file` values in order. With no explicit source, the
-  /// request selects the default sample. `gist` and its `id` alias are mutually
-  /// exclusive; `version` requires `package`.
+  /// Validation lives in [QueryParameters.fromUri]. This reads [Uri.queryParametersAll]
+  /// without decoding values a second time, preserving repeated `file` values in order.
   ///
   /// Throws a [FormatException] for conflicting sources, invalid option values,
   /// repeated scalar options, or the unsupported `archive`, `path`, and `main`
@@ -59,146 +42,84 @@ final class ProjectRequest {
   /// Other query parameters, including the independent `embed` UI option, are
   /// retained in [query].
   factory ProjectRequest.fromUri(Uri uri) {
+    final parameters = QueryParameters.fromUri(uri);
     final query = <String, List<String>>{
       for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.of(entry.value),
     };
-    String? single(String key) {
-      final values = query[key];
-      if (values == null) {
-        return null;
-      }
-      if (values.length != 1 || (values.single.isEmpty && key != 'root')) {
-        throw FormatException('Expected one non-empty "$key" parameter.');
-      }
-      return values.single;
-    }
-
-    for (final obsolete in ['archive', 'path', 'main']) {
-      if (query.containsKey(obsolete)) {
-        throw FormatException('Unsupported query parameter: $obsolete.');
-      }
-    }
-    final url = single('url');
-    final package = single('package');
-    final version = single('version');
-    final gist = single('gist');
-    final id = single('id');
-    final sample = single('sample');
-    final apiSample = single('sample_id');
-    if (gist != null && id != null) {
-      throw const FormatException('Choose either gist or id, not both.');
-    }
-    if ([url, package, gist ?? id, sample, apiSample].nonNulls.length > 1) {
-      throw const FormatException('Choose only one project source.');
-    }
-    final hasExplicitSource = url != null || package != null || gist != null || id != null;
-    final selectedExample = hasExplicitSource
-        ? null
-        : sample == null
-        ? Examples.defaultExample
-        : Examples.getById(sample);
-    if (version != null && package == null) {
-      throw const FormatException('version requires package.');
-    }
-    final sdkValue = single('sdk');
-    final sdkParts = sdkValue?.split(':');
-    if (sdkParts != null &&
-        (sdkParts.length > 2 || !['dart', 'flutter'].contains(sdkParts.first) || sdkParts.last.isEmpty)) {
-      throw const FormatException('sdk must be dart or flutter, optionally followed by :<version>.');
-    }
-    final modeValue = single('mode');
-    if (modeValue != null && !RunMode.values.any((mode) => mode.name == modeValue)) {
-      throw const FormatException('mode must be console or flutter.');
-    }
-    final root = single('root');
-    final entrypoint = single('entrypoint');
-    final files = query['file'] ?? const <String>[];
-    for (final path in [...files, ?entrypoint]) {
-      ProjectLoader.normalizePath(path);
-    }
-    if (root != null) {
-      ProjectLoader.normalizePath(root, allowRoot: true);
-    }
-    final channel = apiSample == null ? null : single('channel');
-    final splitValues = query['split'];
-    final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
-    final initialSplitRatio = splitPercent == null ? panel_defaults.previewRatio : splitPercent.clamp(5, 95) / 100;
-    final source = url != null
-        ? ArchiveProjectSource(url)
-        : package != null
-        ? PackageProjectSource(package, version: version)
-        : (gist ?? id) != null
-        ? GistProjectSource((gist ?? id)!)
-        : apiSample != null
-        ? FlutterApiDocsProjectSource(apiSample, channel: channel)
-        : SampleProjectSource(sample);
+    final example = switch (parameters.source) {
+      UrlSourceSelection() || PackageSourceSelection() || GistSourceSelection() => null,
+      SampleSourceSelection(:final sampleId) => Examples.getById(sampleId),
+      _ => Examples.defaultExample,
+    };
     return ProjectRequest._(
-      source: source,
+      source: switch (parameters.source) {
+        UrlSourceSelection(:final url) => ArchiveProjectSource(url),
+        PackageSourceSelection(:final package, :final version) => PackageProjectSource(package, version: version),
+        GistSourceSelection(:final gistId) => GistProjectSource(gistId),
+        ApiDocsSourceSelection(:final sampleId, :final channel) => FlutterApiDocsProjectSource(
+          sampleId,
+          channel: channel.name,
+        ),
+        SampleSourceSelection(:final sampleId) => SampleProjectSource(sampleId),
+        null => const SampleProjectSource(),
+      },
+      parameters: parameters,
       query: query,
-      files: files,
-      sampleInitialFile: selectedExample?.initialFile,
-      root: root,
-      entrypoint: entrypoint,
-      sdk: sdkParts?.first,
-      sdkVersion: sdkParts != null && sdkParts.length == 2 ? sdkParts.last : null,
-      mode: modeValue == null ? null : RunMode.values.byName(modeValue),
-      isEmbedMode: isEmbedUri(uri),
-      initialSplitRatio: initialSplitRatio,
-      isSourcedRequest: hasExplicitSource || sample != null || apiSample != null,
+      sampleInitialFile: example?.initialFile,
     );
   }
-
-  /// Whether [uri] explicitly requests the embed presentation.
-  /// Legacy HTML entrypoints redirect to this query option before the app loads.
-  static bool isEmbedUri(Uri uri) => uri.queryParametersAll['embed']?.contains('true') == true;
 
   /// The selected source, defaulting to a sample when none was specified.
   final ProjectSource source;
 
+  /// The validated query. Source, project, and appearance values are read from here.
+  final QueryParameters parameters;
+
   /// The original decoded query values, including options not interpreted here.
   ///
-  /// The map and each value list are unmodifiable. Repeated values retain their
-  /// order within each parameter.
+  /// Kept so [search] and history match the URL that was opened. The map and each
+  /// value list are unmodifiable. Repeated values retain their order within each
+  /// parameter.
   final Map<String, List<String>> query;
-
-  /// Explicit source-relative tab paths in query order, including duplicates.
-  ///
-  /// This list is unmodifiable. When empty and no root or entrypoint is
-  /// specified, a sample's [sampleInitialFile] takes priority. Resolution then
-  /// tries README.md in the resolved root and the resolved entrypoint.
-  final List<String> files;
 
   /// The selected sample's preferred first tab, separate from URL `file` options.
   ///
   /// It does not change [query], so history matches the URL that was opened.
   final String? sampleInitialFile;
 
+  /// Explicit source-relative tab paths in query order, including duplicates.
+  ///
+  /// This list is unmodifiable. When empty and no root or entrypoint is
+  /// specified, a sample's [sampleInitialFile] takes priority. Resolution then
+  /// tries README.md in the resolved root and the resolved entrypoint.
+  List<String> get files => parameters.project.files;
+
   /// Null infers the project root. Empty explicitly selects the source root;
   /// a non-empty value names a source-relative directory.
-  final String? root;
+  String? get root => parameters.project.root;
 
   /// The explicit source-relative execution target, or null to infer one.
   ///
   /// File existence is checked during project resolution. Empty values are
   /// invalid, rather than an instruction to disable Run.
-  final String? entrypoint;
+  String? get entrypoint => parameters.project.entrypoint;
 
   /// The requested SDK kind (`dart` or `flutter`).
   ///
   /// Null infers the kind from the resolved root's pubspec.
-  final String? sdk;
+  String? get sdk => parameters.project.sdk?.name;
 
   /// The exact SDK version requested after the colon in the `sdk` parameter.
   ///
   /// Null selects the first available bundle of the chosen SDK kind. Bundle
   /// availability is checked during project resolution.
-  final String? sdkVersion;
+  String? get sdkVersion => parameters.project.sdkVersion;
 
   /// Null infers mode from the SDK and entrypoint; a value fixes the mode.
-  final RunMode? mode;
+  RunMode? get mode => parameters.project.mode;
 
   /// Whether the current preview embed presentation should be used.
-  final bool isEmbedMode;
+  bool get isEmbedMode => parameters.appearance.embed;
 
   /// Whether the resolved entrypoint should run after workspace preparation.
   /// Embeds wait for Run except legacy Flutter API docs samples ending in `.1`.
@@ -211,14 +132,9 @@ final class ProjectRequest {
       };
 
   /// Initial fraction of the outer split occupied by the code panel.
-  /// Defaults to 70%, with the requested value clamped to 5–95%.
+  /// Defaults to 70%. The requested value is clamped to 5–95% by [QueryParameters].
   /// This is only to support the old docs generator and will be removed in the future.
-  final double initialSplitRatio;
-
-  /// Whether the URL explicitly names a source (`url`/`package`/`gist`/`id`/
-  /// `sample`/`sample_id`), as opposed to a bare URL defaulting to the
-  /// default sample.
-  final bool isSourcedRequest;
+  double get initialSplitRatio => parameters.appearance.splitPercent / 100;
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///

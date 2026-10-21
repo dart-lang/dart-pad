@@ -67,7 +67,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
     await stop();
     final history = await _readHistory();
     _sessionId = null;
-    if (request.isSourcedRequest) {
+    if (request.parameters.isSourced) {
       return _resolveSourcedRequest(request, history, startFresh: startFresh);
     }
     return _resolveBareRequest(history, startFresh: startFresh);
@@ -101,8 +101,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
     return PersistenceLoadStrategy(mintedSessionId: minted);
   }
 
-  int? _requestedSessionId(ProjectRequest request) =>
-      int.tryParse(request.query[sessionIdQueryParameter]?.firstOrNull ?? '');
+  int? _requestedSessionId(ProjectRequest request) => request.parameters.session?.value;
 
   /// Returns null when storage is unavailable, leaving the URL without a session id.
   Future<int?> _reserveSessionId() async {

@@ -39,6 +39,11 @@ final class QueryParameters {
     required this.session,
   });
 
+  /// Whether [uri] explicitly requests the embed presentation. Never throws, so it
+  /// is safe before the full query is validated. Legacy HTML entrypoints redirect
+  /// to this query option before the app loads.
+  static bool isEmbedUri(Uri uri) => uri.queryParametersAll[embed]?.contains('true') == true;
+
   /// Parses and validates a dartpad [uri]'s query.
   factory QueryParameters.fromUri(Uri uri) {
     final raw = {
@@ -97,11 +102,11 @@ sealed class SourceSelection {
 final class UrlSourceSelection extends SourceSelection {
   const UrlSourceSelection(this.url);
 
-  final Uri url;
+  final String url;
 
   static UrlSourceSelection? _validate(Map<String, List<String>> raw) {
     final value = _single(raw, QueryParameters.url);
-    return value == null ? null : UrlSourceSelection(Uri.parse(value));
+    return value == null ? null : UrlSourceSelection(value);
   }
 }
 
@@ -280,8 +285,11 @@ final class PresentationParameters {
   const PresentationParameters({
     this.embed = false,
     this.theme,
-    this.splitPercent,
+    this.splitPercent = defaultSplitPercent,
   });
+
+  /// Initial code panel share used when `split` is absent or not an integer.
+  static const defaultSplitPercent = 70;
 
   /// Whether the embed layout is used.
   final bool embed;
@@ -289,8 +297,8 @@ final class PresentationParameters {
   /// Null uses the saved preference, then the system theme.
   final UITheme? theme;
 
-  /// Initial code panel share, clamped to 5–95. Null uses the default.
-  final int? splitPercent;
+  /// Initial code panel share, clamped to 5–95.
+  final int splitPercent;
 
   static PresentationParameters _validate(Map<String, List<String>> raw) => PresentationParameters(
     embed: _validateEmbed(raw),
@@ -303,9 +311,10 @@ final class PresentationParameters {
   static UITheme? _validateTheme(Map<String, List<String>> raw) =>
       UITheme.values.asNameMap()[_lenient(raw, QueryParameters.theme)];
 
-  static int? _validateSplit(Map<String, List<String>> raw) {
-    final percent = int.tryParse(_lenient(raw, QueryParameters.split) ?? '');
-    return percent?.clamp(5, 95).toInt();
+  static int _validateSplit(Map<String, List<String>> raw) {
+    final percent =
+        int.tryParse(_lenient(raw, QueryParameters.split) ?? '') ?? PresentationParameters.defaultSplitPercent;
+    return percent.clamp(5, 95).toInt();
   }
 }
 
