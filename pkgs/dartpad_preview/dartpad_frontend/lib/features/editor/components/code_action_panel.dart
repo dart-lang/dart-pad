@@ -297,7 +297,9 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
     ),
     css('.code-action-btn').styles(
       padding: .symmetric(vertical: 7.px, horizontal: 12.px),
+      margin: .symmetric(horizontal: 4.px),
       border: .none,
+      radius: .circular(4.px),
       cursor: .pointer,
       transition: Transition('background-color', duration: 100.ms),
       color: colorOnSurface,
@@ -307,7 +309,12 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
     ),
     css('.code-action-btn:hover, .code-action-btn:focus-visible').styles(
       outline: const Outline(style: .none),
-      backgroundColor: const .rgba(255, 255, 255, 0.08),
+    ),
+    css('.code-action-btn:focus-visible').styles(
+      backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
+    ),
+    css('.code-action-btn:hover').styles(
+      backgroundColor: colorSurface.highlight(colorOnSurface, 0.15),
     ),
     css('.code-action-empty-item').styles(
       padding: .symmetric(vertical: 12.px, horizontal: 16.px),
