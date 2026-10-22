@@ -1,0 +1,49 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Invoked by .cloud_build/deploy/trigger-{pr,main}.yaml.
+#
+# Runs as builder@dart-pad.iam.gserviceaccount.com, which has:
+#  * no Firebase permissions,
+#  * no Cloud Build permissions,
+#  * Can write (not overwrite) to GCS bucket holding ${_OUTPUT_TAR}
+#
+# This uploads a tarball to ${_OUTPUT_TAR} with:
+#  * public/
+#  * firebase.json
+
+steps:
+  - name: gcr.io/$PROJECT_ID/flutter:stable
+    script: |
+      #!/usr/bin/env bash
+      set -eu
+
+      export PATH="/opt/flutter/bin:${PATH}:${HOME}/.pub-cache/bin"
+
+      cd pkgs/dartpad_preview/dartpad_frontend
+      dart pub get
+      (cd ../examples && dart run build_examples.dart)
+      dart run tool/setup_sdk_assets.dart
+      dart run jaspr_cli:jaspr build --experimental-wasm -v
+
+      for sdk in dart flutter; do
+        for entrypoint in worker.js sandbox.js; do
+          asset="build/jaspr/dartpad/${sdk}/${entrypoint}"
+          if [[ ! -f "${asset}" || ! -s "${asset}" ]]; then
+            echo "Missing or empty SDK entrypoint: ${asset}" >&2
+            exit 1
+          fi
+        done
+      done
+
+      mv build/jaspr public
+      tar -cf /workspace/site.tar firebase.json public
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    args:
+      - gcloud
+      - storage
+      - cp
+      - /workspace/site.tar
+      - ${_OUTPUT_TAR}

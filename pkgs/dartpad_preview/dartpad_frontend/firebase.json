@@ -1,7 +1,7 @@
 {
   "hosting": {
-    "target": "preview",
-    "public": "build/jaspr",
+    "site": "sketch-pad-1cebb",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",

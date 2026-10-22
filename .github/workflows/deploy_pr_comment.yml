@@ -1,0 +1,58 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+name: Post PR deployment URL
+
+on:
+  check_run:
+    types:
+      - completed
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: write
+
+jobs:
+  comment:
+    if: >
+      github.event.check_run.name == 'deploy-pr' &&
+      github.event.check_run.conclusion == 'success' &&
+      github.event.check_run.pull_requests[0] != null
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const run = context.payload.check_run;
+            const prNumber = run.pull_requests[0].number;
+            const { data: check } = await github.rest.checks.get({
+              ...context.repo,
+              check_run_id: run.id,
+            });
+            const text = `${check.output?.summary ?? ''}\n${check.output?.text ?? ''}`;
+            const match = text.match(/https:\/\/[a-z0-9-]+--pr-\d+-[a-z0-9]+\.web\.app/);
+            const marker = '<!-- dartpad-pr-deploy-url -->';
+            const body = match
+              ? `${marker}\n🚀 **DartPad** deployed for ${run.head_sha.slice(0, 7)}: ${match[0]}`
+              : `${marker}\n🚀 **DartPad** deployed for ${run.head_sha.slice(0, 7)} ([build log](${run.html_url})).`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
