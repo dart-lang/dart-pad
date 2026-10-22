@@ -33,6 +33,7 @@ final class QueryParameters {
   static const obsolete = ['archive', 'path', 'main'];
 
   QueryParameters._({
+    required this.raw,
     required this.source,
     required this.project,
     required this.appearance,
@@ -42,7 +43,7 @@ final class QueryParameters {
   /// Whether [uri] explicitly requests the embed presentation. Never throws, so it
   /// is safe before the full query is validated. Legacy HTML entrypoints redirect
   /// to this query option before the app loads.
-  static bool isEmbedUri(Uri uri) => uri.queryParametersAll[embed]?.contains('true') == true;
+  static bool isEmbeddedUri(Uri uri) => uri.queryParametersAll[embed]?.contains('true') == true;
 
   /// Parses and validates a dartpad [uri]'s query.
   factory QueryParameters.fromUri(Uri uri) {
@@ -55,12 +56,16 @@ final class QueryParameters {
       }
     }
     return QueryParameters._(
+      raw: raw,
       source: SourceSelection._validate(raw),
       project: ProjectParameters._validate(raw),
       appearance: PresentationParameters._validate(raw),
       session: SessionId.parse(_lenient(raw, sessionId)),
     );
   }
+
+  /// The raw query parameter map.
+  final Map<String, List<String>> raw;
 
   /// The selected source, or null for a bare URL.
   final SourceSelection? source;
@@ -73,9 +78,6 @@ final class QueryParameters {
 
   /// The per-tab session id from the `s` parameter.
   final SessionId? session;
-
-  /// Whether the URL names a source, rather than a bare URL.
-  bool get isSourced => source != null;
 }
 
 /// Source-selecting options. At most one variant is present per URL.

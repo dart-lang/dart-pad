@@ -17,9 +17,8 @@ final class ProjectRequest {
   ProjectRequest._({
     required this.source,
     required this.parameters,
-    required Map<String, List<String>> query,
     this.sampleInitialFile,
-  }) : query = Map.unmodifiable(query.map((key, value) => MapEntry(key, List<String>.unmodifiable(value))));
+  });
 
   /// Creates a request with only the sample selection set.
   ///
@@ -43,9 +42,6 @@ final class ProjectRequest {
   /// retained in [query].
   factory ProjectRequest.fromUri(Uri uri) {
     final parameters = QueryParameters.fromUri(uri);
-    final query = <String, List<String>>{
-      for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.of(entry.value),
-    };
     final example = switch (parameters.source) {
       UrlSourceSelection() || PackageSourceSelection() || GistSourceSelection() => null,
       SampleSourceSelection(:final sampleId) => Examples.getById(sampleId),
@@ -64,7 +60,6 @@ final class ProjectRequest {
         null => const SampleProjectSource(),
       },
       parameters: parameters,
-      query: query,
       sampleInitialFile: example?.initialFile,
     );
   }
@@ -75,17 +70,17 @@ final class ProjectRequest {
   /// The validated query. Source, project, and appearance values are read from here.
   final QueryParameters parameters;
 
+  /// The selected sample's preferred first tab, separate from URL `file` options.
+  ///
+  /// It does not change [query], so history matches the URL that was opened.
+  final String? sampleInitialFile;
+
   /// The original decoded query values, including options not interpreted here.
   ///
   /// Kept so [search] and history match the URL that was opened. The map and each
   /// value list are unmodifiable. Repeated values retain their order within each
   /// parameter.
-  final Map<String, List<String>> query;
-
-  /// The selected sample's preferred first tab, separate from URL `file` options.
-  ///
-  /// It does not change [query], so history matches the URL that was opened.
-  final String? sampleInitialFile;
+  Map<String, List<String>> get query => parameters.raw;
 
   /// Explicit source-relative tab paths in query order, including duplicates.
   ///
@@ -119,13 +114,16 @@ final class ProjectRequest {
   RunMode? get mode => parameters.project.mode;
 
   /// Whether the current preview embed presentation should be used.
-  bool get isEmbedMode => parameters.appearance.embed;
+  bool get isEmbedded => parameters.appearance.embed;
+
+  /// Whether the URL names a source, rather than a bare URL using the default sample.
+  bool get isSourced => parameters.source != null;
 
   /// Whether the resolved entrypoint should run after workspace preparation.
   /// Embeds wait for Run except legacy Flutter API docs samples ending in `.1`.
   /// The obsolete `run` query parameter is ignored.
   bool get autoRun =>
-      !isEmbedMode ||
+      !isEmbedded ||
       switch (source) {
         FlutterApiDocsProjectSource(:final sampleId) => sampleId.endsWith('.1'),
         _ => false,

@@ -67,7 +67,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
     await stop();
     final history = await _readHistory();
     _sessionId = null;
-    if (request.parameters.isSourced) {
+    if (request.isSourced) {
       return _resolveSourcedRequest(request, history, startFresh: startFresh);
     }
     return _resolveBareRequest(history, startFresh: startFresh);
@@ -75,7 +75,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
 
   /// A bare URL always selects the single scratch project.
   PersistenceLoadStrategy _resolveBareRequest(List<StoredProject> history, {required bool startFresh}) {
-    final scratch = startFresh ? null : history.where((entry) => entry.state.isBareScratch).firstOrNull;
+    final scratch = startFresh ? null : history.where((entry) => entry.state.isBareProject).firstOrNull;
     return PersistenceLoadStrategy(restoreProjectId: scratch?.id);
   }
 
