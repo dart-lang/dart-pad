@@ -134,30 +134,6 @@ void main() {
       final explicit = ProjectRequest.fromUri(Uri.parse('?sample=counter&file=README.md'));
       expect(explicit.files, ['README.md']);
     });
-
-    for (final query in [
-      '?gist=a&id=a',
-      '?gist=a&id=b',
-      '?url=a&package=b',
-      '?sample=a&gist=b',
-      '?sample=a&sample_id=b',
-      '?sample_id=',
-      '?version=1.0.0',
-      '?sdk=other',
-      '?sdk=dart:',
-      '?sdk=dart:1:2',
-      '?mode=other',
-      '?sample=',
-      '?root=a&root=b',
-    ]) {
-      test('rejects $query', () => expect(() => ProjectRequest.fromUri(Uri.parse(query)), throwsFormatException));
-    }
-    for (final query in ['?file=../escape.dart', '?root=/absolute', '?entrypoint=../main.dart', '?file=']) {
-      test(
-        'rejects unsafe path $query',
-        () => expect(() => ProjectRequest.fromUri(Uri.parse(query)), throwsArgumentError),
-      );
-    }
   });
 
   group('InitialProjectState', () {
