@@ -65,19 +65,19 @@ void main() {
         Uri.parse('/?sample_id=material.AppBar.1&channel=stable&split=60&run=true&embed=true'),
       );
 
-      expect(request.isEmbedMode, isTrue);
+      expect(request.isEmbedded, isTrue);
       expect(request.initialSplitRatio, 0.6);
       expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
-      expect(QueryParameters.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
+      expect(QueryParameters.isEmbeddedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
     });
 
     test('documentation sample selection does not imply embed presentation or an SDK', () {
       for (final (embedQuery, embedded) in [('', false), ('&embed=false', false), ('&embed=true', true)]) {
         final uri = Uri.parse('/?sample_id=material.ListTile.2&run=true$embedQuery');
         final request = ProjectRequest.fromUri(uri);
-        expect(request.isEmbedMode, embedded, reason: uri.toString());
-        expect(QueryParameters.isEmbedUri(uri), embedded, reason: uri.toString());
+        expect(request.isEmbedded, embedded, reason: uri.toString());
+        expect(QueryParameters.isEmbeddedUri(uri), embedded, reason: uri.toString());
         expect(request.sdk, isNull);
       }
     });

@@ -145,7 +145,7 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _isEmbedMode = QueryParameters.isEmbedUri(component.initialUri ?? Uri.base);
+    _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
     _panels = PanelLayoutController(isEmbedMode: _isEmbedMode);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
