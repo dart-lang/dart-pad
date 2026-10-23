@@ -8,10 +8,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 
-// Temporarily retain Dart 3.15.0-27.0.dev: newer workers access Platform.version
-// while starting the analysis server, which is unsupported in the browser.
-const flutterRevision = 'e81f444cc0835365bda671876183e3f9cd149925';
-
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
 /// Prepares SDK assets using a single process manager for all external commands.
@@ -36,16 +32,13 @@ class SdkAssetSetup {
         '--output=${p.join(assets.path, 'dart')}',
       ], frontendRoot.path);
 
-      final flutterRoot = await checkoutFlutterSdk(stagingDir);
       await _run(Platform.resolvedExecutable, [
         'run',
         'dartpad',
         'setup',
         'flutter',
-        '--flutter-root=${flutterRoot.path}',
-        // Build matching web SDK sources instead of relying on Flutter's
-        // prebuilt DDC bundle layout, which changes between Flutter revisions.
-        '--web-sdk=build',
+        '--channel=beta',
+        '--web-sdk=copy',
         '--output=${p.join(assets.path, 'flutter')}',
       ], frontendRoot.path);
 
@@ -74,25 +67,6 @@ class SdkAssetSetup {
     if (result != 0) {
       throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
     }
-  }
-
-  /// Checks out the pinned Flutter revision with the history needed to determine its version.
-  Future<Directory> checkoutFlutterSdk(Directory stagingDir) async {
-    final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
-    await _run('git', [
-      'clone',
-      // Flutter's version fallback needs release tags from other branches and
-      // their common ancestors with master, so retain all commit history.
-      '--filter=blob:none',
-      '--branch=master',
-      // TODO: Remove --no-checkout once the browser worker regression is fixed.
-      '--no-checkout',
-      'https://github.com/flutter/flutter.git',
-      flutterRoot.path,
-    ], stagingDir.path);
-    // TODO: Remove this checkout and flutterRevision once the browser worker regression is fixed.
-    await _run('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
-    return flutterRoot;
   }
 }
 
