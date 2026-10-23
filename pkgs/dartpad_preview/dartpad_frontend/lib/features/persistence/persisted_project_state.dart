@@ -12,6 +12,7 @@ import '../shared/sdk_info.dart';
 import '../startup/initial_project_state.dart';
 import '../startup/project_loader.dart';
 import '../startup/project_request.dart';
+import '../startup/query_parameters.dart';
 
 /// One recoverable working copy, including text not yet saved by the editor.
 final class PersistedProjectState {
@@ -45,20 +46,20 @@ final class PersistedProjectState {
     for (final entry in files.entries) ProjectFile(path: entry.key, bytes: entry.value),
   ]);
 
-  /// The bare URL's single scratch project: no source, no session id.
-  bool get isBareScratch => sessionId == null && !ProjectRequest.fromUri(Uri(queryParameters: query)).isSourcedRequest;
+  /// The bare URL's single project: no source, no session id.
+  bool get isBareProject => sessionId == null && !ProjectRequest.fromUri(Uri(queryParameters: query)).isSourced;
 
   /// Compare decoded options; parameter order is irrelevant, value order is not.
   bool matchesQuery(Map<String, List<String>> other) {
     // Theme is presentation, `s` identifies the session, and `file` only adds tabs on restore.
     final projectQuery = Map<String, List<String>>.of(query)
-      ..remove('theme')
-      ..remove('file')
-      ..remove(sessionIdQueryParameter);
+      ..remove(QueryParameters.theme)
+      ..remove(QueryParameters.file)
+      ..remove(QueryParameters.sessionId);
     final otherProjectQuery = Map<String, List<String>>.of(other)
-      ..remove('theme')
-      ..remove('file')
-      ..remove(sessionIdQueryParameter);
+      ..remove(QueryParameters.theme)
+      ..remove(QueryParameters.file)
+      ..remove(QueryParameters.sessionId);
     if (projectQuery.length != otherProjectQuery.length) {
       return false;
     }
