@@ -86,14 +86,17 @@ class EditorShell extends StatelessComponent {
         canCollapseRight: true,
         left: div(classes: 'editor-area', [
           if (openTabs != null) ...[
-            EditorTabBar(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-              contextMenu: contextMenu,
-            ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+            // Show the tab bar when navigation (e.g. Go to Definition) opens another file,
+            // so the user can switch back even if tabs are hidden by default.
+            if (panels.showEditorTabs || openTabs.length > 1)
+              EditorTabBar(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+                contextMenu: contextMenu,
+              ),
+            if (panels.showBreadcrumbs && activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
             EditorStack(
               openTabs: openTabs,
               activeFile: activeFile,
