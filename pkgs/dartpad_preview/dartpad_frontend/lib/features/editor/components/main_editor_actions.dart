@@ -170,6 +170,7 @@ final class _MainEditorActionsState extends State<MainEditorActions> {
           busy: _busy,
           child: Button(
             label: 'Run',
+            tooltip: 'Run Dart or build Flutter preview',
             disabled: isDisabled,
             onClick: () => unawaited(_handleRun()),
           ),

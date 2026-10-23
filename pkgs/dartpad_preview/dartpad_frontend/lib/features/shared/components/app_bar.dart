@@ -108,7 +108,7 @@ final class AppBar extends StatelessComponent {
             disabled: isNewDisabled,
             attributes: {
               'aria-label': 'New',
-              'title': 'New',
+              'title': 'Start new Dart/Flutter project from preset',
             },
             [
               const Icon('add_circle', size: 18),
