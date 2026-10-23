@@ -27,7 +27,7 @@ Cloud Build configuration for building and deploying DartPad to Firebase Hosting
   - `logging.logWriter`
   - `artifactregistry.reader`
   - `storage.objectViewer` on `gs://dart-pad-build-input`
-  - `storage.objectCreator` and `storage.objectViewer` on `gs://dart-pad-build-output`
+  - `storage.objectCreator`, `storage.objectViewer`, and `storage.legacyBucketReader` on `gs://dart-pad-build-output`
 
 ## Updating Triggers
 
