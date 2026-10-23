@@ -19,13 +19,9 @@ dart run tool/setup_sdk_assets.dart
 | `lib/sdks.g.dart`        | Available SDK versions and the default SDK selection |
 
 - [setup_sdk_assets.dart](../tool/setup_sdk_assets.dart) downloads the latest Dart
-  beta runtime and builds Flutter at the revision configured by `flutterRevision`
+  beta runtime and builds the Flutter beta bundle (`--channel=beta --web-sdk=copy`)
   with its matching Dart SDK.
-- The script clones Flutter with release tags and full commit history, then
-  checks out the pinned revision so Flutter can determine its version.
-  `--filter=blob:none` avoids downloading historical file contents.
-  `--web-sdk=build` builds the matching web SDK from source.
-- Dart beta is resolved on each run. When refreshing assets, include the
+- Dart and Flutter beta are resolved on each run. When refreshing assets, include the
   regenerated SDK manifest in the change.
 - SDK versions come from each bundle's `version.json`. Missing or invalid version
   metadata, including an entirely missing required bundle, fails setup before

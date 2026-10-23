@@ -15,6 +15,7 @@
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: E2_STANDARD_2
 
 steps:
   - name: gcr.io/$PROJECT_ID/flutter:stable
