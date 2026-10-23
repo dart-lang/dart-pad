@@ -12,6 +12,7 @@
 # Import with:
 #   gcloud builds triggers import --project=dart-pad --source=.cloud_build/deploy/trigger-pr.yaml
 
+id: 1e672335-faca-45ba-82b7-feb1d772daea
 name: deploy-pr
 description: Build and deploy PR previews to Firebase Hosting
 serviceAccount: projects/dart-pad/serviceAccounts/deployer@dart-pad.iam.gserviceaccount.com
