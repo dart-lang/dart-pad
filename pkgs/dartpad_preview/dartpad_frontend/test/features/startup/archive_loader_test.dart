@@ -41,7 +41,7 @@ void main() {
       return Uint8List.fromList(encoded);
     }
 
-    test('comments out dependencies absent from the imported workspace', () async {
+    test('comments out unavailable dev dependencies and overrides but keeps dependencies', () async {
       const pubspec = '''
 name: material_ui
 dependencies:
@@ -73,16 +73,9 @@ dependency_overrides:
       );
       final contents = await api.readFileAsText('pubspec.yaml');
       final yaml = loadYaml(contents) as YamlMap;
-      expect((yaml['dependencies'] as YamlMap).keys, ['flutter', 'local']);
+      expect((yaml['dependencies'] as YamlMap).keys, ['flutter', 'local', 'missing']);
       expect(yaml['dev_dependencies'], isEmpty);
       expect(yaml['dependency_overrides'], isEmpty);
-      expect(
-        contents,
-        contains(
-          '# missing: # removed by DartPad from dependencies because it uses relative path "packages/missing", '
-          'whose target package is not included in the imported workspace.',
-        ),
-      );
       expect(
         contents,
         contains(
@@ -106,7 +99,15 @@ dependency_overrides:
       );
       expect(contents, contains('#     path: ../../script/flutter_goldens'));
       expect(contents, contains('#       url: https://example.com/remote.git'));
+      expect(
+        contents,
+        contains(
+          'dependencies:\n  flutter:\n    sdk: flutter\n  local:\n    path: packages/local\n  missing:\n    path: packages/missing\n',
+        ),
+      );
+      expect(await api.readFileAsText('pubspec.original.yaml'), pubspec);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+      expect(await api.fileExist('pubspec_overrides.original.yaml'), isFalse);
     });
 
     test('preserves parent and sibling packages and warns about unavailable dependencies', () async {
@@ -132,39 +133,65 @@ dev_dependencies:
         () => MockClient((_) async => http.Response.bytes(archive, 200)),
       );
       final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
-      expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling']);
-      expect(project.importWarnings, hasLength(4));
+      expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling', 'missing']);
+      expect(project.importWarnings, hasLength(5));
       expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
       expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
       expect(project.importWarnings.join('\n'), contains('uses Git'));
-      expect(project.importWarnings.every((warning) => warning.endsWith('was not loaded.')), isTrue);
-      expect(project.importWarnings.join('\n'), contains('packages/root/example/pubspec_overrides.yaml'));
+      expect(project.importWarnings.join('\n'), isNot(contains('Dependency "missing"')));
       expect(
-        String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.yaml')!),
+        project.importWarnings.where((warning) => warning.endsWith('was not loaded.')),
+        hasLength(3),
+      );
+      expect(
+        project.importWarnings.where((warning) => warning.startsWith('Created')),
+        hasLength(2),
+      );
+      expect(
+        project.importWarnings.join('\n'),
+        contains('Created packages/root/example/pubspec_overrides.original.yaml'),
+      );
+      final overrides = String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.yaml')!);
+      expect(overrides, startsWith('dependency_overrides:'));
+      expect(
+        overrides,
         contains(
           '# outside: {path: /external} # removed by DartPad from dependency_overrides because it uses '
           'absolute path "/external", which is outside the imported workspace.',
         ),
       );
+      expect(
+        String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.original.yaml')!),
+        'dependency_overrides:\n  outside: {path: /external}\n',
+      );
+      final text = String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!);
+      expect(
+        text,
+        contains(
+          '# flutter_goldens: # removed by DartPad from dev_dependencies because it uses relative path '
+          '"../../../script/flutter_goldens", whose target package is not included in the imported workspace.',
+        ),
+      );
+      expect(String.fromCharCodes(project.readFile('packages/root/example/pubspec.original.yaml')!), pubspec);
     });
 
     for (final (name, pubspec) in [
       (
         'flow document',
-        '{name: example, dependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}}',
+        '{name: example, dev_dependencies: {keep: any, outside: {path: ../outside}, remote: {git: https://example.com/repo.git}}}',
       ),
       (
         'mixed line-ending block',
-        'name: example\r\ndependencies:\n  keep: any\n  outside:\n    path: ../outside\n'
+        'name: example\r\ndev_dependencies:\n  keep: any\n  outside:\n    path: ../outside\n'
             '  remote:\n    git:\r\n      url: https://example.com/repo.git\n',
       ),
       (
         'multiline path',
-        'name: example\ndependencies:\n  keep: any\n  outside:\n    path: |-\n      ../outside\n      package\n'
+        'name: example\ndev_dependencies:\n  keep: any\n  outside:\n    path: |-\n      ../outside\n      package\n'
             '  remote: {git: https://example.com/repo.git}\n',
       ),
     ]) {
-      test('retains valid YAML when commenting out dependencies in a $name', () async {
+      test('retains valid YAML when commenting out dev dependencies in a $name', () async {
         final archive = createTarArchive({'pubspec.yaml': pubspec});
         final project = await http.runWithClient(
           () => const ArchiveProjectSource(absoluteUrl).loadProject(),
@@ -173,15 +200,17 @@ dev_dependencies:
         final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
         final yaml = loadYaml(text) as YamlMap;
         expect(yaml['name'], 'example');
-        expect((yaml['dependencies'] as YamlMap).keys, ['keep']);
-        expect(text, contains('removed by DartPad from dependencies because it uses relative path "../outside'));
+        expect((yaml['dev_dependencies'] as YamlMap).keys, ['keep']);
+        expect(text, contains('removed by DartPad from dev_dependencies because it uses relative path "../outside'));
         expect(
           text,
-          contains('removed by DartPad from dependencies because it uses Git, which is not supported by DartPad.'),
+          contains('removed by DartPad from dev_dependencies because it uses Git, which is not supported by DartPad.'),
         );
         expect(text, contains('../outside'));
         expect(text, contains('https://example.com/repo.git'));
-        expect(project.importWarnings, hasLength(2));
+        expect(project.importWarnings, hasLength(3));
+        expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+        expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
       });
     }
 
@@ -237,6 +266,7 @@ dev_dependencies: *deps
         expect(dependencies['missing'], {'path': '../missing'});
         expect(yaml['dependency_overrides'], isEmpty);
         expect(text, contains(name == 'section alias' ? '*deps' : '*desc'));
+        expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
         for (final dependency in retainedDependencies) {
           final warning = project.importWarnings.singleWhere(
             (warning) => warning.startsWith('Dependency "$dependency" in pubspec.yaml'),
@@ -269,7 +299,7 @@ dev_dependencies: *deps
     test('preserves flow-map formatting and comments across multiple removals', () async {
       const pubspec = '''
 name: example
-dependencies: {
+dev_dependencies: {
   outside: {path: '../outside'},
   remote: {git: 'https://example.com/repo.git'},
   'keep' : '^1.0.0', # Keep this dependency comment.
@@ -282,12 +312,170 @@ dependencies: {
       );
       final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
       final yaml = loadYaml(text) as YamlMap;
-      expect(yaml['dependencies'], {'keep': '^1.0.0'});
+      expect(yaml['dev_dependencies'], {'keep': '^1.0.0'});
       expect(text, contains("'keep' : '^1.0.0'"));
       expect(text, contains('# Keep this dependency comment.'));
       expect(text, contains('# Keep the section comment.'));
-      expect(text, contains("# outside: {path: '../outside'} # removed by DartPad from dependencies"));
-      expect(text, contains("# remote: {git: 'https://example.com/repo.git'} # removed by DartPad from dependencies"));
+      expect(text, contains("# outside: {path: '../outside'} # removed by DartPad from dev_dependencies"));
+      expect(
+        text,
+        contains("# remote: {git: 'https://example.com/repo.git'} # removed by DartPad from dev_dependencies"),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+    });
+
+    test('keeps unavailable dependencies untouched and warns about none', () async {
+      const pubspec = '''
+name: example
+dependencies:
+  outside: {path: ../outside}
+  remote: {git: https://example.com/repo.git}
+''';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
+      expect(project.importWarnings, isEmpty);
+      expect(project.containsFile('pubspec.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('leaves a resolution-only overrides file unchanged without a backup', () async {
+      const pubspec = 'name: example\ndev_dependencies:\n  outside: {path: ../outside}\n';
+      final archive = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'pubspec_overrides.yaml': '{"resolution":null}',
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!), '{"resolution":null}');
+      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(
+        project.importWarnings.where((warning) => warning.startsWith('Created pubspec.original.yaml')),
+        hasLength(1),
+      );
+    });
+
+    test('copies an alias-keyed dev dependency without unrelated lines', () async {
+      const pubspec =
+          'name: example\nextra: &k outside\ndev_dependencies:\n  *k : {path: ../outside}\n  gone: {path: ../gone}\n  keep: any\n';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+      final yaml = loadYaml(text) as YamlMap;
+      expect(yaml['name'], 'example');
+      expect((yaml['dev_dependencies'] as YamlMap).keys, ['outside', 'keep']);
+      expect(
+        project.importWarnings.singleWhere((warning) => warning.startsWith('Dependency "outside"')),
+        contains('uses a YAML alias or anchor'),
+      );
+      expect(text, contains('# gone: {path: ../gone} # removed by DartPad from dev_dependencies'));
+      expect(text, isNot(contains('# outside:')));
+      expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+      expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('copies only the removed entry for an alias value in a single-line flow map', () async {
+      const pubspec = 'name: example\nextra: &desc {path: ../missing}\ndev_dependencies: {a: *desc, b: {path: ../q}}\n';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+      expect((loadYaml(text) as YamlMap)['name'], 'example');
+      final bLine = text.split('\n').singleWhere((line) => line.startsWith('# b:'));
+      expect(bLine, startsWith('# b: {path: ../q} # removed by DartPad from dev_dependencies'));
+      expect(bLine, isNot(contains('../missing')));
+      expect(bLine, isNot(contains('*desc')));
+      expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('keeps a dependency_overrides entry whose name is in dependencies, and removes the others', () async {
+      const pubspec = 'name: app\ndependencies:\n  external: {path: ../external}\n';
+      const overridesSource = 'dependency_overrides:\n  external: {path: ../external}\n  gone: {path: ../gone}\n';
+      final archive = createTarArchive({
+        'packages/app/pubspec.yaml': pubspec,
+        'packages/app/pubspec_overrides.yaml': overridesSource,
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      expect(project.readFile('packages/app/pubspec_overrides.yaml'), isNotNull);
+      final overrides = String.fromCharCodes(project.readFile('packages/app/pubspec_overrides.yaml')!);
+      final overridesYaml = loadYaml(overrides) as YamlMap;
+      expect((overridesYaml['dependency_overrides'] as YamlMap).keys, ['external']);
+      expect(
+        overrides,
+        contains(
+          '# gone: {path: ../gone} # removed by DartPad from dependency_overrides because it uses '
+          'relative path "../gone", whose target package is not included in the imported workspace.',
+        ),
+      );
+      expect(
+        String.fromCharCodes(project.readFile('packages/app/pubspec_overrides.original.yaml')!),
+        overridesSource,
+      );
+      expect(project.containsFile('packages/app/pubspec.original.yaml'), isFalse);
+    });
+
+    test('removes a dependency_overrides entry whose name is absent from both sections', () async {
+      const pubspec = 'name: app\ndependencies:\n  keep: any\n';
+      const overridesSource = 'dependency_overrides:\n  ghost: {path: ../ghost}\n';
+      final archive = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'pubspec_overrides.yaml': overridesSource,
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final overrides = String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!);
+      expect((loadYaml(overrides) as YamlMap)['dependency_overrides'], isEmpty);
+      expect(
+        overrides,
+        contains('# ghost: {path: ../ghost} # removed by DartPad from dependency_overrides'),
+      );
+      expect(String.fromCharCodes(project.readFile('pubspec_overrides.original.yaml')!), overridesSource);
+      expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
+      expect(project.containsFile('pubspec.original.yaml'), isFalse);
+    });
+
+    test('uses CRLF throughout the comment block when the pubspec uses CRLF', () async {
+      const pubspec = 'name: example\r\ndev_dependencies:\r\n  outside: {path: ../outside}\r\n  keep: any\r\n';
+      final archive = createTarArchive({'pubspec.yaml': pubspec});
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+      expect(RegExp(r'(?<!\r)\n').hasMatch(text), isFalse);
+      expect(text, contains('# outside: {path: ../outside} # removed by DartPad'));
+      expect((loadYaml(text) as YamlMap)['dev_dependencies'], {'keep': 'any'});
+    });
+
+    test('uses CRLF for the separator when overrides have no newline and the pubspec uses CRLF', () async {
+      const pubspec = 'name: example\r\ndev_dependencies:\r\n  outside: {path: ../outside}\r\n  keep: any\r\n';
+      final archive = createTarArchive({
+        'pubspec.yaml': pubspec,
+        'pubspec_overrides.yaml': 'dependency_overrides:\r\n  gone: {path: ../gone}',
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archive, 200)),
+      );
+      final overrides = String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!);
+      expect(RegExp(r'(?<!\r)\n').hasMatch(overrides), isFalse);
+      expect(overrides, contains('# gone: {path: ../gone} # removed by DartPad'));
+      expect((loadYaml(overrides) as YamlMap)['dependency_overrides'], isEmpty);
     });
 
     for (final compressed in [false, true]) {
@@ -706,6 +894,46 @@ resolution: workspace
 
       expect(await api.readFileAsText('pubspec.yaml'), pubspec);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+
+    test('keeps an unavailable override unchanged when pubspec_overrides.yaml is not UTF-8', () async {
+      final overridesBytes = [
+        ...'dependency_overrides:\n  outside: {path: ../outside}\n# '.codeUnits,
+        0xFF,
+        ...'\n'.codeUnits,
+      ];
+      final archiveBytes = createTarArchiveFromBytes({
+        'pubspec.yaml': 'name: example\n'.codeUnits,
+        'pubspec_overrides.yaml': overridesBytes,
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
+      );
+      expect(project.readFile('pubspec_overrides.yaml'), overridesBytes);
+      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(project.importWarnings.single, contains('Dependency "outside" in pubspec_overrides.yaml'));
+      expect(project.importWarnings.single, contains('left unchanged because'));
+      expect(project.importWarnings.single, contains('is not valid UTF-8'));
+    });
+
+    test('removes an unavailable dev dependency even when pubspec_overrides.yaml is not UTF-8', () async {
+      const pubspec = 'name: example\ndev_dependencies:\n  outside: {path: ../outside}\n';
+      final archiveBytes = createTarArchiveFromBytes({
+        'pubspec.yaml': pubspec.codeUnits,
+        'pubspec_overrides.yaml': [0xFF],
+      });
+      final project = await http.runWithClient(
+        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+        () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
+      );
+      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(project.readFile('pubspec_overrides.yaml'), [0xFF]);
+      expect(project.readFile('pubspec.original.yaml'), pubspec.codeUnits);
+      expect(
+        String.fromCharCodes(project.readFile('pubspec.yaml')!),
+        contains('# outside: {path: ../outside} # removed by DartPad from dev_dependencies'),
+      );
     });
 
     test('preserves a non-UTF-8 pubspec without creating overrides', () async {
