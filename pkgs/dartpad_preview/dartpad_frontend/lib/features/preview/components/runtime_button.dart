@@ -20,6 +20,7 @@ final class RuntimeButton extends StatelessComponent {
     required this.icon,
     required this.isEnabled,
     required this.onClick,
+    this.tooltip,
     super.key,
   });
 
@@ -27,33 +28,39 @@ final class RuntimeButton extends StatelessComponent {
   factory RuntimeButton.run({
     required PreviewViewModel previewViewModel,
   }) {
+    final entrypoint = previewViewModel.entrypoint;
     return RuntimeButton(
       title: 'Run',
       icon: 'play_arrow',
       isEnabled: previewViewModel.canStart,
       onClick: previewViewModel.runCurrent,
+      tooltip: entrypoint == null ? null : 'Run $entrypoint',
     );
   }
 
   /// Factory constructor for a 'Restart' button that recompiles and restarts
   /// execution of the currently running entrypoint.
   factory RuntimeButton.restart({required PreviewViewModel previewViewModel}) {
+    final entrypoint = previewViewModel.entrypoint;
     return RuntimeButton(
       title: 'Restart',
       icon: 'restart_alt',
       isEnabled: previewViewModel.canRestart,
       onClick: previewViewModel.restartCode,
+      tooltip: 'Restart preview${entrypoint == null ? '' : ' from $entrypoint'}',
     );
   }
 
   /// Factory constructor for a 'Reload' button that hot reloads changes
   /// in the currently running entrypoint.
   factory RuntimeButton.reload({required PreviewViewModel previewViewModel}) {
+    final entrypoint = previewViewModel.entrypoint;
     return RuntimeButton(
       title: 'Reload',
       icon: 'bolt',
       isEnabled: previewViewModel.canHotReload,
       onClick: () => previewViewModel.hotReloadCode(),
+      tooltip: 'Reload preview${entrypoint == null ? '' : ' from $entrypoint'}',
     );
   }
 
@@ -65,10 +72,11 @@ final class RuntimeButton extends StatelessComponent {
       icon: 'stop',
       isEnabled: previewViewModel.canStop,
       onClick: () => previewViewModel.stopCode(),
+      tooltip: 'Stop preview',
     );
   }
 
-  /// The tooltip/accessible title of the button.
+  /// The button label, also used as tooltip when [tooltip] is null.
   final String title;
 
   /// The name of the icon to render within the button.
@@ -80,6 +88,9 @@ final class RuntimeButton extends StatelessComponent {
   /// Callback executed when the button is clicked.
   final Future<void> Function() onClick;
 
+  /// The `title` tooltip. Defaults to [title] when null.
+  final String? tooltip;
+
   @override
   Component build(BuildContext context) {
     return button(
@@ -89,7 +100,7 @@ final class RuntimeButton extends StatelessComponent {
       ].join(' '),
       disabled: !isEnabled,
       attributes: {
-        'title': title,
+        'title': tooltip ?? title,
         'aria-label': title,
       },
       onClick: isEnabled ? () => unawaited(onClick()) : null,

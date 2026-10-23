@@ -14,6 +14,7 @@ class Button extends StatelessComponent {
     this.disabled = false,
     this.onClick,
     this.classes,
+    this.tooltip,
     super.key,
   });
 
@@ -29,12 +30,15 @@ class Button extends StatelessComponent {
   /// Additional CSS classes to apply.
   final String? classes;
 
+  /// The `title` tooltip. Defaults to [label] when null.
+  final String? tooltip;
+
   @override
   Component build(BuildContext context) {
     return button(
       classes: 'dp-button${classes != null ? ' $classes' : ''}',
       attributes: {
-        'title': label,
+        'title': tooltip ?? label,
         'aria-label': label,
         if (disabled) 'disabled': '',
       },
