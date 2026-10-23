@@ -13,7 +13,9 @@ Cloud Build configuration for building and deploying DartPad to Firebase Hosting
 ### **`deployer@dart-pad.iam.gserviceaccount.com`**:
 - Triggered by GitHub PR or push to `main`.
 - Uses **inline** steps, so PRs cannot modify deployment logic.
-- Stages source to `gs://dart-pad-build-input`, submits `build.yaml` as `builder@`, and downloads `site.tar` from `gs://dart-pad-build-output`.
+- Stages source to `gs://dart-pad-build-input`.
+- Submits `build.yaml` as `builder@` and reads inner build logs from `gs://dart-pad-build-output`.
+- Downloads `site.tar` from `gs://dart-pad-build-output` and deletes the temporary object.
 - Extracts `site.tar` and validates `firebase.json`.
 - Deploys to Firebase Hosting.
 - Writes logs to `gs://dart-pad-build-logs` and publishes them to GitHub Checks so `.github/workflows/deploy_pr_comment.yml` can comment the preview URL.
@@ -22,6 +24,7 @@ Cloud Build configuration for building and deploying DartPad to Firebase Hosting
 - Runs `build.yaml`:
   - `dart pub get`
   - `jaspr build`
+- Uploads `site.tar` and writes build logs to `gs://dart-pad-build-output`.
 - Has **no** Firebase or Cloud Build permissions.
 - Only has permissions:
   - `logging.logWriter`
