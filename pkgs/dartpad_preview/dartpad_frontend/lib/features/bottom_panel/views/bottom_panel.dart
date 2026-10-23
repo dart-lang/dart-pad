@@ -11,19 +11,12 @@ import 'package:jaspr/jaspr.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
+import '../../shared/panel_layout_controller.dart';
+import '../bottom_panel_state.dart';
 import '../view_models/console_view_model.dart';
 import 'bottom_panel_tabs.dart';
 import 'console_panel.dart';
 import 'problems_panel.dart';
-
-/// The available tabs in the bottom panel.
-enum BottomPanelTab {
-  /// The problems tab showing diagnostics.
-  problems,
-
-  /// The debug console tab showing application logs.
-  console,
-}
 
 /// The bottom panel showing tabs with associated content panes.
 final class BottomPanel extends StatefulComponent {
@@ -33,6 +26,7 @@ final class BottomPanel extends StatefulComponent {
     required this.onOpenDiagnostic,
     required this.console,
     required this.events,
+    required this.panels,
     super.key,
   });
 
@@ -48,6 +42,9 @@ final class BottomPanel extends StatefulComponent {
   /// Console state used by the indicator and the visible console pane.
   final ConsoleViewModel console;
 
+  /// Shared selection, expansion, and size for the bottom panel.
+  final PanelLayoutController panels;
+
   /// Workspace events used to react to requests from the preview panel.
   final AppEventBus events;
 
@@ -59,7 +56,6 @@ final class BottomPanel extends StatefulComponent {
 }
 
 final class _BottomPanelState extends State<BottomPanel> {
-  BottomPanelTab _activeTab = BottomPanelTab.problems;
   StreamSubscription<OpenConsoleEvent>? _openConsoleSubscription;
 
   @override
@@ -82,15 +78,7 @@ final class _BottomPanelState extends State<BottomPanel> {
       if (!mounted) {
         return;
       }
-      final panel = SplitPanel.of(context, listen: false);
-      if (panel != null && panel.isPanelCollapsed) {
-        panel.expand();
-      }
-      if (_activeTab != BottomPanelTab.console) {
-        setState(() {
-          _activeTab = BottomPanelTab.console;
-        });
-      }
+      component.panels.openBottomPanel(BottomPanelTab.console);
     });
   }
 
@@ -101,26 +89,25 @@ final class _BottomPanelState extends State<BottomPanel> {
   }
 
   @override
-  Component build(BuildContext context) {
+  Component build(BuildContext context) => ListenableBuilder(
+    listenable: component.panels,
+    builder: _buildPanel,
+  );
+
+  Component _buildPanel(BuildContext context) {
     final panel = SplitPanel.of(context);
-    final isCollapsed = panel?.isPanelCollapsed ?? false;
+    final bottom = component.panels.bottom;
+    final isCollapsed = !bottom.isExpanded;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
       [
         BottomPanelTabs(
           problemsCount: component.diagnostics.length,
           console: component.console,
-          activeTab: _activeTab,
+          activeTab: bottom.selectedTab,
           isCollapsed: isCollapsed,
-          onSelectTab: (tab) {
-            if (isCollapsed) {
-              panel?.expand();
-            }
-            setState(() {
-              _activeTab = tab;
-            });
-          },
-          onCollapse: panel != null && panel.canCollapse ? panel.collapse : null,
+          onSelectTab: component.panels.openBottomPanel,
+          onCollapse: panel != null && panel.canCollapse ? component.panels.collapseBottomPanel : null,
         ),
         if (!isCollapsed) _buildContent(),
       ],
@@ -129,7 +116,7 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   Component _buildContent() {
     return div(classes: 'bottom-panel-content', [
-      switch (_activeTab) {
+      switch (component.panels.bottom.selectedTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
           hasMoreDiagnostics: component.hasMoreDiagnostics,
