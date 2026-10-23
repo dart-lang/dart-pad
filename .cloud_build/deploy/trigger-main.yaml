@@ -1,0 +1,80 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Trigger for main branch deployments.
+#
+# Runs as deployer@dart-pad.iam.gserviceaccount.com:
+#  * Submits .cloud_build/deploy/build.yaml as builder@dart-pad.iam.gserviceaccount.com
+#  * Validates firebase.json from the resulting tarball
+#  * Deploys to Firebase Hosting live channel
+#
+# Import with:
+#   gcloud builds triggers import --project=dart-pad --source=.cloud_build/deploy/trigger-main.yaml
+
+name: deploy-main
+description: Build and deploy main branch to Firebase Hosting
+serviceAccount: projects/dart-pad/serviceAccounts/deployer@dart-pad.iam.gserviceaccount.com
+includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
+includedFiles:
+  - pkgs/dartpad_preview/**
+  - .cloud_build/deploy/**
+github:
+  owner: dart-lang
+  name: dart-pad
+  push:
+    branch: ^main$
+substitutions:
+  _FIREBASE_SITE: sketch-pad-1cebb
+build:
+  options:
+    automapSubstitutions: true
+  steps:
+    # Run .cloud_build/deploy/build.yaml as builder and download site.tar.
+    - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      script: |
+        #!/usr/bin/env bash
+        set -eu
+
+        OUT="gs://${PROJECT_ID}-build-scratch/out/$(cat /proc/sys/kernel/random/uuid).tar"
+        gcloud builds submit . \
+          --config=.cloud_build/deploy/build.yaml \
+          --gcs-source-staging-dir="gs://${PROJECT_ID}-build-scratch/source" \
+          --service-account="projects/${PROJECT_ID}/serviceAccounts/builder@${PROJECT_ID}.iam.gserviceaccount.com" \
+          --substitutions="_OUTPUT_TAR=${OUT}"
+
+        gcloud storage cp "${OUT}" /workspace/site.tar
+        gcloud storage rm "${OUT}"
+
+    # Extract site.tar and validate firebase.json.
+    - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+      script: |
+        #!/usr/bin/env python3
+        import json, os, tarfile
+
+        os.makedirs('/workspace/deploy', exist_ok=True)
+        with tarfile.open('/workspace/site.tar') as tar:
+          tar.extractall('/workspace/deploy', filter='data')
+        os.remove('/workspace/site.tar')
+
+        with open('/workspace/deploy/firebase.json') as f:
+          config = json.load(f)
+
+        assert set(config.keys()) == {'hosting'}
+        hosting = config['hosting']
+        assert isinstance(hosting, dict)
+        allowed = {'site', 'public', 'ignore', 'rewrites', 'redirects', 'headers', 'cleanUrls', 'trailingSlash'}
+        assert set(hosting.keys()) <= allowed
+        assert hosting.get('site') == os.environ['_FIREBASE_SITE']
+        assert hosting.get('public') == 'public'
+        for r in hosting.get('rewrites', []):
+          assert set(r.keys()) <= {'source', 'regex', 'destination'}
+
+    # Deploy to live channel.
+    - name: gcr.io/$PROJECT_ID/firebase
+      dir: deploy
+      args:
+        - deploy
+        - --only
+        - hosting:$_FIREBASE_SITE
+        - --project=$PROJECT_ID

@@ -4,8 +4,9 @@ Cloud Build configuration files for dart-pad and dart-services.
 
 # Contents
 
-- `dart_pad.yaml` - Deploys `dartpad_ui` and `dartpad_preview` to Firebase Hosting
+- `dart_pad.yaml` - Deploys `dartpad_ui` to Firebase Hosting
 - `dart_services.yaml` - Deploys the dart_services server to Cloud Run
+- `deploy/` - Builds and deploys `dartpad_preview` (PR previews and `main`) to Firebase Hosting
 
 This folder also has configuration files from [cloud-builders-community][],
 which are needed to build and deploy `dartpad_ui` to Firebase Hosting:
