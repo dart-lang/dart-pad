@@ -28,6 +28,7 @@ github:
 substitutions:
   _FIREBASE_SITE: sketch-pad-1cebb
 build:
+  logsBucket: gs://dart-pad-build-logs
   options:
     automapSubstitutions: true
   steps:
@@ -37,10 +38,10 @@ build:
         #!/usr/bin/env bash
         set -eu
 
-        OUT="gs://${PROJECT_ID}-build-scratch/out/$(cat /proc/sys/kernel/random/uuid).tar"
+        OUT="gs://${PROJECT_ID}-build-output/$(cat /proc/sys/kernel/random/uuid).tar"
         gcloud builds submit . \
           --config=.cloud_build/deploy/build.yaml \
-          --gcs-source-staging-dir="gs://${PROJECT_ID}-build-scratch/source" \
+          --gcs-source-staging-dir="gs://${PROJECT_ID}-build-input/source" \
           --service-account="projects/${PROJECT_ID}/serviceAccounts/builder@${PROJECT_ID}.iam.gserviceaccount.com" \
           --substitutions="_OUTPUT_TAR=${OUT}"
 

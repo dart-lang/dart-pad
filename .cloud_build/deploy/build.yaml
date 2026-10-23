@@ -13,6 +13,9 @@
 #  * public/
 #  * firebase.json
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
   - name: gcr.io/$PROJECT_ID/flutter:stable
     script: |
