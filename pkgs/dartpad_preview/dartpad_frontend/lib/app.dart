@@ -812,17 +812,14 @@ final class _AppState extends State<App> {
             return div(classes: 'app-workspace-container', [
               div(classes: 'app-workspace', [
                 if (_isLargeScreen)
-                  ValueListenableBuilder(
-                    listenable: _panels.previewListenable,
-                    builder: (_, state) => SplitPanel(
-                      state: state,
-                      onStateChanged: _panels.updatePreview,
-                      canCollapseRight: true,
-                      minValue: _isEmbedMode ? 0.05 : 0.3,
-                      maxValue: _isEmbedMode ? 0.95 : 0.85,
-                      left: editor,
-                      right: preview,
-                    ),
+                  SplitPanel(
+                    state: _panels.previewListenable,
+                    onStateChanged: _panels.updatePreview,
+                    canCollapseRight: true,
+                    minValue: _isEmbedMode ? 0.05 : 0.3,
+                    maxValue: _isEmbedMode ? 0.95 : 0.85,
+                    left: editor,
+                    right: preview,
                   )
                 else
                   editor,
@@ -884,17 +881,14 @@ final class _AppState extends State<App> {
     if (!_isLargeScreen) {
       return editor;
     }
-    return ValueListenableBuilder(
-      listenable: _panels.previewListenable,
-      builder: (_, state) => SplitPanel(
-        state: state,
-        onStateChanged: _panels.updatePreview,
-        canCollapseRight: true,
-        minValue: 0.3,
-        maxValue: 0.85,
-        left: editor,
-        right: const div(classes: 'preview-container', []),
-      ),
+    return SplitPanel(
+      state: _panels.previewListenable,
+      onStateChanged: _panels.updatePreview,
+      canCollapseRight: true,
+      minValue: 0.3,
+      maxValue: 0.85,
+      left: editor,
+      right: const div(classes: 'preview-container', []),
     );
   }
 

@@ -8,6 +8,31 @@ import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('bottom split listenable follows the shared state and preserves tab selection', () {
+    final panels = PanelLayoutController(isEmbedMode: false);
+    addTearDown(panels.dispose);
+    final split = panels.bottomSplitListenable;
+    final changes = <SplitState>[];
+    void onChange() => changes.add(split.value);
+    split.addListener(onChange);
+    expect(panels.bottomSplitListenable, same(split));
+    expect(split.value, const Split(0.75));
+
+    panels.openBottomPanel(BottomPanelTab.console);
+    panels.updateBottomSplit(const RightCollapsed(0.6));
+    expect(split.value, const RightCollapsed(0.6));
+    expect(panels.bottom.selectedTab, BottomPanelTab.console);
+    panels.updateBottomSplit(const Split(0.6));
+    expect(split.value, const Split(0.6));
+    expect(panels.bottom.selectedTab, BottomPanelTab.console);
+    expect(changes, const [Split(0.75), RightCollapsed(0.6), Split(0.6)]);
+
+    split.removeListener(onChange);
+    panels.collapseBottomPanel();
+    expect(split.value, const RightCollapsed(0.6));
+    expect(changes, hasLength(3));
+  });
+
   test('each panel notifies only its own listeners and skips unchanged values', () {
     final panels = PanelLayoutController(isEmbedMode: false);
     addTearDown(panels.dispose);

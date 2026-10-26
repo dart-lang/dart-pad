@@ -13,23 +13,80 @@ import 'package:web/web.dart' as web;
 
 import '../../../split_panel_fixture.dart';
 
+final class _SplitOwner extends ValueNotifier<SplitState> {
+  _SplitOwner({required SplitState initialState}) : super(initialState);
+
+  bool get isObserved => hasListeners;
+}
+
 void main() {
   group('SplitPanel', () {
-    testClient('controlled split reports requests and waits for its owner', (tester) async {
+    testClient('switches listeners when its owner changes', (tester) async {
+      final first = _SplitOwner(initialState: const Split(0.6));
+      final second = _SplitOwner(initialState: const RightHidden(0.4));
+      final currentOwner = ValueNotifier<ValueListenable<SplitState>>(first);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        first.dispose();
+        second.dispose();
+        currentOwner.dispose();
+      });
       final key = GlobalStateKey<SplitPanelState>();
-      final requests = <SplitState>[];
-      Component layout(SplitState state) => SplitPanel(
+      Component layout(ValueListenable<SplitState> owner) => SplitPanel(
         key: key,
-        state: state,
-        onStateChanged: requests.add,
+        state: owner,
         left: const div(id: 'left-pane', []),
         right: const div(id: 'right-pane', []),
       );
-      final owner = ValueNotifier<SplitState>(const Split(0.6));
+
+      tester.pumpComponent(ValueListenableBuilder(listenable: currentOwner, builder: (_, owner) => layout(owner)));
+      final mountedState = key.currentState;
+      expect(first.isObserved, isTrue);
+      expect(second.isObserved, isFalse);
+
+      currentOwner.value = second;
+      await pumpEventQueue();
+      expect(key.currentState, same(mountedState));
+      expect(first.isObserved, isFalse);
+      expect(second.isObserved, isTrue);
+      expect((web.document.querySelector('#right-pane')! as web.HTMLElement).style.display, 'none');
+
+      second.value = const Split(0.4);
+      await pumpEventQueue();
+      expect((web.document.querySelector('#right-pane')! as web.HTMLElement).style.display, isEmpty);
+      expect(key.currentState!.state, const Split(0.4));
+    });
+
+    testClient('removes its listener when unmounted without disposing the owner', (tester) async {
+      final owner = _SplitOwner(initialState: const Split(0.5));
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        owner.dispose();
+      });
+      tester.pumpComponent(SplitPanel(state: owner, left: const div([]), right: const div([])));
+      expect(owner.isObserved, isTrue);
+
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      expect(owner.isObserved, isFalse);
+      owner.value = const RightCollapsed(0.5);
+      expect(owner.value, const RightCollapsed(0.5));
+    });
+
+    testClient('controlled split reports requests and waits for its owner', (tester) async {
+      final key = GlobalStateKey<SplitPanelState>();
+      final requests = <SplitState>[];
+      final owner = createSplitOwner(tester, const Split(0.6));
       tester.pumpComponent(
-        div([
-          ListenableBuilder(listenable: owner, builder: (_) => layout(owner.value)),
-        ]),
+        SplitPanel(
+          key: key,
+          state: owner,
+          onStateChanged: requests.add,
+          left: const div(id: 'left-pane', []),
+          right: const div(id: 'right-pane', []),
+        ),
       );
       key.currentState!.collapseRight();
       await pumpEventQueue();
@@ -56,20 +113,17 @@ void main() {
         state.dispose();
       });
       final key = GlobalStateKey<SplitPanelState>();
-      Component layout() => ListenableBuilder(
-        listenable: state,
-        builder: (_) => div(
-          styles: Styles(display: .flex, width: 500.px),
-          [
-            SplitPanel(
-              key: key,
-              state: state.value,
-              onStateChanged: (value) => state.value = value,
-              left: const div([]),
-              right: const div([]),
-            ),
-          ],
-        ),
+      Component layout() => div(
+        styles: Styles(display: .flex, width: 500.px),
+        [
+          SplitPanel(
+            key: key,
+            state: state,
+            onStateChanged: (value) => state.value = value,
+            left: const div([]),
+            right: const div([]),
+          ),
+        ],
       );
       final showPanel = ValueNotifier(true);
       tester.pumpComponent(
@@ -94,10 +148,10 @@ void main() {
 
     testClient('renders left, right and drag handle', (tester) {
       tester.pumpComponent(
-        const SplitPanel(
-          state: Split(0.5),
-          left: div(id: 'left-pane', [Component.text('left')]),
-          right: div(id: 'right-pane', [Component.text('right')]),
+        SplitPanel(
+          state: createSplitOwner(tester, const Split(0.5)),
+          left: const div(id: 'left-pane', [Component.text('left')]),
+          right: const div(id: 'right-pane', [Component.text('right')]),
         ),
       );
 
@@ -108,11 +162,11 @@ void main() {
 
     testClient('renders vertical drag handle when isVertical is true', (tester) {
       tester.pumpComponent(
-        const SplitPanel(
-          state: Split(0.5),
+        SplitPanel(
+          state: createSplitOwner(tester, const Split(0.5)),
           isVertical: true,
-          left: div(id: 'top-pane', [Component.text('top')]),
-          right: div(id: 'bottom-pane', [Component.text('bottom')]),
+          left: const div(id: 'top-pane', [Component.text('top')]),
+          right: const div(id: 'bottom-pane', [Component.text('bottom')]),
         ),
       );
 
@@ -121,11 +175,11 @@ void main() {
 
     testClient('renders collapsed second panel sizing to intrinsic size (no fixed basis)', (tester) {
       tester.pumpComponent(
-        const SplitPanel(
-          state: RightCollapsed(0.5),
+        SplitPanel(
+          state: createSplitOwner(tester, const RightCollapsed(0.5)),
           isVertical: true,
-          left: div(id: 'top-pane', [Component.text('top')]),
-          right: div(id: 'bottom-pane', [Component.text('bottom')]),
+          left: const div(id: 'top-pane', [Component.text('top')]),
+          right: const div(id: 'bottom-pane', [Component.text('bottom')]),
         ),
       );
 

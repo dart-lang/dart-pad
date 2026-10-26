@@ -110,7 +110,14 @@ final class _SplitPanelResetHarness extends StatefulComponent {
 
 final class _SplitPanelResetHarnessState extends State<_SplitPanelResetHarness> {
   int generation = 0;
+  final split = ValueNotifier<SplitState>(const Split(0.5));
   GlobalStateKey<SplitPanelState> previewSplitKey = GlobalStateKey<SplitPanelState>();
+
+  @override
+  void dispose() {
+    split.dispose();
+    super.dispose();
+  }
 
   void reset() {
     final oldGeneration = generation;
@@ -133,7 +140,7 @@ final class _SplitPanelResetHarnessState extends State<_SplitPanelResetHarness> 
         [
           SplitPanel(
             key: previewSplitKey,
-            state: const Split(0.5),
+            state: split,
             left: _TrackedWorkspace(
               generation: generation,
               operations: component.operations,

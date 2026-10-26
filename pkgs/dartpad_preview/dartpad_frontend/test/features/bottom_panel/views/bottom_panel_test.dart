@@ -20,6 +20,8 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../split_panel_fixture.dart';
+
 void main() {
   PanelLayoutController createPanels(ClientTester tester, {bool isEmbedMode = false}) {
     final panels = PanelLayoutController(isEmbedMode: isEmbedMode);
@@ -44,16 +46,13 @@ void main() {
 
   Component inSplitPanel(BottomPanel bottomPanel) {
     final panels = bottomPanel.panelController;
-    return ListenableBuilder(
-      listenable: panels.bottomListenable,
-      builder: (_) => SplitPanel(
-        state: panels.bottomSplit,
-        onStateChanged: panels.updateBottomSplit,
-        isVertical: true,
-        canCollapseRight: true,
-        left: const div([]),
-        right: bottomPanel,
-      ),
+    return SplitPanel(
+      state: panels.bottomSplitListenable,
+      onStateChanged: panels.updateBottomSplit,
+      isVertical: true,
+      canCollapseRight: true,
+      left: const div([]),
+      right: bottomPanel,
     );
   }
 
@@ -268,22 +267,19 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     final panels = createPanels(tester, isEmbedMode: true);
     final splitKey = GlobalStateKey<SplitPanelState>();
-    Component layout() => ListenableBuilder(
-      listenable: panels.bottomListenable,
-      builder: (_) => SplitPanel(
-        key: splitKey,
-        state: panels.bottomSplit,
-        onStateChanged: panels.updateBottomSplit,
-        canCollapseRight: true,
-        left: const div([]),
-        right: BottomPanel(
-          panelController: panels,
-          diagnostics: const [],
-          hasMoreDiagnostics: false,
-          console: console,
-          onOpenDiagnostic: (_, _) {},
-          events: events,
-        ),
+    Component layout() => SplitPanel(
+      key: splitKey,
+      state: panels.bottomSplitListenable,
+      onStateChanged: panels.updateBottomSplit,
+      canCollapseRight: true,
+      left: const div([]),
+      right: BottomPanel(
+        panelController: panels,
+        diagnostics: const [],
+        hasMoreDiagnostics: false,
+        console: console,
+        onOpenDiagnostic: (_, _) {},
+        events: events,
       ),
     );
     final showPanel = ValueNotifier(true);
@@ -335,7 +331,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       SplitPanel(
-        state: const RightCollapsed(0.75),
+        state: createSplitOwner(tester, const RightCollapsed(0.75)),
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(

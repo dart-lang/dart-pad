@@ -221,7 +221,7 @@ void main() {
     testClient('renders collapse button when in SplitPanel', (tester) {
       tester.pumpComponent(
         SplitPanel(
-          state: const Split(0.5),
+          state: createSplitOwner(tester, const Split(0.5)),
           canCollapseRight: true,
           left: const div([]),
           right: PreviewContainer(
@@ -241,7 +241,7 @@ void main() {
     testClient('renders preview-rail and keeps container mounted when collapsed in SplitPanel', (tester) {
       tester.pumpComponent(
         SplitPanel(
-          state: const RightCollapsed(0.7),
+          state: createSplitOwner(tester, const RightCollapsed(0.7)),
           canCollapseRight: true,
           left: const div([]),
           right: PreviewContainer(

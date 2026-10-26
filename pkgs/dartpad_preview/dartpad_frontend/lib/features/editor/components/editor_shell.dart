@@ -88,36 +88,30 @@ class EditorShell extends StatelessComponent {
       ],
     ]);
     final editorContent = main_(classes: 'editor-host', [
-      ValueListenableBuilder(
-        listenable: panelController.bottomListenable,
-        builder: (_, _) => SplitPanel(
-          isVertical: true,
-          useRatio: true,
-          state: panelController.bottomSplit,
-          onStateChanged: panelController.updateBottomSplit,
-          minValue: 0.3,
-          maxValue: 0.85,
-          canCollapseRight: true,
-          left: editor,
-          right: bottomPanel,
-        ),
+      SplitPanel(
+        isVertical: true,
+        useRatio: true,
+        state: panelController.bottomSplitListenable,
+        onStateChanged: panelController.updateBottomSplit,
+        minValue: 0.3,
+        maxValue: 0.85,
+        canCollapseRight: true,
+        left: editor,
+        right: bottomPanel,
       ),
     ]);
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
     return div(classes: 'editor-shell', [
-      ValueListenableBuilder(
-        listenable: panelController.fileTreeListenable,
-        builder: (_, state) => SplitPanel(
-          state: state,
-          onStateChanged: panelController.updateFileTree,
-          useRatio: false,
-          minValue: 150,
-          maxValue: 300,
-          canCollapseLeft: true,
-          left: fileTree,
-          right: rightContent,
-        ),
+      SplitPanel(
+        state: panelController.fileTreeListenable,
+        onStateChanged: panelController.updateFileTree,
+        useRatio: false,
+        minValue: 150,
+        maxValue: 300,
+        canCollapseLeft: true,
+        left: fileTree,
+        right: rightContent,
       ),
     ]);
   }

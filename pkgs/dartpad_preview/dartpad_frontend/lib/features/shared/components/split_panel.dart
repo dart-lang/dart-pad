@@ -205,9 +205,9 @@ class SplitPanel extends StatefulComponent {
   /// Whether the right (or bottom) panel can be collapsed.
   final bool? canCollapseRight;
 
-  /// The current state supplied by the owner. Interactions request changes through
-  /// [onStateChanged] and the owner supplies the resulting state on rebuild.
-  final SplitState state;
+  /// The state owned outside this panel. Changes rebuild the split automatically.
+  /// Interactions request updates through [onStateChanged].
+  final ValueListenable<SplitState> state;
 
   /// Reports resize, expand, collapse, and hide requests, but not parent updates.
   final ValueChanged<SplitState>? onStateChanged;
@@ -243,8 +243,29 @@ class SplitPanel extends StatefulComponent {
 }
 
 class SplitPanelState extends State<SplitPanel> {
+  @override
+  void initState() {
+    super.initState();
+    component.state.addListener(_handleStateChanged);
+  }
+
+  @override
+  void didUpdateComponent(SplitPanel oldComponent) {
+    super.didUpdateComponent(oldComponent);
+    if (component.state != oldComponent.state) {
+      oldComponent.state.removeListener(_handleStateChanged);
+      component.state.addListener(_handleStateChanged);
+    }
+  }
+
+  void _handleStateChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   /// The current collapse, hidden, or split state.
-  SplitState get state => component.state;
+  SplitState get state => component.state.value;
 
   /// The current split value (ratio 0.0 to 1.0, or absolute pixels).
   double get value => state.value;
@@ -508,6 +529,7 @@ class SplitPanelState extends State<SplitPanel> {
 
   @override
   void dispose() {
+    component.state.removeListener(_handleStateChanged);
     _mouseMoveSubscription?.cancel();
     _mouseUpSubscription?.cancel();
     super.dispose();
@@ -517,7 +539,7 @@ class SplitPanelState extends State<SplitPanel> {
   Component build(BuildContext context) {
     final leftChild = component.left;
     final rightChild = component.right;
-    final state = component.state;
+    final state = this.state;
 
     final Flex leftFlex;
     final Flex rightFlex;

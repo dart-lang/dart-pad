@@ -15,12 +15,14 @@ final class PanelLayoutController {
     _preview = ValueNotifier(defaults.preview);
     _fileTree = ValueNotifier(defaults.fileTree);
     _bottom = ValueNotifier(defaults.bottom);
+    _bottomSplit = _BottomSplitListenable(_bottom);
   }
 
   final bool isEmbedMode;
   late final ValueNotifier<SplitState> _preview;
   late final ValueNotifier<SplitState> _fileTree;
   late final ValueNotifier<BottomPanelState> _bottom;
+  late final ValueListenable<SplitState> _bottomSplit;
 
   SplitState get preview => _preview.value;
   SplitState get fileTree => _fileTree.value;
@@ -35,10 +37,8 @@ final class PanelLayoutController {
   /// Changes to bottom-tab selection, expansion, or size only.
   ValueListenable<BottomPanelState> get bottomListenable => _bottom;
 
-  SplitState get bottomSplit => switch (bottom) {
-    BottomPanelExpanded(:final editorFraction) => Split(editorFraction),
-    BottomPanelCollapsed(:final editorFraction) => RightCollapsed(editorFraction),
-  };
+  /// The bottom split derived from the shared bottom-panel state.
+  ValueListenable<SplitState> get bottomSplitListenable => _bottomSplit;
 
   /// A new workspace starts with the same defaults as a newly mounted layout.
   void reset({required double previewRatio}) {
@@ -79,4 +79,23 @@ final class PanelLayoutController {
     _fileTree.dispose();
     _bottom.dispose();
   }
+}
+
+/// Exposes bottom-panel expansion and editor height as a split listenable.
+final class _BottomSplitListenable implements ValueListenable<SplitState> {
+  const _BottomSplitListenable(this._bottom);
+
+  final ValueListenable<BottomPanelState> _bottom;
+
+  @override
+  SplitState get value => switch (_bottom.value) {
+    BottomPanelExpanded(:final editorFraction) => Split(editorFraction),
+    BottomPanelCollapsed(:final editorFraction) => RightCollapsed(editorFraction),
+  };
+
+  @override
+  void addListener(VoidCallback listener) => _bottom.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => _bottom.removeListener(listener);
 }

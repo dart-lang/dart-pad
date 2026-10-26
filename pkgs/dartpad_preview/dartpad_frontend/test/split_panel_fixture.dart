@@ -6,20 +6,23 @@ import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 
-/// Hosts a split with an owner that accepts and writes back requested changes.
-Component withSplitOwner(
-  ClientTester tester,
-  SplitState initialState,
-  Component Function(SplitState state, ValueChanged<SplitState> onChanged) builder,
-) {
+/// Creates a split owner and disposes it after its panel has unmounted.
+ValueNotifier<SplitState> createSplitOwner(ClientTester tester, SplitState initialState) {
   final owner = ValueNotifier(initialState);
   addTearDown(() async {
     tester.binding.detachRootComponent();
     await pumpEventQueue();
     owner.dispose();
   });
-  return ValueListenableBuilder(
-    listenable: owner,
-    builder: (_, state) => builder(state, (value) => owner.value = value),
-  );
+  return owner;
+}
+
+/// Hosts a split with an owner that accepts and writes back requested changes.
+Component withSplitOwner(
+  ClientTester tester,
+  SplitState initialState,
+  Component Function(ValueListenable<SplitState> state, ValueChanged<SplitState> onChanged) builder,
+) {
+  final owner = createSplitOwner(tester, initialState);
+  return builder(owner, (value) => owner.value = value);
 }
