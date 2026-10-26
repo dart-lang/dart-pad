@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
-import '../shared/panel_defaults.dart';
+import '../shared/panel_defaults.dart' as panel_defaults;
 import 'examples.g.dart';
 import 'project_loader.dart';
 import 'project_source.dart';
@@ -122,7 +122,7 @@ final class ProjectRequest {
     final channel = apiSample == null ? null : single('channel');
     final splitValues = query['split'];
     final splitPercent = splitValues?.length == 1 ? int.tryParse(splitValues!.single) : null;
-    final initialSplitRatio = splitPercent == null ? PanelDefaults.previewRatio : splitPercent.clamp(5, 95) / 100;
+    final initialSplitRatio = splitPercent == null ? panel_defaults.previewRatio : splitPercent.clamp(5, 95) / 100;
     final source = url != null
         ? ArchiveProjectSource(url)
         : package != null

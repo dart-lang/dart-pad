@@ -6,12 +6,12 @@ import 'package:jaspr/jaspr.dart';
 
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
-import 'panel_defaults.dart';
+import 'panel_defaults.dart' as panel_defaults;
 
 /// Owns workspace splits and bottom-tab selection independently of mounted views.
 final class PanelLayoutController {
   PanelLayoutController({required this.isEmbedMode}) {
-    final defaults = isEmbedMode ? PanelDefaults.embed : PanelDefaults.standalone;
+    final defaults = isEmbedMode ? panel_defaults.embed : panel_defaults.standalone;
     _preview = ValueNotifier(defaults.preview);
     _fileTree = ValueNotifier(defaults.fileTree);
     _bottom = ValueNotifier(defaults.bottom);
@@ -42,7 +42,7 @@ final class PanelLayoutController {
 
   /// A new workspace starts with the same defaults as a newly mounted layout.
   void reset({required double previewRatio}) {
-    final defaults = isEmbedMode ? PanelDefaults.embed : PanelDefaults.standalone;
+    final defaults = isEmbedMode ? panel_defaults.embed : panel_defaults.standalone;
     _preview.value = Split(previewRatio);
     _fileTree.value = defaults.fileTree;
     _bottom.value = defaults.bottom;
