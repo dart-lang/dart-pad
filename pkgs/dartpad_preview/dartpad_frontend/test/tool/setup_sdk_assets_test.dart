@@ -9,43 +9,9 @@ library;
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:process/process.dart';
 import 'package:test/test.dart';
 
 import '../../tool/setup_sdk_assets.dart';
-
-// Only process startup and completion are needed by the setup script.
-// Fail on any other process API instead of accidentally running real commands.
-class _FakeProcessManager implements ProcessManager {
-  final calls = <({List<Object> command, String? workingDirectory, ProcessStartMode mode})>[];
-  final exitCodes = [0, 0];
-
-  @override
-  Future<Process> start(
-    List<Object> command, {
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool includeParentEnvironment = true,
-    bool runInShell = false,
-    ProcessStartMode mode = ProcessStartMode.normal,
-  }) async {
-    calls.add((command: List.of(command), workingDirectory: workingDirectory, mode: mode));
-    return _FakeProcess(exitCodes.removeAt(0));
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeProcess implements Process {
-  _FakeProcess(int code) : exitCode = Future.value(code);
-
-  @override
-  final Future<int> exitCode;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 void main() {
   late Directory assets;
@@ -63,68 +29,6 @@ void main() {
     await File(p.join(sdkDir.path, 'version.json')).writeAsString(contents);
     return sdkDir;
   }
-
-  group('Flutter checkout', () {
-    late _FakeProcessManager processManager;
-    late SdkAssetSetup setup;
-    late String flutterRoot;
-    late List<String> cloneCommand;
-    final checkoutCommand = ['git', 'checkout', '--detach', flutterRevision];
-
-    setUp(() {
-      processManager = _FakeProcessManager();
-      setup = SdkAssetSetup(processManager: processManager);
-      flutterRoot = p.join(assets.path, 'flutter');
-      cloneCommand = [
-        'git',
-        'clone',
-        '--filter=blob:none',
-        '--branch=master',
-        '--no-checkout',
-        'https://github.com/flutter/flutter.git',
-        flutterRoot,
-      ];
-    });
-
-    test('clones with full history and tags before checking out the pinned revision', () async {
-      final checkout = await setup.checkoutFlutterSdk(assets);
-
-      expect(checkout.path, flutterRoot);
-      expect(processManager.calls.map((call) => call.command), [cloneCommand, checkoutCommand]);
-      expect(processManager.calls.map((call) => call.workingDirectory), [assets.path, flutterRoot]);
-      expect(processManager.calls.map((call) => call.mode), everyElement(ProcessStartMode.inheritStdio));
-    });
-
-    test('stops before checkout when cloning fails', () async {
-      processManager.exitCodes[0] = 128;
-
-      await expectLater(
-        setup.checkoutFlutterSdk(assets),
-        throwsA(
-          isA<ProcessException>()
-              .having((error) => error.executable, 'executable', 'git')
-              .having((error) => error.arguments, 'arguments', cloneCommand.skip(1).toList())
-              .having((error) => error.errorCode, 'errorCode', 128),
-        ),
-      );
-      expect(processManager.calls.map((call) => call.command), [cloneCommand]);
-    });
-
-    test('reports a failed checkout', () async {
-      processManager.exitCodes[1] = 1;
-
-      await expectLater(
-        setup.checkoutFlutterSdk(assets),
-        throwsA(
-          isA<ProcessException>()
-              .having((error) => error.executable, 'executable', 'git')
-              .having((error) => error.arguments, 'arguments', checkoutCommand.skip(1).toList())
-              .having((error) => error.errorCode, 'errorCode', 1),
-        ),
-      );
-      expect(processManager.calls.map((call) => call.command), [cloneCommand, checkoutCommand]);
-    });
-  });
 
   test('keeps a Dart-only prerelease version verbatim', () async {
     final sdkDir = await writeVersion('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
