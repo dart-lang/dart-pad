@@ -133,6 +133,7 @@ final class _SplitPanelResetHarnessState extends State<_SplitPanelResetHarness> 
         [
           SplitPanel(
             key: previewSplitKey,
+            state: const Split(0.5),
             left: _TrackedWorkspace(
               generation: generation,
               operations: component.operations,

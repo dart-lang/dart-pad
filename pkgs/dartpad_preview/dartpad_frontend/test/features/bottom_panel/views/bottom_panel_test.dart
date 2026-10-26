@@ -335,7 +335,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       SplitPanel(
-        initialState: const RightCollapsed(0.75),
+        state: const RightCollapsed(0.75),
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(

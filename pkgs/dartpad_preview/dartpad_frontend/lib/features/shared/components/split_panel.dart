@@ -183,10 +183,8 @@ class SplitPanel extends StatefulComponent {
     required this.right,
     this.canCollapseLeft,
     this.canCollapseRight,
-    this.initialState,
-    this.state,
+    required this.state,
     this.onStateChanged,
-    this.initialValue = 0.5,
     this.useRatio = true,
     this.isVertical = false,
     this.absoluteFirst = true,
@@ -207,18 +205,12 @@ class SplitPanel extends StatefulComponent {
   /// Whether the right (or bottom) panel can be collapsed.
   final bool? canCollapseRight;
 
-  /// The initial collapse or split state. If null, defaults to [Split] with [initialValue].
-  final SplitState? initialState;
-
-  /// The current state supplied by the owner. When provided, interactions request changes through
+  /// The current state supplied by the owner. Interactions request changes through
   /// [onStateChanged] and the owner supplies the resulting state on rebuild.
-  final SplitState? state;
+  final SplitState state;
 
   /// Reports resize, expand, collapse, and hide requests, but not parent updates.
   final ValueChanged<SplitState>? onStateChanged;
-
-  /// The initial split value (either ratio or absolute pixels).
-  final double initialValue;
 
   /// Whether the split value represents a ratio (0.0 to 1.0) rather than absolute pixels.
   final bool useRatio;
@@ -251,76 +243,69 @@ class SplitPanel extends StatefulComponent {
 }
 
 class SplitPanelState extends State<SplitPanel> {
-  late SplitState _localState;
-
-  SplitState get _state => component.state ?? _localState;
-
   /// The current collapse, hidden, or split state.
-  SplitState get state => _state;
+  SplitState get state => component.state;
 
   /// The current split value (ratio 0.0 to 1.0, or absolute pixels).
-  double get value => _state.value;
+  double get value => state.value;
 
   /// Whether the left (or top) panel can be collapsed.
-  bool get canCollapseLeft => component.canCollapseLeft ?? (_state is LeftCollapsed);
+  bool get canCollapseLeft => component.canCollapseLeft ?? (state is LeftCollapsed);
 
   /// Whether the right (or bottom) panel can be collapsed.
-  bool get canCollapseRight => component.canCollapseRight ?? (_state is RightCollapsed);
+  bool get canCollapseRight => component.canCollapseRight ?? (state is RightCollapsed);
 
   /// Whether either panel is currently collapsed.
-  bool get isCollapsed => _state.isCollapsed;
+  bool get isCollapsed => state.isCollapsed;
 
   /// Whether the left (or top) panel is collapsed.
-  bool get isLeftCollapsed => _state.isLeftCollapsed;
+  bool get isLeftCollapsed => state.isLeftCollapsed;
 
   /// Whether the right (or bottom) panel is collapsed.
-  bool get isRightCollapsed => _state.isRightCollapsed;
+  bool get isRightCollapsed => state.isRightCollapsed;
 
   /// Whether neither panel is collapsed or hidden.
-  bool get isSplit => _state.isSplit;
+  bool get isSplit => state.isSplit;
 
   /// Backwards-compatible alias for [isSplit].
-  bool get isUncollapsed => _state.isSplit;
+  bool get isUncollapsed => state.isSplit;
 
   /// Whether either panel is hidden completely.
-  bool get isHidden => _state.isHidden;
+  bool get isHidden => state.isHidden;
 
   /// Whether the left (or top) panel is hidden.
-  bool get isLeftHidden => _state.isLeftHidden;
+  bool get isLeftHidden => state.isLeftHidden;
 
   /// Whether the right (or bottom) panel is hidden.
-  bool get isRightHidden => _state.isRightHidden;
+  bool get isRightHidden => state.isRightHidden;
 
   /// Collapses the left (or top) panel.
   void collapseLeft() {
-    _updateState(LeftCollapsed(_state.value));
+    _updateState(LeftCollapsed(state.value));
   }
 
   /// Collapses the right (or bottom) panel.
   void collapseRight() {
-    _updateState(RightCollapsed(_state.value));
+    _updateState(RightCollapsed(state.value));
   }
 
   /// Hides the left (or top) panel completely.
   void hideLeft() {
-    _updateState(LeftHidden(_state.value));
+    _updateState(LeftHidden(state.value));
   }
 
   /// Hides the right (or bottom) panel completely.
   void hideRight() {
-    _updateState(RightHidden(_state.value));
+    _updateState(RightHidden(state.value));
   }
 
   /// Splits the panel to [targetValue] or restores the previous split size.
   void split([double? targetValue]) {
-    _updateState(Split(targetValue ?? _state.value));
+    _updateState(Split(targetValue ?? state.value));
   }
 
   void _updateState(SplitState newState) {
-    if (_state != newState) {
-      if (component.state == null) {
-        setState(() => _localState = newState);
-      }
+    if (state != newState) {
       component.onStateChanged?.call(newState);
     }
   }
@@ -331,27 +316,6 @@ class SplitPanelState extends State<SplitPanel> {
   double _dragStartPos = 0;
   StreamSubscription<web.MouseEvent>? _mouseMoveSubscription;
   StreamSubscription<web.MouseEvent>? _mouseUpSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _localState = component.initialState ?? Split(component.initialValue);
-  }
-
-  @override
-  void didUpdateComponent(SplitPanel oldComponent) {
-    super.didUpdateComponent(oldComponent);
-    if (component.state != null) {
-      return;
-    }
-    if (oldComponent.state case final previous?) {
-      _localState = previous;
-    } else if (component.initialState != null && component.initialState != oldComponent.initialState) {
-      _localState = component.initialState!;
-    } else if (oldComponent.initialValue != component.initialValue) {
-      _localState = Split(component.initialValue);
-    }
-  }
 
   void _startResizing(web.MouseEvent event) {
     event.preventDefault();
@@ -553,7 +517,7 @@ class SplitPanelState extends State<SplitPanel> {
   Component build(BuildContext context) {
     final leftChild = component.left;
     final rightChild = component.right;
-    final state = _state;
+    final state = component.state;
 
     final Flex leftFlex;
     final Flex rightFlex;

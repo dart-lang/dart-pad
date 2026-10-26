@@ -21,6 +21,8 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../split_panel_fixture.dart';
+
 import '../view_models/preview_view_model_test.dart'
     show FakePreviewSandbox, FakeWorkspaceResourceApi, fakeWorkspaceRepository;
 
@@ -219,6 +221,7 @@ void main() {
     testClient('renders collapse button when in SplitPanel', (tester) {
       tester.pumpComponent(
         SplitPanel(
+          state: const Split(0.5),
           canCollapseRight: true,
           left: const div([]),
           right: PreviewContainer(
@@ -238,7 +241,7 @@ void main() {
     testClient('renders preview-rail and keeps container mounted when collapsed in SplitPanel', (tester) {
       tester.pumpComponent(
         SplitPanel(
-          initialState: const RightCollapsed(0.7),
+          state: const RightCollapsed(0.7),
           canCollapseRight: true,
           left: const div([]),
           right: PreviewContainer(
@@ -260,16 +263,21 @@ void main() {
     testClient('collapsing and expanding preserves containerElement in the DOM', (tester) async {
       final splitKey = GlobalStateKey<SplitPanelState>();
       tester.pumpComponent(
-        SplitPanel(
-          key: splitKey,
-          initialState: const Split(0.7),
-          canCollapseRight: true,
-          left: const div([]),
-          right: PreviewContainer(
-            preview: preview,
-            taskStatus: taskStatus,
-            activeFile: 'lib/main.dart',
-            onOpenConsole: () {},
+        withSplitOwner(
+          tester,
+          const Split(0.7),
+          (state, onChanged) => SplitPanel(
+            state: state,
+            onStateChanged: onChanged,
+            key: splitKey,
+            canCollapseRight: true,
+            left: const div([]),
+            right: PreviewContainer(
+              preview: preview,
+              taskStatus: taskStatus,
+              activeFile: 'lib/main.dart',
+              onOpenConsole: () {},
+            ),
           ),
         ),
       );

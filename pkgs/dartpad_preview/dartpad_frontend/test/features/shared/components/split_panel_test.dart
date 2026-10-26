@@ -11,6 +11,8 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../split_panel_fixture.dart';
+
 void main() {
   group('SplitPanel', () {
     testClient('controlled split reports requests and waits for its owner', (tester) async {
@@ -93,6 +95,7 @@ void main() {
     testClient('renders left, right and drag handle', (tester) {
       tester.pumpComponent(
         const SplitPanel(
+          state: Split(0.5),
           left: div(id: 'left-pane', [Component.text('left')]),
           right: div(id: 'right-pane', [Component.text('right')]),
         ),
@@ -106,6 +109,7 @@ void main() {
     testClient('renders vertical drag handle when isVertical is true', (tester) {
       tester.pumpComponent(
         const SplitPanel(
+          state: Split(0.5),
           isVertical: true,
           left: div(id: 'top-pane', [Component.text('top')]),
           right: div(id: 'bottom-pane', [Component.text('bottom')]),
@@ -118,7 +122,7 @@ void main() {
     testClient('renders collapsed second panel sizing to intrinsic size (no fixed basis)', (tester) {
       tester.pumpComponent(
         const SplitPanel(
-          initialState: RightCollapsed(0.5),
+          state: RightCollapsed(0.5),
           isVertical: true,
           left: div(id: 'top-pane', [Component.text('top')]),
           right: div(id: 'bottom-pane', [Component.text('bottom')]),
@@ -140,15 +144,20 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const RightCollapsed(0.75),
-              canCollapseRight: true,
-              isVertical: true,
-              useRatio: true,
-              maxValue: 0.8,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const RightCollapsed(0.75),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                canCollapseRight: true,
+                isVertical: true,
+                useRatio: true,
+                maxValue: 0.8,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -182,15 +191,20 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const RightCollapsed(0.75),
-              canCollapseRight: true,
-              isVertical: true,
-              useRatio: true,
-              maxValue: 0.8,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const RightCollapsed(0.75),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                canCollapseRight: true,
+                isVertical: true,
+                useRatio: true,
+                maxValue: 0.8,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -233,14 +247,19 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const Split(0.75),
-              canCollapseRight: true,
-              isVertical: true,
-              maxValue: 0.8,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const Split(0.75),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                canCollapseRight: true,
+                isVertical: true,
+                maxValue: 0.8,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -276,14 +295,19 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const Split(0.5),
-              canCollapseLeft: true,
-              canCollapseRight: true,
-              isVertical: true,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const Split(0.5),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                canCollapseLeft: true,
+                canCollapseRight: true,
+                isVertical: true,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -319,14 +343,19 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const LeftCollapsed(0.25),
-              canCollapseLeft: true,
-              canCollapseRight: true,
-              isVertical: true,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const LeftCollapsed(0.25),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                canCollapseLeft: true,
+                canCollapseRight: true,
+                isVertical: true,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -351,14 +380,19 @@ void main() {
       await pumpEventQueue();
     });
 
-    testClient('SplitPanelState manages SplitViewState transitions', (tester) async {
+    testClient('SplitPanelState requests transitions through its owner', (tester) async {
       final splitKey = GlobalStateKey<SplitPanelState>();
       tester.pumpComponent(
-        SplitPanel(
-          key: splitKey,
-          initialValue: 0.75,
-          left: const div([]),
-          right: const div([]),
+        withSplitOwner(
+          tester,
+          const Split(0.75),
+          (state, onChanged) => SplitPanel(
+            state: state,
+            onStateChanged: onChanged,
+            key: splitKey,
+            left: const div([]),
+            right: const div([]),
+          ),
         ),
       );
 
@@ -405,11 +439,16 @@ void main() {
     testClient('SplitPanelState toggles and updates sizes by code', (tester) async {
       final splitKey = GlobalStateKey<SplitPanelState>();
       tester.pumpComponent(
-        SplitPanel(
-          key: splitKey,
-          initialValue: 0.75,
-          left: const div([]),
-          right: const div([]),
+        withSplitOwner(
+          tester,
+          const Split(0.75),
+          (state, onChanged) => SplitPanel(
+            state: state,
+            onStateChanged: onChanged,
+            key: splitKey,
+            left: const div([]),
+            right: const div([]),
+          ),
         ),
       );
 
@@ -443,13 +482,18 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialValue: 0.5,
-              isVertical: true,
-              useRatio: true,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const Split(0.5),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                isVertical: true,
+                useRatio: true,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -502,15 +546,20 @@ void main() {
             flexDirection: .column,
           ),
           [
-            SplitPanel(
-              key: splitKey,
-              initialState: const RightCollapsed(0.75),
-              isVertical: true,
-              useRatio: true,
-              minValue: 0.1,
-              maxValue: 0.9,
-              left: const div(id: 'top-pane', [Component.text('top')]),
-              right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+            withSplitOwner(
+              tester,
+              const RightCollapsed(0.75),
+              (state, onChanged) => SplitPanel(
+                state: state,
+                onStateChanged: onChanged,
+                key: splitKey,
+                isVertical: true,
+                useRatio: true,
+                minValue: 0.1,
+                maxValue: 0.9,
+                left: const div(id: 'top-pane', [Component.text('top')]),
+                right: const div(id: 'bottom-pane', [Component.text('bottom')]),
+              ),
             ),
           ],
         ),
@@ -542,15 +591,21 @@ void main() {
       SplitPanelData? noListenRightData;
 
       tester.pumpComponent(
-        SplitPanel(
-          canCollapseLeft: true,
-          canCollapseRight: true,
-          left: _ContextInspector(onBuild: (ctx) => leftData = SplitPanel.of(ctx)),
-          right: _ContextInspector(
-            onBuild: (ctx) {
-              rightData = SplitPanel.of(ctx);
-              noListenRightData = SplitPanel.of(ctx, listen: false);
-            },
+        withSplitOwner(
+          tester,
+          const Split(0.5),
+          (state, onChanged) => SplitPanel(
+            state: state,
+            onStateChanged: onChanged,
+            canCollapseLeft: true,
+            canCollapseRight: true,
+            left: _ContextInspector(onBuild: (ctx) => leftData = SplitPanel.of(ctx)),
+            right: _ContextInspector(
+              onBuild: (ctx) {
+                rightData = SplitPanel.of(ctx);
+                noListenRightData = SplitPanel.of(ctx, listen: false);
+              },
+            ),
           ),
         ),
       );
