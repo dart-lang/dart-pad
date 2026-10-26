@@ -28,6 +28,9 @@ import '../view_models/preview_view_model_test.dart'
 
 class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   @override
+  final String entrypoint = 'lib/main.dart';
+
+  @override
   final web.Element containerElement = web.document.createElement('div')..className = 'preview';
 
   @override
