@@ -19,16 +19,20 @@ which are needed to build and deploy `dartpad_ui` to Firebase Hosting:
 These steps are configured as triggers in GCP, but you can also run
 them manually.
 
-## Deploy dart_pad
+## Deploy `dartpad_ui`
 
 ```bash
 gcloud builds submit --config .cloud_build/dart_pad.yaml
 ```
 
-## Deploy dart_services
+## Deploy `dartpad_preview`
+
+See [`deploy/README.md`](deploy/README.md).
+
+## Deploy `dart_services`
 
 ```bash
-gcloud builds submit \ 
+gcloud builds submit \
   --config .cloud_build/dart_services.yaml \
   --substitutions=<SUBSTITUTIONS> \
   --project=$GCP_PROJECT
@@ -40,12 +44,6 @@ The substitutions are a comma separated list of `SUBSITUTION=value`:
 - `_DEPLOY_REGION` - The region to deploy the Cloud Run service to (us-central1)
 - `_REDIS_ADDR` - the IP address of the Redis bucket (10.0.0.4:6379)
 - `COMMIT_SHA` - the Git commit SHA for this build. Not required when using Triggers.
-
-## Deploy frontend apps (dartpad_ui and dartpad_preview):
-
-```bash
-gcloud builds submit --config .cloud_build/dart_pad.yaml
-```
 
 ## Update Flutter SDK images
 

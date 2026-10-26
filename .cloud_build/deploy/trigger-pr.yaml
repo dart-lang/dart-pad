@@ -82,6 +82,6 @@ build:
         - --only
         - $_FIREBASE_SITE
         - --expires
-        - 30d
+        - 7d
         - --no-authorized-domains
         - --project=$PROJECT_ID
