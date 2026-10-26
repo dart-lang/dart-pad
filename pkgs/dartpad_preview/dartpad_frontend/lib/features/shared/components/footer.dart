@@ -98,10 +98,38 @@ class _FooterState extends State<Footer> {
     ]);
   }
 
+  static final _versionPattern = RegExp(r'(Dart|Flutter)\s+(\d+\.\d+)');
+  static final _patchPattern = RegExp(r'(Dart|Flutter)\s+(\d+\.\d+\.\d+)');
+
+  static String _shortName(String? full) {
+    if (full == null) {
+      return 'Dart … | Flutter …';
+    }
+    final parts = [
+      for (final m in _versionPattern.allMatches(full)) '${m[1]} ${m[2]}',
+    ];
+    return parts.isEmpty ? full : parts.join(' | ');
+  }
+
+  static String _patchName(String full) {
+    final parts = [
+      for (final m in _patchPattern.allMatches(full)) '${m[1]} ${m[2]}',
+    ];
+    return parts.isEmpty ? full : parts.join(' | ');
+  }
+
+  String _itemLabel(SdkInfo sdk) {
+    final label = _patchName(sdk.displayName);
+    final collides = availableSdks.where((other) => _patchName(other.displayName) == label).length > 1;
+    return collides ? sdk.displayName : label;
+  }
+
   Component _buildRuntimeVersions() {
     final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
     final isDisabled = onSelectSdk == null;
+    final fullName = currentSdk?.displayName ?? 'Dart … • Flutter …';
+    final shortName = _shortName(currentSdk?.displayName);
 
     if (availableSdks.length > 1) {
       return DropdownMenu(
@@ -111,18 +139,18 @@ class _FooterState extends State<Footer> {
           classes: 'app-footer-sdk-trigger',
           disabled: isDisabled,
           attributes: {
-            'aria-label': 'Select DartPad SDK',
-            'title': 'Select DartPad SDK',
+            'aria-label': 'Select DartPad SDK ($fullName)',
+            'title': fullName,
           },
           [
-            span([.text(currentSdk?.displayName ?? 'Dart … • Flutter …')]),
+            span([.text(shortName)]),
             const Icon('arrow_drop_down', size: 16),
           ],
         ),
         items: [
           for (final sdk in availableSdks)
             DropdownMenuItem(
-              label: sdk.displayName,
+              label: _itemLabel(sdk),
               trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
               onPressed: () => onSelectSdk?.call(sdk),
             ),
@@ -130,13 +158,13 @@ class _FooterState extends State<Footer> {
       );
     }
 
-    final displayText = currentSdk?.displayName ?? 'Dart … • Flutter …';
     return div(
       classes: 'app-footer-runtime-versions',
-      attributes: {'aria-label': 'Runtime versions'},
-      [
-        .text(displayText),
-      ],
+      attributes: {
+        'aria-label': 'Runtime versions: $fullName',
+        'title': fullName,
+      },
+      [.text(shortName)],
     );
   }
 
@@ -212,6 +240,8 @@ class _FooterState extends State<Footer> {
       display: .inlineFlex,
       position: const .relative(),
       height: 28.px,
+      minWidth: .zero,
+      maxWidth: 100.percent,
       padding: .symmetric(horizontal: 6.px),
       border: .none,
       radius: .circular(4.px),
@@ -233,6 +263,12 @@ class _FooterState extends State<Footer> {
     css('.app-footer-sdk-trigger:disabled').styles(
       opacity: 0.7,
       cursor: .notAllowed,
+    ),
+    css('.app-footer-sdk-trigger span').styles(
+      minWidth: .zero,
+      overflow: .hidden,
+      textOverflow: .ellipsis,
+      whiteSpace: .noWrap,
     ),
     css('.app-footer-spacer').styles(flex: const .grow(1)),
     css('.app-footer-message').styles(
