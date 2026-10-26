@@ -38,6 +38,7 @@ import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
 import 'features/shared/components/shortcut_definitions.dart';
+import 'features/shared/components/shortcuts_dialog.dart';
 import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
@@ -132,6 +133,7 @@ final class _AppState extends State<App> {
   /// fails. Also selects the restore failure message and Start fresh action.
   Uri? _failedRestoreUri;
   bool _isCommandPaletteOpen = false;
+  bool _isShortcutsOpen = false;
 
   SmallScreenTab _selectedSmallScreenTab = .code;
   StreamSubscription<web.Event>? _resizeSubscription;
@@ -765,6 +767,11 @@ final class _AppState extends State<App> {
             ]),
             _buildStatusBar(),
           ]),
+          if (_isShortcutsOpen)
+            ShortcutsDialog(
+              key: const ValueKey('footer-shortcuts-dialog'),
+              onClose: () => setState(() => _isShortcutsOpen = false),
+            ),
         ],
       );
     }
@@ -833,6 +840,11 @@ final class _AppState extends State<App> {
               });
             },
           ),
+        if (_isShortcutsOpen)
+          ShortcutsDialog(
+            key: const ValueKey('footer-shortcuts-dialog'),
+            onClose: () => setState(() => _isShortcutsOpen = false),
+          ),
       ],
     );
   }
@@ -877,6 +889,12 @@ final class _AppState extends State<App> {
         isSmallScreen: !_isLargeScreen,
         currentSdk: _currentSdk,
         onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
+        onOpenShortcuts: () {
+          setState(() {
+            _isShortcutsOpen = true;
+            _isCommandPaletteOpen = false;
+          });
+        },
       ),
     ),
   );
@@ -1017,6 +1035,7 @@ final class _AppState extends State<App> {
       event.preventDefault();
       setState(() {
         _isCommandPaletteOpen = !_isCommandPaletteOpen;
+        _isShortcutsOpen = false;
       });
     }
   }
