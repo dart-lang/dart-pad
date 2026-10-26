@@ -815,7 +815,7 @@ final class _AppState extends State<App> {
                     onCloseFile: session.tabs.closeFile,
                     bottomPanel: _buildBottomPanel(session),
                     contextMenu: session.contextMenu,
-                    panels: _panels,
+                    panelController: _panels,
                   ),
                   right: _buildPreviewPanel(session),
                 )
@@ -829,7 +829,7 @@ final class _AppState extends State<App> {
                   onCloseFile: session.tabs.closeFile,
                   bottomPanel: _buildBottomPanel(session),
                   contextMenu: session.contextMenu,
-                  panels: _panels,
+                  panelController: _panels,
                   smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
                 ),
             ]),
@@ -884,7 +884,7 @@ final class _AppState extends State<App> {
       onSwitchFile: (_) {},
       onCloseFile: (_, {discardChanges = false}) => false,
       bottomPanel: const div(classes: 'bottom-panel', []),
-      panels: _panels,
+      panelController: _panels,
     );
     if (!_isLargeScreen) {
       return editor;
@@ -904,7 +904,7 @@ final class _AppState extends State<App> {
     return ListenableBuilder(
       listenable: session.diagnostics,
       builder: (context) => BottomPanel(
-        panels: _panels,
+        panelController: _panels,
         diagnostics: session.diagnostics.diagnostics,
         hasMoreDiagnostics: session.diagnostics.hasMoreDiagnostics,
         console: session.console,

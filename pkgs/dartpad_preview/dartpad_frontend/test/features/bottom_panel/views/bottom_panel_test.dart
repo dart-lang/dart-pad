@@ -47,7 +47,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -103,7 +103,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [
           DiagnosticEntry(
             'main.dart',
@@ -148,7 +148,7 @@ void main() {
     await pumpEventQueue();
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -179,7 +179,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -201,7 +201,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: true,
         console: console,
@@ -221,7 +221,7 @@ void main() {
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
       BottomPanel(
-        panels: createPanels(tester),
+        panelController: createPanels(tester),
         diagnostics: const [],
         hasMoreDiagnostics: false,
         console: console,
@@ -250,7 +250,7 @@ void main() {
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(
-          panels: panels,
+          panelController: panels,
           diagnostics: const [],
           hasMoreDiagnostics: false,
           console: console,
@@ -312,7 +312,7 @@ void main() {
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(
-          panels: createPanels(tester, isEmbedMode: true),
+          panelController: createPanels(tester, isEmbedMode: true),
           diagnostics: const [],
           hasMoreDiagnostics: false,
           console: console,

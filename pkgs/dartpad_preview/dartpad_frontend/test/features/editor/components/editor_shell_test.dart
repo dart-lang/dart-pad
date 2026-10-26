@@ -107,7 +107,7 @@ EditorShell _createShell(
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
     bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
-    panels: panels,
+    panelController: panels,
   );
 }
 

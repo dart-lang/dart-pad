@@ -26,7 +26,7 @@ final class BottomPanel extends StatefulComponent {
     required this.onOpenDiagnostic,
     required this.console,
     required this.events,
-    required this.panels,
+    required this.panelController,
     super.key,
   });
 
@@ -43,7 +43,7 @@ final class BottomPanel extends StatefulComponent {
   final ConsoleViewModel console;
 
   /// Shared selection, expansion, and size for the bottom panel.
-  final PanelLayoutController panels;
+  final PanelLayoutController panelController;
 
   /// Workspace events used to react to requests from the preview panel.
   final AppEventBus events;
@@ -78,7 +78,7 @@ final class _BottomPanelState extends State<BottomPanel> {
       if (!mounted) {
         return;
       }
-      component.panels.openBottomPanel(BottomPanelTab.console);
+      component.panelController.openBottomPanel(BottomPanelTab.console);
     });
   }
 
@@ -90,13 +90,13 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   @override
   Component build(BuildContext context) => ListenableBuilder(
-    listenable: component.panels,
+    listenable: component.panelController,
     builder: _buildPanel,
   );
 
   Component _buildPanel(BuildContext context) {
     final panel = SplitPanel.of(context);
-    final bottom = component.panels.bottom;
+    final bottom = component.panelController.bottom;
     final isCollapsed = !bottom.isExpanded;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
@@ -106,8 +106,8 @@ final class _BottomPanelState extends State<BottomPanel> {
           console: component.console,
           activeTab: bottom.selectedTab,
           isCollapsed: isCollapsed,
-          onSelectTab: component.panels.openBottomPanel,
-          onCollapse: panel != null && panel.canCollapse ? component.panels.collapseBottomPanel : null,
+          onSelectTab: component.panelController.openBottomPanel,
+          onCollapse: panel != null && panel.canCollapse ? component.panelController.collapseBottomPanel : null,
         ),
         if (!isCollapsed) _buildContent(),
       ],
@@ -116,7 +116,7 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   Component _buildContent() {
     return div(classes: 'bottom-panel-content', [
-      switch (component.panels.bottom.selectedTab) {
+      switch (component.panelController.bottom.selectedTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
           hasMoreDiagnostics: component.hasMoreDiagnostics,

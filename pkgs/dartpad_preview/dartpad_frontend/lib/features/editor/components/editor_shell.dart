@@ -26,7 +26,7 @@ class EditorShell extends StatelessComponent {
     required this.onCloseFile,
     required this.bottomPanel,
     this.contextMenu,
-    required this.panels,
+    required this.panelController,
     this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
@@ -59,7 +59,7 @@ class EditorShell extends StatelessComponent {
   final ContextMenuController? contextMenu;
 
   /// Shared split and bottom-tab state, retained when this layout is remounted.
-  final PanelLayoutController panels;
+  final PanelLayoutController panelController;
 
   /// The preview panel to show when the Output tab is active in a small-screen layout.
   /// When non-null, the preview panel replaces the editor content.
@@ -67,7 +67,7 @@ class EditorShell extends StatelessComponent {
 
   @override
   Component build(BuildContext context) => ListenableBuilder(
-    listenable: panels,
+    listenable: panelController,
     builder: (_) => _buildLayout(),
   );
 
@@ -79,8 +79,8 @@ class EditorShell extends StatelessComponent {
       SplitPanel(
         isVertical: true,
         useRatio: true,
-        state: panels.bottomSplit,
-        onStateChanged: panels.updateBottomSplit,
+        state: panelController.bottomSplit,
+        onStateChanged: panelController.updateBottomSplit,
         minValue: 0.3,
         maxValue: 0.85,
         canCollapseRight: true,
@@ -108,8 +108,8 @@ class EditorShell extends StatelessComponent {
 
     return div(classes: 'editor-shell', [
       SplitPanel(
-        state: panels.fileTree,
-        onStateChanged: panels.updateFileTree,
+        state: panelController.fileTree,
+        onStateChanged: panelController.updateFileTree,
         useRatio: false,
         minValue: 150,
         maxValue: 300,
