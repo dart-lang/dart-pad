@@ -142,7 +142,7 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
-    _panels = PanelLayoutController(isEmbedMode: _isEmbedMode)..addListener(_onPanelsChanged);
+    _panels = PanelLayoutController(isEmbedMode: _isEmbedMode);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
@@ -353,8 +353,6 @@ final class _AppState extends State<App> {
       });
     }
   }
-
-  void _onPanelsChanged() => setState(() {});
 
   void _onPreviewStateChanged() {
     final state = _session.preview.state;
@@ -797,51 +795,48 @@ final class _AppState extends State<App> {
           // NodeContainers. Starting a load keeps the existing subtree intact.
           key: ValueKey(session),
           listenable: session.tabs,
-          builder: (context) => div(classes: 'app-workspace-container', [
-            div(classes: 'app-workspace', [
-              if (_isLargeScreen)
-                SplitPanel(
-                  state: _panels.preview,
-                  onStateChanged: _panels.updatePreview,
-                  canCollapseRight: true,
-                  minValue: _isEmbedMode ? 0.05 : 0.3,
-                  maxValue: _isEmbedMode ? 0.95 : 0.85,
-                  left: EditorShell(
-                    openTabs: session.tabs.openTabs,
-                    activeFile: session.tabs.activeFile,
-                    fileTree: _buildFileTree(session),
-                    editorOverlay: _buildEditorOverlay(session),
-                    onSwitchFile: session.tabs.switchFile,
-                    onCloseFile: session.tabs.closeFile,
-                    bottomPanel: _buildBottomPanel(session),
-                    contextMenu: session.contextMenu,
-                    panelController: _panels,
-                  ),
-                  right: _buildPreviewPanel(session),
-                )
-              else
-                EditorShell(
-                  openTabs: session.tabs.openTabs,
-                  activeFile: session.tabs.activeFile,
-                  fileTree: _buildFileTree(session),
-                  editorOverlay: _buildEditorOverlay(session),
-                  onSwitchFile: session.tabs.switchFile,
-                  onCloseFile: session.tabs.closeFile,
-                  bottomPanel: _buildBottomPanel(session),
-                  contextMenu: session.contextMenu,
-                  panelController: _panels,
-                  smallScreenPreviewPanel: _selectedSmallScreenTab == .output ? _buildPreviewPanel(session) : null,
+          builder: (context) {
+            final preview = _buildPreviewPanel(session);
+            final editor = EditorShell(
+              openTabs: session.tabs.openTabs,
+              activeFile: session.tabs.activeFile,
+              fileTree: _buildFileTree(session),
+              editorOverlay: _buildEditorOverlay(session),
+              onSwitchFile: session.tabs.switchFile,
+              onCloseFile: session.tabs.closeFile,
+              bottomPanel: _buildBottomPanel(session),
+              contextMenu: session.contextMenu,
+              panelController: _panels,
+              smallScreenPreviewPanel: !_isLargeScreen && _selectedSmallScreenTab == .output ? preview : null,
+            );
+            return div(classes: 'app-workspace-container', [
+              div(classes: 'app-workspace', [
+                if (_isLargeScreen)
+                  ValueListenableBuilder(
+                    listenable: _panels.previewListenable,
+                    builder: (_, state) => SplitPanel(
+                      state: state,
+                      onStateChanged: _panels.updatePreview,
+                      canCollapseRight: true,
+                      minValue: _isEmbedMode ? 0.05 : 0.3,
+                      maxValue: _isEmbedMode ? 0.95 : 0.85,
+                      left: editor,
+                      right: preview,
+                    ),
+                  )
+                else
+                  editor,
+              ]),
+              if (!_isEmbedMode)
+                Footer(
+                  taskStatus: _activeTaskStatus,
+                  statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
+                  isSmallScreen: !_isLargeScreen,
+                  currentSdk: _currentSdk,
+                  onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
                 ),
-            ]),
-            if (!_isEmbedMode)
-              Footer(
-                taskStatus: _activeTaskStatus,
-                statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage,
-                isSmallScreen: !_isLargeScreen,
-                currentSdk: _currentSdk,
-                onSelectSdk: _isInitializingWorkspace ? null : _switchSdk,
-              ),
-          ]),
+            ]);
+          },
         ),
         ListenableBuilder(
           listenable: session.contextMenu,
@@ -889,14 +884,17 @@ final class _AppState extends State<App> {
     if (!_isLargeScreen) {
       return editor;
     }
-    return SplitPanel(
-      state: _panels.preview,
-      onStateChanged: _panels.updatePreview,
-      canCollapseRight: true,
-      minValue: 0.3,
-      maxValue: 0.85,
-      left: editor,
-      right: const div(classes: 'preview-container', []),
+    return ValueListenableBuilder(
+      listenable: _panels.previewListenable,
+      builder: (_, state) => SplitPanel(
+        state: state,
+        onStateChanged: _panels.updatePreview,
+        canCollapseRight: true,
+        minValue: 0.3,
+        maxValue: 0.85,
+        left: editor,
+        right: const div(classes: 'preview-container', []),
+      ),
     );
   }
 
@@ -1011,7 +1009,6 @@ final class _AppState extends State<App> {
 
   @override
   void dispose() {
-    _panels.removeListener(_onPanelsChanged);
     _panels.dispose();
     _embedMessages.dispose();
     _embedRuntime?.dispose();

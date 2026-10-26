@@ -9,60 +9,55 @@ import 'components/split_panel.dart';
 import 'panel_defaults.dart';
 
 /// Owns workspace splits and bottom-tab selection independently of mounted views.
-final class PanelLayoutController extends ChangeNotifier {
+final class PanelLayoutController {
   PanelLayoutController({required this.isEmbedMode}) {
-    _applyDefaults();
+    final defaults = isEmbedMode ? PanelDefaults.embed : PanelDefaults.standalone;
+    _preview = ValueNotifier(defaults.preview);
+    _fileTree = ValueNotifier(defaults.fileTree);
+    _bottom = ValueNotifier(defaults.bottom);
   }
 
   final bool isEmbedMode;
-  late SplitState _preview;
-  late SplitState _fileTree;
-  late BottomPanelState _bottom;
+  late final ValueNotifier<SplitState> _preview;
+  late final ValueNotifier<SplitState> _fileTree;
+  late final ValueNotifier<BottomPanelState> _bottom;
 
-  SplitState get preview => _preview;
-  SplitState get fileTree => _fileTree;
-  BottomPanelState get bottom => _bottom;
+  SplitState get preview => _preview.value;
+  SplitState get fileTree => _fileTree.value;
+  BottomPanelState get bottom => _bottom.value;
 
-  SplitState get bottomSplit => switch (_bottom) {
+  /// Changes to the preview split only.
+  ValueListenable<SplitState> get previewListenable => _preview;
+
+  /// Changes to the file-tree split only.
+  ValueListenable<SplitState> get fileTreeListenable => _fileTree;
+
+  /// Changes to bottom-tab selection, expansion, or size only.
+  ValueListenable<BottomPanelState> get bottomListenable => _bottom;
+
+  SplitState get bottomSplit => switch (bottom) {
     BottomPanelExpanded(:final editorFraction) => Split(editorFraction),
     BottomPanelCollapsed(:final editorFraction) => RightCollapsed(editorFraction),
   };
 
   /// A new workspace starts with the same defaults as a newly mounted layout.
   void reset({required double previewRatio}) {
-    _applyDefaults(previewRatio);
-    notifyListeners();
-  }
-
-  void _applyDefaults([double? previewRatio]) {
     final defaults = isEmbedMode ? PanelDefaults.embed : PanelDefaults.standalone;
-    _preview = previewRatio == null ? defaults.preview : Split(previewRatio);
-    _fileTree = defaults.fileTree;
-    _bottom = defaults.bottom;
+    _preview.value = Split(previewRatio);
+    _fileTree.value = defaults.fileTree;
+    _bottom.value = defaults.bottom;
   }
 
-  void updatePreview(SplitState state) {
-    if (_preview == state) {
-      return;
-    }
-    _preview = state;
-    notifyListeners();
-  }
+  void updatePreview(SplitState state) => _preview.value = state;
 
-  void updateFileTree(SplitState state) {
-    if (_fileTree == state) {
-      return;
-    }
-    _fileTree = state;
-    notifyListeners();
-  }
+  void updateFileTree(SplitState state) => _fileTree.value = state;
 
   /// Adapts splitter interactions without introducing a second bottom state.
   void updateBottomSplit(SplitState state) {
     _setBottom(switch (state) {
-      Split(:final value) => BottomPanelExpanded(_bottom.selectedTab, editorFraction: value),
+      Split(:final value) => BottomPanelExpanded(bottom.selectedTab, editorFraction: value),
       RightCollapsed(:final lastSplitValue) => BottomPanelCollapsed(
-        _bottom.selectedTab,
+        bottom.selectedTab,
         editorFraction: lastSplitValue,
       ),
       _ => throw ArgumentError.value(state, 'state', 'The bottom panel can only expand or collapse.'),
@@ -70,18 +65,18 @@ final class PanelLayoutController extends ChangeNotifier {
   }
 
   void openBottomPanel(BottomPanelTab tab) =>
-      _setBottom(BottomPanelExpanded(tab, editorFraction: _bottom.editorFraction));
+      _setBottom(BottomPanelExpanded(tab, editorFraction: bottom.editorFraction));
 
   void collapseBottomPanel() =>
-      _setBottom(BottomPanelCollapsed(_bottom.selectedTab, editorFraction: _bottom.editorFraction));
+      _setBottom(BottomPanelCollapsed(bottom.selectedTab, editorFraction: bottom.editorFraction));
 
-  void expandPreview() => updatePreview(Split(_preview.value));
+  void expandPreview() => updatePreview(Split(preview.value));
 
-  void _setBottom(BottomPanelState state) {
-    if (_bottom == state) {
-      return;
-    }
-    _bottom = state;
-    notifyListeners();
+  void _setBottom(BottomPanelState state) => _bottom.value = state;
+
+  void dispose() {
+    _preview.dispose();
+    _fileTree.dispose();
+    _bottom.dispose();
   }
 }

@@ -66,56 +66,58 @@ class EditorShell extends StatelessComponent {
   final Component? smallScreenPreviewPanel;
 
   @override
-  Component build(BuildContext context) => ListenableBuilder(
-    listenable: panelController,
-    builder: (_) => _buildLayout(),
-  );
-
-  Component _buildLayout() {
+  Component build(BuildContext context) {
     final openTabs = this.openTabs;
     final activeTab = openTabs?.where((tab) => tab.path == activeFile).firstOrNull;
     final breadcrumbPath = activeTab?.displayPath ?? activeFile;
+    final editor = div(classes: 'editor-area', [
+      if (openTabs != null) ...[
+        EditorTabBar(
+          openTabs: openTabs,
+          activeFile: activeFile,
+          onSwitchFile: onSwitchFile!,
+          onCloseFile: onCloseFile!,
+          contextMenu: contextMenu,
+        ),
+        if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+        EditorStack(
+          openTabs: openTabs,
+          activeFile: activeFile,
+          overlay: editorOverlay,
+        ),
+      ],
+    ]);
     final editorContent = main_(classes: 'editor-host', [
-      SplitPanel(
-        isVertical: true,
-        useRatio: true,
-        state: panelController.bottomSplit,
-        onStateChanged: panelController.updateBottomSplit,
-        minValue: 0.3,
-        maxValue: 0.85,
-        canCollapseRight: true,
-        left: div(classes: 'editor-area', [
-          if (openTabs != null) ...[
-            EditorTabBar(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-              contextMenu: contextMenu,
-            ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
-            EditorStack(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              overlay: editorOverlay,
-            ),
-          ],
-        ]),
-        right: bottomPanel,
+      ListenableBuilder(
+        listenable: panelController.bottomListenable,
+        builder: (_) => SplitPanel(
+          isVertical: true,
+          useRatio: true,
+          state: panelController.bottomSplit,
+          onStateChanged: panelController.updateBottomSplit,
+          minValue: 0.3,
+          maxValue: 0.85,
+          canCollapseRight: true,
+          left: editor,
+          right: bottomPanel,
+        ),
       ),
     ]);
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
     return div(classes: 'editor-shell', [
-      SplitPanel(
-        state: panelController.fileTree,
-        onStateChanged: panelController.updateFileTree,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        canCollapseLeft: true,
-        left: fileTree,
-        right: rightContent,
+      ValueListenableBuilder(
+        listenable: panelController.fileTreeListenable,
+        builder: (_, state) => SplitPanel(
+          state: state,
+          onStateChanged: panelController.updateFileTree,
+          useRatio: false,
+          minValue: 150,
+          maxValue: 300,
+          canCollapseLeft: true,
+          left: fileTree,
+          right: rightContent,
+        ),
       ),
     ]);
   }

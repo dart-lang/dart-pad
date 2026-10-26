@@ -8,6 +8,47 @@ import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('each panel notifies only its own listeners and skips unchanged values', () {
+    final panels = PanelLayoutController(isEmbedMode: false);
+    addTearDown(panels.dispose);
+    final changes = <String>[];
+    panels.previewListenable.addListener(() => changes.add('preview'));
+    panels.fileTreeListenable.addListener(() => changes.add('fileTree'));
+    panels.bottomListenable.addListener(() => changes.add('bottom'));
+
+    panels.updatePreview(const RightCollapsed(0.6));
+    panels.updatePreview(const RightCollapsed(0.6));
+    expect(changes, ['preview']);
+
+    changes.clear();
+    panels.updateFileTree(const LeftCollapsed(220));
+    panels.updateFileTree(const LeftCollapsed(220));
+    expect(changes, ['fileTree']);
+
+    changes.clear();
+    panels.openBottomPanel(BottomPanelTab.console);
+    panels.openBottomPanel(BottomPanelTab.console);
+    expect(changes, ['bottom']);
+
+    changes.clear();
+    panels.expandPreview();
+    panels.expandPreview();
+    expect(changes, ['preview']);
+
+    changes.clear();
+    panels.reset(previewRatio: 0.6);
+    expect(changes, ['fileTree', 'bottom']);
+    expect(panels.previewListenable.value, panels.preview);
+    expect(panels.fileTreeListenable.value, panels.fileTree);
+    expect(panels.bottomListenable.value, panels.bottom);
+
+    changes.clear();
+    panels.reset(previewRatio: 0.6);
+    expect(changes, isEmpty);
+    panels.reset(previewRatio: 0.7);
+    expect(changes, ['preview']);
+  });
+
   for (final embed in [false, true]) {
     test('defaults and workspace resets retain existing behavior, embed=$embed', () {
       final panels = PanelLayoutController(isEmbedMode: embed);
@@ -34,7 +75,7 @@ void main() {
     addTearDown(panels.dispose);
     panels.updateBottomSplit(const RightCollapsed(0.6));
     final changes = <BottomPanelState>[];
-    panels.addListener(() => changes.add(panels.bottom));
+    panels.bottomListenable.addListener(() => changes.add(panels.bottom));
 
     panels.openBottomPanel(BottomPanelTab.console);
     panels.openBottomPanel(BottomPanelTab.console);

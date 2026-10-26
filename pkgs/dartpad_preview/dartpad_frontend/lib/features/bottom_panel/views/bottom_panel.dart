@@ -90,7 +90,7 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   @override
   Component build(BuildContext context) => ListenableBuilder(
-    listenable: component.panelController,
+    listenable: component.panelController.bottomListenable,
     builder: _buildPanel,
   );
 

@@ -18,8 +18,13 @@ import 'package:web/web.dart' as web;
 final class _FakeTab extends EditorTab<Component> {
   _FakeTab(super.path);
 
+  int buildCount = 0;
+
   @override
-  Component build() => div(id: 'editor-$path', [Component.text(path)]);
+  Component build() {
+    buildCount++;
+    return div(id: 'editor-$path', [Component.text(path)]);
+  }
 }
 
 final class _FakeFileTree extends StatelessComponent {
@@ -112,6 +117,44 @@ EditorShell _createShell(
 }
 
 void main() {
+  testClient('panel updates preserve editor content without rebuilding it', (tester) async {
+    final panels = PanelLayoutController(isEmbedMode: false);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    final tab = _FakeTab('main.dart');
+    tester.pumpComponent(
+      _createShell(tester, panels: panels, openTabs: [tab], bottomPanel: const _FakeBottomPanel()),
+    );
+    final initialBuildCount = tab.buildCount;
+    expect(initialBuildCount, greaterThan(0));
+    final editor = web.document.getElementById('editor-main.dart');
+    expect(editor, isNotNull);
+
+    panels.updatePreview(const RightCollapsed(0.6));
+    await pumpEventQueue();
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.updateFileTree(const LeftCollapsed(220));
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.collapseBottomPanel();
+    await pumpEventQueue();
+    expect(web.document.querySelector('#fake-bottom.collapsed'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.reset(previewRatio: 0.7);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree'), isNotNull);
+    expect(web.document.querySelector('#fake-bottom.expanded'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+    expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+  });
+
   group('EditorShell – standard mode', () {
     testClient('renders file tree pane and editor host', (tester) {
       tester.pumpComponent(_createShell(tester));

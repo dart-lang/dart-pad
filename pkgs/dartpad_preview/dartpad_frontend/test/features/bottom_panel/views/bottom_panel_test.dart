@@ -242,7 +242,7 @@ void main() {
     final panels = createPanels(tester, isEmbedMode: true);
     final splitKey = GlobalStateKey<SplitPanelState>();
     Component layout() => ListenableBuilder(
-      listenable: panels,
+      listenable: panels.bottomListenable,
       builder: (_) => SplitPanel(
         key: splitKey,
         state: panels.bottomSplit,
