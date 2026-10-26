@@ -14,7 +14,7 @@ import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/components/collapsible_panel.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
-import 'package:dartpad_frontend/features/shared/panel_presentation.dart';
+import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
@@ -228,7 +228,7 @@ void main() {
       await mountApp(tester, width: 600, embed: false);
       final bars = find.byType(CollapsiblePanel).evaluate().map((e) => e.component as CollapsiblePanel).toList();
       for (final bar in bars) {
-        bar.onStateChanged(PanelPresentation.hidden);
+        bar.onStateChanged(PanelPresentationState.hidden);
       }
       await pumpEventQueue();
       expect(web.document.querySelector('.collapsible-panel'), isNull);
@@ -237,7 +237,7 @@ void main() {
       await click('.small-screen-tab-bar-tab:nth-child(2)');
       expect(web.document.querySelector('.preview-container'), isNotNull);
       for (final bar in bars) {
-        bar.onStateChanged(PanelPresentation.expanded);
+        bar.onStateChanged(PanelPresentationState.expanded);
       }
       await pumpEventQueue();
       expect(web.document.querySelector('.app-bar'), isNotNull);

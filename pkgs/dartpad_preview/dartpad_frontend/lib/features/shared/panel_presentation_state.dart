@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Presentation of a panel that does not need a draggable split.
-enum PanelPresentation {
+enum PanelPresentationState {
   /// Show the panel content.
   expanded,
 

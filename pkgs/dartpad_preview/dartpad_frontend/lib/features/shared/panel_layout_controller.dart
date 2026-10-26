@@ -7,7 +7,7 @@ import 'package:jaspr/jaspr.dart';
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
 import 'panel_defaults.dart' as panel_defaults;
-import 'panel_presentation.dart';
+import 'panel_presentation_state.dart';
 
 /// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController {
@@ -26,14 +26,14 @@ final class PanelLayoutController {
   late final ValueNotifier<SplitState> _fileTree;
   late final ValueNotifier<BottomPanelState> _bottom;
   late final ValueListenable<SplitState> _bottomSplit;
-  late final ValueNotifier<PanelPresentation> _appBar;
-  late final ValueNotifier<PanelPresentation> _statusBar;
+  late final ValueNotifier<PanelPresentationState> _appBar;
+  late final ValueNotifier<PanelPresentationState> _statusBar;
 
   SplitState get preview => _preview.value;
   SplitState get fileTree => _fileTree.value;
   BottomPanelState get bottom => _bottom.value;
-  PanelPresentation get appBar => _appBar.value;
-  PanelPresentation get statusBar => _statusBar.value;
+  PanelPresentationState get appBar => _appBar.value;
+  PanelPresentationState get statusBar => _statusBar.value;
 
   /// Changes to the preview split only.
   ValueListenable<SplitState> get previewListenable => _preview;
@@ -48,10 +48,10 @@ final class PanelLayoutController {
   ValueListenable<SplitState> get bottomSplitListenable => _bottomSplit;
 
   /// Changes to the app-bar presentation only.
-  ValueListenable<PanelPresentation> get appBarListenable => _appBar;
+  ValueListenable<PanelPresentationState> get appBarListenable => _appBar;
 
   /// Changes to the status-bar presentation only.
-  ValueListenable<PanelPresentation> get statusBarListenable => _statusBar;
+  ValueListenable<PanelPresentationState> get statusBarListenable => _statusBar;
 
   /// A new workspace starts with the same defaults as a newly mounted layout.
   void reset({required double previewRatio}) {
@@ -63,9 +63,9 @@ final class PanelLayoutController {
     _statusBar.value = defaults.statusBar;
   }
 
-  void updateAppBar(PanelPresentation state) => _appBar.value = state;
+  void updateAppBar(PanelPresentationState state) => _appBar.value = state;
 
-  void updateStatusBar(PanelPresentation state) => _statusBar.value = state;
+  void updateStatusBar(PanelPresentationState state) => _statusBar.value = state;
 
   void updatePreview(SplitState state) => _preview.value = state;
 

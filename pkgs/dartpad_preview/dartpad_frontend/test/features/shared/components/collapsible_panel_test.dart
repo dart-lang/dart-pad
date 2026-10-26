@@ -6,7 +6,7 @@
 library;
 
 import 'package:dartpad_frontend/features/shared/components/collapsible_panel.dart';
-import 'package:dartpad_frontend/features/shared/panel_presentation.dart';
+import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -15,8 +15,8 @@ import 'package:web/web.dart' as web;
 void main() {
   for (final direction in CollapseDirection.values) {
     testClient('requests collapse and reopen, leaving state with the owner: ${direction.name}', (tester) async {
-      final owner = ValueNotifier(PanelPresentation.expanded);
-      final requests = <PanelPresentation>[];
+      final owner = ValueNotifier(PanelPresentationState.expanded);
+      final requests = <PanelPresentationState>[];
       addTearDown(() async {
         tester.binding.detachRootComponent();
         await pumpEventQueue();
@@ -44,7 +44,7 @@ void main() {
       toggle.focus();
       toggle.click();
       await pumpEventQueue();
-      expect(requests, [PanelPresentation.collapsed]);
+      expect(requests, [PanelPresentationState.collapsed]);
       expect(web.document.querySelector('#panel-child'), isNotNull);
 
       owner.value = requests.single;
@@ -59,25 +59,25 @@ void main() {
 
       toggle.click();
       await pumpEventQueue();
-      expect(requests, [PanelPresentation.collapsed, PanelPresentation.expanded]);
+      expect(requests, [PanelPresentationState.collapsed, PanelPresentationState.expanded]);
       owner.value = requests.last;
       await pumpEventQueue();
       expect(web.document.querySelector('#panel-child'), isNotNull);
       expect(toggle.getAttribute('aria-expanded'), 'true');
       expect(web.document.activeElement, toggle);
 
-      owner.value = PanelPresentation.hidden;
+      owner.value = PanelPresentationState.hidden;
       await pumpEventQueue();
       expect(web.document.querySelector('#test-panel'), isNull);
       expect(web.document.querySelector('#panel-child'), isNull);
       expect(web.document.querySelector('.collapsible-panel-toggle'), isNull);
       expect(requests, hasLength(2));
 
-      owner.value = PanelPresentation.collapsed;
+      owner.value = PanelPresentationState.collapsed;
       await pumpEventQueue();
       expect(web.document.querySelector('#test-panel.collapsed'), isNotNull);
       expect(web.document.querySelector('#panel-child'), isNull);
-      owner.value = PanelPresentation.expanded;
+      owner.value = PanelPresentationState.expanded;
       await pumpEventQueue();
       expect(web.document.querySelector('#panel-child'), isNotNull);
       expect(requests, hasLength(2));

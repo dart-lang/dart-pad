@@ -7,7 +7,7 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../icons.dart';
-import '../panel_presentation.dart';
+import '../panel_presentation_state.dart';
 
 /// The direction in which a panel closes, also used by its toggle icon.
 enum CollapseDirection { up, down }
@@ -32,19 +32,19 @@ final class CollapsiblePanel extends StatelessComponent {
   /// Unique DOM identifier for this panel and its accessible content reference.
   final String id;
   final String label;
-  final PanelPresentation state;
-  final ValueChanged<PanelPresentation> onStateChanged;
+  final PanelPresentationState state;
+  final ValueChanged<PanelPresentationState> onStateChanged;
   final Component child;
   final bool showToggle;
   final CollapseDirection collapseDirection;
 
   @override
   Component build(BuildContext context) => Component.fragment([
-    if (state != PanelPresentation.hidden) _buildPanel(),
+    if (state != PanelPresentationState.hidden) _buildPanel(),
   ]);
 
   Component _buildPanel() {
-    final expanded = state == PanelPresentation.expanded;
+    final expanded = state == PanelPresentationState.expanded;
     final action = '${expanded ? 'Collapse' : 'Show'} $label';
     final pointsUp = expanded == (collapseDirection == CollapseDirection.up);
     return div(
@@ -66,7 +66,8 @@ final class CollapsiblePanel extends StatelessComponent {
               'aria-expanded': '$expanded',
               'aria-controls': '$id-content',
             },
-            onClick: () => onStateChanged(expanded ? PanelPresentation.collapsed : PanelPresentation.expanded),
+            onClick: () =>
+                onStateChanged(expanded ? PanelPresentationState.collapsed : PanelPresentationState.expanded),
             [Icon(pointsUp ? 'keyboard_arrow_up' : 'keyboard_arrow_down', size: 18)],
           ),
       ],
