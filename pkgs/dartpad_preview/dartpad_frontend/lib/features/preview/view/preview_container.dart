@@ -165,7 +165,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
         IconButton(
           tooltip: 'Show preview',
           label: 'Show preview',
-          icon: 'play_arrow',
+          icon: 'preview',
           iconSize: 18,
           onClick: (_) => panel?.expand(),
         ),
