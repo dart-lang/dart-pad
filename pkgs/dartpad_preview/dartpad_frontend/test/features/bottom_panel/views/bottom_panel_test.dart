@@ -42,17 +42,34 @@ void main() {
     return console;
   }
 
+  Component inSplitPanel(BottomPanel bottomPanel) {
+    final panels = bottomPanel.panelController;
+    return ListenableBuilder(
+      listenable: panels.bottomListenable,
+      builder: (_) => SplitPanel(
+        state: panels.bottomSplit,
+        onStateChanged: panels.updateBottomSplit,
+        isVertical: true,
+        canCollapseRight: true,
+        left: const div([]),
+        right: bottomPanel,
+      ),
+    );
+  }
+
   testClient('shows one console error indicator until logs are cleared', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [],
-        hasMoreDiagnostics: false,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 
@@ -102,32 +119,34 @@ void main() {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [
-          DiagnosticEntry(
-            'main.dart',
-            Diagnostic(
-              severity: DiagnosticSeverity.error,
-              line: 0,
-              character: 0,
-              message: 'Syntax error',
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [
+            DiagnosticEntry(
+              'main.dart',
+              Diagnostic(
+                severity: DiagnosticSeverity.error,
+                line: 0,
+                character: 0,
+                message: 'Syntax error',
+              ),
             ),
-          ),
-          DiagnosticEntry(
-            'main.dart',
-            Diagnostic(
-              severity: DiagnosticSeverity.warning,
-              line: 1,
-              character: 0,
-              message: 'Unused variable',
+            DiagnosticEntry(
+              'main.dart',
+              Diagnostic(
+                severity: DiagnosticSeverity.warning,
+                line: 1,
+                character: 0,
+                message: 'Unused variable',
+              ),
             ),
-          ),
-        ],
-        hasMoreDiagnostics: false,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+          ],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 
@@ -147,13 +166,15 @@ void main() {
     events.dispatch(const LogEvent('Running pub get in /'));
     await pumpEventQueue();
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [],
-        hasMoreDiagnostics: false,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 
@@ -178,13 +199,15 @@ void main() {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [],
-        hasMoreDiagnostics: false,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 
@@ -200,13 +223,15 @@ void main() {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [],
-        hasMoreDiagnostics: true,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [],
+          hasMoreDiagnostics: true,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 
@@ -220,13 +245,15 @@ void main() {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     tester.pumpComponent(
-      BottomPanel(
-        panelController: createPanels(tester),
-        diagnostics: const [],
-        hasMoreDiagnostics: false,
-        console: console,
-        onOpenDiagnostic: (_, _) {},
-        events: events,
+      inSplitPanel(
+        BottomPanel(
+          panelController: createPanels(tester),
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
       ),
     );
 

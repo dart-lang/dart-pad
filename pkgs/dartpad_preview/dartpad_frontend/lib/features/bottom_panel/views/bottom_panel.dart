@@ -19,6 +19,8 @@ import 'console_panel.dart';
 import 'problems_panel.dart';
 
 /// The bottom panel showing tabs with associated content panes.
+///
+/// Renders only when hosted in a [SplitPanel].
 final class BottomPanel extends StatefulComponent {
   const BottomPanel({
     required this.diagnostics,
@@ -96,6 +98,9 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   Component _buildPanel(BuildContext context) {
     final panel = SplitPanel.of(context);
+    if (panel == null) {
+      return const Component.fragment([]);
+    }
     final bottom = component.panelController.bottom;
     final isCollapsed = !bottom.isExpanded;
     return div(
@@ -107,7 +112,7 @@ final class _BottomPanelState extends State<BottomPanel> {
           activeTab: bottom.selectedTab,
           isCollapsed: isCollapsed,
           onSelectTab: component.panelController.openBottomPanel,
-          onCollapse: panel != null && panel.canCollapse ? component.panelController.collapseBottomPanel : null,
+          onCollapse: panel.canCollapse ? component.panelController.collapseBottomPanel : null,
         ),
         if (!isCollapsed) _buildContent(),
       ],
