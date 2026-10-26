@@ -52,7 +52,7 @@ final class PanelLayoutController {
 
   void updateFileTree(SplitState state) => _fileTree.value = state;
 
-  /// Adapts splitter interactions without introducing a second bottom state.
+  /// Applies splitter changes while preserving the selected bottom tab.
   void updateBottomSplit(SplitState state) {
     _setBottom(switch (state) {
       Split(:final value) => BottomPanelExpanded(bottom.selectedTab, editorFraction: value),
