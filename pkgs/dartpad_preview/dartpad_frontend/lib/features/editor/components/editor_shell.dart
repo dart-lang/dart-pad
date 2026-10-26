@@ -88,9 +88,9 @@ class EditorShell extends StatelessComponent {
       ],
     ]);
     final editorContent = main_(classes: 'editor-host', [
-      ListenableBuilder(
+      ValueListenableBuilder(
         listenable: panelController.bottomListenable,
-        builder: (_) => SplitPanel(
+        builder: (_, _) => SplitPanel(
           isVertical: true,
           useRatio: true,
           state: panelController.bottomSplit,
