@@ -8,6 +8,7 @@ library;
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -17,8 +18,13 @@ import 'package:web/web.dart' as web;
 final class _FakeTab extends EditorTab<Component> {
   _FakeTab(super.path);
 
+  int buildCount = 0;
+
   @override
-  Component build() => div(id: 'editor-$path', [Component.text(path)]);
+  Component build() {
+    buildCount++;
+    return div(id: 'editor-$path', [Component.text(path)]);
+  }
 }
 
 final class _FakeFileTree extends StatelessComponent {
@@ -79,14 +85,25 @@ final class _FakeBottomPanel extends StatelessComponent {
 }
 
 /// Helper that creates an [EditorShell] with sensible defaults.
-EditorShell _createShell({
+EditorShell _createShell(
+  ClientTester tester, {
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
   bool isEmbedMode = false,
   Component? fileTree,
   Component? bottomPanel,
+  PanelLayoutController? panels,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
+  if (panels == null) {
+    panels = PanelLayoutController(isEmbedMode: isEmbedMode);
+    final ownedPanels = panels;
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      ownedPanels.dispose();
+    });
+  }
   return EditorShell(
     openTabs: tabs,
     activeFile: activeFile,
@@ -95,14 +112,52 @@ EditorShell _createShell({
     onSwitchFile: (_) {},
     onCloseFile: (_, {bool discardChanges = false}) => true,
     bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
-    isEmbedMode: isEmbedMode,
+    panelController: panels,
   );
 }
 
 void main() {
+  testClient('panel updates preserve editor content without rebuilding it', (tester) async {
+    final panels = PanelLayoutController(isEmbedMode: false);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    final tab = _FakeTab('main.dart');
+    tester.pumpComponent(
+      _createShell(tester, panels: panels, openTabs: [tab], bottomPanel: const _FakeBottomPanel()),
+    );
+    final initialBuildCount = tab.buildCount;
+    expect(initialBuildCount, greaterThan(0));
+    final editor = web.document.getElementById('editor-main.dart');
+    expect(editor, isNotNull);
+
+    panels.updatePreview(const RightCollapsed(0.6));
+    await pumpEventQueue();
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.updateFileTree(const LeftCollapsed(220));
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-rail'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.collapseBottomPanel();
+    await pumpEventQueue();
+    expect(web.document.querySelector('#fake-bottom.collapsed'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+
+    panels.reset(previewRatio: 0.7);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree'), isNotNull);
+    expect(web.document.querySelector('#fake-bottom.expanded'), isNotNull);
+    expect(tab.buildCount, initialBuildCount);
+    expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+  });
+
   group('EditorShell – standard mode', () {
     testClient('renders file tree pane and editor host', (tester) {
-      tester.pumpComponent(_createShell());
+      tester.pumpComponent(_createShell(tester));
 
       expect(web.document.querySelector('.editor-shell'), isNotNull);
       expect(web.document.querySelector('.file-tree'), isNotNull);
@@ -111,26 +166,26 @@ void main() {
     });
 
     testClient('does not render collapsed rail in standard mode', (tester) {
-      tester.pumpComponent(_createShell());
+      tester.pumpComponent(_createShell(tester));
 
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
 
     testClient('renders without open tabs', (tester) {
-      tester.pumpComponent(_createShell(openTabs: null));
+      tester.pumpComponent(_createShell(tester, openTabs: null));
 
       expect(web.document.querySelector('.editor-shell'), isNotNull);
       expect(web.document.querySelector('.editor-host'), isNotNull);
     });
 
     testClient('renders editor overlay', (tester) {
-      tester.pumpComponent(_createShell());
+      tester.pumpComponent(_createShell(tester));
 
       expect(web.document.querySelector('#editor-overlay'), isNotNull);
     });
 
     testClient('renders editor breadcrumbs for active file', (tester) {
-      tester.pumpComponent(_createShell(activeFile: 'lib/main.dart'));
+      tester.pumpComponent(_createShell(tester, activeFile: 'lib/main.dart'));
 
       expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
       expect(web.document.querySelector('.editor-breadcrumb-folder')?.textContent, 'lib');
@@ -138,13 +193,13 @@ void main() {
     });
 
     testClient('renders bottom panel', (tester) {
-      tester.pumpComponent(_createShell());
+      tester.pumpComponent(_createShell(tester));
 
       expect(web.document.querySelector('#bottom'), isNotNull);
     });
 
     testClient('starts with expanded bottom panel in standard mode', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: false, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: false, bottomPanel: const _FakeBottomPanel()));
 
       final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom, isNotNull);
@@ -154,7 +209,7 @@ void main() {
 
   group('EditorShell – embed mode', () {
     testClient('starts with collapsed file tree rail', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       // Collapsed: rail is visible, full file-tree pane is not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -164,7 +219,7 @@ void main() {
     testClient('collapsed rail has expand button with correct aria-label', (
       tester,
     ) {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       final button = web.document.querySelector('.file-tree-rail .file-tree-rail-button');
       expect(button, isNotNull);
@@ -173,7 +228,7 @@ void main() {
     });
 
     testClient('editor host is still rendered when collapsed', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       expect(web.document.querySelector('.editor-host'), isNotNull);
     });
@@ -181,7 +236,7 @@ void main() {
     testClient('clicking expand button shows file tree', (
       tester,
     ) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       // Initially collapsed – rail visible, pane not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -202,7 +257,7 @@ void main() {
     testClient('expanded view has collapse button with correct aria-label', (
       tester,
     ) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       // Expand first.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
@@ -215,7 +270,7 @@ void main() {
     });
 
     testClient('clicking collapse button returns to rail', (tester) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
@@ -232,7 +287,7 @@ void main() {
     });
 
     testClient('toggle cycle: collapse → expand → collapse', (tester) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       // Initially collapsed.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -257,7 +312,7 @@ void main() {
     });
 
     testClient('file tree content is visible when expanded', (tester) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
@@ -267,7 +322,7 @@ void main() {
     });
 
     testClient('editor host remains through toggle cycles', (tester) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       expect(web.document.querySelector('.editor-host'), isNotNull);
 
@@ -281,7 +336,7 @@ void main() {
     });
 
     testClient('starts with collapsed bottom panel in embed mode', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
 
       final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom, isNotNull);
@@ -289,7 +344,7 @@ void main() {
     });
 
     testClient('expanding collapsed bottom panel updates its state', (tester) async {
-      tester.pumpComponent(_createShell(isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
 
       var bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom!.classList.contains('collapsed'), isTrue);
@@ -305,14 +360,14 @@ void main() {
 
   group('EditorShell – isEmbedMode=false vs true comparison', () {
     testClient('standard mode shows file tree pane directly', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: false));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: false));
 
       expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
 
     testClient('embed mode does not show file tree pane initially', (tester) {
-      tester.pumpComponent(_createShell(isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
 
       expect(web.document.querySelector('.file-tree'), isNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);

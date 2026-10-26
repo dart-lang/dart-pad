@@ -17,6 +17,8 @@ import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../../split_panel_fixture.dart';
+
 final class _Workspace implements WorkspaceResourceApi {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -173,13 +175,19 @@ void main() {
 
   testClient('renders collapse button and collapses into rail when hosted in collapsible SplitPanel', (tester) async {
     tester.pumpComponent(
-      SplitPanel(
-        canCollapseLeft: true,
-        left: FileTreeView(
-          state: _state(workspace),
-          actions: _actions(),
+      withSplitOwner(
+        tester,
+        const Split(0.5),
+        (state, onChanged) => SplitPanel(
+          state: state,
+          onStateChanged: onChanged,
+          canCollapseLeft: true,
+          left: FileTreeView(
+            state: _state(workspace),
+            actions: _actions(),
+          ),
+          right: const div([]),
         ),
-        right: const div([]),
       ),
     );
 

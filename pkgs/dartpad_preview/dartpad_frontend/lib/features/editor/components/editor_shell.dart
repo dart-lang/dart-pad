@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
+import '../../shared/panel_layout_controller.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
@@ -25,7 +26,7 @@ class EditorShell extends StatelessComponent {
     required this.onCloseFile,
     required this.bottomPanel,
     this.contextMenu,
-    this.isEmbedMode = false,
+    required this.panelController,
     this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
@@ -57,11 +58,8 @@ class EditorShell extends StatelessComponent {
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
 
-  /// Whether the app is running in embed mode (`?embed=true`).
-  ///
-  /// When `true`, the file tree starts collapsed into a narrow rail with a
-  /// toggle button, and the bottom panel (console and problems) starts collapsed.
-  final bool isEmbedMode;
+  /// Shared split and bottom-tab state, retained when this layout is remounted.
+  final PanelLayoutController panelController;
 
   /// The preview panel to show when the Output tab is active in a small-screen layout.
   /// When non-null, the preview panel replaces the editor content.
@@ -72,32 +70,33 @@ class EditorShell extends StatelessComponent {
     final openTabs = this.openTabs;
     final activeTab = openTabs?.where((tab) => tab.path == activeFile).firstOrNull;
     final breadcrumbPath = activeTab?.displayPath ?? activeFile;
+    final editor = div(classes: 'editor-area', [
+      if (openTabs != null) ...[
+        EditorTabBar(
+          openTabs: openTabs,
+          activeFile: activeFile,
+          onSwitchFile: onSwitchFile!,
+          onCloseFile: onCloseFile!,
+          contextMenu: contextMenu,
+        ),
+        if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+        EditorStack(
+          openTabs: openTabs,
+          activeFile: activeFile,
+          overlay: editorOverlay,
+        ),
+      ],
+    ]);
     final editorContent = main_(classes: 'editor-host', [
       SplitPanel(
         isVertical: true,
         useRatio: true,
-        initialValue: 0.75,
-        initialState: isEmbedMode ? const RightCollapsed(0.75) : null,
+        state: panelController.bottomSplitListenable,
+        onStateChanged: panelController.updateBottomSplit,
         minValue: 0.3,
         maxValue: 0.85,
         canCollapseRight: true,
-        left: div(classes: 'editor-area', [
-          if (openTabs != null) ...[
-            EditorTabBar(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              onSwitchFile: onSwitchFile!,
-              onCloseFile: onCloseFile!,
-              contextMenu: contextMenu,
-            ),
-            if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
-            EditorStack(
-              openTabs: openTabs,
-              activeFile: activeFile,
-              overlay: editorOverlay,
-            ),
-          ],
-        ]),
+        left: editor,
         right: bottomPanel,
       ),
     ]);
@@ -105,8 +104,8 @@ class EditorShell extends StatelessComponent {
 
     return div(classes: 'editor-shell', [
       SplitPanel(
-        initialValue: 200,
-        initialState: isEmbedMode ? const LeftCollapsed(200) : null,
+        state: panelController.fileTreeListenable,
+        onStateChanged: panelController.updateFileTree,
         useRatio: false,
         minValue: 150,
         maxValue: 300,
