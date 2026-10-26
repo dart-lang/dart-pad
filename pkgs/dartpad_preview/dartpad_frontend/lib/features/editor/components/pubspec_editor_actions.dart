@@ -106,6 +106,7 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
           busy: _busy,
           child: Button(
             label: 'Pub get',
+            tooltip: 'Run pub get in ${directory.isEmpty ? 'project root' : directory}',
             disabled: _busy,
             onClick: () => unawaited(_pubGet(directory)),
           ),

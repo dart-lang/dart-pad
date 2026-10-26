@@ -30,7 +30,7 @@ class DeviceModeDropdown extends StatelessComponent {
       trigger: button(
         classes: 'device-dropdown-trigger${disabled ? ' disabled' : ''}',
         attributes: {
-          'title': mode.title,
+          'title': 'Switch preview device mode',
           'aria-label': mode.title,
           if (disabled) 'disabled': 'true',
         },
