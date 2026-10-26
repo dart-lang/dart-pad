@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_content/components/file_icon.dart';
@@ -70,21 +71,38 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
     }
   }
 
-  void _startCreateFile() {
+  /// The folder that the header menu creates new entries in.
+  ///
+  /// Mirrors what the folder context menu does: a selected folder receives the
+  /// entry directly, a selected file contributes its parent folder, and with
+  /// nothing selected the entry is created in the tree root.
+  String get _createTargetFolder {
+    final selectedPath = _selectedPath;
+    final root = component.state.root;
+    if (selectedPath == null || !root.exists(selectedPath)) {
+      return component.state.focusedPath;
+    }
+    if (root.isFolder(selectedPath)) {
+      return selectedPath;
+    }
+    return parentWorkspacePath(selectedPath);
+  }
+
+  void _startCreate(FileTreeEntryKind kind, String folderPath) {
     setState(() {
-      _creatingEntry = FileTreeEntryKind.file;
-      _creatingInFolder = component.state.focusedPath;
+      _creatingEntry = kind;
+      _creatingInFolder = folderPath;
       _selectedPath = null;
     });
   }
 
-  void _startCreateFolder() {
-    setState(() {
-      _creatingEntry = FileTreeEntryKind.folder;
-      _creatingInFolder = component.state.focusedPath;
-      _selectedPath = null;
-    });
-  }
+  void _startCreateFile() => _startCreate(FileTreeEntryKind.file, _createTargetFolder);
+
+  void _startCreateFolder() => _startCreate(FileTreeEntryKind.folder, _createTargetFolder);
+
+  void _startCreateFileInRoot() => _startCreate(FileTreeEntryKind.file, component.state.focusedPath);
+
+  void _startCreateFolderInRoot() => _startCreate(FileTreeEntryKind.folder, component.state.focusedPath);
 
   @override
   Component build(BuildContext context) {
@@ -335,15 +353,17 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   List<ContextMenuEntry> _buildContextMenuItems() {
     final state = component.state;
     return [
+      // Right-clicking the empty tree background always targets the root,
+      // regardless of which entry happens to be selected.
       ContextMenuItem(
         label: 'New file',
         disabled: state.busy,
-        onPressed: _startCreateFile,
+        onPressed: _startCreateFileInRoot,
       ),
       ContextMenuItem(
         label: 'New folder',
         disabled: state.busy,
-        onPressed: _startCreateFolder,
+        onPressed: _startCreateFolderInRoot,
       ),
     ];
   }
