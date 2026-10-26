@@ -234,12 +234,15 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
       '100%': Styles(transform: .rotate(360.deg)),
     }),
     css('.task-status-anchor').styles(
+      display: .flex,
       position: const .relative(),
       minWidth: .zero,
+      flex: const .shrink(1),
     ),
     css('.task-status-trigger').styles(
       display: .flex,
       height: 28.px,
+      minWidth: .zero,
       maxWidth: 260.px,
       padding: .symmetric(horizontal: 8.px),
       border: .none,
@@ -342,6 +345,9 @@ class _TaskStatusIndicatorState extends State<TaskStatusIndicator> {
         minWidth: .zero,
         raw: {'max-width': 'none'},
       ),
+    ]),
+    css.media(MediaQuery.screen(maxWidth: 500.px), [
+      css('.task-status-duration').styles(display: .none),
     ]),
   ];
 }
