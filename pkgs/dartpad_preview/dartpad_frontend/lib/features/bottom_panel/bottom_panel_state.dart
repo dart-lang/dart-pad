@@ -5,7 +5,13 @@
 import 'package:meta/meta.dart';
 
 /// The contents available in the shared bottom panel.
-enum BottomPanelTab { problems, console }
+enum BottomPanelTab {
+  /// The problems tab showing diagnostics.
+  problems,
+
+  /// The debug console tab showing application logs.
+  console,
+}
 
 /// Selection and size survive collapsing the panel.
 @immutable

@@ -365,7 +365,7 @@ final class _AppState extends State<App> {
             _selectedSmallScreenTab = .output;
           });
         }
-      } else if (_panels.preview.isRightCollapsed) {
+      } else {
         _panels.expandPreview();
       }
     }
