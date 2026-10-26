@@ -105,16 +105,10 @@ void main() {
       expect(panels.statusBar, embed ? PanelPresentationState.hidden : PanelPresentationState.expanded);
     });
 
-    for (final files in [
-      <String>[],
-      ['main.dart'],
-      ['main.dart', 'main.dart'],
-      ['main.dart', 'helper.dart', 'main.dart'],
-    ]) {
-      test('navigation uses distinct requested files: $files, embed=$embed', () {
-        final panels = PanelLayoutController(isEmbedMode: embed, files: files);
+    for (final visible in [false, true]) {
+      test('navigation uses the supplied visibility: visible=$visible, embed=$embed', () {
+        final panels = PanelLayoutController(isEmbedMode: embed, showEditorNavigation: visible);
         addTearDown(panels.dispose);
-        final visible = !embed || files.toSet().length > 1;
         expect(panels.showEditorTabs, visible);
         expect(panels.showBreadcrumbs, visible);
         expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
@@ -122,7 +116,7 @@ void main() {
         panels.applyInitialDefaults(previewRatio: 0.7);
         expect(panels.showEditorTabs, !embed);
         expect(panels.showBreadcrumbs, !embed);
-        panels.applyInitialDefaults(previewRatio: 0.7, files: files);
+        panels.applyInitialDefaults(previewRatio: 0.7, showEditorNavigation: visible);
         expect(panels.showEditorTabs, visible);
         expect(panels.showBreadcrumbs, visible);
       });

@@ -16,8 +16,8 @@ const previewRatio = 0.7;
 const editorRatio = 0.75;
 const fileTreeWidth = 200.0;
 
-/// Resolve initial panel states from the project request.
-/// Explicit multi-file embeds show tabs and breadcrumbs.
+/// Resolve initial panel states with an optional editor-navigation override.
+/// Without an override, tabs and breadcrumbs are visible outside embeds.
 ({
   PanelPresentationState appBar,
   PanelPresentationState statusBar,
@@ -27,18 +27,18 @@ const fileTreeWidth = 200.0;
   bool showEditorTabs,
   bool showBreadcrumbs,
 })
-resolve({required bool isEmbedMode, Iterable<String> files = const [], double? initialPreviewRatio}) {
+resolve({required bool isEmbedMode, bool? showEditorNavigation, double? initialPreviewRatio}) {
   final preview = Split(initialPreviewRatio ?? previewRatio);
+  final showNavigation = showEditorNavigation ?? !isEmbedMode;
   if (isEmbedMode) {
-    final showEditorNavigation = files.toSet().length > 1;
     return (
       appBar: PanelPresentationState.hidden,
       statusBar: PanelPresentationState.hidden,
       preview: preview,
       fileTree: const LeftHidden(fileTreeWidth),
       bottom: const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
-      showEditorTabs: showEditorNavigation,
-      showBreadcrumbs: showEditorNavigation,
+      showEditorTabs: showNavigation,
+      showBreadcrumbs: showNavigation,
     );
   }
   return (
@@ -47,7 +47,7 @@ resolve({required bool isEmbedMode, Iterable<String> files = const [], double? i
     preview: preview,
     fileTree: const Split(fileTreeWidth),
     bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
-    showEditorTabs: true,
-    showBreadcrumbs: true,
+    showEditorTabs: showNavigation,
+    showBreadcrumbs: showNavigation,
   );
 }

@@ -11,8 +11,8 @@ import 'panel_presentation_state.dart';
 
 /// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController {
-  PanelLayoutController({required this.isEmbedMode, Iterable<String> files = const []}) {
-    final defaults = panel_defaults.resolve(isEmbedMode: isEmbedMode, files: files);
+  PanelLayoutController({required this.isEmbedMode, bool? showEditorNavigation}) {
+    final defaults = panel_defaults.resolve(isEmbedMode: isEmbedMode, showEditorNavigation: showEditorNavigation);
     _preview = ValueNotifier(defaults.preview);
     _fileTree = ValueNotifier(defaults.fileTree);
     _bottom = ValueNotifier(defaults.bottom);
@@ -64,8 +64,12 @@ final class PanelLayoutController {
   ValueListenable<({bool showEditorTabs, bool showBreadcrumbs})> get editorNavigationListenable => _editorNavigation;
 
   /// Apply at the start of a project load, before the user can change its layout.
-  void applyInitialDefaults({required double previewRatio, Iterable<String> files = const []}) {
-    final defaults = panel_defaults.resolve(isEmbedMode: isEmbedMode, files: files, initialPreviewRatio: previewRatio);
+  void applyInitialDefaults({required double previewRatio, bool? showEditorNavigation}) {
+    final defaults = panel_defaults.resolve(
+      isEmbedMode: isEmbedMode,
+      showEditorNavigation: showEditorNavigation,
+      initialPreviewRatio: previewRatio,
+    );
     _preview.value = defaults.preview;
     _fileTree.value = defaults.fileTree;
     _bottom.value = defaults.bottom;

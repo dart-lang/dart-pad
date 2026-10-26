@@ -121,7 +121,7 @@ EditorShell _createShell(
 }
 
 void main() {
-  testClient('requested files update editor navigation without rebuilding editor content', (tester) async {
+  testClient('navigation visibility updates without rebuilding editor content', (tester) async {
     final panels = PanelLayoutController(isEmbedMode: true);
     addTearDown(() async {
       tester.binding.detachRootComponent();
@@ -135,7 +135,7 @@ void main() {
     expect(web.document.querySelector('.editor-tab-bar'), isNull);
     expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
 
-    panels.applyInitialDefaults(previewRatio: 0.7, files: ['main.dart', 'helper.dart']);
+    panels.applyInitialDefaults(previewRatio: 0.7, showEditorNavigation: true);
     await pumpEventQueue();
     expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
     expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);

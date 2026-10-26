@@ -197,7 +197,10 @@ final class _AppState extends State<App> {
         }
         // Set the initial presentation before loading:
         // the user may resize or open panels while waiting for it.
-        _panels.applyInitialDefaults(previewRatio: request.initialSplitRatio, files: request.files);
+        _panels.applyInitialDefaults(
+          previewRatio: request.initialSplitRatio,
+          showEditorNavigation: !_isEmbedMode || request.files.toSet().length > 1,
+        );
         final strategy = await _persistence.prepareLoad(request, startFresh: startFresh);
         loadStrategy = strategy;
         if (!_isCurrentLoad(generation)) {
