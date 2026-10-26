@@ -10,6 +10,7 @@ library;
 
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
+import 'panel_layout_state.dart';
 import 'panel_presentation_state.dart';
 
 const previewRatio = 0.7;
@@ -18,16 +19,11 @@ const fileTreeWidth = 200.0;
 
 /// Resolve initial panel states with an optional editor-navigation override.
 /// Without an override, tabs and breadcrumbs are visible outside embeds.
-({
-  PanelPresentationState appBar,
-  PanelPresentationState statusBar,
-  Split preview,
-  SplitState fileTree,
-  BottomPanelState bottom,
-  bool showEditorTabs,
-  bool showBreadcrumbs,
-})
-resolve({required bool isEmbedMode, bool? showEditorNavigation, double? initialPreviewRatio}) {
+PanelLayoutState resolveInitialPanelLayout({
+  required bool isEmbedMode,
+  bool? showEditorNavigation,
+  double? initialPreviewRatio,
+}) {
   final preview = Split(initialPreviewRatio ?? previewRatio);
   final showNavigation = showEditorNavigation ?? !isEmbedMode;
   if (isEmbedMode) {
