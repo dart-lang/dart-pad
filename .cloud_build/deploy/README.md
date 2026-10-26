@@ -4,7 +4,7 @@ Cloud Build configuration for building and deploying DartPad to Firebase Hosting
 
 ## Files
 
-- `trigger-pr.yaml` (`deploy-pr`): Trigger for PRs targeting `main`; deploys to preview channel `pr-<N>` (expires in 30d).
+- `trigger-pr.yaml` (`deploy-pr`): Trigger for PRs targeting `main`; deploys to preview channel `pr-<N>` (expires in 7d).
 - `trigger-main.yaml` (`deploy-main`): Trigger for pushes to `main`; deploys to the `live` channel.
 - `build.yaml`: Inner build config that compiles the frontend and writes `firebase.json` + `public/` to a `.tar` archive in `gs://dart-pad-build-output`.
 
