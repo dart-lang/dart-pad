@@ -105,9 +105,9 @@ dependency_overrides:
           'dependencies:\n  flutter:\n    sdk: flutter\n  local:\n    path: packages/local\n  missing:\n    path: packages/missing\n',
         ),
       );
-      expect(await api.readFileAsText('pubspec.original.yaml'), pubspec);
+      expect(await api.readFileAsText('pubspec.original.dartpad.yaml'), pubspec);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
-      expect(await api.fileExist('pubspec_overrides.original.yaml'), isFalse);
+      expect(await api.fileExist('pubspec_overrides.original.dartpad.yaml'), isFalse);
     });
 
     test('preserves parent and sibling packages and warns about unavailable dependencies', () async {
@@ -149,7 +149,7 @@ dev_dependencies:
       );
       expect(
         project.importWarnings.join('\n'),
-        contains('Created packages/root/example/pubspec_overrides.original.yaml'),
+        contains('Created packages/root/example/pubspec_overrides.original.dartpad.yaml'),
       );
       final overrides = String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.yaml')!);
       expect(overrides, startsWith('dependency_overrides:'));
@@ -161,7 +161,7 @@ dev_dependencies:
         ),
       );
       expect(
-        String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.original.yaml')!),
+        String.fromCharCodes(project.readFile('packages/root/example/pubspec_overrides.original.dartpad.yaml')!),
         'dependency_overrides:\n  outside: {path: /external}\n',
       );
       final text = String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!);
@@ -172,7 +172,7 @@ dev_dependencies:
           '"../../../script/flutter_goldens", whose target package is not included in the imported workspace.',
         ),
       );
-      expect(String.fromCharCodes(project.readFile('packages/root/example/pubspec.original.yaml')!), pubspec);
+      expect(String.fromCharCodes(project.readFile('packages/root/example/pubspec.original.dartpad.yaml')!), pubspec);
     });
 
     for (final (name, pubspec) in [
@@ -209,7 +209,7 @@ dev_dependencies:
         expect(text, contains('../outside'));
         expect(text, contains('https://example.com/repo.git'));
         expect(project.importWarnings, hasLength(3));
-        expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+        expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
         expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
       });
     }
@@ -321,7 +321,7 @@ dev_dependencies: {
         text,
         contains("# remote: {git: 'https://example.com/repo.git'} # removed by DartPad from dev_dependencies"),
       );
-      expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+      expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
     });
 
     test('keeps unavailable dependencies untouched and warns about none', () async {
@@ -338,7 +338,7 @@ dependencies:
       );
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
       expect(project.importWarnings, isEmpty);
-      expect(project.containsFile('pubspec.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec.original.dartpad.yaml'), isFalse);
       expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
     });
 
@@ -353,9 +353,9 @@ dependencies:
         () => MockClient((_) async => http.Response.bytes(archive, 200)),
       );
       expect(String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!), '{"resolution":null}');
-      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec_overrides.original.dartpad.yaml'), isFalse);
       expect(
-        project.importWarnings.where((warning) => warning.startsWith('Created pubspec.original.yaml')),
+        project.importWarnings.where((warning) => warning.startsWith('Created pubspec.original.dartpad.yaml')),
         hasLength(1),
       );
     });
@@ -378,7 +378,7 @@ dependencies:
       );
       expect(text, contains('# gone: {path: ../gone} # removed by DartPad from dev_dependencies'));
       expect(text, isNot(contains('# outside:')));
-      expect(String.fromCharCodes(project.readFile('pubspec.original.yaml')!), pubspec);
+      expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
       expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
     });
 
@@ -421,10 +421,10 @@ dependencies:
         ),
       );
       expect(
-        String.fromCharCodes(project.readFile('packages/app/pubspec_overrides.original.yaml')!),
+        String.fromCharCodes(project.readFile('packages/app/pubspec_overrides.original.dartpad.yaml')!),
         overridesSource,
       );
-      expect(project.containsFile('packages/app/pubspec.original.yaml'), isFalse);
+      expect(project.containsFile('packages/app/pubspec.original.dartpad.yaml'), isFalse);
     });
 
     test('removes a dependency_overrides entry whose name is absent from both sections', () async {
@@ -444,9 +444,9 @@ dependencies:
         overrides,
         contains('# ghost: {path: ../ghost} # removed by DartPad from dependency_overrides'),
       );
-      expect(String.fromCharCodes(project.readFile('pubspec_overrides.original.yaml')!), overridesSource);
+      expect(String.fromCharCodes(project.readFile('pubspec_overrides.original.dartpad.yaml')!), overridesSource);
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
-      expect(project.containsFile('pubspec.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec.original.dartpad.yaml'), isFalse);
     });
 
     for (final compressed in [false, true]) {
@@ -882,7 +882,7 @@ resolution: workspace
         () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
       );
       expect(project.readFile('pubspec_overrides.yaml'), overridesBytes);
-      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec_overrides.original.dartpad.yaml'), isFalse);
       expect(project.importWarnings, isEmpty);
     });
 
@@ -896,9 +896,9 @@ resolution: workspace
         () => const ArchiveProjectSource(absoluteUrl).loadProject(),
         () => MockClient((_) async => http.Response.bytes(archiveBytes, 200)),
       );
-      expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
+      expect(project.containsFile('pubspec_overrides.original.dartpad.yaml'), isFalse);
       expect(project.readFile('pubspec_overrides.yaml'), [0xFF]);
-      expect(project.readFile('pubspec.original.yaml'), pubspec.codeUnits);
+      expect(project.readFile('pubspec.original.dartpad.yaml'), pubspec.codeUnits);
       expect(
         String.fromCharCodes(project.readFile('pubspec.yaml')!),
         contains('# outside: {path: ../outside} # removed by DartPad from dev_dependencies'),
