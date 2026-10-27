@@ -6,6 +6,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import 'tooltip.dart';
 
 /// A reusable styled button component with consistent appearance across DartPad.
 class Button extends StatelessComponent {
@@ -30,20 +31,22 @@ class Button extends StatelessComponent {
   /// Additional CSS classes to apply.
   final String? classes;
 
-  /// The `title` tooltip. Defaults to [label] when null.
+  /// The tooltip to display on hover. Defaults to [label] when null.
   final String? tooltip;
 
   @override
   Component build(BuildContext context) {
-    return button(
-      classes: 'dp-button${classes != null ? ' $classes' : ''}',
-      attributes: {
-        'title': tooltip ?? label,
-        'aria-label': label,
-        if (disabled) 'disabled': '',
-      },
-      onClick: disabled ? null : onClick,
-      [.text(label)],
+    return Tooltip(
+      message: tooltip ?? label,
+      child: button(
+        classes: 'dp-button${classes != null ? ' $classes' : ''}',
+        attributes: {
+          'aria-label': label,
+          if (disabled) 'disabled': '',
+        },
+        onClick: disabled ? null : onClick,
+        [.text(label)],
+      ),
     );
   }
 
