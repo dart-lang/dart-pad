@@ -7,6 +7,7 @@ import 'dart:js_interop';
 
 import 'package:codemirror_dart/codemirror_dart.dart' as cm;
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
@@ -34,6 +35,40 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   bool _active = false;
   bool _disposed = false;
   Timer? _measureTimer;
+  final StreamController<void> _updates = StreamController<void>.broadcast();
+  MarkdownRenderer? _markdownRenderer;
+  bool _previewMarkdown = true;
+
+  /// Whether this tab supports Markdown preview.
+  bool get isMarkdown => isMarkdownFile(displayPath);
+
+  /// Markdown files initially open in preview, with the editor kept in memory.
+  bool get isMarkdownPreview => isMarkdown && _previewMarkdown;
+
+  @override
+  Stream<void> get onUpdate => _updates.stream;
+
+  /// Switches Markdown display without recreating the editor.
+  void setMarkdownPreview({required bool preview}) {
+    if (!isMarkdown || _previewMarkdown == preview) {
+      return;
+    }
+    if (preview) {
+      _savedViewState = editor.saveViewState();
+      CodeMirrorEditor.hideAllTooltips();
+    }
+    _previewMarkdown = preview;
+    if (!preview) {
+      _scheduleMeasureAndRestore();
+    }
+    _notifyUpdate();
+  }
+
+  void _notifyUpdate() {
+    if (!_disposed) {
+      _updates.add(null);
+    }
+  }
 
   /// The current editor content.
   String get content => editor.text;
@@ -49,14 +84,16 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
-    _savedViewState = editor.saveViewState();
+    if (!isMarkdownPreview) {
+      _savedViewState = editor.saveViewState();
+    }
   }
 
   void _scheduleMeasureAndRestore() {
     _measureTimer?.cancel();
     _measureTimer = Timer(Duration.zero, () {
       _measureTimer = null;
-      if (_disposed || !_active || !container.isConnected) {
+      if (_disposed || !_active || isMarkdownPreview || !container.isConnected) {
         return;
       }
       editor.requestMeasure();
@@ -79,10 +116,28 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   }
 
   @override
-  Component build() => NodeContainer(
-    container,
-    onAttached: _scheduleMeasureAndRestore,
-  );
+  Component build() {
+    final source = NodeContainer(container, onAttached: _scheduleMeasureAndRestore);
+    if (!isMarkdown) {
+      return source;
+    }
+    final renderer = _markdownRenderer ??= MarkdownRenderer();
+    if (isMarkdownPreview) {
+      renderer.render(content);
+    }
+    return div(classes: 'markdown-tab', [
+      div(
+        classes: 'markdown-source',
+        attributes: {if (isMarkdownPreview) 'hidden': ''},
+        [source],
+      ),
+      div(
+        classes: 'markdown-rendered',
+        attributes: {if (!isMarkdownPreview) 'hidden': ''},
+        [NodeContainer(renderer.container)],
+      ),
+    ]);
+  }
 
   @override
   void dispose() {
@@ -94,6 +149,7 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _measureTimer?.cancel();
     _measureTimer = null;
     editor.destroy();
+    unawaited(_updates.close());
   }
 }
 
@@ -161,7 +217,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
   late final CodeActionsController codeActionsController;
 
   late final JSFunction _contextMenuHandler;
-  final StreamController<void> _updates = StreamController<void>.broadcast();
   String _savedContent;
   bool _isDirty = false;
 
@@ -170,9 +225,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
 
   @override
   bool get hasUnsavedChanges => _isDirty;
-
-  @override
-  Stream<void> get onUpdate => _updates.stream;
 
   @override
   void onDeactivate() {
@@ -240,12 +292,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     _notifyUpdate();
   }
 
-  void _notifyUpdate() {
-    if (!_disposed) {
-      _updates.add(null);
-    }
-  }
-
   void _showContextMenu(double clientX, double clientY) {
     final menu = contextMenu;
     if (menu == null) {
@@ -286,7 +332,6 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     container.removeEventListener('contextmenu', _contextMenuHandler);
     codeActionsController.dispose();
     super.dispose();
-    unawaited(_updates.close());
   }
 }
 
