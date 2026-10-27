@@ -513,7 +513,7 @@ final class _AppState extends State<App> {
         return false;
       }
       try {
-        await session.repository.pubGet(
+        await session.repository.pubGetOfflineFirst(
           path: packageRoot,
           projectRoot: packageRoot,
         );

@@ -186,7 +186,15 @@ final class WorkspaceRepository {
     String path = '',
     String projectRoot = '',
     bool blocksPreview = false,
+    bool offlineFirst = false,
   }) {
+    if (offlineFirst && commandName != 'get') {
+      throw ArgumentError.value(
+        offlineFirst,
+        'offlineFirst',
+        'Only supported when commandName is "get".',
+      );
+    }
     final normalizedPath = normalizeWorkspacePath(path);
     final pathLabel = _displayPathRelativeToProject(
       path: normalizedPath,
@@ -205,6 +213,19 @@ final class WorkspaceRepository {
           if (api is SyncedWorkspaceResourceApi) {
             await api.flush();
           }
+          if (offlineFirst) {
+            try {
+              final result = await workspace.pub(
+                path: normalizedPath,
+                command: commandName,
+                args: const ['--offline'],
+              );
+              return result.log;
+            } catch (_) {
+              // Fall back to online resolution when the pre-populated cache
+              // cannot satisfy all dependencies.
+            }
+          }
           final result = await workspace.pub(path: normalizedPath, command: commandName);
           return result.log;
         },
@@ -221,6 +242,15 @@ final class WorkspaceRepository {
     path: path,
     projectRoot: projectRoot,
     blocksPreview: true,
+  );
+
+  Future<void> pubGetOfflineFirst({String path = '', String projectRoot = ''}) => _runPubCommand(
+    kind: TaskKind.pubGet,
+    commandName: 'get',
+    path: path,
+    projectRoot: projectRoot,
+    blocksPreview: true,
+    offlineFirst: true,
   );
 
   Future<void> pubUpgrade({String path = '', String projectRoot = ''}) => _runPubCommand(
