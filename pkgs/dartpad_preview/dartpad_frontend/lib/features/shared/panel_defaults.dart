@@ -2,32 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Initial workspace splits before any user interaction.
+/// Initial panel states for standalone and embed mode.
 ///
-/// Embeds keep the file tree rail and both bottom tabs accessible. Preview starts
+/// Embeds hide file navigation and keep both bottom tabs accessible. Preview starts
 /// expanded in both modes; the legacy `split` URL option can override its ratio.
 library;
 
 import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
+import 'panel_layout_state.dart';
 import 'panel_presentation_state.dart';
 
 const previewRatio = 0.7;
 const editorRatio = 0.75;
 const fileTreeWidth = 200.0;
 
-const standalone = (
-  appBar: PanelPresentationState.expanded,
-  statusBar: PanelPresentationState.expanded,
-  preview: Split(previewRatio),
-  fileTree: Split(fileTreeWidth),
-  bottom: BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
-);
-
-const embed = (
-  appBar: PanelPresentationState.hidden,
-  statusBar: PanelPresentationState.hidden,
-  preview: Split(previewRatio),
-  fileTree: LeftCollapsed(fileTreeWidth),
-  bottom: BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
-);
+/// Resolve initial panel states with an optional editor-navigation override.
+/// Without an override, tabs and breadcrumbs are visible outside embeds.
+PanelLayoutState resolveInitialPanelLayout({
+  required bool isEmbedMode,
+  bool? showEditorNavigation,
+  double? initialPreviewRatio,
+}) {
+  final preview = Split(initialPreviewRatio ?? previewRatio);
+  final showNavigation = showEditorNavigation ?? !isEmbedMode;
+  if (isEmbedMode) {
+    return (
+      appBar: PanelPresentationState.hidden,
+      statusBar: PanelPresentationState.hidden,
+      preview: preview,
+      fileTree: const LeftHidden(fileTreeWidth),
+      bottom: const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
+      showEditorTabs: showNavigation,
+      showBreadcrumbs: showNavigation,
+    );
+  }
+  return (
+    appBar: PanelPresentationState.expanded,
+    statusBar: PanelPresentationState.expanded,
+    preview: preview,
+    fileTree: const Split(fileTreeWidth),
+    bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
+    showEditorTabs: showNavigation,
+    showBreadcrumbs: showNavigation,
+  );
+}

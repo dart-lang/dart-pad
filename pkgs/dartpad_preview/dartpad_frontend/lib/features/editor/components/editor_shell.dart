@@ -72,14 +72,21 @@ class EditorShell extends StatelessComponent {
     final breadcrumbPath = activeTab?.displayPath ?? activeFile;
     final editor = div(classes: 'editor-area', [
       if (openTabs != null) ...[
-        EditorTabBar(
-          openTabs: openTabs,
-          activeFile: activeFile,
-          onSwitchFile: onSwitchFile!,
-          onCloseFile: onCloseFile!,
-          contextMenu: contextMenu,
+        ValueListenableBuilder(
+          listenable: panelController.editorNavigationListenable,
+          builder: (_, navigation) => Component.fragment([
+            // Navigation may open another file even when tabs are hidden by default.
+            if (navigation.showEditorTabs || openTabs.length > 1)
+              EditorTabBar(
+                openTabs: openTabs,
+                activeFile: activeFile,
+                onSwitchFile: onSwitchFile!,
+                onCloseFile: onCloseFile!,
+                contextMenu: contextMenu,
+              ),
+            if (navigation.showBreadcrumbs && activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+          ]),
         ),
-        if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
         EditorStack(
           openTabs: openTabs,
           activeFile: activeFile,

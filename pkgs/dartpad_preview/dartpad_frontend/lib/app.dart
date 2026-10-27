@@ -195,6 +195,12 @@ final class _AppState extends State<App> {
         if (!_isCurrentLoad(generation)) {
           return;
         }
+        // Set the initial presentation before loading:
+        // the user may resize or open panels while waiting for it.
+        _panels.applyInitialDefaults(
+          previewRatio: request.initialSplitRatio,
+          showEditorNavigation: !_isEmbedMode || request.files.toSet().length > 1,
+        );
         final strategy = await _persistence.prepareLoad(request, startFresh: startFresh);
         loadStrategy = strategy;
         if (!_isCurrentLoad(generation)) {
@@ -302,7 +308,6 @@ final class _AppState extends State<App> {
     oldSession?.preview.removeListener(_onPreviewStateChanged);
     session.preview.addListener(_onPreviewStateChanged);
     setState(() {
-      _panels.reset(previewRatio: project.request.initialSplitRatio);
       _activeSession = session;
       _sessionLoadGeneration = generation;
     });
@@ -695,7 +700,7 @@ final class _AppState extends State<App> {
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
-        _panels.reset(previewRatio: next.initialProject.request.initialSplitRatio);
+        _panels.applyInitialDefaults(previewRatio: next.initialProject.request.initialSplitRatio);
         _activeSession = next;
         _workspacePreparationFailure = null;
       });
@@ -897,8 +902,8 @@ final class _AppState extends State<App> {
       state: _panels.previewListenable,
       onStateChanged: _panels.updatePreview,
       canCollapseRight: true,
-      minValue: 0.3,
-      maxValue: 0.85,
+      minValue: _isEmbedMode ? 0.05 : 0.3,
+      maxValue: _isEmbedMode ? 0.95 : 0.85,
       left: editor,
       right: const div(classes: 'preview-container', []),
     );
