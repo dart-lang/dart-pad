@@ -154,6 +154,69 @@ void main() {
     });
   });
 
+  group('QueryParameters panels', () {
+    test('ignores missing, unsigned, unknown, and malformed hints', () {
+      for (final query in [
+        '',
+        '?panels',
+        '?panels=',
+        '?panels=console,+unknown,++tabs,-,+Preview,%252Bpreview',
+        '?panels=-file_tree,-app_bar,-status_bar',
+      ]) {
+        expect(parse(query).appearance.panels, isEmpty, reason: query);
+      }
+    });
+
+    test('recognizes every panel name', () {
+      final panels = parse(
+        '?panels=+console,-problems,+preview,-tabs,+filetree,-appbar,+statusbar',
+      ).appearance.panels;
+      expect(panels, {
+        WorkspacePanel.console: true,
+        WorkspacePanel.problems: false,
+        WorkspacePanel.preview: true,
+        WorkspacePanel.tabs: false,
+        WorkspacePanel.fileTree: true,
+        WorkspacePanel.appBar: false,
+        WorkspacePanel.statusBar: true,
+      });
+    });
+
+    test('keeps the last hint for each panel in its last occurrence order', () {
+      final panels = parse('?panels=+console,+problems,-preview&panels=-problems,+console').appearance.panels;
+      expect(panels, {WorkspacePanel.preview: false, WorkspacePanel.problems: false, WorkspacePanel.console: true});
+      expect(panels.keys, [WorkspacePanel.preview, WorkspacePanel.problems, WorkspacePanel.console]);
+    });
+
+    test('normalizes signs and whitespace for query serialization without decoding twice', () {
+      for (final query in [
+        '?panels=+console,-problems&panels=+tabs',
+        '?panels=%2Bconsole%2C-problems&panels=%2Btabs',
+        '?pan%65ls=%20+console%20,%09-problems%20&panels=%20+tabs%20',
+      ]) {
+        final parameters = parse(query);
+        expect(parameters.raw[QueryParameters.panels], ['+console,-problems', '+tabs']);
+        expect(parameters.appearance.panels, {
+          WorkspacePanel.console: true,
+          WorkspacePanel.problems: false,
+          WorkspacePanel.tabs: true,
+        });
+        final restored = QueryParameters.fromUri(Uri(queryParameters: parameters.raw));
+        expect(restored.appearance.panels, parameters.appearance.panels);
+        expect(restored.raw, parameters.raw);
+      }
+      expect(parse('?panels=%252Bconsole').appearance.panels, isEmpty);
+      expect(parse('?file=lib/a+b.dart').project.files, ['lib/a b.dart']);
+    });
+
+    test('protects validated hints and serialized query values from mutation', () {
+      final parameters = parse('?panels=+console');
+      expect(() => parameters.appearance.panels[WorkspacePanel.console] = false, throwsUnsupportedError);
+      expect(() => parameters.raw[QueryParameters.panels]!.add('-console'), throwsUnsupportedError);
+      expect(() => parameters.raw[QueryParameters.panels] = ['-console'], throwsUnsupportedError);
+    });
+  });
+
   group('QueryParameters session', () {
     test('parses non-negative session ids only', () {
       expect(parse('?s=5').session?.value, 5);
@@ -173,6 +236,7 @@ void main() {
     expect(parameters.project.files, isEmpty);
     expect(parameters.appearance.embed, isFalse);
     expect(parameters.appearance.splitPercent, isNull);
+    expect(parameters.appearance.panels, isEmpty);
     expect(parameters.session, isNull);
   });
 }

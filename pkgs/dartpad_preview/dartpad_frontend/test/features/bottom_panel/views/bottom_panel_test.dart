@@ -56,6 +56,31 @@ void main() {
     );
   }
 
+  testClient('hiding removes both tabs; a later console request reopens both at the retained size', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester, isEmbedMode: true);
+    panels.updateBottomSplit(const RightHidden(0.6));
+    tester.pumpComponent(
+      inSplitPanel(
+        BottomPanel(
+          panelController: panels,
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
+      ),
+    );
+    expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 0);
+    events.dispatch(const OpenConsoleEvent());
+    await pumpEventQueue();
+    expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+    expect(panels.bottomSplitListenable.value, const Split(0.6));
+  });
+
   testClient('shows one console error indicator until logs are cleared', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));

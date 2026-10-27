@@ -25,7 +25,9 @@ PanelLayoutState resolveInitialPanelLayout({
   double? initialPreviewRatio,
 }) {
   final preview = Split(initialPreviewRatio ?? previewRatio);
-  final showNavigation = showEditorNavigation ?? !isEmbedMode;
+  final editorNavigation = (showEditorNavigation ?? !isEmbedMode)
+      ? PanelPresentationState.expanded
+      : PanelPresentationState.hidden;
   if (isEmbedMode) {
     return (
       appBar: PanelPresentationState.hidden,
@@ -33,8 +35,7 @@ PanelLayoutState resolveInitialPanelLayout({
       preview: preview,
       fileTree: const LeftHidden(fileTreeWidth),
       bottom: const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
-      showEditorTabs: showNavigation,
-      showBreadcrumbs: showNavigation,
+      editorNavigation: editorNavigation,
     );
   }
   return (
@@ -43,7 +44,6 @@ PanelLayoutState resolveInitialPanelLayout({
     preview: preview,
     fileTree: const Split(fileTreeWidth),
     bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
-    showEditorTabs: showNavigation,
-    showBreadcrumbs: showNavigation,
+    editorNavigation: editorNavigation,
   );
 }

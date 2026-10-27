@@ -203,6 +203,7 @@ final class _AppState extends State<App> {
         _panels.applyInitialDefaults(
           previewRatio: request.initialSplitRatio,
           showEditorNavigation: !_isEmbedMode || request.files.toSet().length > 1,
+          hints: request.panels,
         );
         final strategy = await _persistence.prepareLoad(request, startFresh: startFresh);
         loadStrategy = strategy;
@@ -210,7 +211,7 @@ final class _AppState extends State<App> {
           return;
         }
         if (strategy.mintedSessionId case final id?) {
-          _writeSessionIdToUrl(uri, id);
+          _writeSessionIdToUrl(request, id);
         }
         final project = switch (strategy.restoreProjectId) {
           final id? => await _loadSavedProject(id, request),
@@ -365,15 +366,14 @@ final class _AppState extends State<App> {
 
   void _onPreviewStateChanged() {
     final state = _session.preview.state;
-    if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
-      if (!_isLargeScreen) {
-        if (_selectedSmallScreenTab != .output) {
-          setState(() {
-            _selectedSmallScreenTab = .output;
-          });
-        }
-      } else {
-        _panels.expandPreview();
+    if (state is PreviewStarting && !state.autoStart ||
+        state is PreviewRestarting && !state.autoStart ||
+        state is PreviewHotReloading) {
+      _panels.expandPreview();
+      if (!_isLargeScreen && _selectedSmallScreenTab != .output) {
+        setState(() {
+          _selectedSmallScreenTab = .output;
+        });
       }
     }
   }
@@ -478,7 +478,7 @@ final class _AppState extends State<App> {
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
         if (session.initialProject.request.autoRun) {
-          unawaited(session.preview.runCurrent());
+          unawaited(session.preview.runCurrent(autoStart: true));
         }
         return;
       }
@@ -549,7 +549,7 @@ final class _AppState extends State<App> {
     }
 
     if (autoRun && preparationSucceeded && session.preview.entrypoint != null) {
-      await session.preview.runCurrent();
+      await session.preview.runCurrent(autoStart: true);
       if (!_isCurrentRuntime(session, generation)) {
         return false;
       }
@@ -644,8 +644,8 @@ final class _AppState extends State<App> {
 
   /// Reflects a freshly minted session id in the address bar without pushing a
   /// new history entry, so back navigation does not land on the bare URL.
-  void _writeSessionIdToUrl(Uri uri, int sessionId) {
-    final query = {...uri.queryParametersAll, QueryParameters.sessionId: '$sessionId'};
+  void _writeSessionIdToUrl(ProjectRequest request, int sessionId) {
+    final query = {...request.query, QueryParameters.sessionId: '$sessionId'};
     final search = Uri(queryParameters: query).query;
     web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }
@@ -706,7 +706,11 @@ final class _AppState extends State<App> {
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
-        _panels.applyInitialDefaults(previewRatio: next.initialProject.request.initialSplitRatio);
+        _panels.applyInitialDefaults(
+          previewRatio: next.initialProject.request.initialSplitRatio,
+          showEditorNavigation: !_isEmbedMode || next.initialProject.request.files.toSet().length > 1,
+          hints: next.initialProject.request.panels,
+        );
         _activeSession = next;
         _workspacePreparationFailure = null;
       });
@@ -871,7 +875,12 @@ final class _AppState extends State<App> {
     if (showNavigation && !_isLargeScreen)
       SmallScreenTabBar(
         selectedTab: _selectedSmallScreenTab,
-        onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+        onTabSelected: (tab) {
+          if (tab == .output) {
+            _panels.expandPreview();
+          }
+          setState(() => _selectedSmallScreenTab = tab);
+        },
       ),
   ]);
 

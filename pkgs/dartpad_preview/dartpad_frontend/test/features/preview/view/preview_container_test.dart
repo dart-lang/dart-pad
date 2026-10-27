@@ -63,7 +63,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   int runCount = 0;
 
   @override
-  Future<void> runCurrent() async => runCount++;
+  Future<void> runCurrent({bool autoStart = false}) async => runCount++;
 
   void setRunning({required bool value}) {
     isRunning = value;
@@ -77,7 +77,7 @@ class FakePreviewViewModel extends ChangeNotifier implements PreviewViewModel {
   }
 
   @override
-  Future<void> runCode(String activeFile, {RunMode? mode}) async {}
+  Future<void> runCode(String activeFile, {RunMode? mode, bool autoStart = false}) async {}
 
   @override
   Future<void> restartCode() async {}

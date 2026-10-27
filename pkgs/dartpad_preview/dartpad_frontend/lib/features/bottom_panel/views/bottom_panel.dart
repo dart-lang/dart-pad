@@ -102,6 +102,9 @@ final class _BottomPanelState extends State<BottomPanel> {
       return const Component.fragment([]);
     }
     final bottom = component.panelController.bottom;
+    if (bottom is BottomPanelHidden) {
+      return const div(classes: 'bottom-panel', []);
+    }
     final isCollapsed = !bottom.isExpanded;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',

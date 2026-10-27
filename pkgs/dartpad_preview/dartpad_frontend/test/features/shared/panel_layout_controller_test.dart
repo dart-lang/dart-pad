@@ -174,11 +174,11 @@ void main() {
     ]);
   });
 
-  test('bottom split cannot hide the tabs or collapse the editor', () {
+  test('bottom split cannot hide or collapse the editor', () {
     final panels = PanelLayoutController(isEmbedMode: false);
     addTearDown(panels.dispose);
     final original = panels.bottom;
-    for (final state in [const RightHidden(0.7), const LeftHidden(0.7), const LeftCollapsed(0.7)]) {
+    for (final state in [const LeftHidden(0.7), const LeftCollapsed(0.7)]) {
       expect(() => panels.updateBottomSplit(state), throwsArgumentError);
       expect(panels.bottom, original);
     }

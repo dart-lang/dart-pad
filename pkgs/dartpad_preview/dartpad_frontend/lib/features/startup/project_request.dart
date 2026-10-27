@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import '../shared/panel_hints.dart';
 import '../shared/sdk_kind.dart';
 import 'examples.g.dart';
 import 'project_source.dart';
@@ -76,7 +77,8 @@ final class ProjectRequest {
   /// It does not change [query], so history matches the URL that was opened.
   final String? sampleInitialFile;
 
-  /// The original decoded query values, including options not interpreted here.
+  /// The decoded query values, including options not interpreted here.
+  /// Panel hints retain their signs and have surrounding whitespace removed.
   ///
   /// Kept so [search] and history match the URL that was opened. The map and each
   /// value list are unmodifiable. Repeated values retain their order within each
@@ -140,6 +142,9 @@ final class ProjectRequest {
     final percent = _parameters.appearance.splitPercent;
     return percent == null ? null : percent / 100;
   }
+
+  /// Initial layout hints, resolved against the standalone or embed defaults.
+  PanelHints get panels => PanelHints(_parameters.appearance.panels);
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///

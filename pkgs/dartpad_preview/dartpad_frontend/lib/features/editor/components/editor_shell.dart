@@ -7,9 +7,11 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/components/collapsible_panel.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/panel_layout_controller.dart';
+import '../../shared/panel_presentation_state.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
@@ -74,18 +76,28 @@ class EditorShell extends StatelessComponent {
       if (openTabs != null) ...[
         ValueListenableBuilder(
           listenable: panelController.editorNavigationListenable,
-          builder: (_, navigation) => Component.fragment([
-            // Navigation may open another file even when tabs are hidden by default.
-            if (navigation.showEditorTabs || openTabs.length > 1)
-              EditorTabBar(
-                openTabs: openTabs,
-                activeFile: activeFile,
-                onSwitchFile: onSwitchFile!,
-                onCloseFile: onCloseFile!,
-                contextMenu: contextMenu,
-              ),
-            if (navigation.showBreadcrumbs && activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
-          ]),
+          builder: (_, navigation) {
+            // Keep navigation available when actions open another file.
+            final presentation = openTabs.length > 1 ? PanelPresentationState.expanded : navigation;
+            return CollapsiblePanel(
+              id: 'editor-navigation-panel',
+              label: 'editor tabs',
+              state: presentation,
+              onStateChanged: panelController.updateEditorNavigation,
+              showToggle: presentation == PanelPresentationState.collapsed,
+              child: Component.fragment([
+                EditorTabBar(
+                  openTabs: openTabs,
+                  activeFile: activeFile,
+                  onSwitchFile: onSwitchFile!,
+                  onCloseFile: onCloseFile!,
+                  contextMenu: contextMenu,
+                ),
+                if (navigation == PanelPresentationState.expanded && activeFile.isNotEmpty)
+                  EditorBreadcrumbs(path: breadcrumbPath),
+              ]),
+            );
+          },
         ),
         EditorStack(
           openTabs: openTabs,

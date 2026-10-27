@@ -65,10 +65,11 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   String? get entrypoint => _entrypoint;
   final RunMode? _modeOverride;
 
-  Future<void> runCurrent() async {
+  /// Runs the selected entrypoint, optionally as part of automatic startup.
+  Future<void> runCurrent({bool autoStart = false}) async {
     final path = _entrypoint;
     if (path != null) {
-      await runCode(path);
+      await runCode(path, autoStart: autoStart);
     }
   }
 
@@ -144,7 +145,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   ///
   /// Without an override, infer the mode from the SDK and the entrypoint's
   /// location relative to its nearest package root.
-  Future<void> runCode(String entrypoint, {RunMode? mode}) async {
+  Future<void> runCode(String entrypoint, {RunMode? mode, bool autoStart = false}) async {
     if (!canRun) {
       return;
     }
@@ -154,7 +155,9 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     final action = restart ? PreviewLaunchAction.restart : PreviewLaunchAction.start;
     final kind = restart ? TaskKind.restartingPreview : TaskKind.startingPreview;
     final task = _workspaceRepository.taskStatus.startTask(kind, blocksPreview: true);
-    _state = restart ? PreviewRestarting(entrypoint) : PreviewStarting(entrypoint);
+    _state = restart
+        ? PreviewRestarting(entrypoint, autoStart: autoStart)
+        : PreviewStarting(entrypoint, autoStart: autoStart);
     _appLogs.clear();
     notifyListeners();
     var failedTask = kind;
