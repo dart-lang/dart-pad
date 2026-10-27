@@ -66,6 +66,9 @@ Use comma-separated panel names, each prefixed with `+` or `-`.
 | `statusbar` | Expanded           | Hidden                                                      |
 | `appbar`    | Expanded           | Hidden                                                      |
 
+Tabs and breadcrumbs are shown together whenever multiple files are open, even
+with `-tabs`, so users can switch between files.
+
 #### Bottom panel behavior
 
 `console` and `problems` share the bottom area:

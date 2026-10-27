@@ -278,11 +278,12 @@ void main() {
 
     for (final width in [600, 1200]) {
       for (final hint in ['', '-tabs']) {
-        testClient('single-file embed reveals tabs after navigation and allows returning: width=$width, panels=$hint', (
+        testClient('single-file embed reveals tabs and breadcrumbs after navigation: width=$width, panels=$hint', (
           tester,
         ) async {
           await mountApp(tester, width: width, files: ['lib/main.dart'], panelHints: [hint]);
           expect(web.document.querySelector('.editor-tab-bar'), isNull);
+          expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
 
           final bottomPanel = find.byType(BottomPanel).evaluate().single.component as BottomPanel;
           bottomPanel.onOpenDiagnostic(
@@ -298,15 +299,17 @@ void main() {
 
           expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
           expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
-          expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
+          expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
           expect(fileTreeSplit().state, const LeftHidden(200));
 
           (web.document.querySelector('.editor-tab[title="lib/main.dart"]')! as web.HTMLElement).click();
           await pumpEventQueue();
           expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'lib/main.dart');
+          expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'lib/main.dart');
 
           await click('button[aria-label="Close README.md"]');
           expect(web.document.querySelector('.editor-tab-bar'), isNull);
+          expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
           expect(web.document.querySelector('.editor-tab-slot.active .cm-editor'), isNotNull);
           expect(fileTreeSplit().state, const LeftHidden(200));
         });

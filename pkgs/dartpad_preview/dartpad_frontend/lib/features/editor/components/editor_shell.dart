@@ -93,8 +93,7 @@ class EditorShell extends StatelessComponent {
                   onCloseFile: onCloseFile!,
                   contextMenu: contextMenu,
                 ),
-                if (navigation == PanelPresentationState.expanded && activeFile.isNotEmpty)
-                  EditorBreadcrumbs(path: breadcrumbPath),
+                if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
               ]),
             );
           },
