@@ -29,91 +29,43 @@ void stripUnavailableDependencies(Project project) {
       if (basenameWorkspacePath(path) == 'pubspec.yaml') parentWorkspacePath(path),
   };
   for (final packageDirectory in packageDirectories) {
-    _stripUnavailableDependenciesInPackage(project, packageDirectory);
+    _stripUnavailableDependenciesInPackage(project, packageDirectory: packageDirectory);
   }
 }
 
 /// Prepares the pubspec and overrides files of one package directory.
 ///
-/// Membership checks use the original pubspec.yaml snapshot. Files are written only
-/// after every change has been collected.
-void _stripUnavailableDependenciesInPackage(Project project, String packageDirectory) {
-  final pubspecPath = joinWorkspacePath(packageDirectory, 'pubspec.yaml');
-  final overridesPath = joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml');
-
-  final pubspecBytes = project.readFile(pubspecPath);
-  final pubspecSource = pubspecBytes == null ? null : _decodeUtf8(pubspecBytes);
-  final pubspec = pubspecSource == null ? null : _readPubspec(pubspecSource);
-  // Regular dependencies are never stripped, so they produce no change or warning.
-  final dependencyNames = _sectionNames(pubspec, 'dependencies');
-  final pubspecChanges = pubspec == null
-      ? const <_DependencyComment>[]
-      : [
-          ..._removeUnavailableEntries(
-            project,
-            pubspecPath,
-            pubspec,
-            'dev_dependencies',
-            const <Object?>{},
-          ),
-          ..._removeUnavailableEntries(
-            project,
-            pubspecPath,
-            pubspec,
-            'dependency_overrides',
-            dependencyNames,
-          ),
-        ];
-
-  final overridesBytes = project.readFile(overridesPath);
-  final overridesSource = overridesBytes == null ? null : _decodeUtf8(overridesBytes);
-  final overrides = overridesSource == null ? null : _readPubspec(overridesSource);
-  final overridesChanges = overrides == null
-      ? const <_DependencyComment>[]
-      : _removeUnavailableEntries(
-          project,
-          overridesPath,
-          overrides,
-          'dependency_overrides',
-          dependencyNames,
-        );
-  if (overridesBytes != null && overridesSource == null) {
-    _warnAboutNonUtf8Overrides(
+/// Both files check membership against the original pubspec.yaml snapshot, so their
+/// order does not matter. Each file is written once, after its changes are collected.
+void _stripUnavailableDependenciesInPackage(Project project, {required String packageDirectory}) {
+  final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
+  final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
+  final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
+  if (pubspec != null) {
+    _amendFile(
       project,
-      packageDirectory,
-      overridesPath,
-      overridesBytes,
-      dependencyNames,
+      file: pubspec,
+      sectionNames: const ['dev_dependencies', 'dependency_overrides'],
+      namesInDependencies: namesInDependencies,
     );
   }
-
-  if (pubspec != null && pubspecChanges.isNotEmpty) {
-    _writeAmendedFile(
+  if (overrides != null) {
+    _amendFile(
       project,
-      pubspecPath,
-      'pubspec.original.yaml',
-      pubspecBytes!,
-      pubspec,
-      pubspecChanges,
-      _lineEnding(pubspec.source),
-    );
-  }
-  if (overrides != null && overridesChanges.isNotEmpty) {
-    // Without a newline of its own, the overrides file uses the pubspec.yaml line ending.
-    final lineEndingSource = overrides.source.contains('\n') ? overrides.source : (pubspec?.source ?? '');
-    _writeAmendedFile(
-      project,
-      overridesPath,
-      'pubspec_overrides.original.yaml',
-      overridesBytes!,
-      overrides,
-      overridesChanges,
-      _lineEnding(lineEndingSource),
+      file: overrides,
+      sectionNames: const ['dependency_overrides'],
+      namesInDependencies: namesInDependencies,
     );
   }
 }
 
-typedef _Pubspec = ({String source, YamlEditor editor, YamlMap node});
+typedef _Pubspec = ({
+  String path,
+  Uint8List bytes,
+  String source,
+  YamlEditor editor,
+  YamlMap node,
+});
 typedef _DependencyComment = ({
   String source,
   String sectionName,
@@ -125,9 +77,24 @@ typedef _UnavailableEntry = ({
   YamlMap node,
   String reason,
 });
+typedef _Availability = ({
+  bool isAvailable,
+  String? unavailableReason,
+});
 
-/// Returns null when the source is invalid YAML or does not contain a mapping.
-_Pubspec? _readPubspec(String source) {
+/// Reads and parses the file at [path]. Returns null when it is missing, not UTF-8,
+/// invalid YAML, or not a mapping.
+_Pubspec? _readPubspec(Project project, String path) {
+  final bytes = project.readFile(path);
+  if (bytes == null) {
+    return null;
+  }
+  final String source;
+  try {
+    source = utf8.decode(bytes);
+  } on FormatException {
+    return null;
+  }
   final YamlEditor pubspecEditor;
   try {
     pubspecEditor = YamlEditor(source);
@@ -141,58 +108,93 @@ _Pubspec? _readPubspec(String source) {
   if (pubspecNode is! YamlMap) {
     return null;
   }
-  return (source: source, editor: pubspecEditor, node: pubspecNode);
+  return (path: path, bytes: bytes, source: source, editor: pubspecEditor, node: pubspecNode);
 }
 
-/// Names of the entries in [sectionName] of the original [document].
-Set<Object?> _sectionNames(_Pubspec? document, String sectionName) {
-  final section = document?.node.nodes[sectionName];
+/// Names of the string-keyed entries in [sectionName] of the original [file], read before any edits.
+Set<String> _sectionNames(_Pubspec? file, {required String sectionName}) {
+  final section = file?.node.nodes[sectionName];
   if (section is! YamlMap) {
-    return const <Object?>{};
+    return const <String>{};
   }
-  return {for (final key in section.nodes.keys) (key as YamlNode).value};
+  return {
+    for (final key in section.nodes.keys)
+      if ((key as YamlNode).value case final String name) name,
+  };
 }
 
-/// Removes unavailable entries from [sectionName] and returns them as changes.
+/// Removes unavailable entries from each of [sectionNames] and writes [file].
 ///
-/// Entries whose names are in [keptNames] are left alone without a warning.
-List<_DependencyComment> _removeUnavailableEntries(
-  Project project,
-  String path,
-  _Pubspec document,
-  String sectionName,
-  Set<Object?> keptNames,
-) {
-  final changes = <_DependencyComment>[];
+/// Writes the original bytes to a `*.original.yaml` backup and the amended file with one
+/// commented entry per change. Writes nothing when no entry was removed.
+void _amendFile(
+  Project project, {
+  required _Pubspec file,
+  required List<String> sectionNames,
+  required Set<String> namesInDependencies,
+}) {
+  final changes = [
+    for (final sectionName in sectionNames)
+      ..._collectDependencyAmendments(
+        project,
+        file: file,
+        sectionName: sectionName,
+        namesInDependencies: namesInDependencies,
+      ),
+  ];
+  if (changes.isEmpty) {
+    return;
+  }
+  final backupPath = file.path.replaceFirst(RegExp(r'\.yaml$'), '.original.yaml');
+  final comments = changes.map(_commentOutEntry);
+  final amendedSource = '${file.editor}\n${comments.join('\n')}\n';
+  project.writeFile(backupPath, file.bytes);
+  project.writeFile(file.path, Uint8List.fromList(utf8.encode(amendedSource)));
+  project.addImportWarning(
+    'Created $backupPath with the original ${basenameWorkspacePath(file.path)} contents '
+    'because unavailable entries were removed from it.',
+  );
+}
+
+/// Removes unavailable entries of [sectionName] from the in-memory editor and returns them
+/// as a collection of amendments to be applied to the pubspec file. Nothing is written to the project here.
+List<_DependencyComment> _collectDependencyAmendments(
+  Project project, {
+  required _Pubspec file,
+  required String sectionName,
+  required Set<String> namesInDependencies,
+}) {
+  final amendments = <_DependencyComment>[];
   final entries = _unavailableEntries(
     project,
-    parentWorkspacePath(path),
-    document,
-    sectionName,
-    keptNames,
+    file: file,
+    sectionName: sectionName,
+    namesInDependencies: namesInDependencies,
   );
   for (final entry in entries) {
-    if (!_removeDependency(project, path, document, sectionName, entry.name, entry.reason)) {
+    if (!_removeDependency(project, file: file, sectionName: sectionName, entry: entry)) {
       continue;
     }
-    changes.add((
-      source: _entrySource(document, entry.nameNode, entry.node),
+    amendments.add((
+      source: _entrySource(file, entry.nameNode, entry.node),
       sectionName: sectionName,
       reason: entry.reason,
     ));
   }
-  return changes;
+  return amendments;
 }
 
-/// Returns the entries of [sectionName] that cannot be loaded, excluding [keptNames].
+/// Returns the entries of [sectionName] that cannot be loaded in DartPad.
+///
+/// Overrides whose names are in [namesInDependencies] are skipped, because removing them
+/// would change how the same dependency resolves.
 List<_UnavailableEntry> _unavailableEntries(
-  Project project,
-  String packageDirectory,
-  _Pubspec document,
-  String sectionName,
-  Set<Object?> keptNames,
-) {
-  final section = document.node.nodes[sectionName];
+  Project project, {
+  required _Pubspec file,
+  required String sectionName,
+  required Set<String> namesInDependencies,
+}) {
+  final section = file.node.nodes[sectionName];
   if (section is! YamlMap) {
     return const [];
   }
@@ -201,98 +203,49 @@ List<_UnavailableEntry> _unavailableEntries(
     final dependencyNameNode = dependencyEntry.key as YamlNode;
     final dependencyName = dependencyNameNode.value;
     final dependencyNode = dependencyEntry.value;
-    if (dependencyName is! String || dependencyNode is! YamlMap || keptNames.contains(dependencyName)) {
+    if (dependencyName is! String || dependencyNode is! YamlMap) {
       continue;
     }
-    final unavailableReason = _unavailableDependencyReason(
+    if (sectionName == 'dependency_overrides' && namesInDependencies.contains(dependencyName)) {
+      continue;
+    }
+    final availability = _dependencyAvailability(
       project,
-      packageDirectory,
-      dependencyNode,
+      packageDirectory: parentWorkspacePath(file.path),
+      dependencyNode: dependencyNode,
     );
-    if (unavailableReason != null) {
+    if (!availability.isAvailable) {
       entries.add((
         name: dependencyName,
         nameNode: dependencyNameNode,
         node: dependencyNode,
-        reason: unavailableReason,
+        reason: availability.unavailableReason!,
       ));
     }
   }
   return entries;
 }
 
-/// Warns about unavailable overrides in a non-UTF-8 overrides file, which is never rewritten.
-void _warnAboutNonUtf8Overrides(
-  Project project,
-  String packageDirectory,
-  String path,
-  Uint8List bytes,
-  Set<Object?> keptNames,
-) {
-  // Decode leniently only to find the entries that would have been removed.
-  final document = _readPubspec(utf8.decode(bytes, allowMalformed: true));
-  if (document == null) {
-    return;
-  }
-  final entries = _unavailableEntries(
-    project,
-    packageDirectory,
-    document,
-    'dependency_overrides',
-    keptNames,
-  );
-  for (final entry in entries) {
-    project.addImportWarning(
-      'Dependency "${entry.name}" in $path (dependency_overrides) ${entry.reason}, '
-      'but was left unchanged because $path is not valid UTF-8. Consider removing it manually.',
-    );
-  }
-}
-
-/// Writes the original bytes to [backupName] beside [path], then the edited document with
-/// one commented entry per change.
-void _writeAmendedFile(
-  Project project,
-  String path,
-  String backupName,
-  Uint8List originalBytes,
-  _Pubspec document,
-  List<_DependencyComment> changes,
-  String lineEnding,
-) {
-  final backupPath = joinWorkspacePath(parentWorkspacePath(path), backupName);
-  final comments = changes.map((entry) => _commentOutEntry(entry, lineEnding));
-  final amendedSource = '${document.editor}$lineEnding${comments.join(lineEnding)}$lineEnding';
-  project.writeFile(backupPath, originalBytes);
-  project.writeFile(path, Uint8List.fromList(utf8.encode(amendedSource)));
-  project.addImportWarning(
-    'Created $backupPath with the original ${basenameWorkspacePath(path)} contents '
-    'because unavailable entries were removed from it.',
-  );
-}
-
 /// Removes one entry from the pubspec editor. Returns false and warns when yaml_edit
 /// refuses the edit because the entry uses an alias or anchor.
 bool _removeDependency(
-  Project project,
-  String path,
-  _Pubspec pubspec,
-  String sectionName,
-  String dependencyName,
-  String unavailableReason,
-) {
+  Project project, {
+  required _Pubspec file,
+  required String sectionName,
+  required _UnavailableEntry entry,
+}) {
   try {
     // yaml_edit refuses edits to aliases and anchors before changing the source.
-    pubspec.editor.remove([sectionName, dependencyName]);
+    file.editor.remove([sectionName, entry.name]);
   } on AliasException {
     project.addImportWarning(
-      'Dependency "$dependencyName" in $path ($sectionName) $unavailableReason, '
+      'Dependency "${entry.name}" in ${file.path} ($sectionName) ${entry.reason}, '
       'but was left unchanged because it uses a YAML alias or anchor. Consider removing it manually.',
     );
     return false;
   }
   project.addImportWarning(
-    'Dependency "$dependencyName" in $path ($sectionName) $unavailableReason and was not loaded.',
+    'Dependency "${entry.name}" in ${file.path} ($sectionName) ${entry.reason} and was not loaded.',
   );
   return true;
 }
@@ -301,21 +254,17 @@ bool _removeDependency(
 ///
 /// Alias keys and values resolve to anchored nodes, whose spans are not this entry's
 /// text. Those entries use the key name and the anchored value text instead.
-String _entrySource(
-  _Pubspec pubspec,
-  YamlNode dependencyNameNode,
-  YamlNode dependencyNode,
-) {
-  final source = pubspec.source;
+String _entrySource(_Pubspec file, YamlNode dependencyNameNode, YamlNode dependencyNode) {
+  final source = file.source;
   final keyStart = dependencyNameNode.span.start.offset;
   final keyEnd = dependencyNameNode.span.end.offset;
   final valueStart = dependencyNode.span.start.offset;
   final valueEnd = dependencyNode.span.end.offset;
-  final keyIsOwn = keyEnd <= valueStart && _isKeySeparator(source.substring(keyEnd, valueStart));
-  if (keyIsOwn && valueEnd > valueStart) {
+  final keySpanIsOwnText = keyEnd <= valueStart && _isKeySeparator(source.substring(keyEnd, valueStart));
+  if (keySpanIsOwnText && valueEnd > valueStart) {
     return source.substring(keyStart, valueEnd).trimRight();
   }
-  final keyText = keyIsOwn ? source.substring(keyStart, keyEnd) : '${dependencyNameNode.value}';
+  final keyText = keySpanIsOwnText ? source.substring(keyStart, keyEnd) : '${dependencyNameNode.value}';
   if (valueEnd > valueStart) {
     return '$keyText: ${source.substring(valueStart, valueEnd).trimRight()}';
   }
@@ -334,7 +283,7 @@ bool _isKeySeparator(String text) {
   });
 }
 
-String _commentOutEntry(_DependencyComment entry, String lineEnding) {
+String _commentOutEntry(_DependencyComment entry) {
   final lineBreak = RegExp(r'\r\n|\r|\n');
   final entryLines = entry.source.split(lineBreak);
   final commentedLines = [
@@ -345,45 +294,39 @@ String _commentOutEntry(_DependencyComment entry, String lineEnding) {
     final singleLineReason = entry.reason.replaceAll(lineBreak, ' ');
     commentedLines[0] += ' # removed by DartPad from ${entry.sectionName} because it $singleLineReason.';
   }
-  return commentedLines.join(lineEnding);
+  return commentedLines.join('\n');
 }
 
-String? _decodeUtf8(Uint8List bytes) {
-  try {
-    return utf8.decode(bytes);
-  } on FormatException {
-    return null;
-  }
-}
-
-String _lineEnding(String source) => source.contains('\r\n') ? '\r\n' : '\n';
-
-String? _unavailableDependencyReason(
-  Project project,
-  String packageDirectory,
-  YamlMap dependencyNode,
-) {
+/// Checks whether a dependency can be loaded in DartPad. The reason is set only when it cannot.
+_Availability _dependencyAvailability(
+  Project project, {
+  required String packageDirectory,
+  required YamlMap dependencyNode,
+}) {
   if (dependencyNode.containsKey('git')) {
-    return 'uses Git, which is not supported by DartPad';
+    return (isAvailable: false, unavailableReason: 'uses Git, which is not supported by DartPad');
   }
   final dependencyPath = dependencyNode['path'];
   if (dependencyPath is! String) {
-    return null;
+    return (isAvailable: true, unavailableReason: null);
   }
-  final dependencyDirectory = joinWorkspacePath(
-    packageDirectory,
-    dependencyPath,
-  );
+  final dependencyDirectory = joinWorkspacePath(packageDirectory, dependencyPath);
   final isAbsolutePath = workspacePath.isAbsolute(dependencyPath);
   if (isAbsolutePath || !isWithinWorkspaceFolder(dependencyDirectory, '')) {
-    return 'uses ${isAbsolutePath ? 'absolute' : 'relative'} path "$dependencyPath", which is outside the imported workspace';
+    return (
+      isAvailable: false,
+      unavailableReason:
+          'uses ${isAbsolutePath ? 'absolute' : 'relative'} path "$dependencyPath", '
+          'which is outside the imported workspace',
+    );
   }
-  final dependencyPubspecPath = joinWorkspacePath(
-    dependencyDirectory,
-    'pubspec.yaml',
-  );
+  final dependencyPubspecPath = joinWorkspacePath(dependencyDirectory, 'pubspec.yaml');
   if (!project.containsFile(dependencyPubspecPath)) {
-    return 'uses relative path "$dependencyPath", whose target package is not included in the imported workspace';
+    return (
+      isAvailable: false,
+      unavailableReason:
+          'uses relative path "$dependencyPath", whose target package is not included in the imported workspace',
+    );
   }
-  return null;
+  return (isAvailable: true, unavailableReason: null);
 }

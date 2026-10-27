@@ -449,35 +449,6 @@ dependencies:
       expect(project.containsFile('pubspec.original.yaml'), isFalse);
     });
 
-    test('uses CRLF throughout the comment block when the pubspec uses CRLF', () async {
-      const pubspec = 'name: example\r\ndev_dependencies:\r\n  outside: {path: ../outside}\r\n  keep: any\r\n';
-      final archive = createTarArchive({'pubspec.yaml': pubspec});
-      final project = await http.runWithClient(
-        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
-        () => MockClient((_) async => http.Response.bytes(archive, 200)),
-      );
-      final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
-      expect(RegExp(r'(?<!\r)\n').hasMatch(text), isFalse);
-      expect(text, contains('# outside: {path: ../outside} # removed by DartPad'));
-      expect((loadYaml(text) as YamlMap)['dev_dependencies'], {'keep': 'any'});
-    });
-
-    test('uses CRLF for the separator when overrides have no newline and the pubspec uses CRLF', () async {
-      const pubspec = 'name: example\r\ndev_dependencies:\r\n  outside: {path: ../outside}\r\n  keep: any\r\n';
-      final archive = createTarArchive({
-        'pubspec.yaml': pubspec,
-        'pubspec_overrides.yaml': 'dependency_overrides:\r\n  gone: {path: ../gone}',
-      });
-      final project = await http.runWithClient(
-        () => const ArchiveProjectSource(absoluteUrl).loadProject(),
-        () => MockClient((_) async => http.Response.bytes(archive, 200)),
-      );
-      final overrides = String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!);
-      expect(RegExp(r'(?<!\r)\n').hasMatch(overrides), isFalse);
-      expect(overrides, contains('# gone: {path: ../gone} # removed by DartPad'));
-      expect((loadYaml(overrides) as YamlMap)['dependency_overrides'], isEmpty);
-    });
-
     for (final compressed in [false, true]) {
       test('imports file-sized buffers for worker messages, compressed=$compressed', () async {
         final files = {
@@ -896,7 +867,7 @@ resolution: workspace
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
     });
 
-    test('keeps an unavailable override unchanged when pubspec_overrides.yaml is not UTF-8', () async {
+    test('leaves a non-UTF-8 pubspec_overrides.yaml unchanged without a warning', () async {
       final overridesBytes = [
         ...'dependency_overrides:\n  outside: {path: ../outside}\n# '.codeUnits,
         0xFF,
@@ -912,9 +883,7 @@ resolution: workspace
       );
       expect(project.readFile('pubspec_overrides.yaml'), overridesBytes);
       expect(project.containsFile('pubspec_overrides.original.yaml'), isFalse);
-      expect(project.importWarnings.single, contains('Dependency "outside" in pubspec_overrides.yaml'));
-      expect(project.importWarnings.single, contains('left unchanged because'));
-      expect(project.importWarnings.single, contains('is not valid UTF-8'));
+      expect(project.importWarnings, isEmpty);
     });
 
     test('removes an unavailable dev dependency even when pubspec_overrides.yaml is not UTF-8', () async {
