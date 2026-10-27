@@ -136,7 +136,7 @@ void main() {
     expect(logs.every((log) => log.level == Level.WARNING), isTrue);
     expect(logs.first.message, contains('Dependency "flutter_goldens"'));
     expect(logs.first.message, contains('outside the imported workspace'));
-    expect(logs.last.message, contains('Created pubspec.original.yaml'));
+    expect(logs.last.message, contains('Created pubspec.original.dartpad.yaml'));
     expect(
       await repository!.workspaceResourceApi.readFileAsText('pubspec.yaml'),
       contains(

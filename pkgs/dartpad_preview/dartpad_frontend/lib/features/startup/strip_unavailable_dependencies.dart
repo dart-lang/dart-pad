@@ -145,7 +145,7 @@ void _amendFile(
   if (changes.isEmpty) {
     return;
   }
-  final backupPath = file.path.replaceFirst(RegExp(r'\.yaml$'), '.original.yaml');
+  final backupPath = file.path.replaceFirst(RegExp(r'\.yaml$'), '.original.dartpad.yaml');
   final comments = changes.map(_commentOutEntry);
   final amendedSource = '${file.editor}\n${comments.join('\n')}\n';
   project.writeFile(backupPath, file.bytes);
