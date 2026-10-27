@@ -540,7 +540,10 @@ final class _AppState extends State<App> {
     }
 
     if (autoRun && preparationSucceeded && session.preview.entrypoint != null) {
-      unawaited(session.preview.runCurrent());
+      await session.preview.runCurrent();
+      if (!_isCurrentRuntime(session, generation)) {
+        return false;
+      }
     }
     await _initializeAnalyzer(session, workspace, project.root, generation);
     return preparationSucceeded;
