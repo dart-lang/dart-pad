@@ -165,7 +165,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
         IconButton(
           tooltip: 'Show preview',
           label: 'Show preview',
-          icon: 'play_arrow',
+          icon: 'preview',
           iconSize: 18,
           onClick: (_) => panel?.expand(),
         ),
@@ -178,6 +178,13 @@ final class _PreviewContainerState extends State<PreviewContainer> {
           if (viewModel.previewMode == RunMode.flutter) 'has-device-mode',
         ].join(' '),
         [
+          if (panel != null && panel.canCollapse)
+            IconButton(
+              tooltip: 'Hide preview',
+              label: 'Hide preview',
+              icon: 'chevron_right',
+              onClick: (_) => panel.collapse(),
+            ),
           div(classes: 'preview-controls', [
             ListenableBuilder(
               listenable: Listenable.merge([component.taskStatus, viewModel]),
@@ -224,13 +231,6 @@ final class _PreviewContainerState extends State<PreviewContainer> {
                 ],
               ),
           ]),
-          if (panel != null && panel.canCollapse)
-            IconButton(
-              tooltip: 'Hide preview',
-              label: 'Hide preview',
-              icon: 'chevron_right',
-              onClick: (_) => panel.collapse(),
-            ),
         ],
       ),
       div(
