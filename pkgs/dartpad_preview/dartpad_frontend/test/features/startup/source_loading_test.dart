@@ -157,7 +157,7 @@ void main() {
         expect(state.sdk, sdks.last);
       },
       () => MockClient((request) async {
-        expect(request.url.path, endsWith('/examples/counter.tar.gz'));
+        expect(request.url.path, endsWith('/examples/counter.tar'));
         return http.Response.bytes(encoded, 200);
       }),
     );

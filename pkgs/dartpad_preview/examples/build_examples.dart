@@ -76,7 +76,7 @@ class ExampleConfig implements Comparable<ExampleConfig> {
     );
   }
 
-  String get archiveFileName => '$id.tar.gz';
+  String get archiveFileName => '$id.tar';
   String get archiveRelativeUrl => 'examples/$archiveFileName';
 
   String get varName {
@@ -187,16 +187,17 @@ class ExamplesBuilder {
   }
 
   void generate() {
-    // 1. Pack tar.gz files
+    // 1. Pack tar files
     final outputDir = Directory(_webExamplesDir);
-    if (!outputDir.existsSync()) {
-      outputDir.createSync(recursive: true);
+    if (outputDir.existsSync()) {
+      outputDir.deleteSync(recursive: true);
     }
+    outputDir.createSync(recursive: true);
 
     for (final example in examples) {
-      final tarGzFile = File(p.join(outputDir.path, example.archiveFileName));
-      tarGzFile.writeAsBytesSync(_archiveBytes(example));
-      print('Packaged ${example.id} -> ${tarGzFile.path}');
+      final tarFile = File(p.join(outputDir.path, example.archiveFileName));
+      tarFile.writeAsBytesSync(_archiveBytes(example));
+      print('Packaged ${example.id} -> ${tarFile.path}');
     }
 
     // 2. Generate examples.g.dart
@@ -274,7 +275,7 @@ ${_generateAllList()}
       archive.addFile(ArchiveFile(relativePath, bytes.length, bytes));
     }
 
-    return const GZipEncoder().encode(TarEncoder().encode(archive));
+    return TarEncoder().encode(archive);
   }
 
   List<File> _projectFiles(Directory projectDir) {
