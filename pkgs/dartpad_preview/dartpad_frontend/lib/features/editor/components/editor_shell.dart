@@ -12,9 +12,11 @@ import '../../shared/components/panel_visibility.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/panel_layout_controller.dart';
 import '../../shared/panel_presentation_state.dart';
+import '../codemirror/code_mirror_tab.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
+import 'markdown_view_switch.dart';
 
 /// Top-level layout shell that hosts the CodeMirror editor.
 class EditorShell extends StatelessComponent {
@@ -97,7 +99,11 @@ class EditorShell extends StatelessComponent {
         EditorStack(
           openTabs: openTabs,
           activeFile: activeFile,
-          overlay: editorOverlay,
+          overlay: .fragment([
+            editorOverlay,
+            if (activeTab case final CodeMirrorTab tab when tab.isMarkdown)
+              MarkdownViewSwitch(tab: tab, key: ValueKey('md-switch-${tab.path}')),
+          ]),
         ),
       ],
     ]);
