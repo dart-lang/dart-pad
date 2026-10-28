@@ -41,7 +41,7 @@ void main() {
       expect(state.statusBar, PanelPresentationState.expanded);
     });
 
-    test('negative hints collapse standalone panels and hide embed panels, embed=$embed', () {
+    test('negative hints always hide tabs; other panels collapse in standalone and hide in embeds, embed=$embed', () {
       final request = ProjectRequest.fromUri(
         Uri.parse('?panels=-console,-problems,-preview,-tabs,-filetree,-appbar,-statusbar&split=60$suffix'),
       );
@@ -50,7 +50,6 @@ void main() {
         showEditorNavigation: true,
         previewRatio: request.initialSplitRatio,
       );
-      final negative = embed ? PanelPresentationState.hidden : PanelPresentationState.collapsed;
       expect(
         state.bottom,
         embed
@@ -59,9 +58,9 @@ void main() {
       );
       expect(state.preview, embed ? const RightHidden(0.6) : const RightCollapsed(0.6));
       expect(state.fileTree, embed ? const LeftHidden(200) : const LeftCollapsed(200));
-      expect(state.editorNavigation, negative);
-      expect(state.appBar, negative);
-      expect(state.statusBar, negative);
+      expect(state.editorNavigation, PanelPresentationState.hidden);
+      expect(state.appBar, embed ? PanelPresentationState.hidden : PanelPresentationState.collapsed);
+      expect(state.statusBar, embed ? PanelPresentationState.hidden : PanelPresentationState.collapsed);
     });
 
     for (final (hints, selected) in [
@@ -117,11 +116,8 @@ void main() {
       expect(panels.bottomSplitListenable.value, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
       panels.openBottomPanel(BottomPanelTab.console);
       panels.expandPreview();
-      panels.updateEditorNavigation(PanelPresentationState.expanded);
       expect(panels.bottomSplitListenable.value, const Split(0.75));
       expect(panels.preview, const Split(0.6));
-      expect(panels.showEditorTabs, isTrue);
-      expect(panels.showBreadcrumbs, isTrue);
     });
   }
 

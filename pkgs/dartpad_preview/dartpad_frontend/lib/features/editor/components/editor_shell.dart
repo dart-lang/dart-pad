@@ -7,8 +7,8 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
-import '../../shared/components/collapsible_panel.dart';
 import '../../shared/components/context_menu.dart';
+import '../../shared/components/panel_visibility.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/panel_layout_controller.dart';
 import '../../shared/panel_presentation_state.dart';
@@ -77,14 +77,10 @@ class EditorShell extends StatelessComponent {
         ValueListenableBuilder(
           listenable: panelController.editorNavigationListenable,
           builder: (_, navigation) {
-            // Keep navigation available when actions open another file.
-            final presentation = openTabs.length > 1 ? PanelPresentationState.expanded : navigation;
-            return CollapsiblePanel(
+            // Reveal grouped navigation temporarily when another file opens.
+            return PanelVisibility(
               id: 'editor-navigation-panel',
-              label: 'editor tabs',
-              state: presentation,
-              onStateChanged: panelController.updateEditorNavigation,
-              showToggle: presentation == PanelPresentationState.collapsed,
+              visible: openTabs.length > 1 || navigation == PanelPresentationState.expanded,
               child: Component.fragment([
                 EditorTabBar(
                   openTabs: openTabs,

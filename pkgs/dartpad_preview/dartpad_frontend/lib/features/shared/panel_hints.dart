@@ -26,11 +26,11 @@ final class PanelHints {
       showEditorNavigation: showEditorNavigation,
       initialPreviewRatio: previewRatio,
     );
-    final negativePresentation = isEmbedMode ? PanelPresentationState.hidden : PanelPresentationState.collapsed;
     PanelPresentationState resolvePresentation(WorkspacePanel panel, PanelPresentationState fallback) =>
         switch (_expansionHints[panel]) {
           true => PanelPresentationState.expanded,
-          false => negativePresentation,
+          false when isEmbedMode || panel == WorkspacePanel.tabs => PanelPresentationState.hidden,
+          false => PanelPresentationState.collapsed,
           null => fallback,
         };
     final preview = switch (_expansionHints[WorkspacePanel.preview]) {

@@ -83,12 +83,6 @@ final class PanelLayoutController {
     _editorNavigation.value = defaults.editorNavigation;
   }
 
-  void updateEditorNavigation(PanelPresentationState state) => _editorNavigation.value = state;
-
-  void updateAppBar(PanelPresentationState state) => _appBar.value = state;
-
-  void updateStatusBar(PanelPresentationState state) => _statusBar.value = state;
-
   void updatePreview(SplitState state) => _preview.value = state;
 
   void updateFileTree(SplitState state) => _fileTree.value = state;

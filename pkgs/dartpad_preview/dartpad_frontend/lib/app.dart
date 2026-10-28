@@ -32,11 +32,11 @@ import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
-import 'features/shared/components/collapsible_panel.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
+import 'features/shared/components/panel_visibility.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/shortcuts_dialog.dart';
 import 'features/shared/components/split_panel.dart';
@@ -44,6 +44,7 @@ import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/panel_layout_controller.dart';
+import 'features/shared/panel_presentation_state.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/startup/initial_project_state.dart';
@@ -857,12 +858,9 @@ final class _AppState extends State<App> {
   Component _buildAppBar({bool showNavigation = false}) => Component.fragment([
     ValueListenableBuilder(
       listenable: _panels.appBarListenable,
-      builder: (_, state) => CollapsiblePanel(
+      builder: (_, state) => PanelVisibility(
         id: 'app-bar-panel',
-        label: 'app bar',
-        state: state,
-        onStateChanged: _panels.updateAppBar,
-        showToggle: false,
+        visible: state == PanelPresentationState.expanded,
         child: AppBar(
           isSmallScreen: !_isLargeScreen,
           onSelectExample: _isInitializingWorkspace
@@ -871,7 +869,7 @@ final class _AppState extends State<App> {
         ),
       ),
     ),
-    // Navigation must remain reachable even when the app bar is collapsed or hidden.
+    // Navigation must remain reachable even when the app bar is hidden.
     if (showNavigation && !_isLargeScreen)
       SmallScreenTabBar(
         selectedTab: _selectedSmallScreenTab,
@@ -886,13 +884,9 @@ final class _AppState extends State<App> {
 
   Component _buildStatusBar({String? statusMessage}) => ValueListenableBuilder(
     listenable: _panels.statusBarListenable,
-    builder: (_, state) => CollapsiblePanel(
+    builder: (_, state) => PanelVisibility(
       id: 'status-bar-panel',
-      label: 'status bar',
-      state: state,
-      onStateChanged: _panels.updateStatusBar,
-      showToggle: false,
-      collapseDirection: CollapseDirection.down,
+      visible: state == PanelPresentationState.expanded,
       child: Footer(
         taskStatus: _activeTaskStatus,
         statusMessage: statusMessage,

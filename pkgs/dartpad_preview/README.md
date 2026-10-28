@@ -51,6 +51,7 @@ do not have their own reopening controls.
 
 Use comma-separated panel names, each prefixed with `+` or `-`.
 `+` expands a panel. `-` collapses it in standalone mode and hides it in embeds.
+The exception is `-tabs`, which hides tabs and breadcrumbs in both modes.
 
 ```text
 ?embed=true&panels=+tabs,-filetree,-preview
@@ -67,7 +68,8 @@ Use comma-separated panel names, each prefixed with `+` or `-`.
 | `appbar`    | Expanded           | Hidden                                                      |
 
 Tabs and breadcrumbs are shown together whenever multiple files are open, even
-with `-tabs`, so users can switch between files.
+with `-tabs`, so users can switch between files. When only one file remains open,
+they return to the configured visibility.
 
 #### Bottom panel behavior
 
