@@ -48,7 +48,7 @@
         </script>
 
         <!-- CodeMirror must be installed on globalThis before Dart interop loads. -->
-        <script src="packages/codemirror_dart/assets/codemirror-dart.bundle.js"></script>
+        <script defer src="packages/codemirror_dart/assets/codemirror-dart.bundle.js"></script>
 
         <!-- Loads and runs the compiled 'main.client.dart' file. -->
         <!-- Can be changed to any other '.client.dart' file inside /lib. -->
@@ -59,6 +59,6 @@
         <div id="app"></div>
 
         <button aria-hidden="true" class="glue-footer__link glue-cookie-notification-bar-control">Cookies management controls</button>
-        <script src="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js" data-glue-cookie-notification-bar-category="2B"></script>
+        <script defer src="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js" data-glue-cookie-notification-bar-category="2B"></script>
     </body>
 </html>
