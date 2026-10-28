@@ -133,11 +133,6 @@ void main() {
       expect(parse('').appearance.embed, isFalse);
     });
 
-    test('parses theme', () {
-      expect(parse('?theme=dark').appearance.theme, UITheme.dark);
-      expect(parse('?theme=light').appearance.theme, UITheme.light);
-    });
-
     test('clamps split and defaults invalid values', () {
       for (final (query, expected) in [
         ('?split=60', 60),
@@ -151,7 +146,7 @@ void main() {
     });
 
     test('ignores invalid presentation values', () {
-      for (final query in ['?theme=neon', '?split=abc', '?embed=yes', '?theme=dark&theme=light']) {
+      for (final query in ['?split=abc', '?embed=yes', '?theme=dark&theme=light']) {
         expect(() => parse(query), returnsNormally, reason: query);
       }
     });
@@ -175,7 +170,6 @@ void main() {
     expect(parameters.project.entrypoint, isNull);
     expect(parameters.project.files, isEmpty);
     expect(parameters.appearance.embed, isFalse);
-    expect(parameters.appearance.theme, isNull);
     expect(parameters.appearance.splitPercent, PresentationParameters.defaultSplitPercent);
     expect(parameters.session, isNull);
   });

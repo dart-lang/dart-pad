@@ -26,6 +26,8 @@ final class QueryParameters {
   static const root = 'root';
   static const entrypoint = 'entrypoint';
   static const embed = 'embed';
+  // Handled by web/index.html before Dart loads. Not validated here, but
+  // PersistedProjectState.matchesQuery ignores it.
   static const theme = 'theme';
   static const split = 'split';
 
@@ -183,6 +185,7 @@ enum FlutterApiChannel {
   main;
 
   /// `main` and `master` select [main]. Any other value, empty or missing, selects [stable].
+  /// Callers pass the last value when `channel` repeats.
   static FlutterApiChannel parse(String? value) {
     final normalized = value?.toLowerCase();
     return normalized == 'main' || normalized == 'master' ? main : stable;
@@ -286,7 +289,6 @@ final class ProjectParameters {
 final class PresentationParameters {
   const PresentationParameters({
     this.embed = false,
-    this.theme,
     this.splitPercent = defaultSplitPercent,
   });
 
@@ -296,22 +298,15 @@ final class PresentationParameters {
   /// Whether the embed layout is used.
   final bool embed;
 
-  /// Null uses the saved preference, then the system theme.
-  final UITheme? theme;
-
   /// Initial code panel share, clamped to 5–95.
   final int splitPercent;
 
   static PresentationParameters _validate(Map<String, List<String>> raw) => PresentationParameters(
     embed: _validateEmbed(raw),
-    theme: _validateTheme(raw),
     splitPercent: _validateSplit(raw),
   );
 
   static bool _validateEmbed(Map<String, List<String>> raw) => raw[QueryParameters.embed]?.contains('true') == true;
-
-  static UITheme? _validateTheme(Map<String, List<String>> raw) =>
-      UITheme.values.asNameMap()[_lenient(raw, QueryParameters.theme)];
 
   static int _validateSplit(Map<String, List<String>> raw) {
     final percent =
@@ -331,9 +326,6 @@ extension type const SessionId._(int value) {
 
 /// The SDK kind named by the `sdk` parameter.
 enum SdkKind { dart, flutter }
-
-/// The page theme named by the `theme` parameter.
-enum UITheme { light, dark }
 
 /// Returns the only value for [key], or null when absent. Throws when repeated,
 /// or when empty and [allowEmpty] is false.
