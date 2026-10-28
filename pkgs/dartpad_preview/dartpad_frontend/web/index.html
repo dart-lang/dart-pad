@@ -33,19 +33,7 @@
         <link href="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css" rel="stylesheet">
 
         <!-- Theme initialization - runs before dart code loads -->
-        <script>
-            const queryTheme = new URLSearchParams(window.location.search).get('theme');
-            const userTheme = queryTheme === 'dark' || queryTheme === 'light'
-                ? queryTheme
-                : window.localStorage.getItem('dartpad:theme');
-            if (userTheme != null) {
-                document.documentElement.setAttribute('data-theme', userTheme);
-            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        </script>
+        <script src="theme.js"></script>
 
         <!-- CodeMirror must be installed on globalThis before Dart interop loads. -->
         <script defer src="packages/codemirror_dart/assets/codemirror-dart.bundle.js"></script>
