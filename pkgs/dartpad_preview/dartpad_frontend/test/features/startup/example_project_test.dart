@@ -20,7 +20,7 @@ void main() {
     final archive = Archive()
       ..addFile(ArchiveFile('pubspec.yaml', pubspec.length, pubspec))
       ..addFile(ArchiveFile('lib/main.dart', main.length, main));
-    return Uint8List.fromList(const GZipEncoder().encode(TarEncoder().encode(archive)));
+    return Uint8List.fromList(TarEncoder().encode(archive));
   }
 
   test('throws ArgumentError for an unknown sample ID', () async {

@@ -8,7 +8,7 @@ This package declares example projects that ship with the DartPad preview.
 - `<id>/` – each example is a self-contained Dart / Flutter project with at
   least `lib/main.dart` or `bin/main.dart`, `pubspec.yaml`, and `README.md`.
 - `build_examples.dart` – reads `examples.json`, packages each project into a
-  `.tar.gz` archive, copies them to `../dartpad_frontend/web/examples/`, and
+  `.tar` archive, copies them to `../dartpad_frontend/web/examples/`, and
   generates `../dartpad_frontend/lib/features/startup/examples.g.dart`.
 
 ## Adding a New Example

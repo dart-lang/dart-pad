@@ -36,7 +36,7 @@ Run from `pkgs/dartpad_preview/examples`:
 dart run build_examples.dart
 ```
 
-This generates `web/examples/*.tar.gz` and `lib/features/startup/examples.g.dart`
+This generates `web/examples/*.tar` and `lib/features/startup/examples.g.dart`
 in `dartpad_frontend`.
 See the [examples README](../../examples/README.md) for adding or changing a sample.
 
