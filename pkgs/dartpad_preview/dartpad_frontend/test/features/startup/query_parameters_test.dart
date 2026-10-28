@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/flutter_api_channel.dart';
+import 'package:dartpad_frontend/features/shared/panel_hints.dart';
 import 'package:dartpad_frontend/features/shared/sdk_kind.dart';
 import 'package:dartpad_frontend/features/startup/query_parameters.dart';
 import 'package:test/test.dart';
@@ -13,6 +15,25 @@ QueryParameters parse(String query) => QueryParameters.fromUri(Uri.parse(query))
 void expectSource(String query, Matcher matcher) => expect(parse(query).source, matcher, reason: query);
 
 void expectInvalid(String query) => expect(() => parse(query), throwsFormatException, reason: query);
+
+Matcher panelHints({
+  bool? console,
+  bool? problems,
+  bool? preview,
+  bool? editorNavigation,
+  bool? fileTree,
+  bool? appBar,
+  bool? statusBar,
+  BottomPanelTab? preferredBottomTab,
+}) => isA<PanelHints>()
+    .having((hints) => hints.console, 'console', console)
+    .having((hints) => hints.problems, 'problems', problems)
+    .having((hints) => hints.preview, 'preview', preview)
+    .having((hints) => hints.editorNavigation, 'editorNavigation', editorNavigation)
+    .having((hints) => hints.fileTree, 'fileTree', fileTree)
+    .having((hints) => hints.appBar, 'appBar', appBar)
+    .having((hints) => hints.statusBar, 'statusBar', statusBar)
+    .having((hints) => hints.preferredBottomTab, 'preferredBottomTab', preferredBottomTab);
 
 void main() {
   group('QueryParameters sources', () {
@@ -163,7 +184,7 @@ void main() {
         '?panels=console,+unknown,++tabs,-,+Preview,%252Bpreview',
         '?panels=-file_tree,-app_bar,-status_bar',
       ]) {
-        expect(parse(query).appearance.panels, isEmpty, reason: query);
+        expect(parse(query).appearance.panels, panelHints(), reason: query);
       }
     });
 
@@ -171,22 +192,50 @@ void main() {
       final panels = parse(
         '?panels=+console,-problems,+preview,-tabs,+filetree,-appbar,+statusbar',
       ).appearance.panels;
-      expect(panels, {
-        WorkspacePanel.console: true,
-        WorkspacePanel.problems: false,
-        WorkspacePanel.preview: true,
-        WorkspacePanel.tabs: false,
-        WorkspacePanel.fileTree: true,
-        WorkspacePanel.appBar: false,
-        WorkspacePanel.statusBar: true,
-      });
+      expect(
+        panels,
+        panelHints(
+          console: true,
+          problems: false,
+          preview: true,
+          editorNavigation: false,
+          fileTree: true,
+          appBar: false,
+          statusBar: true,
+          preferredBottomTab: BottomPanelTab.console,
+        ),
+      );
     });
 
-    test('keeps the last hint for each panel in its last occurrence order', () {
+    test('keeps the last hint for each panel across repeated parameters', () {
       final panels = parse('?panels=+console,+problems,-preview&panels=-problems,+console').appearance.panels;
-      expect(panels, {WorkspacePanel.preview: false, WorkspacePanel.problems: false, WorkspacePanel.console: true});
-      expect(panels.keys, [WorkspacePanel.preview, WorkspacePanel.problems, WorkspacePanel.console]);
+      expect(
+        panels,
+        panelHints(console: true, problems: false, preview: false, preferredBottomTab: BottomPanelTab.console),
+      );
     });
+
+    for (final (query, expected) in [
+      ('', null),
+      ('?panels=+preview,-tabs', null),
+      ('?panels=-console,-problems', null),
+      ('?panels=+console,-console', null),
+      ('?panels=+console,+problems,-console,-problems', null),
+      ('?panels=+console', BottomPanelTab.console),
+      ('?panels=+problems', BottomPanelTab.problems),
+      ('?panels=+console,+problems', BottomPanelTab.problems),
+      ('?panels=+problems,+console', BottomPanelTab.console),
+      ('?panels=+console,+problems,+console', BottomPanelTab.console),
+      ('?panels=+console,+problems,-problems', BottomPanelTab.console),
+      ('?panels=+problems,+console,-console', BottomPanelTab.problems),
+      ('?panels=+console,+problems&panels=-problems', BottomPanelTab.console),
+      ('?panels=+problems,+console&panels=-console', BottomPanelTab.problems),
+      ('?panels=+console,+unknown,-preview', BottomPanelTab.console),
+    ]) {
+      test('$query prepares bottom-tab preference $expected', () {
+        expect(parse(query).appearance.panels.preferredBottomTab, expected);
+      });
+    }
 
     test('normalizes signs and whitespace for query serialization without decoding twice', () {
       for (final query in [
@@ -196,22 +245,23 @@ void main() {
       ]) {
         final parameters = parse(query);
         expect(parameters.raw[QueryParameters.panels], ['+console,-problems', '+tabs']);
-        expect(parameters.appearance.panels, {
-          WorkspacePanel.console: true,
-          WorkspacePanel.problems: false,
-          WorkspacePanel.tabs: true,
-        });
+        final expected = panelHints(
+          console: true,
+          problems: false,
+          editorNavigation: true,
+          preferredBottomTab: BottomPanelTab.console,
+        );
+        expect(parameters.appearance.panels, expected);
         final restored = QueryParameters.fromUri(Uri(queryParameters: parameters.raw));
-        expect(restored.appearance.panels, parameters.appearance.panels);
+        expect(restored.appearance.panels, expected);
         expect(restored.raw, parameters.raw);
       }
-      expect(parse('?panels=%252Bconsole').appearance.panels, isEmpty);
+      expect(parse('?panels=%252Bconsole').appearance.panels, panelHints());
       expect(parse('?file=lib/a+b.dart').project.files, ['lib/a b.dart']);
     });
 
-    test('protects validated hints and serialized query values from mutation', () {
+    test('protects serialized query values from mutation', () {
       final parameters = parse('?panels=+console');
-      expect(() => parameters.appearance.panels[WorkspacePanel.console] = false, throwsUnsupportedError);
       expect(() => parameters.raw[QueryParameters.panels]!.add('-console'), throwsUnsupportedError);
       expect(() => parameters.raw[QueryParameters.panels] = ['-console'], throwsUnsupportedError);
     });
@@ -236,7 +286,7 @@ void main() {
     expect(parameters.project.files, isEmpty);
     expect(parameters.appearance.embed, isFalse);
     expect(parameters.appearance.splitPercent, isNull);
-    expect(parameters.appearance.panels, isEmpty);
+    expect(parameters.appearance.panels, panelHints());
     expect(parameters.session, isNull);
   });
 }

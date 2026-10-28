@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../bottom_panel/bottom_panel_state.dart';
 import '../preview/models/run_mode.dart';
 import '../shared/flutter_api_channel.dart';
+import '../shared/panel_hints.dart';
 import '../shared/sdk_kind.dart';
 import 'project_loader.dart';
 
@@ -300,7 +302,7 @@ final class PresentationParameters {
   const PresentationParameters({
     this.embed = false,
     this.splitPercent,
-    this.panels = const {},
+    this.panels = const PanelHints.none(),
   });
 
   /// Whether the embed layout is used.
@@ -309,8 +311,8 @@ final class PresentationParameters {
   /// Initial preview panel share, clamped to 5–95. Null when `split` is absent or not an integer.
   final int? splitPercent;
 
-  /// The last expansion hint for each panel, ordered by its last occurrence.
-  final Map<WorkspacePanel, bool> panels;
+  /// Validated panel hints, including the explicit bottom-tab preference.
+  final PanelHints panels;
 
   static PresentationParameters _validate(Map<String, List<String>> raw) => PresentationParameters(
     embed: _validateEmbed(raw),
@@ -318,7 +320,7 @@ final class PresentationParameters {
     panels: _validatePanels(raw),
   );
 
-  static Map<WorkspacePanel, bool> _validatePanels(Map<String, List<String>> raw) {
+  static PanelHints _validatePanels(Map<String, List<String>> raw) {
     final hints = <WorkspacePanel, bool>{};
     for (final value in raw[QueryParameters.panels] ?? const <String>[]) {
       for (final hint in value.split(',')) {
@@ -333,7 +335,25 @@ final class PresentationParameters {
         }
       }
     }
-    return Map.unmodifiable(hints);
+    // Choose after deduplication so a later close cancels an earlier selection.
+    BottomPanelTab? preferredBottomTab;
+    for (final hint in hints.entries) {
+      preferredBottomTab = switch ((hint.key, hint.value)) {
+        (WorkspacePanel.console, true) => BottomPanelTab.console,
+        (WorkspacePanel.problems, true) => BottomPanelTab.problems,
+        _ => preferredBottomTab,
+      };
+    }
+    return PanelHints(
+      console: hints[WorkspacePanel.console],
+      problems: hints[WorkspacePanel.problems],
+      preview: hints[WorkspacePanel.preview],
+      editorNavigation: hints[WorkspacePanel.tabs],
+      fileTree: hints[WorkspacePanel.fileTree],
+      appBar: hints[WorkspacePanel.appBar],
+      statusBar: hints[WorkspacePanel.statusBar],
+      preferredBottomTab: preferredBottomTab,
+    );
   }
 
   static bool _validateEmbed(Map<String, List<String>> raw) => raw[QueryParameters.embed]?.contains('true') == true;

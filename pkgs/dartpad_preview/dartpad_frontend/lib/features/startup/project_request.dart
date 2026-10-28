@@ -144,7 +144,7 @@ final class ProjectRequest {
   }
 
   /// Initial layout hints, resolved against the standalone or embed defaults.
-  PanelHints get panels => PanelHints(_parameters.appearance.panels);
+  PanelHints get panels => _parameters.appearance.panels;
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///
