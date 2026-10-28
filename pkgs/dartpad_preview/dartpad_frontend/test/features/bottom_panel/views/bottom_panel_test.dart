@@ -14,6 +14,7 @@ import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -23,8 +24,8 @@ import 'package:web/web.dart' as web;
 import '../../../split_panel_fixture.dart';
 
 void main() {
-  PanelLayoutController createPanels(ClientTester tester, {bool isEmbedMode = false}) {
-    final panels = PanelLayoutController(isEmbedMode: isEmbedMode);
+  PanelLayoutController createPanels(ClientTester tester, {WorkspaceMode mode = WorkspaceMode.standalone}) {
+    final panels = PanelLayoutController(mode: mode);
     addTearDown(() async {
       tester.binding.detachRootComponent();
       await pumpEventQueue();
@@ -59,7 +60,7 @@ void main() {
   testClient('hiding removes both tabs; a later console request reopens both at the retained size', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
-    final panels = createPanels(tester, isEmbedMode: true);
+    final panels = createPanels(tester, mode: WorkspaceMode.embed);
     panels.updateBottomSplit(const RightHidden(0.6));
     tester.pumpComponent(
       inSplitPanel(
@@ -271,7 +272,7 @@ void main() {
     tester.pumpComponent(
       inSplitPanel(
         BottomPanel(
-          panelController: createPanels(tester, isEmbedMode: true),
+          panelController: createPanels(tester, mode: WorkspaceMode.embed),
           diagnostics: const [],
           hasMoreDiagnostics: false,
           console: console,
@@ -291,7 +292,7 @@ void main() {
   testClient('tab clicks expand a collapsed panel and select the requested tab', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
-    final panels = createPanels(tester, isEmbedMode: true);
+    final panels = createPanels(tester, mode: WorkspaceMode.embed);
     tester.pumpComponent(
       inSplitPanel(
         BottomPanel(
@@ -358,7 +359,7 @@ void main() {
   testClient('selected tab and resized split survive remounting', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
-    final panels = createPanels(tester, isEmbedMode: true);
+    final panels = createPanels(tester, mode: WorkspaceMode.embed);
     panels.openBottomPanel(BottomPanelTab.console);
     panels.updateBottomSplit(const RightCollapsed(0.6));
     final splitKey = GlobalStateKey<SplitPanelState>();
@@ -417,7 +418,7 @@ void main() {
         canCollapseRight: true,
         left: const div([]),
         right: BottomPanel(
-          panelController: createPanels(tester, isEmbedMode: true),
+          panelController: createPanels(tester, mode: WorkspaceMode.embed),
           diagnostics: const [],
           hasMoreDiagnostics: false,
           console: console,

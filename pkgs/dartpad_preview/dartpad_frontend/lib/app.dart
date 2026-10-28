@@ -47,6 +47,7 @@ import 'features/shared/panel_layout_controller.dart';
 import 'features/shared/panel_presentation_state.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
+import 'features/shared/workspace_mode.dart';
 import 'features/startup/initial_project_state.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
@@ -147,7 +148,7 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
-    _panels = PanelLayoutController(isEmbedMode: _isEmbedMode);
+    _panels = PanelLayoutController(mode: _isEmbedMode ? WorkspaceMode.embed : WorkspaceMode.standalone);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(

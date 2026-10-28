@@ -9,6 +9,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -89,7 +90,7 @@ EditorShell _createShell(
   ClientTester tester, {
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
-  bool isEmbedMode = false,
+  WorkspaceMode mode = WorkspaceMode.standalone,
   SplitState? fileTreeState,
   Component? fileTree,
   Component? bottomPanel,
@@ -97,7 +98,7 @@ EditorShell _createShell(
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
   if (panels == null) {
-    panels = PanelLayoutController(isEmbedMode: isEmbedMode);
+    panels = PanelLayoutController(mode: mode);
     if (fileTreeState != null) {
       panels.updateFileTree(fileTreeState);
     }
@@ -122,7 +123,7 @@ EditorShell _createShell(
 
 void main() {
   testClient('navigation visibility updates without rebuilding editor content', (tester) async {
-    final panels = PanelLayoutController(isEmbedMode: true);
+    final panels = PanelLayoutController(mode: WorkspaceMode.embed);
     addTearDown(() async {
       tester.binding.detachRootComponent();
       await pumpEventQueue();
@@ -149,7 +150,7 @@ void main() {
   });
 
   testClient('panel updates preserve editor content without rebuilding it', (tester) async {
-    final panels = PanelLayoutController(isEmbedMode: false);
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(() async {
       tester.binding.detachRootComponent();
       await pumpEventQueue();
@@ -230,7 +231,7 @@ void main() {
     });
 
     testClient('starts with expanded bottom panel in standard mode', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: false, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.standalone, bottomPanel: const _FakeBottomPanel()));
 
       final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom, isNotNull);
@@ -240,7 +241,7 @@ void main() {
 
   group('EditorShell – embed mode', () {
     testClient('hides file navigation by default while keeping the editor', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed));
 
       expect(web.document.querySelector('.file-tree-rail'), isNull);
       expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, 'none');
@@ -252,7 +253,7 @@ void main() {
     testClient('collapsed rail has expand button with correct aria-label', (
       tester,
     ) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       final button = web.document.querySelector('.file-tree-rail .file-tree-rail-button');
       expect(button, isNotNull);
@@ -261,7 +262,7 @@ void main() {
     });
 
     testClient('editor host is still rendered when collapsed', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       expect(web.document.querySelector('.editor-host'), isNotNull);
     });
@@ -269,7 +270,7 @@ void main() {
     testClient('clicking expand button shows file tree', (
       tester,
     ) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       // Initially collapsed – rail visible, pane not.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -290,7 +291,7 @@ void main() {
     testClient('expanded view has collapse button with correct aria-label', (
       tester,
     ) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       // Expand first.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
@@ -303,7 +304,7 @@ void main() {
     });
 
     testClient('clicking collapse button returns to rail', (tester) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       // Expand.
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
@@ -320,7 +321,7 @@ void main() {
     });
 
     testClient('toggle cycle: collapse → expand → collapse', (tester) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       // Initially collapsed.
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -345,7 +346,7 @@ void main() {
     });
 
     testClient('file tree content is visible when expanded', (tester) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       (web.document.querySelector('.file-tree-rail-button')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
@@ -355,7 +356,7 @@ void main() {
     });
 
     testClient('editor host remains through toggle cycles', (tester) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, fileTreeState: const LeftCollapsed(200)));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, fileTreeState: const LeftCollapsed(200)));
 
       expect(web.document.querySelector('.editor-host'), isNotNull);
 
@@ -369,7 +370,7 @@ void main() {
     });
 
     testClient('starts with collapsed bottom panel in embed mode', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, bottomPanel: const _FakeBottomPanel()));
 
       final bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom, isNotNull);
@@ -377,7 +378,7 @@ void main() {
     });
 
     testClient('expanding collapsed bottom panel updates its state', (tester) async {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true, bottomPanel: const _FakeBottomPanel()));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed, bottomPanel: const _FakeBottomPanel()));
 
       var bottom = web.document.querySelector('#fake-bottom') as web.HTMLElement?;
       expect(bottom!.classList.contains('collapsed'), isTrue);
@@ -391,16 +392,16 @@ void main() {
     });
   });
 
-  group('EditorShell – isEmbedMode=false vs true comparison', () {
+  group('EditorShell – standalone and embed modes', () {
     testClient('standard mode shows file tree pane directly', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: false));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.standalone));
 
       expect(web.document.querySelector('.file-tree'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
 
     testClient('embed mode does not show file tree pane initially', (tester) {
-      tester.pumpComponent(_createShell(tester, isEmbedMode: true));
+      tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed));
 
       expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.file-tree-rail'), isNull);

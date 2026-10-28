@@ -7,11 +7,13 @@ import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_defaults.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:test/test.dart';
 
 void main() {
-  for (final embed in [false, true]) {
+  for (final mode in WorkspaceMode.values) {
+    final embed = mode == WorkspaceMode.embed;
     final suffix = '&embed=$embed';
     test('absent and invalid hints retain contextual defaults, embed=$embed', () {
       for (final hints in [
@@ -22,8 +24,8 @@ void main() {
       ]) {
         final request = ProjectRequest.fromUri(Uri.parse('?file=a&file=b$suffix$hints'));
         expect(
-          request.panels.resolve(isEmbedMode: embed, showEditorNavigation: true),
-          resolveInitialPanelLayout(isEmbedMode: embed, showEditorNavigation: true),
+          request.panels.resolve(mode: mode, showEditorNavigation: true),
+          resolveInitialPanelLayout(mode: mode, showEditorNavigation: true),
         );
       }
     });
@@ -32,7 +34,7 @@ void main() {
       final request = ProjectRequest.fromUri(
         Uri.parse('?panels=+console,+problems,+preview,+tabs,+filetree,+appbar,+statusbar&split=60$suffix'),
       );
-      final state = request.panels.resolve(isEmbedMode: embed, previewRatio: request.initialSplitRatio);
+      final state = request.panels.resolve(mode: mode, previewRatio: request.initialSplitRatio);
       expect(state.bottom, const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: 0.75));
       expect(state.preview, const Split(0.6));
       expect(state.fileTree, const Split(200));
@@ -46,7 +48,7 @@ void main() {
         Uri.parse('?panels=-console,-problems,-preview,-tabs,-filetree,-appbar,-statusbar&split=60$suffix'),
       );
       final state = request.panels.resolve(
-        isEmbedMode: embed,
+        mode: mode,
         showEditorNavigation: true,
         previewRatio: request.initialSplitRatio,
       );
@@ -79,7 +81,7 @@ void main() {
     ]) {
       test('$hints selects $selected and opens the shared area, embed=$embed', () {
         final request = ProjectRequest.fromUri(Uri.parse('?panels=$hints$suffix'));
-        expect(request.panels.resolve(isEmbedMode: embed).bottom, BottomPanelExpanded(selected, editorFraction: 0.75));
+        expect(request.panels.resolve(mode: mode).bottom, BottomPanelExpanded(selected, editorFraction: 0.75));
       });
     }
 
@@ -87,7 +89,7 @@ void main() {
       test('$hint keeps the other default and both tabs accessible, embed=$embed', () {
         final request = ProjectRequest.fromUri(Uri.parse('?panels=$hint$suffix'));
         expect(
-          request.panels.resolve(isEmbedMode: embed).bottom,
+          request.panels.resolve(mode: mode).bottom,
           embed
               ? BottomPanelCollapsed(selected, editorFraction: 0.75)
               : BottomPanelExpanded(selected, editorFraction: 0.75),
@@ -101,7 +103,7 @@ void main() {
           '?panels=+console,+problems,-preview,+filetree,-tabs&panels=-problems,+preview,-filetree,+tabs$suffix',
         ),
       );
-      final state = request.panels.resolve(isEmbedMode: embed);
+      final state = request.panels.resolve(mode: mode);
       expect(state.bottom, const BottomPanelExpanded(BottomPanelTab.console, editorFraction: 0.75));
       expect(state.preview, const Split(0.7));
       expect(state.fileTree, embed ? const LeftHidden(200) : const LeftCollapsed(200));
@@ -109,7 +111,7 @@ void main() {
     });
 
     test('hints initialize shared state and do not constrain later actions, embed=$embed', () {
-      final panels = PanelLayoutController(isEmbedMode: embed);
+      final panels = PanelLayoutController(mode: mode);
       addTearDown(panels.dispose);
       final request = ProjectRequest.fromUri(Uri.parse('?panels=-console,-problems,-preview,-tabs&split=60$suffix'));
       panels.applyInitialDefaults(previewRatio: request.initialSplitRatio, hints: request.panels);
@@ -131,10 +133,10 @@ void main() {
       final restored = ProjectRequest.fromUri(Uri.parse(request.search));
       expect(request.query['panels'], ['+console,-problems,+tabs', '+filetree']);
       expect(restored.query, request.query);
-      final expected = request.panels.resolve(isEmbedMode: true);
+      final expected = request.panels.resolve(mode: WorkspaceMode.embed);
       expect(expected.bottom.selectedTab, BottomPanelTab.console);
       expect(expected.bottom.isExpanded, isTrue);
-      expect(restored.panels.resolve(isEmbedMode: true), expected);
+      expect(restored.panels.resolve(mode: WorkspaceMode.embed), expected);
       expect(() => request.query['panels']!.add('-preview'), throwsUnsupportedError);
     }
   });

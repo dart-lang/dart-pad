@@ -8,6 +8,7 @@ import 'components/split_panel.dart';
 import 'panel_defaults.dart' as panel_defaults;
 import 'panel_layout_state.dart';
 import 'panel_presentation_state.dart';
+import 'workspace_mode.dart';
 
 /// Initial layout hints, not constraints on subsequent user actions.
 final class PanelHints {
@@ -20,16 +21,16 @@ final class PanelHints {
   /// This order determines which explicitly expanded bottom tab is selected.
   final Map<WorkspacePanel, bool> _expansionHints;
 
-  PanelLayoutState resolve({required bool isEmbedMode, bool? showEditorNavigation, double? previewRatio}) {
+  PanelLayoutState resolve({required WorkspaceMode mode, bool? showEditorNavigation, double? previewRatio}) {
     final defaults = panel_defaults.resolveInitialPanelLayout(
-      isEmbedMode: isEmbedMode,
+      mode: mode,
       showEditorNavigation: showEditorNavigation,
       initialPreviewRatio: previewRatio,
     );
-    if (isEmbedMode) {
-      return _buildEmbedLayout(defaults);
-    }
-    return _buildStandaloneLayout(defaults);
+    return switch (mode) {
+      WorkspaceMode.standalone => _buildStandaloneLayout(defaults),
+      WorkspaceMode.embed => _buildEmbedLayout(defaults),
+    };
   }
 
   PanelLayoutState _buildEmbedLayout(PanelLayoutState defaults) {
@@ -53,7 +54,7 @@ final class PanelHints {
       false => PanelPresentationState.hidden,
       null => defaults.statusBar,
     };
-    final bottom = _resolveBottomPanel(defaults.bottom, isEmbedMode: true);
+    final bottom = _resolveBottomPanel(defaults.bottom, mode: WorkspaceMode.embed);
     final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
       true => PanelPresentationState.expanded,
       false => PanelPresentationState.hidden,
@@ -91,7 +92,7 @@ final class PanelHints {
       false => PanelPresentationState.hidden,
       null => defaults.statusBar,
     };
-    final bottom = _resolveBottomPanel(defaults.bottom, isEmbedMode: false);
+    final bottom = _resolveBottomPanel(defaults.bottom, mode: WorkspaceMode.standalone);
     final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
       true => PanelPresentationState.expanded,
       false => PanelPresentationState.hidden,
@@ -110,13 +111,14 @@ final class PanelHints {
 
   BottomPanelState _resolveBottomPanel(
     BottomPanelState defaults, {
-    required bool isEmbedMode,
+    required WorkspaceMode mode,
   }) {
     final editorFraction = defaults.editorFraction;
     final expanded = BottomPanelExpanded(defaults.selectedTab, editorFraction: editorFraction);
-    final nonExpanded = isEmbedMode
-        ? BottomPanelHidden(defaults.selectedTab, editorFraction: editorFraction)
-        : BottomPanelCollapsed(defaults.selectedTab, editorFraction: editorFraction);
+    final nonExpanded = switch (mode) {
+      WorkspaceMode.standalone => BottomPanelCollapsed(defaults.selectedTab, editorFraction: editorFraction),
+      WorkspaceMode.embed => BottomPanelHidden(defaults.selectedTab, editorFraction: editorFraction),
+    };
     final consoleState = switch (_expansionHints[WorkspacePanel.console]) {
       true => expanded,
       false => nonExpanded,

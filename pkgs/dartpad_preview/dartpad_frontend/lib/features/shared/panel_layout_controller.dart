@@ -9,12 +9,13 @@ import 'components/split_panel.dart';
 import 'panel_defaults.dart' as panel_defaults;
 import 'panel_hints.dart';
 import 'panel_presentation_state.dart';
+import 'workspace_mode.dart';
 
 /// Owns panel presentation, workspace splits, and bottom-tab selection independently of mounted views.
 final class PanelLayoutController {
-  PanelLayoutController({required this.isEmbedMode, bool? showEditorNavigation}) {
+  PanelLayoutController({required this.mode, bool? showEditorNavigation}) {
     final defaults = panel_defaults.resolveInitialPanelLayout(
-      isEmbedMode: isEmbedMode,
+      mode: mode,
       showEditorNavigation: showEditorNavigation,
     );
     _preview = ValueNotifier(defaults.preview);
@@ -26,7 +27,7 @@ final class PanelLayoutController {
     _editorNavigation = ValueNotifier(defaults.editorNavigation);
   }
 
-  final bool isEmbedMode;
+  final WorkspaceMode mode;
   late final ValueNotifier<SplitState> _preview;
   late final ValueNotifier<SplitState> _fileTree;
   late final ValueNotifier<BottomPanelState> _bottom;
@@ -71,7 +72,7 @@ final class PanelLayoutController {
     PanelHints hints = const PanelHints.none(),
   }) {
     final defaults = hints.resolve(
-      isEmbedMode: isEmbedMode,
+      mode: mode,
       showEditorNavigation: showEditorNavigation,
       previewRatio: previewRatio,
     );
