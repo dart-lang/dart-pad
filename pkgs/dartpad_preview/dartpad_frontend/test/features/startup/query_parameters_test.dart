@@ -38,6 +38,13 @@ void main() {
       );
     });
 
+    test('uses the last channel when repeated', () {
+      expectSource(
+        '?sample_id=material.AppBar.1&channel=stable&channel=main',
+        isA<ApiDocsSourceSelection>().having((source) => source.channel, 'channel', FlutterApiChannel.main),
+      );
+    });
+
     test('accepts gist and id as the same source', () {
       for (final key in ['gist', 'id']) {
         expectSource('?$key=abc', isA<GistSourceSelection>().having((source) => source.gistId, 'gistId', 'abc'));

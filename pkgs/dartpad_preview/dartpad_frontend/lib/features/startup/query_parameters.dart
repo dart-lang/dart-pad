@@ -160,7 +160,7 @@ final class ApiDocsSourceSelection extends SourceSelection {
     }
     return ApiDocsSourceSelection(
       sampleId,
-      channel: FlutterApiChannel.parse(_lenient(raw, QueryParameters.channel)),
+      channel: FlutterApiChannel.parse(raw[QueryParameters.channel]?.last),
     );
   }
 }
