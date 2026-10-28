@@ -26,49 +26,117 @@ final class PanelHints {
       showEditorNavigation: showEditorNavigation,
       initialPreviewRatio: previewRatio,
     );
-    PanelPresentationState resolvePresentation(WorkspacePanel panel, PanelPresentationState fallback) =>
-        switch (_expansionHints[panel]) {
-          true => PanelPresentationState.expanded,
-          false when isEmbedMode || panel == WorkspacePanel.tabs => PanelPresentationState.hidden,
-          false => PanelPresentationState.collapsed,
-          null => fallback,
-        };
+    if (isEmbedMode) {
+      return _buildEmbedLayout(defaults);
+    }
+    return _buildStandaloneLayout(defaults);
+  }
+
+  PanelLayoutState _buildEmbedLayout(PanelLayoutState defaults) {
     final preview = switch (_expansionHints[WorkspacePanel.preview]) {
       true => Split(defaults.preview.value),
-      false when isEmbedMode => RightHidden(defaults.preview.value),
+      false => RightHidden(defaults.preview.value),
+      null => defaults.preview,
+    };
+    final fileTree = switch (_expansionHints[WorkspacePanel.fileTree]) {
+      true => Split(defaults.fileTree.value),
+      false => LeftHidden(defaults.fileTree.value),
+      null => defaults.fileTree,
+    };
+    final appBar = switch (_expansionHints[WorkspacePanel.appBar]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.hidden,
+      null => defaults.appBar,
+    };
+    final statusBar = switch (_expansionHints[WorkspacePanel.statusBar]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.hidden,
+      null => defaults.statusBar,
+    };
+    final bottom = _resolveBottomPanel(defaults.bottom, negativePresentation: PanelPresentationState.hidden);
+    final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.hidden,
+      null => defaults.editorNavigation,
+    };
+    final PanelLayoutState layout = (
+      appBar: appBar,
+      statusBar: statusBar,
+      preview: preview,
+      fileTree: fileTree,
+      bottom: bottom,
+      editorNavigation: editorNavigation,
+    );
+    return layout;
+  }
+
+  PanelLayoutState _buildStandaloneLayout(PanelLayoutState defaults) {
+    final preview = switch (_expansionHints[WorkspacePanel.preview]) {
+      true => Split(defaults.preview.value),
       false => RightCollapsed(defaults.preview.value),
       null => defaults.preview,
     };
     final fileTree = switch (_expansionHints[WorkspacePanel.fileTree]) {
       true => Split(defaults.fileTree.value),
-      false when isEmbedMode => LeftHidden(defaults.fileTree.value),
       false => LeftCollapsed(defaults.fileTree.value),
       null => defaults.fileTree,
     };
-    final defaultBottomPresentation = defaults.bottom.isExpanded
+    final appBar = switch (_expansionHints[WorkspacePanel.appBar]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.collapsed,
+      null => defaults.appBar,
+    };
+    final statusBar = switch (_expansionHints[WorkspacePanel.statusBar]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.collapsed,
+      null => defaults.statusBar,
+    };
+    final bottom = _resolveBottomPanel(defaults.bottom, negativePresentation: PanelPresentationState.collapsed);
+    final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
+      true => PanelPresentationState.expanded,
+      false => PanelPresentationState.hidden,
+      null => defaults.editorNavigation,
+    };
+    final PanelLayoutState layout = (
+      appBar: appBar,
+      statusBar: statusBar,
+      preview: preview,
+      fileTree: fileTree,
+      bottom: bottom,
+      editorNavigation: editorNavigation,
+    );
+    return layout;
+  }
+
+  BottomPanelState _resolveBottomPanel(
+    BottomPanelState defaults, {
+    required PanelPresentationState negativePresentation,
+  }) {
+    final defaultBottomPresentation = defaults.isExpanded
         ? PanelPresentationState.expanded
         : PanelPresentationState.collapsed;
-    final consolePresentation = resolvePresentation(WorkspacePanel.console, defaultBottomPresentation);
-    final problemsPresentation = resolvePresentation(WorkspacePanel.problems, defaultBottomPresentation);
+    final consolePresentation = switch (_expansionHints[WorkspacePanel.console]) {
+      true => PanelPresentationState.expanded,
+      false => negativePresentation,
+      null => defaultBottomPresentation,
+    };
+    final problemsPresentation = switch (_expansionHints[WorkspacePanel.problems]) {
+      true => PanelPresentationState.expanded,
+      false => negativePresentation,
+      null => defaultBottomPresentation,
+    };
     final bottomPresentation = _resolveBottomPresentation(consolePresentation, problemsPresentation);
     final selectedTab = _resolveBottomTab(
       consolePresentation: consolePresentation,
       problemsPresentation: problemsPresentation,
-      defaultTab: defaults.bottom.selectedTab,
+      defaultTab: defaults.selectedTab,
     );
-    final editorFraction = defaults.bottom.editorFraction;
-    return (
-      appBar: resolvePresentation(WorkspacePanel.appBar, defaults.appBar),
-      statusBar: resolvePresentation(WorkspacePanel.statusBar, defaults.statusBar),
-      preview: preview,
-      fileTree: fileTree,
-      bottom: switch (bottomPresentation) {
-        PanelPresentationState.expanded => BottomPanelExpanded(selectedTab, editorFraction: editorFraction),
-        PanelPresentationState.collapsed => BottomPanelCollapsed(selectedTab, editorFraction: editorFraction),
-        PanelPresentationState.hidden => BottomPanelHidden(selectedTab, editorFraction: editorFraction),
-      },
-      editorNavigation: resolvePresentation(WorkspacePanel.tabs, defaults.editorNavigation),
-    );
+    final editorFraction = defaults.editorFraction;
+    return switch (bottomPresentation) {
+      PanelPresentationState.expanded => BottomPanelExpanded(selectedTab, editorFraction: editorFraction),
+      PanelPresentationState.collapsed => BottomPanelCollapsed(selectedTab, editorFraction: editorFraction),
+      PanelPresentationState.hidden => BottomPanelHidden(selectedTab, editorFraction: editorFraction),
+    };
   }
 
   PanelPresentationState _resolveBottomPresentation(
