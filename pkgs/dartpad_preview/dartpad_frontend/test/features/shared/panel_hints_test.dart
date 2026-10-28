@@ -41,7 +41,7 @@ void main() {
       expect(state.statusBar, PanelPresentationState.expanded);
     });
 
-    test('negative hints always hide tabs; other panels collapse in standalone and hide in embeds, embed=$embed', () {
+    test('negative hints hide bars and tabs; split panels collapse in standalone and hide in embeds, embed=$embed', () {
       final request = ProjectRequest.fromUri(
         Uri.parse('?panels=-console,-problems,-preview,-tabs,-filetree,-appbar,-statusbar&split=60$suffix'),
       );
@@ -59,8 +59,8 @@ void main() {
       expect(state.preview, embed ? const RightHidden(0.6) : const RightCollapsed(0.6));
       expect(state.fileTree, embed ? const LeftHidden(200) : const LeftCollapsed(200));
       expect(state.editorNavigation, PanelPresentationState.hidden);
-      expect(state.appBar, embed ? PanelPresentationState.hidden : PanelPresentationState.collapsed);
-      expect(state.statusBar, embed ? PanelPresentationState.hidden : PanelPresentationState.collapsed);
+      expect(state.appBar, PanelPresentationState.hidden);
+      expect(state.statusBar, PanelPresentationState.hidden);
     });
 
     for (final (hints, selected) in [

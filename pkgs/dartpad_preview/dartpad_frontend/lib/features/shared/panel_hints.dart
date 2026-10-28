@@ -53,7 +53,7 @@ final class PanelHints {
       false => PanelPresentationState.hidden,
       null => defaults.statusBar,
     };
-    final bottom = _resolveBottomPanel(defaults.bottom, negativePresentation: PanelPresentationState.hidden);
+    final bottom = _resolveBottomPanel(defaults.bottom, isEmbedMode: true);
     final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
       true => PanelPresentationState.expanded,
       false => PanelPresentationState.hidden,
@@ -83,15 +83,15 @@ final class PanelHints {
     };
     final appBar = switch (_expansionHints[WorkspacePanel.appBar]) {
       true => PanelPresentationState.expanded,
-      false => PanelPresentationState.collapsed,
+      false => PanelPresentationState.hidden,
       null => defaults.appBar,
     };
     final statusBar = switch (_expansionHints[WorkspacePanel.statusBar]) {
       true => PanelPresentationState.expanded,
-      false => PanelPresentationState.collapsed,
+      false => PanelPresentationState.hidden,
       null => defaults.statusBar,
     };
-    final bottom = _resolveBottomPanel(defaults.bottom, negativePresentation: PanelPresentationState.collapsed);
+    final bottom = _resolveBottomPanel(defaults.bottom, isEmbedMode: false);
     final editorNavigation = switch (_expansionHints[WorkspacePanel.tabs]) {
       true => PanelPresentationState.expanded,
       false => PanelPresentationState.hidden,
@@ -110,54 +110,49 @@ final class PanelHints {
 
   BottomPanelState _resolveBottomPanel(
     BottomPanelState defaults, {
-    required PanelPresentationState negativePresentation,
+    required bool isEmbedMode,
   }) {
-    final defaultBottomPresentation = defaults.isExpanded
-        ? PanelPresentationState.expanded
-        : PanelPresentationState.collapsed;
-    final consolePresentation = switch (_expansionHints[WorkspacePanel.console]) {
-      true => PanelPresentationState.expanded,
-      false => negativePresentation,
-      null => defaultBottomPresentation,
+    final editorFraction = defaults.editorFraction;
+    final expanded = BottomPanelExpanded(defaults.selectedTab, editorFraction: editorFraction);
+    final nonExpanded = isEmbedMode
+        ? BottomPanelHidden(defaults.selectedTab, editorFraction: editorFraction)
+        : BottomPanelCollapsed(defaults.selectedTab, editorFraction: editorFraction);
+    final consoleState = switch (_expansionHints[WorkspacePanel.console]) {
+      true => expanded,
+      false => nonExpanded,
+      null => defaults,
     };
-    final problemsPresentation = switch (_expansionHints[WorkspacePanel.problems]) {
-      true => PanelPresentationState.expanded,
-      false => negativePresentation,
-      null => defaultBottomPresentation,
+    final problemsState = switch (_expansionHints[WorkspacePanel.problems]) {
+      true => expanded,
+      false => nonExpanded,
+      null => defaults,
     };
-    final bottomPresentation = _resolveBottomPresentation(consolePresentation, problemsPresentation);
+    final bottomState = _moreVisibleBottomPanel(consoleState, problemsState);
     final selectedTab = _resolveBottomTab(
-      consolePresentation: consolePresentation,
-      problemsPresentation: problemsPresentation,
+      consoleState: consoleState,
+      problemsState: problemsState,
       defaultTab: defaults.selectedTab,
     );
-    final editorFraction = defaults.editorFraction;
-    return switch (bottomPresentation) {
-      PanelPresentationState.expanded => BottomPanelExpanded(selectedTab, editorFraction: editorFraction),
-      PanelPresentationState.collapsed => BottomPanelCollapsed(selectedTab, editorFraction: editorFraction),
-      PanelPresentationState.hidden => BottomPanelHidden(selectedTab, editorFraction: editorFraction),
+    return switch (bottomState) {
+      BottomPanelExpanded() => BottomPanelExpanded(selectedTab, editorFraction: editorFraction),
+      BottomPanelCollapsed() => BottomPanelCollapsed(selectedTab, editorFraction: editorFraction),
+      BottomPanelHidden() => BottomPanelHidden(selectedTab, editorFraction: editorFraction),
     };
   }
 
-  PanelPresentationState _resolveBottomPresentation(
-    PanelPresentationState consolePresentation,
-    PanelPresentationState problemsPresentation,
-  ) {
-    // Both tabs share one area. Keep it as visible as either tab requests.
-    if (consolePresentation == PanelPresentationState.expanded ||
-        problemsPresentation == PanelPresentationState.expanded) {
-      return PanelPresentationState.expanded;
-    }
-    if (consolePresentation == PanelPresentationState.collapsed ||
-        problemsPresentation == PanelPresentationState.collapsed) {
-      return PanelPresentationState.collapsed;
-    }
-    return PanelPresentationState.hidden;
-  }
+  /// Both tabs share one area. Keep it as visible as either tab requests.
+  BottomPanelState _moreVisibleBottomPanel(BottomPanelState consoleState, BottomPanelState problemsState) =>
+      switch ((consoleState, problemsState)) {
+        (BottomPanelExpanded(), _) => consoleState,
+        (_, BottomPanelExpanded()) => problemsState,
+        (BottomPanelCollapsed(), _) => consoleState,
+        (_, BottomPanelCollapsed()) => problemsState,
+        _ => consoleState,
+      };
 
   BottomPanelTab _resolveBottomTab({
-    required PanelPresentationState consolePresentation,
-    required PanelPresentationState problemsPresentation,
+    required BottomPanelState consoleState,
+    required BottomPanelState problemsState,
     required BottomPanelTab defaultTab,
   }) {
     // Prefer the last positive bottom-tab hint that has not been superseded.
@@ -175,9 +170,9 @@ final class PanelHints {
       }
     }
     // Without an explicit selection, prefer the more visible tab.
-    if (consolePresentation != problemsPresentation) {
-      final bottomPresentation = _resolveBottomPresentation(consolePresentation, problemsPresentation);
-      return consolePresentation == bottomPresentation ? BottomPanelTab.console : BottomPanelTab.problems;
+    if (consoleState != problemsState) {
+      final bottomState = _moreVisibleBottomPanel(consoleState, problemsState);
+      return consoleState == bottomState ? BottomPanelTab.console : BottomPanelTab.problems;
     }
     return defaultTab;
   }
