@@ -10,6 +10,7 @@ import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
 import '../../shared/components/panel_visibility.dart';
 import '../../shared/components/split_panel.dart';
+import '../../shared/icons.dart';
 import '../../shared/panel_layout_controller.dart';
 import '../../shared/panel_presentation_state.dart';
 import 'editor_breadcrumbs.dart';
@@ -97,7 +98,10 @@ class EditorShell extends StatelessComponent {
         EditorStack(
           openTabs: openTabs,
           activeFile: activeFile,
-          overlay: editorOverlay,
+          overlay: div(classes: 'editor-overlays', [
+            editorOverlay,
+            _buildFileTreeFloatingButton(),
+          ]),
         ),
       ],
     ]);
@@ -116,30 +120,88 @@ class EditorShell extends StatelessComponent {
     ]);
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
-    return div(classes: 'editor-shell', [
-      SplitPanel(
-        state: panelController.fileTreeListenable,
-        onStateChanged: panelController.updateFileTree,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        canCollapseLeft: true,
-        left: fileTree,
-        right: rightContent,
+    return ValueListenableBuilder(
+      listenable: panelController.layoutListenable,
+      builder: (_, _) => div(
+        classes: 'editor-shell${panelController.isSmallScreen ? ' editor-shell-small' : ''}',
+        [
+          SplitPanel(
+            state: panelController.fileTreeListenable,
+            onStateChanged: panelController.updateFileTree,
+            useRatio: false,
+            minValue: 150,
+            maxValue: 300,
+            canCollapseLeft: true,
+            left: div(id: 'editor-file-tree', classes: 'file-tree-panel', [fileTree]),
+            right: rightContent,
+          ),
+        ],
       ),
-    ]);
+    );
   }
+
+  Component _buildFileTreeFloatingButton() => ValueListenableBuilder(
+    listenable: panelController.layoutListenable,
+    builder: (_, _) => panelController.isSmallScreen
+        ? ValueListenableBuilder(
+            listenable: panelController.fileTreeListenable,
+            builder: (_, state) => state.isSplit
+                ? const Component.fragment([])
+                : button(
+                    classes: 'file-tree-floating-button',
+                    attributes: {
+                      'type': 'button',
+                      'title': 'Show file tree',
+                      'aria-label': 'Show file tree',
+                      'aria-expanded': '${state.isSplit}',
+                      'aria-controls': 'editor-file-tree',
+                    },
+                    onClick: panelController.toggleFileTree,
+                    const [Icon('folder_open', size: 22)],
+                  ),
+          )
+        : const Component.fragment([]),
+  );
 
   @css
   static List<StyleRule> get styles => [
     css('.editor-shell').styles(
       display: .flex,
+      position: const .relative(),
       width: 100.percent,
       height: 100.percent,
       minWidth: .zero,
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
+    ),
+    css('.file-tree-panel').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flexDirection: .column,
+    ),
+    css('.file-tree-floating-button').styles(
+      display: .flex,
+      position: .absolute(top: 16.px, left: 16.px),
+      zIndex: const ZIndex(30),
+      width: 44.px,
+      height: 44.px,
+      padding: .zero,
+      border: .all(color: colorBorder, width: 1.px),
+      radius: .circular(8.px),
+      shadow: BoxShadow(offsetX: 0.px, offsetY: 2.px, blur: 6.px, color: const Color.rgba(0, 0, 0, 0.2)),
+      cursor: .pointer,
+      justifyContent: .center,
+      alignItems: .center,
+      color: colorOnSurface,
+      backgroundColor: colorSurface,
+    ),
+    css('.file-tree-floating-button:hover').styles(
+      backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
+    ),
+    css('.file-tree-floating-button:focus-visible').styles(
+      outline: Outline(style: .solid, color: colorOnSurface, width: OutlineWidth(2.px)),
     ),
     css('.editor-host').styles(
       display: .flex,

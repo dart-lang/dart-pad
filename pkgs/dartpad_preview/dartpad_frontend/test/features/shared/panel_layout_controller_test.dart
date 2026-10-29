@@ -5,11 +5,63 @@
 import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_state.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:test/test.dart';
 
 void main() {
+  for (final embed in [false, true]) {
+    test('small-screen defaults and file selection: embed=$embed', () {
+      final panels = PanelLayoutController(
+        mode: embed ? WorkspaceMode.embed : WorkspaceMode.standalone,
+        isSmallScreen: true,
+      );
+      addTearDown(panels.dispose);
+      expect(panels.layout, PanelLayout.smallScreen);
+      expect(panels.fileTree, const LeftHidden(200));
+      expect(panels.showEditorTabs, !embed);
+      expect(panels.bottom.isExpanded, !embed);
+
+      panels.toggleFileTree();
+      expect(panels.fileTree, const Split(200));
+      panels.closeSmallScreenFileTree();
+      expect(panels.fileTree, const LeftHidden(200));
+      panels.toggleFileTree();
+      panels.updateFileTree(const LeftCollapsed(225));
+      expect(panels.fileTree, const LeftHidden(225));
+
+      panels.applyInitialDefaults(previewRatio: 0.6);
+      expect(panels.layout, PanelLayout.smallScreen);
+      expect(panels.fileTree, const LeftHidden(200));
+      panels.updateScreenSize(isSmallScreen: false);
+      expect(panels.layout, embed ? PanelLayout.embed : PanelLayout.standalone);
+      expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
+    });
+
+    test('responsive layout restores desktop file navigation and preserves other panels: embed=$embed', () {
+      final panels = PanelLayoutController(mode: embed ? WorkspaceMode.embed : WorkspaceMode.standalone);
+      addTearDown(panels.dispose);
+      panels.updateFileTree(const LeftCollapsed(240));
+      panels.updatePreview(const RightCollapsed(0.6));
+      panels.openBottomPanel(BottomPanelTab.console);
+      final bottom = panels.bottom;
+
+      panels.updateScreenSize(isSmallScreen: true);
+      expect(panels.fileTree, const LeftHidden(240));
+      panels.toggleFileTree();
+      panels.updateScreenSize(isSmallScreen: true);
+      expect(panels.fileTree, const Split(240));
+      panels.closeSmallScreenFileTree();
+      panels.updateScreenSize(isSmallScreen: false);
+      expect(panels.fileTree, const LeftCollapsed(240));
+      panels.closeSmallScreenFileTree();
+      expect(panels.fileTree, const LeftCollapsed(240));
+      expect(panels.preview, const RightCollapsed(0.6));
+      expect(panels.bottom, bottom);
+    });
+  }
+
   test('bottom split listenable follows the shared state and preserves tab selection', () {
     final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(panels.dispose);
