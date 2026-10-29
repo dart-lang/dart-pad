@@ -148,7 +148,11 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
-    _panels = PanelLayoutController(mode: _isEmbedMode ? WorkspaceMode.embed : WorkspaceMode.standalone);
+    _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
+    _panels = PanelLayoutController(
+      mode: _isEmbedMode ? WorkspaceMode.embed : WorkspaceMode.standalone,
+      isSmallScreen: !_isLargeScreen,
+    );
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
@@ -165,7 +169,6 @@ final class _AppState extends State<App> {
       enabled: !_isEmbedMode,
       store: component.projectStore,
     )..addListener(_onPersistenceChanged);
-    _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
     _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
       _updateScreenSize();
     });
@@ -362,6 +365,7 @@ final class _AppState extends State<App> {
     if (_isLargeScreen != isLarge) {
       setState(() {
         _isLargeScreen = isLarge;
+        _panels.updateScreenSize(isSmallScreen: !isLarge);
       });
     }
   }
@@ -373,6 +377,7 @@ final class _AppState extends State<App> {
         state is PreviewHotReloading) {
       _panels.expandPreview();
       if (!_isLargeScreen && _selectedSmallScreenTab != .output) {
+        _panels.closeSmallScreenFileTree();
         setState(() {
           _selectedSmallScreenTab = .output;
         });
@@ -875,6 +880,7 @@ final class _AppState extends State<App> {
       SmallScreenTabBar(
         selectedTab: _selectedSmallScreenTab,
         onTabSelected: (tab) {
+          _panels.closeSmallScreenFileTree();
           if (tab == .output) {
             _panels.expandPreview();
           }
@@ -991,6 +997,7 @@ final class _AppState extends State<App> {
       builder: (context) => FileTreeView(
         state: session.fileTree.state,
         actions: session.fileTree.actions,
+        onFileOpened: _panels.closeSmallScreenFileTree,
         contextMenu: session.contextMenu,
       ),
     );

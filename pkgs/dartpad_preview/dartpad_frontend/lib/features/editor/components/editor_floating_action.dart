@@ -49,6 +49,9 @@ final class EditorFloatingAction extends StatelessComponent {
         ),
       ),
     ]),
+    css('.editor-shell-small .editor-floating-action').styles(
+      position: .absolute(right: 16.px, top: 16.px),
+    ),
     css('html[data-theme="dark"] .editor-floating-action .dp-button').styles(
       shadow: .none,
     ),
