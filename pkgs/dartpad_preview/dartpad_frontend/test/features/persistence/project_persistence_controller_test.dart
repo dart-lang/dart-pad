@@ -10,6 +10,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/persistence/project_persistence_controller.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_session.dart';
 import 'package:test/test.dart';
@@ -126,5 +127,16 @@ void main() {
     await closed;
     expect(store.closes, 1);
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'pending save');
+  });
+
+  test('prepareLoad skips reading history for sourced requests without a session id', () async {
+    await store.create(savedProject(query: '?sample=counter', text: 'saved counter'));
+    store.reads = 0;
+
+    final request = ProjectRequest.fromUri(Uri.parse('?sample=counter'));
+    final strategy = await controller.prepareLoad(request);
+    expect(strategy.restoreProjectId, isNull);
+    expect(strategy.mintedSessionId, 1);
+    expect(store.reads, 0);
   });
 }
