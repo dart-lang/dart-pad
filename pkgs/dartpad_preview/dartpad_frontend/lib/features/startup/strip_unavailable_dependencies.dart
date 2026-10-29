@@ -134,8 +134,20 @@ void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file}
     namesInDependencies: const <String>{},
   );
   for (final entry in entries) {
+    final message = 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.';
     project.addImportWarning(
       'Dependency "${entry.name}" in ${file.path} (dependencies) ${entry.reason}, and cannot be resolved.',
+    );
+    project.addImportDiagnostic(
+      DiagnosticEntry(
+        file.path,
+        Diagnostic(
+          line: entry.nameNode.span.start.line,
+          character: entry.nameNode.span.start.column,
+          message: message,
+          severity: DiagnosticSeverity.warning,
+        ),
+      ),
     );
   }
 }
