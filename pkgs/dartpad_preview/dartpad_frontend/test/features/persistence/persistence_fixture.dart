@@ -17,6 +17,7 @@ PersistedProjectState savedProject({
   String query = '?sample=counter',
   String text = 'void main() { print("previous work"); }',
   Map<String, Uint8List>? files,
+  int? sessionId,
 }) => PersistedProjectState(
   query: Uri.parse(query).queryParametersAll,
   sdk: availableSdks.firstWhere((sdk) => !sdk.isFlutter),
@@ -27,6 +28,7 @@ PersistedProjectState savedProject({
   activeFile: 'lib/main.dart',
   files: files ?? {'lib/main.dart': Uint8List.fromList(utf8.encode(text))},
   folders: const ['lib', 'empty'],
+  sessionId: sessionId,
 );
 
 final class MemoryProjectStore implements ProjectStore {
