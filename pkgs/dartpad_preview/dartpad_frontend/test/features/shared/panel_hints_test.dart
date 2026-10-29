@@ -6,6 +6,7 @@ import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_defaults.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_state.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
@@ -15,6 +16,30 @@ void main() {
   for (final mode in WorkspaceMode.values) {
     final embed = mode == WorkspaceMode.embed;
     final suffix = '&embed=$embed';
+    for (final hint in ['', '+filetree', '-filetree']) {
+      test('mobile file-tree hints preserve desktop navigation: embed=$embed, hint=$hint', () {
+        final request = ProjectRequest.fromUri(Uri.parse('?panels=$hint$suffix'));
+        final panels = PanelLayoutController(mode: mode, isSmallScreen: true);
+        addTearDown(panels.dispose);
+        panels.applyInitialDefaults(hints: request.panels);
+        expect(panels.layout, PanelLayout.smallScreen);
+        expect(panels.fileTree, hint == '+filetree' ? const Split(200) : const LeftHidden(200));
+
+        panels.closeSmallScreenFileTree();
+        expect(panels.fileTree, const LeftHidden(200));
+        panels.toggleFileTree();
+        expect(panels.fileTree, const Split(200));
+        panels.closeSmallScreenFileTree();
+        panels.updateScreenSize(isSmallScreen: false);
+        final desktop = request.panels.resolve(mode: mode).fileTree;
+        expect(panels.fileTree, desktop);
+        panels.updateScreenSize(isSmallScreen: true);
+        expect(panels.fileTree, const LeftHidden(200));
+        panels.updateScreenSize(isSmallScreen: false);
+        expect(panels.fileTree, desktop);
+      });
+    }
+
     test('absent and invalid hints retain contextual defaults, embed=$embed', () {
       for (final hints in [
         '',
