@@ -39,15 +39,11 @@ final class PersistedProjectState {
   final Map<String, Uint8List> files;
   final List<String> folders;
 
-  /// Null for the bare URL scratch project.
   final int? sessionId;
 
   Project get project => Project([
     for (final entry in files.entries) ProjectFile(path: entry.key, bytes: entry.value),
   ]);
-
-  /// The bare URL's single project: no source, no session id.
-  bool get isBareProject => sessionId == null && !ProjectRequest.fromUri(Uri(queryParameters: query)).isSourced;
 
   /// Compare decoded options; parameter order is irrelevant, value order is not.
   bool matchesQuery(Map<String, List<String>> other) {
