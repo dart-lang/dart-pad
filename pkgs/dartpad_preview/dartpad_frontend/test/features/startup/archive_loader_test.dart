@@ -134,11 +134,16 @@ dev_dependencies:
       );
       final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
       expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling', 'missing']);
-      expect(project.importWarnings, hasLength(5));
+      expect(project.importWarnings, hasLength(6));
       expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
       expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
       expect(project.importWarnings.join('\n'), contains('uses Git'));
-      expect(project.importWarnings.join('\n'), isNot(contains('Dependency "missing"')));
+      expect(
+        project.importWarnings.join('\n'),
+        contains(
+          'Dependency "missing" in packages/root/example/pubspec.yaml (dependencies) uses relative path "../../missing"',
+        ),
+      );
       expect(
         project.importWarnings.where((warning) => warning.endsWith('was not loaded.')),
         hasLength(3),
@@ -324,7 +329,7 @@ dev_dependencies: {
       expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
     });
 
-    test('keeps unavailable dependencies untouched and warns about none', () async {
+    test('keeps unavailable dependencies untouched and warns that they cannot be resolved', () async {
       const pubspec = '''
 name: example
 dependencies:
@@ -337,7 +342,12 @@ dependencies:
         () => MockClient((_) async => http.Response.bytes(archive, 200)),
       );
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
-      expect(project.importWarnings, isEmpty);
+      expect(project.importWarnings, [
+        'Dependency "outside" in pubspec.yaml (dependencies) uses relative path "../outside", '
+            'which is outside the imported workspace, and cannot be resolved.',
+        'Dependency "remote" in pubspec.yaml (dependencies) uses Git, '
+            'which is not supported by DartPad, and cannot be resolved.',
+      ]);
       expect(project.containsFile('pubspec.original.dartpad.yaml'), isFalse);
       expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
     });

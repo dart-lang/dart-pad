@@ -261,6 +261,7 @@ final class _AppState extends State<App> {
       for (final warning in project.contents.importWarnings) {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
+      session.diagnostics.setImportDiagnostics(project.contents.importDiagnostics);
       if (snapshot != null) {
         _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }

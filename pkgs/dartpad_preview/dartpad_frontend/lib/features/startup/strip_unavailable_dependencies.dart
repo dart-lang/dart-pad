@@ -42,6 +42,7 @@ void _stripUnavailableDependenciesInPackage(Project project, {required String pa
   final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
   final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
   if (pubspec != null) {
+    _warnAboutUnavailableDependencies(project, file: pubspec);
     _amendFile(
       project,
       file: pubspec,
@@ -121,6 +122,34 @@ Set<String> _sectionNames(_Pubspec? file, {required String sectionName}) {
     for (final key in section.nodes.keys)
       if ((key as YamlNode).value case final String name) name,
   };
+}
+
+/// Warns about each unavailable entry in `dependencies`. These entries are never removed,
+/// so the project may not resolve.
+void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file}) {
+  final entries = _unavailableEntries(
+    project,
+    file: file,
+    sectionName: 'dependencies',
+    namesInDependencies: const <String>{},
+  );
+  for (final entry in entries) {
+    final message = 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.';
+    project.addImportWarning(
+      'Dependency "${entry.name}" in ${file.path} (dependencies) ${entry.reason}, and cannot be resolved.',
+    );
+    project.addImportDiagnostic(
+      DiagnosticEntry(
+        file.path,
+        Diagnostic(
+          line: entry.nameNode.span.start.line,
+          character: entry.nameNode.span.start.column,
+          message: message,
+          severity: DiagnosticSeverity.warning,
+        ),
+      ),
+    );
+  }
 }
 
 /// Removes unavailable entries from each of [sectionNames] and writes [file].

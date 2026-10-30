@@ -39,12 +39,19 @@ final class Project {
 
   final Map<String, Uint8List> _files = {};
   final List<String> _importWarnings = [];
+  final List<DiagnosticEntry> _importDiagnostics = [];
 
   /// Warnings recorded while preparing the imported files.
   List<String> get importWarnings => List.unmodifiable(_importWarnings);
 
+  /// Problems recorded while preparing the imported files, shown in the Problems tab.
+  List<DiagnosticEntry> get importDiagnostics => List.unmodifiable(_importDiagnostics);
+
   /// Records a warning to display in the loaded session's Console.
   void addImportWarning(String warning) => _importWarnings.add(warning);
+
+  /// Records a problem to display in the loaded session's Problems tab.
+  void addImportDiagnostic(DiagnosticEntry entry) => _importDiagnostics.add(entry);
 
   /// An unmodifiable mapping from original source paths to workspace paths.
   ///
