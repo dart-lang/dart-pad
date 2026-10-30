@@ -11,6 +11,7 @@ import 'package:yaml/yaml.dart';
 import '../preview/models/run_mode.dart';
 import '../shared/dart_source.dart';
 import '../shared/sdk_info.dart';
+import '../shared/sdk_kind.dart';
 import 'generated_pubspec.dart';
 import 'project_loader.dart';
 import 'project_request.dart';
@@ -152,15 +153,15 @@ String _resolveRoot(ProjectRequest request, Project contents, List<String> relev
 }
 
 SdkInfo _resolveSdk(ProjectRequest request, List<SdkInfo> availableSdks, {required bool usesFlutter}) {
-  final sdkKind = request.sdk ?? (usesFlutter ? 'flutter' : 'dart');
+  final sdkKind = request.sdk ?? (usesFlutter ? SdkKind.flutter : SdkKind.dart);
   final matches = availableSdks.where(
     (sdk) =>
-        sdk.isFlutter == (sdkKind == 'flutter') &&
+        sdk.isFlutter == (sdkKind == SdkKind.flutter) &&
         (request.sdkVersion == null || _sdkVersion(sdk) == request.sdkVersion),
   );
   if (matches.isEmpty) {
     throw FormatException(
-      'SDK not available: $sdkKind${request.sdkVersion == null ? '' : ':${request.sdkVersion}'}.',
+      'SDK not available: ${sdkKind.name}${request.sdkVersion == null ? '' : ':${request.sdkVersion}'}.',
     );
   }
   return matches.first;

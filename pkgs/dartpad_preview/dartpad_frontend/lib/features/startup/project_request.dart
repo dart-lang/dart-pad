@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import '../shared/sdk_kind.dart';
 import 'examples.g.dart';
 import 'project_source.dart';
 import 'query_parameters.dart';
@@ -54,7 +55,7 @@ final class ProjectRequest {
         GistSourceSelection(:final gistId) => GistProjectSource(gistId),
         ApiDocsSourceSelection(:final sampleId, :final channel) => FlutterApiDocsProjectSource(
           sampleId,
-          channel: channel.name,
+          channel: channel,
         ),
         SampleSourceSelection(:final sampleId) => SampleProjectSource(sampleId),
         null => const SampleProjectSource(),
@@ -105,7 +106,7 @@ final class ProjectRequest {
   /// The requested SDK kind (`dart` or `flutter`).
   ///
   /// Null infers the kind from the resolved root's pubspec.
-  String? get sdk => _parameters.project.sdk?.name;
+  SdkKind? get sdk => _parameters.project.sdk;
 
   /// The exact SDK version requested after the colon in the `sdk` parameter.
   ///

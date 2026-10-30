@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
+import 'package:dartpad_frontend/features/shared/flutter_api_channel.dart';
+import 'package:dartpad_frontend/features/shared/sdk_kind.dart';
 import 'package:dartpad_frontend/features/startup/query_parameters.dart';
 import 'package:test/test.dart';
 

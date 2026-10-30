@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../preview/models/run_mode.dart';
+import '../shared/flutter_api_channel.dart';
+import '../shared/sdk_kind.dart';
 import 'project_loader.dart';
 
 /// The validated dartpad URL query.
@@ -179,19 +181,6 @@ final class SampleSourceSelection extends SourceSelection {
   }
 }
 
-/// Which Flutter API docs host serves a `sample_id`. Unknown values become [stable].
-enum FlutterApiChannel {
-  stable,
-  main;
-
-  /// `main` and `master` select [main]. Any other value, empty or missing, selects [stable].
-  /// Callers pass the last value when `channel` repeats.
-  static FlutterApiChannel parse(String? value) {
-    final normalized = value?.toLowerCase();
-    return normalized == 'main' || normalized == 'master' ? main : stable;
-  }
-}
-
 /// Project contents and run target.
 final class ProjectParameters {
   const ProjectParameters({
@@ -317,9 +306,6 @@ extension type const SessionId._(int value) {
     return value == null || value < 0 ? null : SessionId._(value);
   }
 }
-
-/// The SDK kind named by the `sdk` parameter.
-enum SdkKind { dart, flutter }
 
 /// Returns the only value for [key], or null when absent. Throws when repeated,
 /// or when empty and [allowEmpty] is false.
