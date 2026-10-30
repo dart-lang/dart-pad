@@ -10,6 +10,7 @@ import '../../../app_styles.dart';
 import '../../editor/components/small_screen_tab_bar.dart';
 import '../../startup/examples.g.dart';
 import '../icons.dart';
+import '../links.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
@@ -45,7 +46,7 @@ final class AppBar extends StatelessComponent {
   final bool isSmallScreen;
 
   void _openLink(String uri) {
-    web.window.open(uri, '_blank');
+    web.window.open(uri, '_blank', 'noopener,noreferrer');
   }
 
   List<DropdownMenuEntry> _buildExampleItems() {
@@ -147,14 +148,12 @@ final class AppBar extends StatelessComponent {
               DropdownMenuItem(
                 label: 'Privacy notice',
                 trailingIcon: 'launch',
-                onPressed: () => _openLink('https://dart.dev/tools/dartpad/privacy'),
+                onPressed: () => _openLink(privacyNoticeUrl),
               ),
               DropdownMenuItem(
                 label: 'Feedback',
                 trailingIcon: 'launch',
-                onPressed: () => _openLink(
-                  'https://github.com/dart-lang/dart-pad/issues/new?template=4-dartpad-preview-issue.yml',
-                ),
+                onPressed: () => _openLink(feedbackUrl),
               ),
             ],
           ],
