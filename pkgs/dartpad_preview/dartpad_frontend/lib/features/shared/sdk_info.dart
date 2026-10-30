@@ -37,6 +37,15 @@ final class SdkInfo {
   String get displayName =>
       flutterVersion != null ? 'Flutter $flutterVersion • Dart $dartVersion' : 'Dart $dartVersion';
 
+  /// Runtime versions without prerelease or build suffixes.
+  String get shortVersionLabel {
+    final dart = 'Dart ${_shortVersion(dartVersion)}';
+    final flutter = flutterVersion;
+    return flutter == null ? dart : '$dart • Flutter ${_shortVersion(flutter)}';
+  }
+
+  static String _shortVersion(String version) => RegExp(r'^\d+\.\d+\.\d+').firstMatch(version)?.group(0) ?? version;
+
   /// Short display label for selectors.
   String get label => flutterVersion != null ? '$name ($flutterVersion)' : '$name ($dartVersion)';
 
