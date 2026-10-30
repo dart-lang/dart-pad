@@ -7,7 +7,6 @@ library;
 
 import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
-import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -28,6 +27,7 @@ void main() {
       Footer(
         taskStatus: taskStatus,
         isSmallScreen: false,
+        onOpenShortcuts: () {},
       ),
     );
 
@@ -43,6 +43,7 @@ void main() {
       Footer(
         taskStatus: taskStatus,
         isSmallScreen: true,
+        onOpenShortcuts: () {},
       ),
     );
 
@@ -53,80 +54,21 @@ void main() {
     expect(status?.textContent, contains('Ready'));
   });
 
-  testClient('opens shortcuts dialog and toggles show more shortcuts', (tester) async {
+  testClient('opens shortcuts dialog through the callback', (tester) async {
+    var opened = false;
     tester.pumpComponent(
       Footer(
         taskStatus: taskStatus,
         isSmallScreen: false,
+        onOpenShortcuts: () => opened = true,
       ),
     );
 
-    // Initially dialog is not in the DOM.
-    expect(web.document.querySelector('.shortcuts-dialog'), isNull);
-
-    // Click keyboard shortcuts button.
     final keyboardBtn = web.document.querySelector('.app-footer-buttons button') as web.HTMLButtonElement?;
     expect(keyboardBtn, isNotNull);
     keyboardBtn?.click();
     await pumpEventQueue();
-
-    final dialog = web.document.querySelector('.shortcuts-dialog');
-    expect(dialog, isNotNull);
-
-    // Verify primary shortcuts are present.
-    var rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, primaryShortcutCount);
-
-    // Toggle button is present.
-    final toggleBtn = web.document.querySelector('.shortcuts-dialog-toggle-btn') as web.HTMLButtonElement?;
-    expect(toggleBtn, isNotNull);
-    expect(toggleBtn?.textContent, contains('Show more shortcuts'));
-
-    // Expand show more.
-    toggleBtn?.click();
-    await pumpEventQueue();
-
-    // All shortcut rows are visible.
-    rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, allShortcutCount);
-    expect(toggleBtn?.textContent, contains('Show fewer shortcuts'));
-
-    // Collapse show more.
-    toggleBtn?.click();
-    await pumpEventQueue();
-
-    rows = web.document.querySelectorAll('.shortcuts-dialog-row');
-    expect(rows.length, primaryShortcutCount);
-
-    (web.document.querySelector('[aria-label="Close shortcuts dialog"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
-  });
-
-  testClient('task status update does not dismiss active shortcuts dialog', (tester) async {
-    tester.pumpComponent(
-      Footer(
-        taskStatus: taskStatus,
-        isSmallScreen: false,
-      ),
-    );
-
-    // Open dialog.
-    final keyboardBtn = web.document.querySelector('.app-footer-buttons button') as web.HTMLButtonElement?;
-    keyboardBtn?.click();
-    await pumpEventQueue();
-
-    expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
-
-    taskStatus.startTask(TaskKind.initializingDartPadWorker).succeed();
-    await pumpEventQueue();
-
-    // Dialog must still be open.
-    expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
-    final status = web.document.querySelector('.task-status-trigger');
-    expect(status?.textContent, contains('Initializing DartPad worker'));
-
-    (web.document.querySelector('[aria-label="Close shortcuts dialog"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
+    expect(opened, isTrue);
   });
 
   testClient('shows active and completed tasks in the status popover', (tester) async {
@@ -141,6 +83,7 @@ void main() {
       Footer(
         taskStatus: taskStatus,
         statusMessage: 'Could not save all files.',
+        onOpenShortcuts: () {},
       ),
     );
 
@@ -158,7 +101,7 @@ void main() {
   testClient('shows analyzer startup and change analysis in the task status bar', (tester) async {
     final analyzerStatus = AnalyzerStatusController(taskStatus);
     tester.pumpComponent(
-      Footer(taskStatus: taskStatus),
+      Footer(taskStatus: taskStatus, onOpenShortcuts: () {}),
     );
 
     expect(web.document.querySelector('.task-status-trigger')?.textContent, contains('Ready'));
@@ -190,7 +133,7 @@ void main() {
   testClient('opens by focus or click and closes with Escape', (tester) async {
     taskStatus.startTask(TaskKind.startingAnalyzer);
     tester.pumpComponent(
-      Footer(taskStatus: taskStatus),
+      Footer(taskStatus: taskStatus, onOpenShortcuts: () {}),
     );
 
     final trigger = web.document.querySelector('.task-status-trigger') as web.HTMLButtonElement;

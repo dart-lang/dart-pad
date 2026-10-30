@@ -12,7 +12,6 @@ import '../sdk_info.dart';
 import '../task_status.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart';
-import 'shortcuts_dialog.dart';
 import 'task_status_indicator.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
@@ -24,6 +23,7 @@ final class Footer extends StatefulComponent {
     this.isSmallScreen = false,
     this.currentSdk,
     this.onSelectSdk,
+    required this.onOpenShortcuts,
     super.key,
   });
 
@@ -42,6 +42,9 @@ final class Footer extends StatefulComponent {
   /// Callback when a different SDK is selected.
   final ValueChanged<SdkInfo>? onSelectSdk;
 
+  /// Callback when the keyboard shortcuts dialog should be opened.
+  final VoidCallback onOpenShortcuts;
+
   @override
   State<Footer> createState() => _FooterState();
 
@@ -50,51 +53,27 @@ final class Footer extends StatefulComponent {
 }
 
 class _FooterState extends State<Footer> {
-  bool _showShortcuts = false;
-
-  void _openShortcuts() {
-    setState(() {
-      _showShortcuts = true;
-    });
-  }
-
-  void _closeShortcuts() {
-    if (!_showShortcuts) {
-      return;
-    }
-    setState(() {
-      _showShortcuts = false;
-    });
-  }
-
   @override
   Component build(BuildContext context) {
-    return Component.fragment([
-      footer(classes: 'app-footer', [
-        div(classes: 'app-footer-buttons', [
-          IconButton(
-            icon: 'keyboard',
-            label: 'Keyboard shortcuts',
-            tooltip: 'Keyboard shortcuts',
-            onClick: (_) => _openShortcuts(),
-          ),
-          if (!component.isSmallScreen) ...[
-            _buildPrivacyNoticeLink(),
-            _buildFeedbackLink(),
-          ],
-        ]),
-        if (component.statusMessage case final message?)
-          div(classes: 'app-footer-message', [.text(message)])
-        else
-          const div(classes: 'app-footer-spacer', []),
-        TaskStatusIndicator(controller: component.taskStatus),
-        _buildRuntimeVersions(),
-      ]),
-      if (_showShortcuts)
-        ShortcutsDialog(
-          key: const ValueKey('footer-shortcuts-dialog'),
-          onClose: _closeShortcuts,
+    return footer(classes: 'app-footer', [
+      div(classes: 'app-footer-buttons', [
+        IconButton(
+          icon: 'keyboard',
+          label: 'Keyboard shortcuts',
+          tooltip: 'Keyboard shortcuts',
+          onClick: (_) => component.onOpenShortcuts(),
         ),
+        if (!component.isSmallScreen) ...[
+          _buildPrivacyNoticeLink(),
+          _buildFeedbackLink(),
+        ],
+      ]),
+      if (component.statusMessage case final message?)
+        div(classes: 'app-footer-message', [.text(message)])
+      else
+        const div(classes: 'app-footer-spacer', []),
+      TaskStatusIndicator(controller: component.taskStatus),
+      _buildRuntimeVersions(),
     ]);
   }
 
