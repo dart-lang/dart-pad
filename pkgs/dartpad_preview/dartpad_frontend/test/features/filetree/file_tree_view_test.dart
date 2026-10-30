@@ -149,6 +149,96 @@ void main() {
     expect(input!.placeholder, 'folder');
   });
 
+  testClient('header "New File" creates the file in the root when nothing is selected', (tester) async {
+    final created = <(String, String)>[];
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(createFile: (parent, name) async => created.add((parent, name))),
+      ),
+    );
+
+    await _createViaHeaderMenu(itemIndex: 0, name: 'main.dart');
+
+    expect(created, [('', 'main.dart')]);
+  });
+
+  testClient('header "New File" creates the file in the selected folder', (tester) async {
+    final created = <(String, String)>[];
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(createFile: (parent, name) async => created.add((parent, name))),
+      ),
+    );
+
+    (web.document.querySelector('.file-tree-item.folder') as web.HTMLElement).click();
+    await pumpEventQueue();
+
+    final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement;
+    addButton.click();
+    await pumpEventQueue();
+    (web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    // The input is rendered inside the selected folder, not at the tree root.
+    expect(web.document.querySelector('.file-tree-folder-children .file-tree-input'), isNotNull);
+
+    await _confirmCreationInput('widget.dart');
+
+    expect(created, [('src', 'widget.dart')]);
+  });
+
+  testClient('header "New Folder" creates the folder next to the selected file', (tester) async {
+    final created = <(String, String)>[];
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(createFolder: (parent, name) async => created.add((parent, name))),
+      ),
+    );
+
+    // Expand 'src' and select the file inside it.
+    (web.document.querySelector('.file-tree-item.folder') as web.HTMLElement).click();
+    await pumpEventQueue();
+    (web.document.querySelector('.file-tree-item.file') as web.HTMLElement).click();
+    await pumpEventQueue();
+
+    await _createViaHeaderMenu(itemIndex: 1, name: 'models');
+
+    expect(created, [('src', 'models')]);
+  });
+
+  testClient('tree background context menu creates in the root while a folder is selected', (tester) async {
+    final created = <(String, String)>[];
+    final contextMenu = ContextMenuController();
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(createFile: (parent, name) async => created.add((parent, name))),
+        contextMenu: contextMenu,
+      ),
+    );
+
+    (web.document.querySelector('.file-tree-item.folder') as web.HTMLElement).click();
+    await pumpEventQueue();
+
+    (web.document.querySelector('.file-tree-list') as web.HTMLElement).dispatchEvent(
+      web.MouseEvent(
+        'contextmenu',
+        web.MouseEventInit(clientX: 50, clientY: 50, bubbles: true, cancelable: true),
+      ),
+    );
+    await pumpEventQueue();
+
+    contextMenu.items.whereType<ContextMenuItem>().firstWhere((item) => item.label == 'New file').onPressed();
+    await pumpEventQueue();
+
+    await _confirmCreationInput('notes.md');
+
+    expect(created, [('', 'notes.md')]);
+  });
+
   testClient('add button is disabled when state is busy', (tester) {
     tester.pumpComponent(
       FileTreeView(
@@ -714,6 +804,35 @@ void main() {
     expect(web.document.querySelector('.file-tree-item.folder[title="lib"]'), isNotNull);
     expect(web.document.querySelector('.file-tree-item.file[title="pubspec.yaml"]'), isNotNull);
   });
+}
+
+/// Opens the header "New file or folder" menu, picks [itemIndex], and confirms
+/// the creation input with [name].
+Future<void> _createViaHeaderMenu({
+  required int itemIndex,
+  required String name,
+}) async {
+  final addButton = web.document.querySelector('.file-tree-header .file-tree-add-button') as web.HTMLButtonElement;
+  addButton.click();
+  await pumpEventQueue();
+
+  (web.document.querySelectorAll('.dropdown-menu-item').item(itemIndex) as web.HTMLButtonElement).click();
+  await pumpEventQueue();
+
+  await _confirmCreationInput(name);
+}
+
+/// Types [name] into the open creation input and confirms it with Enter.
+Future<void> _confirmCreationInput(String name) async {
+  final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement;
+  input.value = name;
+  input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+  await pumpEventQueue();
+
+  input.dispatchEvent(
+    web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+  );
+  await pumpEventQueue();
 }
 
 FileTreeState _state(
