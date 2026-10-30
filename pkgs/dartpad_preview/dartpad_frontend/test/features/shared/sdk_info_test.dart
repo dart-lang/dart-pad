@@ -45,6 +45,22 @@ void main() {
       expect(sdk.label, 'Dart (3.14.0-edge)');
     });
 
+    test('shortens runtime versions for display', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'flutter/',
+        dartVersion: '3.15.0 (build 3.15.0-27.0.dev)',
+        flutterVersion: '3.50.0-1.0.pre-39',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.14.0-315.1.beta');
+      const unknown = SdkInfo(id: 'other', name: 'Dart', path: 'other/', dartVersion: 'unknown');
+
+      expect(flutter.shortVersionLabel, 'Dart 3.15.0 • Flutter 3.50.0');
+      expect(dart.shortVersionLabel, 'Dart 3.14.0');
+      expect(unknown.shortVersionLabel, 'Dart unknown');
+    });
+
     test('returns null for invalid JSON', () {
       expect(SdkInfo.fromJson({'id': 'flutter'}), isNull);
     });

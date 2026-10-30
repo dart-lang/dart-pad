@@ -89,6 +89,7 @@ class _FooterState extends State<Footer> {
           const div(classes: 'app-footer-spacer', []),
         TaskStatusIndicator(controller: component.taskStatus),
         _buildRuntimeVersions(),
+        _buildChannelSelector(),
       ]),
       if (_showShortcuts)
         ShortcutsDialog(
@@ -101,41 +102,37 @@ class _FooterState extends State<Footer> {
   Component _buildRuntimeVersions() {
     final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
-    final isDisabled = onSelectSdk == null;
+    final label = currentSdk?.shortVersionLabel ?? 'Dart …';
 
-    if (availableSdks.length > 1) {
-      return DropdownMenu(
-        openUp: true,
-        disabled: isDisabled,
-        trigger: button(
-          classes: 'app-footer-sdk-trigger',
-          disabled: isDisabled,
-          attributes: {
-            'aria-label': 'Select DartPad SDK',
-            'title': 'Select DartPad SDK',
-          },
-          [
-            span([.text(currentSdk?.displayName ?? 'Dart … • Flutter …')]),
-            const Icon('arrow_drop_down', size: 16),
-          ],
-        ),
-        items: [
-          for (final sdk in availableSdks)
-            DropdownMenuItem(
-              label: sdk.displayName,
-              trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
-              onPressed: () => onSelectSdk?.call(sdk),
-            ),
+    return DropdownMenu(
+      openUp: true,
+      disabled: onSelectSdk == null,
+      trigger: button(
+        classes: 'app-footer-sdk-trigger',
+        disabled: onSelectSdk == null,
+        attributes: {'aria-label': 'Select DartPad SDK ($label)', 'title': 'Select DartPad SDK'},
+        [
+          const Icon('info', size: 14, classes: 'app-footer-info-icon'),
+          span([.text(label)]),
         ],
-      );
-    }
+      ),
+      items: [
+        for (final sdk in availableSdks)
+          DropdownMenuItem(
+            label: sdk.shortVersionLabel,
+            trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
+            onPressed: () => onSelectSdk?.call(sdk),
+          ),
+      ],
+    );
+  }
 
-    final displayText = currentSdk?.displayName ?? 'Dart … • Flutter …';
-    return div(
-      classes: 'app-footer-runtime-versions',
-      attributes: {'aria-label': 'Runtime versions'},
+  Component _buildChannelSelector() {
+    return const span(
+      classes: 'app-footer-channel',
       [
-        .text(displayText),
+        Icon('tune', size: 14),
+        span([.text('Beta channel')]),
       ],
     );
   }
@@ -192,6 +189,9 @@ class _FooterState extends State<Footer> {
       display: .block,
       lineHeight: 1.em,
     ),
+    css('.app-footer-info-icon').styles(
+      raw: {'font-variation-settings': "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"},
+    ),
     css('.app-footer-link').styles(
       display: .inlineFlex,
       padding: .symmetric(horizontal: 8.px),
@@ -202,13 +202,7 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
     ),
     css('.app-footer-link:hover').styles(color: colorOnSurface),
-    css('.app-footer-runtime-versions').styles(
-      minWidth: .zero,
-      overflow: .hidden,
-      textOverflow: .ellipsis,
-      whiteSpace: .noWrap,
-    ),
-    css('.app-footer-sdk-trigger').styles(
+    css('.app-footer-sdk-trigger, .app-footer-channel').styles(
       display: .inlineFlex,
       position: const .relative(),
       height: 28.px,
@@ -216,10 +210,10 @@ class _FooterState extends State<Footer> {
       border: .none,
       radius: .circular(4.px),
       outline: const Outline(style: .none),
-      cursor: .pointer,
       transition: Transition('background-color', duration: 150.ms, curve: .ease),
       alignItems: .center,
-      gap: Gap.all(2.px),
+      gap: Gap.all(4.px),
+      flex: const .shrink(0),
       color: colorOnSurface,
       fontFamily: const .list([FontFamilies.sansSerif]),
       fontSize: 11.px,
@@ -227,6 +221,7 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
     ),
+    css('.app-footer-sdk-trigger').styles(cursor: .pointer),
     css('.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus').styles(
       backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
     ),
