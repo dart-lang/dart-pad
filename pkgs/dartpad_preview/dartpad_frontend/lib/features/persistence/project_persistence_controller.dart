@@ -101,7 +101,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
     return PersistenceLoadStrategy(mintedSessionId: minted);
   }
 
-  int? _requestedSessionId(ProjectRequest request) => request.parameters.session?.value;
+  int? _requestedSessionId(ProjectRequest request) => request.session?.value;
 
   /// Returns null when storage is unavailable, leaving the URL without a session id.
   Future<int?> _reserveSessionId() async {

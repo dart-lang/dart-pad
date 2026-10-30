@@ -9,14 +9,14 @@ import 'query_parameters.dart';
 
 /// The immutable, source-relative options supplied by the URL.
 ///
-/// Holds the validated [parameters] and the raw [query] used to rebuild the browser
+/// Holds the validated query and the raw [query] used to rebuild the browser
 /// URL. Source loading and project resolution subsequently check file existence,
 /// SDK availability, and inferred defaults. Explicit file paths are relative to the
 /// source, not to [root].
 final class ProjectRequest {
   ProjectRequest._({
     required this.source,
-    required this.parameters,
+    required this._parameters,
     this.sampleInitialFile,
   });
 
@@ -68,7 +68,7 @@ final class ProjectRequest {
   final ProjectSource source;
 
   /// The validated query. Source, project, and appearance values are read from here.
-  final QueryParameters parameters;
+  final QueryParameters _parameters;
 
   /// The selected sample's preferred first tab, separate from URL `file` options.
   ///
@@ -80,44 +80,47 @@ final class ProjectRequest {
   /// Kept so [search] and history match the URL that was opened. The map and each
   /// value list are unmodifiable. Repeated values retain their order within each
   /// parameter.
-  Map<String, List<String>> get query => parameters.raw;
+  Map<String, List<String>> get query => _parameters.raw;
+
+  /// The per-tab session id from the `s` parameter, or null when absent or invalid.
+  SessionId? get session => _parameters.session;
 
   /// Explicit source-relative tab paths in query order, including duplicates.
   ///
   /// This list is unmodifiable. When empty and no root or entrypoint is
   /// specified, a sample's [sampleInitialFile] takes priority. Resolution then
   /// tries README.md in the resolved root and the resolved entrypoint.
-  List<String> get files => parameters.project.files;
+  List<String> get files => _parameters.project.files;
 
   /// Null infers the project root. Empty explicitly selects the source root;
   /// a non-empty value names a source-relative directory.
-  String? get root => parameters.project.root;
+  String? get root => _parameters.project.root;
 
   /// The explicit source-relative execution target, or null to infer one.
   ///
   /// File existence is checked during project resolution. Empty values are
   /// invalid, rather than an instruction to disable Run.
-  String? get entrypoint => parameters.project.entrypoint;
+  String? get entrypoint => _parameters.project.entrypoint;
 
   /// The requested SDK kind (`dart` or `flutter`).
   ///
   /// Null infers the kind from the resolved root's pubspec.
-  String? get sdk => parameters.project.sdk?.name;
+  String? get sdk => _parameters.project.sdk?.name;
 
   /// The exact SDK version requested after the colon in the `sdk` parameter.
   ///
   /// Null selects the first available bundle of the chosen SDK kind. Bundle
   /// availability is checked during project resolution.
-  String? get sdkVersion => parameters.project.sdkVersion;
+  String? get sdkVersion => _parameters.project.sdkVersion;
 
   /// Null infers mode from the SDK and entrypoint; a value fixes the mode.
-  RunMode? get mode => parameters.project.mode;
+  RunMode? get mode => _parameters.project.mode;
 
   /// Whether the current preview embed presentation should be used.
-  bool get isEmbedded => parameters.appearance.embed;
+  bool get isEmbedded => _parameters.appearance.embed;
 
   /// Whether the URL names a source, rather than a bare URL using the default sample.
-  bool get isSourced => parameters.source != null;
+  bool get isSourced => _parameters.source != null;
 
   /// Whether the resolved entrypoint should run after workspace preparation.
   /// Embeds wait for Run except legacy Flutter API docs samples ending in `.1`.
@@ -133,7 +136,7 @@ final class ProjectRequest {
   /// The requested value is clamped to 5–95% by [QueryParameters].
   /// This is only to support the old docs generator and will be removed in the future.
   double? get initialSplitRatio {
-    final percent = parameters.appearance.splitPercent;
+    final percent = _parameters.appearance.splitPercent;
     return percent == null ? null : percent / 100;
   }
 
