@@ -18,7 +18,7 @@ void main() {
 """;
 
 const sampleCodeFlutter = '''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 void main() async {
   runApp(
@@ -41,7 +41,7 @@ void main() async {
 
 // From https://gist.github.com/johnpryan/1a28bdd9203250d3226cc25d512579ec
 const sampleCodeFlutterCounter = r'''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 void main() => runApp(const MyApp());
 
@@ -115,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 const sampleCodeFlutterSunflower = r'''
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 const Color primaryColor = Colors.orange;
 const TargetPlatform platform = TargetPlatform.android;
@@ -252,7 +252,7 @@ class _SunflowerState extends State<Sunflower> {
 
 // https://gist.github.com/johnpryan/5e28c5273c2c1a41d30bad9f9d11da56
 const sampleCodeFlutterDraggableCard = '''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 import 'package:flutter/physics.dart';
 
 void main() {
@@ -368,7 +368,7 @@ class _DraggableCardState extends State<DraggableCard>
 // From https://gist.github.com/johnpryan/289ecf8480ad005f01faeace70bd529a
 const sampleCodeFlutterImplicitAnimations = '''
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 class DiscData {
   static final _rng = Random();
@@ -552,7 +552,7 @@ void main(List<String> argv) {
 
 const sampleCode3PartFlutterImplicitAnimationsImports = r'''
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 ''';
 
 const sampleCode3PartFlutterImplicitAnimationsMain = r'''
