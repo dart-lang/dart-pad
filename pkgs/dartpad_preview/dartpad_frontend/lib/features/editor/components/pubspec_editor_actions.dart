@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
 import '../../shared/events/log_event.dart';
+import '../../shared/events/open_console_event.dart';
 import 'editor_floating_action.dart';
 
 /// Displays a path-aware Pub get action for an active Pub metadata file.
@@ -50,6 +51,9 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
   /// Saves all files and runs Pub Get in [path].
   Future<void> _pubGet(String path) async {
     await _run('Pub get failed.', () async {
+      // Reveal the console so the user gets immediate feedback that pub get
+      // started, and can follow its output.
+      component.events.dispatch(const OpenConsoleEvent());
       try {
         await component.saveAllFiles();
       } catch (_) {

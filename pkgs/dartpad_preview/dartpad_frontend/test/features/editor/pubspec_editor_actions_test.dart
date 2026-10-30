@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:dartpad_frontend/features/editor/components/pubspec_editor_actions.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -111,6 +112,51 @@ void main() {
     await pumpEventQueue();
 
     expect(operations, ['save-all', 'pub-get:']);
+  });
+
+  testClient('opens the console when Pub Get starts', (tester) async {
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
+
+    final completer = Completer<void>();
+    tester.pumpComponent(
+      PubspecEditorActions(
+        activeFile: 'pubspec.yaml',
+        saveAllFiles: () async {},
+        events: events,
+        onPubGet: (_) => completer.future,
+      ),
+    );
+
+    (web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    // The console is revealed while Pub Get is still running.
+    expect(opened, hasLength(1));
+
+    completer.complete();
+    await pumpEventQueue();
+  });
+
+  testClient('opens the console even when saving fails', (tester) async {
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
+
+    tester.pumpComponent(
+      PubspecEditorActions(
+        activeFile: 'pubspec.yaml',
+        saveAllFiles: () async => throw StateError('save failed'),
+        events: events,
+        onPubGet: (_) async {},
+      ),
+    );
+
+    (web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    expect(opened, hasLength(1));
   });
 
   testClient('logs failures and resets busy state', (tester) async {
