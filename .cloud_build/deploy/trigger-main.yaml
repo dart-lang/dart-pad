@@ -80,3 +80,30 @@ build:
         - --only
         - hosting:$_FIREBASE_SITE
         - --project=$PROJECT_ID
+
+    # Delete preview channels for closed PRs (best-effort).
+    - name: gcr.io/$PROJECT_ID/firebase
+      dir: deploy
+      script: |
+        #!/usr/bin/env bash
+        CLOSED=$(
+          curl -sf -G \
+            'https://api.github.com/repos/dart-lang/dart-pad/pulls' \
+            -d 'state=closed&sort=updated&direction=desc&per_page=100' \
+            | jq -r '.[].number | "pr-\(.)"' \
+            | sort -u
+        )
+        CHANNELS=$(
+          firebase hosting:channel:list \
+            --site="${_FIREBASE_SITE}" \
+            --project="${PROJECT_ID}" \
+            --json \
+            | jq -r '.result.channels[].name | split("/")[-1]' \
+            | sort -u
+        )
+        for ch in $(comm -12 <(echo "${CLOSED}") <(echo "${CHANNELS}")); do
+          firebase hosting:channel:delete "${ch}" \
+            --site="${_FIREBASE_SITE}" \
+            --project="${PROJECT_ID}" \
+            --force || true
+        done
