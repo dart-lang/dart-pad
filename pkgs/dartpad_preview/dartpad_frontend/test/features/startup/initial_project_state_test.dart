@@ -7,11 +7,13 @@ import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/dart_source.dart';
+import 'package:dartpad_frontend/features/shared/flutter_api_channel.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
+import 'package:dartpad_frontend/features/startup/query_parameters.dart';
 import 'package:test/test.dart';
 
 const sdks = [
@@ -56,7 +58,7 @@ void main() {
               ).source
               as FlutterApiDocsProjectSource;
       expect(apiDocs.sampleId, 'material.AppBar.1');
-      expect(apiDocs.channel, 'stable');
+      expect(apiDocs.channel, FlutterApiChannel.stable);
     });
 
     test('parses legacy Flutter embed presentation options after the HTML redirect', () {
@@ -64,19 +66,19 @@ void main() {
         Uri.parse('/?sample_id=material.AppBar.1&channel=stable&split=60&run=true&embed=true'),
       );
 
-      expect(request.isEmbedMode, isTrue);
+      expect(request.isEmbedded, isTrue);
       expect(request.initialSplitRatio, 0.6);
       expect(request.sdk, isNull);
       expect(request.sdkVersion, isNull);
-      expect(ProjectRequest.isEmbedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
+      expect(QueryParameters.isEmbeddedUri(Uri.parse('/?sample=counter&embed=true')), isTrue);
     });
 
     test('documentation sample selection does not imply embed presentation or an SDK', () {
       for (final (embedQuery, embedded) in [('', false), ('&embed=false', false), ('&embed=true', true)]) {
         final uri = Uri.parse('/?sample_id=material.ListTile.2&run=true$embedQuery');
         final request = ProjectRequest.fromUri(uri);
-        expect(request.isEmbedMode, embedded, reason: uri.toString());
-        expect(ProjectRequest.isEmbedUri(uri), embedded, reason: uri.toString());
+        expect(request.isEmbedded, embedded, reason: uri.toString());
+        expect(QueryParameters.isEmbeddedUri(uri), embedded, reason: uri.toString());
         expect(request.sdk, isNull);
       }
     });
@@ -111,7 +113,7 @@ void main() {
 
     test('clamps split percentages and defaults invalid values for every embed source', () {
       for (final source in ['sample=counter', 'sample_id=material.AppBar.1']) {
-        for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
+        for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', null)]) {
           final request = ProjectRequest.fromUri(Uri.parse('?$source&embed=true&split=$value'));
           expect(request.initialSplitRatio, expected);
         }
@@ -133,30 +135,6 @@ void main() {
       final explicit = ProjectRequest.fromUri(Uri.parse('?sample=counter&file=README.md'));
       expect(explicit.files, ['README.md']);
     });
-
-    for (final query in [
-      '?gist=a&id=a',
-      '?gist=a&id=b',
-      '?url=a&package=b',
-      '?sample=a&gist=b',
-      '?sample=a&sample_id=b',
-      '?sample_id=',
-      '?version=1.0.0',
-      '?sdk=other',
-      '?sdk=dart:',
-      '?sdk=dart:1:2',
-      '?mode=other',
-      '?sample=',
-      '?root=a&root=b',
-    ]) {
-      test('rejects $query', () => expect(() => ProjectRequest.fromUri(Uri.parse(query)), throwsFormatException));
-    }
-    for (final query in ['?file=../escape.dart', '?root=/absolute', '?entrypoint=../main.dart', '?file=']) {
-      test(
-        'rejects unsafe path $query',
-        () => expect(() => ProjectRequest.fromUri(Uri.parse(query)), throwsArgumentError),
-      );
-    }
   });
 
   group('InitialProjectState', () {

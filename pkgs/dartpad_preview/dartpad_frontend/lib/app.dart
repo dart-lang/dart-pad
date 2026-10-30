@@ -50,6 +50,7 @@ import 'features/startup/initial_project_state.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
+import 'features/startup/query_parameters.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
@@ -144,7 +145,7 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _isEmbedMode = ProjectRequest.isEmbedUri(component.initialUri ?? Uri.base);
+    _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
     _panels = PanelLayoutController(isEmbedMode: _isEmbedMode);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
@@ -644,7 +645,7 @@ final class _AppState extends State<App> {
   /// Reflects a freshly minted session id in the address bar without pushing a
   /// new history entry, so back navigation does not land on the bare URL.
   void _writeSessionIdToUrl(Uri uri, int sessionId) {
-    final query = {...uri.queryParametersAll, sessionIdQueryParameter: '$sessionId'};
+    final query = {...uri.queryParametersAll, QueryParameters.sessionId: '$sessionId'};
     final search = Uri(queryParameters: query).query;
     web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }

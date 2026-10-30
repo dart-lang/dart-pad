@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:tar/tar.dart';
 import 'package:yaml/yaml.dart';
 
+import '../shared/flutter_api_channel.dart';
 import 'examples.g.dart';
 import 'gzip/gzip.dart';
 import 'project_loader.dart';
@@ -33,7 +34,8 @@ sealed class ProjectSource {
   const factory ProjectSource.example([String? sampleId]) = SampleProjectSource;
 
   /// Describes a generated Flutter API documentation sample.
-  const factory ProjectSource.flutterApiDocs(String sampleId, {String? channel}) = FlutterApiDocsProjectSource;
+  const factory ProjectSource.flutterApiDocs(String sampleId, {FlutterApiChannel? channel}) =
+      FlutterApiDocsProjectSource;
 
   /// Loads and prepares the files supplied by this source.
   Future<Project> loadProject();

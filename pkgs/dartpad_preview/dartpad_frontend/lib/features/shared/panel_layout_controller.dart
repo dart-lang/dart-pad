@@ -67,7 +67,7 @@ final class PanelLayoutController {
   ValueListenable<({bool showEditorTabs, bool showBreadcrumbs})> get editorNavigationListenable => _editorNavigation;
 
   /// Apply at the start of a project load, before the user can change its layout.
-  void applyInitialDefaults({required double previewRatio, bool? showEditorNavigation}) {
+  void applyInitialDefaults({double? previewRatio, bool? showEditorNavigation}) {
     final defaults = panel_defaults.resolveInitialPanelLayout(
       isEmbedMode: isEmbedMode,
       showEditorNavigation: showEditorNavigation,

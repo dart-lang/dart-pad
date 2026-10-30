@@ -12,15 +12,12 @@ final class FlutterApiDocsProjectSource extends ProjectSource {
   /// The identifier used by the Flutter documentation snippet generator.
   final String sampleId;
 
-  /// The legacy DartPad channel supplied by the embedding page.
-  final String? channel;
+  /// The Flutter API docs host to use. Null selects the stable host.
+  final FlutterApiChannel? channel;
 
   /// The public URL from which the generated Dart source is downloaded.
   Uri get snippetUri {
-    final normalizedChannel = channel?.toLowerCase();
-    final host = normalizedChannel == 'main' || normalizedChannel == 'master'
-        ? 'main-api.flutter.dev'
-        : 'api.flutter.dev';
+    final host = channel == FlutterApiChannel.main ? 'main-api.flutter.dev' : 'api.flutter.dev';
     return Uri(
       scheme: 'https',
       host: host,
