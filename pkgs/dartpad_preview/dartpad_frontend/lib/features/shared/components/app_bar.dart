@@ -143,6 +143,20 @@ final class AppBar extends StatelessComponent {
                 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
               ),
             ),
+            if (isSmallScreen) ...[
+              DropdownMenuItem(
+                label: 'Privacy notice',
+                trailingIcon: 'launch',
+                onPressed: () => _openLink('https://dart.dev/tools/dartpad/privacy'),
+              ),
+              DropdownMenuItem(
+                label: 'Feedback',
+                trailingIcon: 'launch',
+                onPressed: () => _openLink(
+                  'https://github.com/dart-lang/dart-pad/issues/new?template=4-dartpad-preview-issue.yml',
+                ),
+              ),
+            ],
           ],
         ),
       ]),
