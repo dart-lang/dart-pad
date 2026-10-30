@@ -189,7 +189,7 @@ class _FooterState extends State<Footer> {
       display: .block,
       lineHeight: 1.em,
     ),
-    css('.app-footer-info-icon').styles(
+    css('.app-footer .app-footer-info-icon').styles(
       raw: {'font-variation-settings': "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"},
     ),
     css('.app-footer-link').styles(
