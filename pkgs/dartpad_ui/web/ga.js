@@ -21,8 +21,9 @@
     return false;
   }
 
+  var inIframe = isInIframe();
   var isEmbedded =
-    isInIframe() ||
+    inIframe ||
     new URLSearchParams(window.location.search).get('embed') === 'true';
 
   var initialized = false;
@@ -39,7 +40,7 @@
     var config = {
       embed_mode: isEmbedded,
     };
-    if (window.location.protocol === 'https:') {
+    if (inIframe && window.location.protocol === 'https:') {
       config.cookie_flags = 'SameSite=None;Secure;Partitioned';
     }
     if (document.referrer) {
@@ -58,14 +59,31 @@
     return;
   }
 
+  var interactionEvents = ['pointerdown', 'pointerup', 'click', 'keydown'];
+
+  function isCookieBarEvent(event) {
+    var el = event.target;
+    if (el && el.nodeType !== 1) {
+      el = el.parentElement;
+    }
+    return Boolean(
+      el &&
+        typeof el.closest === 'function' &&
+        el.closest('.glue-cookie-notification-bar, .glue-footer')
+    );
+  }
+
   function cleanupListeners() {
-    window.removeEventListener('pointerdown', onUserEvent, true);
-    window.removeEventListener('keydown', onUserEvent, true);
+    for (var i = 0; i < interactionEvents.length; i++) {
+      window.removeEventListener(interactionEvents[i], onUserEvent, true);
+    }
     window.removeEventListener('message', onFrameMessage, false);
   }
 
   function onUserEvent(event) {
     if (!event.isTrusted) return;
+    if (event.type === 'pointerdown' && event.pointerType === 'touch') return;
+    if (isCookieBarEvent(event)) return;
     cleanupListeners();
     initAnalytics();
   }
@@ -82,7 +100,8 @@
     }
   }
 
-  window.addEventListener('pointerdown', onUserEvent, true);
-  window.addEventListener('keydown', onUserEvent, true);
+  for (var i = 0; i < interactionEvents.length; i++) {
+    window.addEventListener(interactionEvents[i], onUserEvent, true);
+  }
   window.addEventListener('message', onFrameMessage, false);
 })();

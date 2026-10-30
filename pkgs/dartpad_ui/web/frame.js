@@ -61,20 +61,27 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
   });
 }
 
-function notifyParentInteraction(event) {
-  if (!event.isTrusted) return;
-  window.removeEventListener('pointerdown', notifyParentInteraction, true);
-  window.removeEventListener('keydown', notifyParentInteraction, true);
-  if (window.parent !== window) {
-    parent.postMessage(
-      { 'sender': 'dartpad-analytics', 'type': 'interaction' },
-      '*'
-    );
-  }
-}
+(function () {
+  var events = ['pointerdown', 'pointerup', 'click', 'keydown'];
 
-window.addEventListener('pointerdown', notifyParentInteraction, true);
-window.addEventListener('keydown', notifyParentInteraction, true);
+  function notifyParentInteraction(event) {
+    if (!event.isTrusted) return;
+    if (event.type === 'pointerdown' && event.pointerType === 'touch') return;
+    for (var i = 0; i < events.length; i++) {
+      window.removeEventListener(events[i], notifyParentInteraction, true);
+    }
+    if (window.parent !== window) {
+      parent.postMessage(
+        { 'sender': 'dartpad-analytics', 'type': 'interaction' },
+        '*'
+      );
+    }
+  }
+
+  for (var i = 0; i < events.length; i++) {
+    window.addEventListener(events[i], notifyParentInteraction, true);
+  }
+})();
 
 window.addEventListener('load', function () {
   window.addEventListener('message', messageHandler, false);
