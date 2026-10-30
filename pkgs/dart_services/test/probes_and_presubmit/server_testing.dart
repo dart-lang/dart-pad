@@ -35,7 +35,7 @@ void main() {
       final result = await client.analyze(
         SourceRequest(
           source: '''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 void main() {
   runApp(MyApp());

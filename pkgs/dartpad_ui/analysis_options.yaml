@@ -5,6 +5,10 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  errors:
+    # Allow package:flutter/material.dart on Flutter 3.47+ beta/main while
+    # Cloud Build deploys dartpad_ui with flutter:stable.
+    deprecated_member_use: ignore
   exclude:
     - build/**
     - android/**

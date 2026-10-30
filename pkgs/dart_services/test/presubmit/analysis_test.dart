@@ -121,9 +121,9 @@ void main() {}
 
     test('Allows package exports and conditional imports', () async {
       final results = await analysisServer.analyze('''
-import 'package:flutter/material.dart'
-    if (dart.library.io) 'package:flutter/cupertino.dart';
-export 'package:flutter/material.dart';
+import 'package:flutter/material.dart' // ignore: deprecated_member_use
+    if (dart.library.io) 'package:flutter/cupertino.dart'; // ignore: deprecated_member_use
+export 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 void main() => runApp(const Text('x'));
 ''');
@@ -289,7 +289,7 @@ void main() => runApp(const Text('x'));
 
     test('reports errors with Flutter code', () async {
       final results = await analysisServer.analyze('''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 String x = 7;
 
@@ -317,7 +317,7 @@ class HelloWorld extends StatelessWidget {
     // https://github.com/dart-lang/dart-pad/issues/2005
     test('reports lint with Flutter code', () async {
       final results = await analysisServer.analyze('''
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 
 void main() async {
   var unknown;
