@@ -667,12 +667,14 @@ void main() {
     expect(web.document.querySelector('.file-tree-item.folder')!.getAttribute('aria-expanded'), 'false');
 
     final dataTransfer = web.DataTransfer()..setData('text/plain', 'example.txt');
-    web.document.querySelector('.file-tree-folder')!.dispatchEvent(
-      web.DragEvent(
-        'drop',
-        web.DragEventInit(dataTransfer: dataTransfer, bubbles: true, cancelable: true),
-      ),
-    );
+    web.document
+        .querySelector('.file-tree-folder')!
+        .dispatchEvent(
+          web.DragEvent(
+            'drop',
+            web.DragEventInit(dataTransfer: dataTransfer, bubbles: true, cancelable: true),
+          ),
+        );
     await pumpEventQueue();
 
     expect(moves, [('example.txt', 'src')]);
