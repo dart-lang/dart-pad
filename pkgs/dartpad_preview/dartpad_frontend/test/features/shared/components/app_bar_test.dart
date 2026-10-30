@@ -130,6 +130,30 @@ void main() {
     expect(web.document.querySelector('nav.dropdown-menu'), isNull);
   });
 
+  testClient('opens overflow menu on small screens and includes Privacy notice and Feedback items', (tester) async {
+    tester.pumpComponent(const AppBar(isSmallScreen: true));
+
+    final moreButton =
+        web.document.querySelector(
+              '[aria-label="More options"]',
+            )!
+            as web.HTMLButtonElement;
+
+    moreButton.click();
+    await pumpEventQueue();
+
+    final menu = web.document.querySelector('nav.dropdown-menu');
+    expect(menu, isNotNull);
+
+    final items = menu!.querySelectorAll('button.dropdown-menu-item');
+    expect(items.length, 4);
+
+    expect((items.item(0)! as web.HTMLButtonElement).textContent, contains('Install SDK'));
+    expect((items.item(1)! as web.HTMLButtonElement).textContent, contains('Sharing guide'));
+    expect((items.item(2)! as web.HTMLButtonElement).textContent, contains('Privacy notice'));
+    expect((items.item(3)! as web.HTMLButtonElement).textContent, contains('Feedback'));
+  });
+
   testClient('renders AppBar with button label and without SmallScreenTabBar on large screens', (tester) {
     tester.pumpComponent(const AppBar());
 
