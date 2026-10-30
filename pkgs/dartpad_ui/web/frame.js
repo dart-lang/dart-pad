@@ -61,6 +61,28 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
   });
 }
 
+(() => {
+  const events = ['pointerdown', 'pointerup', 'click', 'keydown'];
+
+  function notifyParentInteraction(event) {
+    if (!event.isTrusted) return;
+    if (event.type === 'pointerdown' && event.pointerType === 'touch') return;
+    for (const type of events) {
+      window.removeEventListener(type, notifyParentInteraction, true);
+    }
+    if (window.parent !== window) {
+      parent.postMessage(
+        { 'sender': 'dartpad-analytics', 'type': 'interaction' },
+        '*'
+      );
+    }
+  }
+
+  for (const type of events) {
+    window.addEventListener(type, notifyParentInteraction, true);
+  }
+})();
+
 window.addEventListener('load', function () {
   window.addEventListener('message', messageHandler, false);
   parent.postMessage({ 'sender': 'frame', 'type': 'ready' }, '*');
