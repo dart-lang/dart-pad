@@ -61,14 +61,14 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
   });
 }
 
-(function () {
-  var events = ['pointerdown', 'pointerup', 'click', 'keydown'];
+(() => {
+  const events = ['pointerdown', 'pointerup', 'click', 'keydown'];
 
   function notifyParentInteraction(event) {
     if (!event.isTrusted) return;
     if (event.type === 'pointerdown' && event.pointerType === 'touch') return;
-    for (var i = 0; i < events.length; i++) {
-      window.removeEventListener(events[i], notifyParentInteraction, true);
+    for (const type of events) {
+      window.removeEventListener(type, notifyParentInteraction, true);
     }
     if (window.parent !== window) {
       parent.postMessage(
@@ -78,8 +78,8 @@ function runFlutterApp(compiledScript, canvasKitBaseUrl, reload) {
     }
   }
 
-  for (var i = 0; i < events.length; i++) {
-    window.addEventListener(events[i], notifyParentInteraction, true);
+  for (const type of events) {
+    window.addEventListener(type, notifyParentInteraction, true);
   }
 })();
 

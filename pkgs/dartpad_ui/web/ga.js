@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-(function() {
-  var measurementId = 'G-8KFDPZP4C3';
+(() => {
+  const measurementId = 'G-8KFDPZP4C3';
 
   function isInIframe() {
     try {
@@ -15,29 +15,32 @@
 
   function isChildFrame(source) {
     if (!source || source === window) return false;
-    for (var i = 0; i < window.frames.length; i++) {
+    // window.frames is a WindowProxy (not iterable via for...of).
+    for (let i = 0; i < window.frames.length; i++) {
       if (window.frames[i] === source) return true;
     }
     return false;
   }
 
-  var inIframe = isInIframe();
-  var isEmbedded =
+  const inIframe = isInIframe();
+  const isEmbedded =
     inIframe ||
     new URLSearchParams(window.location.search).get('embed') === 'true';
 
-  var initialized = false;
+  let initialized = false;
   function initAnalytics() {
     if (initialized) return;
     initialized = true;
 
     window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function() {
-      window.dataLayer.push(arguments);
-    };
+    window.gtag =
+      window.gtag ||
+      function() {
+        window.dataLayer.push(arguments);
+      };
     window.gtag('js', new Date());
 
-    var config = {
+    const config = {
       embed_mode: isEmbedded,
     };
     if (inIframe && window.location.protocol === 'https:') {
@@ -48,9 +51,9 @@
     }
     window.gtag('config', measurementId, config);
 
-    var script = document.createElement('script');
+    const script = document.createElement('script');
     script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
     document.head.appendChild(script);
   }
 
@@ -59,10 +62,10 @@
     return;
   }
 
-  var interactionEvents = ['pointerdown', 'pointerup', 'click', 'keydown'];
+  const interactionEvents = ['pointerdown', 'pointerup', 'click', 'keydown'];
 
   function isCookieBarEvent(event) {
-    var el = event.target;
+    let el = event.target;
     if (el && el.nodeType !== 1) {
       el = el.parentElement;
     }
@@ -74,8 +77,8 @@
   }
 
   function cleanupListeners() {
-    for (var i = 0; i < interactionEvents.length; i++) {
-      window.removeEventListener(interactionEvents[i], onUserEvent, true);
+    for (const type of interactionEvents) {
+      window.removeEventListener(type, onUserEvent, true);
     }
     window.removeEventListener('message', onFrameMessage, false);
   }
@@ -91,17 +94,16 @@
   function onFrameMessage(event) {
     if (
       isChildFrame(event.source) &&
-      event.data &&
-      event.data.sender === 'dartpad-analytics' &&
-      event.data.type === 'interaction'
+      event.data?.sender === 'dartpad-analytics' &&
+      event.data?.type === 'interaction'
     ) {
       cleanupListeners();
       initAnalytics();
     }
   }
 
-  for (var i = 0; i < interactionEvents.length; i++) {
-    window.addEventListener(interactionEvents[i], onUserEvent, true);
+  for (const type of interactionEvents) {
+    window.addEventListener(type, onUserEvent, true);
   }
   window.addEventListener('message', onFrameMessage, false);
 })();
