@@ -751,6 +751,34 @@ void main() {
     expect(web.document.querySelector('.file-tree-input'), isNull);
   });
 
+  testClient('expands a collapsed folder when an entry is dropped into it', (tester) async {
+    final moves = <(String, String)>[];
+    tester.pumpComponent(
+      FileTreeView(
+        state: _stateWithFolder(workspace),
+        actions: _actions(
+          moveEntry: (sourcePath, targetPath) async => moves.add((sourcePath, targetPath)),
+        ),
+      ),
+    );
+
+    expect(web.document.querySelector('.file-tree-item.folder')!.getAttribute('aria-expanded'), 'false');
+
+    final dataTransfer = web.DataTransfer()..setData('text/plain', 'example.txt');
+    web.document
+        .querySelector('.file-tree-folder')!
+        .dispatchEvent(
+          web.DragEvent(
+            'drop',
+            web.DragEventInit(dataTransfer: dataTransfer, bubbles: true, cancelable: true),
+          ),
+        );
+    await pumpEventQueue();
+
+    expect(moves, [('example.txt', 'src')]);
+    expect(web.document.querySelector('.file-tree-item.folder')!.getAttribute('aria-expanded'), 'true');
+  });
+
   testClient('does not render ignored files and folders', (tester) {
     tester.pumpComponent(
       FileTreeView(
@@ -894,6 +922,7 @@ FileTreeActions _actions({
   Future<void> Function(String path)? deleteFolder,
   FutureOr<void> Function(String path)? openWorkspaceFile,
   void Function(String path)? focusPath,
+  Future<void> Function(String sourcePath, String targetFolderPath)? moveEntry,
 }) {
   return FileTreeActions(
     createFile: createFile ?? (_, _) async {},
@@ -902,7 +931,7 @@ FileTreeActions _actions({
     renameFolder: (_, _) async {},
     deleteFile: deleteFile ?? _noOpPathAsync,
     deleteFolder: deleteFolder ?? _noOpPathAsync,
-    moveEntry: (_, _) async {},
+    moveEntry: moveEntry ?? (_, _) async {},
     openWorkspaceFile: openWorkspaceFile ?? _noOpPathAsync,
     clearOperationError: () {},
     focusPath: focusPath ?? (_) {},

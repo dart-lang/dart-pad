@@ -261,6 +261,14 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           ? null
           : (sourcePath) {
               if (sourcePath != path) {
+                // Expand the folder so the moved entry is visible where it
+                // landed. A collapsed folder gives no feedback that the drop
+                // went where the user intended.
+                if (_isCollapsed) {
+                  setState(() {
+                    _isCollapsed = false;
+                  });
+                }
                 unawaited(component.actions.moveEntry(sourcePath, path));
               }
             },
