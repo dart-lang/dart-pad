@@ -12,6 +12,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../codemirror/editor_context_menu.dart' show dispatchEditorKey;
 
 /// Displays the quick fixes returned for the current diagnostic or selection.
 final class CodeActionPanel extends StatefulComponent {
@@ -119,7 +120,7 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       return;
     }
     final actions = component.controller.codeActions;
-    if (actions == null || actions.isEmpty || identical(actions, _focusedActions)) {
+    if (actions == null || identical(actions, _focusedActions)) {
       return;
     }
     _focusedActions = actions;
@@ -181,9 +182,6 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       null => const <Component>[
         div(classes: 'code-action-empty-item', [.text('Loading code actions...')]),
       ],
-      [] => const <Component>[
-        div(classes: 'code-action-empty-item', [.text('No code actions available')]),
-      ],
       _ => _buildGroupedActions(actions),
     };
 
@@ -196,15 +194,52 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
           'top': '${component.controller.panelTop}px',
         },
       ),
-      children,
+      children.isEmpty
+          ? const <Component>[
+              div(classes: 'code-action-empty-item', [.text('No code actions available')]),
+            ]
+          : children,
     );
   }
 
   List<Component> _buildGroupedActions(List<LSPCodeAction> actions) {
-    final groups = <String, List<LSPCodeAction>>{};
+    final groups = <String, List<_ActionItem>>{};
     for (final action in actions) {
       final group = _kindGroup(action.kind?.toDart);
-      (groups[group] ??= []).add(action);
+      (groups[group] ??= []).add(
+        _ActionItem(
+          title: action.title.toDart,
+          onSelect: () => unawaited(component.controller.applyCodeAction(action)),
+        ),
+      );
+    }
+
+    if (component.controller.file.endsWith('.dart')) {
+      final refactorGroup = groups['Refactor'] ??= [];
+      if (!refactorGroup.any((item) => item.title == 'Rename symbol')) {
+        refactorGroup.add(
+          _ActionItem(
+            title: 'Rename symbol',
+            onSelect: () {
+              component.controller.hideCodeActionPanel();
+              dispatchEditorKey(component.controller.codeEditor, key: 'F2', code: 'F2');
+            },
+          ),
+        );
+      }
+      final sourceGroup = groups['Source'] ??= [];
+      if (!sourceGroup.any((item) => item.title == 'Format document')) {
+        sourceGroup.add(
+          _ActionItem(
+            title: 'Format document',
+            onSelect: () {
+              component.controller.hideCodeActionPanel();
+              unawaited(component.controller.codeEditor.format());
+              component.controller.codeEditor.focus();
+            },
+          ),
+        );
+      }
     }
 
     // Stable display order: Quick Fix first, then Flutter, Extract, Refactor, Source, Other.
@@ -227,8 +262,8 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
               button(
                 classes: 'code-action-btn',
                 type: .button,
-                onClick: () => unawaited(component.controller.applyCodeAction(action)),
-                [.text(action.title.toDart)],
+                onClick: action.onSelect,
+                [.text(action.title)],
               ),
           ],
         ),
@@ -322,4 +357,11 @@ final class _CodeActionPanelState extends State<CodeActionPanel> {
       textAlign: .center,
     ),
   ];
+}
+
+final class _ActionItem {
+  final String title;
+  final void Function() onSelect;
+
+  const _ActionItem({required this.title, required this.onSelect});
 }
