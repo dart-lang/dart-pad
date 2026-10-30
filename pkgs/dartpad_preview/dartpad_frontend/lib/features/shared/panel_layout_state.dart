@@ -6,8 +6,12 @@ import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
 import 'panel_presentation_state.dart';
 
+/// The panel arrangement used for the current viewport and host mode.
+enum PanelLayout { standalone, embed, smallScreen }
+
 /// The initial panel presentation and layout before user interaction.
 typedef PanelLayoutState = ({
+  PanelLayout layout,
   PanelPresentationState appBar,
   PanelPresentationState statusBar,
   SplitState preview,

@@ -54,6 +54,7 @@ void main() {
 
   testClient('handles reported open failures from clicks and keyboard activation', (tester) async {
     var attempts = 0;
+    var opened = 0;
     tester.pumpComponent(
       FileTreeView(
         state: _state(workspace),
@@ -63,6 +64,7 @@ void main() {
             throw StateError('reported load failure');
           },
         ),
+        onFileOpened: () => opened++,
       ),
     );
 
@@ -74,6 +76,7 @@ void main() {
     );
     await pumpEventQueue();
     expect(attempts, 2);
+    expect(opened, 0);
   });
 
   testClient('renders add button in header with foldable dropdown menu', (tester) async {

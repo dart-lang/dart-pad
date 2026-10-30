@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Initial panel states for standalone and embed mode.
+/// Initial panel states for standalone, embed, and small-screen layouts.
 ///
 /// Embeds hide file navigation and keep both bottom tabs accessible. Preview starts
 /// expanded in both modes; the legacy `split` URL option can override its ratio.
@@ -22,15 +22,20 @@ const fileTreeWidth = 200.0;
 /// Without an override, tabs and breadcrumbs are visible outside embeds.
 PanelLayoutState resolveInitialPanelLayout({
   required WorkspaceMode mode,
+  bool isSmallScreen = false,
   bool? showEditorNavigation,
   double? initialPreviewRatio,
 }) {
   final preview = Split(initialPreviewRatio ?? previewRatio);
+  final layout = isSmallScreen
+      ? PanelLayout.smallScreen
+      : (mode == WorkspaceMode.embed ? PanelLayout.embed : PanelLayout.standalone);
   final editorNavigation = (showEditorNavigation ?? mode == WorkspaceMode.standalone)
       ? PanelPresentationState.expanded
       : PanelPresentationState.hidden;
   return switch (mode) {
     WorkspaceMode.embed => (
+      layout: layout,
       appBar: PanelPresentationState.hidden,
       statusBar: PanelPresentationState.hidden,
       preview: preview,
@@ -39,10 +44,11 @@ PanelLayoutState resolveInitialPanelLayout({
       editorNavigation: editorNavigation,
     ),
     WorkspaceMode.standalone => (
+      layout: layout,
       appBar: PanelPresentationState.expanded,
       statusBar: PanelPresentationState.expanded,
       preview: preview,
-      fileTree: const Split(fileTreeWidth),
+      fileTree: isSmallScreen ? const LeftHidden(fileTreeWidth) : const Split(fileTreeWidth),
       bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
       editorNavigation: editorNavigation,
     ),

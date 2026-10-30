@@ -10,8 +10,11 @@ import 'dart:js_interop_unsafe';
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/app.dart';
+import 'package:dartpad_frontend/app_styles.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/codemirror_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
@@ -275,6 +278,72 @@ void main() {
       expect(editorArea.style.flexGrow, '0.6');
     }
 
+    for (final embed in [false, true]) {
+      testClient('mobile file selection closes the file tree: embed=$embed', (tester) async {
+        await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart']);
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        await click('.file-tree-floating-button');
+        expect(fileTreeSplit().state, const Split(200));
+        final file = web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement;
+        file.click();
+        await pumpEventQueue();
+        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
+        expect(web.document.querySelector('.file-tree-rail'), isNull);
+
+        // Selecting the already active file also dismisses the tree.
+        await click('.file-tree-floating-button');
+        (web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement).click();
+        await pumpEventQueue();
+        expect(fileTreeSplit().state, const LeftHidden(200));
+
+        await click('.file-tree-floating-button');
+        await click('.small-screen-tab-bar button:nth-child(2)');
+        expect(web.document.querySelector('.preview-container'), isNotNull);
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        await click('.small-screen-tab-bar button:first-child');
+
+        await _resizeWindow(minLargeScreenWidth.toInt());
+        expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+        await _resizeWindow(minLargeScreenWidth.toInt() - 1);
+        expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
+        expect(fileTreeSplit().state, const LeftHidden(200));
+      });
+    }
+
+    testClient('mobile file-tree button overlaps code without reserving gutter space', (tester) async {
+      final styles = web.HTMLStyleElement()
+        ..textContent = [
+          ...appStyles,
+          ...App.styles,
+          ...EditorShell.styles,
+          ...EditorStack.styles,
+          ...codemirrorStyles,
+        ].map((rule) => rule.toCss()).join('\n');
+      web.document.head!.appendChild(styles);
+      addTearDown(() => web.document.head!.removeChild(styles));
+      final download = Completer<Project>()
+        ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
+      await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
+      final button = web.document.querySelector('.file-tree-floating-button')! as web.HTMLElement;
+      web.DOMRect codeBounds() {
+        final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
+        return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
+      }
+
+      double gutterWidth() {
+        final editor = web.document.querySelector('.editor-tab-slot.active .cm-editor')! as web.HTMLElement;
+        return codeBounds().left - editor.getBoundingClientRect().left;
+      }
+
+      expect(button.getBoundingClientRect().right, greaterThan(codeBounds().left));
+      expect(button.getBoundingClientRect().top, lessThan(codeBounds().bottom));
+      final mobileGutterWidth = gutterWidth();
+      await _resizeWindow(1200);
+      expect(gutterWidth(), greaterThan(mobileGutterWidth));
+    });
+
     for (final width in [600, 1200]) {
       for (final (embed, hint) in [(true, ''), (true, '-tabs'), (false, '-tabs')]) {
         testClient('single-file navigation follows open files: width=$width, embed=$embed, panels=$hint', (
@@ -303,7 +372,10 @@ void main() {
           expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
           expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
           expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
-          expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const Split(200));
+          expect(
+            fileTreeSplit().state,
+            embed || width < minLargeScreenWidth ? const LeftHidden(200) : const Split(200),
+          );
 
           (web.document.querySelector('.editor-tab[title="lib/main.dart"]')! as web.HTMLElement).click();
           await pumpEventQueue();
@@ -316,7 +388,10 @@ void main() {
           expect(web.document.querySelector('.editor-tab-bar'), isNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
           expect(web.document.querySelector('.editor-tab-slot.active .cm-editor'), isNotNull);
-          expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const Split(200));
+          expect(
+            fileTreeSplit().state,
+            embed || width < minLargeScreenWidth ? const LeftHidden(200) : const Split(200),
+          );
         });
       }
 
@@ -335,8 +410,9 @@ void main() {
             final showNavigation = !embed || files.toSet().length > 1;
 
             void expectLayout({required bool loaded}) {
-              final tree = web.document.querySelector('.file-tree')! as web.HTMLElement;
-              expect(tree.style.display, embed ? 'none' : '');
+              final smallScreen = web.window.innerWidth < minLargeScreenWidth;
+              final tree = web.document.querySelector('.file-tree-panel')! as web.HTMLElement;
+              expect(tree.style.display, embed || smallScreen ? 'none' : '');
               expect(web.document.querySelector('.file-tree-rail'), isNull);
               expect(web.document.querySelector('.editor-tab-bar'), showNavigation ? isNotNull : isNull);
               expect(
@@ -347,7 +423,7 @@ void main() {
               expect(web.document.querySelector('.app-footer'), embed ? isNull : isNotNull);
               expect(web.document.querySelector('.bottom-panel.collapsed'), loaded && embed ? isNotNull : isNull);
               expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded ? 2 : 0);
-              expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const Split(200));
+              expect(fileTreeSplit().state, embed || smallScreen ? const LeftHidden(200) : const Split(200));
             }
 
             expectLayout(loaded: false);
@@ -408,7 +484,10 @@ void main() {
           expect(panels.showBreadcrumbs, isFalse);
           await _resizeWindow(width == 1200 ? 600 : 1200);
           expectConsoleSelected();
-          expect(fileTreeSplit().state, const Split(235));
+          expect(
+            fileTreeSplit().state,
+            width == 1200 ? const LeftHidden(235) : (embed ? const LeftHidden(200) : const LeftCollapsed(200)),
+          );
           expect(panels.preview, const RightCollapsed(0.62));
         });
       }
@@ -429,7 +508,10 @@ void main() {
           final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
           void expectLayout({required bool loaded}) {
             expect(panels.preview, embed ? const RightHidden(0.6) : const RightCollapsed(0.6));
-            expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const LeftCollapsed(200));
+            expect(
+              fileTreeSplit().state,
+              embed || web.window.innerWidth < minLargeScreenWidth ? const LeftHidden(200) : const LeftCollapsed(200),
+            );
             expect(bottomSplit().state, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
             expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded && !embed ? 2 : 0);
             expect(web.document.querySelector('.editor-tab-bar'), isNull);
@@ -623,8 +705,8 @@ void main() {
       await _resizeWindow(600);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
       expect(web.document.querySelector('.preview-container'), isNull);
-      expect(fileTreeSplit().state, const Split(240));
-      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '240px');
+      expect(fileTreeSplit().state, const LeftHidden(240));
+      expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
       expectConsoleSelected();
 
       await _resizeWindow(1200);
@@ -657,8 +739,9 @@ void main() {
       await selectCodeTab();
       expect(web.document.querySelector('.preview-container'), isNull);
       expect(web.document.querySelector('.cm-editor'), isNotNull);
-      expect(web.document.querySelector('.file-tree-rail'), isNotNull);
-      expect(fileTreeSplit().state, const LeftCollapsed(225));
+      expect(web.document.querySelector('.file-tree-rail'), isNull);
+      expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
+      expect(fileTreeSplit().state, const LeftHidden(225));
       expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
       expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
       expect(web.document.querySelector('.bottom-panel-content'), isNull);
@@ -669,7 +752,7 @@ void main() {
       await pumpEventQueue();
       expectConsoleSelected();
       await click('button[aria-label="Show file tree"]');
-      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '225px');
+      expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.flexBasis, '225px');
     });
   });
 

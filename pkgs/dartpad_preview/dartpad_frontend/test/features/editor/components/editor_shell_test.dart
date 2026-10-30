@@ -7,6 +7,7 @@ library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
@@ -122,6 +123,80 @@ EditorShell _createShell(
 }
 
 void main() {
+  for (final width in [320, 390, 865]) {
+    testClient('mobile file tree opens beside the editor at ${width}px', (tester) async {
+      final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        panels.dispose();
+      });
+      tester.pumpComponent(
+        div([
+          Style(styles: [...EditorShell.styles, ...EditorStack.styles]),
+          div(
+            styles: Styles(width: width.px, height: 600.px),
+            [_createShell(tester, panels: panels)],
+          ),
+        ]),
+      );
+      final host = web.document.querySelector('.editor-host')! as web.HTMLElement;
+      expect(host.getBoundingClientRect().width, width);
+      final toggle = web.document.querySelector('.file-tree-floating-button')! as web.HTMLButtonElement;
+      final stack = (web.document.querySelector('.editor-stack')! as web.HTMLElement).getBoundingClientRect();
+      expect(toggle.getBoundingClientRect().left, stack.left + 16);
+      expect(toggle.getBoundingClientRect().top, stack.top + 16);
+      final editor = web.document.getElementById('editor-main.dart');
+      toggle.click();
+      await pumpEventQueue();
+      expect(host.getBoundingClientRect().width, lessThan(width));
+      expect(host.getBoundingClientRect().width, greaterThan(0));
+      expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+      final shell = (web.document.querySelector('.editor-shell')! as web.HTMLElement).getBoundingClientRect();
+      final tree = (web.document.querySelector('.file-tree-panel')! as web.HTMLElement).getBoundingClientRect();
+      expect(tree.width, greaterThan(0));
+      expect(tree.left, shell.left);
+      expect(tree.right, lessThanOrEqualTo(host.getBoundingClientRect().left));
+      expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+
+      panels.closeSmallScreenFileTree();
+      await pumpEventQueue();
+      expect(host.getBoundingClientRect().width, width);
+      expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
+    });
+  }
+
+  testClient('mobile file tree opens and closes without rebuilding the editor', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    final tab = _FakeTab('main.dart');
+    tester.pumpComponent(_createShell(tester, panels: panels, openTabs: [tab]));
+    final buildCount = tab.buildCount;
+    final editor = web.document.getElementById('editor-main.dart');
+    final tree = web.document.querySelector('.file-tree-panel')! as web.HTMLElement;
+    web.HTMLButtonElement toggle() =>
+        web.document.querySelector('.file-tree-floating-button')! as web.HTMLButtonElement;
+
+    expect(tree.style.display, 'none');
+    expect(toggle().getAttribute('aria-expanded'), 'false');
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    toggle().click();
+    await pumpEventQueue();
+    expect(tree.style.display, '');
+    expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+
+    (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(tree.style.display, 'none');
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    expect(tab.buildCount, buildCount);
+    expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+  });
+
   testClient('navigation visibility updates without rebuilding editor content', (tester) async {
     final panels = PanelLayoutController(mode: WorkspaceMode.embed);
     addTearDown(() async {
@@ -244,7 +319,7 @@ void main() {
       tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed));
 
       expect(web.document.querySelector('.file-tree-rail'), isNull);
-      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, 'none');
+      expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.editor-tab-bar'), isNull);
       expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
       expect(web.document.querySelector('#editor-main\\.dart'), isNotNull);
@@ -403,7 +478,7 @@ void main() {
     testClient('embed mode does not show file tree pane initially', (tester) {
       tester.pumpComponent(_createShell(tester, mode: WorkspaceMode.embed));
 
-      expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.display, 'none');
+      expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
   });
