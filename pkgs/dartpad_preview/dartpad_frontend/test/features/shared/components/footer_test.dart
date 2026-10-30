@@ -9,6 +9,7 @@ import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -51,6 +52,40 @@ void main() {
 
     final status = web.document.querySelector('.task-status-trigger');
     expect(status?.textContent, contains('Ready'));
+  });
+
+  testClient('shows separate SDK and beta channel controls', (tester) async {
+    final flutter = availableSdks.firstWhere((sdk) => sdk.isFlutter);
+    final dart = availableSdks.firstWhere((sdk) => !sdk.isFlutter);
+    var selected = flutter;
+    tester.pumpComponent(
+      Footer(taskStatus: taskStatus, currentSdk: flutter, onSelectSdk: (sdk) => selected = sdk),
+    );
+
+    final sdkButton = web.document.querySelector('.app-footer-sdk-trigger') as web.HTMLButtonElement;
+    expect(
+      sdkButton.textContent,
+      contains(
+        'Dart ${flutter.dartVersion.split(RegExp(r"[-+ ]")).first} • Flutter ${flutter.flutterVersion!.split(RegExp(r"[-+ ]")).first}',
+      ),
+    );
+    final channel = web.document.querySelector('.app-footer-channel')!;
+    expect(channel.textContent, contains('Beta channel'));
+    expect(channel.tagName, 'SPAN');
+    expect(channel.hasAttribute('title'), isFalse);
+
+    sdkButton.click();
+    await pumpEventQueue();
+    final items = web.document.querySelectorAll('.dropdown-menu-item');
+    expect(items.item(0)?.textContent, contains('Flutter ${flutter.flutterVersion!.split(RegExp(r"[-+ ]")).first}'));
+    final dartItem =
+        [
+              for (var i = 0; i < items.length; i++) items.item(i)!,
+            ].firstWhere((item) => item.textContent!.trim() == 'Dart ${dart.dartVersion.split(RegExp(r"[-+ ]")).first}')
+            as web.HTMLButtonElement;
+    dartItem.click();
+    await pumpEventQueue();
+    expect(selected, dart);
   });
 
   testClient('opens shortcuts dialog and toggles show more shortcuts', (tester) async {
