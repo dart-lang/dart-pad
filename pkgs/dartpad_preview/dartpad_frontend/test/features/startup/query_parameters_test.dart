@@ -138,8 +138,8 @@ void main() {
         ('?split=60', 60),
         ('?split=4', 5),
         ('?split=96', 95),
-        ('?split=abc', 70),
-        ('', 70),
+        ('?split=abc', null),
+        ('', null),
       ]) {
         expect(parse(query).appearance.splitPercent, expected, reason: query);
       }
@@ -170,7 +170,7 @@ void main() {
     expect(parameters.project.entrypoint, isNull);
     expect(parameters.project.files, isEmpty);
     expect(parameters.appearance.embed, isFalse);
-    expect(parameters.appearance.splitPercent, PresentationParameters.defaultSplitPercent);
+    expect(parameters.appearance.splitPercent, isNull);
     expect(parameters.session, isNull);
   });
 }

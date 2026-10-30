@@ -129,10 +129,13 @@ final class ProjectRequest {
         _ => false,
       };
 
-  /// Initial fraction of the outer split occupied by the code panel.
-  /// Defaults to 70%. The requested value is clamped to 5–95% by [QueryParameters].
+  /// Initial fraction of the outer split occupied by the preview panel, or null to use the layout default.
+  /// The requested value is clamped to 5–95% by [QueryParameters].
   /// This is only to support the old docs generator and will be removed in the future.
-  double get initialSplitRatio => parameters.appearance.splitPercent / 100;
+  double? get initialSplitRatio {
+    final percent = parameters.appearance.splitPercent;
+    return percent == null ? null : percent / 100;
+  }
 
   /// Re-encodes [query] for the browser URL, including repeated parameters.
   ///

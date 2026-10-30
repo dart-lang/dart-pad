@@ -289,17 +289,14 @@ final class ProjectParameters {
 final class PresentationParameters {
   const PresentationParameters({
     this.embed = false,
-    this.splitPercent = defaultSplitPercent,
+    this.splitPercent,
   });
-
-  /// Initial code panel share used when `split` is absent or not an integer.
-  static const defaultSplitPercent = 70;
 
   /// Whether the embed layout is used.
   final bool embed;
 
-  /// Initial code panel share, clamped to 5–95.
-  final int splitPercent;
+  /// Initial preview panel share, clamped to 5–95. Null when `split` is absent or not an integer.
+  final int? splitPercent;
 
   static PresentationParameters _validate(Map<String, List<String>> raw) => PresentationParameters(
     embed: _validateEmbed(raw),
@@ -308,11 +305,8 @@ final class PresentationParameters {
 
   static bool _validateEmbed(Map<String, List<String>> raw) => raw[QueryParameters.embed]?.contains('true') == true;
 
-  static int _validateSplit(Map<String, List<String>> raw) {
-    final percent =
-        int.tryParse(_lenient(raw, QueryParameters.split) ?? '') ?? PresentationParameters.defaultSplitPercent;
-    return percent.clamp(5, 95).toInt();
-  }
+  static int? _validateSplit(Map<String, List<String>> raw) =>
+      int.tryParse(_lenient(raw, QueryParameters.split) ?? '')?.clamp(5, 95).toInt();
 }
 
 /// A non-negative session id. Dart has no unsigned int, so [parse] rejects negatives.

@@ -112,7 +112,7 @@ void main() {
 
     test('clamps split percentages and defaults invalid values for every embed source', () {
       for (final source in ['sample=counter', 'sample_id=material.AppBar.1']) {
-        for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', 0.7)]) {
+        for (final (value, expected) in [('4', 0.05), ('96', 0.95), ('invalid', null)]) {
           final request = ProjectRequest.fromUri(Uri.parse('?$source&embed=true&split=$value'));
           expect(request.initialSplitRatio, expected);
         }
