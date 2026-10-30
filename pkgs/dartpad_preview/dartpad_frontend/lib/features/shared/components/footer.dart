@@ -8,6 +8,7 @@ import 'package:jaspr/jaspr.dart';
 import '../../../app_styles.dart';
 import '../../../sdks.g.dart';
 import '../icons.dart';
+import '../links.dart';
 import '../sdk_info.dart';
 import '../task_status.dart';
 import 'dropdown_menu.dart';
@@ -121,7 +122,7 @@ class _FooterState extends State<Footer> {
 
   Component _buildPrivacyNoticeLink() {
     return const a(
-      href: 'https://dart.dev/tools/dartpad/privacy',
+      href: privacyNoticeUrl,
       target: Target.blank,
       classes: 'app-footer-link',
       attributes: {'rel': 'noopener noreferrer'},
@@ -134,7 +135,7 @@ class _FooterState extends State<Footer> {
 
   Component _buildFeedbackLink() {
     return const a(
-      href: 'https://github.com/dart-lang/dart-pad/issues/new?template=4-dartpad-preview-issue.yml',
+      href: feedbackUrl,
       target: Target.blank,
       classes: 'app-footer-link',
       attributes: {'rel': 'noopener noreferrer'},
