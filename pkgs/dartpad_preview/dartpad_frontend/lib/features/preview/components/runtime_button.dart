@@ -8,6 +8,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/components/tooltip.dart';
 import '../../shared/icons.dart';
 import '../view_models/preview_view_model.dart';
 
@@ -88,26 +89,28 @@ final class RuntimeButton extends StatelessComponent {
   /// Callback executed when the button is clicked.
   final Future<void> Function() onClick;
 
-  /// The `title` tooltip. Defaults to [title] when null.
+  /// The tooltip to display on hover. Defaults to [title] when null.
   final String? tooltip;
 
   @override
   Component build(BuildContext context) {
-    return button(
-      classes: [
-        'runtime-button',
-        if (!isEnabled) 'disabled',
-      ].join(' '),
-      disabled: !isEnabled,
-      attributes: {
-        'title': tooltip ?? title,
-        'aria-label': title,
-      },
-      onClick: isEnabled ? () => unawaited(onClick()) : null,
-      [
-        Icon(icon, size: 18.0),
-        span(classes: 'runtime-button-label', [.text(title)]),
-      ],
+    return Tooltip(
+      message: tooltip ?? title,
+      child: button(
+        classes: [
+          'runtime-button',
+          if (!isEnabled) 'disabled',
+        ].join(' '),
+        disabled: !isEnabled,
+        attributes: {
+          'aria-label': title,
+        },
+        onClick: isEnabled ? () => unawaited(onClick()) : null,
+        [
+          Icon(icon, size: 18.0),
+          span(classes: 'runtime-button-label', [.text(title)]),
+        ],
+      ),
     );
   }
 
