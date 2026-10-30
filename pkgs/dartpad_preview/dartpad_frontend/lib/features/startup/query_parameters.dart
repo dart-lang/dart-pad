@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../bottom_panel/bottom_panel_state.dart';
 import '../preview/models/run_mode.dart';
 import '../shared/flutter_api_channel.dart';
+import '../shared/panel_hints.dart';
 import '../shared/sdk_kind.dart';
 import 'project_loader.dart';
 
@@ -32,6 +34,7 @@ final class QueryParameters {
   // PersistedProjectState.matchesQuery ignores it.
   static const theme = 'theme';
   static const split = 'split';
+  static const panels = 'panels';
 
   /// Keys from retired URLs. Any of them makes the query invalid.
   static const obsolete = ['archive', 'path', 'main'];
@@ -54,13 +57,16 @@ final class QueryParameters {
     final raw = {
       for (final entry in uri.queryParametersAll.entries) entry.key: List<String>.unmodifiable(entry.value),
     };
+    if (raw.containsKey(panels)) {
+      raw[panels] = _readPanelValues(uri);
+    }
     for (final key in obsolete) {
       if (raw.containsKey(key)) {
         throw FormatException('Unsupported query parameter: $key.');
       }
     }
     return QueryParameters._(
-      raw: raw,
+      raw: Map.unmodifiable(raw),
       source: SourceSelection._validate(raw),
       project: ProjectParameters._validate(raw),
       appearance: PresentationParameters._validate(raw),
@@ -68,7 +74,24 @@ final class QueryParameters {
     );
   }
 
-  /// The raw query parameter map.
+  /// Preserves literal '+' signs for panel hints instead of decoding them as spaces.
+  static List<String> _readPanelValues(Uri uri) {
+    final values = <String>[];
+    for (final parameter in uri.query.split('&')) {
+      final equals = parameter.indexOf('=');
+      final key = equals < 0 ? parameter : parameter.substring(0, equals);
+      if (Uri.decodeQueryComponent(key) != panels) {
+        continue;
+      }
+      // Decode exactly once: +console and %2Bconsole work, %252Bconsole does not.
+      final value = equals < 0 ? '' : Uri.decodeComponent(parameter.substring(equals + 1));
+      // History encodes spaces as '+', so trim entries before retaining them.
+      values.add(value.split(',').map((entry) => entry.trim()).join(','));
+    }
+    return List.unmodifiable(values);
+  }
+
+  /// The decoded query parameter map, with panel signs preserved and whitespace trimmed.
   final Map<String, List<String>> raw;
 
   /// The selected source, or null for a bare URL.
@@ -279,6 +302,7 @@ final class PresentationParameters {
   const PresentationParameters({
     this.embed = false,
     this.splitPercent,
+    this.panels = const PanelHints.none(),
   });
 
   /// Whether the embed layout is used.
@@ -287,15 +311,69 @@ final class PresentationParameters {
   /// Initial preview panel share, clamped to 5–95. Null when `split` is absent or not an integer.
   final int? splitPercent;
 
+  /// Validated panel hints, including the explicit bottom-tab preference.
+  final PanelHints panels;
+
   static PresentationParameters _validate(Map<String, List<String>> raw) => PresentationParameters(
     embed: _validateEmbed(raw),
     splitPercent: _validateSplit(raw),
+    panels: _validatePanels(raw),
   );
+
+  static PanelHints _validatePanels(Map<String, List<String>> raw) {
+    final hints = <WorkspacePanel, bool>{};
+    for (final value in raw[QueryParameters.panels] ?? const <String>[]) {
+      for (final hint in value.split(',')) {
+        if (hint.length < 2 || (hint[0] != '+' && hint[0] != '-')) {
+          continue;
+        }
+        final panel = WorkspacePanel.values.where((panel) => panel.queryName == hint.substring(1)).firstOrNull;
+        if (panel != null) {
+          // Move the panel to the end to retain the order of its last hint.
+          hints.remove(panel);
+          hints[panel] = hint[0] == '+';
+        }
+      }
+    }
+    // Choose after deduplication so a later close cancels an earlier selection.
+    BottomPanelTab? preferredBottomTab;
+    for (final hint in hints.entries) {
+      preferredBottomTab = switch ((hint.key, hint.value)) {
+        (WorkspacePanel.console, true) => BottomPanelTab.console,
+        (WorkspacePanel.problems, true) => BottomPanelTab.problems,
+        _ => preferredBottomTab,
+      };
+    }
+    return PanelHints(
+      console: hints[WorkspacePanel.console],
+      problems: hints[WorkspacePanel.problems],
+      preview: hints[WorkspacePanel.preview],
+      editorNavigation: hints[WorkspacePanel.tabs],
+      fileTree: hints[WorkspacePanel.fileTree],
+      appBar: hints[WorkspacePanel.appBar],
+      statusBar: hints[WorkspacePanel.statusBar],
+      preferredBottomTab: preferredBottomTab,
+    );
+  }
 
   static bool _validateEmbed(Map<String, List<String>> raw) => raw[QueryParameters.embed]?.contains('true') == true;
 
   static int? _validateSplit(Map<String, List<String>> raw) =>
       int.tryParse(_lenient(raw, QueryParameters.split) ?? '')?.clamp(5, 95).toInt();
+}
+
+/// Names accepted by the `panels` URL parameter.
+enum WorkspacePanel {
+  console('console'),
+  problems('problems'),
+  preview('preview'),
+  tabs('tabs'),
+  fileTree('filetree'),
+  appBar('appbar'),
+  statusBar('statusbar');
+
+  const WorkspacePanel(this.queryName);
+  final String queryName;
 }
 
 /// A non-negative session id. Dart has no unsigned int, so [parse] rejects negatives.

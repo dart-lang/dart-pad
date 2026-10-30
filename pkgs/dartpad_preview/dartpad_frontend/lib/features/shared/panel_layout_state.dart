@@ -10,9 +10,8 @@ import 'panel_presentation_state.dart';
 typedef PanelLayoutState = ({
   PanelPresentationState appBar,
   PanelPresentationState statusBar,
-  Split preview,
+  SplitState preview,
   SplitState fileTree,
   BottomPanelState bottom,
-  bool showEditorTabs,
-  bool showBreadcrumbs,
+  PanelPresentationState editorNavigation,
 });

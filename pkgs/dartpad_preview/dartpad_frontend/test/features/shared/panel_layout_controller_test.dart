@@ -6,11 +6,12 @@ import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('bottom split listenable follows the shared state and preserves tab selection', () {
-    final panels = PanelLayoutController(isEmbedMode: false);
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(panels.dispose);
     final split = panels.bottomSplitListenable;
     final changes = <SplitState>[];
@@ -35,7 +36,7 @@ void main() {
   });
 
   test('each panel notifies only its own listeners and skips unchanged values', () {
-    final panels = PanelLayoutController(isEmbedMode: false);
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(panels.dispose);
     final changes = <String>[];
     panels.previewListenable.addListener(() => changes.add('preview'));
@@ -77,9 +78,10 @@ void main() {
     expect(changes, ['preview']);
   });
 
-  for (final embed in [false, true]) {
+  for (final mode in WorkspaceMode.values) {
+    final embed = mode == WorkspaceMode.embed;
     test('initial defaults apply the presentation for embed=$embed', () {
-      final panels = PanelLayoutController(isEmbedMode: embed);
+      final panels = PanelLayoutController(mode: mode);
       addTearDown(panels.dispose);
       expect(panels.preview, const Split(0.7));
       expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
@@ -94,8 +96,6 @@ void main() {
       panels.openBottomPanel(BottomPanelTab.console);
       panels.updateFileTree(const Split(240));
       panels.updatePreview(const RightCollapsed(0.6));
-      panels.updateAppBar(PanelPresentationState.collapsed);
-      panels.updateStatusBar(PanelPresentationState.collapsed);
       panels.applyInitialDefaults(previewRatio: 0.95);
       expect(panels.preview, const Split(0.95));
       expect(panels.fileTree, embed ? const LeftHidden(200) : const Split(200));
@@ -107,7 +107,7 @@ void main() {
 
     for (final visible in [false, true]) {
       test('navigation uses the supplied visibility: visible=$visible, embed=$embed', () {
-        final panels = PanelLayoutController(isEmbedMode: embed, showEditorNavigation: visible);
+        final panels = PanelLayoutController(mode: mode, showEditorNavigation: visible);
         addTearDown(panels.dispose);
         expect(panels.showEditorTabs, visible);
         expect(panels.showBreadcrumbs, visible);
@@ -123,38 +123,8 @@ void main() {
     }
   }
 
-  test('bar presentation changes are independent and notify only on changes', () {
-    final panels = PanelLayoutController(isEmbedMode: false);
-    addTearDown(panels.dispose);
-    final changes = <(PanelPresentationState, PanelPresentationState)>[];
-    void recordChange() => changes.add((panels.appBar, panels.statusBar));
-    panels.appBarListenable.addListener(recordChange);
-    panels.statusBarListenable.addListener(recordChange);
-
-    panels.updateAppBar(PanelPresentationState.collapsed);
-    panels.updateAppBar(PanelPresentationState.collapsed);
-    panels.updateStatusBar(PanelPresentationState.hidden);
-    panels.updateStatusBar(PanelPresentationState.hidden);
-    panels.updateAppBar(PanelPresentationState.hidden);
-    panels.updateStatusBar(PanelPresentationState.collapsed);
-    panels.updateAppBar(PanelPresentationState.expanded);
-    panels.updateStatusBar(PanelPresentationState.expanded);
-
-    expect(changes, [
-      (PanelPresentationState.collapsed, PanelPresentationState.expanded),
-      (PanelPresentationState.collapsed, PanelPresentationState.hidden),
-      (PanelPresentationState.hidden, PanelPresentationState.hidden),
-      (PanelPresentationState.hidden, PanelPresentationState.collapsed),
-      (PanelPresentationState.expanded, PanelPresentationState.collapsed),
-      (PanelPresentationState.expanded, PanelPresentationState.expanded),
-    ]);
-    expect(panels.preview, const Split(0.7));
-    expect(panels.fileTree, const Split(200));
-    expect(panels.bottom, const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: 0.75));
-  });
-
   test('opening a tab updates selection and expansion atomically, preserving size', () {
-    final panels = PanelLayoutController(isEmbedMode: true);
+    final panels = PanelLayoutController(mode: WorkspaceMode.embed);
     addTearDown(panels.dispose);
     panels.updateBottomSplit(const RightCollapsed(0.6));
     final changes = <BottomPanelState>[];
@@ -174,18 +144,18 @@ void main() {
     ]);
   });
 
-  test('bottom split cannot hide the tabs or collapse the editor', () {
-    final panels = PanelLayoutController(isEmbedMode: false);
+  test('bottom split cannot hide or collapse the editor', () {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(panels.dispose);
     final original = panels.bottom;
-    for (final state in [const RightHidden(0.7), const LeftHidden(0.7), const LeftCollapsed(0.7)]) {
+    for (final state in [const LeftHidden(0.7), const LeftCollapsed(0.7)]) {
       expect(() => panels.updateBottomSplit(state), throwsArgumentError);
       expect(panels.bottom, original);
     }
   });
 
   test('preview expansion restores the resized split without changing other panels', () {
-    final panels = PanelLayoutController(isEmbedMode: true);
+    final panels = PanelLayoutController(mode: WorkspaceMode.embed);
     addTearDown(panels.dispose);
     panels.updateFileTree(const LeftCollapsed(225));
     panels.updatePreview(const RightCollapsed(0.6));

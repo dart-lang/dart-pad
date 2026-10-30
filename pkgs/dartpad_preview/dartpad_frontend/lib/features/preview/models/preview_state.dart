@@ -67,7 +67,10 @@ sealed class _ActivePreviewState extends PreviewState {
 
 /// State representing a fresh startup compilation and execution lifecycle.
 final class PreviewStarting extends _ActivePreviewState {
-  PreviewStarting(super.entrypoint);
+  PreviewStarting(super.entrypoint, {this.autoStart = false});
+
+  /// Whether workspace initialization started this run without user input.
+  final bool autoStart;
 }
 
 /// State representing an active running application preview.
@@ -84,7 +87,10 @@ final class PreviewDartReady extends _ActivePreviewState {
 
 /// State representing an application restart after recompiling current sources.
 final class PreviewRestarting extends _ActivePreviewState {
-  PreviewRestarting(super.entrypoint);
+  PreviewRestarting(super.entrypoint, {this.autoStart = false});
+
+  /// Whether workspace initialization started this run without user input.
+  final bool autoStart;
 }
 
 /// State representing a preview sandbox hot-reloading code modifications.

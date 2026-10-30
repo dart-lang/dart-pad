@@ -37,10 +37,47 @@ Choose one source per URL.
 
 ### Appearance and execution
 
-| Query                                                   | Effect                                                                                                   | Default                                          |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `embed=true`                                            | Hide the app bar and footer on desktop, collapse the file tree; wait for Run before runtime startup | Standalone layout; Run the preview automatically |
-| `theme=dark` or `theme=light`                           | Initial theme                                                                                            | Saved preference, otherwise system theme         |
+| Query                         | Effect                                                                                        | Default                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `embed=true`                  | Hide the app bar, footer, and file navigation; wait for Run before runtime startup            | Standalone layout; Run the preview automatically |
+| `panels=<panel-list>`         | Initial panel configuration; `+` expands, `-` collapses in standalone mode or hides in embeds | Inferred from context; see below                 |
+| `theme=dark` or `theme=light` | Initial theme                                                                                 | Saved preference, otherwise system theme         |
+
+### Panel configuration
+
+The URL sets each panel's initial state, but these are interpreted as hints.
+Existing panel controls can change the layout afterwards. The app bar and status bar
+do not have their own reopening controls.
+
+Use comma-separated panel names, each prefixed with `+` or `-`.
+`+` expands a panel. `-` collapses it in standalone mode and hides it in embeds.
+The exception is `-tabs`, which hides tabs and breadcrumbs in both modes.
+
+```text
+?embed=true&panels=+tabs,-filetree,-preview
+```
+
+| Panel       | Standalone default | Embed default                                               |
+| ----------- | ------------------ | ----------------------------------------------------------- |
+| `console`   | Expanded           | Collapsed                                                   |
+| `problems`  | Expanded (active)  | Collapsed (active)                                          |
+| `preview`   | Expanded           | Expanded                                                    |
+| `tabs`      | Expanded           | Hidden, unless multiple distinct `file` values are supplied |
+| `filetree`  | Expanded           | Hidden                                                      |
+| `statusbar` | Expanded           | Hidden                                                      |
+| `appbar`    | Expanded           | Hidden                                                      |
+
+Tabs and breadcrumbs are shown together whenever multiple files are open, even
+with `-tabs`, so users can switch between files. When only one file remains open,
+they return to the configured visibility.
+
+#### Bottom panel behavior
+
+`console` and `problems` share the bottom area:
+
+- The bottom area expands if either resolved tab is expanded, otherwise collapses if either is collapsed, otherwise hides. In embeds, hiding requires `-console,-problems`.
+- The last positive hint (`+console` or `+problems`) selects that tab. Without a positive hint, the more visible tab is selected (for example, `-console` in standalone selects Problems).
+- In standalone mode, a single negative hint (`-console` or `-problems`) keeps the area expanded and selects the other tab; both must be `-` to collapse the area.
 
 ### Examples
 

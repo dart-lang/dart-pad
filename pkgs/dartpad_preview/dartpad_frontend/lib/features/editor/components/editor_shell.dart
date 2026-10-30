@@ -8,8 +8,10 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../shared/components/context_menu.dart';
+import '../../shared/components/panel_visibility.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/panel_layout_controller.dart';
+import '../../shared/panel_presentation_state.dart';
 import 'editor_breadcrumbs.dart';
 import 'editor_stack.dart';
 import 'editor_tab_bar.dart';
@@ -74,18 +76,23 @@ class EditorShell extends StatelessComponent {
       if (openTabs != null) ...[
         ValueListenableBuilder(
           listenable: panelController.editorNavigationListenable,
-          builder: (_, navigation) => Component.fragment([
-            // Navigation may open another file even when tabs are hidden by default.
-            if (navigation.showEditorTabs || openTabs.length > 1)
-              EditorTabBar(
-                openTabs: openTabs,
-                activeFile: activeFile,
-                onSwitchFile: onSwitchFile!,
-                onCloseFile: onCloseFile!,
-                contextMenu: contextMenu,
-              ),
-            if (navigation.showBreadcrumbs && activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
-          ]),
+          builder: (_, navigation) {
+            // Reveal grouped navigation temporarily when another file opens.
+            return PanelVisibility(
+              id: 'editor-navigation-panel',
+              visible: openTabs.length > 1 || navigation == PanelPresentationState.expanded,
+              child: Component.fragment([
+                EditorTabBar(
+                  openTabs: openTabs,
+                  activeFile: activeFile,
+                  onSwitchFile: onSwitchFile!,
+                  onCloseFile: onCloseFile!,
+                  contextMenu: contextMenu,
+                ),
+                if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
+              ]),
+            );
+          },
         ),
         EditorStack(
           openTabs: openTabs,

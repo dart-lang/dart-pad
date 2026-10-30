@@ -13,7 +13,7 @@ enum BottomPanelTab {
   console,
 }
 
-/// Selection and size survive collapsing the panel.
+/// Selection and size survive collapsing or hiding the panel.
 @immutable
 sealed class BottomPanelState {
   const BottomPanelState(this.selectedTab, {required this.editorFraction});
@@ -44,4 +44,9 @@ final class BottomPanelExpanded extends BottomPanelState {
 
 final class BottomPanelCollapsed extends BottomPanelState {
   const BottomPanelCollapsed(super.selectedTab, {required super.editorFraction});
+}
+
+/// Hides the entire bottom area, including both tab buttons.
+final class BottomPanelHidden extends BottomPanelState {
+  const BottomPanelHidden(super.selectedTab, {required super.editorFraction});
 }

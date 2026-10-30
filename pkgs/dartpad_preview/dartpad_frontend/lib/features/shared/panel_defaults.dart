@@ -12,6 +12,7 @@ import '../bottom_panel/bottom_panel_state.dart';
 import 'components/split_panel.dart';
 import 'panel_layout_state.dart';
 import 'panel_presentation_state.dart';
+import 'workspace_mode.dart';
 
 const previewRatio = 0.7;
 const editorRatio = 0.75;
@@ -20,30 +21,30 @@ const fileTreeWidth = 200.0;
 /// Resolve initial panel states with an optional editor-navigation override.
 /// Without an override, tabs and breadcrumbs are visible outside embeds.
 PanelLayoutState resolveInitialPanelLayout({
-  required bool isEmbedMode,
+  required WorkspaceMode mode,
   bool? showEditorNavigation,
   double? initialPreviewRatio,
 }) {
   final preview = Split(initialPreviewRatio ?? previewRatio);
-  final showNavigation = showEditorNavigation ?? !isEmbedMode;
-  if (isEmbedMode) {
-    return (
+  final editorNavigation = (showEditorNavigation ?? mode == WorkspaceMode.standalone)
+      ? PanelPresentationState.expanded
+      : PanelPresentationState.hidden;
+  return switch (mode) {
+    WorkspaceMode.embed => (
       appBar: PanelPresentationState.hidden,
       statusBar: PanelPresentationState.hidden,
       preview: preview,
       fileTree: const LeftHidden(fileTreeWidth),
       bottom: const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio),
-      showEditorTabs: showNavigation,
-      showBreadcrumbs: showNavigation,
-    );
-  }
-  return (
-    appBar: PanelPresentationState.expanded,
-    statusBar: PanelPresentationState.expanded,
-    preview: preview,
-    fileTree: const Split(fileTreeWidth),
-    bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
-    showEditorTabs: showNavigation,
-    showBreadcrumbs: showNavigation,
-  );
+      editorNavigation: editorNavigation,
+    ),
+    WorkspaceMode.standalone => (
+      appBar: PanelPresentationState.expanded,
+      statusBar: PanelPresentationState.expanded,
+      preview: preview,
+      fileTree: const Split(fileTreeWidth),
+      bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
+      editorNavigation: editorNavigation,
+    ),
+  };
 }

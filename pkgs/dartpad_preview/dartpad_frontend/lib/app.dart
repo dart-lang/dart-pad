@@ -32,11 +32,11 @@ import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
-import 'features/shared/components/collapsible_panel.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
 import 'features/shared/components/error_dialog.dart';
 import 'features/shared/components/footer.dart';
+import 'features/shared/components/panel_visibility.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/shortcuts_dialog.dart';
 import 'features/shared/components/split_panel.dart';
@@ -44,8 +44,10 @@ import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/panel_layout_controller.dart';
+import 'features/shared/panel_presentation_state.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
+import 'features/shared/workspace_mode.dart';
 import 'features/startup/initial_project_state.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
@@ -146,7 +148,7 @@ final class _AppState extends State<App> {
   void initState() {
     super.initState();
     _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
-    _panels = PanelLayoutController(isEmbedMode: _isEmbedMode);
+    _panels = PanelLayoutController(mode: _isEmbedMode ? WorkspaceMode.embed : WorkspaceMode.standalone);
     _embedMessages = EmbedMessageController(onSourceCode: _injectSourceCode);
     if (_isEmbedMode) {
       _embedRuntime = EmbedRuntimeController(
@@ -203,6 +205,7 @@ final class _AppState extends State<App> {
         _panels.applyInitialDefaults(
           previewRatio: request.initialSplitRatio,
           showEditorNavigation: !_isEmbedMode || request.files.toSet().length > 1,
+          hints: request.panels,
         );
         final strategy = await _persistence.prepareLoad(request, startFresh: startFresh);
         loadStrategy = strategy;
@@ -210,7 +213,7 @@ final class _AppState extends State<App> {
           return;
         }
         if (strategy.mintedSessionId case final id?) {
-          _writeSessionIdToUrl(uri, id);
+          _writeSessionIdToUrl(request, id);
         }
         final project = switch (strategy.restoreProjectId) {
           final id? => await _loadSavedProject(id, request),
@@ -365,15 +368,14 @@ final class _AppState extends State<App> {
 
   void _onPreviewStateChanged() {
     final state = _session.preview.state;
-    if (state is PreviewStarting || state is PreviewRestarting || state is PreviewRunning) {
-      if (!_isLargeScreen) {
-        if (_selectedSmallScreenTab != .output) {
-          setState(() {
-            _selectedSmallScreenTab = .output;
-          });
-        }
-      } else {
-        _panels.expandPreview();
+    if (state is PreviewStarting && !state.autoStart ||
+        state is PreviewRestarting && !state.autoStart ||
+        state is PreviewHotReloading) {
+      _panels.expandPreview();
+      if (!_isLargeScreen && _selectedSmallScreenTab != .output) {
+        setState(() {
+          _selectedSmallScreenTab = .output;
+        });
       }
     }
   }
@@ -478,7 +480,7 @@ final class _AppState extends State<App> {
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
         if (session.initialProject.request.autoRun) {
-          unawaited(session.preview.runCurrent());
+          unawaited(session.preview.runCurrent(autoStart: true));
         }
         return;
       }
@@ -549,7 +551,7 @@ final class _AppState extends State<App> {
     }
 
     if (autoRun && preparationSucceeded && session.preview.entrypoint != null) {
-      await session.preview.runCurrent();
+      await session.preview.runCurrent(autoStart: true);
       if (!_isCurrentRuntime(session, generation)) {
         return false;
       }
@@ -644,8 +646,8 @@ final class _AppState extends State<App> {
 
   /// Reflects a freshly minted session id in the address bar without pushing a
   /// new history entry, so back navigation does not land on the bare URL.
-  void _writeSessionIdToUrl(Uri uri, int sessionId) {
-    final query = {...uri.queryParametersAll, QueryParameters.sessionId: '$sessionId'};
+  void _writeSessionIdToUrl(ProjectRequest request, int sessionId) {
+    final query = {...request.query, QueryParameters.sessionId: '$sessionId'};
     final search = Uri(queryParameters: query).query;
     web.window.history.replaceState(null, '', search.isEmpty ? web.window.location.pathname : '?$search');
   }
@@ -706,7 +708,11 @@ final class _AppState extends State<App> {
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
       setState(() {
-        _panels.applyInitialDefaults(previewRatio: next.initialProject.request.initialSplitRatio);
+        _panels.applyInitialDefaults(
+          previewRatio: next.initialProject.request.initialSplitRatio,
+          showEditorNavigation: !_isEmbedMode || next.initialProject.request.files.toSet().length > 1,
+          hints: next.initialProject.request.panels,
+        );
         _activeSession = next;
         _workspacePreparationFailure = null;
       });
@@ -853,12 +859,9 @@ final class _AppState extends State<App> {
   Component _buildAppBar({bool showNavigation = false}) => Component.fragment([
     ValueListenableBuilder(
       listenable: _panels.appBarListenable,
-      builder: (_, state) => CollapsiblePanel(
+      builder: (_, state) => PanelVisibility(
         id: 'app-bar-panel',
-        label: 'app bar',
-        state: state,
-        onStateChanged: _panels.updateAppBar,
-        showToggle: false,
+        visible: state == PanelPresentationState.expanded,
         child: AppBar(
           isSmallScreen: !_isLargeScreen,
           onSelectExample: _isInitializingWorkspace
@@ -867,23 +870,24 @@ final class _AppState extends State<App> {
         ),
       ),
     ),
-    // Navigation must remain reachable even when the app bar is collapsed or hidden.
+    // Navigation must remain reachable even when the app bar is hidden.
     if (showNavigation && !_isLargeScreen)
       SmallScreenTabBar(
         selectedTab: _selectedSmallScreenTab,
-        onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
+        onTabSelected: (tab) {
+          if (tab == .output) {
+            _panels.expandPreview();
+          }
+          setState(() => _selectedSmallScreenTab = tab);
+        },
       ),
   ]);
 
   Component _buildStatusBar({String? statusMessage}) => ValueListenableBuilder(
     listenable: _panels.statusBarListenable,
-    builder: (_, state) => CollapsiblePanel(
+    builder: (_, state) => PanelVisibility(
       id: 'status-bar-panel',
-      label: 'status bar',
-      state: state,
-      onStateChanged: _panels.updateStatusBar,
-      showToggle: false,
-      collapseDirection: CollapseDirection.down,
+      visible: state == PanelPresentationState.expanded,
       child: Footer(
         taskStatus: _activeTaskStatus,
         statusMessage: statusMessage,

@@ -14,7 +14,6 @@ import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
-import 'package:dartpad_frontend/features/shared/components/collapsible_panel.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -200,6 +199,7 @@ void main() {
       List<String> files = const [],
       Completer<Project>? download,
       int split = 70,
+      List<String> panelHints = const [],
     }) async {
       final originalWidth = _getOwnPropertyDescriptor(web.window, 'innerWidth'.toJS);
       addTearDown(() async {
@@ -219,6 +219,7 @@ void main() {
             queryParameters: {
               'embed': '$embed',
               'split': '$split',
+              if (panelHints.isNotEmpty) 'panels': panelHints,
               if (files.isNotEmpty) 'file': files,
             },
           ),
@@ -260,6 +261,9 @@ void main() {
       await pumpEventQueue();
     }
 
+    Future<void> selectOutputTab() => click('.small-screen-tab-bar-tab:nth-child(2)');
+    Future<void> selectCodeTab() => click('.small-screen-tab-bar-tab:first-child');
+
     void expectConsoleSelected() {
       expect(web.document.querySelector('.console-panel'), isNotNull);
       expect(
@@ -272,31 +276,49 @@ void main() {
     }
 
     for (final width in [600, 1200]) {
-      testClient('single-file embed reveals tabs after navigation and allows returning: width=$width', (tester) async {
-        await mountApp(tester, width: width, files: ['lib/main.dart']);
-        expect(web.document.querySelector('.editor-tab-bar'), isNull);
+      for (final (embed, hint) in [(true, ''), (true, '-tabs'), (false, '-tabs')]) {
+        testClient('single-file navigation follows open files: width=$width, embed=$embed, panels=$hint', (
+          tester,
+        ) async {
+          await mountApp(tester, width: width, embed: embed, files: ['lib/main.dart'], panelHints: [hint]);
+          expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
+          expect(web.document.querySelector('button[aria-label="Collapse editor tabs"]'), isNull);
+          expect(web.document.querySelector('.editor-tab-bar'), isNull);
+          expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
 
-        final bottomPanel = find.byType(BottomPanel).evaluate().single.component as BottomPanel;
-        bottomPanel.onOpenDiagnostic(
-          'README.md',
-          const Diagnostic(line: 0, character: 0, message: 'Project documentation', severity: DiagnosticSeverity.info),
-        );
-        await pumpEventQueue();
+          final bottomPanel = find.byType(BottomPanel).evaluate().single.component as BottomPanel;
+          bottomPanel.onOpenDiagnostic(
+            'README.md',
+            const Diagnostic(
+              line: 0,
+              character: 0,
+              message: 'Project documentation',
+              severity: DiagnosticSeverity.info,
+            ),
+          );
+          await pumpEventQueue();
 
-        expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
-        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
-        expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
-        expect(fileTreeSplit().state, const LeftHidden(200));
+          expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
+          expect(web.document.querySelector('button[aria-label="Collapse editor tabs"]'), isNull);
+          expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
+          expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
+          expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
+          expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const Split(200));
 
-        (web.document.querySelector('.editor-tab[title="lib/main.dart"]')! as web.HTMLElement).click();
-        await pumpEventQueue();
-        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'lib/main.dart');
+          (web.document.querySelector('.editor-tab[title="lib/main.dart"]')! as web.HTMLElement).click();
+          await pumpEventQueue();
+          expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'lib/main.dart');
+          expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'lib/main.dart');
 
-        await click('button[aria-label="Close README.md"]');
-        expect(web.document.querySelector('.editor-tab-bar'), isNull);
-        expect(web.document.querySelector('.editor-tab-slot.active .cm-editor'), isNotNull);
-        expect(fileTreeSplit().state, const LeftHidden(200));
-      });
+          await click('button[aria-label="Close README.md"]');
+          expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
+          expect(web.document.querySelector('button[aria-label="Collapse editor tabs"]'), isNull);
+          expect(web.document.querySelector('.editor-tab-bar'), isNull);
+          expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
+          expect(web.document.querySelector('.editor-tab-slot.active .cm-editor'), isNotNull);
+          expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const Split(200));
+        });
+      }
 
       for (final embed in [false, true]) {
         for (final files in [
@@ -346,7 +368,14 @@ void main() {
 
         testClient('loading completion preserves panel interactions: width=$width, embed=$embed', (tester) async {
           final download = Completer<Project>();
-          await mountApp(tester, width: width, embed: embed, download: download, split: 95);
+          await mountApp(
+            tester,
+            width: width,
+            embed: embed,
+            download: download,
+            split: 95,
+            panelHints: ['-console,-problems,-preview,-filetree,-tabs,+appbar,+statusbar'],
+          );
           final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
           if (width == 1200) {
             final preview = find
@@ -359,8 +388,6 @@ void main() {
           }
           fileTreeSplit().split(235);
           panels.updatePreview(const RightCollapsed(0.62));
-          panels.updateAppBar(PanelPresentationState.hidden);
-          panels.updateStatusBar(PanelPresentationState.collapsed);
           await pumpEventQueue();
           bottomSplit().split(0.6);
           await pumpEventQueue();
@@ -375,8 +402,10 @@ void main() {
           expectConsoleSelected();
           expect(fileTreeSplit().state, const Split(235));
           expect(panels.preview, const RightCollapsed(0.62));
-          expect(panels.appBar, PanelPresentationState.hidden);
-          expect(panels.statusBar, PanelPresentationState.collapsed);
+          expect(panels.appBar, PanelPresentationState.expanded);
+          expect(panels.statusBar, PanelPresentationState.expanded);
+          expect(panels.showEditorTabs, isFalse);
+          expect(panels.showBreadcrumbs, isFalse);
           await _resizeWindow(width == 1200 ? 600 : 1200);
           expectConsoleSelected();
           expect(fileTreeSplit().state, const Split(235));
@@ -385,19 +414,171 @@ void main() {
       }
     }
 
+    for (final width in [600, 1200]) {
+      for (final embed in [false, true]) {
+        testClient('negative panel hints apply before and after loading: width=$width, embed=$embed', (tester) async {
+          final download = Completer<Project>();
+          await mountApp(
+            tester,
+            width: width,
+            embed: embed,
+            download: download,
+            split: 60,
+            panelHints: ['-console,-problems,-preview,-tabs,-filetree,-appbar,-statusbar'],
+          );
+          final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
+          void expectLayout({required bool loaded}) {
+            expect(panels.preview, embed ? const RightHidden(0.6) : const RightCollapsed(0.6));
+            expect(fileTreeSplit().state, embed ? const LeftHidden(200) : const LeftCollapsed(200));
+            expect(bottomSplit().state, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
+            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded && !embed ? 2 : 0);
+            expect(web.document.querySelector('.editor-tab-bar'), isNull);
+            expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
+            expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
+            expect(web.document.querySelector('.app-bar'), isNull);
+            expect(web.document.querySelector('.app-footer'), isNull);
+          }
+
+          expectLayout(loaded: false);
+          download.complete(contents({'lib/main.dart': 'void main() {}'}));
+          await pumpEventQueue();
+          expectLayout(loaded: true);
+          await _resizeWindow(width == 600 ? 1200 : 600);
+          expectLayout(loaded: true);
+          if (width == 1200) {
+            expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+            await selectOutputTab();
+            expect(panels.preview, const Split(0.6));
+            await selectCodeTab();
+          }
+        });
+
+        testClient('positive panel hints override contextual defaults: width=$width, embed=$embed', (tester) async {
+          await mountApp(
+            tester,
+            width: width,
+            embed: embed,
+            panelHints: ['+console,+preview,+tabs,+filetree,+appbar,+statusbar'],
+          );
+          expect(fileTreeSplit().state, const Split(200));
+          expect(bottomSplit().state, const Split(0.75));
+          expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+          expect(web.document.querySelector('.console-panel'), isNotNull);
+          expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
+          expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
+          expect(web.document.querySelector('.app-bar'), isNotNull);
+          expect(web.document.querySelector('.app-footer'), isNotNull);
+          if (width == 1200) {
+            expect(previewSplit().state, const Split(0.7));
+          }
+        });
+
+        for (final hint in ['-console', '-console,+problems', '+problems,-console']) {
+          testClient('$hint always keeps both bottom tabs: width=$width, embed=$embed', (tester) async {
+            await mountApp(tester, width: width, embed: embed, panelHints: [hint]);
+            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+            final collapsed = embed && hint == '-console';
+            expect(bottomSplit().state, collapsed ? const RightCollapsed(0.75) : const Split(0.75));
+            expect(web.document.querySelector('.problems-panel'), collapsed ? isNull : isNotNull);
+            if (!collapsed) {
+              expect(
+                web.document.querySelector('.bottom-panel [aria-selected="true"]')!.textContent,
+                startsWith('Problems'),
+              );
+            }
+          });
+        }
+      }
+    }
+
+    for (final width in [600, 1200]) {
+      testClient('Run reveals a preview hidden by embed hints: width=$width', (tester) async {
+        await mountApp(tester, width: width, files: ['lib/main.dart'], split: 60, panelHints: ['-preview']);
+        final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
+        expect(panels.preview, const RightHidden(0.6));
+        expect(web.document.querySelector('.small-screen-tab-bar'), width == 600 ? isNotNull : isNull);
+
+        final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+        expect(run.disabled, isFalse);
+        run.click();
+        await pumpEventQueue();
+
+        expect(panels.preview, const Split(0.6));
+        final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
+        expect(container.preview.state, isA<PreviewStarting>());
+        final preview = web.document.querySelector('.preview-container')! as web.HTMLElement;
+        expect(preview.style.display, isNot('none'));
+        expect(web.document.querySelector('.preview-container.collapsed'), isNull);
+        if (width == 600) {
+          expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+          expect(web.document.querySelector('.editor-host'), isNull);
+          await selectCodeTab();
+          expect(web.document.querySelector('.cm-editor'), isNotNull);
+        }
+      });
+    }
+
+    testClient('mobile tabs allow switching with a preview hidden by embed hints', (tester) async {
+      await mountApp(tester, width: 600, files: ['lib/main.dart'], split: 60, panelHints: ['-preview']);
+      final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
+      expect(panels.preview, const RightHidden(0.6));
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+
+      await selectOutputTab();
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect(web.document.querySelector('.editor-host'), isNull);
+
+      // Mobile visibility follows the selected tab even if the desktop panel hides again.
+      panels.updatePreview(const RightHidden(0.6));
+      await pumpEventQueue();
+      expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      await selectCodeTab();
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect(web.document.querySelector('.preview-container'), isNull);
+    });
+
+    testClient('mobile Output stays selected after desktop collapse and Run switches back from Code', (tester) async {
+      await mountApp(tester, width: 600, files: ['lib/main.dart'], split: 60);
+      await selectOutputTab();
+      await _resizeWindow(1200);
+      await click('button[aria-label="Hide preview"]');
+      expect(previewSplit().state, const RightCollapsed(0.6));
+
+      await _resizeWindow(600);
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect(web.document.querySelector('.editor-host'), isNull);
+
+      await selectCodeTab();
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
+      await click('.main-editor-actions button');
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect(web.document.querySelector('.editor-host'), isNull);
+      final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
+      expect(panels.preview, const Split(0.6));
+    });
+
     testClient('bars stay visible without toggle buttons across screen sizes', (tester) async {
       await mountApp(tester, width: 1200, embed: false);
       expect(web.document.querySelector('.app-bar'), isNotNull);
       expect(web.document.querySelector('.app-footer'), isNotNull);
-      expect(web.document.querySelector('.collapsible-panel-toggle'), isNull);
+      expect(web.document.querySelector('button[aria-label="Show app bar"]'), isNull);
+      expect(web.document.querySelector('button[aria-label="Collapse app bar"]'), isNull);
+      expect(web.document.querySelector('button[aria-label="Show status bar"]'), isNull);
+      expect(web.document.querySelector('button[aria-label="Collapse status bar"]'), isNull);
 
       await _resizeWindow(600);
       expect(web.document.querySelector('.app-bar'), isNotNull);
       expect(web.document.querySelector('.app-footer'), isNotNull);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      await click('.small-screen-tab-bar-tab:first-child');
+      await selectCodeTab();
       expect(web.document.querySelector('.preview-container'), isNull);
 
       await _resizeWindow(1200);
@@ -405,35 +586,26 @@ void main() {
       expect(web.document.querySelector('.app-footer'), isNotNull);
     });
 
-    testClient('hidden bars have no controls and leave small-screen navigation usable', (tester) async {
-      await mountApp(tester, width: 600, embed: false);
-      final bars = find.byType(CollapsiblePanel).evaluate().map((e) => e.component as CollapsiblePanel).toList();
-      for (final bar in bars) {
-        bar.onStateChanged(PanelPresentationState.hidden);
-      }
-      await pumpEventQueue();
-      expect(web.document.querySelector('.collapsible-panel'), isNull);
+    testClient('negative bar hints leave small-screen navigation usable', (tester) async {
+      await mountApp(tester, width: 600, embed: false, panelHints: ['-appbar,-statusbar,-tabs']);
+      expect(web.document.querySelector('.panel-visibility'), isNull);
       expect(web.document.querySelector('.app-bar'), isNull);
       expect(web.document.querySelector('.app-footer'), isNull);
-      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      for (final bar in bars) {
-        bar.onStateChanged(PanelPresentationState.expanded);
-      }
-      await pumpEventQueue();
-      expect(web.document.querySelector('.app-bar'), isNotNull);
-      expect(web.document.querySelector('.app-footer'), isNotNull);
+      await selectCodeTab();
+      expect(web.document.querySelector('.cm-editor'), isNotNull);
     });
 
     testClient('embed defaults hide bars without reopen controls at every screen size', (tester) async {
       await mountApp(tester, width: 1200);
-      expect(web.document.querySelector('.collapsible-panel'), isNull);
+      expect(web.document.querySelector('#editor-navigation-panel'), isNull);
       expect(web.document.querySelector('.app-bar'), isNull);
       expect(web.document.querySelector('.app-footer'), isNull);
       await _resizeWindow(600);
-      expect(web.document.querySelector('.collapsible-panel'), isNull);
+      expect(web.document.querySelector('#editor-navigation-panel'), isNull);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-      await click('.small-screen-tab-bar-tab:nth-child(2)');
+      await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
     });
 
@@ -477,12 +649,12 @@ void main() {
       await pumpEventQueue();
       await click('button[aria-label="Hide bottom panel"]');
 
-      await click('.small-screen-tab-bar button:nth-child(2)');
+      await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
       expect(web.document.querySelector('.editor-host'), isNull);
       expect(web.document.querySelector('.bottom-panel'), isNull);
 
-      await click('.small-screen-tab-bar button:first-child');
+      await selectCodeTab();
       expect(web.document.querySelector('.preview-container'), isNull);
       expect(web.document.querySelector('.cm-editor'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
@@ -500,6 +672,57 @@ void main() {
       expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '225px');
     });
   });
+
+  for (final (embed, hint) in [(false, '-preview'), (true, '-preview'), (false, '')]) {
+    testClient('automatic startup preserves preview layout: embed=$embed, panels=$hint', (tester) async {
+      final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
+      addTearDown(worker.close);
+      final workspace = await worker.createWorkspace();
+      final readyWorkspace = Completer<Workspace>();
+      var pendingRun = Completer<void>();
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?embed=$embed&sample_id=material.AppBar.1&panels=$hint'),
+          loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+              WorkspaceRepository(
+                events: events,
+                sdk: sdk,
+                taskStatus: taskStatus,
+                workspaceResourceApi: localApi!,
+                workspaceFuture: readyWorkspace.future,
+                onFlush: () => pendingRun.future,
+              ),
+        ),
+      );
+      await pumpEventQueue();
+      if (hint.isEmpty) {
+        (web.document.querySelector('button[aria-label="Hide preview"]')! as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+      }
+      final shell = find.byType(EditorShell).evaluate().single.component as EditorShell;
+      final panels = shell.panelController;
+      final hiddenPreview = panels.preview;
+      expect(hiddenPreview, embed ? isA<RightHidden>() : isA<RightCollapsed>());
+      readyWorkspace.complete(workspace);
+      await pumpEventQueue();
+      final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
+      expect(container.preview.state, isA<PreviewStarting>());
+      expect(panels.preview, hiddenPreview);
+
+      await container.preview.stopCode();
+      pendingRun.complete();
+      pendingRun = Completer<void>();
+      await pumpEventQueue();
+      final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+      expect(run.disabled, isFalse);
+      run.click();
+      await pumpEventQueue();
+      expect(container.preview.state, isA<PreviewStarting>());
+      expect(panels.preview, isA<Split>());
+    });
+  }
 
   for (final (source, autoRunInEmbed) in [
     ('', false),

@@ -139,6 +139,42 @@ void main() {
     });
   }
 
+  for (final panelQuery in [
+    'panels=+console,-problems',
+    'panels=%20+console%20,%20-problems%20',
+    'panels=%20%2Bconsole%20,%20-problems%20',
+    'panels=%20+console%20&panels=%20-problems%20',
+  ]) {
+    testClient('session URL retains panel hints and restores edits: $panelQuery', (tester) async {
+      final originalUrl = web.window.location.href;
+      addTearDown(() => web.window.history.replaceState(null, '', originalUrl));
+      store = MemoryProjectStore();
+      tester.pumpComponent(app('?sample=counter&$panelQuery'));
+      await pumpEventQueue();
+      final sessionQuery = web.window.location.search;
+      expect(Uri.parse(sessionQuery).queryParameters['s'], '1');
+      expect(sourceLoads, 1);
+      expect(
+        web.document.querySelector('.bottom-panel [role="tab"][aria-selected="true"]')!.textContent,
+        startsWith('Console'),
+      );
+      await repositories.single.workspaceResourceApi.writeFileFromText('lib/main.dart', 'edited project');
+      tester.binding.detachRootComponent();
+      await store.closed.future.timeout(const Duration(seconds: 3));
+      await pumpEventQueue();
+
+      tester.pumpComponent(app(sessionQuery));
+      await pumpEventQueue();
+      expect(sourceLoads, 1);
+      expect(store.entries, hasLength(1));
+      expect(await repositories.last.workspaceResourceApi.readFileAsText('lib/main.dart'), 'edited project');
+      expect(
+        web.document.querySelector('.bottom-panel [role="tab"][aria-selected="true"]')!.textContent,
+        startsWith('Console'),
+      );
+    });
+  }
+
   testClient('increments the minted session id for repeated loads of the same sourced URL', (tester) async {
     final originalUrl = web.window.location.href;
     addTearDown(() => web.window.history.replaceState(null, '', originalUrl));

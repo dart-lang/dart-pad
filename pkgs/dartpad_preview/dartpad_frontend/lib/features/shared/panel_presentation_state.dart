@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Presentation of a panel that does not need a draggable split.
+/// Visibility of a panel without a collapsed presentation.
 enum PanelPresentationState {
   /// Show the panel content.
   expanded,
-
-  /// Omit the content while retaining the panel's collapsed presentation.
-  collapsed,
 
   /// Render nothing. Only the owner can reveal the panel.
   hidden,
