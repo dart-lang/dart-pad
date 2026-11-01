@@ -10,6 +10,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/persistence/project_persistence_controller.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_session.dart';
 import 'package:test/test.dart';
@@ -56,9 +57,15 @@ void main() {
     return session;
   }
 
+  /// Mints a session id, as the app does before attaching a new project.
+  Future<void> attachNew(WorkspaceSession session) async {
+    await controller.prepareLoad(ProjectRequest.fromUri(Uri.parse('?sample=counter')));
+    controller.attach(session);
+  }
+
   test('reattaching a replacement session can retain the same history entry', () async {
     final previous = await createSession('previous session');
-    controller.attach(previous);
+    await attachNew(previous);
     await controller.flush();
     final id = controller.projectId!;
     await controller.stop();
@@ -72,7 +79,7 @@ void main() {
 
     // A subsequent fresh project must not accidentally reuse the retained ID.
     await controller.stop();
-    controller.attach(await createSession('fresh project'));
+    await attachNew(await createSession('fresh project'));
     await controller.flush();
     expect(store.entries, hasLength(2));
     expect(controller.projectId, isNot(id));
@@ -81,7 +88,7 @@ void main() {
 
   test('another tab can write without interrupting this session or creating a copy', () async {
     final session = await createSession('my changes');
-    controller.attach(session);
+    await attachNew(session);
     await controller.flush();
     final id = controller.projectId!;
     await store.write(id, savedProject(text: 'their changes'));
@@ -99,7 +106,7 @@ void main() {
   });
 
   test('stopping an unchanged tab preserves a newer save from another tab', () async {
-    controller.attach(await createSession('old local version'));
+    await attachNew(await createSession('old local version'));
     await controller.flush();
     final id = controller.projectId!;
     await store.write(id, savedProject(text: 'newer other tab version'));
@@ -110,7 +117,7 @@ void main() {
   });
 
   test('disposal waits for an existing stop before closing the store exactly once', () async {
-    controller.attach(await createSession('pending save'));
+    await attachNew(await createSession('pending save'));
     final barrier = Completer<void>();
     store.writeBarrier = barrier.future;
     final stopping = controller.stop();

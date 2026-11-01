@@ -26,7 +26,7 @@ final class PersistedProjectState {
     required this.activeFile,
     required this.files,
     required this.folders,
-    this.sessionId,
+    required this.sessionId,
   });
 
   final Map<String, List<String>> query;
@@ -39,7 +39,7 @@ final class PersistedProjectState {
   final Map<String, Uint8List> files;
   final List<String> folders;
 
-  final int? sessionId;
+  final int sessionId;
 
   Project get project => Project([
     for (final entry in files.entries) ProjectFile(path: entry.key, bytes: entry.value),
@@ -158,7 +158,7 @@ final class PersistedProjectState {
       activeFile: data['activeFile'] as String,
       files: files,
       folders: folders,
-      sessionId: data['sessionId'] as int?,
+      sessionId: data['sessionId'] as int,
     );
   }
 }

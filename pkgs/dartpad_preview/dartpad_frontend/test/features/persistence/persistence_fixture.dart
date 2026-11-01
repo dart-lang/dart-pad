@@ -17,7 +17,7 @@ PersistedProjectState savedProject({
   String query = '?sample=counter',
   String text = 'void main() { print("previous work"); }',
   Map<String, Uint8List>? files,
-  int? sessionId,
+  int sessionId = 1,
 }) => PersistedProjectState(
   query: Uri.parse(query).queryParametersAll,
   sdk: availableSdks.firstWhere((sdk) => !sdk.isFlutter),

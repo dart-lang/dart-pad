@@ -146,7 +146,8 @@ final class ProjectPersistenceController extends ChangeNotifier {
   /// Starts saving a prepared session. Omit [projectId] to create a new entry.
   /// Call and await [stop] before replacing an attached session.
   void attach(WorkspaceSession session, {String? projectId}) {
-    if (!_available || _disposed) {
+    final sessionId = _sessionId;
+    if (!_available || _disposed || sessionId == null) {
       return;
     }
     assert(_autosave == null && _stopping == null);
@@ -156,7 +157,7 @@ final class ProjectPersistenceController extends ChangeNotifier {
       session: session,
       store: _store!,
       projectId: projectId,
-      sessionId: _sessionId,
+      sessionId: sessionId,
       onError: (_) {
         if (identical(_autosave, autosave)) {
           _reportSaveFailure();
