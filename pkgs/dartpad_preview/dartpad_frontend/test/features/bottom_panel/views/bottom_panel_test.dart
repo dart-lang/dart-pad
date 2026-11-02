@@ -21,6 +21,7 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../pointer_fixture.dart';
 import '../../../split_panel_fixture.dart';
 
 void main() {
@@ -56,6 +57,34 @@ void main() {
       right: bottomPanel,
     );
   }
+
+  testClient('touch collapse and expand release focus without delayed tooltips', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester);
+    tester.pumpComponent(
+      inSplitPanel(
+        BottomPanel(
+          panelController: panels,
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
+      ),
+    );
+    await pumpEventQueue();
+    for (final label in ['Hide bottom panel', 'Show bottom panel']) {
+      final button = web.document.querySelector('button[aria-label="$label"]')! as web.HTMLButtonElement;
+      touchTap(button);
+      await pumpEventQueue();
+      expect(panels.bottom.isExpanded, label == 'Show bottom panel');
+      expect(web.document.activeElement, isNot(button));
+      await Future<void>.delayed(const Duration(milliseconds: 650));
+      expect(web.document.querySelector('.custom-tooltip'), isNull);
+    }
+  });
 
   testClient('hiding removes both tabs; a later console request reopens both at the retained size', (tester) async {
     final events = AppEventBus();

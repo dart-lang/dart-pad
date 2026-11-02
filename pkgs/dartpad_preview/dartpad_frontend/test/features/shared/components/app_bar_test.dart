@@ -10,7 +10,21 @@ import 'package:dartpad_frontend/features/shared/components/app_bar.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../pointer_fixture.dart';
+
 void main() {
+  testClient('touch opens More options without leaving focus or a delayed tooltip', (tester) async {
+    tester.pumpComponent(const AppBar(isSmallScreen: true));
+    await pumpEventQueue();
+    final button = web.document.querySelector('[aria-label="More options"]')! as web.HTMLButtonElement;
+    touchTap(button);
+    await pumpEventQueue();
+    expect(web.document.querySelector('nav.dropdown-menu'), isNotNull);
+    expect(web.document.activeElement, isNot(button));
+    await Future<void>.delayed(const Duration(milliseconds: 650));
+    expect(web.document.querySelector('.custom-tooltip'), isNull);
+  });
+
   testClient('disables example menu while workspace initialization is pending', (
     tester,
   ) {

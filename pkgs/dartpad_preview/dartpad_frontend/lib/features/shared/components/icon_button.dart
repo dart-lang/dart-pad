@@ -44,11 +44,28 @@ class IconButton extends StatefulComponent {
 
 class _IconButtonState extends State<IconButton> {
   final GlobalNodeKey<web.HTMLElement> _buttonKey = GlobalNodeKey();
+  StreamSubscription<web.MouseEvent>? _activationSubscription;
   Timer? _showTimer;
   bool _isTooltipVisible = false;
+  bool _hoveringMouse = false;
+  bool _touchActivation = false;
 
   static Timer? _cooldownTimer;
   static bool _showImmediately = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.binding.addPostFrameCallback(() {
+      final button = _buttonKey.currentNode;
+      if (!mounted || button == null) {
+        return;
+      }
+      // Observe activation separately: a parent may supply the click action
+      // through Component.apply, as DropdownMenu does for its trigger.
+      _activationSubscription = web.EventStreamProviders.clickEvent.forTarget(button).listen(_onActivation);
+    });
+  }
 
   static void _startCooldown() {
     _cooldownTimer?.cancel();
@@ -59,6 +76,43 @@ class _IconButtonState extends State<IconButton> {
 
   static void _enterButton() {
     _cooldownTimer?.cancel();
+  }
+
+  void _onPointerEnter(web.Event event) {
+    if ((event as web.PointerEvent).pointerType != 'mouse') {
+      return;
+    }
+    setState(() => _hoveringMouse = true);
+    _onMouseEnter();
+  }
+
+  void _onPointerLeave(web.Event event) {
+    if ((event as web.PointerEvent).pointerType != 'mouse') {
+      return;
+    }
+    setState(() => _hoveringMouse = false);
+    _onMouseLeave();
+  }
+
+  void _onPointerDown(web.Event event) {
+    _touchActivation = (event as web.PointerEvent).pointerType == 'touch';
+    if (_touchActivation && _hoveringMouse) {
+      setState(() => _hoveringMouse = false);
+    }
+    _onMouseLeave();
+  }
+
+  void _onActivation(web.MouseEvent event) {
+    if (!mounted) {
+      return;
+    }
+    // Keyboard and assistive activations have no pointer click count.
+    final releaseTouchFocus = _touchActivation && event.detail > 0;
+    _touchActivation = false;
+    _onMouseLeave();
+    if (releaseTouchFocus) {
+      _buttonKey.currentNode?.blur();
+    }
   }
 
   void _onMouseEnter() {
@@ -77,6 +131,9 @@ class _IconButtonState extends State<IconButton> {
     } else {
       _showTimer?.cancel();
       _showTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted || !_hoveringMouse) {
+          return;
+        }
         setState(() {
           _isTooltipVisible = true;
           _showImmediately = true;
@@ -88,6 +145,7 @@ class _IconButtonState extends State<IconButton> {
 
   void _onMouseLeave() {
     _showTimer?.cancel();
+    _showTimer = null;
     if (_isTooltipVisible) {
       setState(() {
         _isTooltipVisible = false;
@@ -135,6 +193,7 @@ class _IconButtonState extends State<IconButton> {
   @override
   void dispose() {
     _showTimer?.cancel();
+    unawaited(_activationSubscription?.cancel());
     super.dispose();
   }
 
@@ -142,6 +201,7 @@ class _IconButtonState extends State<IconButton> {
   Component build(BuildContext context) {
     final classNames = [
       'icon-button',
+      if (_hoveringMouse) 'mouse-hover',
       if (component.classes case final extraClasses? when extraClasses.isNotEmpty) extraClasses,
     ].join(' ');
 
@@ -160,8 +220,13 @@ class _IconButtonState extends State<IconButton> {
       attributes: attributes,
       events: {
         if (component.onClick != null && !component.disabled) 'click': component.onClick!,
-        'mouseenter': (event) => _onMouseEnter(),
-        'mouseleave': (event) => _onMouseLeave(),
+        'pointerenter': _onPointerEnter,
+        'pointerleave': _onPointerLeave,
+        'pointerdown': _onPointerDown,
+        'pointercancel': (_) {
+          _touchActivation = false;
+          _onMouseLeave();
+        },
       },
       [
         if (component.child != null)
@@ -210,7 +275,7 @@ class _IconButtonState extends State<IconButton> {
       css('& > *').styles(
         raw: {'flex-shrink': '0'},
       ),
-      css('&:not(:disabled):hover').styles(
+      css('&.mouse-hover:not(:disabled)').styles(
         backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
       ),
       css('&:disabled').styles(
