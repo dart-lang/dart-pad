@@ -367,12 +367,27 @@ void main() {
         await selectOutputTab();
         expect(web.document.querySelector('.preview-container'), isNotNull);
         expect(fileTreeSplit().state, const LeftHidden(200));
-        // Opening file navigation from Output returns to Code.
+        // Opening the drawer leaves Output mounted and selected underneath it.
+        final expectPreviewAlive = await attachPreviewProbe();
+        final preview = web.document.querySelector('.preview-container')!;
         await click('.small-screen-file-tree-button');
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+        expect(web.document.querySelector('.preview-container')!.isSameNode(preview), isTrue);
+        expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
+        expectPreviewAlive();
+        expect(fileTreeSplit().state, const Split(200));
+        await click('.file-tree-drawer-backdrop');
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+        expectPreviewAlive();
+        await click('.small-screen-file-tree-button');
+        (web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement).click();
+        await pumpEventQueue();
+        expect(fileTreeSplit().state, const LeftHidden(200));
         expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         expect(web.document.querySelector('.editor-host'), isNotNull);
-        expect(fileTreeSplit().state, const Split(200));
-        await selectCodeTab();
+        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
+        expectPreviewAlive();
 
         await _resizeWindow(minLargeScreenWidth.toInt());
         expect(web.document.querySelector('.small-screen-file-tree-button'), isNull);

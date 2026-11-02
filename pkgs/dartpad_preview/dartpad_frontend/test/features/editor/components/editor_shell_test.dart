@@ -96,6 +96,7 @@ WorkspaceLayout _createShell(
   SplitState? fileTreeState,
   Component? fileTree,
   Component? bottomPanel,
+  Component? smallScreenPreviewPanel,
   PanelLayoutController? panels,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
@@ -122,16 +123,16 @@ WorkspaceLayout _createShell(
       bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
       panelController: panels,
     ),
-    preview: const div(id: 'preview', []),
+    preview: smallScreenPreviewPanel ?? const div(id: 'preview', []),
     panels: panels,
     isLargeScreen: !panels.isSmallScreen,
-    showOutput: false,
+    showOutput: smallScreenPreviewPanel != null,
   );
 }
 
 void main() {
   for (final width in [320, 390, 865]) {
-    testClient('mobile file tree opens beside the editor at ${width}px', (tester) async {
+    testClient('mobile file tree overlays two thirds of the editor at ${width}px', (tester) async {
       final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
       addTearDown(() async {
         tester.binding.detachRootComponent();
@@ -153,22 +154,81 @@ void main() {
       final editor = web.document.getElementById('editor-main.dart');
       panels.toggleFileTree();
       await pumpEventQueue();
-      expect(host.getBoundingClientRect().width, lessThan(width));
-      expect(host.getBoundingClientRect().width, greaterThan(0));
+      expect(host.getBoundingClientRect().width, width);
       expect(web.document.querySelector('.file-tree-floating-button'), isNull);
       final shell = (web.document.querySelector('.workspace-layout')! as web.HTMLElement).getBoundingClientRect();
       final tree = (web.document.querySelector('.file-tree-panel')! as web.HTMLElement).getBoundingClientRect();
-      expect(tree.width, greaterThan(0));
+      expect(tree.width, closeTo(width * 2 / 3, 1));
       expect(tree.left, shell.left);
-      expect(tree.right, lessThanOrEqualTo(host.getBoundingClientRect().left));
+      expect(host.getBoundingClientRect().left, shell.left);
+      expect(web.document.querySelector('.editor-shell-content')!.hasAttribute('inert'), isTrue);
+      expect(web.document.querySelector('.file-tree-drawer-backdrop'), isNotNull);
       expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
 
       panels.closeSmallScreenFileTree();
       await pumpEventQueue();
       expect(host.getBoundingClientRect().width, width);
       expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.display, 'none');
+      expect(web.document.querySelector('.editor-shell-content')!.hasAttribute('inert'), isFalse);
     });
   }
+
+  testClient('mobile drawer preserves the output and closes on backdrop or Escape', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    tester.pumpComponent(
+      div([
+        Style(styles: [...WorkspaceLayout.styles, ...EditorShell.styles]),
+        button(id: 'drawer-opener', onClick: panels.toggleFileTree, const [Component.text('Open explorer')]),
+        div(
+          styles: Styles(width: 390.px, height: 600.px),
+          [
+            _createShell(
+              tester,
+              panels: panels,
+              smallScreenPreviewPanel: div(
+                id: 'fake-preview',
+                styles: Styles(width: 100.percent, height: 100.percent),
+                const [Component.text('Output')],
+              ),
+            ),
+          ],
+        ),
+      ]),
+    );
+    final output = web.document.getElementById('fake-preview')!;
+    final bounds = output.getBoundingClientRect();
+    final opener = web.document.getElementById('drawer-opener')! as web.HTMLButtonElement;
+    opener.focus();
+    panels.toggleFileTree();
+    await pumpEventQueue();
+    expect(web.document.getElementById('fake-preview')!.isSameNode(output), isTrue);
+    expect(output.getBoundingClientRect().width, bounds.width);
+    expect(output.getBoundingClientRect().left, bounds.left);
+    final drawer = web.document.getElementById('editor-file-tree')!;
+    expect(drawer.getAttribute('role'), 'dialog');
+    expect(web.document.activeElement, drawer);
+    (web.document.querySelector('.file-tree-drawer-backdrop')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(panels.fileTree, const LeftHidden(200));
+    expect(web.document.activeElement, opener);
+    panels.toggleFileTree();
+    await pumpEventQueue();
+    drawer.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Tab', bubbles: true, cancelable: true)),
+    );
+    expect(web.document.activeElement, drawer.querySelector('.file-tree-collapse-button'));
+    drawer.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+    expect(panels.fileTree, const LeftHidden(200));
+    expect(web.document.getElementById('fake-preview')!.isSameNode(output), isTrue);
+  });
 
   testClient('mobile file tree opens and closes without rebuilding the editor', (tester) async {
     final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
