@@ -357,8 +357,16 @@ void main() {
       expect(button.getBoundingClientRect().height, 44);
       expect(web.document.querySelectorAll('.small-screen-tab-bar-tab').length, 2);
       expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
+        '16px',
+      );
       final mobileGutterWidth = gutterWidth();
       await _resizeWindow(1200);
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
+        '14px',
+      );
       expect(gutterWidth(), greaterThan(mobileGutterWidth));
     });
 
@@ -439,7 +447,10 @@ void main() {
               );
               expect(web.document.querySelector('.app-bar'), embed ? isNull : isNotNull);
               expect(web.document.querySelector('.app-footer'), embed ? isNull : isNotNull);
-              expect(web.document.querySelector('.bottom-panel.collapsed'), loaded && embed ? isNotNull : isNull);
+              expect(
+                web.document.querySelector('.bottom-panel.collapsed'),
+                loaded && (embed || width == 600) ? isNotNull : isNull,
+              );
               expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded ? 2 : 0);
               expect(fileTreeSplit().state, embed || smallScreen ? const LeftHidden(200) : const Split(200));
             }
@@ -530,8 +541,11 @@ void main() {
               fileTreeSplit().state,
               embed || web.window.innerWidth < minLargeScreenWidth ? const LeftHidden(200) : const LeftCollapsed(200),
             );
-            expect(bottomSplit().state, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
-            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded && !embed ? 2 : 0);
+            expect(bottomSplit().state, embed && width == 1200 ? const RightHidden(0.75) : const RightCollapsed(0.75));
+            expect(
+              web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
+              loaded && (!embed || width == 600) ? 2 : 0,
+            );
             expect(web.document.querySelector('.editor-tab-bar'), isNull);
             expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
             expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
@@ -561,9 +575,9 @@ void main() {
             panelHints: ['+console,+preview,+tabs,+filetree,+appbar,+statusbar'],
           );
           expect(fileTreeSplit().state, const Split(200));
-          expect(bottomSplit().state, const Split(0.75));
+          expect(bottomSplit().state, width == 600 ? const RightCollapsed(0.75) : const Split(0.75));
           expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-          expect(web.document.querySelector('.console-panel'), isNotNull);
+          expect(web.document.querySelector('.console-panel'), width == 600 ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
           expect(web.document.querySelector('.app-bar'), isNotNull);
@@ -577,7 +591,7 @@ void main() {
           testClient('$hint always keeps both bottom tabs: width=$width, embed=$embed', (tester) async {
             await mountApp(tester, width: width, embed: embed, panelHints: [hint]);
             expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-            final collapsed = embed && hint == '-console';
+            final collapsed = width == 600 || embed && hint == '-console';
             expect(bottomSplit().state, collapsed ? const RightCollapsed(0.75) : const Split(0.75));
             expect(web.document.querySelector('.problems-panel'), collapsed ? isNull : isNotNull);
             if (!collapsed) {

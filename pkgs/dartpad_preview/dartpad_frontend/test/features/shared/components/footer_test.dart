@@ -6,10 +6,13 @@
 library;
 
 import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
+import 'package:dartpad_frontend/features/shared/components/dropdown_menu.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
+import 'package:dartpad_frontend/features/shared/components/icon_button.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
+import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -110,6 +113,80 @@ void main() {
       }
     }
   });
+
+  for (final sdk in availableSdks) {
+    testClient('shows compact ${sdk.name} controls on small screens', (tester) async {
+      tester.pumpComponent(
+        Footer(
+          taskStatus: taskStatus,
+          isSmallScreen: true,
+          currentSdk: sdk,
+          onSelectSdk: (_) {},
+          onOpenShortcuts: () {},
+        ),
+      );
+
+      final trigger = web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement;
+      expect(trigger.querySelector('.app-footer-sdk-compact')?.textContent, sdk.name);
+      expect(trigger.querySelector('.app-footer-sdk-full')?.textContent, sdk.displayName);
+      expect(trigger.querySelector('.app-footer-info-icon'), isNotNull);
+      expect(trigger.getAttribute('aria-label'), contains(sdk.displayName));
+      final channel = web.document.querySelector('.app-footer-channel')!;
+      expect(channel.querySelector('.material-symbols-outlined')?.textContent, 'tune');
+      expect(channel.getAttribute('aria-label'), 'Beta channel');
+
+      trigger.click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.dropdown-menu')?.textContent, contains(sdk.displayName));
+    });
+  }
+
+  for (final width in [320, 390, 499, 500, 600, 865]) {
+    testClient('uses the appropriate footer layout without overlap at ${width}px', (tester) async {
+      taskStatus.startTask(TaskKind.startingPreview);
+      tester.pumpComponent(
+        div([
+          Style(styles: [...Footer.styles, ...DropdownMenu.styles, ...IconButton.styles]),
+          div(
+            styles: Styles(width: width.px),
+            [
+              Footer(
+                taskStatus: taskStatus,
+                isSmallScreen: true,
+                currentSdk: availableSdks.firstWhere((sdk) => sdk.isFlutter),
+                onSelectSdk: (_) {},
+                onOpenShortcuts: () {},
+              ),
+            ],
+          ),
+        ]),
+      );
+
+      // Use a real viewport so CSS media queries see the requested width.
+      final frame = web.HTMLIFrameElement()..style.width = '${width}px';
+      web.document.body!.appendChild(frame);
+      addTearDown(() => frame.parentNode?.removeChild(frame));
+      final document = frame.contentDocument!;
+      final footerElement = web.document.querySelector('.app-footer')!;
+      document.body!.appendChild(footerElement.parentElement!.parentElement!.cloneNode(true));
+      await pumpEventQueue();
+
+      final footer = document.querySelector('.app-footer')!;
+      final window = frame.contentWindow!;
+      final compact = footer.querySelector('.app-footer-sdk-compact')!;
+      final full = footer.querySelector('.app-footer-sdk-full')!;
+      final channelLabel = footer.querySelector('.app-footer-channel-label')!;
+      expect(window.getComputedStyle(compact).display, width < 500 ? isNot('none') : 'none');
+      expect(window.getComputedStyle(full).display, width < 500 ? 'none' : isNot('none'));
+      expect(window.getComputedStyle(channelLabel).display, width < 500 ? 'none' : isNot('none'));
+      final status = footer.querySelector('.task-status-trigger')!.getBoundingClientRect();
+      final sdk = footer.querySelector('.app-footer-sdk-trigger')!.getBoundingClientRect();
+      final channel = footer.querySelector('.app-footer-channel')!.getBoundingClientRect();
+      expect(status.right, lessThanOrEqualTo(sdk.left));
+      expect(sdk.right, lessThanOrEqualTo(channel.left));
+      expect(channel.right, lessThanOrEqualTo(footer.getBoundingClientRect().right));
+    });
+  }
 
   testClient('opens shortcuts dialog through the callback', (tester) async {
     var opened = false;

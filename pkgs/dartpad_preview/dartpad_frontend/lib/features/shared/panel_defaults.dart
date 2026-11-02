@@ -49,7 +49,9 @@ PanelLayoutState resolveInitialPanelLayout({
       statusBar: PanelPresentationState.expanded,
       preview: preview,
       fileTree: isSmallScreen ? const LeftHidden(fileTreeWidth) : const Split(fileTreeWidth),
-      bottom: const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
+      bottom: isSmallScreen
+          ? const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: editorRatio)
+          : const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: editorRatio),
       editorNavigation: editorNavigation,
     ),
   };
