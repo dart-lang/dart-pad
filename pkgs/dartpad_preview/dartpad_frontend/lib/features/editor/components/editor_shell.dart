@@ -116,30 +116,46 @@ class EditorShell extends StatelessComponent {
     ]);
     final Component rightContent = smallScreenPreviewPanel ?? editorContent;
 
-    return div(classes: 'editor-shell', [
-      SplitPanel(
-        state: panelController.fileTreeListenable,
-        onStateChanged: panelController.updateFileTree,
-        useRatio: false,
-        minValue: 150,
-        maxValue: 300,
-        canCollapseLeft: true,
-        left: fileTree,
-        right: rightContent,
+    return ValueListenableBuilder(
+      listenable: panelController.layoutListenable,
+      builder: (_, _) => div(
+        classes: 'editor-shell${panelController.isSmallScreen ? ' editor-shell-small' : ''}',
+        [
+          SplitPanel(
+            state: panelController.fileTreeListenable,
+            onStateChanged: panelController.updateFileTree,
+            useRatio: false,
+            minValue: 150,
+            maxValue: 300,
+            canCollapseLeft: true,
+            left: div(id: 'editor-file-tree', classes: 'file-tree-panel', [fileTree]),
+            right: rightContent,
+          ),
+        ],
       ),
-    ]);
+    );
   }
 
   @css
   static List<StyleRule> get styles => [
     css('.editor-shell').styles(
       display: .flex,
+      position: const .relative(),
       width: 100.percent,
       height: 100.percent,
       minWidth: .zero,
       minHeight: .zero,
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
+    ),
+    css('.file-tree-panel').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flexDirection: .column,
+    ),
+    css('.file-tree-panel > .file-tree-rail').styles(
+      flex: const Flex(grow: 1, shrink: 0),
     ),
     css('.editor-host').styles(
       display: .flex,

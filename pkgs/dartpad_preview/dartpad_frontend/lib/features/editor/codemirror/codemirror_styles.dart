@@ -43,6 +43,16 @@ List<StyleRule> get codemirrorStyles => [
     fontSize: 14.px,
     raw: {'overscroll-behavior': 'none'},
   ),
+  // Keep mobile gutters compact while retaining line numbers and diagnostic markers.
+  css('.editor-shell-small .editor-container .cm-lineNumbers .cm-gutterElement').styles(
+    padding: .symmetric(horizontal: 2.px),
+  ),
+  css('.editor-shell-small .editor-container .cm-gutter-lint').styles(
+    width: 1.em,
+  ),
+  css('.editor-shell-small .editor-container .cm-gutter-lint .cm-gutterElement').styles(
+    padding: .symmetric(vertical: 0.2.em),
+  ),
   css('.editor-container .cm-button').styles(
     padding: .symmetric(vertical: 6.px, horizontal: 12.px),
     border: .all(color: colorBorder, width: 1.px),

@@ -39,9 +39,15 @@ final class PanelHints {
   /// Null leaves selection to the contextual layout defaults.
   final BottomPanelTab? preferredBottomTab;
 
-  PanelLayoutState resolve({required WorkspaceMode mode, bool? showEditorNavigation, double? previewRatio}) {
+  PanelLayoutState resolve({
+    required WorkspaceMode mode,
+    bool isSmallScreen = false,
+    bool? showEditorNavigation,
+    double? previewRatio,
+  }) {
     final defaults = panel_defaults.resolveInitialPanelLayout(
       mode: mode,
+      isSmallScreen: isSmallScreen,
       showEditorNavigation: showEditorNavigation,
       initialPreviewRatio: previewRatio,
     );
@@ -79,6 +85,7 @@ final class PanelHints {
       null => defaults.editorNavigation,
     };
     final PanelLayoutState layout = (
+      layout: defaults.layout,
       appBar: appBar,
       statusBar: statusBar,
       preview: preview,
@@ -97,7 +104,10 @@ final class PanelHints {
     };
     final fileTree = switch (this.fileTree) {
       true => Split(defaults.fileTree.value),
-      false => LeftCollapsed(defaults.fileTree.value),
+      false =>
+        defaults.layout == PanelLayout.smallScreen
+            ? LeftHidden(defaults.fileTree.value)
+            : LeftCollapsed(defaults.fileTree.value),
       null => defaults.fileTree,
     };
     final appBar = switch (this.appBar) {
@@ -117,6 +127,7 @@ final class PanelHints {
       null => defaults.editorNavigation,
     };
     final PanelLayoutState layout = (
+      layout: defaults.layout,
       appBar: appBar,
       statusBar: statusBar,
       preview: preview,
