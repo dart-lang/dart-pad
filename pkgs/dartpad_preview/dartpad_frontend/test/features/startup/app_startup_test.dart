@@ -398,7 +398,7 @@ void main() {
       await click('.small-screen-tab-bar-tab:nth-child(2)');
       expect(web.document.querySelector('.preview-container'), isNotNull);
       await click('.small-screen-tab-bar-tab:first-child');
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect(web.document.querySelector('.small-screen-preview.hidden .preview-container'), isNotNull);
 
       await _resizeWindow(1200);
       expect(web.document.querySelector('.app-bar'), isNotNull);
@@ -450,7 +450,7 @@ void main() {
 
       await _resizeWindow(600);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect(web.document.querySelector('.small-screen-preview.hidden .preview-container'), isNotNull);
       expect(fileTreeSplit().state, const Split(240));
       expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '240px');
       expectConsoleSelected();
@@ -483,7 +483,7 @@ void main() {
       expect(web.document.querySelector('.bottom-panel'), isNull);
 
       await click('.small-screen-tab-bar button:first-child');
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect(web.document.querySelector('.small-screen-preview.hidden .preview-container'), isNotNull);
       expect(web.document.querySelector('.cm-editor'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
       expect(fileTreeSplit().state, const LeftCollapsed(225));

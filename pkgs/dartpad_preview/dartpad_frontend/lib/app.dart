@@ -797,7 +797,8 @@ final class _AppState extends State<App> {
               bottomPanel: _buildBottomPanel(session),
               contextMenu: session.contextMenu,
               panelController: _panels,
-              smallScreenPreviewPanel: !_isLargeScreen && _selectedSmallScreenTab == .output ? preview : null,
+              smallScreenPreviewPanel: _isLargeScreen ? null : preview,
+              showSmallScreenPreview: _selectedSmallScreenTab == .output,
             );
             return div(classes: 'app-workspace-container', [
               div(classes: 'app-workspace', [

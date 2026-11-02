@@ -94,6 +94,8 @@ EditorShell _createShell(
   Component? fileTree,
   Component? bottomPanel,
   PanelLayoutController? panels,
+  Component? smallScreenPreviewPanel,
+  bool showSmallScreenPreview = false,
 }) {
   final tabs = openTabs ?? [_FakeTab('main.dart')];
   if (panels == null) {
@@ -117,6 +119,8 @@ EditorShell _createShell(
     onCloseFile: (_, {bool discardChanges = false}) => true,
     bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
     panelController: panels,
+    smallScreenPreviewPanel: smallScreenPreviewPanel,
+    showSmallScreenPreview: showSmallScreenPreview,
   );
 }
 
@@ -184,6 +188,28 @@ void main() {
     expect(web.document.querySelector('#fake-bottom.expanded'), isNotNull);
     expect(tab.buildCount, initialBuildCount);
     expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+  });
+
+  testClient('small-screen preview stays mounted when the editor tab is shown', (tester) async {
+    final panels = PanelLayoutController(isEmbedMode: false);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    const preview = div(id: 'fake-preview', [Component.text('preview')]);
+    tester.pumpComponent(
+      _createShell(tester, panels: panels, smallScreenPreviewPanel: preview, showSmallScreenPreview: true),
+    );
+    final previewNode = web.document.getElementById('fake-preview');
+    expect(previewNode, isNotNull);
+    expect(web.document.querySelector('.editor-area'), isNull);
+
+    tester.pumpComponent(_createShell(tester, panels: panels, smallScreenPreviewPanel: preview));
+    await pumpEventQueue();
+    expect(web.document.getElementById('fake-preview')!.isSameNode(previewNode), isTrue);
+    expect(web.document.querySelector('.small-screen-preview.hidden'), isNotNull);
+    expect(web.document.querySelector('.editor-area'), isNotNull);
   });
 
   group('EditorShell – standard mode', () {

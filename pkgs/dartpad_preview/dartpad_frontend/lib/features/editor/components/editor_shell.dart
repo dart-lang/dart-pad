@@ -28,6 +28,7 @@ class EditorShell extends StatelessComponent {
     this.contextMenu,
     required this.panelController,
     this.smallScreenPreviewPanel,
+    this.showSmallScreenPreview = false,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -61,9 +62,12 @@ class EditorShell extends StatelessComponent {
   /// Shared split and bottom-tab state, retained when this layout is remounted.
   final PanelLayoutController panelController;
 
-  /// The preview panel to show when the Output tab is active in a small-screen layout.
-  /// When non-null, the preview panel replaces the editor content.
+  /// The preview panel for a small-screen layout. It stays mounted while hidden,
+  /// because detaching its sandbox iframe discards the running application.
   final Component? smallScreenPreviewPanel;
+
+  /// Whether [smallScreenPreviewPanel] replaces the editor content.
+  final bool showSmallScreenPreview;
 
   @override
   Component build(BuildContext context) {
@@ -107,7 +111,14 @@ class EditorShell extends StatelessComponent {
         right: bottomPanel,
       ),
     ]);
-    final Component rightContent = smallScreenPreviewPanel ?? editorContent;
+    final preview = smallScreenPreviewPanel;
+    final Component rightContent = preview == null
+        ? editorContent
+        : div(classes: 'small-screen-content', [
+            // Keep the preview first so its position stays stable across tab switches.
+            div(classes: showSmallScreenPreview ? 'small-screen-preview' : 'small-screen-preview hidden', [preview]),
+            if (!showSmallScreenPreview) editorContent,
+          ]);
 
     return div(classes: 'editor-shell', [
       SplitPanel(
@@ -149,6 +160,24 @@ class EditorShell extends StatelessComponent {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('.small-screen-content').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      overflow: .hidden,
+      flexDirection: .column,
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('.small-screen-preview').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: .zero,
+      flexDirection: .column,
+      flex: const Flex(grow: 1),
+    ),
+    css('.small-screen-preview.hidden').styles(
+      display: .none,
     ),
     // -- Embed mode: collapsed file-tree rail --
     css('.file-tree-rail').styles(
