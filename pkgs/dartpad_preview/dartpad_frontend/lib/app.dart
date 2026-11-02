@@ -877,15 +877,25 @@ final class _AppState extends State<App> {
     ),
     // Navigation must remain reachable even when the app bar is hidden.
     if (showNavigation && !_isLargeScreen)
-      SmallScreenTabBar(
-        selectedTab: _selectedSmallScreenTab,
-        onTabSelected: (tab) {
-          _panels.closeSmallScreenFileTree();
-          if (tab == .output) {
-            _panels.expandPreview();
-          }
-          setState(() => _selectedSmallScreenTab = tab);
-        },
+      ValueListenableBuilder(
+        listenable: _panels.fileTreeListenable,
+        builder: (_, fileTree) => SmallScreenTabBar(
+          selectedTab: _selectedSmallScreenTab,
+          isFileTreeExpanded: fileTree.isSplit,
+          onToggleFileTree: () {
+            if (_selectedSmallScreenTab != .code) {
+              setState(() => _selectedSmallScreenTab = .code);
+            }
+            _panels.toggleFileTree();
+          },
+          onTabSelected: (tab) {
+            _panels.closeSmallScreenFileTree();
+            if (tab == .output) {
+              _panels.expandPreview();
+            }
+            setState(() => _selectedSmallScreenTab = tab);
+          },
+        ),
       ),
   ]);
 
