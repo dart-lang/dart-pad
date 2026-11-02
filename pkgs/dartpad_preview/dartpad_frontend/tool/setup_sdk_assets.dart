@@ -8,8 +8,12 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 
-// Pin Flutter to 3.50.0-0.2.pre
+// Keep Flutter pinned to 3.50.0-0.2.pre until launch.
 const flutterRevision = '0e4dea427d51a91ccac1f3cbd01bffa927fe6409';
+
+// Channel metadata does not change the pinned Flutter revision.
+const flutterChannel = 'beta';
+const dartChannel = 'beta';
 
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
@@ -31,7 +35,7 @@ class SdkAssetSetup {
         'dartpad',
         'setup',
         'dart',
-        '--channel=beta',
+        '--channel=$dartChannel',
         '--output=${p.join(assets.path, 'dart')}',
       ], frontendRoot.path);
 
@@ -116,6 +120,7 @@ Future<String> generateSdkManifest(Directory assetRoot, {bool requireFlutter = t
       'id': sdkId,
       'name': isFlutter ? 'Flutter' : 'Dart',
       'path': 'dartpad/$sdkId/',
+      'channel': isFlutter ? flutterChannel : dartChannel,
       'dartVersion': versions.dartVersion,
       'flutterVersion': ?versions.flutterVersion,
     });
@@ -142,6 +147,7 @@ Future<String> generateSdkManifest(Directory assetRoot, {bool requireFlutter = t
     buffer.writeln("    id: '${sdk['id']}',");
     buffer.writeln("    name: '${sdk['name']}',");
     buffer.writeln("    path: '${sdk['path']}',");
+    buffer.writeln("    channel: '${sdk['channel']}',");
     buffer.writeln("    dartVersion: '${sdk['dartVersion']}',");
     if (sdk['flutterVersion'] != null) {
       buffer.writeln("    flutterVersion: '${sdk['flutterVersion']}',");

@@ -15,6 +15,7 @@ void main() {
         'path': 'dartpad/flutter/',
         'dartVersion': '3.14.0',
         'flutterVersion': '3.48.0',
+        'channel': 'beta',
       });
 
       expect(sdk, isNotNull);
@@ -25,7 +26,8 @@ void main() {
       expect(sdk.flutterVersion, '3.48.0');
       expect(sdk.isFlutter, isTrue);
       expect(sdk.displayName, 'Flutter 3.48.0 • Dart 3.14.0');
-      expect(sdk.label, 'Flutter (3.48.0)');
+      expect(sdk.channel, 'beta');
+      expect(SdkInfo.fromJson(sdk.toJson())!.channel, 'beta');
     });
 
     test('parses pure Dart SDK info from JSON', () {
@@ -41,8 +43,28 @@ void main() {
       expect(sdk.name, 'Dart');
       expect(sdk.isFlutter, isFalse);
       expect(sdk.flutterVersion, isNull);
-      expect(sdk.displayName, 'Dart 3.14.0-edge');
-      expect(sdk.label, 'Dart (3.14.0-edge)');
+      expect(sdk.displayName, 'Dart 3.14.0');
+      expect(sdk.channel, isNull);
+      expect(SdkInfo.fromJson(sdk.toJson())!.channel, isNull);
+    });
+
+    test('shortens runtime versions for display', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'flutter/',
+        dartVersion: '3.15.0 (build 3.15.0-27.0.dev)',
+        flutterVersion: '3.50.0-1.0.pre-39',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.14.0-315.1.beta');
+      const unknown = SdkInfo(id: 'other', name: 'Dart', path: 'other/', dartVersion: 'unknown');
+
+      expect(flutter.displayName, 'Flutter 3.50.0 • Dart 3.15.0');
+      expect(dart.displayName, 'Dart 3.14.0');
+      expect(unknown.displayName, 'Dart unknown');
+      expect(flutter.dartVersion, '3.15.0 (build 3.15.0-27.0.dev)');
+      expect(flutter.flutterVersion, '3.50.0-1.0.pre-39');
+      expect(dart.dartVersion, '3.14.0-315.1.beta');
     });
 
     test('returns null for invalid JSON', () {

@@ -7,7 +7,9 @@ library;
 
 import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
+import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -52,6 +54,61 @@ void main() {
 
     final status = web.document.querySelector('.task-status-trigger');
     expect(status?.textContent, contains('Ready'));
+  });
+
+  testClient('shows separate SDK and beta channel controls', (tester) async {
+    final flutter = availableSdks.firstWhere((sdk) => sdk.isFlutter);
+    final dart = availableSdks.firstWhere((sdk) => !sdk.isFlutter);
+    var selected = flutter;
+    tester.pumpComponent(
+      Footer(
+        taskStatus: taskStatus,
+        currentSdk: flutter,
+        onSelectSdk: (sdk) => selected = sdk,
+        onOpenShortcuts: () {},
+      ),
+    );
+
+    final sdkButton = web.document.querySelector('.app-footer-sdk-trigger') as web.HTMLButtonElement;
+    expect(sdkButton.textContent, contains(flutter.displayName));
+    final channel = web.document.querySelector('.app-footer-channel')!;
+    expect(channel.textContent, contains('Beta channel'));
+    expect(channel.tagName, 'SPAN');
+    expect(channel.hasAttribute('title'), isFalse);
+
+    sdkButton.click();
+    await pumpEventQueue();
+    final items = web.document.querySelectorAll('.dropdown-menu-item');
+    expect(items.item(0)?.textContent, contains(flutter.displayName));
+    final dartItem =
+        [
+              for (var i = 0; i < items.length; i++) items.item(i)!,
+            ].firstWhere((item) => item.textContent!.trim() == dart.displayName)
+            as web.HTMLButtonElement;
+    dartItem.click();
+    await pumpEventQueue();
+    expect(selected, dart);
+  });
+
+  testClient('updates the channel indicator with the current SDK', (tester) async {
+    for (final (channel, label) in [('stable', 'Stable channel'), ('beta', 'Beta channel'), (null, null)]) {
+      tester.pumpComponent(
+        Footer(
+          taskStatus: taskStatus,
+          currentSdk: SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.14.0', channel: channel),
+          onOpenShortcuts: () {},
+        ),
+      );
+      await pumpEventQueue();
+
+      final indicator = web.document.querySelector('.app-footer-channel');
+      if (label == null) {
+        expect(indicator, isNull);
+      } else {
+        expect(indicator?.textContent, contains(label));
+        expect(indicator?.tagName, 'SPAN');
+      }
+    }
   });
 
   testClient('opens shortcuts dialog through the callback', (tester) async {

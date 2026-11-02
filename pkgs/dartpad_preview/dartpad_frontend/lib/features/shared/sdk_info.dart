@@ -14,6 +14,7 @@ final class SdkInfo {
     required this.path,
     required this.dartVersion,
     this.flutterVersion,
+    this.channel,
   });
 
   /// Unique identifier for this SDK runtime (e.g. `'flutter'`, `'dart'`).
@@ -31,14 +32,21 @@ final class SdkInfo {
   /// The version of the Flutter SDK (e.g. `'3.48.0'`), or `null` if this is a pure Dart runtime.
   final String? flutterVersion;
 
+  /// Release channel assigned to this runtime, independent of its pinned revision.
+  final String? channel;
+
   bool get isFlutter => flutterVersion != null;
 
-  /// Human readable display text for the footer / picker.
-  String get displayName =>
-      flutterVersion != null ? 'Flutter $flutterVersion • Dart $dartVersion' : 'Dart $dartVersion';
+  /// Runtime versions for display, without prerelease or build suffixes.
+  String get displayName {
+    final dart = 'Dart ${_shortVersion(dartVersion)}';
+    final flutter = flutterVersion;
+    return flutter == null ? dart : 'Flutter ${_shortVersion(flutter)} • $dart';
+  }
 
-  /// Short display label for selectors.
-  String get label => flutterVersion != null ? '$name ($flutterVersion)' : '$name ($dartVersion)';
+  static final _versionPattern = RegExp(r'^\d+\.\d+\.\d+');
+
+  static String _shortVersion(String version) => _versionPattern.firstMatch(version)?.group(0) ?? version;
 
   /// Resolved base URL for this SDK's assets.
   Uri get assetBaseUrl => Uri.parse(web.document.baseURI).resolve(path);
@@ -58,6 +66,7 @@ final class SdkInfo {
       path: path,
       dartVersion: dartVersion,
       flutterVersion: flutterVersion,
+      channel: json['channel'] as String?,
     );
   }
 
@@ -67,6 +76,7 @@ final class SdkInfo {
     'path': path,
     'dartVersion': dartVersion,
     if (flutterVersion != null) 'flutterVersion': flutterVersion,
+    if (channel != null) 'channel': channel,
   };
 
   @override
