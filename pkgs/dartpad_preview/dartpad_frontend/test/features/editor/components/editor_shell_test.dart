@@ -11,6 +11,7 @@ import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
+import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -86,8 +87,8 @@ final class _FakeBottomPanel extends StatelessComponent {
   }
 }
 
-/// Helper that creates an [EditorShell] with sensible defaults.
-EditorShell _createShell(
+/// Hosts the editor in its workspace so file-tree and bottom-panel controls work.
+WorkspaceLayout _createShell(
   ClientTester tester, {
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
@@ -110,15 +111,21 @@ EditorShell _createShell(
       ownedPanels.dispose();
     });
   }
-  return EditorShell(
-    openTabs: tabs,
-    activeFile: activeFile,
+  return WorkspaceLayout(
     fileTree: fileTree ?? const _FakeFileTree(),
-    editorOverlay: const div(id: 'editor-overlay', []),
-    onSwitchFile: (_) {},
-    onCloseFile: (_, {bool discardChanges = false}) => true,
-    bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
-    panelController: panels,
+    editor: EditorShell(
+      openTabs: tabs,
+      activeFile: activeFile,
+      editorOverlay: const div(id: 'editor-overlay', []),
+      onSwitchFile: (_) {},
+      onCloseFile: (_, {bool discardChanges = false}) => true,
+      bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
+      panelController: panels,
+    ),
+    preview: const div(id: 'preview', []),
+    panels: panels,
+    isLargeScreen: !panels.isSmallScreen,
+    showOutput: false,
   );
 }
 
@@ -133,7 +140,7 @@ void main() {
       });
       tester.pumpComponent(
         div([
-          Style(styles: [...EditorShell.styles, ...EditorStack.styles]),
+          Style(styles: [...WorkspaceLayout.styles, ...EditorShell.styles, ...EditorStack.styles]),
           div(
             styles: Styles(width: width.px, height: 600.px),
             [_createShell(tester, panels: panels)],
@@ -149,7 +156,7 @@ void main() {
       expect(host.getBoundingClientRect().width, lessThan(width));
       expect(host.getBoundingClientRect().width, greaterThan(0));
       expect(web.document.querySelector('.file-tree-floating-button'), isNull);
-      final shell = (web.document.querySelector('.editor-shell')! as web.HTMLElement).getBoundingClientRect();
+      final shell = (web.document.querySelector('.workspace-layout')! as web.HTMLElement).getBoundingClientRect();
       final tree = (web.document.querySelector('.file-tree-panel')! as web.HTMLElement).getBoundingClientRect();
       expect(tree.width, greaterThan(0));
       expect(tree.left, shell.left);
