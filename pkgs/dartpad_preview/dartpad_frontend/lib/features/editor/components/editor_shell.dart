@@ -181,6 +181,9 @@ class EditorShell extends StatelessComponent {
       minHeight: .zero,
       flexDirection: .column,
     ),
+    css('.file-tree-panel > .file-tree-rail').styles(
+      flex: const Flex(grow: 1, shrink: 0),
+    ),
     css('.file-tree-floating-button').styles(
       display: .flex,
       position: .absolute(top: 16.px, left: 16.px),

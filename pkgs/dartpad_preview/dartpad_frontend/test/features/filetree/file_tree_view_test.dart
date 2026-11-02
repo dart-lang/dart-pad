@@ -8,11 +8,14 @@ library;
 import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -302,6 +305,49 @@ void main() {
 
     expect(web.document.querySelector('.file-tree'), isNotNull);
     expect(web.document.querySelector('.file-tree-rail'), isNull);
+  });
+
+  testClient('collapsed desktop file tree rail fills the editor shell height', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    tester.pumpComponent(
+      div([
+        Style(styles: [...EditorShell.styles, ...FileTreeView.styles]),
+        div(
+          styles: Styles(width: 1000.px, height: 600.px),
+          [
+            EditorShell(
+              openTabs: const [],
+              activeFile: '',
+              fileTree: FileTreeView(state: _state(workspace), actions: _actions()),
+              editorOverlay: const div([]),
+              onSwitchFile: (_) {},
+              onCloseFile: (_, {bool discardChanges = false}) => true,
+              bottomPanel: const div([]),
+              panelController: panels,
+            ),
+          ],
+        ),
+      ]),
+    );
+
+    (web.document.querySelector('.file-tree-collapse-button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    final shell = web.document.querySelector('.editor-shell')!.getBoundingClientRect();
+    final rail = web.document.querySelector('.file-tree-rail')!.getBoundingClientRect();
+    expect(rail.top, shell.top);
+    expect(rail.bottom, shell.bottom);
+    expect(rail.height, 600);
+
+    (web.document.querySelector('.file-tree-rail button')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-rail'), isNull);
+    expect(web.document.querySelector('.file-tree')!.getBoundingClientRect().height, 600);
   });
 
   testClient('single click on a folder selects it and toggles collapsed state', (tester) async {
