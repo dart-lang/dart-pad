@@ -16,6 +16,7 @@ import 'package:dartpad_frontend/features/shared/components/shortcut_definitions
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
+import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -316,19 +317,25 @@ void main() {
     });
     tester.pumpComponent(
       div([
-        Style(styles: [...EditorShell.styles, ...FileTreeView.styles]),
+        Style(styles: [...WorkspaceLayout.styles, ...EditorShell.styles, ...FileTreeView.styles]),
         div(
           styles: Styles(width: 1000.px, height: 600.px),
           [
-            EditorShell(
-              openTabs: const [],
-              activeFile: '',
+            WorkspaceLayout(
               fileTree: FileTreeView(state: _state(workspace), actions: _actions()),
-              editorOverlay: const div([]),
-              onSwitchFile: (_) {},
-              onCloseFile: (_, {bool discardChanges = false}) => true,
-              bottomPanel: const div([]),
-              panelController: panels,
+              panels: panels,
+              isLargeScreen: true,
+              showOutput: false,
+              preview: const div([]),
+              editor: EditorShell(
+                openTabs: const [],
+                activeFile: '',
+                editorOverlay: const div([]),
+                onSwitchFile: (_) {},
+                onCloseFile: (_, {bool discardChanges = false}) => true,
+                bottomPanel: const div([]),
+                panelController: panels,
+              ),
             ),
           ],
         ),

@@ -184,6 +184,7 @@ class SplitPanel extends StatefulComponent {
     this.canCollapseLeft,
     this.canCollapseRight,
     required this.state,
+    this.presentationState,
     this.onStateChanged,
     this.useRatio = true,
     this.isVertical = false,
@@ -208,6 +209,10 @@ class SplitPanel extends StatefulComponent {
   /// The state owned outside this panel. Changes rebuild the split automatically.
   /// Interactions request updates through [onStateChanged].
   final ValueListenable<SplitState> state;
+
+  /// Overrides the visible layout without changing the owner's split state.
+  /// Used to show one pane at a time in a compact workspace.
+  final SplitState? presentationState;
 
   /// Reports resize, expand, collapse, and hide requests, but not parent updates.
   final ValueChanged<SplitState>? onStateChanged;
@@ -265,7 +270,7 @@ class SplitPanelState extends State<SplitPanel> {
   }
 
   /// The current collapse, hidden, or split state.
-  SplitState get state => component.state.value;
+  SplitState get state => component.presentationState ?? component.state.value;
 
   /// The current split value (ratio 0.0 to 1.0, or absolute pixels).
   double get value => state.value;
