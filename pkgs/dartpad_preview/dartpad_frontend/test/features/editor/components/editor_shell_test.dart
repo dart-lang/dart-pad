@@ -142,12 +142,9 @@ void main() {
       );
       final host = web.document.querySelector('.editor-host')! as web.HTMLElement;
       expect(host.getBoundingClientRect().width, width);
-      final toggle = web.document.querySelector('.file-tree-floating-button')! as web.HTMLButtonElement;
-      final stack = (web.document.querySelector('.editor-stack')! as web.HTMLElement).getBoundingClientRect();
-      expect(toggle.getBoundingClientRect().left, stack.left + 16);
-      expect(toggle.getBoundingClientRect().top, stack.top + 16);
+      expect(web.document.querySelector('.file-tree-floating-button'), isNull);
       final editor = web.document.getElementById('editor-main.dart');
-      toggle.click();
+      panels.toggleFileTree();
       await pumpEventQueue();
       expect(host.getBoundingClientRect().width, lessThan(width));
       expect(host.getBoundingClientRect().width, greaterThan(0));
@@ -162,7 +159,7 @@ void main() {
       panels.closeSmallScreenFileTree();
       await pumpEventQueue();
       expect(host.getBoundingClientRect().width, width);
-      expect(web.document.querySelector('.file-tree-floating-button'), isNotNull);
+      expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.display, 'none');
     });
   }
 
@@ -178,13 +175,10 @@ void main() {
     final buildCount = tab.buildCount;
     final editor = web.document.getElementById('editor-main.dart');
     final tree = web.document.querySelector('.file-tree-panel')! as web.HTMLElement;
-    web.HTMLButtonElement toggle() =>
-        web.document.querySelector('.file-tree-floating-button')! as web.HTMLButtonElement;
 
     expect(tree.style.display, 'none');
-    expect(toggle().getAttribute('aria-expanded'), 'false');
     expect(web.document.querySelector('.file-tree-rail'), isNull);
-    toggle().click();
+    panels.toggleFileTree();
     await pumpEventQueue();
     expect(tree.style.display, '');
     expect(web.document.querySelector('.file-tree-floating-button'), isNull);
