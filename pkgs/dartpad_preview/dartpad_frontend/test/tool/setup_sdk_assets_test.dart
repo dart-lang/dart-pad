@@ -115,11 +115,13 @@ void main() {
         "id: 'flutter'",
         "name: 'Flutter'",
         "path: 'dartpad/flutter/'",
+        "channel: 'beta'",
         "dartVersion: '3.14.0 (build 3.14.0-1.0.dev)'",
         "flutterVersion: '3.48.0'",
         "id: 'dart'",
         "name: 'Dart'",
         "path: 'dartpad/dart/'",
+        "channel: 'beta'",
         "dartVersion: '3.15.0-edge.example'",
       ]),
     );
@@ -166,6 +168,7 @@ void main() {
         "id: 'dart'",
         "name: 'Dart'",
         "path: 'dartpad/dart/'",
+        "channel: 'beta'",
         "dartVersion: '3.14.0'",
       ]),
     );

@@ -75,14 +75,14 @@ class _FooterState extends State<Footer> {
         const div(classes: 'app-footer-spacer', []),
       TaskStatusIndicator(controller: component.taskStatus),
       _buildRuntimeVersions(),
-      _buildChannelSelector(),
+      if (component.currentSdk?.channel case final channel? when channel.isNotEmpty) _buildChannelIndicator(channel),
     ]);
   }
 
   Component _buildRuntimeVersions() {
     final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
-    final label = currentSdk?.shortVersionLabel ?? 'Dart …';
+    final label = currentSdk?.displayName ?? 'Dart …';
 
     return DropdownMenu(
       openUp: true,
@@ -92,14 +92,26 @@ class _FooterState extends State<Footer> {
         disabled: onSelectSdk == null,
         attributes: {'aria-label': 'Select DartPad SDK ($label)', 'title': 'Select DartPad SDK'},
         [
-          const Icon('info', size: 14, classes: 'app-footer-info-icon'),
+          const svg(
+            classes: 'app-footer-info-icon',
+            viewBox: '0 0 24 24',
+            width: Unit.pixels(14),
+            height: Unit.pixels(14),
+            attributes: {'aria-hidden': 'true', 'focusable': 'false', 'fill': 'currentColor'},
+            [
+              path(
+                d: 'M11 7h2v2h-2zm0 4h2v6h-2zm1-9a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z',
+                [],
+              ),
+            ],
+          ),
           span([.text(label)]),
         ],
       ),
       items: [
         for (final sdk in availableSdks)
           DropdownMenuItem(
-            label: sdk.shortVersionLabel,
+            label: sdk.displayName,
             trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
             onPressed: () => onSelectSdk?.call(sdk),
           ),
@@ -107,12 +119,12 @@ class _FooterState extends State<Footer> {
     );
   }
 
-  Component _buildChannelSelector() {
-    return const span(
+  Component _buildChannelIndicator(String channel) {
+    return span(
       classes: 'app-footer-channel',
       [
-        Icon('tune', size: 14),
-        span([.text('Beta channel')]),
+        const Icon('tune', size: 14),
+        span([.text('${channel[0].toUpperCase()}${channel.substring(1)} channel')]),
       ],
     );
   }
@@ -168,9 +180,6 @@ class _FooterState extends State<Footer> {
     css('.app-footer .material-symbols-outlined').styles(
       display: .block,
       lineHeight: 1.em,
-    ),
-    css('.app-footer .app-footer-info-icon').styles(
-      raw: {'font-variation-settings': "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"},
     ),
     css('.app-footer-link').styles(
       display: .inlineFlex,
