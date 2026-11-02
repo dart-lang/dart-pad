@@ -110,6 +110,7 @@ final class BottomPanelTabs extends StatelessComponent {
       ),
       alignItems: .stretch,
       flex: const .shrink(0),
+      backgroundColor: colorSurface,
     ),
     css('.bottom-panel-tab').styles(
       display: .inlineFlex,
@@ -128,15 +129,18 @@ final class BottomPanelTabs extends StatelessComponent {
       color: colorOnSurface,
       fontSize: 12.px,
       fontWeight: .w500,
-      backgroundColor: Colors.transparent,
+      backgroundColor: colorTabInactive,
     ),
     css('.bottom-panel-tab:hover').styles(
       color: colorOnSurface,
-      backgroundColor: colorOnSurface.withOpacity(0.06),
+      backgroundColor: colorTabInactive.highlight(colorOnContainer, 0.05),
     ),
     css('.bottom-panel-tab.active').styles(
       color: colorOnSurface,
-      backgroundColor: colorOnSurface.withOpacity(0.08),
+      backgroundColor: colorTabActive,
+    ),
+    css('.bottom-panel-tab.active:hover').styles(
+      backgroundColor: colorTabActive.highlight(colorOnContainer, 0.05),
     ),
     css('.bottom-panel-tab-count').styles(
       display: .inlineFlex,
