@@ -10,6 +10,7 @@ import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
+import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -85,8 +86,8 @@ final class _FakeBottomPanel extends StatelessComponent {
   }
 }
 
-/// Helper that creates an [EditorShell] with sensible defaults.
-EditorShell _createShell(
+/// Hosts the editor in its workspace so file-tree and bottom-panel controls work.
+WorkspaceLayout _createShell(
   ClientTester tester, {
   List<EditorTab<Component>>? openTabs,
   String activeFile = 'main.dart',
@@ -109,15 +110,21 @@ EditorShell _createShell(
       ownedPanels.dispose();
     });
   }
-  return EditorShell(
-    openTabs: tabs,
-    activeFile: activeFile,
+  return WorkspaceLayout(
     fileTree: fileTree ?? const _FakeFileTree(),
-    editorOverlay: const div(id: 'editor-overlay', []),
-    onSwitchFile: (_) {},
-    onCloseFile: (_, {bool discardChanges = false}) => true,
-    bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
-    panelController: panels,
+    editor: EditorShell(
+      openTabs: tabs,
+      activeFile: activeFile,
+      editorOverlay: const div(id: 'editor-overlay', []),
+      onSwitchFile: (_) {},
+      onCloseFile: (_, {bool discardChanges = false}) => true,
+      bottomPanel: bottomPanel ?? const div(id: 'bottom', [Component.text('bottom')]),
+      panelController: panels,
+    ),
+    preview: const div(id: 'preview', []),
+    panels: panels,
+    isLargeScreen: true,
+    showOutput: false,
   );
 }
 

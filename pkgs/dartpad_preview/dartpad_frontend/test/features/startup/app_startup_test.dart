@@ -264,6 +264,64 @@ void main() {
     Future<void> selectOutputTab() => click('.small-screen-tab-bar-tab:nth-child(2)');
     Future<void> selectCodeTab() => click('.small-screen-tab-bar-tab:first-child');
 
+    Future<void Function()> attachPreviewProbe() async {
+      final preview = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
+      final frame = web.HTMLIFrameElement()
+        ..srcdoc = '<button onclick="this.textContent = Number(this.textContent) + 1">7</button>'.toJS;
+      var loads = 0;
+      final subscription = web.EventStreamProviders.loadEvent.forTarget(frame).listen((_) => loads++);
+      addTearDown(subscription.cancel);
+      final loaded = web.EventStreamProviders.loadEvent.forTarget(frame).first;
+      preview.preview.containerElement.appendChild(frame);
+      await loaded;
+      final document = frame.contentDocument!;
+      final button = document.querySelector('button')! as web.HTMLButtonElement;
+      button.click();
+      expect(button.textContent, '8');
+
+      return () {
+        expect(frame.isConnected, isTrue);
+        // Reattaching the same iframe node still discards its document and state.
+        expect(frame.contentDocument!.isSameNode(document), isTrue);
+        expect(loads, 1);
+        expect(button.textContent, '8');
+        button.click();
+        expect(button.textContent, '9');
+        button.textContent = '8';
+      };
+    }
+
+    for (final embed in [false, true]) {
+      testClient('preview iframe survives Code and Output round trips: embed=$embed', (tester) async {
+        await mountApp(tester, width: 600, embed: embed);
+        await selectOutputTab();
+        final expectPreviewAlive = await attachPreviewProbe();
+        for (var i = 0; i < 3; i++) {
+          await selectCodeTab();
+          expectPreviewAlive();
+          await selectOutputTab();
+          expectPreviewAlive();
+        }
+      });
+
+      testClient('preview iframe survives responsive layout changes: embed=$embed', (tester) async {
+        await mountApp(tester, width: 1200, embed: embed);
+        final expectPreviewAlive = await attachPreviewProbe();
+        for (var i = 0; i < 2; i++) {
+          await _resizeWindow(865);
+          expectPreviewAlive();
+          await selectOutputTab();
+          expectPreviewAlive();
+          await _resizeWindow(866);
+          expectPreviewAlive();
+          await _resizeWindow(390);
+          await selectCodeTab();
+          await _resizeWindow(1200);
+          expectPreviewAlive();
+        }
+      });
+    }
+
     void expectConsoleSelected() {
       expect(web.document.querySelector('.console-panel'), isNotNull);
       expect(
@@ -448,7 +506,8 @@ void main() {
           if (width == 1200) {
             expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
             await selectOutputTab();
-            expect(panels.preview, const Split(0.6));
+            expect(panels.preview, embed ? const RightHidden(0.6) : const RightCollapsed(0.6));
+            expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
             await selectCodeTab();
           }
         });
@@ -511,7 +570,7 @@ void main() {
         expect(web.document.querySelector('.preview-container.collapsed'), isNull);
         if (width == 600) {
           expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-          expect(web.document.querySelector('.editor-host'), isNull);
+          expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
           await selectCodeTab();
           expect(web.document.querySelector('.cm-editor'), isNotNull);
         }
@@ -528,7 +587,7 @@ void main() {
       await selectOutputTab();
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      expect(web.document.querySelector('.editor-host'), isNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
 
       // Mobile visibility follows the selected tab even if the desktop panel hides again.
       panels.updatePreview(const RightHidden(0.6));
@@ -538,7 +597,7 @@ void main() {
       await selectCodeTab();
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
       expect(web.document.querySelector('.cm-editor'), isNotNull);
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
     });
 
     testClient('mobile Output stays selected after desktop collapse and Run switches back from Code', (tester) async {
@@ -551,14 +610,14 @@ void main() {
       await _resizeWindow(600);
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      expect(web.document.querySelector('.editor-host'), isNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
 
       await selectCodeTab();
       expect(web.document.querySelector('.cm-editor'), isNotNull);
       await click('.main-editor-actions button');
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      expect(web.document.querySelector('.editor-host'), isNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
       final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
       expect(panels.preview, const Split(0.6));
     });
@@ -579,7 +638,7 @@ void main() {
       await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
       await selectCodeTab();
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
 
       await _resizeWindow(1200);
       expect(web.document.querySelector('.app-bar'), isNotNull);
@@ -622,7 +681,7 @@ void main() {
 
       await _resizeWindow(600);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
       expect(fileTreeSplit().state, const Split(240));
       expect((web.document.querySelector('.file-tree')! as web.HTMLElement).style.flexBasis, '240px');
       expectConsoleSelected();
@@ -651,11 +710,11 @@ void main() {
 
       await selectOutputTab();
       expect(web.document.querySelector('.preview-container'), isNotNull);
-      expect(web.document.querySelector('.editor-host'), isNull);
-      expect(web.document.querySelector('.bottom-panel'), isNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
+      expect(web.document.querySelector('.bottom-panel'), isNotNull);
 
       await selectCodeTab();
-      expect(web.document.querySelector('.preview-container'), isNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.cm-editor'), isNotNull);
       expect(web.document.querySelector('.file-tree-rail'), isNotNull);
       expect(fileTreeSplit().state, const LeftCollapsed(225));

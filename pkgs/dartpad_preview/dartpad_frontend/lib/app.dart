@@ -39,7 +39,6 @@ import 'features/shared/components/footer.dart';
 import 'features/shared/components/panel_visibility.dart';
 import 'features/shared/components/shortcut_definitions.dart';
 import 'features/shared/components/shortcuts_dialog.dart';
-import 'features/shared/components/split_panel.dart';
 import 'features/shared/events/error_toast_event.dart';
 import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
@@ -56,6 +55,7 @@ import 'features/startup/query_parameters.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
+import 'features/workspace/workspace_layout.dart';
 import 'features/workspace/workspace_lifecycle.dart';
 import 'features/workspace/workspace_session.dart';
 import 'sdks.g.dart';
@@ -793,33 +793,26 @@ final class _AppState extends State<App> {
           key: ValueKey(session),
           listenable: session.tabs,
           builder: (context) {
-            final preview = _buildPreviewPanel(session);
             final editor = EditorShell(
               openTabs: session.tabs.openTabs,
               activeFile: session.tabs.activeFile,
-              fileTree: _buildFileTree(session),
               editorOverlay: _buildEditorOverlay(session),
               onSwitchFile: session.tabs.switchFile,
               onCloseFile: session.tabs.closeFile,
               bottomPanel: _buildBottomPanel(session),
               contextMenu: session.contextMenu,
               panelController: _panels,
-              smallScreenPreviewPanel: !_isLargeScreen && _selectedSmallScreenTab == .output ? preview : null,
             );
             return div(classes: 'app-workspace-container', [
               div(classes: 'app-workspace', [
-                if (_isLargeScreen)
-                  SplitPanel(
-                    state: _panels.previewListenable,
-                    onStateChanged: _panels.updatePreview,
-                    canCollapseRight: true,
-                    minValue: _isEmbedMode ? 0.05 : 0.3,
-                    maxValue: _isEmbedMode ? 0.95 : 0.85,
-                    left: editor,
-                    right: preview,
-                  )
-                else
-                  editor,
+                WorkspaceLayout(
+                  fileTree: _buildFileTree(session),
+                  editor: editor,
+                  preview: _buildPreviewPanel(session),
+                  panels: _panels,
+                  isLargeScreen: _isLargeScreen,
+                  showOutput: _selectedSmallScreenTab == .output,
+                ),
               ]),
               _buildStatusBar(statusMessage: session.tabs.errorMessage ?? session.tabs.warningMessage),
             ]);
@@ -874,12 +867,7 @@ final class _AppState extends State<App> {
     if (showNavigation && !_isLargeScreen)
       SmallScreenTabBar(
         selectedTab: _selectedSmallScreenTab,
-        onTabSelected: (tab) {
-          if (tab == .output) {
-            _panels.expandPreview();
-          }
-          setState(() => _selectedSmallScreenTab = tab);
-        },
+        onTabSelected: (tab) => setState(() => _selectedSmallScreenTab = tab),
       ),
   ]);
 
@@ -906,32 +894,26 @@ final class _AppState extends State<App> {
 
   /// Keep the editor layout visible while the project source or saved state loads.
   Component _buildPendingWorkspace() {
-    final editor = EditorShell(
-      openTabs: const [],
-      activeFile: '',
+    return WorkspaceLayout(
       fileTree: const aside(classes: 'file-tree', [
         div(classes: 'file-tree-header', [
           span(classes: 'file-tree-title', [.text('Explorer')]),
         ]),
         div(classes: 'file-tree-list', []),
       ]),
-      editorOverlay: const .fragment([]),
-      onSwitchFile: (_) {},
-      onCloseFile: (_, {discardChanges = false}) => false,
-      bottomPanel: const div(classes: 'bottom-panel', []),
-      panelController: _panels,
-    );
-    if (!_isLargeScreen) {
-      return editor;
-    }
-    return SplitPanel(
-      state: _panels.previewListenable,
-      onStateChanged: _panels.updatePreview,
-      canCollapseRight: true,
-      minValue: _isEmbedMode ? 0.05 : 0.3,
-      maxValue: _isEmbedMode ? 0.95 : 0.85,
-      left: editor,
-      right: const div(classes: 'preview-container', []),
+      editor: EditorShell(
+        openTabs: const [],
+        activeFile: '',
+        editorOverlay: const .fragment([]),
+        onSwitchFile: (_) {},
+        onCloseFile: (_, {discardChanges = false}) => false,
+        bottomPanel: const div(classes: 'bottom-panel', []),
+        panelController: _panels,
+      ),
+      preview: const div(classes: 'preview-container', []),
+      panels: _panels,
+      isLargeScreen: _isLargeScreen,
+      showOutput: _selectedSmallScreenTab == .output,
     );
   }
 
