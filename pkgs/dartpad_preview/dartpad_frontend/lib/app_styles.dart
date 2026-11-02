@@ -70,6 +70,13 @@ List<StyleRule> get appStyles => [
     fontFamily: defaultFontFamily,
     backgroundColor: colorSurface,
   ),
+  css('#app').styles(
+    boxSizing: .borderBox,
+    raw: {
+      'height': '100dvh',
+      'padding-bottom': 'env(safe-area-inset-bottom, 0px)',
+    },
+  ),
   css('.glue-cookie-notification-bar').styles(
     raw: {'z-index': '99999'},
   ),

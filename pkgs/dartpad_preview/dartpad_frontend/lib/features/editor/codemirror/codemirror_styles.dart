@@ -43,6 +43,10 @@ List<StyleRule> get codemirrorStyles => [
     fontSize: 14.px,
     raw: {'overscroll-behavior': 'none'},
   ),
+  // Prevent iOS focus zoom for editor text smaller than 16px.
+  css('.editor-shell-small .editor-container .cm-scroller').styles(
+    fontSize: 16.px,
+  ),
   // Keep mobile gutters compact while retaining line numbers and diagnostic markers.
   css('.editor-shell-small .editor-container .cm-lineNumbers .cm-gutterElement').styles(
     padding: .symmetric(horizontal: 2.px),

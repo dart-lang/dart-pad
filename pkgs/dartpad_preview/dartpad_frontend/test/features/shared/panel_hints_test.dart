@@ -16,6 +16,26 @@ void main() {
   for (final mode in WorkspaceMode.values) {
     final embed = mode == WorkspaceMode.embed;
     final suffix = '&embed=$embed';
+    for (final hint in [
+      '',
+      '+console',
+      '+problems',
+      '+console,+problems',
+      '-console',
+      '-problems',
+      '-console,-problems',
+    ]) {
+      test('mobile bottom panel starts collapsed regardless of hints: embed=$embed, hint=$hint', () {
+        final request = ProjectRequest.fromUri(Uri.parse('?panels=$hint$suffix'));
+        final panels = PanelLayoutController(mode: mode, isSmallScreen: true);
+        addTearDown(panels.dispose);
+        panels.applyInitialDefaults(hints: request.panels);
+        expect(panels.bottom, const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: 0.75));
+
+        panels.openBottomPanel(BottomPanelTab.console);
+        expect(panels.bottom, const BottomPanelExpanded(BottomPanelTab.console, editorFraction: 0.75));
+      });
+    }
     for (final hint in ['', '+filetree', '-filetree']) {
       test('mobile file-tree hints preserve desktop navigation: embed=$embed, hint=$hint', () {
         final request = ProjectRequest.fromUri(Uri.parse('?panels=$hint$suffix'));
