@@ -361,6 +361,9 @@ class SplitPanelState extends State<SplitPanel> {
 
     final startPos = component.isVertical ? event.clientY.toDouble() : event.clientX.toDouble();
     _dragStartPos = startPos;
+    final startedExpanded = isSplit;
+    final initialValue = value;
+    final dragThreshold = pointerId != null && (event as web.PointerEvent).pointerType == 'touch' ? 4 : 2;
     _resizePointerId = pointerId;
     if (pointerId != null && event.isTrusted) {
       dragHandle!.setPointerCapture(pointerId);
@@ -385,13 +388,22 @@ class SplitPanelState extends State<SplitPanel> {
       }
 
       final clientPos = (component.isVertical ? e.clientY : e.clientX).toDouble();
+      final dragDelta = clientPos - _dragStartPos;
       if (!isDragging) {
-        if ((clientPos - _dragStartPos).abs() < 4) {
+        if (dragDelta.abs() < dragThreshold) {
           return;
         }
         setState(() => isDragging = true);
       }
-      final currentFirstPos = clientPos - startOffset;
+      var currentFirstPos = clientPos - startOffset;
+      if (startedExpanded) {
+        final initialFirstSize = component.useRatio
+            ? initialValue * totalSize
+            : component.absoluteFirst
+            ? initialValue
+            : totalSize - initialValue;
+        currentFirstPos = initialFirstSize + dragDelta;
+      }
       final currentSecondPos = totalSize - currentFirstPos;
 
       final double minFirst;
@@ -422,11 +434,13 @@ class SplitPanelState extends State<SplitPanel> {
 
       final collapseThresholdRight = effectiveMinSecond - 30;
       final collapseThresholdLeft = effectiveMinFirst - 30;
+      final expandDragDistance = component.isVertical ? 4 : 10;
+      final collapseDragDistance = component.isVertical ? 2 : 5;
 
       if (_dragStartedWhileRightCollapsed) {
         final delta = _dragStartPos - clientPos;
         if (isRightCollapsed) {
-          if (delta > 10) {
+          if (delta > expandDragDistance) {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
             _updateState(Split(newValue));
@@ -436,7 +450,7 @@ class SplitPanelState extends State<SplitPanel> {
           }
         } else {
           // Already auto-expanded during this drag gesture
-          if (delta < 5) {
+          if (delta < collapseDragDistance) {
             _updateState(RightCollapsed(value));
           } else {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
@@ -453,7 +467,7 @@ class SplitPanelState extends State<SplitPanel> {
       if (_dragStartedWhileLeftCollapsed) {
         final delta = clientPos - _dragStartPos;
         if (isLeftCollapsed) {
-          if (delta > 10) {
+          if (delta > expandDragDistance) {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
             _updateState(Split(newValue));
@@ -463,7 +477,7 @@ class SplitPanelState extends State<SplitPanel> {
           }
         } else {
           // Already auto-expanded during this drag gesture
-          if (delta < 5) {
+          if (delta < collapseDragDistance) {
             _updateState(LeftCollapsed(value));
           } else {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);

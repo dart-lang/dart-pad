@@ -363,14 +363,14 @@ void main() {
       handle.dispatchEvent(web.MouseEvent('mousedown', web.MouseEventInit(clientY: 460, clientX: 100)));
       await pumpEventQueue();
 
-      // Drag up past initial expand delta (Y=445, delta = 15 > 10)
-      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 445, clientX: 100)));
+      // A short intentional drag should already expand the collapsed pane.
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 454, clientX: 100)));
       await pumpEventQueue();
       expect(splitKey.currentState!.isRightCollapsed, isFalse);
 
       // Move in small 1px increments (currentSecondPos is still below collapseThreshold):
       // Must NOT flicker back to collapsed!
-      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 444, clientX: 100)));
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 453, clientX: 100)));
       await pumpEventQueue();
       expect(splitKey.currentState!.isRightCollapsed, isFalse);
 

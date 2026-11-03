@@ -151,15 +151,34 @@ void main() {
     final handle = host.querySelector('.drag-handle.vertical')!;
     final bounds = host.getBoundingClientRect();
     expect(handle.getBoundingClientRect().height, 4);
+    final handleBounds = handle.getBoundingClientRect();
+    expect(
+      handle.contains(web.document.elementFromPoint(handleBounds.left + 100, handleBounds.top - 6)),
+      isTrue,
+      reason: 'The thin mobile divider needs an invisible grab area above the line.',
+    );
+    expect(
+      handle.contains(web.document.elementFromPoint(handleBounds.left + 100, handleBounds.bottom + 2)),
+      isFalse,
+      reason: 'The grab area must not cover the Console controls below the line.',
+    );
     expect(web.window.getComputedStyle(handle).getPropertyValue('touch-action'), 'none');
-    void send(String type, int y) {
+    void send(String type, int y, {String pointerType = 'touch'}) {
       final target = type == 'pointerdown' ? handle : web.window;
       target.dispatchEvent(
-        web.PointerEvent(type, web.PointerEventInit(pointerType: 'touch', pointerId: 1, isPrimary: true, clientY: y)),
+        web.PointerEvent(
+          type,
+          web.PointerEventInit(pointerType: pointerType, pointerId: 1, isPrimary: true, clientY: y),
+        ),
       );
     }
 
-    send('pointerdown', handle.getBoundingClientRect().top.round() + 2);
+    expect(panels.bottom.isExpanded, isFalse);
+    final grabY = handleBounds.top.round() - 6;
+    send('pointerdown', grabY);
+    send('pointermove', grabY - 6);
+    await pumpEventQueue();
+    expect(panels.bottom.isExpanded, isTrue, reason: 'A short upward touch drag must open the collapsed Console.');
     send('pointermove', bounds.top.round() + 200);
     await pumpEventQueue();
     expect(panels.bottom.isExpanded, isTrue);
@@ -177,6 +196,28 @@ void main() {
     await pumpEventQueue();
     expect(panels.bottom.isExpanded, isTrue);
     expect(panels.bottom.editorFraction, closeTo(2 / 3, 0.001));
+
+    // Resize an already open Console from the invisible grab area. The pane
+    // should follow the movement without jumping to the initial pointer position.
+    for (final pointerType in ['touch', 'mouse']) {
+      final initialFraction = panels.bottom.editorFraction;
+      final grabY = handle.getBoundingClientRect().top.round() - 6;
+      send('pointerdown', grabY, pointerType: pointerType);
+      send('pointermove', grabY - 1, pointerType: pointerType);
+      await pumpEventQueue();
+      expect(panels.bottom.editorFraction, initialFraction);
+
+      final delta = pointerType == 'mouse' ? 3 : 6;
+      send('pointermove', grabY - delta, pointerType: pointerType);
+      await pumpEventQueue();
+      expect(panels.bottom.editorFraction, closeTo(initialFraction - delta / bounds.height, 0.001));
+
+      send('pointermove', grabY + 9, pointerType: pointerType);
+      await pumpEventQueue();
+      expect(panels.bottom.editorFraction, closeTo(initialFraction + 9 / bounds.height, 0.001));
+      send('pointerup', grabY + 9, pointerType: pointerType);
+      await pumpEventQueue();
+    }
   });
 
   for (final width in [320, 390, 865]) {
