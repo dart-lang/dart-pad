@@ -95,6 +95,12 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    # Isolate the compilers in separate browsers while keeping suites serial
+    # within each job, as required by dart_test.yaml.
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [dart2js, dart2wasm]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
@@ -146,11 +152,13 @@ jobs:
 
       - name: Run tests
         working-directory: pkgs/dartpad_preview/dartpad_frontend
-        run: dart test
+        run: dart test --compiler=${{ matrix.compiler }}
 
       # Verify the production Jaspr build (dual dart2wasm + dart2js fallback) in
       # PR presubmit; the browser tests cover both compilers but do not exercise
       # the production build_web_compilers pipeline prior to Cloud Build.
+      # Run this dual-compiler build only once across the test matrix.
       - name: Build frontend (wasm)
+        if: matrix.compiler == 'dart2wasm'
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: dart run jaspr_cli:jaspr build --experimental-wasm -v
