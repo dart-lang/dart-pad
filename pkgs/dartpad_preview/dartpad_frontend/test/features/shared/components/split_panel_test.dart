@@ -5,6 +5,8 @@
 @TestOn('browser')
 library;
 
+import 'dart:js_interop';
+
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
@@ -21,6 +23,54 @@ final class _SplitOwner extends ValueNotifier<SplitState> {
 
 void main() {
   group('SplitPanel', () {
+    for (final vertical in [true, false]) {
+      testClient('resizes with fractional ${vertical ? 'Y' : 'X'} pointer coordinates', (tester) async {
+        final owner = createSplitOwner(tester, const Split(0.6));
+        final key = GlobalStateKey<SplitPanelState>();
+        tester.pumpComponent(
+          div(
+            styles: Styles(
+              display: .flex,
+              width: 500.px,
+              height: 500.px,
+              flexDirection: vertical ? .column : .row,
+            ),
+            [
+              SplitPanel(
+                key: key,
+                state: owner,
+                onStateChanged: (state) => owner.value = state,
+                isVertical: vertical,
+                left: const div([]),
+                right: const div([]),
+              ),
+            ],
+          ),
+        );
+        final handle = web.document.querySelector('.drag-handle')!;
+        void send(String type, double position) {
+          final event = web.PointerEvent(
+            type,
+            web.PointerEventInit(pointerType: 'touch', pointerId: 7, isPrimary: true, bubbles: true),
+          );
+          // Safari delivers fractional coordinates, despite package:web's int getters.
+          _defineProperty(event, (vertical ? 'clientY' : 'clientX').toJS, {'value': position}.jsify() as JSObject);
+          (type == 'pointerdown' ? handle : web.window).dispatchEvent(event);
+        }
+
+        send('pointerdown', 300.5);
+        send('pointermove', 200.25);
+        await pumpEventQueue();
+        expect(key.currentState!.isDragging, isTrue);
+        expect(owner.value.value, closeTo(0.3995, 0.0001));
+        send('pointermove', 350.75);
+        send('pointerup', 350.75);
+        await pumpEventQueue();
+        expect(owner.value.value, closeTo(0.7005, 0.0001));
+        expect(key.currentState!.isDragging, isFalse);
+      });
+    }
+
     for (final pointerType in ['mouse', 'touch', 'pen']) {
       for (final initial in [const Split(0.6), const RightCollapsed(0.75)]) {
         testClient('$pointerType resizes $initial and stops on cancellation or release', (tester) async {
@@ -786,6 +836,9 @@ void main() {
     });
   });
 }
+
+@JS('Object.defineProperty')
+external void _defineProperty(JSObject target, JSString property, JSObject descriptor);
 
 class _ContextInspector extends StatelessComponent {
   const _ContextInspector({this.onBuild});

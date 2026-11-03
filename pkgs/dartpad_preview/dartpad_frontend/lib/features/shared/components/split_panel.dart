@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
 import 'dart:math';
 
 import 'package:jaspr/dom.dart';
@@ -10,6 +11,13 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+
+// Safari's pointer coordinates can be fractional. Read them as doubles because
+// package:web's MouseEvent getters currently require integers.
+extension type _ResizeCoordinates(web.MouseEvent _) implements JSObject {
+  external double get clientX;
+  external double get clientY;
+}
 
 /// The collapse, hidden, and split state of a split panel.
 @immutable
@@ -359,7 +367,8 @@ class SplitPanelState extends State<SplitPanel> {
       return;
     }
 
-    final startPos = component.isVertical ? event.clientY.toDouble() : event.clientX.toDouble();
+    final coordinates = _ResizeCoordinates(event);
+    final startPos = component.isVertical ? coordinates.clientY : coordinates.clientX;
     _dragStartPos = startPos;
     final startedExpanded = isSplit;
     final initialValue = value;
@@ -387,7 +396,8 @@ class SplitPanelState extends State<SplitPanel> {
         return;
       }
 
-      final clientPos = (component.isVertical ? e.clientY : e.clientX).toDouble();
+      final coordinates = _ResizeCoordinates(e);
+      final clientPos = component.isVertical ? coordinates.clientY : coordinates.clientX;
       final dragDelta = clientPos - _dragStartPos;
       if (!isDragging) {
         if (dragDelta.abs() < dragThreshold) {
@@ -720,7 +730,7 @@ class SplitPanelState extends State<SplitPanel> {
       width: (width - 4).px,
       backgroundColor: colorBorder,
     ),
-    css('.drag-handle.horizontal:hover::after, .drag-handle.horizontal.dragging::after').styles(
+    css('.drag-handle.horizontal.dragging::after').styles(
       transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
@@ -736,9 +746,17 @@ class SplitPanelState extends State<SplitPanel> {
       height: (width - 4).px,
       backgroundColor: colorBorder,
     ),
-    css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
+    css('.drag-handle.vertical.dragging::after').styles(
       transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
+    // Touch browsers can emulate hover while a gesture passes over the handle.
+    // Only an actual resize should highlight it on devices without hover.
+    css.media(const MediaQuery.all(canHover: true), [
+      css('.drag-handle:hover::after').styles(
+        transition: Transition('background-color', duration: 150.ms, curve: .ease),
+        backgroundColor: colorPrimary,
+      ),
+    ]),
   ];
 }
