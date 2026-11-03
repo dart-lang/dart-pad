@@ -510,14 +510,26 @@ void main() {
         ].map((rule) => rule.toCss()).join('\n');
       web.document.head!.appendChild(styles);
       addTearDown(() => web.document.head!.removeChild(styles));
-      final download = Completer<Project>()
-        ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
+      final source = 'void main() {}\n// ${List.filled(500, 'x').join()}\n${List.filled(19, '// Code').join('\n')}';
+      final download = Completer<Project>()..complete(contents({'lib/main.dart': source}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
       expect(button.closest('.small-screen-tab-bar'), isNull);
+      final scroller = web.document.querySelector('.editor-tab-slot.active .cm-scroller')! as web.HTMLElement;
+      final longLine = web.document.querySelectorAll('.editor-tab-slot.active .cm-line').item(1)! as web.HTMLElement;
+      final lintGutter = web.document.querySelector('.editor-tab-slot.active .cm-gutter-lint')! as web.HTMLElement;
+      expect(lintGutter.getBoundingClientRect().width, 0);
+      for (final selector in ['.cm-lineNumbers', '.cm-foldGutter']) {
+        expect(web.document.querySelector(selector)!.getBoundingClientRect().width, greaterThan(0));
+      }
       web.DOMRect codeBounds() {
         final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
         return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
+      }
+
+      void expectWrappedCode() {
+        expect(scroller.scrollWidth, lessThanOrEqualTo(scroller.clientWidth));
+        expect(longLine.getBoundingClientRect().height, greaterThan(2 * codeBounds().height));
       }
 
       double gutterWidth() {
@@ -544,9 +556,27 @@ void main() {
       await click('.small-screen-file-tree-button');
       expect(toggleColors(), closedColors);
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
+        '16px',
+      );
       final mobileGutterWidth = gutterWidth();
+      expectWrappedCode();
       await _resizeWindow(1200);
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
+        '14px',
+      );
       expect(gutterWidth(), greaterThan(mobileGutterWidth));
+      expect(lintGutter.getBoundingClientRect().width, greaterThan(0));
+      expect(scroller.scrollWidth, greaterThan(scroller.clientWidth));
+      expect(
+        longLine.getBoundingClientRect().height,
+        closeTo(double.parse(web.window.getComputedStyle(longLine).lineHeight.replaceAll('px', '')), 1),
+      );
+      await _resizeWindow(390);
+      expect(lintGutter.getBoundingClientRect().width, 0);
+      expectWrappedCode();
     });
 
     for (final width in [600, 1200]) {

@@ -105,7 +105,8 @@ class _FooterState extends State<Footer> {
               ),
             ],
           ),
-          span([.text(label)]),
+          span(classes: 'app-footer-sdk-full', [.text(label)]),
+          span(classes: 'app-footer-sdk-compact', [.text(currentSdk?.name ?? 'Dart')]),
         ],
       ),
       items: [
@@ -120,11 +121,13 @@ class _FooterState extends State<Footer> {
   }
 
   Component _buildChannelIndicator(String channel) {
+    final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
     return span(
       classes: 'app-footer-channel',
+      attributes: {'role': 'img', 'aria-label': label},
       [
-        const Icon('tune', size: 14),
-        span([.text('${channel[0].toUpperCase()}${channel.substring(1)} channel')]),
+        const Icon('tune', size: 14, attributes: {'aria-hidden': 'true'}),
+        span(classes: 'app-footer-channel-label', [.text(label)]),
       ],
     );
   }
@@ -191,6 +194,11 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
     ),
     css('.app-footer-link:hover').styles(color: colorOnSurface),
+    css('.app-footer-sdk-full, .app-footer-channel-label').styles(display: .none),
+    css.media(MediaQuery.screen(minWidth: 500.px), [
+      css('.app-footer-sdk-full, .app-footer-channel-label').styles(display: .inline),
+      css('.app-footer-sdk-compact').styles(display: .none),
+    ]),
     css('.app-footer-sdk-trigger, .app-footer-channel').styles(
       display: .inlineFlex,
       position: const .relative(),
@@ -219,6 +227,11 @@ class _FooterState extends State<Footer> {
       cursor: .notAllowed,
     ),
     css('.app-footer-spacer').styles(flex: const .grow(1)),
+    css('.app-footer .task-status-trigger').styles(
+      width: 100.percent,
+      minWidth: .zero,
+      boxSizing: .borderBox,
+    ),
     css('.app-footer-message').styles(
       minWidth: .zero,
       margin: const Margin.only(left: Unit.auto),
