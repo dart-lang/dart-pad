@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/persistence/indexed_db_project_store.dart';
@@ -155,6 +156,42 @@ void main() {
     expect(await retry, isEmpty);
     final saved = await store.create(savedProject());
     expect((await store.read(saved.id))!.id, saved.id);
+  });
+
+  test('upgrading from v2 deletes entries saved without a session id', () async {
+    // Seed a store with a v2 data layout
+    final seed = web.window.indexedDB.open(name, 2);
+    seed.onupgradeneeded = ((web.Event event) {
+      final db = seed.result as web.IDBDatabase;
+      db.createObjectStore('projects');
+      db.createObjectStore('sessions');
+    }).toJS;
+    final opened = Completer<web.IDBDatabase>();
+    seed.onsuccess = ((web.Event event) => opened.complete(seed.result as web.IDBDatabase)).toJS;
+    seed.onerror = ((web.Event event) => opened.completeError(StateError('seed failed'))).toJS;
+    final db = await opened.future;
+    JSObject row(String id, int? sessionId) => JSObject()
+      ..setProperty('id'.toJS, id.toJS)
+      ..setProperty('updatedAt'.toJS, 1.toJS)
+      ..setProperty(
+        'metadata'.toJS,
+        jsonEncode({...savedProject().metadata(), 'sessionId': sessionId}).toJS,
+      )
+      ..setProperty('files'.toJS, <JSObject>[].toJS);
+
+    // Write a legacy row without a session id and one with
+    final written = Completer<void>();
+    final transaction = db.transaction('projects'.toJS, 'readwrite');
+    transaction.oncomplete = ((web.Event event) => written.complete()).toJS;
+    final projects = transaction.objectStore('projects');
+    projects.put(row('legacy', null), 'legacy'.toJS);
+    projects.put(row('current', 1), 'current'.toJS);
+    await written.future;
+    db.close();
+
+    // Implicitly opens the store and runs migration from v2 to v3
+    expect((await store.list()).map((entry) => entry.id), ['current']);
+    expect(await store.read('legacy'), isNull);
   });
 
   test('closed storage cannot reopen a database', () async {

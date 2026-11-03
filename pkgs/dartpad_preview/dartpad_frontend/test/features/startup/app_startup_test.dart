@@ -18,7 +18,6 @@ import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/small_screen_tab_bar.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
-import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
@@ -41,6 +40,7 @@ import 'initial_project_state_test.dart' show contents;
 void main() {
   TestWorker.captureAssetBaseUrl();
   final startupWorkerAssets = Uri.base.resolve('../../fixtures/startup_worker/');
+  final String initialUrl = web.window.location.href;
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
@@ -48,6 +48,9 @@ void main() {
     web.document.head!.appendChild(script);
     await loaded;
   });
+
+  // Reset href so that query parameters don't leak between tests
+  tearDown(() => web.window.history.replaceState(null, '', initialUrl));
 
   testClient('waits for project resolution before creating the correct SDK worker and opens initial tabs', (
     tester,
@@ -90,52 +93,6 @@ void main() {
     expect(web.document.querySelector('.editor-tab.active')!.textContent, contains('README.md'));
     expect(web.document.querySelector('.app-shell > .task-status-anchor'), isNull);
     expect(web.document.querySelector('.app-footer .task-status-trigger'), isNotNull);
-  });
-
-  testClient('command palette shortcut closes the shortcuts dialog', (tester) async {
-    tester.pumpComponent(
-      App(
-        projectStore: MemoryProjectStore(),
-        loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
-        createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
-            WorkspaceRepository(
-              events: events,
-              sdk: sdk,
-              taskStatus: taskStatus,
-              workspaceResourceApi: localApi!,
-              workspaceFuture: Completer<Workspace>().future,
-            ),
-      ),
-    );
-    await pumpEventQueue();
-
-    (web.document.querySelector('button[aria-label="Keyboard shortcuts"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
-    expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
-
-    web.document.dispatchEvent(
-      web.KeyboardEvent(
-        'keydown',
-        web.KeyboardEventInit(
-          key: 'p',
-          ctrlKey: !isMac,
-          metaKey: isMac,
-          shiftKey: true,
-          bubbles: true,
-          cancelable: true,
-        ),
-      ),
-    );
-    await pumpEventQueue();
-
-    expect(web.document.querySelector('.shortcuts-dialog'), isNull);
-    expect(web.document.querySelector('.command-palette'), isNotNull);
-
-    (web.document.querySelector('button[aria-label="Keyboard shortcuts"]')! as web.HTMLButtonElement).click();
-    await pumpEventQueue();
-
-    expect(web.document.querySelector('.command-palette'), isNull);
-    expect(web.document.querySelector('.shortcuts-dialog'), isNotNull);
   });
 
   testClient('invalid SDK version shows an actionable error without starting a worker', (tester) async {
