@@ -37,6 +37,7 @@ import 'initial_project_state_test.dart' show contents;
 void main() {
   TestWorker.captureAssetBaseUrl();
   final startupWorkerAssets = Uri.base.resolve('../../fixtures/startup_worker/');
+  final String initialUrl = web.window.location.href;
   setUpAll(() async {
     final script = web.document.createElement('script') as web.HTMLScriptElement;
     final loaded = web.EventStreamProviders.loadEvent.forTarget(script).first;
@@ -44,6 +45,9 @@ void main() {
     web.document.head!.appendChild(script);
     await loaded;
   });
+
+  // Reset href so that query parameters don't leak between tests
+  tearDown(() => web.window.history.replaceState(null, '', initialUrl));
 
   testClient('waits for project resolution before creating the correct SDK worker and opens initial tabs', (
     tester,
