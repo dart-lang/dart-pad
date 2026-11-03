@@ -53,15 +53,13 @@ List<StyleRule> get codemirrorStyles => [
     whiteSpace: .breakSpaces,
     raw: {'flex-shrink': '1', 'overflow-wrap': 'anywhere', 'word-break': 'break-word'},
   ),
-  // Keep mobile gutters compact while retaining line numbers and diagnostic markers.
+  // Keep mobile line numbers compact and omit the diagnostic gutter.
   css('.editor-shell-small .editor-container .cm-lineNumbers .cm-gutterElement').styles(
     padding: .symmetric(horizontal: 2.px),
   ),
   css('.editor-shell-small .editor-container .cm-gutter-lint').styles(
-    width: 1.em,
-  ),
-  css('.editor-shell-small .editor-container .cm-gutter-lint .cm-gutterElement').styles(
-    padding: .symmetric(vertical: 0.2.em),
+    // CodeMirror forces gutter display with !important.
+    raw: {'display': 'none !important'},
   ),
   css('.editor-container .cm-button').styles(
     padding: .symmetric(vertical: 6.px, horizontal: 12.px),

@@ -7,11 +7,12 @@ import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
 import '../../shared/components/icon_button.dart';
+import '../../shared/icons.dart';
 import '../bottom_panel_state.dart';
 import '../view_models/console_view_model.dart';
 import 'bottom_panel_indicator.dart';
 
-/// The tab bar for the bottom panel.
+/// Desktop tabs or a compact Console disclosure for the bottom panel.
 final class BottomPanelTabs extends StatelessComponent {
   const BottomPanelTabs({
     required this.problemsCount,
@@ -51,6 +52,38 @@ final class BottomPanelTabs extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
+    if (!showProblems) {
+      final onToggle = isCollapsed ? onExpand ?? () => onSelectTab(BottomPanelTab.console) : onCollapse;
+      return div(classes: 'bottom-panel-tabs bottom-panel-console-header', [
+        button(
+          classes: 'bottom-panel-console-title',
+          attributes: {
+            'type': 'button',
+            'aria-expanded': '${!isCollapsed}',
+            'aria-controls': 'bottom-panel-content',
+          },
+          onClick: onToggle,
+          [
+            const span(classes: 'bottom-panel-console-label', [.text('Console')]),
+            _buildConsoleIndicator(),
+          ],
+        ),
+        if (!isCollapsed) _buildClearButton(),
+        button(
+          classes: 'bottom-panel-console-toggle',
+          attributes: {
+            'type': 'button',
+            'aria-label': isCollapsed ? 'Show console' : 'Hide console',
+            'aria-expanded': '${!isCollapsed}',
+            'aria-controls': 'bottom-panel-content',
+          },
+          onClick: onToggle,
+          [
+            Icon(isCollapsed ? 'expand_less' : 'expand_more', size: 18, attributes: const {'aria-hidden': 'true'}),
+          ],
+        ),
+      ]);
+    }
     return div(
       classes: 'bottom-panel-tabs',
       attributes: const {'role': 'tablist'},
@@ -65,25 +98,11 @@ final class BottomPanelTabs extends StatelessComponent {
         _BottomPanelTabButton(
           label: 'Console',
           active: !isCollapsed && activeTab == BottomPanelTab.console,
-          indicator: ListenableBuilder(
-            listenable: console,
-            builder: (_) => BottomPanelIndicator.error(
-              label: console.hasErrors ? 'Console contains errors' : null,
-              isVisible: console.hasErrors,
-            ),
-          ),
+          indicator: _buildConsoleIndicator(),
           onClick: () => onSelectTab(BottomPanelTab.console),
         ),
         const div(classes: 'bottom-panel-tabs-spacer', []),
-        if (!isCollapsed && activeTab == BottomPanelTab.console)
-          IconButton(
-            icon: 'playlist_remove',
-            iconSize: 20,
-            tooltip: 'Clear console',
-            label: 'Clear console',
-            classes: 'bottom-panel-btn',
-            onClick: (_) => console.clear(),
-          ),
+        if (!isCollapsed && activeTab == BottomPanelTab.console) _buildClearButton(),
         if (!isCollapsed && onCollapse != null)
           IconButton(
             tooltip: 'Hide bottom panel',
@@ -106,8 +125,58 @@ final class BottomPanelTabs extends StatelessComponent {
     );
   }
 
+  Component _buildConsoleIndicator() => ListenableBuilder(
+    listenable: console,
+    builder: (_) => BottomPanelIndicator.error(
+      label: console.hasErrors ? 'Console contains errors' : null,
+      isVisible: console.hasErrors,
+    ),
+  );
+
+  Component _buildClearButton() => IconButton(
+    icon: 'playlist_remove',
+    iconSize: 20,
+    tooltip: 'Clear console',
+    label: 'Clear console',
+    classes: 'bottom-panel-btn',
+    onClick: (_) => console.clear(),
+  );
+
   @css
   static List<StyleRule> get styles => [
+    css('.bottom-panel-console-toggle, .bottom-panel-console-title').styles(
+      display: .flex,
+      minWidth: .zero,
+      minHeight: 44.px,
+      padding: .symmetric(horizontal: 10.px),
+      border: .none,
+      cursor: .pointer,
+      alignItems: .center,
+      gap: .all(6.px),
+      color: colorOnSurface,
+      fontSize: 12.px,
+      fontWeight: .w500,
+      backgroundColor: Colors.transparent,
+    ),
+    css('.bottom-panel-console-toggle').styles(
+      width: 44.px,
+      padding: .zero,
+      justifyContent: .center,
+      flex: const .shrink(0),
+    ),
+    css('.bottom-panel-console-title').styles(
+      padding: .symmetric(horizontal: 10.px),
+      flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('.bottom-panel-console-toggle:focus-visible, .bottom-panel-console-title:focus-visible').styles(
+      outline: Outline(style: .solid, color: colorPrimary, width: OutlineWidth(2.px)),
+      raw: {'outline-offset': '-2px'},
+    ),
+    css('.bottom-panel-console-header .bottom-panel-btn').styles(
+      width: 44.px,
+      height: 44.px,
+      margin: .zero,
+    ),
     css('.bottom-panel-tabs').styles(
       display: .flex,
       border: .only(

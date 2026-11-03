@@ -131,7 +131,7 @@ final class _BottomPanelState extends State<BottomPanel> {
   }
 
   Component _buildContent(BottomPanelTab activeTab) {
-    return div(classes: 'bottom-panel-content', [
+    return div(id: 'bottom-panel-content', classes: 'bottom-panel-content', [
       switch (activeTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,

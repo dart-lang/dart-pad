@@ -80,8 +80,16 @@ void main() {
 
       panels.updateScreenSize(isSmallScreen: true);
       await pumpEventQueue();
-      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 1);
-      expect(web.document.querySelector('.bottom-panel [aria-selected="true"]')!.textContent, startsWith('Console'));
+      expect(web.document.querySelector('.bottom-panel [role="tablist"]'), isNull);
+      expect(web.document.querySelector('.bottom-panel [role="tab"]'), isNull);
+      expect(web.document.querySelector('.bottom-panel [aria-selected]'), isNull);
+      final toggle = web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement;
+      expect(toggle.parentElement!.lastElementChild, toggle);
+      expect(toggle.parentElement!.firstElementChild!.classList.contains('bottom-panel-console-title'), isTrue);
+      expect(toggle.getAttribute('aria-expanded'), 'true');
+      expect(toggle.getAttribute('aria-controls'), 'bottom-panel-content');
+      expect(toggle.querySelector('.material-symbols-outlined')!.textContent, 'expand_more');
+      expect(web.document.querySelector('button[aria-label="Clear console"]'), isNotNull);
       expect(web.document.querySelector('.problems-panel'), isNull);
       expect(web.document.querySelector('.console-panel'), isNotNull);
 
@@ -91,14 +99,33 @@ void main() {
       expect(web.document.querySelector('.problems-panel'), isNotNull);
 
       panels.updateScreenSize(isSmallScreen: true);
-      panels.collapseBottomPanel();
       await pumpEventQueue();
-      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 1);
-      (web.document.querySelector('button[aria-label="Show bottom panel"]')! as web.HTMLButtonElement).click();
+      (web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      final collapsedToggle = web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement;
+      expect(collapsedToggle.getAttribute('aria-expanded'), 'false');
+      expect(collapsedToggle.querySelector('.material-symbols-outlined')!.textContent, 'expand_less');
+      expect(web.document.querySelector('button[aria-label="Clear console"]'), isNull);
+      expect(web.document.querySelector('.bottom-panel-content'), isNull);
+
+      events.dispatch(const LogEvent('Error', level: Level.SEVERE));
+      await pumpEventQueue();
+      expect(
+        web.document.querySelector('.bottom-panel-console-title [aria-label="Console contains errors"]'),
+        isNotNull,
+      );
+      collapsedToggle.click();
       await pumpEventQueue();
       expect(panels.bottom.selectedTab, BottomPanelTab.console);
       expect(web.document.querySelector('.console-panel'), isNotNull);
       expect(web.document.querySelector('.problems-panel'), isNull);
+      final clear = web.document.querySelector('button[aria-label="Clear console"]')! as web.HTMLButtonElement;
+      expect(clear.closest('.bottom-panel-console-toggle'), isNull);
+      clear.click();
+      await pumpEventQueue();
+      expect(console.logs, isEmpty);
+      expect(panels.bottom.isExpanded, isTrue);
+      expect(web.document.querySelector('[aria-label="Console contains errors"]'), isNull);
     });
   }
 
