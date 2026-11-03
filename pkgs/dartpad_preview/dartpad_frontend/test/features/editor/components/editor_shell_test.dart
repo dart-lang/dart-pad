@@ -131,6 +131,54 @@ WorkspaceLayout _createShell(
 }
 
 void main() {
+  testClient('mobile console can be opened and resized by touch and retains its height', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    tester.pumpComponent(
+      div([
+        Style(styles: [...SplitPanelState.styles, ...WorkspaceLayout.styles, ...EditorShell.styles]),
+        div(
+          styles: Styles(width: 390.px, height: 600.px),
+          [_createShell(tester, panels: panels, bottomPanel: const _FakeBottomPanel())],
+        ),
+      ]),
+    );
+    final host = web.document.querySelector('.editor-host')!;
+    final handle = host.querySelector('.drag-handle.vertical')!;
+    final bounds = host.getBoundingClientRect();
+    expect(handle.getBoundingClientRect().height, 4);
+    expect(web.window.getComputedStyle(handle).getPropertyValue('touch-action'), 'none');
+    void send(String type, int y) {
+      final target = type == 'pointerdown' ? handle : web.window;
+      target.dispatchEvent(
+        web.PointerEvent(type, web.PointerEventInit(pointerType: 'touch', pointerId: 1, isPrimary: true, clientY: y)),
+      );
+    }
+
+    send('pointerdown', handle.getBoundingClientRect().top.round() + 2);
+    send('pointermove', bounds.top.round() + 200);
+    await pumpEventQueue();
+    expect(panels.bottom.isExpanded, isTrue);
+    expect(panels.bottom.editorFraction, closeTo(1 / 3, 0.001));
+    final tallHeight = web.document.getElementById('fake-bottom')!.getBoundingClientRect().height;
+    send('pointermove', bounds.top.round() + 400);
+    send('pointerup', bounds.top.round() + 400);
+    await pumpEventQueue();
+    expect(panels.bottom.editorFraction, closeTo(2 / 3, 0.001));
+    expect(web.document.getElementById('fake-bottom')!.getBoundingClientRect().height, lessThan(tallHeight));
+
+    panels.collapseBottomPanel();
+    await pumpEventQueue();
+    (web.document.getElementById('fake-bottom-expand')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(panels.bottom.isExpanded, isTrue);
+    expect(panels.bottom.editorFraction, closeTo(2 / 3, 0.001));
+  });
+
   for (final width in [320, 390, 865]) {
     testClient('mobile file tree overlays two thirds of the editor at ${width}px', (tester) async {
       final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);

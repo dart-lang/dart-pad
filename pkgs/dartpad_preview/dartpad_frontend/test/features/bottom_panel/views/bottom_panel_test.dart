@@ -9,6 +9,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel_tabs.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -128,6 +129,72 @@ void main() {
       expect(web.document.querySelector('[aria-label="Console contains errors"]'), isNull);
     });
   }
+
+  testClient('mobile console touch feedback does not linger when the header moves', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester);
+    panels.updateScreenSize(isSmallScreen: true);
+    tester.pumpComponent(
+      div(
+        styles: Styles(display: .flex, width: 360.px, height: 400.px, flexDirection: .column),
+        [
+          Style(styles: [...SplitPanelState.styles, ...BottomPanel.styles, ...BottomPanelTabs.styles]),
+          inSplitPanel(
+            BottomPanel(
+              panelController: panels,
+              diagnostics: const [],
+              hasMoreDiagnostics: false,
+              console: console,
+              onOpenDiagnostic: (_, _) {},
+              events: events,
+            ),
+          ),
+        ],
+      ),
+    );
+    await pumpEventQueue();
+    final handle = web.document.querySelector('.drag-handle.vertical')!;
+    for (final pointerType in ['mouse', 'touch']) {
+      handle.dispatchEvent(
+        web.PointerEvent('pointerdown', web.PointerEventInit(pointerType: pointerType, pointerId: 7, isPrimary: true)),
+      );
+      if (pointerType == 'mouse') {
+        handle.dispatchEvent(web.MouseEvent('mousedown'));
+      }
+      await pumpEventQueue();
+      expect(web.document.querySelector('.drag-handle.dragging'), isNull);
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.bottom-panel-console-title')!).pointerEvents,
+        'auto',
+        reason: 'Pressing the divider without moving must not block Console clicks.',
+      );
+      web.window.dispatchEvent(web.PointerEvent('pointerup', web.PointerEventInit(pointerId: 7)));
+      web.window.dispatchEvent(web.MouseEvent('mouseup'));
+      await pumpEventQueue();
+    }
+    for (final selector in ['.bottom-panel-console-title', '.bottom-panel-console-toggle']) {
+      for (var tap = 0; tap < 2; tap++) {
+        final button = web.document.querySelector(selector)! as web.HTMLButtonElement;
+        final bounds = button.getBoundingClientRect();
+        expect(
+          button.contains(web.document.elementFromPoint(bounds.left + 10, bounds.top + 1)),
+          isTrue,
+          reason: 'The resize handle must not intercept taps inside the Console buttons.',
+        );
+        final previousTop = button.getBoundingClientRect().top;
+        final wasExpanded = panels.bottom.isExpanded;
+        touchTap(button);
+        await pumpEventQueue();
+        expect(panels.bottom.isExpanded, !wasExpanded);
+        expect(button.getBoundingClientRect().top, isNot(previousTop));
+        final style = web.window.getComputedStyle(button);
+        expect(style.getPropertyValue('-webkit-tap-highlight-color'), 'rgba(0, 0, 0, 0)');
+        expect(style.backgroundColor, 'rgba(0, 0, 0, 0)');
+        expect(style.transitionDuration, '0s');
+      }
+    }
+  });
 
   testClient('touch collapse and expand release focus without delayed tooltips', (tester) async {
     final events = AppEventBus();

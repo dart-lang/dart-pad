@@ -21,6 +21,98 @@ final class _SplitOwner extends ValueNotifier<SplitState> {
 
 void main() {
   group('SplitPanel', () {
+    for (final pointerType in ['mouse', 'touch', 'pen']) {
+      for (final initial in [const Split(0.6), const RightCollapsed(0.75)]) {
+        testClient('$pointerType resizes $initial and stops on cancellation or release', (tester) async {
+          final key = GlobalStateKey<SplitPanelState>();
+          final owner = createSplitOwner(tester, initial);
+          tester.pumpComponent(
+            div(
+              id: 'touch-split',
+              styles: Styles(display: .flex, height: 500.px, flexDirection: .column),
+              [
+                SplitPanel(
+                  key: key,
+                  state: owner,
+                  onStateChanged: (state) => owner.value = state,
+                  isVertical: true,
+                  canCollapseRight: true,
+                  left: const div([]),
+                  right: div(styles: Styles(minHeight: 44.px), const []),
+                ),
+              ],
+            ),
+          );
+          final handle = web.document.querySelector('.drag-handle')!;
+          final top = web.document.getElementById('touch-split')!.getBoundingClientRect().top.round();
+          void send(String type, int y, {int id = 7, bool primary = true}) {
+            final target = type == 'pointerdown' ? handle : web.window;
+            target.dispatchEvent(
+              web.PointerEvent(
+                type,
+                web.PointerEventInit(
+                  pointerType: pointerType,
+                  pointerId: id,
+                  isPrimary: primary,
+                  clientY: top + y,
+                  bubbles: true,
+                  cancelable: true,
+                ),
+              ),
+            );
+          }
+
+          send('pointerdown', 300, id: 8, primary: false);
+          expect(key.currentState!.isDragging, isFalse);
+          send('pointerdown', initial.isCollapsed ? 460 : 300);
+          send('pointermove', 200, id: 8);
+          send('pointerup', 200, id: 8);
+          await pumpEventQueue();
+          expect(owner.value, initial);
+          expect(key.currentState!.isDragging, isFalse);
+
+          send('pointermove', 200);
+          await pumpEventQueue();
+          expect(key.currentState!.isDragging, isTrue);
+          expect(owner.value.isSplit, isTrue);
+          expect(owner.value.value, closeTo(0.4, 0.001));
+          send('pointermove', 350);
+          await pumpEventQueue();
+          expect(owner.value.value, closeTo(0.7, 0.001));
+          send('pointercancel', 350);
+          await pumpEventQueue();
+          expect(key.currentState!.isDragging, isFalse);
+          send('pointermove', 100);
+          expect(owner.value.value, closeTo(0.7, 0.001));
+
+          send('pointerdown', 350);
+          send('pointermove', 250);
+          send('pointerup', 250);
+          await pumpEventQueue();
+          expect(owner.value.value, closeTo(0.5, 0.001));
+          expect(key.currentState!.isDragging, isFalse);
+          send('pointermove', 100);
+          expect(owner.value.value, closeTo(0.5, 0.001));
+
+          send('pointerdown', 250);
+          send('pointermove', 200);
+          await pumpEventQueue();
+          handle.dispatchEvent(web.PointerEvent('lostpointercapture', web.PointerEventInit(pointerId: 7)));
+          await pumpEventQueue();
+          expect(key.currentState!.isDragging, isFalse);
+          send('pointermove', 100);
+          expect(owner.value.value, closeTo(0.4, 0.001));
+
+          send('pointerdown', 200);
+          send('pointermove', 250);
+          await pumpEventQueue();
+          web.window.dispatchEvent(web.Event('blur'));
+          await pumpEventQueue();
+          expect(key.currentState!.isDragging, isFalse);
+        });
+      }
+    }
+
     testClient('switches listeners when its owner changes', (tester) async {
       final first = _SplitOwner(initialState: const Split(0.6));
       final second = _SplitOwner(initialState: const RightHidden(0.4));

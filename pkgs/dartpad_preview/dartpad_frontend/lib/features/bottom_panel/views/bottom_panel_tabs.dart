@@ -157,6 +157,11 @@ final class BottomPanelTabs extends StatelessComponent {
       fontSize: 12.px,
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
+      // Native tap highlights can fade at the old position after the panel moves.
+      raw: {'-webkit-tap-highlight-color': 'transparent'},
+    ),
+    css('.bottom-panel-console-toggle:active, .bottom-panel-console-title:active').styles(
+      backgroundColor: colorSurface.highlight(colorOnSurface, 0.06),
     ),
     css('.bottom-panel-console-toggle').styles(
       width: 44.px,
