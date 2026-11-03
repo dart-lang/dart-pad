@@ -40,7 +40,7 @@ final class WorkspaceLayout extends StatelessComponent {
         useRatio: false,
         minValue: 150,
         maxValue: 300,
-        canCollapseLeft: true,
+        canCollapseLeft: isLargeScreen,
         left: _FileTreePanel(controller: panels, child: fileTree),
         right: ValueListenableBuilder(
           listenable: panels.fileTreeListenable,

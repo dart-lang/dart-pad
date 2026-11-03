@@ -346,8 +346,11 @@ void main() {
         await click('.small-screen-file-tree-button');
         expect(fileTreeSplit().state, const Split(200));
         expect(web.document.querySelector('.small-screen-file-tree-button')!.getAttribute('aria-expanded'), 'true');
+        expect(web.document.querySelector('.file-tree-collapse-button'), isNull);
         await click('.small-screen-file-tree-button');
         expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.small-screen-file-tree-button')!.getAttribute('aria-expanded'), 'false');
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         await click('.small-screen-file-tree-button');
         final file = web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement;
         file.click();
@@ -414,6 +417,7 @@ void main() {
         ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
+      expect(button.closest('.small-screen-tab-bar'), isNull);
       web.DOMRect codeBounds() {
         final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
         return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
@@ -432,6 +436,17 @@ void main() {
       expect(button.getBoundingClientRect().height, 44);
       expect(web.document.querySelectorAll('.small-screen-tab-bar-tab').length, 2);
       expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+      List<String> toggleColors() {
+        final style = web.window.getComputedStyle(button);
+        return [style.color, style.backgroundColor];
+      }
+
+      final closedColors = toggleColors();
+      await click('.small-screen-file-tree-button');
+      expect(toggleColors(), isNot(closedColors));
+      await click('.small-screen-file-tree-button');
+      expect(toggleColors(), closedColors);
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
       expect(
         web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
         '16px',
