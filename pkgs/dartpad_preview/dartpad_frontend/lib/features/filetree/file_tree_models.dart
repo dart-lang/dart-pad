@@ -170,8 +170,8 @@ final class FileTreeActions {
     required this.focusPath,
   });
 
-  /// Creates a file in the selected folder.
-  final Future<void> Function(String parentPath, String name) createFile;
+  /// Creates and opens a file, returning whether the operation succeeded.
+  final Future<bool> Function(String parentPath, String name) createFile;
 
   /// Creates a folder in the selected folder.
   final Future<void> Function(String parentPath, String name) createFolder;

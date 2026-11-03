@@ -97,13 +97,13 @@ final class FileTreeViewModel extends ChangeNotifier {
     );
   }
 
-  /// Creates a file in the target folder.
-  Future<void> createFile(String parentPath, String name) async {
+  /// Creates and opens a file in the target folder, returning whether it succeeded.
+  Future<bool> createFile(String parentPath, String name) async {
     final targetPath = joinWorkspacePath(parentPath, name);
     if (!_allowPath(parentPath) || !_allowPath(targetPath)) {
-      return;
+      return false;
     }
-    await _runMutation(() async {
+    return _runMutation(() async {
       await workspace.ensureTargetAvailable(
         sourcePath: '',
         targetPath: targetPath,
@@ -275,9 +275,9 @@ final class FileTreeViewModel extends ChangeNotifier {
     return false;
   }
 
-  Future<void> _runMutation(Future<void> Function() operation) async {
+  Future<bool> _runMutation(Future<void> Function() operation) async {
     if (_busy) {
-      return;
+      return false;
     }
     _busy = true;
     _operationError = null;
@@ -285,6 +285,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     _notify();
     try {
       await operation();
+      return true;
     } catch (error) {
       _setOperationError(
         userFacingErrorMessage(
@@ -292,6 +293,7 @@ final class FileTreeViewModel extends ChangeNotifier {
           fallback: 'Workspace operation failed.',
         ),
       );
+      return false;
     } finally {
       _busy = false;
       _notify();
