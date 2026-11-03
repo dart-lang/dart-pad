@@ -1013,7 +1013,7 @@ final class _AppState extends State<App> {
         activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure,
         onOpenConsole: () => _openConsole(session),
-        initialDeviceMode: _isEmbedMode ? DeviceMode.current : DeviceMode.mobile,
+        initialDeviceMode: _isEmbedMode || !_isLargeScreen ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }

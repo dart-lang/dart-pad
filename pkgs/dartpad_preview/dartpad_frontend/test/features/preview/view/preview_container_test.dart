@@ -305,6 +305,36 @@ void main() {
   });
 
   group('PreviewContainer – device mode & controls', () {
+    testClient('responsive defaults update until a device mode is chosen manually', (tester) async {
+      final initialMode = ValueNotifier(DeviceMode.mobile);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        initialMode.dispose();
+      });
+      tester.pumpComponent(
+        ValueListenableBuilder(
+          listenable: initialMode,
+          builder: (_, mode) => PreviewContainer(
+            preview: preview,
+            taskStatus: taskStatus,
+            activeFile: 'lib/main.dart',
+            onOpenConsole: () {},
+            initialDeviceMode: mode,
+          ),
+        ),
+      );
+      expect(web.document.querySelector('.preview-content.mode-mobile'), isNotNull);
+      initialMode.value = DeviceMode.current;
+      await pumpEventQueue();
+      expect(web.document.querySelector('.preview-content.mode-current'), isNotNull);
+
+      await selectDropdownOption('Tablet');
+      initialMode.value = DeviceMode.mobile;
+      await pumpEventQueue();
+      expect(web.document.querySelector('.preview-content.mode-tablet'), isNotNull);
+    });
+
     testClient('defaults to mobile mode with rotation button visible', (tester) async {
       tester.pumpComponent(buildContainer());
       await pumpEventQueue();
