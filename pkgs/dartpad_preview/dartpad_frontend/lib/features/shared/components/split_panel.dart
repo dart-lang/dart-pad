@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:js_interop';
 import 'dart:math';
 
 import 'package:jaspr/dom.dart';
@@ -10,6 +11,13 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+
+// Safari's pointer coordinates can be fractional. Read them as doubles because
+// package:web's MouseEvent getters currently require integers.
+extension type _ResizeCoordinates(web.MouseEvent _) implements JSObject {
+  external double get clientX;
+  external double get clientY;
+}
 
 /// The collapse, hidden, and split state of a split panel.
 @immutable
@@ -335,10 +343,17 @@ class SplitPanelState extends State<SplitPanel> {
   bool _dragStartedWhileLeftCollapsed = false;
   bool _dragStartedWhileRightCollapsed = false;
   double _dragStartPos = 0;
-  StreamSubscription<web.MouseEvent>? _mouseMoveSubscription;
-  StreamSubscription<web.MouseEvent>? _mouseUpSubscription;
+  StreamSubscription<web.MouseEvent>? _moveSubscription;
+  StreamSubscription<web.MouseEvent>? _upSubscription;
+  StreamSubscription<web.PointerEvent>? _cancelSubscription;
+  StreamSubscription<web.Event>? _blurSubscription;
+  web.HTMLElement? _capturedHandle;
+  int? _resizePointerId;
 
-  void _startResizing(web.MouseEvent event) {
+  void _startResizing(web.MouseEvent event, {int? pointerId}) {
+    if (_moveSubscription != null || event.button != 0) {
+      return;
+    }
     event.preventDefault();
 
     final dragHandle = event.currentTarget as web.HTMLElement?;
@@ -347,17 +362,28 @@ class SplitPanelState extends State<SplitPanel> {
       return;
     }
 
-    setState(() {
-      isDragging = true;
-    });
-
-    final startPos = component.isVertical ? event.clientY.toDouble() : event.clientX.toDouble();
+    final coordinates = _ResizeCoordinates(event);
+    final startPos = component.isVertical ? coordinates.clientY : coordinates.clientX;
     _dragStartPos = startPos;
+    final startedExpanded = isSplit;
+    final initialValue = value;
+    final dragThreshold = pointerId != null && (event as web.PointerEvent).pointerType == 'touch' ? 4 : 2;
+    _resizePointerId = pointerId;
+    if (pointerId != null && event.isTrusted) {
+      dragHandle!.setPointerCapture(pointerId);
+      _capturedHandle = dragHandle;
+    }
     _dragStartedWhileRightCollapsed = canCollapseRight && isRightCollapsed;
     _dragStartedWhileLeftCollapsed = canCollapseLeft && isLeftCollapsed;
 
-    _mouseMoveSubscription?.cancel();
-    _mouseMoveSubscription = web.EventStreamProviders.mouseMoveEvent.forTarget(web.window).listen((web.MouseEvent e) {
+    final Stream<web.MouseEvent> moves = pointerId == null
+        ? web.EventStreamProviders.mouseMoveEvent.forTarget(web.window)
+        : const web.EventStreamProvider<web.PointerEvent>('pointermove').forTarget(web.window);
+    _moveSubscription?.cancel();
+    _moveSubscription = moves.listen((web.MouseEvent e) {
+      if (pointerId != null && (e as web.PointerEvent).pointerId != pointerId) {
+        return;
+      }
       final rect = container.getBoundingClientRect();
       final totalSize = component.isVertical ? rect.height : rect.width;
       final startOffset = component.isVertical ? rect.top : rect.left;
@@ -365,8 +391,24 @@ class SplitPanelState extends State<SplitPanel> {
         return;
       }
 
-      final clientPos = (component.isVertical ? e.clientY : e.clientX).toDouble();
-      final currentFirstPos = clientPos - startOffset;
+      final coordinates = _ResizeCoordinates(e);
+      final clientPos = component.isVertical ? coordinates.clientY : coordinates.clientX;
+      final dragDelta = clientPos - _dragStartPos;
+      if (!isDragging) {
+        if (dragDelta.abs() < dragThreshold) {
+          return;
+        }
+        setState(() => isDragging = true);
+      }
+      var currentFirstPos = clientPos - startOffset;
+      if (startedExpanded) {
+        final initialFirstSize = component.useRatio
+            ? initialValue * totalSize
+            : component.absoluteFirst
+            ? initialValue
+            : totalSize - initialValue;
+        currentFirstPos = initialFirstSize + dragDelta;
+      }
       final currentSecondPos = totalSize - currentFirstPos;
 
       final double minFirst;
@@ -397,11 +439,13 @@ class SplitPanelState extends State<SplitPanel> {
 
       final collapseThresholdRight = effectiveMinSecond - 30;
       final collapseThresholdLeft = effectiveMinFirst - 30;
+      final expandDragDistance = component.isVertical ? 4 : 10;
+      final collapseDragDistance = component.isVertical ? 2 : 5;
 
       if (_dragStartedWhileRightCollapsed) {
         final delta = _dragStartPos - clientPos;
         if (isRightCollapsed) {
-          if (delta > 10) {
+          if (delta > expandDragDistance) {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
             final newValue = _valueFromSecondSize(targetSize, totalSize);
             _updateState(Split(newValue));
@@ -411,7 +455,7 @@ class SplitPanelState extends State<SplitPanel> {
           }
         } else {
           // Already auto-expanded during this drag gesture
-          if (delta < 5) {
+          if (delta < collapseDragDistance) {
             _updateState(RightCollapsed(value));
           } else {
             final targetSize = max(effectiveMinSecond, currentSecondPos).clamp(effectiveMinSecond, effectiveMaxSecond);
@@ -428,7 +472,7 @@ class SplitPanelState extends State<SplitPanel> {
       if (_dragStartedWhileLeftCollapsed) {
         final delta = clientPos - _dragStartPos;
         if (isLeftCollapsed) {
-          if (delta > 10) {
+          if (delta > expandDragDistance) {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
             final newValue = _valueFromFirstSize(targetSize, totalSize);
             _updateState(Split(newValue));
@@ -438,7 +482,7 @@ class SplitPanelState extends State<SplitPanel> {
           }
         } else {
           // Already auto-expanded during this drag gesture
-          if (delta < 5) {
+          if (delta < collapseDragDistance) {
             _updateState(LeftCollapsed(value));
           } else {
             final targetSize = max(effectiveMinFirst, currentFirstPos).clamp(effectiveMinFirst, effectiveMaxFirst);
@@ -485,22 +529,51 @@ class SplitPanelState extends State<SplitPanel> {
       }
     });
 
-    _mouseUpSubscription?.cancel();
-    _mouseUpSubscription = web.EventStreamProviders.mouseUpEvent.forTarget(web.window).listen((web.MouseEvent e) {
-      _stopResizing();
+    final Stream<web.MouseEvent> ups = pointerId == null
+        ? web.EventStreamProviders.mouseUpEvent.forTarget(web.window)
+        : const web.EventStreamProvider<web.PointerEvent>('pointerup').forTarget(web.window);
+    _upSubscription?.cancel();
+    _upSubscription = ups.listen((web.MouseEvent e) {
+      if (pointerId == null || (e as web.PointerEvent).pointerId == pointerId) {
+        _stopResizing();
+      }
     });
+    _cancelSubscription?.cancel();
+    if (pointerId != null) {
+      _cancelSubscription = const web.EventStreamProvider<web.PointerEvent>('pointercancel')
+          .forTarget(web.window)
+          .listen((e) {
+            if (e.pointerId == pointerId) {
+              _stopResizing();
+            }
+          });
+    }
+    _blurSubscription = web.EventStreamProviders.blurEvent.forTarget(web.window).listen((_) => _stopResizing());
   }
 
-  void _stopResizing() {
-    _mouseMoveSubscription?.cancel();
-    _mouseMoveSubscription = null;
-    _mouseUpSubscription?.cancel();
-    _mouseUpSubscription = null;
+  void _stopResizing({bool rebuild = true}) {
+    final handle = _capturedHandle;
+    final pointerId = _resizePointerId;
+    _capturedHandle = null;
+    _resizePointerId = null;
+    _moveSubscription?.cancel();
+    _moveSubscription = null;
+    _upSubscription?.cancel();
+    _upSubscription = null;
+    _cancelSubscription?.cancel();
+    _cancelSubscription = null;
+    _blurSubscription?.cancel();
+    _blurSubscription = null;
+    if (handle != null && pointerId != null && handle.hasPointerCapture(pointerId)) {
+      handle.releasePointerCapture(pointerId);
+    }
     _dragStartedWhileLeftCollapsed = false;
     _dragStartedWhileRightCollapsed = false;
-    setState(() {
+    if (isDragging && rebuild && mounted) {
+      setState(() => isDragging = false);
+    } else {
       isDragging = false;
-    });
+    }
   }
 
   double _valueFromFirstSize(double firstSize, double totalSize) {
@@ -530,8 +603,7 @@ class SplitPanelState extends State<SplitPanel> {
   @override
   void dispose() {
     component.state.removeListener(_handleStateChanged);
-    _mouseMoveSubscription?.cancel();
-    _mouseUpSubscription?.cancel();
+    _stopResizing(rebuild: false);
     super.dispose();
   }
 
@@ -601,6 +673,17 @@ class SplitPanelState extends State<SplitPanel> {
           classes: 'drag-handle ${component.isVertical ? 'vertical' : 'horizontal'}${isDragging ? ' dragging' : ''}',
           events: {
             'mousedown': (e) => _startResizing(e as web.MouseEvent),
+            'pointerdown': (e) {
+              final pointer = e as web.PointerEvent;
+              if (pointer.isPrimary) {
+                _startResizing(pointer, pointerId: pointer.pointerId);
+              }
+            },
+            'lostpointercapture': (e) {
+              if ((e as web.PointerEvent).pointerId == _resizePointerId) {
+                _stopResizing();
+              }
+            },
           },
           [],
         ),
@@ -628,6 +711,7 @@ class SplitPanelState extends State<SplitPanel> {
       userSelect: .none,
       flex: const .shrink(0),
       backgroundColor: Colors.transparent,
+      raw: {'touch-action': 'none', '-webkit-tap-highlight-color': 'transparent'},
     ),
     // Horizontal Specific Styles
     css('.drag-handle.horizontal').styles(
@@ -641,25 +725,33 @@ class SplitPanelState extends State<SplitPanel> {
       width: (width - 4).px,
       backgroundColor: colorBorder,
     ),
-    css('.drag-handle.horizontal:hover::after, .drag-handle.horizontal.dragging::after').styles(
+    css('.drag-handle.horizontal.dragging::after').styles(
       transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
     // Vertical Specific Styles
     css('.drag-handle.vertical').styles(
-      height: width.px,
-      margin: Margin.symmetric(vertical: (-2).px),
+      height: (width - 4).px,
+      margin: .zero,
       cursor: .rowResize,
     ),
     css('.drag-handle.vertical::after').styles(
       content: '',
-      position: .absolute(left: 0.px, right: 0.px, top: 2.px),
+      position: .absolute(left: 0.px, right: 0.px, top: 0.px),
       height: (width - 4).px,
       backgroundColor: colorBorder,
     ),
-    css('.drag-handle.vertical:hover::after, .drag-handle.vertical.dragging::after').styles(
+    css('.drag-handle.vertical.dragging::after').styles(
       transition: Transition('background-color', duration: 150.ms, curve: .ease),
       backgroundColor: colorPrimary,
     ),
+    // Touch browsers can emulate hover while a gesture passes over the handle.
+    // Only an actual resize should highlight it on devices without hover.
+    css.media(const MediaQuery.all(canHover: true), [
+      css('.drag-handle:hover::after').styles(
+        transition: Transition('background-color', duration: 150.ms, curve: .ease),
+        backgroundColor: colorPrimary,
+      ),
+    ]),
   ];
 }

@@ -5,6 +5,8 @@
 @TestOn('browser')
 library;
 
+import 'dart:js_interop';
+
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
@@ -21,6 +23,142 @@ final class _SplitOwner extends ValueNotifier<SplitState> {
 
 void main() {
   group('SplitPanel', () {
+    for (final vertical in [true, false]) {
+      testClient('resizes with fractional ${vertical ? 'Y' : 'X'} pointer coordinates', (tester) async {
+        final owner = createSplitOwner(tester, const Split(0.6));
+        final key = GlobalStateKey<SplitPanelState>();
+        tester.pumpComponent(
+          div(
+            styles: Styles(
+              display: .flex,
+              width: 500.px,
+              height: 500.px,
+              flexDirection: vertical ? .column : .row,
+            ),
+            [
+              SplitPanel(
+                key: key,
+                state: owner,
+                onStateChanged: (state) => owner.value = state,
+                isVertical: vertical,
+                left: const div([]),
+                right: const div([]),
+              ),
+            ],
+          ),
+        );
+        final handle = web.document.querySelector('.drag-handle')!;
+        void send(String type, double position) {
+          final event = web.PointerEvent(
+            type,
+            web.PointerEventInit(pointerType: 'touch', pointerId: 7, isPrimary: true, bubbles: true),
+          );
+          // Safari delivers fractional coordinates, despite package:web's int getters.
+          _defineProperty(event, (vertical ? 'clientY' : 'clientX').toJS, {'value': position}.jsify() as JSObject);
+          (type == 'pointerdown' ? handle : web.window).dispatchEvent(event);
+        }
+
+        send('pointerdown', 300.5);
+        send('pointermove', 200.25);
+        await pumpEventQueue();
+        expect(key.currentState!.isDragging, isTrue);
+        expect(owner.value.value, closeTo(0.3995, 0.0001));
+        send('pointermove', 350.75);
+        send('pointerup', 350.75);
+        await pumpEventQueue();
+        expect(owner.value.value, closeTo(0.7005, 0.0001));
+        expect(key.currentState!.isDragging, isFalse);
+      });
+    }
+
+    testClient('touch resizing stops on cancellation or release', (tester) async {
+      final key = GlobalStateKey<SplitPanelState>();
+      final owner = createSplitOwner(tester, const Split(0.6));
+      tester.pumpComponent(
+        div(
+          id: 'touch-split',
+          styles: Styles(display: .flex, height: 500.px, flexDirection: .column),
+          [
+            SplitPanel(
+              key: key,
+              state: owner,
+              onStateChanged: (state) => owner.value = state,
+              isVertical: true,
+              canCollapseRight: true,
+              left: const div([]),
+              right: div(styles: Styles(minHeight: 44.px), const []),
+            ),
+          ],
+        ),
+      );
+      final handle = web.document.querySelector('.drag-handle')!;
+      final top = web.document.getElementById('touch-split')!.getBoundingClientRect().top.round();
+      void send(String type, int y, {int id = 7, bool primary = true}) {
+        final target = type == 'pointerdown' ? handle : web.window;
+        target.dispatchEvent(
+          web.PointerEvent(
+            type,
+            web.PointerEventInit(
+              pointerType: 'touch',
+              pointerId: id,
+              isPrimary: primary,
+              clientY: top + y,
+              bubbles: true,
+              cancelable: true,
+            ),
+          ),
+        );
+      }
+
+      send('pointerdown', 300, id: 8, primary: false);
+      expect(key.currentState!.isDragging, isFalse);
+      send('pointerdown', 300);
+      send('pointermove', 200, id: 8);
+      send('pointerup', 200, id: 8);
+      await pumpEventQueue();
+      expect(owner.value, const Split(0.6));
+      expect(key.currentState!.isDragging, isFalse);
+
+      send('pointermove', 200);
+      await pumpEventQueue();
+      expect(key.currentState!.isDragging, isTrue);
+      expect(owner.value.isSplit, isTrue);
+      expect(owner.value.value, closeTo(0.4, 0.001));
+      send('pointermove', 350);
+      await pumpEventQueue();
+      expect(owner.value.value, closeTo(0.7, 0.001));
+      send('pointercancel', 350);
+      await pumpEventQueue();
+      expect(key.currentState!.isDragging, isFalse);
+      send('pointermove', 100);
+      expect(owner.value.value, closeTo(0.7, 0.001));
+
+      send('pointerdown', 350);
+      send('pointermove', 250);
+      send('pointerup', 250);
+      await pumpEventQueue();
+      expect(owner.value.value, closeTo(0.5, 0.001));
+      expect(key.currentState!.isDragging, isFalse);
+      send('pointermove', 100);
+      expect(owner.value.value, closeTo(0.5, 0.001));
+
+      send('pointerdown', 250);
+      send('pointermove', 200);
+      await pumpEventQueue();
+      handle.dispatchEvent(web.PointerEvent('lostpointercapture', web.PointerEventInit(pointerId: 7)));
+      await pumpEventQueue();
+      expect(key.currentState!.isDragging, isFalse);
+      send('pointermove', 100);
+      expect(owner.value.value, closeTo(0.4, 0.001));
+
+      send('pointerdown', 200);
+      send('pointermove', 250);
+      await pumpEventQueue();
+      web.window.dispatchEvent(web.Event('blur'));
+      await pumpEventQueue();
+      expect(key.currentState!.isDragging, isFalse);
+    });
+
     testClient('switches listeners when its owner changes', (tester) async {
       final first = _SplitOwner(initialState: const Split(0.6));
       final second = _SplitOwner(initialState: const RightHidden(0.4));
@@ -271,14 +409,14 @@ void main() {
       handle.dispatchEvent(web.MouseEvent('mousedown', web.MouseEventInit(clientY: 460, clientX: 100)));
       await pumpEventQueue();
 
-      // Drag up past initial expand delta (Y=445, delta = 15 > 10)
-      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 445, clientX: 100)));
+      // A short intentional drag should already expand the collapsed pane.
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 454, clientX: 100)));
       await pumpEventQueue();
       expect(splitKey.currentState!.isRightCollapsed, isFalse);
 
       // Move in small 1px increments (currentSecondPos is still below collapseThreshold):
       // Must NOT flicker back to collapsed!
-      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 444, clientX: 100)));
+      web.window.dispatchEvent(web.MouseEvent('mousemove', web.MouseEventInit(clientY: 453, clientX: 100)));
       await pumpEventQueue();
       expect(splitKey.currentState!.isRightCollapsed, isFalse);
 
@@ -694,6 +832,9 @@ void main() {
     });
   });
 }
+
+@JS('Object.defineProperty')
+external void _defineProperty(JSObject target, JSString property, JSObject descriptor);
 
 class _ContextInspector extends StatelessComponent {
   const _ContextInspector({this.onBuild});

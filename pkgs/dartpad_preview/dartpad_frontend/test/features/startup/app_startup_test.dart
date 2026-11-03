@@ -352,8 +352,12 @@ void main() {
     void expectConsoleSelected() {
       expect(web.document.querySelector('.console-panel'), isNotNull);
       expect(
-        web.document.querySelector('.bottom-panel [role="tab"][aria-selected="true"]')!.textContent,
-        startsWith('Console'),
+        web.document
+            .querySelector(
+              '.bottom-panel-console-title[aria-expanded="true"], .bottom-panel [role="tab"][aria-selected="true"]',
+            )!
+            .textContent,
+        contains('Console'),
       );
       expect(bottomSplit().state, const Split(0.6));
       final editorArea = web.document.querySelector('.editor-area')! as web.HTMLElement;
@@ -648,8 +652,14 @@ void main() {
               );
               expect(web.document.querySelector('.app-bar'), embed ? isNull : isNotNull);
               expect(web.document.querySelector('.app-footer'), embed ? isNull : isNotNull);
-              expect(web.document.querySelector('.bottom-panel.collapsed'), loaded && embed ? isNotNull : isNull);
-              expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded ? 2 : 0);
+              expect(
+                web.document.querySelector('.bottom-panel.collapsed'),
+                loaded && (embed || width == 600) ? isNotNull : isNull,
+              );
+              expect(
+                web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
+                loaded ? (smallScreen ? 0 : 2) : 0,
+              );
               expect(fileTreeSplit().state, embed || smallScreen ? const LeftHidden(200) : const Split(200));
             }
 
@@ -700,8 +710,13 @@ void main() {
           await pumpEventQueue();
           expect(web.document.querySelector('.cm-editor'), isNotNull);
           expect(bottomSplit().state, const Split(0.6));
-          expect(web.document.querySelector('.problems-panel'), isNotNull);
-          await click('.bottom-panel [role="tab"]:nth-child(2)');
+          expect(web.document.querySelector('.problems-panel'), width == 600 ? isNull : isNotNull);
+          if (width == 1200) {
+            await click('.bottom-panel [role="tab"]:nth-child(2)');
+          } else {
+            await click('.bottom-panel-console-toggle');
+            await click('.bottom-panel-console-toggle');
+          }
           expectConsoleSelected();
           expect(fileTreeSplit().state, const Split(235));
           expect(panels.preview, const RightCollapsed(0.62));
@@ -739,8 +754,11 @@ void main() {
               fileTreeSplit().state,
               embed || web.window.innerWidth < minLargeScreenWidth ? const LeftHidden(200) : const LeftCollapsed(200),
             );
-            expect(bottomSplit().state, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
-            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded && !embed ? 2 : 0);
+            expect(bottomSplit().state, embed && width == 1200 ? const RightHidden(0.75) : const RightCollapsed(0.75));
+            expect(
+              web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
+              loaded && (!embed || width == 600) ? (web.window.innerWidth < minLargeScreenWidth ? 0 : 2) : 0,
+            );
             expect(web.document.querySelector('.editor-tab-bar'), isNull);
             expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
             expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
@@ -771,9 +789,9 @@ void main() {
             panelHints: ['+console,+preview,+tabs,+filetree,+appbar,+statusbar'],
           );
           expect(fileTreeSplit().state, const Split(200));
-          expect(bottomSplit().state, const Split(0.75));
-          expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-          expect(web.document.querySelector('.console-panel'), isNotNull);
+          expect(bottomSplit().state, width == 600 ? const RightCollapsed(0.75) : const Split(0.75));
+          expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, width == 600 ? 0 : 2);
+          expect(web.document.querySelector('.console-panel'), width == 600 ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-tab-bar'), width < minLargeScreenWidth ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
           expect(web.document.querySelector('.app-bar'), isNotNull);
@@ -784,10 +802,10 @@ void main() {
         });
 
         for (final hint in ['-console', '-console,+problems', '+problems,-console']) {
-          testClient('$hint always keeps both bottom tabs: width=$width, embed=$embed', (tester) async {
+          testClient('$hint keeps available bottom tabs: width=$width, embed=$embed', (tester) async {
             await mountApp(tester, width: width, embed: embed, panelHints: [hint]);
-            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-            final collapsed = embed && hint == '-console';
+            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, width == 600 ? 0 : 2);
+            final collapsed = width == 600 || embed && hint == '-console';
             expect(bottomSplit().state, collapsed ? const RightCollapsed(0.75) : const Split(0.75));
             expect(web.document.querySelector('.problems-panel'), collapsed ? isNull : isNotNull);
             if (!collapsed) {
@@ -959,10 +977,10 @@ void main() {
       fileTreeSplit().split(225);
       await pumpEventQueue();
       await click('button[aria-label="Hide file tree"]');
-      await click('.bottom-panel [role="tab"]:nth-child(2)');
+      await click('.bottom-panel-console-toggle');
       bottomSplit().split(0.6);
       await pumpEventQueue();
-      await click('button[aria-label="Hide bottom panel"]');
+      await click('button[aria-label="Hide console"]');
 
       await selectOutputTab();
       expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
@@ -977,7 +995,7 @@ void main() {
       expect(web.document.querySelector('.small-screen-file-tree-button'), isNotNull);
       expect(fileTreeSplit().state, const LeftHidden(225));
       expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
-      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 0);
       expect(web.document.querySelector('.bottom-panel-content'), isNull);
       expect(bottomSplit().state, const RightCollapsed(0.6));
 

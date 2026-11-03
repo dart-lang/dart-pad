@@ -9,6 +9,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel_tabs.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -21,6 +22,7 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../pointer_fixture.dart';
 import '../../../split_panel_fixture.dart';
 
 void main() {
@@ -56,6 +58,127 @@ void main() {
       right: bottomPanel,
     );
   }
+
+  testClient('small screens show only Console and restore desktop Problems', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester);
+    panels.openBottomPanel(BottomPanelTab.problems);
+    tester.pumpComponent(
+      inSplitPanel(
+        BottomPanel(
+          panelController: panels,
+          diagnostics: const [],
+          hasMoreDiagnostics: false,
+          console: console,
+          onOpenDiagnostic: (_, _) {},
+          events: events,
+        ),
+      ),
+    );
+    expect(web.document.querySelector('.problems-panel'), isNotNull);
+
+    panels.updateScreenSize(isSmallScreen: true);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.bottom-panel [role="tablist"]'), isNull);
+    expect(web.document.querySelector('.bottom-panel [role="tab"]'), isNull);
+    expect(web.document.querySelector('.bottom-panel [aria-selected]'), isNull);
+    final toggle = web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement;
+    expect(toggle.parentElement!.lastElementChild, toggle);
+    expect(toggle.parentElement!.firstElementChild!.classList.contains('bottom-panel-console-title'), isTrue);
+    expect(toggle.getAttribute('aria-expanded'), 'true');
+    expect(toggle.getAttribute('aria-controls'), 'bottom-panel-content');
+    expect(toggle.querySelector('.material-symbols-outlined')!.textContent, 'expand_more');
+    expect(web.document.querySelector('button[aria-label="Clear console"]'), isNotNull);
+    expect(web.document.querySelector('.problems-panel'), isNull);
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+
+    panels.updateScreenSize(isSmallScreen: false);
+    await pumpEventQueue();
+    expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+    expect(web.document.querySelector('.problems-panel'), isNotNull);
+
+    panels.updateScreenSize(isSmallScreen: true);
+    await pumpEventQueue();
+    (web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    final collapsedToggle = web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement;
+    expect(collapsedToggle.getAttribute('aria-expanded'), 'false');
+    expect(collapsedToggle.querySelector('.material-symbols-outlined')!.textContent, 'expand_less');
+    expect(web.document.querySelector('button[aria-label="Clear console"]'), isNull);
+    expect(web.document.querySelector('.bottom-panel-content'), isNull);
+
+    collapsedToggle.click();
+    await pumpEventQueue();
+    expect(panels.bottom.selectedTab, BottomPanelTab.console);
+    expect(web.document.querySelector('.console-panel'), isNotNull);
+  });
+
+  testClient('mobile console touch feedback does not linger when the header moves', (tester) async {
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester);
+    panels.updateScreenSize(isSmallScreen: true);
+    tester.pumpComponent(
+      div(
+        styles: Styles(display: .flex, width: 360.px, height: 400.px, flexDirection: .column),
+        [
+          Style(styles: [...SplitPanelState.styles, ...BottomPanel.styles, ...BottomPanelTabs.styles]),
+          inSplitPanel(
+            BottomPanel(
+              panelController: panels,
+              diagnostics: const [],
+              hasMoreDiagnostics: false,
+              console: console,
+              onOpenDiagnostic: (_, _) {},
+              events: events,
+            ),
+          ),
+        ],
+      ),
+    );
+    await pumpEventQueue();
+    final handle = web.document.querySelector('.drag-handle.vertical')!;
+    for (final pointerType in ['mouse', 'touch']) {
+      handle.dispatchEvent(
+        web.PointerEvent('pointerdown', web.PointerEventInit(pointerType: pointerType, pointerId: 7, isPrimary: true)),
+      );
+      if (pointerType == 'mouse') {
+        handle.dispatchEvent(web.MouseEvent('mousedown'));
+      }
+      await pumpEventQueue();
+      expect(web.document.querySelector('.drag-handle.dragging'), isNull);
+      expect(
+        web.window.getComputedStyle(web.document.querySelector('.bottom-panel-console-title')!).pointerEvents,
+        'auto',
+        reason: 'Pressing the divider without moving must not block Console clicks.',
+      );
+      web.window.dispatchEvent(web.PointerEvent('pointerup', web.PointerEventInit(pointerId: 7)));
+      web.window.dispatchEvent(web.MouseEvent('mouseup'));
+      await pumpEventQueue();
+    }
+    for (final selector in ['.bottom-panel-console-title', '.bottom-panel-console-toggle']) {
+      for (var tap = 0; tap < 2; tap++) {
+        final button = web.document.querySelector(selector)! as web.HTMLButtonElement;
+        final bounds = button.getBoundingClientRect();
+        expect(
+          button.contains(web.document.elementFromPoint(bounds.left + 10, bounds.top + 1)),
+          isTrue,
+          reason: 'The resize handle must not intercept taps inside the Console buttons.',
+        );
+        final previousTop = button.getBoundingClientRect().top;
+        final wasExpanded = panels.bottom.isExpanded;
+        touchTap(button);
+        await pumpEventQueue();
+        expect(panels.bottom.isExpanded, !wasExpanded);
+        expect(button.getBoundingClientRect().top, isNot(previousTop));
+        final style = web.window.getComputedStyle(button);
+        expect(style.getPropertyValue('-webkit-tap-highlight-color'), 'rgba(0, 0, 0, 0)');
+        expect(style.backgroundColor, 'rgba(0, 0, 0, 0)');
+        expect(style.transitionDuration, '0s');
+      }
+    }
+  });
 
   testClient('hiding removes both tabs; a later console request reopens both at the retained size', (tester) async {
     final events = AppEventBus();
