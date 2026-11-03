@@ -50,6 +50,55 @@ void main() {
     await loaded;
   });
 
+  for (final enableLanguageServer in [false, true]) {
+    testClient('LSP startup honors enableLanguageServer=$enableLanguageServer', (tester) async {
+      final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
+      addTearDown(worker.close);
+      final workspace = await worker.createWorkspace();
+      late WorkspaceRepository repository;
+      final analyzerAttempt = Completer<void>();
+      final logs = <LogEvent>[];
+      tester.pumpComponent(
+        App(
+          enableLanguageServer: enableLanguageServer,
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?file=README.md'),
+          // No entrypoint: preparation reaches LSP startup without a preview run.
+          loadSource: (_) async => contents({'README.md': '# Project'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            final subscription = events.on<LogEvent>().listen((event) {
+              logs.add(event);
+              if (event.message == 'Analyzer initialization failed.' && !analyzerAttempt.isCompleted) {
+                // This fixture rejects LSP requests, proving the enabled path
+                // actually reaches the worker rather than only changing UI state.
+                analyzerAttempt.complete();
+              }
+            });
+            addTearDown(subscription.cancel);
+            return repository = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              workspaceFuture: Future.value(workspace),
+            );
+          },
+        ),
+      );
+      await pumpEventQueue();
+      if (enableLanguageServer) {
+        await analyzerAttempt.future.timeout(const Duration(seconds: 5));
+      }
+      expect(web.document.querySelector('.editor-tab-name')?.textContent, 'README.md');
+      expect(await repository.readyWorkspace, same(workspace));
+      expect(
+        repository.taskStatus.entries.any((entry) => entry.kind == TaskKind.startingAnalyzer),
+        enableLanguageServer,
+      );
+      expect(logs.any((event) => event.message == 'Analyzer initialization failed.'), enableLanguageServer);
+    });
+  }
+
   testClient('waits for project resolution before creating the correct SDK worker and opens initial tabs', (
     tester,
   ) async {
