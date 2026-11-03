@@ -92,7 +92,10 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   @override
   Component build(BuildContext context) => ListenableBuilder(
-    listenable: component.panelController.bottomListenable,
+    listenable: Listenable.merge([
+      component.panelController.bottomListenable,
+      component.panelController.layoutListenable,
+    ]),
     builder: _buildPanel,
   );
 
@@ -106,26 +109,30 @@ final class _BottomPanelState extends State<BottomPanel> {
       return const div(classes: 'bottom-panel', []);
     }
     final isCollapsed = !bottom.isExpanded;
+    final showProblems = !component.panelController.isSmallScreen;
+    // Keep the desktop selection while presenting only Console on small screens.
+    final activeTab = showProblems ? bottom.selectedTab : BottomPanelTab.console;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
       [
         BottomPanelTabs(
           problemsCount: component.diagnostics.length,
           console: component.console,
-          activeTab: bottom.selectedTab,
+          activeTab: activeTab,
+          showProblems: showProblems,
           isCollapsed: isCollapsed,
           onSelectTab: component.panelController.openBottomPanel,
           onCollapse: panel.canCollapse ? component.panelController.collapseBottomPanel : null,
-          onExpand: panel.canCollapse ? () => component.panelController.openBottomPanel(bottom.selectedTab) : null,
+          onExpand: panel.canCollapse ? () => component.panelController.openBottomPanel(activeTab) : null,
         ),
-        if (!isCollapsed) _buildContent(),
+        if (!isCollapsed) _buildContent(activeTab),
       ],
     );
   }
 
-  Component _buildContent() {
+  Component _buildContent(BottomPanelTab activeTab) {
     return div(classes: 'bottom-panel-content', [
-      switch (component.panelController.bottom.selectedTab) {
+      switch (activeTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
           hasMoreDiagnostics: component.hasMoreDiagnostics,

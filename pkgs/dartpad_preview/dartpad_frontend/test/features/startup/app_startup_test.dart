@@ -388,6 +388,28 @@ void main() {
     }
 
     for (final embed in [false, true]) {
+      for (final folder in ['', 'lib']) {
+        testClient('mobile file creation closes the explorer: embed=$embed, folder=$folder', (tester) async {
+          await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart']);
+          await selectOutputTab();
+          await click('.small-screen-file-tree-button');
+          if (folder.isNotEmpty) {
+            await click('.file-tree-item.folder[title="$folder"]');
+          }
+          await click('.file-tree-add-button');
+          await click('.dropdown-menu-item');
+          final input = web.document.querySelector('.file-tree-input')! as web.HTMLInputElement;
+          input.value = 'created.dart';
+          input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+          input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true)));
+          await pumpEventQueue();
+          final path = folder.isEmpty ? 'created.dart' : '$folder/created.dart';
+          expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), path);
+          expect(fileTreeSplit().state, const LeftHidden(200));
+          expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
+        });
+      }
+
       testClient('mobile file selection closes the file tree: embed=$embed', (tester) async {
         await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart']);
         expect(fileTreeSplit().state, const LeftHidden(200));
@@ -462,14 +484,22 @@ void main() {
         ].map((rule) => rule.toCss()).join('\n');
       web.document.head!.appendChild(styles);
       addTearDown(() => web.document.head!.removeChild(styles));
-      final download = Completer<Project>()
-        ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
+      final source = 'void main() {}\n// ${List.filled(500, 'x').join()}\n${List.filled(19, '// Code').join('\n')}';
+      final download = Completer<Project>()..complete(contents({'lib/main.dart': source}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
+      expect(web.document.querySelector('.preview-content.mode-current'), isNotNull);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
       expect(button.closest('.small-screen-tab-bar'), isNull);
+      final scroller = web.document.querySelector('.editor-tab-slot.active .cm-scroller')! as web.HTMLElement;
+      final longLine = web.document.querySelectorAll('.editor-tab-slot.active .cm-line').item(1)! as web.HTMLElement;
       web.DOMRect codeBounds() {
         final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
         return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
+      }
+
+      void expectWrappedCode() {
+        expect(scroller.scrollWidth, lessThanOrEqualTo(scroller.clientWidth));
+        expect(longLine.getBoundingClientRect().height, greaterThan(2 * codeBounds().height));
       }
 
       double gutterWidth() {
@@ -501,12 +531,22 @@ void main() {
         '16px',
       );
       final mobileGutterWidth = gutterWidth();
+      expectWrappedCode();
       await _resizeWindow(1200);
+      expect(web.document.querySelector('.preview-content.mode-mobile'), isNotNull);
       expect(
         web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
         '14px',
       );
       expect(gutterWidth(), greaterThan(mobileGutterWidth));
+      expect(scroller.scrollWidth, greaterThan(scroller.clientWidth));
+      expect(
+        longLine.getBoundingClientRect().height,
+        closeTo(double.parse(web.window.getComputedStyle(longLine).lineHeight.replaceAll('px', '')), 1),
+      );
+      await _resizeWindow(390);
+      expect(web.document.querySelector('.preview-content.mode-current'), isNotNull);
+      expectWrappedCode();
     });
 
     for (final width in [600, 1200]) {
@@ -590,7 +630,10 @@ void main() {
                 web.document.querySelector('.bottom-panel.collapsed'),
                 loaded && (embed || width == 600) ? isNotNull : isNull,
               );
-              expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, loaded ? 2 : 0);
+              expect(
+                web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
+                loaded ? (smallScreen ? 1 : 2) : 0,
+              );
               expect(fileTreeSplit().state, embed || smallScreen ? const LeftHidden(200) : const Split(200));
             }
 
@@ -641,8 +684,8 @@ void main() {
           await pumpEventQueue();
           expect(web.document.querySelector('.cm-editor'), isNotNull);
           expect(bottomSplit().state, const Split(0.6));
-          expect(web.document.querySelector('.problems-panel'), isNotNull);
-          await click('.bottom-panel [role="tab"]:nth-child(2)');
+          expect(web.document.querySelector('.problems-panel'), width == 600 ? isNull : isNotNull);
+          await click('.bottom-panel [role="tab"]:nth-child(${width == 600 ? 1 : 2})');
           expectConsoleSelected();
           expect(fileTreeSplit().state, const Split(235));
           expect(panels.preview, const RightCollapsed(0.62));
@@ -683,7 +726,7 @@ void main() {
             expect(bottomSplit().state, embed && width == 1200 ? const RightHidden(0.75) : const RightCollapsed(0.75));
             expect(
               web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
-              loaded && (!embed || width == 600) ? 2 : 0,
+              loaded && (!embed || width == 600) ? (web.window.innerWidth < minLargeScreenWidth ? 1 : 2) : 0,
             );
             expect(web.document.querySelector('.editor-tab-bar'), isNull);
             expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
@@ -716,7 +759,7 @@ void main() {
           );
           expect(fileTreeSplit().state, const Split(200));
           expect(bottomSplit().state, width == 600 ? const RightCollapsed(0.75) : const Split(0.75));
-          expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+          expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, width == 600 ? 1 : 2);
           expect(web.document.querySelector('.console-panel'), width == 600 ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-tab-bar'), isNotNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
@@ -728,9 +771,9 @@ void main() {
         });
 
         for (final hint in ['-console', '-console,+problems', '+problems,-console']) {
-          testClient('$hint always keeps both bottom tabs: width=$width, embed=$embed', (tester) async {
+          testClient('$hint keeps available bottom tabs: width=$width, embed=$embed', (tester) async {
             await mountApp(tester, width: width, embed: embed, panelHints: [hint]);
-            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+            expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, width == 600 ? 1 : 2);
             final collapsed = width == 600 || embed && hint == '-console';
             expect(bottomSplit().state, collapsed ? const RightCollapsed(0.75) : const Split(0.75));
             expect(web.document.querySelector('.problems-panel'), collapsed ? isNull : isNotNull);
@@ -898,7 +941,7 @@ void main() {
       fileTreeSplit().split(225);
       await pumpEventQueue();
       await click('button[aria-label="Hide file tree"]');
-      await click('.bottom-panel [role="tab"]:nth-child(2)');
+      await click('.bottom-panel [role="tab"]');
       bottomSplit().split(0.6);
       await pumpEventQueue();
       await click('button[aria-label="Hide bottom panel"]');
@@ -915,7 +958,7 @@ void main() {
       expect(web.document.querySelector('.small-screen-file-tree-button'), isNotNull);
       expect(fileTreeSplit().state, const LeftHidden(225));
       expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
-      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 1);
       expect(web.document.querySelector('.bottom-panel-content'), isNull);
       expect(bottomSplit().state, const RightCollapsed(0.6));
 

@@ -58,6 +58,50 @@ void main() {
     );
   }
 
+  for (final mode in WorkspaceMode.values) {
+    testClient('small screens show only Console and restore desktop Problems: $mode', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final panels = createPanels(tester, mode: mode);
+      panels.openBottomPanel(BottomPanelTab.problems);
+      tester.pumpComponent(
+        inSplitPanel(
+          BottomPanel(
+            panelController: panels,
+            diagnostics: const [],
+            hasMoreDiagnostics: false,
+            console: console,
+            onOpenDiagnostic: (_, _) {},
+            events: events,
+          ),
+        ),
+      );
+      expect(web.document.querySelector('.problems-panel'), isNotNull);
+
+      panels.updateScreenSize(isSmallScreen: true);
+      await pumpEventQueue();
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 1);
+      expect(web.document.querySelector('.bottom-panel [aria-selected="true"]')!.textContent, startsWith('Console'));
+      expect(web.document.querySelector('.problems-panel'), isNull);
+      expect(web.document.querySelector('.console-panel'), isNotNull);
+
+      panels.updateScreenSize(isSmallScreen: false);
+      await pumpEventQueue();
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
+      expect(web.document.querySelector('.problems-panel'), isNotNull);
+
+      panels.updateScreenSize(isSmallScreen: true);
+      panels.collapseBottomPanel();
+      await pumpEventQueue();
+      expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 1);
+      (web.document.querySelector('button[aria-label="Show bottom panel"]')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(panels.bottom.selectedTab, BottomPanelTab.console);
+      expect(web.document.querySelector('.console-panel'), isNotNull);
+      expect(web.document.querySelector('.problems-panel'), isNull);
+    });
+  }
+
   testClient('touch collapse and expand release focus without delayed tooltips', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));

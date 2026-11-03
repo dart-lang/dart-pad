@@ -19,6 +19,7 @@ final class BottomPanelTabs extends StatelessComponent {
     required this.activeTab,
     required this.onSelectTab,
     this.isCollapsed = false,
+    this.showProblems = true,
     this.onCollapse,
     this.onExpand,
     super.key,
@@ -39,6 +40,9 @@ final class BottomPanelTabs extends StatelessComponent {
   /// Whether the bottom panel content is currently collapsed.
   final bool isCollapsed;
 
+  /// Whether the Problems tab is available in this layout.
+  final bool showProblems;
+
   /// An optional callback invoked to collapse the panel content.
   final VoidCallback? onCollapse;
 
@@ -51,12 +55,13 @@ final class BottomPanelTabs extends StatelessComponent {
       classes: 'bottom-panel-tabs',
       attributes: const {'role': 'tablist'},
       [
-        _BottomPanelTabButton(
-          label: 'Problems',
-          countLabel: problemsCount.toString(),
-          active: !isCollapsed && activeTab == BottomPanelTab.problems,
-          onClick: () => onSelectTab(BottomPanelTab.problems),
-        ),
+        if (showProblems)
+          _BottomPanelTabButton(
+            label: 'Problems',
+            countLabel: problemsCount.toString(),
+            active: !isCollapsed && activeTab == BottomPanelTab.problems,
+            onClick: () => onSelectTab(BottomPanelTab.problems),
+          ),
         _BottomPanelTabButton(
           label: 'Console',
           active: !isCollapsed && activeTab == BottomPanelTab.console,

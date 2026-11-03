@@ -47,6 +47,12 @@ List<StyleRule> get codemirrorStyles => [
   css('.editor-shell-small .editor-container .cm-scroller').styles(
     fontSize: 16.px,
   ),
+  // Match CodeMirror's wrapping styles; it detects wrapping from computed CSS.
+  css('.editor-shell-small .editor-container .cm-content').styles(
+    minWidth: .zero,
+    whiteSpace: .breakSpaces,
+    raw: {'flex-shrink': '1', 'overflow-wrap': 'anywhere', 'word-break': 'break-word'},
+  ),
   // Keep mobile gutters compact while retaining line numbers and diagnostic markers.
   css('.editor-shell-small .editor-container .cm-lineNumbers .cm-gutterElement').styles(
     padding: .symmetric(horizontal: 2.px),
