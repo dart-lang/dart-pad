@@ -48,8 +48,8 @@ import 'features/shared/panel_presentation_state.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/shared/workspace_mode.dart';
+import 'features/startup/analyzer_policy.dart';
 import 'features/startup/initial_project_state.dart';
-import 'features/startup/language_server_policy.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
@@ -70,7 +70,6 @@ Future<Project> _loadProjectSource(ProjectSource source) => source.loadProject()
 final class App extends StatefulComponent {
   const App({
     this.initialUri,
-    this.enableLanguageServer,
     this.projectStore,
     this.loadSource = _loadProjectSource,
     this.createRepository = WorkspaceRepository.create,
@@ -78,10 +77,6 @@ final class App extends StatefulComponent {
   });
 
   final Uri? initialUri;
-
-  /// Overrides automatic LSP startup. Null uses the user agent to skip it on
-  /// mobile devices while the compiler and preview runtime are active.
-  final bool? enableLanguageServer;
 
   final ProjectStore? projectStore;
   final Future<Project> Function(ProjectSource source) loadSource;
@@ -104,7 +99,7 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
-  late final bool _enableLanguageServer;
+  late final bool _enableAnalyzer;
   late final PanelLayoutController _panels;
   EmbedRuntimeController? _embedRuntime;
   late final EmbedMessageController _embedMessages;
@@ -155,8 +150,7 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _enableLanguageServer =
-        component.enableLanguageServer ?? languageServerEnabledByDefault(userAgent: web.window.navigator.userAgent);
+    _enableAnalyzer = analyzerEnabledByDefault();
     _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
     _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
     _panels = PanelLayoutController(
@@ -571,11 +565,13 @@ final class _AppState extends State<App> {
         return false;
       }
     }
-    await _initializeAnalyzer(session, workspace, project.root, generation);
+    if (_enableAnalyzer) {
+      await _initializeAnalyzer(session, workspace, project.root, generation);
+    }
     return preparationSucceeded;
   }
 
-  /// Starts the language server with an editor root derived from [packageRoot].
+  /// Starts the analyzer with an editor root derived from [packageRoot].
   ///
   /// [packageRoot] is relative to the complete virtual [workspace]. It is
   /// `null` when no Dart package was detected and empty when the package is
@@ -587,9 +583,6 @@ final class _AppState extends State<App> {
     String? packageRoot,
     int generation,
   ) async {
-    if (!_enableLanguageServer) {
-      return;
-    }
     try {
       session.analyzerStatus.beginInitialization();
       final languageServer = await workspace.startLanguageServer();
