@@ -48,6 +48,7 @@ import 'features/shared/panel_presentation_state.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/shared/workspace_mode.dart';
+import 'features/startup/analyzer_policy.dart';
 import 'features/startup/initial_project_state.dart';
 import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
@@ -97,6 +98,7 @@ final class App extends StatefulComponent {
 /// Composition root – wires all services and drives the startup lifecycle.
 final class _AppState extends State<App> {
   late final bool _isEmbedMode;
+  late final bool _enableAnalyzer;
   late final PanelLayoutController _panels;
   EmbedRuntimeController? _embedRuntime;
   late final EmbedMessageController _embedMessages;
@@ -147,6 +149,7 @@ final class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+    _enableAnalyzer = analyzerEnabledByDefault();
     _isEmbedMode = QueryParameters.isEmbeddedUri(component.initialUri ?? Uri.base);
     _isLargeScreen = web.window.innerWidth >= minLargeScreenWidth;
     _panels = PanelLayoutController(
@@ -561,11 +564,13 @@ final class _AppState extends State<App> {
         return false;
       }
     }
-    await _initializeAnalyzer(session, workspace, project.root, generation);
+    if (_enableAnalyzer) {
+      await _initializeAnalyzer(session, workspace, project.root, generation);
+    }
     return preparationSucceeded;
   }
 
-  /// Starts the language server with an editor root derived from [packageRoot].
+  /// Starts the analyzer with an editor root derived from [packageRoot].
   ///
   /// [packageRoot] is relative to the complete virtual [workspace]. It is
   /// `null` when no Dart package was detected and empty when the package is

@@ -10,15 +10,23 @@ export class Worker {
   }
 
   session(port) {
+    let analyzerStartRequests = 0;
     port.onmessage = ({ data }) => {
       if (data === null) {
         port.close();
         return;
       }
       const request = JSON.parse(data.payload);
+      if (request.method === 'workspace/startLanguageServer') {
+        analyzerStartRequests++;
+      }
       const result = {
         createWorkspace: { workspaceId: 1, workspaceFolder: '/workspace/' },
         'workspace/pub': { log: '' },
+        // Test-only observation of actual analyzer startup requests.
+        'workspace/readFileAsText': request.params?.path === 'analyzer-start-requests'
+          ? { text: String(analyzerStartRequests) }
+          : undefined,
       }[request.method];
       port.postMessage({
         payload: JSON.stringify({

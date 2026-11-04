@@ -32,6 +32,7 @@ import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
+import '../../user_agent_fixture.dart';
 import '../../worker_fixture.dart';
 import '../persistence/persistence_fixture.dart';
 
@@ -51,6 +52,63 @@ void main() {
 
   // Reset href so that query parameters don't leak between tests
   tearDown(() => web.window.history.replaceState(null, '', initialUrl));
+
+  for (final (device, userAgent, enableAnalyzer) in [
+    ('mobile', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1', false),
+    ('desktop', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36', true),
+  ]) {
+    testClient('analyzer startup follows the $device browser policy', (tester) async {
+      setUserAgent(userAgent);
+      final worker = await DartPadSdk(assetBaseUrl: startupWorkerAssets).dedicatedWorker();
+      addTearDown(worker.close);
+      final workspace = await worker.createWorkspace();
+      late WorkspaceRepository repository;
+      final analyzerAttempt = Completer<void>();
+      final logs = <LogEvent>[];
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?file=README.md'),
+          // No entrypoint: preparation reaches analyzer startup without a preview run.
+          loadSource: (_) async => contents({'README.md': '# Project'}),
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            final subscription = events.on<LogEvent>().listen((event) {
+              logs.add(event);
+              if (event.message == 'Analyzer initialization failed.' && !analyzerAttempt.isCompleted) {
+                // Only an actual startup attempt fails in this fixture.
+                analyzerAttempt.complete();
+              }
+            });
+            addTearDown(subscription.cancel);
+            return repository = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              workspaceFuture: Future.value(workspace),
+            );
+          },
+        ),
+      );
+      await pumpEventQueue();
+      if (enableAnalyzer) {
+        await analyzerAttempt.future.timeout(const Duration(seconds: 5));
+      }
+      expect(web.document.querySelector('.editor-tab-name')?.textContent, 'README.md');
+      expect(await repository.readyWorkspace, same(workspace));
+      // Observe the worker boundary directly, independently of tasks and logs.
+      expect(await workspace.readFileAsText('analyzer-start-requests'), enableAnalyzer ? '1' : '0');
+      expect(
+        repository.taskStatus.entries.any((entry) => entry.kind == TaskKind.startingAnalyzer),
+        enableAnalyzer,
+      );
+      expect(logs.any((event) => event.message == 'Analyzer initialization failed.'), enableAnalyzer);
+      if (!enableAnalyzer) {
+        expect(web.document.querySelector('.app-footer')!.textContent, isNot(contains('Starting analyzer')));
+        expect(web.document.querySelector('.app-footer .task-status-icon.running'), isNull);
+      }
+    });
+  }
 
   testClient('waits for project resolution before creating the correct SDK worker and opens initial tabs', (
     tester,
