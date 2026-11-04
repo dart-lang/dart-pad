@@ -109,9 +109,9 @@ final class _BottomPanelState extends State<BottomPanel> {
       return const div(classes: 'bottom-panel', []);
     }
     final isCollapsed = !bottom.isExpanded;
-    final showProblems = !component.panelController.isSmallScreen;
+    final isCompact = component.panelController.isSmallScreen;
     // Keep the desktop selection while presenting only Console on small screens.
-    final activeTab = showProblems ? bottom.selectedTab : BottomPanelTab.console;
+    final activeTab = isCompact ? BottomPanelTab.console : bottom.selectedTab;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
       [
@@ -119,7 +119,7 @@ final class _BottomPanelState extends State<BottomPanel> {
           problemsCount: component.diagnostics.length,
           console: component.console,
           activeTab: activeTab,
-          showProblems: showProblems,
+          isCompact: isCompact,
           isCollapsed: isCollapsed,
           onSelectTab: component.panelController.openBottomPanel,
           onCollapse: panel.canCollapse ? component.panelController.collapseBottomPanel : null,

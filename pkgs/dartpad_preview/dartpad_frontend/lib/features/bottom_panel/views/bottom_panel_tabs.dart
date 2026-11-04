@@ -20,7 +20,7 @@ final class BottomPanelTabs extends StatelessComponent {
     required this.activeTab,
     required this.onSelectTab,
     this.isCollapsed = false,
-    this.showProblems = true,
+    this.isCompact = false,
     this.onCollapse,
     this.onExpand,
     super.key,
@@ -41,8 +41,8 @@ final class BottomPanelTabs extends StatelessComponent {
   /// Whether the bottom panel content is currently collapsed.
   final bool isCollapsed;
 
-  /// Whether the Problems tab is available in this layout.
-  final bool showProblems;
+  /// Whether to show the compact Console header instead of tabs.
+  final bool isCompact;
 
   /// An optional callback invoked to collapse the panel content.
   final VoidCallback? onCollapse;
@@ -51,50 +51,52 @@ final class BottomPanelTabs extends StatelessComponent {
   final VoidCallback? onExpand;
 
   @override
-  Component build(BuildContext context) {
-    if (!showProblems) {
-      final onToggle = isCollapsed ? onExpand ?? () => onSelectTab(BottomPanelTab.console) : onCollapse;
-      return div(classes: 'bottom-panel-tabs bottom-panel-console-header', [
-        button(
-          classes: 'bottom-panel-console-title',
-          attributes: {
-            'type': 'button',
-            'aria-expanded': '${!isCollapsed}',
-            'aria-controls': 'bottom-panel-content',
-          },
-          onClick: onToggle,
-          [
-            const span(classes: 'bottom-panel-console-label', [.text('Console')]),
-            _buildConsoleIndicator(),
-          ],
-        ),
-        if (!isCollapsed) _buildClearButton(),
-        button(
-          classes: 'bottom-panel-console-toggle',
-          attributes: {
-            'type': 'button',
-            'aria-label': isCollapsed ? 'Show console' : 'Hide console',
-            'aria-expanded': '${!isCollapsed}',
-            'aria-controls': 'bottom-panel-content',
-          },
-          onClick: onToggle,
-          [
-            Icon(isCollapsed ? 'expand_less' : 'expand_more', size: 18, attributes: const {'aria-hidden': 'true'}),
-          ],
-        ),
-      ]);
-    }
+  Component build(BuildContext context) => isCompact ? _buildConsoleHeader() : _buildDesktopTabs();
+
+  Component _buildConsoleHeader() {
+    final onToggle = isCollapsed ? onExpand ?? () => onSelectTab(BottomPanelTab.console) : onCollapse;
+    return div(classes: 'bottom-panel-tabs bottom-panel-console-header', [
+      button(
+        classes: 'bottom-panel-console-title',
+        attributes: {
+          'type': 'button',
+          'aria-expanded': '${!isCollapsed}',
+          'aria-controls': 'bottom-panel-content',
+        },
+        onClick: onToggle,
+        [
+          const span(classes: 'bottom-panel-console-label', [.text('Console')]),
+          _buildConsoleIndicator(),
+        ],
+      ),
+      if (!isCollapsed) _buildClearButton(),
+      button(
+        classes: 'bottom-panel-console-toggle',
+        attributes: {
+          'type': 'button',
+          'aria-label': isCollapsed ? 'Show console' : 'Hide console',
+          'aria-expanded': '${!isCollapsed}',
+          'aria-controls': 'bottom-panel-content',
+        },
+        onClick: onToggle,
+        [
+          Icon(isCollapsed ? 'expand_less' : 'expand_more', size: 20, attributes: const {'aria-hidden': 'true'}),
+        ],
+      ),
+    ]);
+  }
+
+  Component _buildDesktopTabs() {
     return div(
       classes: 'bottom-panel-tabs',
       attributes: const {'role': 'tablist'},
       [
-        if (showProblems)
-          _BottomPanelTabButton(
-            label: 'Problems',
-            countLabel: problemsCount.toString(),
-            active: !isCollapsed && activeTab == BottomPanelTab.problems,
-            onClick: () => onSelectTab(BottomPanelTab.problems),
-          ),
+        _BottomPanelTabButton(
+          label: 'Problems',
+          countLabel: problemsCount.toString(),
+          active: !isCollapsed && activeTab == BottomPanelTab.problems,
+          onClick: () => onSelectTab(BottomPanelTab.problems),
+        ),
         _BottomPanelTabButton(
           label: 'Console',
           active: !isCollapsed && activeTab == BottomPanelTab.console,
@@ -116,9 +118,9 @@ final class BottomPanelTabs extends StatelessComponent {
           IconButton(
             tooltip: 'Show bottom panel',
             label: 'Show bottom panel',
-            icon: 'expand_more',
+            icon: 'expand_less',
             iconSize: 20,
-            classes: 'bottom-panel-btn bottom-panel-expand-btn',
+            classes: 'bottom-panel-btn',
             onClick: (_) => onExpand!(),
           ),
       ],
@@ -239,7 +241,6 @@ final class BottomPanelTabs extends StatelessComponent {
       margin: .only(top: 2.px, bottom: 2.px, right: 8.px),
       alignSelf: .center,
     ),
-    css('.bottom-panel-expand-btn > .material-symbols-outlined').styles(transform: .rotate(180.deg)),
   ];
 }
 
