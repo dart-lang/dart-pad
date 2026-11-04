@@ -96,25 +96,28 @@ class EditorShell extends StatelessComponent {
         ),
       ],
     ]);
-    return main_(
-      classes: [
-        'editor-shell',
-        'editor-host',
-        if (panelController.isSmallScreen) 'editor-shell-small',
-      ].join(' '),
-      [
-        SplitPanel(
-          isVertical: true,
-          useRatio: true,
-          state: panelController.bottomSplitListenable,
-          onStateChanged: panelController.updateBottomSplit,
-          minValue: _minEditorHeightFraction,
-          maxValue: _maxEditorHeightFraction,
-          canCollapseRight: true,
-          left: editor,
-          right: bottomPanel,
-        ),
-      ],
+    return ValueListenableBuilder(
+      listenable: panelController.layoutListenable,
+      builder: (_, _) => main_(
+        classes: [
+          'editor-shell',
+          'editor-host',
+          if (panelController.isSmallScreen) 'editor-shell-small',
+        ].join(' '),
+        [
+          SplitPanel(
+            isVertical: true,
+            useRatio: true,
+            state: panelController.bottomSplitListenable,
+            onStateChanged: panelController.updateBottomSplit,
+            minValue: _minEditorHeightFraction,
+            maxValue: _maxEditorHeightFraction,
+            canCollapseRight: true,
+            left: editor,
+            right: bottomPanel,
+          ),
+        ],
+      ),
     );
   }
 

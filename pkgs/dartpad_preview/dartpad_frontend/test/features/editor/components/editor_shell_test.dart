@@ -130,6 +130,30 @@ WorkspaceLayout _createShell(
 }
 
 void main() {
+  testClient('editor shell observes screen-size changes without an ancestor rebuild', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    final tab = _FakeTab('main.dart');
+    tester.pumpComponent(_createShell(tester, panels: panels, openTabs: [tab]).editor);
+    final host = web.document.querySelector('.editor-host')!;
+    final editor = web.document.getElementById('editor-main.dart')!;
+    final buildCount = tab.buildCount;
+    expect(host.classList.contains('editor-shell-small'), isFalse);
+
+    for (final isSmallScreen in [true, false, true]) {
+      panels.updateScreenSize(isSmallScreen: isSmallScreen);
+      await pumpEventQueue();
+      expect(host.classList.contains('editor-shell-small'), isSmallScreen);
+      expect(web.document.querySelector('.editor-host')!.isSameNode(host), isTrue);
+      expect(web.document.getElementById('editor-main.dart')!.isSameNode(editor), isTrue);
+      expect(tab.buildCount, buildCount);
+    }
+  });
+
   for (final width in [320, 390, 865]) {
     testClient('mobile file tree opens beside the editor at ${width}px', (tester) async {
       final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);

@@ -59,14 +59,11 @@ final class WorkspaceLayout extends StatelessComponent {
           // The same ancestors host the iframe in every layout. Even reattaching
           // the same iframe node would discard its running browsing context.
           SplitPanel(
-            state: panels.previewListenable,
-            // Code/Output tabs show one pane at a time on small screens,
-            // without changing the split restored on a large screen.
-            presentationState: isLargeScreen
-                ? null
-                : showOutput
-                ? LeftHidden(panels.preview.value)
-                : RightHidden(panels.preview.value),
+            state: _PreviewSplitListenable(
+              panels.previewListenable,
+              isLargeScreen: isLargeScreen,
+              showOutput: showOutput,
+            ),
             onStateChanged: panels.updatePreview,
             // The right pane is the preview. Only large screens use its
             // collapsed rail; small screens switch panes through tabs.
@@ -102,36 +99,6 @@ final class WorkspaceLayout extends StatelessComponent {
     css('.file-tree-panel > .file-tree-rail').styles(
       flex: const Flex(grow: 1, shrink: 0),
     ),
-    // -- Embed mode: collapsed file-tree rail --
-    css('.file-tree-rail').styles(
-      display: .flex,
-      width: 36.px,
-      minWidth: 36.px,
-      padding: .only(top: 8.px),
-      border: .only(
-        right: .solid(color: colorBorder, width: 1.px),
-      ),
-      flexDirection: .column,
-      alignItems: .center,
-      flex: const .shrink(0),
-      backgroundColor: colorSurface,
-    ),
-    css('.file-tree-rail-button').styles(
-      display: .flex,
-      width: 28.px,
-      height: 28.px,
-      padding: .zero,
-      border: .none,
-      radius: .circular(6.px),
-      cursor: .pointer,
-      justifyContent: .center,
-      alignItems: .center,
-      color: colorOnSurface,
-      backgroundColor: Colors.transparent,
-    ),
-    css('.file-tree-rail-button:hover').styles(
-      backgroundColor: colorBorder,
-    ),
     css('.workspace-content').styles(
       display: .flex,
       minWidth: .zero,
@@ -140,4 +107,30 @@ final class WorkspaceLayout extends StatelessComponent {
       flex: const Flex(grow: 1, basis: .zero),
     ),
   ];
+}
+
+/// Adapts the desktop split to the selected mobile tab, keeping its current size.
+/// Notifications come from the desktop split; tab and screen-size changes replace
+/// this adapter when [WorkspaceLayout] rebuilds. Neither changes the saved split.
+final class _PreviewSplitListenable implements ValueListenable<SplitState> {
+  const _PreviewSplitListenable(this._preview, {required this.isLargeScreen, required this.showOutput});
+
+  final ValueListenable<SplitState> _preview;
+  final bool isLargeScreen;
+  final bool showOutput;
+
+  @override
+  SplitState get value {
+    final state = _preview.value;
+    if (isLargeScreen) {
+      return state;
+    }
+    return showOutput ? LeftHidden(state.value) : RightHidden(state.value);
+  }
+
+  @override
+  void addListener(VoidCallback listener) => _preview.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => _preview.removeListener(listener);
 }

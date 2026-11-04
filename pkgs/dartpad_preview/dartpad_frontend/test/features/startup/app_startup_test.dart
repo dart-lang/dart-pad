@@ -373,12 +373,12 @@ void main() {
 
         await click('.small-screen-file-tree-button');
         await selectOutputTab();
-        expect(web.document.querySelector('.preview-container'), isNotNull);
+        expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
         expect(fileTreeSplit().state, const LeftHidden(200));
         // Opening file navigation from Output returns to Code.
         await click('.small-screen-file-tree-button');
         expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
-        expect(web.document.querySelector('.editor-host'), isNotNull);
+        expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
         expect(fileTreeSplit().state, const Split(200));
         await selectCodeTab();
 
@@ -685,6 +685,7 @@ void main() {
           expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
           await selectCodeTab();
           expect(web.document.querySelector('.cm-editor'), isNotNull);
+          expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
         }
       });
     }
@@ -695,20 +696,22 @@ void main() {
       expect(panels.preview, const RightHidden(0.6));
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
       expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
 
       await selectOutputTab();
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
 
       // Mobile visibility follows the selected tab even if the desktop panel hides again.
       panels.updatePreview(const RightHidden(0.6));
       await pumpEventQueue();
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       await selectCodeTab();
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
       expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
       expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
     });
 
@@ -721,14 +724,15 @@ void main() {
 
       await _resizeWindow(600);
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
 
       await selectCodeTab();
       expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
       await click('.main-editor-actions button');
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
       final panels = (find.byType(EditorShell).evaluate().single.component as EditorShell).panelController;
       expect(panels.preview, const Split(0.6));
@@ -748,7 +752,7 @@ void main() {
       expect(web.document.querySelector('.app-footer'), isNotNull);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
       await selectOutputTab();
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       await selectCodeTab();
       expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
 
@@ -763,9 +767,10 @@ void main() {
       expect(web.document.querySelector('.app-bar'), isNull);
       expect(web.document.querySelector('.app-footer'), isNull);
       await selectOutputTab();
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       await selectCodeTab();
       expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
     });
 
     testClient('embed defaults hide bars without reopen controls at every screen size', (tester) async {
@@ -777,7 +782,7 @@ void main() {
       expect(web.document.querySelector('#editor-navigation-panel'), isNull);
       expect(web.document.querySelector('.small-screen-tab-bar'), isNotNull);
       await selectOutputTab();
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
     });
 
     testClient('desktop panel sizes and Console selection survive a narrow layout and back', (tester) async {
@@ -821,13 +826,14 @@ void main() {
       await click('button[aria-label="Hide bottom panel"]');
 
       await selectOutputTab();
-      expect(web.document.querySelector('.preview-container'), isNotNull);
+      expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
       expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.bottom-panel'), isNotNull);
 
       await selectCodeTab();
       expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.cm-editor'), isNotNull);
+      expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
       expect(web.document.querySelector('.file-tree-rail'), isNull);
       expect(web.document.querySelector('.small-screen-file-tree-button'), isNotNull);
       expect(fileTreeSplit().state, const LeftHidden(225));
