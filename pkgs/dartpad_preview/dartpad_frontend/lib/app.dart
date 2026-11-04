@@ -77,7 +77,6 @@ final class App extends StatefulComponent {
   });
 
   final Uri? initialUri;
-
   final ProjectStore? projectStore;
   final Future<Project> Function(ProjectSource source) loadSource;
   final WorkspaceRepository Function({

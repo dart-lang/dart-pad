@@ -4,11 +4,13 @@
 
 import 'package:web/web.dart' as web;
 
-/// Avoids starting the memory-intensive analyzer when the browser identifies
-/// a phone or tablet.
-///
-/// This is a device heuristic, independent of viewport width and orientation.
-bool analyzerEnabledByDefault() => !RegExp(
+final _mobileUserAgent = RegExp(
   r'Android|iPhone|iPad|iPod|Mobi',
   caseSensitive: false,
-).hasMatch(web.window.navigator.userAgent);
+);
+
+/// Avoids starting the memory-intensive analyzer when the browser identifies
+/// a phone.
+///
+/// This is a device heuristic, independent of viewport width and orientation.
+bool analyzerEnabledByDefault() => !_mobileUserAgent.hasMatch(web.window.navigator.userAgent);
