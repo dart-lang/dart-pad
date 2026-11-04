@@ -128,11 +128,6 @@ class EditorShell extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    // Grow only into the editor so the Console buttons remain unobstructed.
-    css('.editor-shell-small .editor-host > .drag-handle.vertical::before').styles(
-      content: '',
-      position: .absolute(top: (-8).px, right: .zero, bottom: .zero, left: .zero),
-    ),
     css('.editor-host').styles(
       display: .flex,
       minWidth: .zero,
