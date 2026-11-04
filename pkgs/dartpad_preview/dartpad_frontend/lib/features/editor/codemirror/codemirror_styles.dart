@@ -47,7 +47,8 @@ List<StyleRule> get codemirrorStyles => [
   css('.editor-shell-small .editor-container .cm-scroller').styles(
     fontSize: 16.px,
   ),
-  // Match CodeMirror's wrapping styles; it detects wrapping from computed CSS.
+  // CodeMirror reads white-space during measurement to update its wrapping mode
+  // and cursor geometry. Apply its native wrapping styles only on small screens.
   css('.editor-shell-small .editor-container .cm-content').styles(
     minWidth: .zero,
     whiteSpace: .breakSpaces,

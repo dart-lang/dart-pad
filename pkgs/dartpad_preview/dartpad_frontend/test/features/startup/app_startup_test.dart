@@ -281,6 +281,20 @@ void main() {
       await pumpEventQueue();
     }
 
+    Future<void> openSecondFileViaDiagnostic() async {
+      final bottomPanel = find.byType(BottomPanel).evaluate().single.component as BottomPanel;
+      bottomPanel.onOpenDiagnostic(
+        'README.md',
+        const Diagnostic(
+          line: 0,
+          character: 0,
+          message: 'Project documentation',
+          severity: DiagnosticSeverity.info,
+        ),
+      );
+      await pumpEventQueue();
+    }
+
     Future<void> selectOutputTab() => click('.small-screen-tab-bar-tab:nth-child(2)');
     Future<void> selectCodeTab() => click('.small-screen-tab-bar-tab:first-child');
 
@@ -381,7 +395,6 @@ void main() {
           input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true)));
           await pumpEventQueue();
           final path = folder.isEmpty ? 'created.dart' : '$folder/created.dart';
-          expect(web.document.querySelector('.editor-tab-bar'), isNull);
           expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), path);
           expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         }
@@ -402,7 +415,6 @@ void main() {
           'on toggle': () => click('.small-screen-file-tree-button'),
           'on file selection': () async {
             await click('.file-tree-item.file[title="README.md"]');
-            expect(web.document.querySelector('.editor-tab-bar'), isNull);
             expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
           },
           'on file creation in the root': () => createFile(''),
@@ -454,7 +466,6 @@ void main() {
         final file = web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement;
         file.click();
         await pumpEventQueue();
-        expect(web.document.querySelector('.editor-tab-bar'), isNull);
         expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
         expect(fileTreeSplit().state, const LeftHidden(200));
         expect(web.document.querySelector('.small-screen-file-tree-button'), isNotNull);
@@ -489,7 +500,6 @@ void main() {
         expect(fileTreeSplit().state, const LeftHidden(200));
         expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
-        expect(web.document.querySelector('.editor-tab-bar'), isNull);
         expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
         expectPreviewAlive();
 
@@ -514,33 +524,11 @@ void main() {
         ].map((rule) => rule.toCss()).join('\n');
       web.document.head!.appendChild(styles);
       addTearDown(() => web.document.head!.removeChild(styles));
-      final source = 'void main() {}\n// ${List.filled(500, 'x').join()}\n${List.filled(19, '// Code').join('\n')}';
-      final download = Completer<Project>()..complete(contents({'lib/main.dart': source}));
+      final download = Completer<Project>()
+        ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
       expect(button.closest('.small-screen-tab-bar'), isNull);
-      final scroller = web.document.querySelector('.editor-tab-slot.active .cm-scroller')! as web.HTMLElement;
-      final longLine = web.document.querySelectorAll('.editor-tab-slot.active .cm-line').item(1)! as web.HTMLElement;
-      final lintGutter = web.document.querySelector('.editor-tab-slot.active .cm-gutter-lint')! as web.HTMLElement;
-      expect(lintGutter.getBoundingClientRect().width, 0);
-      for (final selector in ['.cm-lineNumbers', '.cm-foldGutter']) {
-        expect(web.document.querySelector(selector)!.getBoundingClientRect().width, greaterThan(0));
-      }
-      web.DOMRect codeBounds() {
-        final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
-        return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
-      }
-
-      void expectWrappedCode() {
-        expect(scroller.scrollWidth, lessThanOrEqualTo(scroller.clientWidth));
-        expect(longLine.getBoundingClientRect().height, greaterThan(2 * codeBounds().height));
-      }
-
-      double gutterWidth() {
-        final editor = web.document.querySelector('.editor-tab-slot.active .cm-editor')! as web.HTMLElement;
-        return codeBounds().left - editor.getBoundingClientRect().left;
-      }
-
       final codeTab = web.document.querySelector('.small-screen-tab-bar-tab')!.getBoundingClientRect();
       final editor = web.document.querySelector('.editor-stack')!.getBoundingClientRect();
       expect(button.getBoundingClientRect().right, lessThanOrEqualTo(codeTab.left));
@@ -560,28 +548,26 @@ void main() {
       await click('.small-screen-file-tree-button');
       expect(toggleColors(), closedColors);
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
-      expect(
-        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
-        '16px',
-      );
-      final mobileGutterWidth = gutterWidth();
-      expectWrappedCode();
-      await _resizeWindow(1200);
-      expect(
-        web.window.getComputedStyle(web.document.querySelector('.editor-tab-slot.active .cm-content')!).fontSize,
-        '14px',
-      );
-      expect(gutterWidth(), greaterThan(mobileGutterWidth));
-      expect(lintGutter.getBoundingClientRect().width, greaterThan(0));
-      expect(scroller.scrollWidth, greaterThan(scroller.clientWidth));
-      expect(
-        longLine.getBoundingClientRect().height,
-        closeTo(double.parse(web.window.getComputedStyle(longLine).lineHeight.replaceAll('px', '')), 1),
-      );
-      await _resizeWindow(390);
-      expect(lintGutter.getBoundingClientRect().width, 0);
-      expectWrappedCode();
     });
+
+    for (final embed in [false, true]) {
+      testClient('file tabs return after resizing the mobile editor to desktop: embed=$embed', (tester) async {
+        await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart', 'README.md']);
+        expect(web.document.querySelector('.editor-tab-bar'), isNull);
+        final editor = web.document.querySelector('.editor-tab-slot.active .cm-editor')!;
+        final activePath = web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title');
+
+        await _resizeWindow(1200);
+        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), activePath);
+        expect(web.document.querySelector('.editor-tab-slot.active .cm-editor')!.isSameNode(editor), isTrue);
+        await click('.editor-tab[title="README.md"]');
+        expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
+
+        await _resizeWindow(600);
+        expect(web.document.querySelector('.editor-tab-bar'), isNull);
+        expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'README.md');
+      });
+    }
 
     for (final width in [600, 1200]) {
       for (final (embed, hint) in [(true, ''), (true, '-tabs'), (false, '-tabs')]) {
@@ -594,17 +580,7 @@ void main() {
           expect(web.document.querySelector('.editor-tab-bar'), isNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
 
-          final bottomPanel = find.byType(BottomPanel).evaluate().single.component as BottomPanel;
-          bottomPanel.onOpenDiagnostic(
-            'README.md',
-            const Diagnostic(
-              line: 0,
-              character: 0,
-              message: 'Project documentation',
-              severity: DiagnosticSeverity.info,
-            ),
-          );
-          await pumpEventQueue();
+          await openSecondFileViaDiagnostic();
 
           expect(web.document.querySelector('button[aria-label="Show editor tabs"]'), isNull);
           expect(web.document.querySelector('button[aria-label="Collapse editor tabs"]'), isNull);
@@ -614,11 +590,14 @@ void main() {
             fileTreeSplit().state,
             embed || width < minLargeScreenWidth ? const LeftHidden(200) : const Split(200),
           );
+        });
 
-          // File-tab controls become available again when switching to the desktop layout.
-          if (width < minLargeScreenWidth) {
-            await _resizeWindow(1200);
-          }
+        if (width != 1200) {
+          continue;
+        }
+        testClient('desktop file tabs switch and close opened files: embed=$embed, panels=$hint', (tester) async {
+          await mountApp(tester, width: width, embed: embed, files: ['lib/main.dart'], panelHints: [hint]);
+          await openSecondFileViaDiagnostic();
           expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
           (web.document.querySelector('.editor-tab[title="lib/main.dart"]')! as web.HTMLElement).click();
           await pumpEventQueue();

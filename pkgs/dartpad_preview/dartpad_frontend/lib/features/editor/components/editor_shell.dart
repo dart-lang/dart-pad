@@ -72,7 +72,6 @@ class EditorShell extends StatelessComponent {
         ValueListenableBuilder(
           listenable: panelController.editorNavigationListenable,
           builder: (_, navigation) {
-            // Reveal grouped navigation temporarily when another file opens.
             return PanelVisibility(
               id: 'editor-navigation-panel',
               visible: openTabs.length > 1 || navigation == PanelPresentationState.expanded,
@@ -80,7 +79,6 @@ class EditorShell extends StatelessComponent {
                 ValueListenableBuilder(
                   listenable: panelController.layoutListenable,
                   builder: (_, _) => Component.fragment([
-                    // Mobile file navigation uses the file explorer instead of a tab strip.
                     if (!panelController.isSmallScreen)
                       EditorTabBar(
                         openTabs: openTabs,
