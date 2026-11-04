@@ -8,6 +8,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/analyzer_configuration.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
@@ -92,10 +93,7 @@ final class _BottomPanelState extends State<BottomPanel> {
 
   @override
   Component build(BuildContext context) => ListenableBuilder(
-    listenable: Listenable.merge([
-      component.panelController.bottomListenable,
-      component.panelController.layoutListenable,
-    ]),
+    listenable: component.panelController.bottomListenable,
     builder: _buildPanel,
   );
 
@@ -109,9 +107,7 @@ final class _BottomPanelState extends State<BottomPanel> {
       return const div(classes: 'bottom-panel', []);
     }
     final isCollapsed = !bottom.isExpanded;
-    final isCompact = component.panelController.isSmallScreen;
-    // Keep the desktop selection while presenting only Console on small screens.
-    final activeTab = isCompact ? BottomPanelTab.console : bottom.selectedTab;
+    final activeTab = AnalyzerConfiguration.isEnabledOf(context) ? bottom.selectedTab : BottomPanelTab.console;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
       [
@@ -119,7 +115,6 @@ final class _BottomPanelState extends State<BottomPanel> {
           problemsCount: component.diagnostics.length,
           console: component.console,
           activeTab: activeTab,
-          isCompact: isCompact,
           isCollapsed: isCollapsed,
           onSelectTab: component.panelController.openBottomPanel,
           onCollapse: panel.canCollapse ? component.panelController.collapseBottomPanel : null,

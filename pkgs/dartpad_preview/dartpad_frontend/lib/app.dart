@@ -30,6 +30,7 @@ import 'features/preview/models/device_mode.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
+import 'features/shared/analyzer_configuration.dart';
 import 'features/shared/app_event_bus.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/command_palette.dart';
@@ -740,7 +741,10 @@ final class _AppState extends State<App> {
   }
 
   @override
-  Component build(BuildContext context) => _buildWorkspace(context);
+  Component build(BuildContext context) => AnalyzerConfiguration(
+    enabled: _enableAnalyzer,
+    child: _buildWorkspace(context),
+  );
 
   TaskStatusController get _activeTaskStatus {
     final session = _activeSession;

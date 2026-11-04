@@ -6,13 +6,14 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 import '../../../app_styles.dart';
+import '../../shared/analyzer_configuration.dart';
 import '../../shared/components/icon_button.dart';
 import '../../shared/icons.dart';
 import '../bottom_panel_state.dart';
 import '../view_models/console_view_model.dart';
 import 'bottom_panel_indicator.dart';
 
-/// Desktop tabs or a compact Console disclosure for the bottom panel.
+/// Tabs when the analyzer is enabled, otherwise a Console disclosure.
 final class BottomPanelTabs extends StatelessComponent {
   const BottomPanelTabs({
     required this.problemsCount,
@@ -20,7 +21,6 @@ final class BottomPanelTabs extends StatelessComponent {
     required this.activeTab,
     required this.onSelectTab,
     this.isCollapsed = false,
-    this.isCompact = false,
     this.onCollapse,
     this.onExpand,
     super.key,
@@ -41,9 +41,6 @@ final class BottomPanelTabs extends StatelessComponent {
   /// Whether the bottom panel content is currently collapsed.
   final bool isCollapsed;
 
-  /// Whether to show the compact Console header instead of tabs.
-  final bool isCompact;
-
   /// An optional callback invoked to collapse the panel content.
   final VoidCallback? onCollapse;
 
@@ -51,7 +48,8 @@ final class BottomPanelTabs extends StatelessComponent {
   final VoidCallback? onExpand;
 
   @override
-  Component build(BuildContext context) => isCompact ? _buildConsoleHeader() : _buildDesktopTabs();
+  Component build(BuildContext context) =>
+      AnalyzerConfiguration.isEnabledOf(context) ? _buildTabs() : _buildConsoleHeader();
 
   Component _buildConsoleHeader() {
     final onToggle = isCollapsed ? onExpand ?? () => onSelectTab(BottomPanelTab.console) : onCollapse;
@@ -86,7 +84,7 @@ final class BottomPanelTabs extends StatelessComponent {
     ]);
   }
 
-  Component _buildDesktopTabs() {
+  Component _buildTabs() {
     return div(
       classes: 'bottom-panel-tabs',
       attributes: const {'role': 'tablist'},

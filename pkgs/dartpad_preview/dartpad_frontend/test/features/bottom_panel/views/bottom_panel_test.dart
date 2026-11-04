@@ -9,6 +9,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/shared/analyzer_configuration.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -24,8 +25,12 @@ import 'package:web/web.dart' as web;
 import '../../../split_panel_fixture.dart';
 
 void main() {
-  PanelLayoutController createPanels(ClientTester tester, {WorkspaceMode mode = WorkspaceMode.standalone}) {
-    final panels = PanelLayoutController(mode: mode);
+  PanelLayoutController createPanels(
+    ClientTester tester, {
+    WorkspaceMode mode = WorkspaceMode.standalone,
+    bool isSmallScreen = false,
+  }) {
+    final panels = PanelLayoutController(mode: mode, isSmallScreen: isSmallScreen);
     addTearDown(() async {
       tester.binding.detachRootComponent();
       await pumpEventQueue();
@@ -45,19 +50,22 @@ void main() {
     return console;
   }
 
-  Component inSplitPanel(BottomPanel bottomPanel) {
+  Component inSplitPanel(BottomPanel bottomPanel, {bool enableAnalyzer = true}) {
     final panels = bottomPanel.panelController;
-    return SplitPanel(
-      state: panels.bottomSplitListenable,
-      onStateChanged: panels.updateBottomSplit,
-      isVertical: true,
-      canCollapseRight: true,
-      left: const div([]),
-      right: bottomPanel,
+    return AnalyzerConfiguration(
+      enabled: enableAnalyzer,
+      child: SplitPanel(
+        state: panels.bottomSplitListenable,
+        onStateChanged: panels.updateBottomSplit,
+        isVertical: true,
+        canCollapseRight: true,
+        left: const div([]),
+        right: bottomPanel,
+      ),
     );
   }
 
-  testClient('small screens show only Console and restore desktop Problems', (tester) async {
+  testClient('without analyzer support, a wide layout shows only a collapsible Console', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
     final panels = createPanels(tester);
@@ -72,12 +80,9 @@ void main() {
           onOpenDiagnostic: (_, _) {},
           events: events,
         ),
+        enableAnalyzer: false,
       ),
     );
-    expect(web.document.querySelector('.problems-panel'), isNotNull);
-
-    panels.updateScreenSize(isSmallScreen: true);
-    await pumpEventQueue();
     expect(web.document.querySelector('.bottom-panel [role="tablist"]'), isNull);
     expect(web.document.querySelector('.bottom-panel [role="tab"]'), isNull);
     expect(web.document.querySelector('.bottom-panel [aria-selected]'), isNull);
@@ -91,13 +96,6 @@ void main() {
     expect(web.document.querySelector('.problems-panel'), isNull);
     expect(web.document.querySelector('.console-panel'), isNotNull);
 
-    panels.updateScreenSize(isSmallScreen: false);
-    await pumpEventQueue();
-    expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-    expect(web.document.querySelector('.problems-panel'), isNotNull);
-
-    panels.updateScreenSize(isSmallScreen: true);
-    await pumpEventQueue();
     (web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
     final collapsedToggle = web.document.querySelector('.bottom-panel-console-toggle')! as web.HTMLButtonElement;
@@ -195,13 +193,15 @@ void main() {
     expect(clearedIndicator!.classList.contains('hidden'), isTrue);
   });
 
-  testClient('renders problem indicators for diagnostics in the problems panel', (tester) async {
+  testClient('with analyzer support, a small layout shows Problems and its diagnostic indicators', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    final panels = createPanels(tester, isSmallScreen: true);
+    panels.openBottomPanel(BottomPanelTab.problems);
     tester.pumpComponent(
       inSplitPanel(
         BottomPanel(
-          panelController: createPanels(tester),
+          panelController: panels,
           diagnostics: const [
             DiagnosticEntry(
               'main.dart',
@@ -230,6 +230,7 @@ void main() {
       ),
     );
 
+    expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
     final indicators = web.document.querySelectorAll('.problems-panel .bottom-panel-indicator');
     expect(indicators.length, 2);
     final first = indicators.item(0) as web.HTMLElement;
