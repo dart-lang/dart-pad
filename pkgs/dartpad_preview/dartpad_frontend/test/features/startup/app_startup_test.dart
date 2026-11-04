@@ -284,11 +284,9 @@ void main() {
     Future<void> selectOutputTab() => click('.small-screen-tab-bar-tab:nth-child(2)');
     Future<void> selectCodeTab() => click('.small-screen-tab-bar-tab:first-child');
 
-    //TODO: Check if there is a native way to ping a iFrame if its stil alive instead of doing a counter example int hte test
     Future<void Function()> attachPreviewProbe() async {
       final preview = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
-      final frame = web.HTMLIFrameElement()
-        ..srcdoc = '<button onclick="this.textContent = Number(this.textContent) + 1">7</button>'.toJS;
+      final frame = web.HTMLIFrameElement()..srcdoc = '<!doctype html><title>Preview probe</title>'.toJS;
       var loads = 0;
       final subscription = web.EventStreamProviders.loadEvent.forTarget(frame).listen((_) => loads++);
       addTearDown(subscription.cancel);
@@ -296,19 +294,13 @@ void main() {
       preview.preview.containerElement.appendChild(frame);
       await loaded;
       final document = frame.contentDocument!;
-      final button = document.querySelector('button')! as web.HTMLButtonElement;
-      button.click();
-      expect(button.textContent, '8');
 
       return () {
         expect(frame.isConnected, isTrue);
-        // Reattaching the same iframe node still discards its document and state.
+        // contentDocument is the active document in the iframe. A reload or
+        // reattachment replaces it even if the iframe node stays the same.
         expect(frame.contentDocument!.isSameNode(document), isTrue);
         expect(loads, 1);
-        expect(button.textContent, '8');
-        button.click();
-        expect(button.textContent, '9');
-        button.textContent = '8';
       };
     }
 
@@ -505,6 +497,8 @@ void main() {
 
             void expectLayout({required bool loaded}) {
               final smallScreen = web.window.innerWidth < minLargeScreenWidth;
+              expect(web.document.querySelector('.workspace-layout.editor-shell-small'), isNull);
+              expect(web.document.querySelector('.editor-shell.editor-shell-small'), smallScreen ? isNotNull : isNull);
               final tree = web.document.querySelector('.file-tree-panel')! as web.HTMLElement;
               expect(tree.style.display, embed || smallScreen ? 'none' : '');
               expect(web.document.querySelector('.file-tree-rail'), isNull);

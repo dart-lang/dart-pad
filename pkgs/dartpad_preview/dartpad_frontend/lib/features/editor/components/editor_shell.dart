@@ -58,6 +58,10 @@ class EditorShell extends StatelessComponent {
   /// Shared bottom-panel and editor-navigation state.
   final PanelLayoutController panelController;
 
+  // Reserve at least 30% of the height for the editor and 15% for the bottom panel.
+  static const _minEditorHeightFraction = 0.3;
+  static const _maxEditorHeightFraction = 0.85;
+
   @override
   Component build(BuildContext context) {
     final openTabs = this.openTabs;
@@ -92,19 +96,26 @@ class EditorShell extends StatelessComponent {
         ),
       ],
     ]);
-    return main_(classes: 'editor-shell editor-host', [
-      SplitPanel(
-        isVertical: true,
-        useRatio: true,
-        state: panelController.bottomSplitListenable,
-        onStateChanged: panelController.updateBottomSplit,
-        minValue: 0.3,
-        maxValue: 0.85,
-        canCollapseRight: true,
-        left: editor,
-        right: bottomPanel,
-      ),
-    ]);
+    return main_(
+      classes: [
+        'editor-shell',
+        'editor-host',
+        if (panelController.isSmallScreen) 'editor-shell-small',
+      ].join(' '),
+      [
+        SplitPanel(
+          isVertical: true,
+          useRatio: true,
+          state: panelController.bottomSplitListenable,
+          onStateChanged: panelController.updateBottomSplit,
+          minValue: _minEditorHeightFraction,
+          maxValue: _maxEditorHeightFraction,
+          canCollapseRight: true,
+          left: editor,
+          right: bottomPanel,
+        ),
+      ],
+    );
   }
 
   @css

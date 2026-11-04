@@ -29,38 +29,50 @@ final class WorkspaceLayout extends StatelessComponent {
   final bool isLargeScreen;
   final bool showOutput;
 
+  // Keep file navigation usable without letting it dominate the workspace.
+  static const _minFileTreeWidth = 150.0;
+  static const _maxFileTreeWidth = 300.0;
+
+  // SplitPanel's ratio is the editor's share of the editor/preview width.
+  // Standalone reserves at least 30% for editing and 15% for the preview.
+  static const _minStandaloneEditorFraction = 0.3;
+  static const _maxStandaloneEditorFraction = 0.85;
+
+  // Embeds support the legacy `split=5` through `split=95` URL range,
+  // allowing either pane to fill most of the available space.
+  static const _minEmbedEditorFraction = 0.05;
+  static const _maxEmbedEditorFraction = 0.95;
+
   @override
   Component build(BuildContext context) {
     final isEmbed = panels.mode == WorkspaceMode.embed;
-    return div(classes: 'workspace-layout${isLargeScreen ? '' : ' editor-shell-small'}', [
-      //TODO: move css class to editor and not on top level here
-      //TODO: find out the concuantion stuff if it makes sense
+    return div(classes: 'workspace-layout', [
       SplitPanel(
         state: panels.fileTreeListenable,
         onStateChanged: panels.updateFileTree,
         useRatio: false,
-        minValue: 150,
-        maxValue: 300,
+        minValue: _minFileTreeWidth,
+        maxValue: _maxFileTreeWidth,
         canCollapseLeft: true,
         left: div(id: 'editor-file-tree', classes: 'file-tree-panel', [fileTree]),
         right: div(classes: 'workspace-content', [
           // The same ancestors host the iframe in every layout. Even reattaching
           // the same iframe node would discard its running browsing context.
-
           SplitPanel(
             state: panels.previewListenable,
+            // Code/Output tabs show one pane at a time on small screens,
+            // without changing the split restored on a large screen.
             presentationState: isLargeScreen
                 ? null
                 : showOutput
                 ? LeftHidden(panels.preview.value)
                 : RightHidden(panels.preview.value),
             onStateChanged: panels.updatePreview,
-            canCollapseRight:
-                isLargeScreen, //TODO: make vairalbeNames more explicit or at least leave commetns explaining stuff
-            minValue: isEmbed
-                ? 0.05
-                : 0.3, //TODO: leave explanation for legacy values, puthtme imn variables, not magic numbers
-            maxValue: isEmbed ? 0.95 : 0.85,
+            // The right pane is the preview. Only large screens use its
+            // collapsed rail; small screens switch panes through tabs.
+            canCollapseRight: isLargeScreen,
+            minValue: isEmbed ? _minEmbedEditorFraction : _minStandaloneEditorFraction,
+            maxValue: isEmbed ? _maxEmbedEditorFraction : _maxStandaloneEditorFraction,
             left: editor,
             right: preview,
           ),
