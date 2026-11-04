@@ -45,57 +45,62 @@ final class WorkspaceLayout extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final isEmbed = panels.mode == WorkspaceMode.embed;
-    final isLargeScreen = !panels.isSmallScreen;
-    return div(classes: 'workspace-layout${isLargeScreen ? '' : ' workspace-layout-small'}', [
-      SplitPanel(
-        state: panels.fileTreeListenable,
-        onStateChanged: panels.updateFileTree,
-        useRatio: false,
-        minValue: _minFileTreeWidth,
-        maxValue: _maxFileTreeWidth,
-        canCollapseLeft: isLargeScreen,
-        left: _FileTreePanel(controller: panels, child: fileTree),
-        right: ValueListenableBuilder(
-          listenable: panels.fileTreeListenable,
-          builder: (_, fileTree) => div(
-            classes: 'workspace-content editor-shell-content',
-            attributes: {if (!isLargeScreen && fileTree.isSplit) 'inert': ''},
-            [
-              // The same ancestors host the iframe in every layout. Even reattaching
-              // the same iframe node would discard its running browsing context.
-              SplitPanel(
-                state: _PreviewSplitListenable(
-                  panels.previewListenable,
-                  isLargeScreen: isLargeScreen,
-                  showOutput: showOutput,
-                ),
-                onStateChanged: panels.updatePreview,
-                // The right pane is the preview. Only large screens use its
-                // collapsed rail; small screens switch panes through tabs.
-                canCollapseRight: isLargeScreen,
-                minValue: isEmbed ? _minEmbedEditorFraction : _minStandaloneEditorFraction,
-                maxValue: isEmbed ? _maxEmbedEditorFraction : _maxStandaloneEditorFraction,
-                left: editor,
-                right: preview,
+    return ValueListenableBuilder(
+      listenable: panels.layoutListenable,
+      builder: (_, _) {
+        final isLargeScreen = !panels.isSmallScreen;
+        return div(classes: 'workspace-layout${isLargeScreen ? '' : ' workspace-layout-small'}', [
+          SplitPanel(
+            state: panels.fileTreeListenable,
+            onStateChanged: panels.updateFileTree,
+            useRatio: false,
+            minValue: _minFileTreeWidth,
+            maxValue: _maxFileTreeWidth,
+            canCollapseLeft: isLargeScreen,
+            left: _FileTreePanel(controller: panels, child: fileTree),
+            right: ValueListenableBuilder(
+              listenable: panels.fileTreeListenable,
+              builder: (_, fileTree) => div(
+                classes: 'workspace-content editor-shell-content',
+                attributes: {if (!isLargeScreen && fileTree.isSplit) 'inert': ''},
+                [
+                  // The same ancestors host the iframe in every layout. Even reattaching
+                  // the same iframe node would discard its running browsing context.
+                  SplitPanel(
+                    state: _PreviewSplitListenable(
+                      panels.previewListenable,
+                      isLargeScreen: isLargeScreen,
+                      showOutput: showOutput,
+                    ),
+                    onStateChanged: panels.updatePreview,
+                    // The right pane is the preview. Only large screens use its
+                    // collapsed rail; small screens switch panes through tabs.
+                    canCollapseRight: isLargeScreen,
+                    minValue: isEmbed ? _minEmbedEditorFraction : _minStandaloneEditorFraction,
+                    maxValue: isEmbed ? _maxEmbedEditorFraction : _maxStandaloneEditorFraction,
+                    left: editor,
+                    right: preview,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      if (!isLargeScreen)
-        ValueListenableBuilder(
-          listenable: panels.fileTreeListenable,
-          builder: (_, fileTree) => Component.fragment([
-            if (fileTree.isSplit)
-              button(
-                classes: 'file-tree-drawer-backdrop',
-                attributes: const {'type': 'button', 'aria-label': 'Close file explorer', 'tabindex': '-1'},
-                onClick: panels.closeSmallScreenFileTree,
-                const [],
-              ),
-          ]),
-        ),
-    ]);
+          if (!isLargeScreen)
+            ValueListenableBuilder(
+              listenable: panels.fileTreeListenable,
+              builder: (_, fileTree) => Component.fragment([
+                if (fileTree.isSplit)
+                  button(
+                    classes: 'file-tree-drawer-backdrop',
+                    attributes: const {'type': 'button', 'aria-label': 'Close file explorer', 'tabindex': '-1'},
+                    onClick: panels.closeSmallScreenFileTree,
+                    const [],
+                  ),
+              ]),
+            ),
+        ]);
+      },
+    );
   }
 
   @css
