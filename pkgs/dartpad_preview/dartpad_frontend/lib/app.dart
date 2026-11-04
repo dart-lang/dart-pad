@@ -820,7 +820,6 @@ final class _AppState extends State<App> {
                   editor: editor,
                   preview: _buildPreviewPanel(session),
                   panels: _panels,
-                  isLargeScreen: _isLargeScreen,
                   showOutput: _selectedSmallScreenTab == .output,
                 ),
               ]),
@@ -930,7 +929,6 @@ final class _AppState extends State<App> {
       ),
       preview: const div(classes: 'preview-container', []),
       panels: _panels,
-      isLargeScreen: _isLargeScreen,
       showOutput: _selectedSmallScreenTab == .output,
     );
   }

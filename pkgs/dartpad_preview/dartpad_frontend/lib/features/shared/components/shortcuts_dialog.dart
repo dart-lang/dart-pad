@@ -209,7 +209,7 @@ class _ShortcutsDialogState extends State<ShortcutsDialog> {
       zIndex: const ZIndex(9999),
       justifyContent: .center,
       alignItems: .center,
-      backgroundColor: const Color('rgba(0, 0, 0, 0.55)'),
+      backgroundColor: colorBackdrop,
     ),
     css('.shortcuts-dialog').styles(
       display: .flex,

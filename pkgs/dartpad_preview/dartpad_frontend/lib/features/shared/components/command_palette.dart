@@ -293,7 +293,7 @@ class _CommandPaletteState extends State<CommandPalette> {
       zIndex: const ZIndex(10000),
       justifyContent: .center,
       alignItems: .start,
-      backgroundColor: const Color('rgba(0, 0, 0, 0.45)'),
+      backgroundColor: colorBackdrop,
     ),
     css('.command-palette').styles(
       display: .flex,

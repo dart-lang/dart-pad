@@ -18,7 +18,6 @@ final class WorkspaceLayout extends StatelessComponent {
     required this.editor,
     required this.preview,
     required this.panels,
-    required this.isLargeScreen,
     required this.showOutput,
     super.key,
   });
@@ -27,7 +26,6 @@ final class WorkspaceLayout extends StatelessComponent {
   final Component editor;
   final Component preview;
   final PanelLayoutController panels;
-  final bool isLargeScreen;
   final bool showOutput;
 
   // Keep file navigation usable without letting it dominate the workspace.
@@ -47,6 +45,7 @@ final class WorkspaceLayout extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final isEmbed = panels.mode == WorkspaceMode.embed;
+    final isLargeScreen = !panels.isSmallScreen;
     return div(classes: 'workspace-layout${isLargeScreen ? '' : ' workspace-layout-small'}', [
       SplitPanel(
         state: panels.fileTreeListenable,
@@ -143,7 +142,7 @@ final class WorkspaceLayout extends StatelessComponent {
       padding: .zero,
       border: .none,
       cursor: .pointer,
-      backgroundColor: const .rgba(0, 0, 0, 0.32),
+      backgroundColor: colorBackdrop,
     ),
     css('.workspace-content').styles(
       display: .flex,
@@ -171,20 +170,20 @@ final class _FileTreePanelState extends State<_FileTreePanel> {
   bool _drawerOpen = false;
   web.HTMLElement? _returnFocus;
 
-  void _listen(PanelLayoutController controller, {required bool add}) {
-    if (add) {
-      controller.fileTreeListenable.addListener(_onPresentationChanged);
-      controller.layoutListenable.addListener(_onPresentationChanged);
-    } else {
-      controller.fileTreeListenable.removeListener(_onPresentationChanged);
-      controller.layoutListenable.removeListener(_onPresentationChanged);
-    }
+  void _addListeners(PanelLayoutController controller) {
+    controller.fileTreeListenable.addListener(_onPresentationChanged);
+    controller.layoutListenable.addListener(_onPresentationChanged);
+  }
+
+  void _removeListeners(PanelLayoutController controller) {
+    controller.fileTreeListenable.removeListener(_onPresentationChanged);
+    controller.layoutListenable.removeListener(_onPresentationChanged);
   }
 
   @override
   void initState() {
     super.initState();
-    _listen(component.controller, add: true);
+    _addListeners(component.controller);
     _onPresentationChanged();
   }
 
@@ -192,8 +191,8 @@ final class _FileTreePanelState extends State<_FileTreePanel> {
   void didUpdateComponent(_FileTreePanel oldComponent) {
     super.didUpdateComponent(oldComponent);
     if (oldComponent.controller != component.controller) {
-      _listen(oldComponent.controller, add: false);
-      _listen(component.controller, add: true);
+      _removeListeners(oldComponent.controller);
+      _addListeners(component.controller);
       _onPresentationChanged();
     }
   }
@@ -264,7 +263,7 @@ final class _FileTreePanelState extends State<_FileTreePanel> {
 
   @override
   void dispose() {
-    _listen(component.controller, add: false);
+    _removeListeners(component.controller);
     super.dispose();
   }
 }

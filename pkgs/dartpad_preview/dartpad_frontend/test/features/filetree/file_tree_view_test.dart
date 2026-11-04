@@ -324,7 +324,6 @@ void main() {
             WorkspaceLayout(
               fileTree: FileTreeView(state: _state(workspace), actions: _actions()),
               panels: panels,
-              isLargeScreen: true,
               showOutput: false,
               preview: const div([]),
               editor: EditorShell(
