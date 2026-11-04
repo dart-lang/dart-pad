@@ -49,7 +49,7 @@ build:
         gcloud storage rm "${OUT}"
 
     # Extract site.tar and validate firebase.json.
-    - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    - name: python:3.13-slim
       script: |
         #!/usr/bin/env python3
         import json, os, tarfile

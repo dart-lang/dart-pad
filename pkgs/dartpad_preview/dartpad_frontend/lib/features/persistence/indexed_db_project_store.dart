@@ -23,7 +23,7 @@ final class IndexedDbProjectStore implements ProjectStore {
   bool _closed = false;
 
   static const _nextSessionCounterKey = 'next';
-  static const _currentDatabaseVersion = 2;
+  static const _currentDatabaseVersion = 3;
 
   Future<web.IDBDatabase> _open() async {
     if (_closed) {
@@ -44,7 +44,11 @@ final class IndexedDbProjectStore implements ProjectStore {
     final result = Completer<web.IDBDatabase>();
     final request = web.window.indexedDB.open(databaseName, _currentDatabaseVersion);
     request.onupgradeneeded = ((web.IDBVersionChangeEvent event) {
-      _migrateDatabase(request.result as web.IDBDatabase, fromVersion: event.oldVersion);
+      _migrateDatabase(
+        request.result as web.IDBDatabase,
+        request.transaction!,
+        fromVersion: event.oldVersion,
+      );
     }).toJS;
     request.onsuccess = ((web.Event event) {
       final db = request.result as web.IDBDatabase;
@@ -73,13 +77,33 @@ final class IndexedDbProjectStore implements ProjectStore {
   }
 
   /// Creates each store added after [fromVersion].
-  void _migrateDatabase(web.IDBDatabase db, {required int fromVersion}) {
+  void _migrateDatabase(web.IDBDatabase db, web.IDBTransaction upgrade, {required int fromVersion}) {
     if (fromVersion < 1) {
       db.createObjectStore('projects');
     }
     if (fromVersion < 2) {
       db.createObjectStore('sessions');
     }
+    // Bare instances without session IDs are now inaccessible.
+    if (fromVersion < 3) {
+      _deleteEntriesWithoutSessionId(upgrade.objectStore('projects'));
+    }
+  }
+
+  /// Removes entries saved before every entry had a session id.
+  void _deleteEntriesWithoutSessionId(web.IDBObjectStore projects) {
+    final request = projects.openCursor();
+    request.onsuccess = ((web.Event event) {
+      final cursor = request.result as web.IDBCursorWithValue?;
+      if (cursor == null) {
+        return;
+      }
+      final metadata = jsonDecode(_string(cursor.value as JSObject, 'metadata')) as Map<String, Object?>;
+      if (metadata['sessionId'] == null) {
+        cursor.delete();
+      }
+      cursor.continue_();
+    }).toJS;
   }
 
   @override

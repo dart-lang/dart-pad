@@ -18,7 +18,7 @@ final class WorkspacePersistenceController {
     required this.session,
     required this.store,
     this._projectId,
-    this.sessionId,
+    required this.sessionId,
     required this.onError,
     this.debounce = const Duration(milliseconds: 300),
     this.maxDelay = const Duration(seconds: 1),
@@ -40,7 +40,7 @@ final class WorkspacePersistenceController {
 
   final WorkspaceSession session;
   final ProjectStore store;
-  final int? sessionId;
+  final int sessionId;
   String? _projectId;
   String? get projectId => _projectId;
   final void Function(Object error) onError;

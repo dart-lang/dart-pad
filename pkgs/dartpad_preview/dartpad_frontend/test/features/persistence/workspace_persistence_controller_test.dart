@@ -61,6 +61,7 @@ void main() {
     controller = WorkspacePersistenceController(
       session: session,
       store: store,
+      sessionId: 1,
       onError: errors.add,
     );
     await api.changeEventsReady;
@@ -276,6 +277,7 @@ void main() {
     controller = WorkspacePersistenceController(
       session: session,
       store: store,
+      sessionId: 1,
       onError: errors.add,
       debounce: const Duration(seconds: 5),
       maxDelay: const Duration(milliseconds: 40),

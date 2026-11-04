@@ -122,9 +122,6 @@ final class ProjectRequest {
   /// Whether the current preview embed presentation should be used.
   bool get isEmbedded => _parameters.appearance.embed;
 
-  /// Whether the URL names a source, rather than a bare URL using the default sample.
-  bool get isSourced => _parameters.source != null;
-
   /// Whether the resolved entrypoint should run after workspace preparation.
   /// Embeds wait for Run except legacy Flutter API docs samples ending in `.1`.
   /// The obsolete `run` query parameter is ignored.
