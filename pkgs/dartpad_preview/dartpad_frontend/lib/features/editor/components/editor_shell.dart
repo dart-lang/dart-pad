@@ -77,12 +77,19 @@ class EditorShell extends StatelessComponent {
               id: 'editor-navigation-panel',
               visible: openTabs.length > 1 || navigation == PanelPresentationState.expanded,
               child: Component.fragment([
-                EditorTabBar(
-                  openTabs: openTabs,
-                  activeFile: activeFile,
-                  onSwitchFile: onSwitchFile!,
-                  onCloseFile: onCloseFile!,
-                  contextMenu: contextMenu,
+                ValueListenableBuilder(
+                  listenable: panelController.layoutListenable,
+                  builder: (_, _) => Component.fragment([
+                    // Mobile file navigation uses the file explorer instead of a tab strip.
+                    if (!panelController.isSmallScreen)
+                      EditorTabBar(
+                        openTabs: openTabs,
+                        activeFile: activeFile,
+                        onSwitchFile: onSwitchFile!,
+                        onCloseFile: onCloseFile!,
+                        contextMenu: contextMenu,
+                      ),
+                  ]),
                 ),
                 if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
               ]),

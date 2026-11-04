@@ -269,6 +269,42 @@ void main() {
     expect(tab.buildCount, initialBuildCount);
   });
 
+  for (final isSmallScreen in [true, false]) {
+    testClient('file tabs follow screen size without rebuilding editors, initially small=$isSmallScreen', (
+      tester,
+    ) async {
+      final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: isSmallScreen);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        panels.dispose();
+      });
+      final tabs = [_FakeTab('main.dart'), _FakeTab('other.dart')];
+      tester.pumpComponent(_createShell(tester, panels: panels, openTabs: tabs));
+      final editors = [for (final tab in tabs) web.document.getElementById('editor-${tab.path}')!];
+      final buildCounts = [for (final tab in tabs) tab.buildCount];
+      final breadcrumbs = web.document.querySelector('.editor-breadcrumbs')!;
+
+      void expectLayout({required bool small}) {
+        expect(web.document.querySelector('.editor-tab-bar'), small ? isNull : isNotNull);
+        expect(web.document.querySelectorAll('.editor-tab').length, small ? 0 : tabs.length);
+        expect(web.document.querySelector('.editor-breadcrumbs')!.isSameNode(breadcrumbs), isTrue);
+        for (var i = 0; i < tabs.length; i++) {
+          expect(web.document.getElementById('editor-${tabs[i].path}')!.isSameNode(editors[i]), isTrue);
+          expect(tabs[i].buildCount, buildCounts[i]);
+        }
+      }
+
+      expectLayout(small: isSmallScreen);
+      panels.updateScreenSize(isSmallScreen: !isSmallScreen);
+      await pumpEventQueue();
+      expectLayout(small: !isSmallScreen);
+      panels.updateScreenSize(isSmallScreen: isSmallScreen);
+      await pumpEventQueue();
+      expectLayout(small: isSmallScreen);
+    });
+  }
+
   testClient('panel updates preserve editor content without rebuilding it', (tester) async {
     final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(() async {

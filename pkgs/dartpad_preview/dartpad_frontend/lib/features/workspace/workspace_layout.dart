@@ -115,9 +115,6 @@ final class WorkspaceLayout extends StatelessComponent {
       flex: const Flex(grow: 1, basis: .zero),
       backgroundColor: colorContainer,
     ),
-    css('.editor-shell-small .editor-tab-bar').styles(
-      display: .none,
-    ),
     css('.file-tree-panel').styles(
       display: .flex,
       minWidth: .zero,
