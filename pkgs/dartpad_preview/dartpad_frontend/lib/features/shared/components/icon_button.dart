@@ -61,7 +61,11 @@ class _IconButtonState extends State<IconButton> {
     _cooldownTimer?.cancel();
   }
 
-  void _onMouseEnter() {
+  void _onPointerEnter(web.Event event) {
+    // Touch can synthesize mouse hover events, but should never show a tooltip.
+    if ((event as web.PointerEvent).pointerType == 'touch') {
+      return;
+    }
     final tooltipText = component.tooltip;
     if (tooltipText == null) {
       return;
@@ -86,7 +90,7 @@ class _IconButtonState extends State<IconButton> {
     }
   }
 
-  void _onMouseLeave() {
+  void _hideTooltip() {
     _showTimer?.cancel();
     if (_isTooltipVisible) {
       setState(() {
@@ -160,8 +164,9 @@ class _IconButtonState extends State<IconButton> {
       attributes: attributes,
       events: {
         if (component.onClick != null && !component.disabled) 'click': component.onClick!,
-        'mouseenter': (event) => _onMouseEnter(),
-        'mouseleave': (event) => _onMouseLeave(),
+        'pointerenter': _onPointerEnter,
+        'pointerleave': (_) => _hideTooltip(),
+        'pointerdown': (_) => _hideTooltip(),
       },
       [
         if (component.child != null)
