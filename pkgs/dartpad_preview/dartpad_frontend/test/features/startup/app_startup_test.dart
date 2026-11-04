@@ -284,6 +284,7 @@ void main() {
     Future<void> selectOutputTab() => click('.small-screen-tab-bar-tab:nth-child(2)');
     Future<void> selectCodeTab() => click('.small-screen-tab-bar-tab:first-child');
 
+    //TODO: Check if there is a native way to ping a iFrame if its stil alive instead of doing a counter example int hte test
     Future<void Function()> attachPreviewProbe() async {
       final preview = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
       final frame = web.HTMLIFrameElement()

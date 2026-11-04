@@ -33,6 +33,8 @@ final class WorkspaceLayout extends StatelessComponent {
   Component build(BuildContext context) {
     final isEmbed = panels.mode == WorkspaceMode.embed;
     return div(classes: 'workspace-layout${isLargeScreen ? '' : ' editor-shell-small'}', [
+      //TODO: move css class to editor and not on top level here
+      //TODO: find out the concuantion stuff if it makes sense
       SplitPanel(
         state: panels.fileTreeListenable,
         onStateChanged: panels.updateFileTree,
@@ -44,6 +46,7 @@ final class WorkspaceLayout extends StatelessComponent {
         right: div(classes: 'workspace-content', [
           // The same ancestors host the iframe in every layout. Even reattaching
           // the same iframe node would discard its running browsing context.
+
           SplitPanel(
             state: panels.previewListenable,
             presentationState: isLargeScreen
@@ -52,8 +55,11 @@ final class WorkspaceLayout extends StatelessComponent {
                 ? LeftHidden(panels.preview.value)
                 : RightHidden(panels.preview.value),
             onStateChanged: panels.updatePreview,
-            canCollapseRight: isLargeScreen,
-            minValue: isEmbed ? 0.05 : 0.3,
+            canCollapseRight:
+                isLargeScreen, //TODO: make vairalbeNames more explicit or at least leave commetns explaining stuff
+            minValue: isEmbed
+                ? 0.05
+                : 0.3, //TODO: leave explanation for legacy values, puthtme imn variables, not magic numbers
             maxValue: isEmbed ? 0.95 : 0.85,
             left: editor,
             right: preview,
