@@ -142,7 +142,7 @@ void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file,
           line: entry.nameNode.span.start.line,
           character: entry.nameNode.span.start.column,
           message: message,
-          severity: DiagnosticSeverity.warning,
+          severity: DiagnosticSeverity.error,
         ),
       ),
     );

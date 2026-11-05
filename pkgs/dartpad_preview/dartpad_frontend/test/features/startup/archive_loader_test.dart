@@ -1030,6 +1030,7 @@ resolution: workspace
         'Dependency "local" uses relative path "packages/missing", whose target package is not included '
             'in the imported workspace, and cannot be resolved.',
       ]);
+      expect(project.importDiagnostics.map((entry) => entry.diagnostic.severity), [DiagnosticSeverity.error]);
     });
   });
 }
