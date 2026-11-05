@@ -1157,6 +1157,53 @@ void main() {
     }
   }
 
+  for (final (device, userAgent) in [
+    ('iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1'),
+    ('iPad', 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1'),
+    ('Android', 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36'),
+  ]) {
+    for (final embed in [false, true]) {
+      testClient('mobile docs sample startup on $device with embed=$embed', (tester) async {
+        setUserAgent(userAgent);
+        final starts = <Completer<DartPad>>[];
+        tester.pumpComponent(
+          App(
+            projectStore: MemoryProjectStore(),
+            initialUri: Uri.parse('/?embed=$embed&sample_id=material.AppBar.1&run=true'),
+            loadSource: (_) async => contents({'lib/main.dart': 'void main() {}'}),
+            createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) =>
+                WorkspaceRepository.create(
+                  events: events,
+                  sdk: sdk,
+                  taskStatus: taskStatus,
+                  localApi: localApi,
+                  deferWorker: deferWorker,
+                  createWorker: () {
+                    final start = Completer<DartPad>();
+                    starts.add(start);
+                    return start.future;
+                  },
+                ),
+          ),
+        );
+        await pumpEventQueue();
+        expect(web.document.querySelector('.cm-editor'), isNotNull);
+        expect(starts, hasLength(embed ? 0 : 1));
+        final container = find.byType(PreviewContainer).evaluate().single.component as PreviewContainer;
+        expect(container.preview.state, isA<PreviewInitial>());
+        expect(web.document.querySelector('.preview iframe'), isNull);
+        if (embed) {
+          final run = web.document.querySelector('.main-editor-actions button')! as web.HTMLButtonElement;
+          expect(run.disabled, isFalse);
+          run.click();
+          await pumpEventQueue();
+          expect(starts, hasLength(1));
+          expect(container.preview.state, isA<PreviewStarting>());
+        }
+      });
+    }
+  }
+
   for (final run in ['', '&run=false', '&run=true', '&run=anything', '&run=true&run=false']) {
     testClient('embed handshake injects without starting: $run', (tester) async {
       late WorkspaceRepository repository;
