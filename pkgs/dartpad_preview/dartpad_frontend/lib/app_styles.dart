@@ -13,6 +13,7 @@ final colorContainer = const ColorToken('container', Color('#FFFFFF'), dark: Col
 final colorOnContainer = const ColorToken('on-container', Color('#000000'), dark: Color('#FFFFFF'));
 
 final colorBorder = colorSurface.highlight(colorOnSurface, 0.05);
+const colorBackdrop = Color.rgba(0, 0, 0, 0.55);
 
 extension ColorHighlight on Color {
   Color highlight(Color overlay, double amount) {

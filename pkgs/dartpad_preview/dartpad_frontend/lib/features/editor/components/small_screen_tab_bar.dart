@@ -14,7 +14,7 @@ enum SmallScreenTab {
   output,
 }
 
-/// The Code / Output [SmallScreenTabBar] displayed on small screens.
+/// Small-screen navigation with a file-tree toggle beside the Code / Output tabs.
 final class SmallScreenTabBar extends StatelessComponent {
   const SmallScreenTabBar({
     this.selectedTab = .code,
@@ -38,7 +38,7 @@ final class SmallScreenTabBar extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    return div(classes: 'small-screen-tab-bar', [
+    return div(classes: 'small-screen-navigation', [
       if (onToggleFileTree != null) ...[
         button(
           classes: 'small-screen-file-tree-button',
@@ -54,7 +54,7 @@ final class SmallScreenTabBar extends StatelessComponent {
         ),
         const div(classes: 'small-screen-tab-bar-divider', []),
       ],
-      div(classes: 'small-screen-tabs', [
+      div(classes: 'small-screen-tab-bar', [
         button(
           classes: 'small-screen-tab-bar-tab ${selectedTab == .code ? 'active' : ''}',
           events: {'click': (_) => onTabSelected(.code)},
@@ -77,7 +77,7 @@ final class SmallScreenTabBar extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css('.small-screen-tab-bar').styles(
+    css('.small-screen-navigation').styles(
       display: .flex,
       height: 44.px,
       minHeight: 44.px,
@@ -98,8 +98,9 @@ final class SmallScreenTabBar extends StatelessComponent {
       color: colorOnSurface,
       backgroundColor: Colors.transparent,
     ),
-    css('.small-screen-file-tree-button:hover').styles(
-      backgroundColor: colorSurface.highlight(colorOnSurface, 0.04),
+    css('.small-screen-file-tree-button[aria-expanded="true"]').styles(
+      color: colorPrimary,
+      backgroundColor: colorSurface.highlight(colorPrimary, 0.08),
     ),
     css('.small-screen-file-tree-button:focus-visible').styles(
       outline: Outline(style: .solid, color: colorPrimary, width: OutlineWidth(2.px)),
@@ -111,7 +112,7 @@ final class SmallScreenTabBar extends StatelessComponent {
       flex: const .shrink(0),
       backgroundColor: colorBorder,
     ),
-    css('.small-screen-tabs').styles(
+    css('.small-screen-tab-bar').styles(
       display: .flex,
       height: 100.percent,
       minWidth: .zero,

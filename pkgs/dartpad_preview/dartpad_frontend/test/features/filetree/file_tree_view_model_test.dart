@@ -367,7 +367,7 @@ void main() {
   });
 
   test('creates text files in the selected folder and opens them', () async {
-    await viewModel.createFile('lib', 'counter.dart');
+    expect(await viewModel.createFile('lib', 'counter.dart'), isTrue);
 
     expect(workspace.files, contains('lib/counter.dart'));
     expect(tabs.openedFiles, ['lib/counter.dart']);
@@ -375,7 +375,7 @@ void main() {
   });
 
   test('rejects destination collisions before mutations', () async {
-    await viewModel.createFile('lib', 'main.dart');
+    expect(await viewModel.createFile('lib', 'main.dart'), isFalse);
 
     expect(viewModel.state.operationError, isNotNull);
     expect(operationLog, isEmpty);

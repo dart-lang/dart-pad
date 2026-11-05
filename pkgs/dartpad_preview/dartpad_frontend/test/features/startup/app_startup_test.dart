@@ -346,6 +346,95 @@ void main() {
       expect(editorArea.style.flexGrow, '0.6');
     }
 
+    group('MobileDrawer', () {
+      testClient('preserves the output', (tester) async {
+        await mountApp(tester, width: 600, embed: false, files: ['lib/main.dart']);
+        await selectOutputTab();
+        final expectPreviewAlive = await attachPreviewProbe();
+        final output = web.document.querySelector('.preview-container')!;
+        final bounds = output.getBoundingClientRect();
+
+        await click('.small-screen-file-tree-button');
+        expectPreviewAlive();
+        expect(web.document.querySelector('.preview-container')!.isSameNode(output), isTrue);
+        expect(output.getBoundingClientRect().width, bounds.width);
+        expect(output.getBoundingClientRect().left, bounds.left);
+
+        await click('.file-tree-drawer-backdrop');
+        expectPreviewAlive();
+        expect(web.document.querySelector('.preview-container')!.isSameNode(output), isTrue);
+        expect(output.getBoundingClientRect().width, bounds.width);
+        expect(output.getBoundingClientRect().left, bounds.left);
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+      });
+
+      group('closes', () {
+        Future<void> createFile(String folder) async {
+          if (folder.isNotEmpty) {
+            await click('.file-tree-item.folder[title="$folder"]');
+          }
+          await click('.file-tree-add-button');
+          await click('.dropdown-menu-item');
+          final input = web.document.querySelector('.file-tree-input')! as web.HTMLInputElement;
+          input.value = 'created.dart';
+          input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+          input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true)));
+          await pumpEventQueue();
+          final path = folder.isEmpty ? 'created.dart' : '$folder/created.dart';
+          expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), path);
+          expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
+        }
+
+        final closingVariants = <String, Future<void> Function()>{
+          'on backdrop': () => click('.file-tree-drawer-backdrop'),
+          'on Escape': () async {
+            final drawer = web.document.getElementById('editor-file-tree')!;
+            drawer.dispatchEvent(
+              web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Tab', bubbles: true, cancelable: true)),
+            );
+            expect(drawer.contains(web.document.activeElement), isTrue);
+            expect(web.document.activeElement, isNot(drawer));
+            web.document.activeElement!.dispatchEvent(
+              web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Escape', bubbles: true, cancelable: true)),
+            );
+          },
+          'on toggle': () => click('.small-screen-file-tree-button'),
+          'on file selection': () async {
+            await click('.file-tree-item.file[title="README.md"]');
+            expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
+          },
+          'on file creation in the root': () => createFile(''),
+          'on file creation in a folder': () => createFile('lib'),
+        };
+
+        for (final embed in [false, true]) {
+          for (final variant in closingVariants.entries) {
+            testClient('${variant.key}: embed=$embed', (tester) async {
+              await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart']);
+              await selectOutputTab();
+              final opener = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLButtonElement;
+              opener.focus();
+              await click('.small-screen-file-tree-button');
+              final drawer = web.document.getElementById('editor-file-tree')!;
+              expect(fileTreeSplit().state, const Split(200));
+              expect(drawer.getAttribute('role'), 'dialog');
+              expect(web.document.activeElement, drawer);
+              expect(web.document.querySelector('.editor-shell-content')!.hasAttribute('inert'), isTrue);
+
+              await variant.value();
+              await pumpEventQueue();
+
+              expect(fileTreeSplit().state, const LeftHidden(200));
+              expect(drawer.hasAttribute('role'), isFalse);
+              expect(web.document.querySelector('.file-tree-drawer-backdrop'), isNull);
+              expect(web.document.querySelector('.editor-shell-content')!.hasAttribute('inert'), isFalse);
+              expect(web.document.activeElement, opener);
+            });
+          }
+        }
+      });
+    });
+
     for (final embed in [false, true]) {
       testClient('mobile file selection closes the file tree: embed=$embed', (tester) async {
         await mountApp(tester, width: 600, embed: embed, files: ['lib/main.dart']);
@@ -354,8 +443,11 @@ void main() {
         await click('.small-screen-file-tree-button');
         expect(fileTreeSplit().state, const Split(200));
         expect(web.document.querySelector('.small-screen-file-tree-button')!.getAttribute('aria-expanded'), 'true');
+        expect(web.document.querySelector('.file-tree-collapse-button'), isNull);
         await click('.small-screen-file-tree-button');
         expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.small-screen-file-tree-button')!.getAttribute('aria-expanded'), 'false');
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         await click('.small-screen-file-tree-button');
         final file = web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement;
         file.click();
@@ -375,12 +467,27 @@ void main() {
         await selectOutputTab();
         expect((web.document.querySelector('.preview-container')! as web.HTMLElement).style.display, isNot('none'));
         expect(fileTreeSplit().state, const LeftHidden(200));
-        // Opening file navigation from Output returns to Code.
+        // Opening the drawer leaves Output mounted and selected underneath it.
+        final expectPreviewAlive = await attachPreviewProbe();
+        final preview = web.document.querySelector('.preview-container')!;
         await click('.small-screen-file-tree-button');
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+        expect(web.document.querySelector('.preview-container')!.isSameNode(preview), isTrue);
+        expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, 'none');
+        expectPreviewAlive();
+        expect(fileTreeSplit().state, const Split(200));
+        await click('.file-tree-drawer-backdrop');
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Output');
+        expectPreviewAlive();
+        await click('.small-screen-file-tree-button');
+        (web.document.querySelector('.file-tree-item.file[title="README.md"]')! as web.HTMLElement).click();
+        await pumpEventQueue();
+        expect(fileTreeSplit().state, const LeftHidden(200));
         expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
         expect((web.document.querySelector('.editor-host')! as web.HTMLElement).style.display, isNot('none'));
-        expect(fileTreeSplit().state, const Split(200));
-        await selectCodeTab();
+        expect(web.document.querySelector('.editor-tab.active')!.getAttribute('title'), 'README.md');
+        expectPreviewAlive();
 
         await _resizeWindow(minLargeScreenWidth.toInt());
         expect(web.document.querySelector('.small-screen-file-tree-button'), isNull);
@@ -407,6 +514,7 @@ void main() {
         ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
+      expect(button.closest('.small-screen-tab-bar'), isNull);
       web.DOMRect codeBounds() {
         final line = web.document.querySelector('.editor-tab-slot.active .cm-line')!;
         return (web.document.createRange()..selectNodeContents(line)).getBoundingClientRect();
@@ -425,6 +533,17 @@ void main() {
       expect(button.getBoundingClientRect().height, 44);
       expect(web.document.querySelectorAll('.small-screen-tab-bar-tab').length, 2);
       expect(web.document.querySelector('.file-tree-floating-button'), isNull);
+      List<String> toggleColors() {
+        final style = web.window.getComputedStyle(button);
+        return [style.color, style.backgroundColor];
+      }
+
+      final closedColors = toggleColors();
+      await click('.small-screen-file-tree-button');
+      expect(toggleColors(), isNot(closedColors));
+      await click('.small-screen-file-tree-button');
+      expect(toggleColors(), closedColors);
+      expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
       final mobileGutterWidth = gutterWidth();
       await _resizeWindow(1200);
       expect(gutterWidth(), greaterThan(mobileGutterWidth));

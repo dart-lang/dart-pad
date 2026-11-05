@@ -324,7 +324,6 @@ void main() {
             WorkspaceLayout(
               fileTree: FileTreeView(state: _state(workspace), actions: _actions()),
               panels: panels,
-              isLargeScreen: true,
               showOutput: false,
               preview: const div([]),
               editor: EditorShell(
@@ -981,7 +980,10 @@ FileTreeActions _actions({
   Future<void> Function(String sourcePath, String targetFolderPath)? moveEntry,
 }) {
   return FileTreeActions(
-    createFile: createFile ?? (_, _) async {},
+    createFile: (parent, name) async {
+      await createFile?.call(parent, name);
+      return true;
+    },
     createFolder: createFolder ?? (_, _) async {},
     renameFile: (_, _) async {},
     renameFolder: (_, _) async {},

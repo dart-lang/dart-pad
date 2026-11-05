@@ -820,7 +820,6 @@ final class _AppState extends State<App> {
                   editor: editor,
                   preview: _buildPreviewPanel(session),
                   panels: _panels,
-                  isLargeScreen: _isLargeScreen,
                   showOutput: _selectedSmallScreenTab == .output,
                 ),
               ]),
@@ -880,12 +879,7 @@ final class _AppState extends State<App> {
         builder: (_, fileTree) => SmallScreenTabBar(
           selectedTab: _selectedSmallScreenTab,
           isFileTreeExpanded: fileTree.isSplit,
-          onToggleFileTree: () {
-            if (_selectedSmallScreenTab != .code) {
-              setState(() => _selectedSmallScreenTab = .code);
-            }
-            _panels.toggleFileTree();
-          },
+          onToggleFileTree: _panels.toggleFileTree,
           onTabSelected: (tab) {
             _panels.closeSmallScreenFileTree();
             setState(() => _selectedSmallScreenTab = tab);
@@ -935,7 +929,6 @@ final class _AppState extends State<App> {
       ),
       preview: const div(classes: 'preview-container', []),
       panels: _panels,
-      isLargeScreen: _isLargeScreen,
       showOutput: _selectedSmallScreenTab == .output,
     );
   }
@@ -996,7 +989,12 @@ final class _AppState extends State<App> {
       builder: (context) => FileTreeView(
         state: session.fileTree.state,
         actions: session.fileTree.actions,
-        onFileOpened: _panels.closeSmallScreenFileTree,
+        onFileOpened: () {
+          _panels.closeSmallScreenFileTree();
+          if (!_isLargeScreen && _selectedSmallScreenTab != .code) {
+            setState(() => _selectedSmallScreenTab = .code);
+          }
+        },
         contextMenu: session.contextMenu,
       ),
     );

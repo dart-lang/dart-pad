@@ -20,24 +20,18 @@ void main() {
       tester,
     ) async {
       final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: true);
-      final largeScreen = ValueNotifier(false);
       addTearDown(() async {
         tester.binding.detachRootComponent();
         await pumpEventQueue();
         panels.dispose();
-        largeScreen.dispose();
       });
       tester.pumpComponent(
-        ValueListenableBuilder(
-          listenable: largeScreen,
-          builder: (_, isLargeScreen) => WorkspaceLayout(
-            fileTree: const div([]),
-            editor: const div(id: 'editor', []),
-            preview: const div(id: 'preview', []),
-            panels: panels,
-            isLargeScreen: isLargeScreen,
-            showOutput: showOutput,
-          ),
+        WorkspaceLayout(
+          fileTree: const div([]),
+          editor: const div(id: 'editor', []),
+          preview: const div(id: 'preview', []),
+          panels: panels,
+          showOutput: showOutput,
         ),
       );
       final split =
@@ -63,7 +57,7 @@ void main() {
       expect(panels.preview, const Split(0.4));
       expect(split.state, showOutput ? const LeftHidden(0.4) : const RightHidden(0.4));
 
-      largeScreen.value = true;
+      panels.updateScreenSize(isSmallScreen: false);
       await pumpEventQueue();
       expect(split.state, const Split(0.4));
       expect(editor.style.display, '');
