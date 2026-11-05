@@ -217,13 +217,15 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       failedTask = TaskKind.compilingApplication;
       final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingApplication,
-        () => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode),
+        () => _guardMainThrow(() => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode)),
         blocksPreview: true,
       );
       if (!_current(id)) {
         return;
       }
-      _eventBus.dispatch(LogEvent(result.log));
+      if (result.log.isNotEmpty) {
+        _eventBus.dispatch(LogEvent(result.log));
+      }
       _runningPath = entrypoint;
       _runningMode = runMode;
       _state = switch (runMode) {
@@ -375,6 +377,27 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (!_disposed) {
         notifyListeners();
       }
+    }
+  }
+
+  /// Runs [launch]. A sync throw from `main()` rejects with [ExecutionFailedException];
+  /// report it as app output, like an uncaught async error.
+  /// Remove once the DartPad SDK no longer rejects on sync throws.
+  Future<({String log})> _guardMainThrow(Future<({String log})> Function() launch) async {
+    try {
+      return await launch();
+    } on ExecutionFailedException catch (error) {
+      if (_disposed) {
+        return (log: '');
+      }
+      final message = 'Error: ${error.message}';
+      if (_previewMode == RunMode.flutter) {
+        _eventBus.dispatch(LogEvent('[app] $message', level: Level.SEVERE));
+      } else {
+        _appLogs.add(ConsoleEntry(message: message, level: Level.SEVERE));
+        notifyListeners();
+      }
+      return (log: '');
     }
   }
 
