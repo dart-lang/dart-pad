@@ -42,7 +42,7 @@ void _stripUnavailableDependenciesInPackage(Project project, {required String pa
   final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
   final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
   if (pubspec != null) {
-    _warnAboutUnavailableDependencies(project, file: pubspec);
+    _warnAboutUnavailableDependencies(project, file: pubspec, overrides: overrides);
     _amendFile(
       project,
       file: pubspec,
@@ -75,7 +75,7 @@ typedef _DependencyComment = ({
 typedef _UnavailableEntry = ({
   String name,
   YamlNode nameNode,
-  YamlMap node,
+  YamlNode node,
   String reason,
 });
 
@@ -122,12 +122,13 @@ Set<String> _sectionNames(_Pubspec? file, {required String sectionName}) {
 
 /// Warns about each unavailable entry in `dependencies`. These entries are never removed,
 /// so the project may not resolve.
-void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file}) {
+void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file, _Pubspec? overrides}) {
   final entries = _unavailableEntries(
     project,
     file: file,
     sectionName: 'dependencies',
     namesInDependencies: const <String>{},
+    overrides: overrides,
   );
   for (final entry in entries) {
     final message = 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.';
@@ -213,12 +214,14 @@ List<_DependencyComment> _collectDependencyAmendments(
 /// Returns the entries of [sectionName] that cannot be loaded in DartPad.
 ///
 /// Overrides whose names are in [namesInDependencies] are skipped, because removing them
-/// would change how the same dependency resolves.
+/// would change how the same dependency resolves. For `dependencies`, an entry is checked
+/// against the override that replaces it when [overrides] or [file] declares one.
 List<_UnavailableEntry> _unavailableEntries(
   Project project, {
   required _Pubspec file,
   required String sectionName,
   required Set<String> namesInDependencies,
+  _Pubspec? overrides,
 }) {
   final section = file.node.nodes[sectionName];
   if (section is! YamlMap) {
@@ -229,16 +232,19 @@ List<_UnavailableEntry> _unavailableEntries(
     final dependencyNameNode = dependencyEntry.key as YamlNode;
     final dependencyName = dependencyNameNode.value;
     final dependencyNode = dependencyEntry.value;
-    if (dependencyName is! String || dependencyNode is! YamlMap) {
+    if (dependencyName is! String) {
       continue;
     }
     if (sectionName == 'dependency_overrides' && namesInDependencies.contains(dependencyName)) {
       continue;
     }
+    final effectiveNode = sectionName == 'dependencies'
+        ? _overrideFor(dependencyName, file: file, overrides: overrides) ?? dependencyNode
+        : dependencyNode;
     final unavailableReason = _unavailableReason(
       project,
       packageDirectory: parentWorkspacePath(file.path),
-      dependencyNode: dependencyNode,
+      dependencyNode: effectiveNode,
     );
     if (unavailableReason case final reason?) {
       entries.add((
@@ -323,12 +329,32 @@ String _commentOutEntry(_DependencyComment entry, {required String lineEnding}) 
   return commentedLines.join(lineEnding);
 }
 
+/// Returns the override that pub applies to [name], or null when none is declared.
+///
+/// Pub applies `pubspec_overrides.yaml` over the `dependency_overrides` in `pubspec.yaml`.
+YamlNode? _overrideFor(String name, {required _Pubspec file, _Pubspec? overrides}) {
+  for (final source in [overrides, file]) {
+    final section = source?.node.nodes['dependency_overrides'];
+    if (section is YamlMap && section.nodes[name] != null) {
+      return section.nodes[name];
+    }
+  }
+  return null;
+}
+
 /// Returns why a dependency cannot be loaded in DartPad, or null when it can.
+///
+/// Only git and path sources can be unavailable. Hosted sources load from pub, so a
+/// [dependencyNode] that is not a map (a version constraint such as `^1.0.0`, `any`,
+/// or an empty value) is always available.
 String? _unavailableReason(
   Project project, {
   required String packageDirectory,
-  required YamlMap dependencyNode,
+  required YamlNode dependencyNode,
 }) {
+  if (dependencyNode is! YamlMap) {
+    return null;
+  }
   if (dependencyNode.containsKey('git')) {
     return 'uses Git, which is not supported by DartPad';
   }
