@@ -55,6 +55,7 @@ import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
 import 'features/startup/query_parameters.dart';
+import 'features/startup/strip_unavailable_dependencies.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
@@ -275,7 +276,7 @@ final class _AppState extends State<App> {
       for (final warning in project.contents.importWarnings) {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
-      session.diagnostics.setImportDiagnostics(project.contents.importDiagnostics);
+      session.diagnostics.setImportDiagnostics(dependencyDiagnostics(project.contents));
       if (snapshot != null) {
         _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }
