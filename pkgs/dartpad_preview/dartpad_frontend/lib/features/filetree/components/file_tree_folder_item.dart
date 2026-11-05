@@ -137,23 +137,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     unawaited(
       Future<void>.delayed(Duration.zero, () {
         final node = _folderKey.currentNode;
-        final root = node?.closest('.file-tree-list');
         if (node != null) {
-          node.scrollIntoView(
-            web.ScrollIntoViewOptions(
-              behavior: 'instant',
-              block: 'start',
-            ),
-          );
-          if (root != null) {
-            // Scroll up to account for sticky parent folder items.
-            root.scrollBy(
-              web.ScrollToOptions(
-                top: -25 * component.depth,
-                behavior: 'instant',
-              ),
-            );
-          }
+          scrollFileTreeRowIntoView(node, depth: component.depth);
         }
       }),
     );
