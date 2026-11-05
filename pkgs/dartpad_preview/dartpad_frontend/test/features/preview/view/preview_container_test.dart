@@ -5,6 +5,7 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/models/console_entry.dart';
 import 'package:dartpad_frontend/features/preview/components/runtime_button.dart';
 import 'package:dartpad_frontend/features/preview/models/device_mode.dart';
@@ -672,6 +673,57 @@ void main() {
 
     web.HTMLButtonElement? button(String label) =>
         web.document.querySelector('.preview-toolbar [aria-label="$label"]') as web.HTMLButtonElement?;
+
+    testClient('injected snippets switch output between Dart and Flutter after saving edits', (tester) async {
+      preview.dispose();
+      await preview.closed;
+      repository.taskStatus.dispose();
+      final api = MemoryWorkspaceResourceApi();
+      addTearDown(api.dispose);
+      await api.writeFileFromText('pubspec.yaml', 'name: example\ndependencies:\n  flutter:\n    sdk: flutter\n');
+      repository = fakeWorkspaceRepository(events, api);
+      var source = "void main() { print('Salad'); }";
+      final sandboxes = <FakePreviewSandbox>[];
+      preview = PreviewViewModel(
+        initialMode: RunMode.flutter,
+        initialEntrypoint: 'lib/main.dart',
+        workspaceRepository: repository,
+        eventBus: events,
+        onSaveAll: () => api.writeFileFromText('lib/main.dart', source),
+        createSandbox: (container, {required assetBaseUrl}) async {
+          final next = FakePreviewSandbox();
+          next.onRun = () async => next.consoleController.add('Salad');
+          sandboxes.add(next);
+          return next;
+        },
+      );
+      preview.useInjectedSource(source);
+      tester.pumpComponent(buildPreview());
+
+      await preview.runCurrent();
+      await pumpEventQueue();
+      expect(sandboxes.last.mode, 'console');
+      expect(web.document.querySelector('.console-panel')?.textContent, contains('Salad'));
+      expect(web.window.getComputedStyle(preview.containerElement).visibility, 'hidden');
+      expect(button('Reload'), isNull);
+
+      source = "import 'package:flutter/widgets.dart';\nvoid main() => runApp(const SizedBox());";
+      await preview.runCurrent();
+      await pumpEventQueue();
+      expect(sandboxes.first.disposeCount, 1);
+      expect(sandboxes.last.mode, 'flutter');
+      expect(web.document.querySelector('.console-panel'), isNull);
+      expect(web.window.getComputedStyle(preview.containerElement).visibility, 'visible');
+      expect(button('Reload'), isNotNull);
+
+      source = "void main() { print('Salad'); }";
+      await preview.runCurrent();
+      await pumpEventQueue();
+      expect(sandboxes[1].disposeCount, 1);
+      expect(sandboxes.last.mode, 'console');
+      expect(web.document.querySelector('.console-panel')?.textContent, contains('Salad'));
+      expect(web.window.getComputedStyle(preview.containerElement).visibility, 'hidden');
+    });
 
     testClient('Dart hides Hot Reload and restores Run immediately after launch', (tester) async {
       await preview.runCode('lib/main.dart', mode: RunMode.console);

@@ -410,6 +410,9 @@ final class _AppState extends State<App> {
       final tab = session.tabs.getTab(entrypoint) as WorkspaceCodeMirrorTab;
       tab.editor.text = sourceCode;
       await session.tabs.saveAllTabs();
+      if (_isCurrent(session)) {
+        session.preview.useInjectedSource(sourceCode);
+      }
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {
         return;
