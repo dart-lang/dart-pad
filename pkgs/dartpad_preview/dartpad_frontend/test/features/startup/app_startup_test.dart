@@ -17,6 +17,7 @@ import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/small_screen_tab_bar.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
+import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
@@ -1148,7 +1149,8 @@ void main() {
           initialUri: Uri.parse('?embed=true&file=README.md$run'),
           loadSource: (_) async => contents({
             'README.md': '# Keep me',
-            'lib/main.dart': 'void main() {}',
+            'lib/main.dart': "import 'package:flutter/widgets.dart';\nvoid main() => runApp(const SizedBox());",
+            'pubspec.yaml': 'name: example\ndependencies:\n  flutter:\n    sdk: flutter\n',
           }),
           createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
             return repository = WorkspaceRepository.create(
@@ -1176,6 +1178,9 @@ void main() {
       );
       expect(await repository.workspaceResourceApi.readFileAsText('lib/main.dart'), contains("print('injected')"));
       expect(await repository.workspaceResourceApi.readFileAsText('README.md'), '# Keep me');
+      expect(repository.sdk.isFlutter, isTrue);
+      final preview = (find.byType(PreviewContainer).evaluate().single.component as PreviewContainer).preview;
+      expect(preview.previewMode, RunMode.console);
       expect(starts, isEmpty);
 
       injectSource("void main() { print('updated'); }");

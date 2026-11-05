@@ -13,6 +13,25 @@ void main() {
       expect(RunMode.console.mode, 'console');
       expect(RunMode.flutter.mode, 'flutter');
     });
+
+    test('infers single-file snippets from parsed imports and exports', () {
+      for (final source in [
+        "void main() => print('Salad');",
+        "// import 'package:flutter/widgets.dart';\nvoid main() {}",
+        "void main() => print(\"import 'package:flutter/widgets.dart';\");",
+        "import 'package:collection/collection.dart';\nvoid main() {}",
+      ]) {
+        expect(RunMode.forSourceCode(source), RunMode.console, reason: source);
+      }
+      for (final source in [
+        "import 'package:flutter/widgets.dart';",
+        "import 'package:material_ui/material_ui.dart';",
+        "export 'package:cupertino_ui/cupertino_ui.dart';",
+        "import 'stub.dart' if (dart.library.ui) 'package:flutter/widgets.dart';",
+      ]) {
+        expect(RunMode.forSourceCode(source), RunMode.flutter, reason: source);
+      }
+    });
   });
 
   final dart = availableSdks.firstWhere((sdk) => !sdk.isFlutter);

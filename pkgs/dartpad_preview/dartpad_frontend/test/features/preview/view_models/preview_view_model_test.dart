@@ -286,6 +286,27 @@ void main() {
     expect(preview.previewMode, RunMode.console);
   });
 
+  for (final mode in RunMode.values) {
+    test('explicit $mode query overrides injected snippet inference', () async {
+      preview.dispose();
+      await preview.closed;
+      preview = PreviewViewModel(
+        initialMode: mode,
+        initialEntrypoint: 'lib/main.dart',
+        modeOverride: mode,
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      );
+      preview.useInjectedSource(
+        mode == RunMode.flutter ? 'void main() {}' : "import 'package:flutter/widgets.dart';",
+      );
+      expect(preview.previewMode, mode);
+      await preview.runCurrent();
+      expect(sandbox.mode, mode.mode);
+    });
+  }
+
   test('failed console run with the Flutter SDK retains console mode', () async {
     sandbox.onRun = () async {
       throw CompilationFailedException('syntax error');
