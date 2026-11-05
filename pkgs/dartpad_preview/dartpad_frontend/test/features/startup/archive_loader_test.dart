@@ -214,6 +214,28 @@ dev_dependencies:
       });
     }
 
+    for (final (name, lineEnding) in [('CRLF', '\r\n'), ('LF', '\n')]) {
+      test('keeps $name line endings when commenting out dev dependencies', () async {
+        final pubspec = [
+          'name: example',
+          'dev_dependencies:',
+          '  keep: any',
+          '  outside:',
+          '    path: ../outside',
+          '',
+        ].join(lineEnding);
+        final archive = createTarArchive({'pubspec.yaml': pubspec});
+        final project = await http.runWithClient(
+          () => const ArchiveProjectSource(absoluteUrl).loadProject(),
+          () => MockClient((_) async => http.Response.bytes(archive, 200)),
+        );
+        final text = String.fromCharCodes(project.readFile('pubspec.yaml')!);
+        expect(text, contains('# removed by DartPad from dev_dependencies'));
+        final lineBreaks = RegExp(r'\r\n|\r|\n').allMatches(text).map((match) => match.group(0)).toSet();
+        expect(lineBreaks, {lineEnding});
+      });
+    }
+
     for (final (name, pubspec, retainedDependencies) in [
       (
         'descriptor alias',

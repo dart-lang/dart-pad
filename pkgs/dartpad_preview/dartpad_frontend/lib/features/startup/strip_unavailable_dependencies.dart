@@ -21,7 +21,7 @@ import 'project_loader.dart';
 ///
 /// Regular `dependencies` are never changed. An override whose name is also in
 /// `dependencies` is kept, because removing it would change how that dependency resolves.
-/// Each amended file keeps its original bytes in a sibling `*.original.yaml` file.
+/// Each amended file keeps its original bytes in a sibling `*.original.dartpad.yaml` file.
 void stripUnavailableDependencies(Project project) {
   // A package is a directory holding pubspec.yaml; its overrides need that snapshot.
   final packageDirectories = <String>{
@@ -77,10 +77,6 @@ typedef _UnavailableEntry = ({
   YamlMap node,
   String reason,
 });
-typedef _Availability = ({
-  bool isAvailable,
-  String? unavailableReason,
-});
 
 /// Reads and parses the file at [path]. Returns null when it is missing, not UTF-8,
 /// invalid YAML, or not a mapping.
@@ -125,7 +121,7 @@ Set<String> _sectionNames(_Pubspec? file, {required String sectionName}) {
 
 /// Removes unavailable entries from each of [sectionNames] and writes [file].
 ///
-/// Writes the original bytes to a `*.original.yaml` backup and the amended file with one
+/// Writes the original bytes to a `*.original.dartpad.yaml` backup and the amended file with one
 /// commented entry per change. Writes nothing when no entry was removed.
 void _amendFile(
   Project project, {
@@ -146,8 +142,9 @@ void _amendFile(
     return;
   }
   final backupPath = file.path.replaceFirst(RegExp(r'\.yaml$'), '.original.dartpad.yaml');
-  final comments = changes.map(_commentOutEntry);
-  final amendedSource = '${file.editor}\n${comments.join('\n')}\n';
+  final lineEnding = RegExp(r'\r\n|\r|\n').firstMatch(file.source)?.group(0) ?? '\n';
+  final comments = changes.map((change) => _commentOutEntry(change, lineEnding: lineEnding));
+  final amendedSource = '${file.editor}$lineEnding${comments.join(lineEnding)}$lineEnding';
   project.writeFile(backupPath, file.bytes);
   project.writeFile(file.path, Uint8List.fromList(utf8.encode(amendedSource)));
   project.addImportWarning(
@@ -209,17 +206,17 @@ List<_UnavailableEntry> _unavailableEntries(
     if (sectionName == 'dependency_overrides' && namesInDependencies.contains(dependencyName)) {
       continue;
     }
-    final availability = _dependencyAvailability(
+    final unavailableReason = _unavailableReason(
       project,
       packageDirectory: parentWorkspacePath(file.path),
       dependencyNode: dependencyNode,
     );
-    if (!availability.isAvailable) {
+    if (unavailableReason case final reason?) {
       entries.add((
         name: dependencyName,
         nameNode: dependencyNameNode,
         node: dependencyNode,
-        reason: availability.unavailableReason!,
+        reason: reason,
       ));
     }
   }
@@ -283,7 +280,7 @@ bool _isKeySeparator(String text) {
   });
 }
 
-String _commentOutEntry(_DependencyComment entry) {
+String _commentOutEntry(_DependencyComment entry, {required String lineEnding}) {
   final lineBreak = RegExp(r'\r\n|\r|\n');
   final entryLines = entry.source.split(lineBreak);
   final commentedLines = [
@@ -294,39 +291,31 @@ String _commentOutEntry(_DependencyComment entry) {
     final singleLineReason = entry.reason.replaceAll(lineBreak, ' ');
     commentedLines[0] += ' # removed by DartPad from ${entry.sectionName} because it $singleLineReason.';
   }
-  return commentedLines.join('\n');
+  return commentedLines.join(lineEnding);
 }
 
-/// Checks whether a dependency can be loaded in DartPad. The reason is set only when it cannot.
-_Availability _dependencyAvailability(
+/// Returns why a dependency cannot be loaded in DartPad, or null when it can.
+String? _unavailableReason(
   Project project, {
   required String packageDirectory,
   required YamlMap dependencyNode,
 }) {
   if (dependencyNode.containsKey('git')) {
-    return (isAvailable: false, unavailableReason: 'uses Git, which is not supported by DartPad');
+    return 'uses Git, which is not supported by DartPad';
   }
   final dependencyPath = dependencyNode['path'];
   if (dependencyPath is! String) {
-    return (isAvailable: true, unavailableReason: null);
+    return null;
   }
   final dependencyDirectory = joinWorkspacePath(packageDirectory, dependencyPath);
   final isAbsolutePath = workspacePath.isAbsolute(dependencyPath);
   if (isAbsolutePath || !isWithinWorkspaceFolder(dependencyDirectory, '')) {
-    return (
-      isAvailable: false,
-      unavailableReason:
-          'uses ${isAbsolutePath ? 'absolute' : 'relative'} path "$dependencyPath", '
-          'which is outside the imported workspace',
-    );
+    return 'uses ${isAbsolutePath ? 'absolute' : 'relative'} path "$dependencyPath", '
+        'which is outside the imported workspace';
   }
   final dependencyPubspecPath = joinWorkspacePath(dependencyDirectory, 'pubspec.yaml');
   if (!project.containsFile(dependencyPubspecPath)) {
-    return (
-      isAvailable: false,
-      unavailableReason:
-          'uses relative path "$dependencyPath", whose target package is not included in the imported workspace',
-    );
+    return 'uses relative path "$dependencyPath", whose target package is not included in the imported workspace';
   }
-  return (isAvailable: true, unavailableReason: null);
+  return null;
 }
