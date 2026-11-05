@@ -974,7 +974,7 @@ resolution: workspace
       stripUnavailableDependencies(project);
 
       expect(project.importWarnings, isEmpty);
-      expect(project.importDiagnostics, isEmpty);
+      expect(dependencyDiagnostics(project), isEmpty);
     });
 
     test('keeps a git dependency warning-free when pubspec.yaml supplies an available path override', () {
@@ -987,7 +987,7 @@ resolution: workspace
 
       stripUnavailableDependencies(project);
 
-      expect(project.importDiagnostics, isEmpty);
+      expect(dependencyDiagnostics(project), isEmpty);
     });
 
     test('prefers pubspec_overrides.yaml over pubspec.yaml when both override the same dependency', () {
@@ -1001,7 +1001,7 @@ resolution: workspace
 
       stripUnavailableDependencies(project);
 
-      expect(project.importDiagnostics, isEmpty);
+      expect(dependencyDiagnostics(project), isEmpty);
     });
 
     test('still warns when the override path is itself unavailable', () {
@@ -1012,7 +1012,7 @@ resolution: workspace
 
       stripUnavailableDependencies(project);
 
-      expect(project.importDiagnostics.map((entry) => entry.diagnostic.message), [
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.message), [
         'Dependency "local" uses relative path "packages/missing", whose target package is not included '
             'in the imported workspace, and cannot be resolved.',
       ]);
@@ -1026,11 +1026,11 @@ resolution: workspace
 
       stripUnavailableDependencies(project);
 
-      expect(project.importDiagnostics.map((entry) => entry.diagnostic.message), [
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.message), [
         'Dependency "local" uses relative path "packages/missing", whose target package is not included '
             'in the imported workspace, and cannot be resolved.',
       ]);
-      expect(project.importDiagnostics.map((entry) => entry.diagnostic.severity), [DiagnosticSeverity.error]);
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.severity), [DiagnosticSeverity.error]);
     });
   });
 }

@@ -23,15 +23,71 @@ import 'project_loader.dart';
 /// `dependencies` is kept, because removing it would change how that dependency resolves.
 /// Each amended file keeps its original bytes in a sibling `*.original.dartpad.yaml` file.
 void stripUnavailableDependencies(Project project) {
-  // A package is a directory holding pubspec.yaml; its overrides need that snapshot.
-  final packageDirectories = <String>{
-    for (final path in project.paths)
-      if (basenameWorkspacePath(path) == 'pubspec.yaml') parentWorkspacePath(path),
-  };
-  for (final packageDirectory in packageDirectories) {
+  for (final packageDirectory in _packageDirectories(project)) {
     _stripUnavailableDependenciesInPackage(project, packageDirectory: packageDirectory);
   }
 }
+
+/// Returns the Problems entries for unavailable entries in [project] without changing it.
+///
+/// Checks the sections [stripUnavailableDependencies] checks, against the files as they are at call-time.
+List<DiagnosticEntry> dependencyDiagnostics(Project project) {
+  final diagnostics = <DiagnosticEntry>[];
+  for (final packageDirectory in _packageDirectories(project)) {
+    final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
+    final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
+    final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
+    if (pubspec != null) {
+      for (final sectionName in const ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
+        diagnostics.addAll(
+          _sectionDiagnostics(
+            project,
+            file: pubspec,
+            sectionName: sectionName,
+            namesInDependencies: namesInDependencies,
+            overrides: overrides,
+          ),
+        );
+      }
+    }
+    if (overrides != null) {
+      diagnostics.addAll(
+        _sectionDiagnostics(
+          project,
+          file: overrides,
+          sectionName: 'dependency_overrides',
+          namesInDependencies: namesInDependencies,
+        ),
+      );
+    }
+  }
+  return diagnostics;
+}
+
+/// The Problems entries for the unavailable entries of [sectionName] in [file].
+List<DiagnosticEntry> _sectionDiagnostics(
+  Project project, {
+  required _Pubspec file,
+  required String sectionName,
+  required Set<String> namesInDependencies,
+  _Pubspec? overrides,
+}) => [
+  for (final entry in _unavailableEntries(
+    project,
+    file: file,
+    sectionName: sectionName,
+    namesInDependencies: namesInDependencies,
+    overrides: overrides,
+  ))
+    _dependencyDiagnostic(file.path, entry),
+];
+
+/// The directories of the packages in [project]. A package is a directory holding pubspec.yaml,
+/// and its overrides need that snapshot.
+Set<String> _packageDirectories(Project project) => {
+  for (final path in project.paths)
+    if (basenameWorkspacePath(path) == 'pubspec.yaml') parentWorkspacePath(path),
+};
 
 /// Prepares the pubspec and overrides files of one package directory.
 ///
@@ -131,22 +187,23 @@ void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file,
     overrides: overrides,
   );
   for (final entry in entries) {
-    final message = 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.';
     project.addImportWarning(
       'Dependency "${entry.name}" in ${file.path} (dependencies) ${entry.reason}, and cannot be resolved.',
     );
-    project.addImportDiagnostic(
-      DiagnosticEntry(
-        file.path,
-        Diagnostic(
-          line: entry.nameNode.span.start.line,
-          character: entry.nameNode.span.start.column,
-          message: message,
-          severity: DiagnosticSeverity.error,
-        ),
-      ),
-    );
   }
+}
+
+/// The Problems tab entry for an unavailable `dependencies` entry in the pubspec at [path].
+DiagnosticEntry _dependencyDiagnostic(String path, _UnavailableEntry entry) {
+  return DiagnosticEntry(
+    path,
+    Diagnostic(
+      line: entry.nameNode.span.start.line,
+      character: entry.nameNode.span.start.column,
+      message: 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.',
+      severity: DiagnosticSeverity.error,
+    ),
+  );
 }
 
 /// Removes unavailable entries from each of [sectionNames] and writes [file].
