@@ -318,6 +318,35 @@ void main() {
     expect(preview.previewMode, RunMode.console);
   });
 
+  test('sync throw from main in console mode is app output, not a compile failure', () async {
+    sandbox.onRun = () async {
+      throw ExecutionFailedException('Exception: ups');
+    };
+
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+
+    expect(preview.state, isA<PreviewDartReady>());
+    expect(preview.appLogs.single.message, 'Error: Exception: ups');
+    expect(preview.appLogs.single.level, Level.SEVERE);
+    expect(logs.where((log) => log.message.contains('ups')), isEmpty);
+  });
+
+  test('sync throw from main in Flutter mode is logged to the console', () async {
+    sandbox.onRun = () async {
+      throw ExecutionFailedException('Exception: ups');
+    };
+
+    await preview.runCode('lib/main.dart', mode: RunMode.flutter);
+    await pump();
+
+    expect(preview.state, isA<PreviewRunning>());
+    expect(preview.appLogs, isEmpty);
+    expect(
+      logs.where((log) => log.message == '[app] Error: Exception: ups' && log.level == Level.SEVERE),
+      hasLength(1),
+    );
+  });
+
   test('Flutter start, hot reload, and restart use the same sandbox', () async {
     await preview.runCode('examples/counter/lib/main.dart', mode: RunMode.flutter);
     expect(preview.state, isA<PreviewRunning>());
