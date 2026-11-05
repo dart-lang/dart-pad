@@ -22,14 +22,12 @@ class EditorShell extends StatelessComponent {
   const EditorShell({
     required this.openTabs,
     required this.activeFile,
-    required this.fileTree,
     required this.editorOverlay,
     required this.onSwitchFile,
     required this.onCloseFile,
     required this.bottomPanel,
     this.contextMenu,
     required this.panelController,
-    this.smallScreenPreviewPanel,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -48,9 +46,6 @@ class EditorShell extends StatelessComponent {
   /// Closes the editor tab at the provided path.
   final bool Function(String path, {bool discardChanges})? onCloseFile;
 
-  /// The file tree component to show in the side panel.
-  final Component fileTree;
-
   /// A component displayed above the active editor content.
   final Component editorOverlay;
 
@@ -60,12 +55,12 @@ class EditorShell extends StatelessComponent {
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
 
-  /// Shared split and bottom-tab state, retained when this layout is remounted.
+  /// Shared bottom-panel and editor-navigation state.
   final PanelLayoutController panelController;
 
-  /// The preview panel to show when the Output tab is active in a small-screen layout.
-  /// When non-null, the preview panel replaces the editor content.
-  final Component? smallScreenPreviewPanel;
+  // Reserve at least 30% of the height for the editor and 15% for the bottom panel.
+  static const _minEditorHeightFraction = 0.3;
+  static const _maxEditorHeightFraction = 0.85;
 
   @override
   Component build(BuildContext context) {
@@ -101,35 +96,25 @@ class EditorShell extends StatelessComponent {
         ),
       ],
     ]);
-    final editorContent = main_(classes: 'editor-host', [
-      SplitPanel(
-        isVertical: true,
-        useRatio: true,
-        state: panelController.bottomSplitListenable,
-        onStateChanged: panelController.updateBottomSplit,
-        minValue: 0.3,
-        maxValue: 0.85,
-        canCollapseRight: true,
-        left: editor,
-        right: bottomPanel,
-      ),
-    ]);
-    final Component rightContent = smallScreenPreviewPanel ?? editorContent;
-
     return ValueListenableBuilder(
       listenable: panelController.layoutListenable,
-      builder: (_, _) => div(
-        classes: 'editor-shell${panelController.isSmallScreen ? ' editor-shell-small' : ''}',
+      builder: (_, _) => main_(
+        classes: [
+          'editor-shell',
+          'editor-host',
+          if (panelController.isSmallScreen) 'editor-shell-small',
+        ].join(' '),
         [
           SplitPanel(
-            state: panelController.fileTreeListenable,
-            onStateChanged: panelController.updateFileTree,
-            useRatio: false,
-            minValue: 150,
-            maxValue: 300,
-            canCollapseLeft: true,
-            left: div(id: 'editor-file-tree', classes: 'file-tree-panel', [fileTree]),
-            right: rightContent,
+            isVertical: true,
+            useRatio: true,
+            state: panelController.bottomSplitListenable,
+            onStateChanged: panelController.updateBottomSplit,
+            minValue: _minEditorHeightFraction,
+            maxValue: _maxEditorHeightFraction,
+            canCollapseRight: true,
+            left: editor,
+            right: bottomPanel,
           ),
         ],
       ),
@@ -138,25 +123,6 @@ class EditorShell extends StatelessComponent {
 
   @css
   static List<StyleRule> get styles => [
-    css('.editor-shell').styles(
-      display: .flex,
-      position: const .relative(),
-      width: 100.percent,
-      height: 100.percent,
-      minWidth: .zero,
-      minHeight: .zero,
-      flex: const Flex(grow: 1, basis: .zero),
-      backgroundColor: colorContainer,
-    ),
-    css('.file-tree-panel').styles(
-      display: .flex,
-      minWidth: .zero,
-      minHeight: .zero,
-      flexDirection: .column,
-    ),
-    css('.file-tree-panel > .file-tree-rail').styles(
-      flex: const Flex(grow: 1, shrink: 0),
-    ),
     css('.editor-host').styles(
       display: .flex,
       minWidth: .zero,
@@ -164,6 +130,7 @@ class EditorShell extends StatelessComponent {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1),
+      backgroundColor: colorContainer,
     ),
     css('.editor-area').styles(
       display: .flex,
@@ -172,36 +139,6 @@ class EditorShell extends StatelessComponent {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
-    ),
-    // -- Embed mode: collapsed file-tree rail --
-    css('.file-tree-rail').styles(
-      display: .flex,
-      width: 36.px,
-      minWidth: 36.px,
-      padding: .only(top: 8.px),
-      border: .only(
-        right: .solid(color: colorBorder, width: 1.px),
-      ),
-      flexDirection: .column,
-      alignItems: .center,
-      flex: const .shrink(0),
-      backgroundColor: colorSurface,
-    ),
-    css('.file-tree-rail-button').styles(
-      display: .flex,
-      width: 28.px,
-      height: 28.px,
-      padding: .zero,
-      border: .none,
-      radius: .circular(6.px),
-      cursor: .pointer,
-      justifyContent: .center,
-      alignItems: .center,
-      color: colorOnSurface,
-      backgroundColor: Colors.transparent,
-    ),
-    css('.file-tree-rail-button:hover').styles(
-      backgroundColor: colorBorder,
     ),
   ];
 }
