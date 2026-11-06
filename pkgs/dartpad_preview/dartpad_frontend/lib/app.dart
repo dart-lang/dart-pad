@@ -277,6 +277,10 @@ final class _AppState extends State<App> {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
       session.diagnostics.setImportDiagnostics(dependencyDiagnostics(project.contents));
+      session.diagnostics.watchImportDiagnostics(
+        session.repository.workspaceResourceApi,
+        computeImportDiagnostics: dependencyDiagnosticsInWorkspace,
+      );
       unawaited(
         _initializeWorkspace(
           session,
