@@ -530,6 +530,7 @@ void main() {
       final download = Completer<Project>()
         ..complete(contents({'lib/main.dart': 'void main() {}\n${List.filled(19, '// Code').join('\n')}'}));
       await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart'], download: download);
+      expect(web.document.querySelector('.preview-content.mode-current'), isNotNull);
       final button = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
       expect(button.closest('.small-screen-tab-bar'), isNull);
       final codeTab = web.document.querySelector('.small-screen-tab-bar-tab')!.getBoundingClientRect();
@@ -551,6 +552,10 @@ void main() {
       await click('.small-screen-file-tree-button');
       expect(toggleColors(), closedColors);
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
+      await _resizeWindow(1200);
+      expect(web.document.querySelector('.preview-content.mode-mobile'), isNotNull);
+      await _resizeWindow(390);
+      expect(web.document.querySelector('.preview-content.mode-current'), isNotNull);
     });
 
     for (final embed in [false, true]) {

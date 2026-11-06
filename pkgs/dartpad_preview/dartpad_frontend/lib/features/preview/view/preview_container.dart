@@ -53,7 +53,7 @@ final class PreviewContainer extends StatefulComponent {
   /// Opens the workspace Console tab.
   final void Function() onOpenConsole;
 
-  /// The device preview mode selected initially.
+  /// The default device preview mode until the user selects a mode.
   final DeviceMode initialDeviceMode;
 
   @override
@@ -67,7 +67,8 @@ final class _PreviewContainerState extends State<PreviewContainer> {
   final GlobalNodeKey<web.HTMLElement> _contentKey = GlobalNodeKey();
   web.ResizeObserver? _resizeObserver;
 
-  late DeviceMode mode = component.initialDeviceMode;
+  DeviceMode? _selectedMode;
+  DeviceMode get mode => _selectedMode ?? component.initialDeviceMode;
   bool isRotated = false;
 
   @override
@@ -212,7 +213,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
                     disabled: !isRunning,
                     onModeSelected: (m) {
                       setState(() {
-                        mode = m;
+                        _selectedMode = m;
                         isRotated = false;
                       });
                       context.binding.addPostFrameCallback(_updateScale);
