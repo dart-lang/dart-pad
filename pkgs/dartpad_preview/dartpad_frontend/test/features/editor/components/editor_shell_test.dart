@@ -269,6 +269,54 @@ void main() {
     expect(tab.buildCount, initialBuildCount);
   });
 
+  for (final isSmallScreen in [true, false]) {
+    testClient('file tabs follow screen size, initially small=$isSmallScreen', (tester) async {
+      final panels = PanelLayoutController(mode: WorkspaceMode.standalone, isSmallScreen: isSmallScreen);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        panels.dispose();
+      });
+      final tabs = [_FakeTab('main.dart'), _FakeTab('other.dart')];
+      tester.pumpComponent(_createShell(tester, panels: panels, openTabs: tabs));
+
+      for (final small in [isSmallScreen, !isSmallScreen, isSmallScreen]) {
+        panels.updateScreenSize(isSmallScreen: small);
+        await pumpEventQueue();
+        expect(web.document.querySelectorAll('.editor-tab').length, small ? 0 : 2);
+        expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'main.dart');
+      }
+    });
+  }
+
+  testClient('screen-size changes preserve mounted editors and their content', (tester) async {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    final tabs = [_FakeTab('main.dart'), _FakeTab('other.dart')];
+    tester.pumpComponent(_createShell(tester, panels: panels, openTabs: tabs));
+    final editors = [for (final tab in tabs) web.document.getElementById('editor-${tab.path}')!];
+    final buildCounts = [for (final tab in tabs) tab.buildCount];
+    // Stand in for editor-owned state that would be lost if its content rebuilt.
+    for (final editor in editors) {
+      editor.textContent = 'Unsaved editor state';
+    }
+
+    for (final small in [true, false]) {
+      panels.updateScreenSize(isSmallScreen: small);
+      await pumpEventQueue();
+      for (var i = 0; i < tabs.length; i++) {
+        final editor = web.document.getElementById('editor-${tabs[i].path}')!;
+        expect(editor.isSameNode(editors[i]), isTrue);
+        expect(editor.textContent, 'Unsaved editor state');
+        expect(tabs[i].buildCount, buildCounts[i]);
+      }
+    }
+  });
+
   testClient('panel updates preserve editor content without rebuilding it', (tester) async {
     final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
     addTearDown(() async {

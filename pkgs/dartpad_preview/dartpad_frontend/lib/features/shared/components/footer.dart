@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
 import '../../../sdks.g.dart';
@@ -53,9 +56,44 @@ final class Footer extends StatefulComponent {
   static List<StyleRule> get styles => _FooterState.styles;
 }
 
+// Reduced keeps the SDK details but omits links; compact also shortens labels.
+enum _FooterLayout { full, reduced, compact }
+
 class _FooterState extends State<Footer> {
+  late bool _isCompact;
+  late final StreamSubscription<web.Event> _resizeSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCompact = web.window.innerWidth < 500;
+    _resizeSubscription = web.EventStreamProviders.resizeEvent.forTarget(web.window).listen((_) {
+      final isCompact = web.window.innerWidth < 500;
+      if (isCompact != _isCompact) {
+        setState(() => _isCompact = isCompact);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _resizeSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Component build(BuildContext context) {
+    // The compact breakpoint is independent of the workspace's small-screen layout.
+    final layout = switch ((_isCompact, component.isSmallScreen)) {
+      (true, _) => _FooterLayout.compact,
+      (false, true) => _FooterLayout.reduced,
+      (false, false) => _FooterLayout.full,
+    };
+    return _buildFooter(layout);
+  }
+
+  Component _buildFooter(_FooterLayout layout) {
+    final compact = layout == _FooterLayout.compact;
     return footer(classes: 'app-footer', [
       div(classes: 'app-footer-buttons', [
         IconButton(
@@ -64,7 +102,7 @@ class _FooterState extends State<Footer> {
           tooltip: 'Keyboard shortcuts',
           onClick: (_) => component.onOpenShortcuts(),
         ),
-        if (!component.isSmallScreen) ...[
+        if (layout == _FooterLayout.full) ...[
           _buildPrivacyNoticeLink(),
           _buildFeedbackLink(),
         ],
@@ -74,12 +112,13 @@ class _FooterState extends State<Footer> {
       else
         const div(classes: 'app-footer-spacer', []),
       TaskStatusIndicator(controller: component.taskStatus),
-      _buildRuntimeVersions(),
-      if (component.currentSdk?.channel case final channel? when channel.isNotEmpty) _buildChannelIndicator(channel),
+      _buildRuntimeVersions(compact: compact),
+      if (component.currentSdk?.channel case final channel? when channel.isNotEmpty)
+        _buildChannelIndicator(channel, compact: compact),
     ]);
   }
 
-  Component _buildRuntimeVersions() {
+  Component _buildRuntimeVersions({required bool compact}) {
     final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
     final label = currentSdk?.displayName ?? 'Dart …';
@@ -105,7 +144,7 @@ class _FooterState extends State<Footer> {
               ),
             ],
           ),
-          span([.text(label)]),
+          span(classes: 'app-footer-sdk-label', [.text(compact ? currentSdk?.name ?? 'Dart' : label)]),
         ],
       ),
       items: [
@@ -119,12 +158,14 @@ class _FooterState extends State<Footer> {
     );
   }
 
-  Component _buildChannelIndicator(String channel) {
+  Component _buildChannelIndicator(String channel, {required bool compact}) {
+    final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
     return span(
       classes: 'app-footer-channel',
+      attributes: {'role': 'img', 'aria-label': label},
       [
-        const Icon('tune', size: 14),
-        span([.text('${channel[0].toUpperCase()}${channel.substring(1)} channel')]),
+        const Icon('tune', size: 14, attributes: {'aria-hidden': 'true'}),
+        if (!compact) span(classes: 'app-footer-channel-label', [.text(label)]),
       ],
     );
   }
@@ -219,6 +260,11 @@ class _FooterState extends State<Footer> {
       cursor: .notAllowed,
     ),
     css('.app-footer-spacer').styles(flex: const .grow(1)),
+    css('.app-footer .task-status-trigger').styles(
+      width: 100.percent,
+      minWidth: .zero,
+      boxSizing: .borderBox,
+    ),
     css('.app-footer-message').styles(
       minWidth: .zero,
       margin: const Margin.only(left: Unit.auto),
