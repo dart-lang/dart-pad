@@ -8,11 +8,5 @@
     queryTheme === 'dark' || queryTheme === 'light'
       ? queryTheme
       : window.localStorage.getItem('dartpad:theme');
-  if (userTheme != null) {
-    document.documentElement.setAttribute('data-theme', userTheme);
-  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  } else {
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
+  document.documentElement.setAttribute('data-theme', userTheme ?? 'dark');
 })();
