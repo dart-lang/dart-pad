@@ -72,17 +72,22 @@ class EditorShell extends StatelessComponent {
         ValueListenableBuilder(
           listenable: panelController.editorNavigationListenable,
           builder: (_, navigation) {
-            // Reveal grouped navigation temporarily when another file opens.
             return PanelVisibility(
               id: 'editor-navigation-panel',
               visible: openTabs.length > 1 || navigation == PanelPresentationState.expanded,
               child: Component.fragment([
-                EditorTabBar(
-                  openTabs: openTabs,
-                  activeFile: activeFile,
-                  onSwitchFile: onSwitchFile!,
-                  onCloseFile: onCloseFile!,
-                  contextMenu: contextMenu,
+                ValueListenableBuilder(
+                  listenable: panelController.layoutListenable,
+                  builder: (_, _) => Component.fragment([
+                    if (!panelController.isSmallScreen)
+                      EditorTabBar(
+                        openTabs: openTabs,
+                        activeFile: activeFile,
+                        onSwitchFile: onSwitchFile!,
+                        onCloseFile: onCloseFile!,
+                        contextMenu: contextMenu,
+                      ),
+                  ]),
                 ),
                 if (activeFile.isNotEmpty) EditorBreadcrumbs(path: breadcrumbPath),
               ]),

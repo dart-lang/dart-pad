@@ -30,7 +30,9 @@ import 'features/preview/models/device_mode.dart';
 import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
+import 'features/shared/analyzer_configuration.dart';
 import 'features/shared/app_event_bus.dart';
+import 'features/shared/browser_device.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
@@ -53,6 +55,7 @@ import 'features/startup/project_loader.dart';
 import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
 import 'features/startup/query_parameters.dart';
+import 'features/startup/strip_unavailable_dependencies.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
@@ -273,6 +276,7 @@ final class _AppState extends State<App> {
       for (final warning in project.contents.importWarnings) {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
+      session.diagnostics.setImportDiagnostics(dependencyDiagnostics(project.contents));
       if (snapshot != null) {
         _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
       }
@@ -408,6 +412,9 @@ final class _AppState extends State<App> {
       final tab = session.tabs.getTab(entrypoint) as WorkspaceCodeMirrorTab;
       tab.editor.text = sourceCode;
       await session.tabs.saveAllTabs();
+      if (_isCurrent(session)) {
+        session.preview.useInjectedSource(sourceCode);
+      }
     } catch (error, stackTrace) {
       if (!_isCurrent(session)) {
         return;
@@ -487,7 +494,7 @@ final class _AppState extends State<App> {
       _embedMessages.ready();
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
-        if (session.initialProject.request.autoRun) {
+        if (session.initialProject.request.autoRun && !isMobileBrowser()) {
           unawaited(session.preview.runCurrent(autoStart: true));
         }
         return;
@@ -740,7 +747,10 @@ final class _AppState extends State<App> {
   }
 
   @override
-  Component build(BuildContext context) => _buildWorkspace(context);
+  Component build(BuildContext context) => AnalyzerConfiguration(
+    enabled: _enableAnalyzer,
+    child: _buildWorkspace(context),
+  );
 
   TaskStatusController get _activeTaskStatus {
     final session = _activeSession;
@@ -1009,7 +1019,7 @@ final class _AppState extends State<App> {
         activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure,
         onOpenConsole: () => _openConsole(session),
-        initialDeviceMode: _isEmbedMode ? DeviceMode.current : DeviceMode.mobile,
+        initialDeviceMode: _isEmbedMode || !_isLargeScreen ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }

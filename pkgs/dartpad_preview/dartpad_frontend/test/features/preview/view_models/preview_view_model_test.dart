@@ -286,6 +286,27 @@ void main() {
     expect(preview.previewMode, RunMode.console);
   });
 
+  for (final mode in RunMode.values) {
+    test('explicit $mode query overrides injected snippet inference', () async {
+      preview.dispose();
+      await preview.closed;
+      preview = PreviewViewModel(
+        initialMode: mode,
+        initialEntrypoint: 'lib/main.dart',
+        modeOverride: mode,
+        workspaceRepository: repository,
+        eventBus: events,
+        createSandbox: (_, {required assetBaseUrl}) async => sandbox,
+      );
+      preview.useInjectedSource(
+        mode == RunMode.flutter ? 'void main() {}' : "import 'package:flutter/widgets.dart';",
+      );
+      expect(preview.previewMode, mode);
+      await preview.runCurrent();
+      expect(sandbox.mode, mode.mode);
+    });
+  }
+
   test('failed console run with the Flutter SDK retains console mode', () async {
     sandbox.onRun = () async {
       throw CompilationFailedException('syntax error');
@@ -295,6 +316,35 @@ void main() {
 
     expect(preview.state, isA<PreviewCompileError>());
     expect(preview.previewMode, RunMode.console);
+  });
+
+  test('sync throw from main in console mode is app output, not a compile failure', () async {
+    sandbox.onRun = () async {
+      throw ExecutionFailedException('Exception: ups');
+    };
+
+    await preview.runCode('lib/main.dart', mode: RunMode.console);
+
+    expect(preview.state, isA<PreviewDartReady>());
+    expect(preview.appLogs.single.message, 'Error: Exception: ups');
+    expect(preview.appLogs.single.level, Level.SEVERE);
+    expect(logs.where((log) => log.message.contains('ups')), isEmpty);
+  });
+
+  test('sync throw from main in Flutter mode is logged to the console', () async {
+    sandbox.onRun = () async {
+      throw ExecutionFailedException('Exception: ups');
+    };
+
+    await preview.runCode('lib/main.dart', mode: RunMode.flutter);
+    await pump();
+
+    expect(preview.state, isA<PreviewRunning>());
+    expect(preview.appLogs, isEmpty);
+    expect(
+      logs.where((log) => log.message == '[app] Error: Exception: ups' && log.level == Level.SEVERE),
+      hasLength(1),
+    );
   });
 
   test('Flutter start, hot reload, and restart use the same sandbox', () async {

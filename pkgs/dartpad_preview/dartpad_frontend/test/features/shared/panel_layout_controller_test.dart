@@ -21,7 +21,7 @@ void main() {
       expect(panels.layout, PanelLayout.smallScreen);
       expect(panels.fileTree, const LeftHidden(200));
       expect(panels.showEditorTabs, !embed);
-      expect(panels.bottom.isExpanded, !embed);
+      expect(panels.bottom, const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: 0.75));
 
       panels.toggleFileTree();
       expect(panels.fileTree, const Split(200));

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
@@ -56,6 +58,12 @@ void main() {
     },
   );
 
+  /// Titles of the rendered Problems rows, each `severity: message (location)`.
+  List<String> problemTitles() {
+    final rows = web.document.querySelectorAll('.problem-row');
+    return [for (var i = 0; i < rows.length; i++) (rows.item(i)! as web.HTMLElement).title];
+  }
+
   testClient('session id restores its saved entry without loading source', (tester) async {
     final latest = await store.create(savedProject(query: '', text: 'most recent', sessionId: 1));
     tester.pumpComponent(app('?s=1'));
@@ -75,6 +83,50 @@ void main() {
     expect(await repositories.single.workspaceResourceApi.readFileAsText('lib/main.dart'), 'most recent');
     expect(store.entries, hasLength(2));
     expect(store.state, same(store.entries[latest.id]!.state));
+  });
+
+  testClient('restored session shows unavailable dependency problems without loading source', (tester) async {
+    await store.create(
+      savedProject(
+        query: '',
+        files: {
+          'lib/main.dart': Uint8List.fromList(utf8.encode('void main() {}')),
+          'pubspec.yaml': Uint8List.fromList(
+            utf8.encode('name: demo\ndependencies:\n  local: {git: https://example.com/local.git}\n'),
+          ),
+        },
+        sessionId: 1,
+      ),
+    );
+    tester.pumpComponent(app('?s=1'));
+    await pumpEventQueue();
+    expect(sourceLoads, 0);
+    expect(
+      problemTitles(),
+      contains(startsWith('Error: Dependency "local" uses Git, which is not supported by DartPad')),
+    );
+  });
+
+  testClient('restored session reports unavailable dev dependencies added after import', (tester) async {
+    await store.create(
+      savedProject(
+        query: '',
+        files: {
+          'lib/main.dart': Uint8List.fromList(utf8.encode('void main() {}')),
+          'pubspec.yaml': Uint8List.fromList(
+            utf8.encode('name: demo\ndev_dependencies:\n  local: {git: https://example.com/local.git}\n'),
+          ),
+        },
+        sessionId: 1,
+      ),
+    );
+    tester.pumpComponent(app('?s=1'));
+    await pumpEventQueue();
+    expect(sourceLoads, 0);
+    expect(
+      problemTitles(),
+      contains(startsWith('Error: Dependency "local" uses Git, which is not supported by DartPad')),
+    );
   });
 
   testClient('matching URL saves fresh work immediately without blocking', (tester) async {
