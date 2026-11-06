@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dartpad_editor/dartpad_editor.dart';
 
 import '../../shared/sdk_info.dart';
+import '../../startup/generated_pubspec.dart';
+import '../../startup/project_loader.dart';
 
 /// Execution modes exposed by the DartPad sandbox.
 enum RunMode {
@@ -18,6 +23,16 @@ enum RunMode {
 
   /// The string identifier used by the preview sandbox protocol.
   final String mode;
+
+  /// Remove when legacy postMessage source injection is removed.
+  /// Infers the mode of a single-file snippet supplied by an embedding page.
+  /// Its imports, rather than the initial sample's SDK, determine the output.
+  static RunMode forSourceCode(String sourceCode) {
+    final dependencies = inferPackageDependencies([
+      ProjectFile(path: 'main.dart', bytes: Uint8List.fromList(utf8.encode(sourceCode))),
+    ]);
+    return dependencies.contains('flutter') ? flutter : console;
+  }
 
   /// Resolves a mode from current workspace files before creating a preview.
   ///

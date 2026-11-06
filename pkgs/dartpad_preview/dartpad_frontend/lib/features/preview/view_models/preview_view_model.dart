@@ -65,6 +65,20 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   String? get entrypoint => _entrypoint;
   final RunMode? _modeOverride;
 
+  String? _sourceCodeEntrypoint;
+
+  /// Remove the injected-source entrypoint and its mode handling when
+  /// legacy postMessage source injection is removed.
+  /// Uses source-based mode inference for the host's single-file snippet.
+  /// Subsequent runs re-read saved editor contents so edits can change modes.
+  void useInjectedSource(String sourceCode) {
+    _sourceCodeEntrypoint = _entrypoint;
+    if (_sandbox == null) {
+      _previewMode = _modeOverride ?? RunMode.forSourceCode(sourceCode);
+      notifyListeners();
+    }
+  }
+
   /// Runs the selected entrypoint, optionally as part of automatic startup.
   Future<void> runCurrent({bool autoStart = false}) async {
     final path = _entrypoint;
@@ -144,7 +158,8 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   /// Runs [entrypoint] in the requested [mode].
   ///
   /// Without an override, infer the mode from the SDK and the entrypoint's
-  /// location relative to its nearest package root.
+  /// location relative to its nearest package root. Host-injected snippets
+  /// instead infer their mode from the saved source code.
   Future<void> runCode(String entrypoint, {RunMode? mode, bool autoStart = false}) async {
     if (!canRun) {
       return;
@@ -170,7 +185,12 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (!_current(id)) {
         return;
       }
-      final runMode = mode ?? _modeOverride ?? await _workspaceRepository.runModeFor(entrypoint);
+      final runMode =
+          mode ??
+          _modeOverride ??
+          (_sourceCodeEntrypoint == entrypoint
+              ? RunMode.forSourceCode(await _workspaceRepository.workspaceResourceApi.readFileAsText(entrypoint))
+              : await _workspaceRepository.runModeFor(entrypoint));
       if (!_current(id)) {
         return;
       }
