@@ -8,6 +8,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
+import '../../shared/analyzer_configuration.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/events/open_console_event.dart';
@@ -106,26 +107,27 @@ final class _BottomPanelState extends State<BottomPanel> {
       return const div(classes: 'bottom-panel', []);
     }
     final isCollapsed = !bottom.isExpanded;
+    final activeTab = AnalyzerConfiguration.isEnabledOf(context) ? bottom.selectedTab : BottomPanelTab.console;
     return div(
       classes: 'bottom-panel${isCollapsed ? ' collapsed' : ''}',
       [
         BottomPanelTabs(
           problemsCount: component.diagnostics.length,
           console: component.console,
-          activeTab: bottom.selectedTab,
+          activeTab: activeTab,
           isCollapsed: isCollapsed,
           onSelectTab: component.panelController.openBottomPanel,
           onCollapse: panel.canCollapse ? component.panelController.collapseBottomPanel : null,
-          onExpand: panel.canCollapse ? () => component.panelController.openBottomPanel(bottom.selectedTab) : null,
+          onExpand: panel.canCollapse ? () => component.panelController.openBottomPanel(activeTab) : null,
         ),
-        if (!isCollapsed) _buildContent(),
+        if (!isCollapsed) _buildContent(activeTab),
       ],
     );
   }
 
-  Component _buildContent() {
-    return div(classes: 'bottom-panel-content', [
-      switch (component.panelController.bottom.selectedTab) {
+  Component _buildContent(BottomPanelTab activeTab) {
+    return div(id: 'bottom-panel-content', classes: 'bottom-panel-content', [
+      switch (activeTab) {
         BottomPanelTab.problems => ProblemsPanel(
           diagnostics: component.diagnostics,
           hasMoreDiagnostics: component.hasMoreDiagnostics,
