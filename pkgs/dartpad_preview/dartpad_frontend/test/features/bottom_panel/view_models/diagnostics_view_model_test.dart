@@ -119,7 +119,151 @@ void main() {
       );
       expect(viewModel.hasMoreDiagnostics, isTrue);
     });
+
+    group('watchImportDiagnostics', () {
+      late StreamController<WorkspaceChangeEvent> changes;
+      late _CountingImportDiagnostics computeImportDiagnostics;
+
+      setUp(() {
+        changes = StreamController<WorkspaceChangeEvent>.broadcast();
+        computeImportDiagnostics = _CountingImportDiagnostics(_importEntry('pubspec.yaml', 'before'));
+        viewModel.setImportDiagnostics(computeImportDiagnostics.entries);
+      });
+
+      tearDown(() async {
+        await changes.close();
+      });
+
+      test('replaces import problems after a pubspec modification', () async {
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        computeImportDiagnostics.entries = [_importEntry('pubspec.yaml', 'after')];
+        changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'pubspec.yaml'));
+        await _settleImportRefresh();
+
+        expect(viewModel.diagnostics.map((entry) => entry.diagnostic.message), ['after']);
+        expect(computeImportDiagnostics.calls, 1);
+      });
+
+      test('recomputes when a resource is added or removed', () async {
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.add, path: 'packages/local/pubspec.yaml'));
+        await _settleImportRefresh();
+
+        expect(computeImportDiagnostics.calls, 1);
+      });
+
+      test('recomputes after a pubspec_overrides.yaml modification', () async {
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'pubspec_overrides.yaml'));
+        await _settleImportRefresh();
+
+        expect(computeImportDiagnostics.calls, 1);
+      });
+
+      test('ignores modifications to other files', () async {
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'lib/main.dart'));
+        await _settleImportRefresh();
+
+        expect(computeImportDiagnostics.calls, 0);
+      });
+
+      test('debounces a burst of changes into one recompute', () async {
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        for (var index = 0; index < 5; index++) {
+          changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'pubspec.yaml'));
+        }
+        await _settleImportRefresh();
+
+        expect(computeImportDiagnostics.calls, 1);
+      });
+
+      test('keeps language server problems when import problems refresh', () async {
+        viewModel.attachLanguageServer(languageServerClient, projectRoot: null);
+        await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/main.dart');
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        computeImportDiagnostics.entries = [_importEntry('pubspec.yaml', 'after')];
+        changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'pubspec.yaml'));
+        await _settleImportRefresh();
+
+        expect(viewModel.diagnostics.map((entry) => entry.fileName), containsAll(['lib/main.dart', 'pubspec.yaml']));
+      });
+
+      test('a new watch cancels the previous one', () async {
+        final previousChanges = StreamController<WorkspaceChangeEvent>.broadcast();
+        addTearDown(previousChanges.close);
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(previousChanges.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+        viewModel.watchImportDiagnostics(
+          _ChangeFakeWorkspace(changes.stream),
+          computeImportDiagnostics: computeImportDiagnostics.call,
+        );
+
+        previousChanges.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.modify, path: 'pubspec.yaml'));
+        await _settleImportRefresh();
+
+        expect(computeImportDiagnostics.calls, 0);
+      });
+    });
   });
+}
+
+/// Waits for the debounce window and the asynchronous recompute to finish.
+Future<void> _settleImportRefresh() => Future<void>.delayed(DiagnosticsViewModel.importRefreshDelay * 3);
+
+DiagnosticEntry _importEntry(String fileName, String message) => DiagnosticEntry(
+  fileName,
+  Diagnostic(line: 0, character: 0, message: message, severity: DiagnosticSeverity.warning),
+);
+
+final class _CountingImportDiagnostics {
+  _CountingImportDiagnostics(DiagnosticEntry entry) : entries = [entry];
+
+  List<DiagnosticEntry> entries;
+  int calls = 0;
+
+  Future<List<DiagnosticEntry>> call(WorkspaceResourceApi workspace) async {
+    calls++;
+    return entries;
+  }
+}
+
+final class _ChangeFakeWorkspace implements WorkspaceResourceApi {
+  _ChangeFakeWorkspace(this._changes);
+
+  final Stream<WorkspaceChangeEvent> _changes;
+
+  @override
+  Stream<WorkspaceChangeEvent> get changeEvents => _changes;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Future<void> _publishDiagnostics(

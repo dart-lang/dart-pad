@@ -27,6 +27,12 @@ final class DiagnosticsViewModel extends ChangeNotifier {
   String? _projectRoot;
 
   StreamSubscription<Map<String, Object?>>? _diagnosticsSubscription;
+  StreamSubscription<WorkspaceChangeEvent>? _workspaceSubscription;
+  Timer? _importRefreshTimer;
+  int _importRefreshGeneration = 0;
+
+  /// How long to wait after a relevant workspace change before recomputing import diagnostics.
+  static const importRefreshDelay = Duration(milliseconds: 300);
 
   /// The first [maxDisplayedDiagnostics] diagnostics, sorted by severity then
   /// location.
@@ -45,6 +51,57 @@ final class DiagnosticsViewModel extends ChangeNotifier {
     _importDiagnostics = List.unmodifiable(entries);
     _rebuildDiagnostics();
     notifyListeners();
+  }
+
+  /// Recomputes the import problems with [computeImportDiagnostics] after workspace changes
+  /// that can affect them.
+  ///
+  /// Pubspec edits and any added, removed, or moved resource trigger a recompute, because
+  /// a dependency's availability depends on which package files exist. Recomputes are
+  /// debounced. Cancels any previous watch.
+  void watchImportDiagnostics(
+    WorkspaceResourceApi workspace, {
+    required Future<List<DiagnosticEntry>> Function(WorkspaceResourceApi workspace) computeImportDiagnostics,
+  }) {
+    _cancelImportWatch();
+    _workspaceSubscription = workspace.changeEvents.listen((event) {
+      if (!_affectsImportDiagnostics(event)) {
+        return;
+      }
+      _importRefreshTimer?.cancel();
+      _importRefreshTimer = Timer(importRefreshDelay, () {
+        _refreshImportDiagnostics(workspace, computeImportDiagnostics);
+      });
+    });
+  }
+
+  static bool _affectsImportDiagnostics(WorkspaceChangeEvent event) {
+    if (event.type != WorkspaceChangeEventType.modify) {
+      return true;
+    }
+    final basename = basenameWorkspacePath(event.path);
+    return basename == 'pubspec.yaml' || basename == 'pubspec_overrides.yaml';
+  }
+
+  Future<void> _refreshImportDiagnostics(
+    WorkspaceResourceApi workspace,
+    Future<List<DiagnosticEntry>> Function(WorkspaceResourceApi workspace) computeImportDiagnostics,
+  ) async {
+    final generation = ++_importRefreshGeneration;
+    final entries = await computeImportDiagnostics(workspace);
+    // A newer refresh or a cancelled watch supersedes this result.
+    if (generation != _importRefreshGeneration) {
+      return;
+    }
+    setImportDiagnostics(entries);
+  }
+
+  void _cancelImportWatch() {
+    _workspaceSubscription?.cancel();
+    _workspaceSubscription = null;
+    _importRefreshTimer?.cancel();
+    _importRefreshTimer = null;
+    _importRefreshGeneration++;
   }
 
   /// Opens the file for [diagnostic] and navigates to its source position.
@@ -101,6 +158,7 @@ final class DiagnosticsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _cancelImportWatch();
     _diagnosticsSubscription?.cancel();
     super.dispose();
   }
