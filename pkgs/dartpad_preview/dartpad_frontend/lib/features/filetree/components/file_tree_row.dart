@@ -6,6 +6,24 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+/// Reveals a row without scrolling any ancestor of the file-tree viewport.
+void scrollFileTreeRowIntoView(web.HTMLElement node, {required int depth}) {
+  final root = node.closest('.file-tree-list');
+  if (root == null) {
+    return;
+  }
+
+  // scrollIntoView also scrolls the page hosting DartPad's iframe. Compute the
+  // offset inside the tree instead, leaving room for sticky parent folder rows.
+  final offset = node.getBoundingClientRect().top - root.getBoundingClientRect().top - root.clientTop;
+  root.scrollTo(
+    web.ScrollToOptions(
+      top: root.scrollTop + offset - 25 * depth,
+      behavior: 'instant',
+    ),
+  );
+}
+
 /// A stateful wrapper component that applies CSS classes and indentation style
 /// for a file tree row, and handles drag-and-drop state and events.
 class FileTreeRow extends StatefulComponent {
