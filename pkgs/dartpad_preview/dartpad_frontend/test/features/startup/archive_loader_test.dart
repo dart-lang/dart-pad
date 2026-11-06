@@ -11,6 +11,7 @@ import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
+import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -134,11 +135,16 @@ dev_dependencies:
       );
       final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
       expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling', 'missing']);
-      expect(project.importWarnings, hasLength(5));
+      expect(project.importWarnings, hasLength(6));
       expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
       expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
       expect(project.importWarnings.join('\n'), contains('uses Git'));
-      expect(project.importWarnings.join('\n'), isNot(contains('Dependency "missing"')));
+      expect(
+        project.importWarnings.join('\n'),
+        contains(
+          'Dependency "missing" in packages/root/example/pubspec.yaml (dependencies) uses relative path "../../missing"',
+        ),
+      );
       expect(
         project.importWarnings.where((warning) => warning.endsWith('was not loaded.')),
         hasLength(3),
@@ -346,7 +352,7 @@ dev_dependencies: {
       expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
     });
 
-    test('keeps unavailable dependencies untouched and warns about none', () async {
+    test('keeps unavailable dependencies untouched and warns that they cannot be resolved', () async {
       const pubspec = '''
 name: example
 dependencies:
@@ -359,7 +365,12 @@ dependencies:
         () => MockClient((_) async => http.Response.bytes(archive, 200)),
       );
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
-      expect(project.importWarnings, isEmpty);
+      expect(project.importWarnings, [
+        'Dependency "outside" in pubspec.yaml (dependencies) uses relative path "../outside", '
+            'which is outside the imported workspace, and cannot be resolved.',
+        'Dependency "remote" in pubspec.yaml (dependencies) uses Git, '
+            'which is not supported by DartPad, and cannot be resolved.',
+      ]);
       expect(project.containsFile('pubspec.original.dartpad.yaml'), isFalse);
       expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
     });
@@ -945,6 +956,81 @@ resolution: workspace
 
       expect(await api.readFileAsBytes('pubspec.yaml'), [0xFF]);
       expect(await api.fileExist('pubspec_overrides.yaml'), isFalse);
+    });
+  });
+
+  group('stripUnavailableDependencies overrides', () {
+    Project projectWith(Map<String, String> files) => Project([
+      for (final file in files.entries) ProjectFile(path: file.key, bytes: Uint8List.fromList(file.value.codeUnits)),
+    ]);
+
+    test('keeps a git dependency warning-free when pubspec_overrides.yaml supplies an available path', () {
+      final project = projectWith({
+        'pubspec.yaml': 'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n',
+        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/local}\n',
+        'packages/local/pubspec.yaml': 'name: local\n',
+      });
+
+      stripUnavailableDependencies(project);
+
+      expect(project.importWarnings, isEmpty);
+      expect(dependencyDiagnostics(project), isEmpty);
+    });
+
+    test('keeps a git dependency warning-free when pubspec.yaml supplies an available path override', () {
+      final project = projectWith({
+        'pubspec.yaml':
+            'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n'
+            'dependency_overrides:\n  local: {path: packages/local}\n',
+        'packages/local/pubspec.yaml': 'name: local\n',
+      });
+
+      stripUnavailableDependencies(project);
+
+      expect(dependencyDiagnostics(project), isEmpty);
+    });
+
+    test('prefers pubspec_overrides.yaml over pubspec.yaml when both override the same dependency', () {
+      final project = projectWith({
+        'pubspec.yaml':
+            'name: app\ndependencies:\n  local: {path: packages/missing}\n'
+            'dependency_overrides:\n  local: {path: packages/missing}\n',
+        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/local}\n',
+        'packages/local/pubspec.yaml': 'name: local\n',
+      });
+
+      stripUnavailableDependencies(project);
+
+      expect(dependencyDiagnostics(project), isEmpty);
+    });
+
+    test('still warns when the override path is itself unavailable', () {
+      final project = projectWith({
+        'pubspec.yaml': 'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n',
+        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/missing}\n',
+      });
+
+      stripUnavailableDependencies(project);
+
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.message), [
+        'Dependency "local" uses relative path "packages/missing", whose target package is not included '
+            'in the imported workspace, and cannot be resolved.',
+      ]);
+    });
+
+    test('still warns when a scalar dependency is replaced by an unavailable path override', () {
+      final project = projectWith({
+        'pubspec.yaml': 'name: app\ndependencies:\n  local: ^1.0.0\n',
+        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/missing}\n',
+      });
+
+      stripUnavailableDependencies(project);
+
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.message), [
+        'Dependency "local" uses relative path "packages/missing", whose target package is not included '
+            'in the imported workspace, and cannot be resolved.',
+      ]);
+      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.severity), [DiagnosticSeverity.error]);
     });
   });
 }
