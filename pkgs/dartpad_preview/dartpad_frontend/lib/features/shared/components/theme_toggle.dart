@@ -16,13 +16,13 @@ class ThemeToggle extends StatefulComponent {
 }
 
 class ThemeToggleState extends State<ThemeToggle> {
-  bool isDark = false;
+  bool isDark = true;
 
   @override
   void initState() {
     super.initState();
 
-    isDark = web.document.documentElement!.getAttribute('data-theme') == 'dark';
+    isDark = web.document.documentElement!.getAttribute('data-theme') != 'light';
   }
 
   @override
