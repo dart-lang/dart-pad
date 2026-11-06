@@ -31,6 +31,7 @@ import 'features/preview/models/preview_state.dart';
 import 'features/preview/models/run_mode.dart';
 import 'features/preview/view/preview_container.dart';
 import 'features/shared/app_event_bus.dart';
+import 'features/shared/browser_device.dart';
 import 'features/shared/components/app_bar.dart';
 import 'features/shared/components/command_palette.dart';
 import 'features/shared/components/context_menu.dart';
@@ -487,7 +488,7 @@ final class _AppState extends State<App> {
       _embedMessages.ready();
       if (_isEmbedMode) {
         setState(() => _isInitializingWorkspace = false);
-        if (session.initialProject.request.autoRun) {
+        if (session.initialProject.request.autoRun && !isMobileBrowser()) {
           unawaited(session.preview.runCurrent(autoStart: true));
         }
         return;
