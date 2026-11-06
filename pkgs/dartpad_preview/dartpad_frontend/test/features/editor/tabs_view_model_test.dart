@@ -476,9 +476,11 @@ void main() {
     await pumpEventQueue();
 
     final buttons = web.document.querySelectorAll('.code-action-btn');
-    expect(buttons.length, 2);
+    expect(buttons.length, 4);
     expect(buttons.item(0)!.textContent, 'Use const');
     expect(buttons.item(1)!.textContent, 'Suppress lint');
+    expect(buttons.item(2)!.textContent, 'Rename symbol');
+    expect(buttons.item(3)!.textContent, 'Format document');
     expect(web.document.activeElement, equals(buttons.item(0)));
 
     buttons
@@ -551,6 +553,7 @@ void main() {
   testClient('quick-fix panel reports no results and closes on outside click', (tester) async {
     final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final controller = mainTab.codeActionsController
+      ..file = 'pubspec.yaml'
       ..showFloatingPanel = true
       ..codeActions = [];
 
@@ -562,6 +565,79 @@ void main() {
     web.document.body!.dispatchEvent(
       web.MouseEvent('mousedown', web.MouseEventInit(bubbles: true)),
     );
+    await pumpEventQueue();
+
+    expect(controller.showFloatingPanel, isFalse);
+  });
+
+  testClient('quick-fix panel includes rename symbol and format document for dart files', (tester) async {
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..file = 'lib/main.dart'
+      ..showFloatingPanel = true
+      ..codeActions = [];
+
+    tester.pumpComponent(CodeActionPanel(controller: controller));
+    await pumpEventQueue();
+
+    final buttons = web.document.querySelectorAll('.code-action-btn');
+    final buttonTexts = [for (var i = 0; i < buttons.length; i++) buttons.item(i)!.textContent];
+    expect(buttonTexts, contains('Rename symbol'));
+    expect(buttonTexts, contains('Format document'));
+
+    final headers = web.document.querySelectorAll('.code-action-group-header');
+    final headerTexts = [for (var i = 0; i < headers.length; i++) headers.item(i)!.textContent];
+    expect(headerTexts, contains('Refactor'));
+    expect(headerTexts, contains('Source'));
+  });
+
+  testClient('activating rename symbol in quick-fix panel closes panel', (tester) async {
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..file = 'lib/main.dart'
+      ..showFloatingPanel = true
+      ..codeActions = [];
+
+    tester.pumpComponent(CodeActionPanel(controller: controller));
+    await pumpEventQueue();
+
+    final buttons = web.document.querySelectorAll('.code-action-btn');
+    web.HTMLButtonElement? renameBtn;
+    for (var i = 0; i < buttons.length; i++) {
+      final btn = buttons.item(i) as web.HTMLButtonElement;
+      if (btn.textContent == 'Rename symbol') {
+        renameBtn = btn;
+        break;
+      }
+    }
+    expect(renameBtn, isNotNull);
+    renameBtn!.click();
+    await pumpEventQueue();
+
+    expect(controller.showFloatingPanel, isFalse);
+  });
+
+  testClient('activating format document in quick-fix panel closes panel', (tester) async {
+    final mainTab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final controller = mainTab.codeActionsController
+      ..file = 'lib/main.dart'
+      ..showFloatingPanel = true
+      ..codeActions = [];
+
+    tester.pumpComponent(CodeActionPanel(controller: controller));
+    await pumpEventQueue();
+
+    final buttons = web.document.querySelectorAll('.code-action-btn');
+    web.HTMLButtonElement? formatBtn;
+    for (var i = 0; i < buttons.length; i++) {
+      final btn = buttons.item(i) as web.HTMLButtonElement;
+      if (btn.textContent == 'Format document') {
+        formatBtn = btn;
+        break;
+      }
+    }
+    expect(formatBtn, isNotNull);
+    formatBtn!.click();
     await pumpEventQueue();
 
     expect(controller.showFloatingPanel, isFalse);
