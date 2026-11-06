@@ -48,6 +48,11 @@ Contributor notes on project resolution and session lifecycle.
   initialize the language server at the same root. Embeds wait for Run.
 - Archives isolate packages with `resolution: workspace` through package-local
   `pubspec_overrides.yaml` files with null `resolution`; existing overrides are replaced.
+- Unavailable `dev_dependencies` and `dependency_overrides` are removed in place and left as comments.
+  `dependencies` in `pubspec.yaml` are never changed. An override whose name is also in `dependencies`
+  is kept, because removing it would change how that dependency resolves; this applies to overrides in both files.
+  A changed file is first copied to `pubspec.original.dartpad.yaml` or `pubspec_overrides.original.dartpad.yaml`;
+  unchanged files get no backup.
 - Run and its shortcut retain the resolved entrypoint across tab changes.
   Restart recompiles the current run's entrypoint; hot reload applies to running Flutter apps.
 
