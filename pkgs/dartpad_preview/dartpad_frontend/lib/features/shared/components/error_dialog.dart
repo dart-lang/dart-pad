@@ -16,10 +16,17 @@ import '../icons.dart';
 /// The overlay cannot be dismissed. The only action available is the
 /// "Reload Page" button which reloads the browser window.
 class ErrorDialog extends StatelessComponent {
-  const ErrorDialog({required this.errorMessage, super.key});
+  const ErrorDialog({
+    required this.errorMessage,
+    this.hint = 'Please reload the page to try again.',
+    super.key,
+  });
 
   /// A user-facing description of what went wrong.
   final String errorMessage;
+
+  /// A user-facing suggestion shown below [errorMessage].
+  final String hint;
 
   @override
   Component build(BuildContext context) {
@@ -45,9 +52,9 @@ class ErrorDialog extends StatelessComponent {
               classes: 'error-dialog-message',
               [.text(errorMessage)],
             ),
-            const div(
+            div(
               classes: 'error-dialog-hint',
-              [.text('Please reload the page to try again.')],
+              [.text(hint)],
             ),
             button(
               classes: 'error-dialog-reload-button',

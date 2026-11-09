@@ -56,6 +56,7 @@ import 'features/startup/project_request.dart';
 import 'features/startup/project_source.dart';
 import 'features/startup/query_parameters.dart';
 import 'features/startup/strip_unavailable_dependencies.dart';
+import 'features/startup/wasm_feature_support.dart';
 import 'features/workspace/data/workspace_repository.dart';
 import 'features/workspace/embed_message_controller.dart';
 import 'features/workspace/embed_runtime_controller.dart';
@@ -137,6 +138,9 @@ final class _AppState extends State<App> {
   /// Failure shown when source loading, workspace preparation or SDK switching fails.
   String? _workspacePreparationFailure;
 
+  /// Whether [_workspacePreparationFailure] is the unsupported-browser message.
+  bool _isUnsupportedBrowser = false;
+
   /// Original request to retry without restoring after saved-project import
   /// fails. Also selects the restore failure message and Start fresh action.
   Uri? _failedRestoreUri;
@@ -180,7 +184,15 @@ final class _AppState extends State<App> {
     });
     _keySubscription = web.EventStreamProviders.keyDownEvent.forTarget(web.document).listen(_handleGlobalKeyDown);
 
-    unawaited(_loadProject(component.initialUri ?? Uri.base));
+    final missingFeatures = missingWasmFeatures();
+    if (missingFeatures.isEmpty) {
+      unawaited(_loadProject(component.initialUri ?? Uri.base));
+    } else {
+      // Skip loading so the worker never starts and fails with an unreadable error.
+      _isInitializingWorkspace = false;
+      _isUnsupportedBrowser = true;
+      _workspacePreparationFailure = unsupportedBrowserMessage(missingFeatures);
+    }
   }
 
   /// Opens either the URL's source or a saved project, including subsequent
@@ -788,7 +800,12 @@ final class _AppState extends State<App> {
                   ],
                 )
               else if (_workspacePreparationFailure case final failure?)
-                ErrorDialog(errorMessage: failure)
+                _isUnsupportedBrowser
+                    ? ErrorDialog(
+                        errorMessage: failure,
+                        hint: 'Update your browser version and try again',
+                      )
+                    : ErrorDialog(errorMessage: failure)
               else
                 _buildPendingWorkspace(),
             ]),
