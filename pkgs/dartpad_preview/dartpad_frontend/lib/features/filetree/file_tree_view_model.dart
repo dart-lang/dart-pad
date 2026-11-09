@@ -143,7 +143,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     }
 
     await _runMutation(() async {
-      await _prepareRenameOrMove(oldPath, newPath);
+      await _prepareRenameOrMove(oldPath, newPath, isFolder: false);
       await workspace.root.getFile(oldPath).rename(newName);
       await refresh();
     });
@@ -160,7 +160,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     }
 
     await _runMutation(() async {
-      await _prepareRenameOrMove(oldPath, newPath);
+      await _prepareRenameOrMove(oldPath, newPath, isFolder: true);
       await workspace.root.getFolder(oldPath).rename(newName);
       await refresh();
     });
@@ -212,7 +212,7 @@ final class FileTreeViewModel extends ChangeNotifier {
       if (isFolder && !_canMoveFolder(sourcePath, targetFolderPath)) {
         throw ArgumentError('A folder cannot be moved into itself.');
       }
-      await _prepareRenameOrMove(sourcePath, newPath);
+      await _prepareRenameOrMove(sourcePath, newPath, isFolder: isFolder);
       final targetFolder = workspace.root.getFolder(targetFolderPath);
       if (!isFolder) {
         await workspace.root.getFile(sourcePath).moveTo(targetFolder);
@@ -223,14 +223,20 @@ final class FileTreeViewModel extends ChangeNotifier {
     });
   }
 
-  Future<void> _prepareRenameOrMove(String oldPath, String newPath) async {
+  Future<void> _prepareRenameOrMove(
+    String oldPath,
+    String newPath, {
+    required bool isFolder,
+  }) async {
     await workspace.ensureTargetAvailable(
       sourcePath: oldPath,
       targetPath: newPath,
     );
     await tabs.saveAllTabs();
     try {
-      if (languageServerClient case final lsp?) {
+      // Only files with Dart sources can change imports. Folders may hold Dart files, so always notify for them.
+      final affectsDartSources = isFolder || oldPath.endsWith('.dart') || newPath.endsWith('.dart');
+      if (languageServerClient case final lsp? when affectsDartSources) {
         await lsp.willRenameFiles(oldPath, newPath);
       }
     } catch (error) {
