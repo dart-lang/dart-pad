@@ -144,7 +144,7 @@ void main() {
 
     test('rejects unsafe paths', () {
       for (final query in ['?file=../escape.dart', '?root=/absolute', '?entrypoint=../main.dart', '?file=']) {
-        expect(() => parse(query), throwsArgumentError, reason: query);
+        expect(() => parse(query), throwsA(isA<QueryParameterValidationException>()), reason: query);
       }
     });
   });

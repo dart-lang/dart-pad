@@ -8,7 +8,9 @@ library;
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
+import 'package:dartpad_frontend/features/startup/query_parameters.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -23,13 +25,13 @@ void main() {
     return Uint8List.fromList(TarEncoder().encode(archive));
   }
 
-  test('throws ArgumentError for an unknown sample ID', () async {
+  test('throws QueryParameterValidationException for an unknown sample ID', () async {
     await expectLater(
       http.runWithClient(
         () => const SampleProjectSource('unknown-sample').loadProject(),
         () => MockClient((_) async => http.Response.bytes(counterArchive(), 200)),
       ),
-      throwsA(isA<ArgumentError>()),
+      throwsA(isA<QueryParameterValidationException>()),
     );
   });
 
@@ -39,7 +41,7 @@ void main() {
         () => const SampleProjectSource('dart').loadProject(),
         () => MockClient((_) async => http.Response('Not Found', 404)),
       ),
-      throwsA(isA<Exception>()),
+      throwsA(isA<ProjectSourceException>()),
     );
   });
 

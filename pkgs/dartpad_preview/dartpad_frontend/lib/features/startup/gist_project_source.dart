@@ -23,20 +23,20 @@ final class GistProjectSource extends ProjectSource {
       headers: const {'Accept': 'application/vnd.github+json'},
     );
     if (response.statusCode != 200) {
-      throw Exception('Failed to load gist $id (${response.statusCode})');
+      throw ProjectSourceException('Failed to load gist $id (${response.statusCode}).');
     }
 
-    final Object? json = jsonDecode(response.body);
+    final Object? json = _decodeSourceJson(response.body);
     if (json is! Map<String, Object?>) {
-      throw const FormatException('Unexpected gist response.');
+      throw const ProjectSourceException('Unexpected gist response.');
     }
     if (json['truncated'] == true) {
-      throw const FormatException('The gist file list is truncated.');
+      throw const ProjectSourceException('The gist file list is truncated.');
     }
 
     final filesJson = json['files'];
     if (filesJson is! Map<String, Object?>) {
-      throw const FormatException('Unexpected gist files response.');
+      throw const ProjectSourceException('Unexpected gist files response.');
     }
 
     final fetchedFiles = await Future.wait(
@@ -60,30 +60,30 @@ final class GistProjectSource extends ProjectSource {
 
 Future<ProjectFile> _loadGistFile(Object? value) async {
   if (value is! Map<String, Object?>) {
-    throw const FormatException('Unexpected gist file response.');
+    throw const ProjectSourceException('Unexpected gist file response.');
   }
   final filename = value['filename'];
   if (filename is! String || filename.isEmpty) {
-    throw const FormatException('A gist file has no filename.');
+    throw const ProjectSourceException('A gist file has no filename.');
   }
   if (value['truncated'] == true) {
     final rawUrl = value['raw_url'];
     if (rawUrl is! String) {
-      throw const FormatException('A truncated gist file has no raw URL.');
+      throw const ProjectSourceException('A truncated gist file has no raw URL.');
     }
     final rawUri = Uri.tryParse(rawUrl);
     if (rawUri == null || !rawUri.isAbsolute) {
-      throw const FormatException('A truncated gist file has an invalid raw URL.');
+      throw const ProjectSourceException('A truncated gist file has an invalid raw URL.');
     }
     final response = await http.get(rawUri);
     if (response.statusCode != 200) {
-      throw Exception('Failed to load truncated gist file $filename.');
+      throw ProjectSourceException('Failed to load truncated gist file $filename.');
     }
     return ProjectFile(path: filename, bytes: response.bodyBytes);
   }
   final content = value['content'];
   if (content is! String) {
-    throw FormatException('A gist file has no content: $filename');
+    throw ProjectSourceException('A gist file has no content: $filename');
   }
   return ProjectFile(
     path: filename,

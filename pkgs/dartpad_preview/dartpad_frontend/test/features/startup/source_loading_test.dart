@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
@@ -44,7 +45,7 @@ void main() {
     await http.runWithClient(() async {
       await expectLater(
         const PackageProjectSource('demo', version: '0.0.0').loadProject(),
-        throwsFormatException,
+        throwsA(isA<ProjectSourceException>()),
       );
     }, () => MockClient((_) async => http.Response('Not found', 404)));
   });
@@ -91,7 +92,7 @@ void main() {
       await http.runWithClient(
         () => expectLater(
           const FlutterApiDocsProjectSource('missing.Sample').loadProject(),
-          throwsException,
+          throwsA(isA<ProjectSourceException>()),
         ),
         () => MockClient((_) async => http.Response('Not found', 404)),
       );

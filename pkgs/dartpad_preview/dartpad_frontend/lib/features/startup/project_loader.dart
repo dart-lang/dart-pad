@@ -6,6 +6,8 @@ import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 
+import '../shared/project_exceptions.dart';
+
 /// A file that can be imported into the virtual workspace.
 final class ProjectFile {
   const ProjectFile({required this.path, required this.bytes});
@@ -165,13 +167,18 @@ final class ProjectLoader {
   }
 
   /// Normalizes [path] and verifies that it remains inside the workspace.
-  static String normalizePath(String path, {bool allowRoot = false}) {
+  static String normalizePath(String path, {bool allowRoot = false}) =>
+      tryNormalizePath(path, allowRoot: allowRoot) ??
+      (throw ProjectPathException('Path must be relative to the workspace: $path'));
+
+  /// Returns the normalized [path], or null when it is absolute or escapes the workspace.
+  static String? tryNormalizePath(String path, {bool allowRoot = false}) {
     final normalized = normalizeWorkspacePath(path);
     if ((!allowRoot && normalized.isEmpty) ||
         workspacePath.isAbsolute(normalized) ||
         normalized == '..' ||
         normalized.startsWith('../')) {
-      throw ArgumentError('Path must be relative to the workspace: $path');
+      return null;
     }
     return normalized;
   }
