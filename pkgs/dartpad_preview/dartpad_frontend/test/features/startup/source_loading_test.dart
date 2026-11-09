@@ -245,7 +245,7 @@ void main() {
       await http.runWithClient(
         () => expectLater(
           const FlutterApiDocsProjectSource('missing.Sample').loadProject(),
-          throwsException,
+          throwsA(isA<ProjectSourceException>()),
         ),
         () => MockClient((_) async => http.Response('Not found', 404)),
       );

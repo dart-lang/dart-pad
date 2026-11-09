@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:dartpad_frontend/features/persistence/indexed_db_project_store.dart';
 import 'package:dartpad_frontend/features/persistence/persisted_project_state.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
@@ -149,7 +150,7 @@ void main() {
     deletion.onblocked = ((web.Event event) => blocked.complete()).toJS;
     deletion.onsuccess = ((web.Event event) => deleted.complete()).toJS;
     await blocked.future;
-    await expectLater(store.list(), throwsA(isA<TimeoutException>()));
+    await expectLater(store.list(), throwsA(isA<ProjectStorageException>()));
     final retry = store.list();
     blocker.close();
     await deleted.future;
@@ -196,7 +197,7 @@ void main() {
 
   test('closed storage cannot reopen a database', () async {
     store.close();
-    await expectLater(store.list(), throwsStateError);
+    await expectLater(store.list(), throwsA(isA<ProjectStorageException>()));
   });
 
   test('metadata round-trips through typed JSON without dropping invalid fields', () {

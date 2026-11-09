@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
+import '../shared/project_exceptions.dart';
 import 'persisted_project_state.dart';
 import 'project_store.dart';
 
@@ -27,7 +28,7 @@ final class IndexedDbProjectStore implements ProjectStore {
 
   Future<web.IDBDatabase> _open() async {
     if (_closed) {
-      throw StateError('Local project storage is closed.');
+      throw const ProjectStorageException('Local project storage is closed.');
     }
     final opening = _database ??= _openDatabase();
     try {
@@ -61,12 +62,12 @@ final class IndexedDbProjectStore implements ProjectStore {
     }).toJS;
     request.onerror = ((web.Event event) {
       if (!result.isCompleted) {
-        result.completeError(StateError('Could not open local project storage.'));
+        result.completeError(const ProjectStorageException('Could not open local project storage.'));
       }
     }).toJS;
     final timer = Timer(const Duration(seconds: 3), () {
       if (!result.isCompleted) {
-        result.completeError(TimeoutException('Local project storage is unavailable.'));
+        result.completeError(const ProjectStorageException('Local project storage is unavailable.'));
       }
     });
     try {
@@ -241,7 +242,7 @@ Future<JSAny?> _request(web.IDBRequest request) {
   final completer = Completer<JSAny?>();
   request.onsuccess = ((web.Event event) => completer.complete(request.result)).toJS;
   request.onerror = ((web.Event event) => completer.completeError(
-    StateError('Could not read local project storage.'),
+    const ProjectStorageException('Could not read local project storage.'),
   )).toJS;
   return completer.future;
 }
@@ -250,7 +251,7 @@ Future<void> _complete(web.IDBTransaction transaction) {
   final completer = Completer<void>();
   transaction.oncomplete = ((web.Event event) => completer.complete()).toJS;
   transaction.onabort = ((web.Event event) => completer.completeError(
-    StateError('Could not save local project storage.'),
+    const ProjectStorageException('Could not save local project storage.'),
   )).toJS;
   return completer.future;
 }

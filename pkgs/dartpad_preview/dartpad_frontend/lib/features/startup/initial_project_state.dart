@@ -10,12 +10,14 @@ import 'package:yaml/yaml.dart';
 
 import '../preview/models/run_mode.dart';
 import '../shared/dart_source.dart';
+import '../shared/project_exceptions.dart';
 import '../shared/sdk_info.dart';
 import '../shared/sdk_kind.dart';
 import 'generated_pubspec.dart';
 import 'project_loader.dart';
 import 'project_request.dart';
 import 'project_source.dart';
+import 'query_parameters.dart';
 
 /// Immutable startup options and resolved metadata
 final class InitialProjectState {
@@ -48,7 +50,7 @@ final class InitialProjectState {
       final resolved = contents.resolvePath(path);
       // A URL can open the pubspec that will be generated after SDK selection.
       if (!contents.containsFile(resolved) && !(inferredDependencies != null && resolved == 'pubspec.yaml')) {
-        throw FormatException('Project file not found: $path.');
+        throw QueryParameterValidationException('Project file not found: $path.');
       }
       return resolved;
     }
@@ -147,7 +149,7 @@ String _resolveRoot(ProjectRequest request, Project contents, List<String> relev
       ? ProjectLoader.normalizePath(request.root!, allowRoot: true)
       : _commonPackageRoot(contents, relevantPaths);
   if (root.isNotEmpty && !contents.paths.any((path) => path.startsWith('$root/'))) {
-    throw FormatException('Project root not found: $root.');
+    throw QueryParameterValidationException('Project root not found: $root.');
   }
   return root;
 }
@@ -160,7 +162,7 @@ SdkInfo _resolveSdk(ProjectRequest request, List<SdkInfo> availableSdks, {requir
         (request.sdkVersion == null || _sdkVersion(sdk) == request.sdkVersion),
   );
   if (matches.isEmpty) {
-    throw FormatException(
+    throw QueryParameterValidationException(
       'SDK not available: ${sdkKind.name}${request.sdkVersion == null ? '' : ':${request.sdkVersion}'}.',
     );
   }
@@ -180,7 +182,7 @@ String? _resolveEntrypoint(
 RunMode _resolveRunMode(ProjectRequest request, Project contents, SdkInfo sdk, String? entrypoint) {
   final mode = request.mode ?? _inferRunMode(contents, sdk, entrypoint);
   if (mode == RunMode.flutter && !sdk.isFlutter) {
-    throw const FormatException('Flutter mode requires a Flutter SDK.');
+    throw const QueryParameterValidationException('Flutter mode requires a Flutter SDK.');
   }
   return mode;
 }
@@ -210,9 +212,14 @@ Map<Object?, Object?> _pubspec(Project contents, String root) {
   if (bytes == null) {
     return const {};
   }
-  final Object? yaml = loadYaml(utf8.decode(bytes));
+  final Object? yaml;
+  try {
+    yaml = loadYaml(utf8.decode(bytes));
+  } on YamlException catch (error) {
+    throw ProjectContentException('pubspec.yaml is not valid YAML: ${error.message}');
+  }
   if (yaml is! Map<Object?, Object?>) {
-    throw const FormatException('pubspec.yaml must contain a mapping.');
+    throw const ProjectContentException('pubspec.yaml must contain a mapping.');
   }
   return yaml;
 }
