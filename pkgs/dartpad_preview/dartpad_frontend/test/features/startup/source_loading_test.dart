@@ -104,7 +104,7 @@ void main() {
         () async {
           final future = const GistProjectSource('abc').loadProject();
           if (collision) {
-            await expectLater(future, throwsArgumentError);
+            await expectLater(future, throwsA(isA<ProjectPathException>()));
           } else {
             final project = await future;
             expect(project.pathMapping, {

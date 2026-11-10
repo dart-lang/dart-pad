@@ -128,24 +128,24 @@ final class PersistedProjectState {
     if (sdk == null) {
       throw const ProjectStorageException('Invalid saved SDK.');
     }
-    final root = ProjectLoader.normalizePath(data['root'] as String, allowRoot: true);
+    final root = _savedPath(data['root'] as String, allowRoot: true);
     final entrypoint = data['entrypoint'] as String?;
     if (entrypoint != null) {
-      ProjectLoader.normalizePath(entrypoint);
+      _savedPath(entrypoint);
     }
     for (final path in files.keys) {
-      ProjectLoader.normalizePath(path);
+      _savedPath(path);
     }
     final folders = (data['folders'] as List<Object?>).cast<String>().toList(growable: false);
     for (final path in folders) {
-      ProjectLoader.normalizePath(path);
+      _savedPath(path);
     }
     final tabs = [
       for (final tab in (data['tabs'] as List<Object?>).cast<Map<String, Object?>>())
         TabDescriptor(path: tab['path'] as String, origin: EditorTabOrigin.values.byName(tab['origin'] as String)),
     ];
     for (final tab in tabs.where((tab) => tab.origin == EditorTabOrigin.workspace)) {
-      ProjectLoader.normalizePath(tab.path);
+      _savedPath(tab.path);
     }
     return PersistedProjectState(
       query: (data['query'] as Map<String, Object?>).map(
@@ -166,3 +166,8 @@ final class PersistedProjectState {
 
 /// Excludes `.dart_tool/` metadata because Pub regenerates it.
 bool isPersistentProjectPath(String path) => !path.split('/').contains('.dart_tool');
+
+/// Normalizes a saved path. Invalid paths mean the saved data is corrupt.
+String _savedPath(String path, {bool allowRoot = false}) =>
+    ProjectLoader.tryNormalizePath(path, allowRoot: allowRoot) ??
+    (throw ProjectStorageException('Saved project has an invalid path: $path.'));

@@ -231,6 +231,15 @@ void main() {
     }
   });
 
+  test('saved paths outside the project fail as storage errors', () {
+    final original = savedProject();
+    final metadata = jsonDecode(jsonEncode(original.metadata())) as Map<String, Object?>;
+    expect(
+      () => PersistedProjectState.decode({...metadata, 'root': '../outside'}, original.files),
+      throwsA(isA<ProjectStorageException>()),
+    );
+  });
+
   test('query equality includes unknown options and ignores file params', () {
     final state = savedProject(query: '?sample=counter&embed=true');
     expect(state.matchesQuery(Uri.parse('?embed=true&sample=counter').queryParametersAll), isTrue);
