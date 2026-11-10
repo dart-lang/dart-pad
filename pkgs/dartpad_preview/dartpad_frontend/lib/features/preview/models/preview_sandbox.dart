@@ -49,7 +49,11 @@ final class IframePreviewSandbox implements PreviewSandbox {
     container.appendChild(mount);
     SandboxedIframe? iframe;
     try {
-      iframe = await DartPadSdk(assetBaseUrl: assetBaseUrl).createSandboxedIframe(mount);
+      iframe = await DartPadSdk(assetBaseUrl: assetBaseUrl).createSandboxedIframe(
+        mount,
+        // Iframe input does not bubble to the editor's analytics listener.
+        bodyHtml: '<script defer src="${Uri.base.resolve('ga_interaction.js')}"></script>',
+      );
       return IframePreviewSandbox._(await workspace.connectSandboxedIframe(iframe.port), iframe, mount);
     } catch (_) {
       mount.remove();
