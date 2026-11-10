@@ -43,7 +43,17 @@ void main() {
       container.remove();
     });
 
-    test('builds menu items in the exact required order', () {
+    test('builds menu items in the exact required order with an analyzer', () {
+      final client = LanguageServerClient(
+        languageServer: null,
+        rootWorkspaceUri: Uri.parse('file:///workspace/'),
+        editorRootUri: Uri.parse('file:///workspace/'),
+        workspaceChangeEvents: const Stream.empty(),
+        languageServerMessages: const Stream.empty(),
+        sendToLanguageServer: (_) {},
+      );
+      addTearDown(client.dispose);
+      editor.attachLanguageServerClient(client);
       final items = buildEditorContextMenu(
         editor: editor,
         path: 'main.dart',
@@ -96,6 +106,18 @@ void main() {
       expect(items[8], isA<ContextMenuItem>());
       final item7 = items[8] as ContextMenuItem;
       expect(item7.label, 'Paste');
+
+      editor.attachLanguageServerClient(null);
+      final withoutAnalyzer = buildEditorContextMenu(editor: editor, path: 'main.dart');
+      expect(withoutAnalyzer.whereType<ContextMenuItem>().map((item) => item.label), ['Cut', 'Copy', 'Paste']);
+      expect(withoutAnalyzer.whereType<ContextMenuDivider>(), isEmpty);
+    });
+
+    test('hides analyzer actions and dividers when no analyzer is attached', () {
+      final items = buildEditorContextMenu(editor: editor, path: 'main.dart');
+
+      expect(items.whereType<ContextMenuItem>().map((item) => item.label), ['Cut', 'Copy', 'Paste']);
+      expect(items.whereType<ContextMenuDivider>(), isEmpty);
     });
 
     test('builds only edit items for non-Dart files without dividers', () {
