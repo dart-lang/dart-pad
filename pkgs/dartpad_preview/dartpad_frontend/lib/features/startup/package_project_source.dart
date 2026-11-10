@@ -32,11 +32,10 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
       if (version != null) ...['versions', version],
     ],
   );
-  final response = await http.get(uri);
+  final failureMessage = 'Failed to load package $packageName${version == null ? '' : ' version $version'}';
+  final response = await _getSourceResponse(uri, failureMessage: failureMessage);
   if (response.statusCode != 200) {
-    throw ProjectSourceException(
-      'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
-    );
+    throw ProjectSourceException('$failureMessage (${response.statusCode}).');
   }
   final Object? json = _decodeSourceJson(response.body);
   final Object? metadata = version == null && json is Map<String, Object?> ? json['latest'] : json;

@@ -17,6 +17,29 @@ import 'package:test/test.dart';
 import 'initial_project_state_test.dart' show sdks;
 
 void main() {
+  for (final (source, failureMessage) in <(ProjectSource, String)>[
+    (const ArchiveProjectSource('https://example.com/project.tar'), 'Failed to load archive'),
+    (const PackageProjectSource('demo'), 'Failed to load package demo'),
+    (const PackageProjectSource('demo', version: '1.2.3'), 'Failed to load package demo version 1.2.3'),
+    (const GistProjectSource('abc'), 'Failed to load gist abc'),
+    (const FlutterApiDocsProjectSource('material.AppBar.1'), 'Failed to load Flutter API sample material.AppBar.1'),
+  ]) {
+    test('${source.runtimeType} identifies a failed browser request as a source failure', () async {
+      await expectLater(
+        http.runWithClient(
+          source.loadProject,
+          () => MockClient((request) async => throw http.ClientException('Failed to fetch', request.url)),
+        ),
+        throwsA(
+          isA<ProjectSourceException>().having(
+            (error) => error.message,
+            'message',
+            allOf(startsWith('$failureMessage.'), contains('Check your connection')),
+          ),
+        ),
+      );
+    });
+  }
   for (final version in [null, '1.2.3', '1.2.3+build.2']) {
     test('loads ${version ?? 'latest'} package version via metadata archive_url', () async {
       final requests = <Uri>[];
