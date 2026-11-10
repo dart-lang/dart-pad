@@ -30,9 +30,10 @@ final class FlutterApiDocsProjectSource extends ProjectSource {
     if (sampleId.isEmpty) {
       throw ArgumentError.value(sampleId, 'sampleId', 'must not be empty');
     }
-    final response = await http.get(snippetUri);
+    final failureMessage = 'Failed to load Flutter API sample $sampleId';
+    final response = await _getSourceResponse(snippetUri, failureMessage: failureMessage);
     if (response.statusCode != 200) {
-      throw ProjectSourceException('Failed to load Flutter API sample $sampleId (${response.statusCode}).');
+      throw ProjectSourceException('$failureMessage (${response.statusCode}).');
     }
 
     final main = ProjectFile(path: 'lib/main.dart', bytes: response.bodyBytes);
