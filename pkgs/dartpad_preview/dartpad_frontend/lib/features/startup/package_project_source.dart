@@ -25,21 +25,31 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
   final uri = Uri(
     scheme: 'https',
     host: 'pub.dev',
-    pathSegments: [
-      'api',
-      'packages',
-      packageName,
-      if (version != null) ...['versions', version],
-    ],
+    pathSegments: ['api', 'packages', packageName],
   );
-  final response = await http.get(uri);
+  final response = await http.get(uri, headers: {'Accept': 'application/vnd.pub.v2+json'});
   if (response.statusCode != 200) {
     throw FormatException(
       'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
     );
   }
   final Object? json = jsonDecode(response.body);
-  final Object? metadata = version == null && json is Map<String, Object?> ? json['latest'] : json;
+  if (json is! Map<String, Object?>) {
+    throw const FormatException('Unexpected package response.');
+  }
+  final Object? metadata;
+  if (version == null) {
+    metadata = json['latest'];
+  } else {
+    final versions = json['versions'];
+    if (versions is! List<Object?>) {
+      throw const FormatException('Unexpected package response.');
+    }
+    metadata = versions.whereType<Map<String, Object?>>().where((entry) => entry['version'] == version).firstOrNull;
+    if (metadata == null) {
+      throw FormatException('Package $packageName version $version was not found.');
+    }
+  }
   if (metadata is Map<String, Object?> && metadata['archive_url'] is String) {
     return metadata['archive_url'] as String;
   }
