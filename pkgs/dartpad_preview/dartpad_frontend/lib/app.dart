@@ -355,6 +355,7 @@ final class _AppState extends State<App> {
     PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
     ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
     ProjectStorageException() => 'Could not access saved projects: ${error.message}',
+    WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',
     _ => error.toString(),
   };
 
@@ -475,13 +476,13 @@ final class _AppState extends State<App> {
         runtimeGeneration: generation,
       );
       if (!ready && _isCurrentRuntime(session, generation)) {
-        throw StateError('Could not prepare the example. Try Run again.');
+        throw const WorkspaceStartupException('Could not prepare the example. Try Run again.');
       }
     } catch (error) {
       if (_isCurrentRuntime(session, generation)) {
         _embedRuntime!.release();
         unawaited(session.suspendRuntime());
-        setState(() => _workspacePreparationFailure = error.toString());
+        setState(() => _workspacePreparationFailure = _describeProjectLoadFailure(error));
       }
       rethrow;
     }

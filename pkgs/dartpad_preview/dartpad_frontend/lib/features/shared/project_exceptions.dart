@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A project path that is absolute, escapes the project, or does not exist in it.
+/// A project path that is absolute, escapes the project, does not exist in it, or collides with another path.
 final class ProjectPathException extends ArgumentError {
   ProjectPathException(super.message);
 }
@@ -22,6 +22,13 @@ final class ProjectContentException extends FormatException {
 /// Saved project data that is missing, corrupt, or no longer restorable.
 final class ProjectStorageException implements Exception {
   const ProjectStorageException(this.message);
+
+  final String message;
+}
+
+/// A workspace runtime that could not start after the project was prepared.
+final class WorkspaceStartupException implements Exception {
+  const WorkspaceStartupException(this.message);
 
   final String message;
 }

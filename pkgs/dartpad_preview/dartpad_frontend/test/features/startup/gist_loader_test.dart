@@ -181,7 +181,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsArgumentError,
+            throwsA(isA<ProjectPathException>()),
           );
         },
         () => MockClient((request) async => http.Response(response, 200)),

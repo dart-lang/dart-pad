@@ -27,13 +27,13 @@ final class Project {
   /// Collects [files] and copies the optional gist [pathMapping].
   ///
   /// File paths are normalized with [ProjectLoader.normalizePath]. Invalid paths
-  /// or multiple files resolving to the same path throw an [ArgumentError].
+  /// or multiple files resolving to the same path throw a [ProjectPathException].
   Project(Iterable<ProjectFile> files, {Map<String, String> pathMapping = const {}})
     : pathMapping = Map.unmodifiable(pathMapping) {
     for (final file in files) {
       final path = ProjectLoader.normalizePath(file.path);
       if (_files.containsKey(path)) {
-        throw ArgumentError('Multiple files resolve to the same path: $path');
+        throw ProjectPathException('Multiple files resolve to the same path: $path');
       }
       _files[path] = file.bytes;
     }
