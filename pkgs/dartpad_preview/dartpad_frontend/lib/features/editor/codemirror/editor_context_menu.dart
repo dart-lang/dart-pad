@@ -20,50 +20,31 @@ List<ContextMenuEntry> buildEditorContextMenu({
   required String path,
   AppEventBus? events,
 }) {
-  if (!path.endsWith('.dart')) {
-    return [
+  final entries = <ContextMenuEntry>[
+    if (path.endsWith('.dart')) ...[
       ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.cut,
-        onPressed: () => handleEditorCut(editor),
+        shortcut: ShortcutDefinition.goToDefinition,
+        requiresAnalyzer: true,
+        onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12'),
       ),
       ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.copy,
-        onPressed: () => handleEditorCopy(editor),
+        shortcut: ShortcutDefinition.findReferences,
+        requiresAnalyzer: true,
+        onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12', shiftKey: true),
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem.fromShortcut(
+        shortcut: ShortcutDefinition.renameSymbol,
+        requiresAnalyzer: true,
+        onPressed: () => dispatchEditorKey(editor, key: 'F2', code: 'F2'),
       ),
       ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.paste,
-        onPressed: () {
-          unawaited(
-            handleEditorPaste(
-              editor,
-              mod: resolveDisplayKey('Mod'),
-              onPasteError: (message) => events?.dispatch(ErrorToastEvent(message)),
-            ),
-          );
-        },
+        shortcut: ShortcutDefinition.formatDocument,
+        requiresAnalyzer: true,
+        onPressed: () => unawaited(editor.format()),
       ),
-    ];
-  }
-
-  return [
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.goToDefinition,
-      onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12'),
-    ),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.findReferences,
-      onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12', shiftKey: true),
-    ),
-    const ContextMenuDivider(),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.renameSymbol,
-      onPressed: () => dispatchEditorKey(editor, key: 'F2', code: 'F2'),
-    ),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.formatDocument,
-      onPressed: () => unawaited(editor.format()),
-    ),
-    const ContextMenuDivider(),
+      const ContextMenuDivider(),
+    ],
     ContextMenuItem.fromShortcut(
       shortcut: ShortcutDefinition.cut,
       onPressed: () => handleEditorCut(editor),
@@ -85,6 +66,25 @@ List<ContextMenuEntry> buildEditorContextMenu({
       },
     ),
   ];
+
+  final hasAnalyzer = editor.languageServerClient != null;
+  final visibleEntries = <ContextMenuEntry>[];
+  var pendingDivider = false;
+  for (final entry in entries) {
+    if (entry is ContextMenuItem && entry.requiresAnalyzer && !hasAnalyzer) {
+      continue;
+    }
+    if (entry is ContextMenuDivider) {
+      pendingDivider = visibleEntries.isNotEmpty;
+      continue;
+    }
+    if (pendingDivider) {
+      visibleEntries.add(const ContextMenuDivider());
+      pendingDivider = false;
+    }
+    visibleEntries.add(entry);
+  }
+  return visibleEntries;
 }
 
 /// Dispatches a synthetic keyboard event to CodeMirror's DOM element.
