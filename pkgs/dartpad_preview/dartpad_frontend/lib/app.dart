@@ -355,7 +355,6 @@ final class _AppState extends State<App> {
     PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
     ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
     ProjectStorageException() => 'Could not access saved projects: ${error.message}',
-    FormatException() => error.message,
     _ => error.toString(),
   };
 
