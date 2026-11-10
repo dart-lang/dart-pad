@@ -48,6 +48,6 @@ Object? _decodeSourceJson(String body) {
   try {
     return jsonDecode(body);
   } on FormatException {
-    throw const ProjectSourceException('The response is not valid JSON.');
+    throw const ProjectSourceException("Could not parse project's source response.");
   }
 }
