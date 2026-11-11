@@ -70,9 +70,24 @@ final class DiagnosticsViewModel extends ChangeNotifier {
       }
       _importRefreshTimer?.cancel();
       _importRefreshTimer = Timer(importRefreshDelay, () {
-        _refreshImportDiagnostics(workspace, computeImportDiagnostics);
+        refreshImportDiagnostics(workspace, computeImportDiagnostics);
       });
     });
+  }
+
+  /// Replaces the import problems with the result of [computeImportDiagnostics].
+  ///
+  /// A newer refresh, a new watch, or [dispose] discards this result.
+  Future<void> refreshImportDiagnostics(
+    WorkspaceResourceApi workspace,
+    Future<List<DiagnosticEntry>> Function(WorkspaceResourceApi workspace) computeImportDiagnostics,
+  ) async {
+    final generation = ++_importRefreshGeneration;
+    final entries = await computeImportDiagnostics(workspace);
+    if (generation != _importRefreshGeneration) {
+      return;
+    }
+    setImportDiagnostics(entries);
   }
 
   static bool _affectsImportDiagnostics(WorkspaceChangeEvent event) {
@@ -81,19 +96,6 @@ final class DiagnosticsViewModel extends ChangeNotifier {
     }
     final basename = basenameWorkspacePath(event.path);
     return basename == 'pubspec.yaml' || basename == 'pubspec_overrides.yaml';
-  }
-
-  Future<void> _refreshImportDiagnostics(
-    WorkspaceResourceApi workspace,
-    Future<List<DiagnosticEntry>> Function(WorkspaceResourceApi workspace) computeImportDiagnostics,
-  ) async {
-    final generation = ++_importRefreshGeneration;
-    final entries = await computeImportDiagnostics(workspace);
-    // A newer refresh or a cancelled watch supersedes this result.
-    if (generation != _importRefreshGeneration) {
-      return;
-    }
-    setImportDiagnostics(entries);
   }
 
   void _cancelImportWatch() {
