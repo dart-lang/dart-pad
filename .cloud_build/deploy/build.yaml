@@ -19,7 +19,8 @@ options:
   machineType: E2_HIGHCPU_8
 
 steps:
-  - name: dart:stable
+  # Pinned to 3.13 until jaspr_builder/analyzer support Dart 3.14.
+  - name: dart:3.13
     script: |
       #!/usr/bin/env bash
       set -eu
