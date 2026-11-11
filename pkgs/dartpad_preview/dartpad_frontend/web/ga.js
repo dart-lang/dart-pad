@@ -10,6 +10,7 @@
     try {
       return window.self !== window.top;
     } catch (_) {
+      // If the frame check fails, wait for interaction before initializing.
       return true;
     }
   }
@@ -33,6 +34,7 @@
     if (initialized) return;
     initialized = true;
 
+    // Queue calls until the asynchronously loaded Google tag can process them.
     window.dataLayer = window.dataLayer || [];
     window.gtag =
       window.gtag ||
@@ -44,10 +46,12 @@
     const config = {
       embed_mode: isEmbedded,
     };
+    // Allow partitioned cookies when DartPad is embedded over HTTPS.
     if (inIframe && window.location.protocol === 'https:') {
       config.cookie_flags = 'SameSite=None;Secure;Partitioned';
     }
     if (document.referrer) {
+      // Avoid including the referrer's query parameters in Analytics.
       config.page_referrer = document.referrer.split('?')[0];
     }
     window.gtag('config', measurementId, config);
@@ -63,8 +67,10 @@
     return;
   }
 
+  // Embedded DartPads wait for user interaction before loading Analytics.
   const interactionEvents = ['pointerdown', 'pointerup', 'click', 'keydown'];
 
+  // Cookie controls and the footer should not trigger Analytics initialization.
   function isCookieBarEvent(event) {
     let el = event.target;
     if (el && el.nodeType !== 1) {
@@ -94,6 +100,7 @@
     initAnalytics();
   }
 
+  // The preview iframe forwards interaction because its events do not bubble here.
   function onFrameMessage(event) {
     if (
       isChildFrame(event.source) &&
