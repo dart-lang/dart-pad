@@ -47,6 +47,11 @@
         "source": "/workshops?(.html)",
         "destination": "https://github.com/dart-lang/dart-pad/wiki/Workshop-authoring-guide",
         "type": 301
+      },
+      {
+        "regex": "^/(?P<id>[0-9a-f]{32})$",
+        "destination": "/?id=:id",
+        "type": 301
       }
     ],
     "headers": [
