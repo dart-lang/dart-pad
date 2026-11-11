@@ -350,6 +350,7 @@ final class _AppState extends State<App> {
     QueryParameterValidationException() => 'You provided invalid configuration parameters in the URL: ${error.message}',
     ProjectPathException() => 'Invalid project path: ${error.message}',
     ProjectContentException() => 'Invalid project file: ${error.message}',
+    ProjectSourceRetrievalException() => "Something is wrong with the project's source: ${error.message}",
     ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
     ProjectStorageException() => 'Could not access saved projects: ${error.message}',
     WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',

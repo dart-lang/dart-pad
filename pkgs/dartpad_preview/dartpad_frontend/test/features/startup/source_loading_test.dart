@@ -31,15 +31,44 @@ void main() {
           () => MockClient((request) async => throw http.ClientException('Failed to fetch', request.url)),
         ),
         throwsA(
-          isA<ProjectSourceException>().having(
+          isA<ProjectSourceRetrievalException>().having(
             (error) => error.message,
             'message',
-            allOf(startsWith('$failureMessage.'), contains('Check your connection')),
+            failureMessage,
           ),
         ),
       );
     });
   }
+  test('GistProjectSource identifies a failed browser request for a truncated file as a retrieval failure', () async {
+    final gistResponse = jsonEncode({
+      'files': {
+        'main.dart': {
+          'filename': 'main.dart',
+          'truncated': true,
+          'raw_url': 'https://gist.githubusercontent.com/raw/main.dart',
+        },
+      },
+    });
+    await expectLater(
+      http.runWithClient(
+        const GistProjectSource('abc').loadProject,
+        () => MockClient((request) async {
+          if (request.url.host == 'api.github.com') {
+            return http.Response(gistResponse, 200);
+          }
+          throw http.ClientException('Failed to fetch', request.url);
+        }),
+      ),
+      throwsA(
+        isA<ProjectSourceRetrievalException>().having(
+          (error) => error.message,
+          'message',
+          'Failed to load truncated gist file main.dart',
+        ),
+      ),
+    );
+  });
   for (final version in [null, '1.2.3', '1.2.3+build.2']) {
     test('loads ${version ?? 'latest'} package version via metadata archive_url', () async {
       final requests = <Uri>[];

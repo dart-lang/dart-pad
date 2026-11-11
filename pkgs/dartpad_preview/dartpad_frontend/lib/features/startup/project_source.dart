@@ -43,21 +43,6 @@ sealed class ProjectSource {
   Future<Project> loadProject();
 }
 
-/// A failed browser request may have no HTTP response (for example, offline or CORS).
-Future<http.Response> _getSourceResponse(
-  Uri uri, {
-  required String failureMessage,
-  Map<String, String>? headers,
-}) async {
-  try {
-    return await http.get(uri, headers: headers);
-  } on http.ClientException {
-    throw ProjectSourceException(
-      '$failureMessage. Check your connection and whether the source allows browser access.',
-    );
-  }
-}
-
 /// Decodes a remote JSON response, reporting malformed bodies as [ProjectSourceException].
 Object? _decodeSourceJson(String body) {
   try {
