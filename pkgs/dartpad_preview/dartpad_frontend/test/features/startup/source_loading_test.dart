@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
@@ -57,7 +58,7 @@ void main() {
         await expectLater(
           const PackageProjectSource('demo', version: '0.0.0').loadProject(),
           throwsA(
-            isA<FormatException>().having(
+            isA<PackageVersionNotFoundException>().having(
               (error) => error.message,
               'message',
               allOf(contains('demo'), contains('0.0.0')),
@@ -84,10 +85,50 @@ void main() {
     await http.runWithClient(() async {
       await expectLater(
         const PackageProjectSource('demo', version: '1.2.3').loadProject(),
-        throwsA(isA<FormatException>().having((error) => error.message, 'message', contains('(404)'))),
+        throwsA(isA<PubPackageMetadataException>().having((error) => error.message, 'message', contains('404'))),
       );
     }, () => MockClient((_) async => http.Response('Not found', 404)));
   });
+  test('reports package metadata network failures', () async {
+    await http.runWithClient(
+      () => expectLater(
+        const PackageProjectSource('demo', version: '1.2.3').loadProject(),
+        throwsA(
+          isA<PubPackageMetadataException>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('pub.dev'), contains('demo'), contains('1.2.3')),
+          ),
+        ),
+      ),
+      () => MockClient((_) async => throw http.ClientException('Network error')),
+    );
+  });
+  for (final (version, body) in [
+    (null, '{'),
+    (null, '[]'),
+    (null, '{"latest": {}}'),
+    ('1.2.3', '{"versions": {}}'),
+    ('1.2.3', '{"versions": [null]}'),
+    ('1.2.3', '{"versions": [{}]}'),
+    ('1.2.3', '{"versions": [{"version": "1.2.3"}]}'),
+  ]) {
+    test('reports invalid package metadata for version $version: $body', () async {
+      await http.runWithClient(
+        () => expectLater(
+          PackageProjectSource('demo', version: version).loadProject(),
+          throwsA(
+            isA<PubPackageMetadataException>().having(
+              (error) => error.message,
+              'message',
+              allOf(contains('pub.dev'), contains('demo'), contains(version ?? 'demo')),
+            ),
+          ),
+        ),
+        () => MockClient((_) async => http.Response(body, 200)),
+      );
+    });
+  }
   group('FlutterApiDocsProjectSource', () {
     for (final (channel, host) in [
       (null, 'api.flutter.dev'),
