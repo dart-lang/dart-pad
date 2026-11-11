@@ -29,7 +29,6 @@ final class ContextMenuItem extends ContextMenuEntry {
     this.shortcut,
     this.disabled = false,
     this.destructive = false,
-    this.requiresAnalyzer = false,
   });
 
   /// Creates a context menu item from a [ShortcutDefinition].
@@ -39,12 +38,10 @@ final class ContextMenuItem extends ContextMenuEntry {
   factory ContextMenuItem.fromShortcut({
     required ShortcutDefinition shortcut,
     required VoidCallback onPressed,
-    bool requiresAnalyzer = false,
   }) => ContextMenuItem(
     label: shortcut.label,
     onPressed: onPressed,
     shortcut: shortcut.resolvedDisplayKey,
-    requiresAnalyzer: requiresAnalyzer,
   );
 
   /// The text label displayed for this menu item.
@@ -61,9 +58,6 @@ final class ContextMenuItem extends ContextMenuEntry {
 
   /// Whether this is a destructive action (rendered with error styling).
   final bool destructive;
-
-  /// Whether this action needs an analyzer attached to the editor.
-  final bool requiresAnalyzer;
 }
 
 /// Controller that manages displaying and dismissing a floating context menu.

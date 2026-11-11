@@ -18,29 +18,26 @@ import '../../shared/events/error_toast_event.dart';
 List<ContextMenuEntry> buildEditorContextMenu({
   required CodeMirrorEditor editor,
   required String path,
+  required bool analyzerEnabled,
   AppEventBus? events,
 }) {
-  final entries = <ContextMenuEntry>[
-    if (path.endsWith('.dart')) ...[
+  return [
+    if (path.endsWith('.dart') && analyzerEnabled) ...[
       ContextMenuItem.fromShortcut(
         shortcut: ShortcutDefinition.goToDefinition,
-        requiresAnalyzer: true,
         onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12'),
       ),
       ContextMenuItem.fromShortcut(
         shortcut: ShortcutDefinition.findReferences,
-        requiresAnalyzer: true,
         onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12', shiftKey: true),
       ),
       const ContextMenuDivider(),
       ContextMenuItem.fromShortcut(
         shortcut: ShortcutDefinition.renameSymbol,
-        requiresAnalyzer: true,
         onPressed: () => dispatchEditorKey(editor, key: 'F2', code: 'F2'),
       ),
       ContextMenuItem.fromShortcut(
         shortcut: ShortcutDefinition.formatDocument,
-        requiresAnalyzer: true,
         onPressed: () => unawaited(editor.format()),
       ),
       const ContextMenuDivider(),
@@ -66,25 +63,6 @@ List<ContextMenuEntry> buildEditorContextMenu({
       },
     ),
   ];
-
-  final hasAnalyzer = editor.languageServerClient != null;
-  final visibleEntries = <ContextMenuEntry>[];
-  var pendingDivider = false;
-  for (final entry in entries) {
-    if (entry is ContextMenuItem && entry.requiresAnalyzer && !hasAnalyzer) {
-      continue;
-    }
-    if (entry is ContextMenuDivider) {
-      pendingDivider = visibleEntries.isNotEmpty;
-      continue;
-    }
-    if (pendingDivider) {
-      visibleEntries.add(const ContextMenuDivider());
-      pendingDivider = false;
-    }
-    visibleEntries.add(entry);
-  }
-  return visibleEntries;
 }
 
 /// Dispatches a synthetic keyboard event to CodeMirror's DOM element.
