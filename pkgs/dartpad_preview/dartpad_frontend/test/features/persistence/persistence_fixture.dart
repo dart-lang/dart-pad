@@ -11,16 +11,18 @@ import 'package:dartpad_frontend/features/editor/models/tab_descriptor.dart';
 import 'package:dartpad_frontend/features/persistence/persisted_project_state.dart';
 import 'package:dartpad_frontend/features/persistence/project_store.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
+import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 
 PersistedProjectState savedProject({
   String query = '?sample=counter',
   String text = 'void main() { print("previous work"); }',
   Map<String, Uint8List>? files,
+  SdkInfo? sdk,
   int sessionId = 1,
 }) => PersistedProjectState(
   query: Uri.parse(query).queryParametersAll,
-  sdk: availableSdks.firstWhere((sdk) => !sdk.isFlutter),
+  sdk: sdk ?? availableSdks.firstWhere((sdk) => !sdk.isFlutter),
   root: '',
   entrypoint: 'lib/main.dart',
   mode: RunMode.console,

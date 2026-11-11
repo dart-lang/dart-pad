@@ -8,7 +8,9 @@ import 'dart:typed_data';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_frontend/app.dart';
+import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -73,6 +75,21 @@ void main() {
     expect(await repositories.single.workspaceResourceApi.folderExist('empty'), isTrue);
     expect(store.entries, hasLength(2));
     expect(store.state, same(store.entries[latest.id]!.state));
+  });
+
+  testClient('restoring a session saved with another SDK shows no notice', (tester) async {
+    final currentSdk = availableSdks.firstWhere((sdk) => !sdk.isFlutter);
+    final olderSdk = SdkInfo(
+      id: currentSdk.id,
+      name: currentSdk.name,
+      path: currentSdk.path,
+      dartVersion: '3.12.0',
+    );
+    await store.create(savedProject(query: '', text: 'older sdk work', sdk: olderSdk, sessionId: 1));
+    tester.pumpComponent(app('?s=1'));
+    await pumpEventQueue();
+    expect(await repositories.single.workspaceResourceApi.readFileAsText('lib/main.dart'), 'older sdk work');
+    expect(web.document.querySelector('.persistence-notice'), isNull);
   });
 
   testClient('theme-only query with session id restores its saved entry', (tester) async {
