@@ -362,6 +362,30 @@ void main() {
       expect(errors.single, isA<StateError>());
       await api.dispose();
     });
+
+    test('ignores remote change events for non-persistent .dart_tool paths', () async {
+      await syncedApi.createFolder('sub');
+      remoteApiCompleter.complete(remoteApi);
+      await syncedApi.apiReady;
+
+      final events = <WorkspaceChangeEvent>[];
+      final subscription = syncedApi.changeEvents.listen(events.add);
+
+      await remoteApi.createFolder('.dart_tool');
+      await remoteApi.writeFileFromText('.dart_tool/package_config.json', '{"configVersion": 2}');
+      await remoteApi.createFolder('sub/.dart_tool');
+      await remoteApi.writeFileFromText('sub/.dart_tool/version', '3.12.0');
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      expect(await localApi.folderExist('.dart_tool'), isFalse);
+      expect(await localApi.fileExist('.dart_tool/package_config.json'), isFalse);
+      expect(await localApi.folderExist('sub/.dart_tool'), isFalse);
+      expect(await localApi.fileExist('sub/.dart_tool/version'), isFalse);
+      expect(events, isEmpty);
+
+      await subscription.cancel();
+      await syncedApi.dispose();
+    });
   });
 }
 
