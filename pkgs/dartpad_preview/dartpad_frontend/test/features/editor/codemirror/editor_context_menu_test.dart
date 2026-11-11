@@ -43,11 +43,15 @@ void main() {
       container.remove();
     });
 
-    test('builds menu items in the exact required order', () {
+    test('builds menu items in the exact required order when the analyzer is enabled', () {
       final items = buildEditorContextMenu(
         editor: editor,
         path: 'main.dart',
+        analyzerEnabled: true,
       );
+
+      // Analyzer actions are shown even before a client is attached.
+      expect(editor.languageServerClient, isNull);
 
       // Verify total items (7 actions + 2 dividers = 9 entries)
       expect(items.length, 9);
@@ -96,12 +100,40 @@ void main() {
       expect(items[8], isA<ContextMenuItem>());
       final item7 = items[8] as ContextMenuItem;
       expect(item7.label, 'Paste');
+
+      final nonDart = buildEditorContextMenu(editor: editor, path: 'pubspec.yaml', analyzerEnabled: true);
+      expect(nonDart.whereType<ContextMenuItem>().map((item) => item.label), ['Cut', 'Copy', 'Paste']);
+      expect(nonDart.whereType<ContextMenuDivider>(), isEmpty);
+    });
+
+    test('hides analyzer actions when disabled, even if a client is attached', () {
+      final client = LanguageServerClient(
+        languageServer: null,
+        rootWorkspaceUri: Uri.parse('file:///workspace/'),
+        editorRootUri: Uri.parse('file:///workspace/'),
+        workspaceChangeEvents: const Stream.empty(),
+        languageServerMessages: const Stream.empty(),
+        sendToLanguageServer: (_) {},
+      );
+      addTearDown(client.dispose);
+      editor.attachLanguageServerClient(client);
+      final items = buildEditorContextMenu(editor: editor, path: 'main.dart', analyzerEnabled: false);
+      expect(items.whereType<ContextMenuItem>().map((item) => item.label), ['Cut', 'Copy', 'Paste']);
+      expect(items.whereType<ContextMenuDivider>(), isEmpty);
+    });
+
+    test('hides analyzer actions and dividers when the analyzer is disabled', () {
+      final items = buildEditorContextMenu(editor: editor, path: 'main.dart', analyzerEnabled: false);
+
+      expect(items.whereType<ContextMenuItem>().map((item) => item.label), ['Cut', 'Copy', 'Paste']);
+      expect(items.whereType<ContextMenuDivider>(), isEmpty);
     });
 
     test('builds only edit items for non-Dart files without dividers', () {
       final items = buildEditorContextMenu(
         editor: editor,
         path: 'pubspec.yaml',
+        analyzerEnabled: false,
       );
 
       expect(items.length, 3);

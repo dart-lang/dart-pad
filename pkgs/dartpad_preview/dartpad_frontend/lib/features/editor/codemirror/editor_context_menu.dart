@@ -18,52 +18,30 @@ import '../../shared/events/error_toast_event.dart';
 List<ContextMenuEntry> buildEditorContextMenu({
   required CodeMirrorEditor editor,
   required String path,
+  required bool analyzerEnabled,
   AppEventBus? events,
 }) {
-  if (!path.endsWith('.dart')) {
-    return [
-      ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.cut,
-        onPressed: () => handleEditorCut(editor),
-      ),
-      ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.copy,
-        onPressed: () => handleEditorCopy(editor),
-      ),
-      ContextMenuItem.fromShortcut(
-        shortcut: ShortcutDefinition.paste,
-        onPressed: () {
-          unawaited(
-            handleEditorPaste(
-              editor,
-              mod: resolveDisplayKey('Mod'),
-              onPasteError: (message) => events?.dispatch(ErrorToastEvent(message)),
-            ),
-          );
-        },
-      ),
-    ];
-  }
-
   return [
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.goToDefinition,
-      onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12'),
-    ),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.findReferences,
-      onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12', shiftKey: true),
-    ),
-    const ContextMenuDivider(),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.renameSymbol,
-      onPressed: () => dispatchEditorKey(editor, key: 'F2', code: 'F2'),
-    ),
-    ContextMenuItem.fromShortcut(
-      shortcut: ShortcutDefinition.formatDocument,
-      onPressed: () => unawaited(editor.format()),
-    ),
-    const ContextMenuDivider(),
+    if (path.endsWith('.dart') && analyzerEnabled) ...[
+      ContextMenuItem.fromShortcut(
+        shortcut: ShortcutDefinition.goToDefinition,
+        onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12'),
+      ),
+      ContextMenuItem.fromShortcut(
+        shortcut: ShortcutDefinition.findReferences,
+        onPressed: () => dispatchEditorKey(editor, key: 'F12', code: 'F12', shiftKey: true),
+      ),
+      const ContextMenuDivider(),
+      ContextMenuItem.fromShortcut(
+        shortcut: ShortcutDefinition.renameSymbol,
+        onPressed: () => dispatchEditorKey(editor, key: 'F2', code: 'F2'),
+      ),
+      ContextMenuItem.fromShortcut(
+        shortcut: ShortcutDefinition.formatDocument,
+        onPressed: () => unawaited(editor.format()),
+      ),
+      const ContextMenuDivider(),
+    ],
     ContextMenuItem.fromShortcut(
       shortcut: ShortcutDefinition.cut,
       onPressed: () => handleEditorCut(editor),

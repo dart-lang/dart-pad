@@ -107,6 +107,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
     required this.workspaceResourceApi,
     void Function()? onRun,
     this.contextMenu,
+    this.analyzerEnabled = true,
     this.events,
     LanguageServerClient? languageServerClient,
   }) : _savedContent = content,
@@ -153,6 +154,9 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
 
   /// The context menu controller used to show right-click menus.
   final ContextMenuController? contextMenu;
+
+  /// Whether analyzer support is enabled by the app's startup policy.
+  final bool analyzerEnabled;
 
   /// The event bus for system notifications and error toasts.
   final AppEventBus? events;
@@ -267,6 +271,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
       buildEditorContextMenu(
         editor: editor,
         path: path,
+        analyzerEnabled: analyzerEnabled,
         events: events,
       ),
     );
