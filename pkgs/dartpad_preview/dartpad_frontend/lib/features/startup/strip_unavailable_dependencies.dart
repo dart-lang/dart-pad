@@ -64,6 +64,30 @@ List<DiagnosticEntry> dependencyDiagnostics(Project project) {
   return diagnostics;
 }
 
+/// Returns the [dependencyDiagnostics] of the files currently in [workspace].
+///
+/// Reads the pubspec files as they are now, so edits made after import are reflected.
+Future<List<DiagnosticEntry>> dependencyDiagnosticsInWorkspace(WorkspaceResourceApi workspace) async {
+  return dependencyDiagnostics(await _projectFromWorkspace(workspace));
+}
+
+/// Copies the files of [workspace] into a [Project] for read-only checks.
+///
+/// Only pubspec files are read. Other files are present as empty so that path checks still work.
+Future<Project> _projectFromWorkspace(WorkspaceResourceApi workspace) async {
+  final files = <ProjectFile>[];
+  for (final resource in await workspace.listDirectory(path: '', recursive: true)) {
+    if (resource.type != 'file') {
+      continue;
+    }
+    final basename = basenameWorkspacePath(resource.path);
+    final isPubspec = basename == 'pubspec.yaml' || basename == 'pubspec_overrides.yaml';
+    final bytes = isPubspec ? await workspace.readFileAsBytes(resource.path) : Uint8List(0);
+    files.add(ProjectFile(path: resource.path, bytes: bytes));
+  }
+  return Project(files);
+}
+
 /// The Problems entries for the unavailable entries of [sectionName] in [file].
 List<DiagnosticEntry> _sectionDiagnostics(
   Project project, {

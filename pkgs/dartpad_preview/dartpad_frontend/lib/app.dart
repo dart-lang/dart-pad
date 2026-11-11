@@ -276,7 +276,7 @@ final class _AppState extends State<App> {
       for (final warning in project.contents.importWarnings) {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
-      session.diagnostics.setImportDiagnostics(dependencyDiagnostics(project.contents));
+      unawaited(_watchImportDiagnostics(session));
       unawaited(
         _initializeWorkspace(
           session,
@@ -291,6 +291,16 @@ final class _AppState extends State<App> {
         await localApi.dispose();
       }
     }
+  }
+
+  /// Computes import problems from the session's workspace, then keeps them current.
+  ///
+  /// Reads the workspace rather than the loaded project, so SDK switches see
+  /// edits made since load.
+  Future<void> _watchImportDiagnostics(WorkspaceSession session) {
+    final workspace = session.repository.workspaceResourceApi;
+    session.diagnostics.watchImportDiagnostics(workspace, computeImportDiagnostics: dependencyDiagnosticsInWorkspace);
+    return session.diagnostics.refreshImportDiagnostics(workspace, dependencyDiagnosticsInWorkspace);
   }
 
   /// Installs a session with a fresh worker so worker-local changes do not persist.
@@ -718,6 +728,11 @@ final class _AppState extends State<App> {
         entrypoint: entrypoint,
         onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(next) : null,
       );
+      await _watchImportDiagnostics(next);
+      if (!_isCurrent(oldSession)) {
+        await next.dispose();
+        return;
+      }
       _embedRuntime?.observePreview(next.preview.containerElement);
       oldSession.preview.removeListener(_onPreviewStateChanged);
       next.preview.addListener(_onPreviewStateChanged);
