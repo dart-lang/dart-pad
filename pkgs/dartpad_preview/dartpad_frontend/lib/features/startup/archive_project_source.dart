@@ -26,7 +26,7 @@ Future<Project> _loadArchive(String archiveUrl) async {
   try {
     response = await http.get(uri);
   } on http.ClientException {
-    throw const ProjectSourceRetrievalException('Failed to load archive');
+    throw const ProjectSourceRetrievalException('Failed to GET archive');
   }
   if (response.statusCode != 200) {
     throw ProjectSourceException('Failed to load archive (${response.statusCode}).');

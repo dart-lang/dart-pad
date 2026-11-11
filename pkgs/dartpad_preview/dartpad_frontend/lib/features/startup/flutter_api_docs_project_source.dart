@@ -34,7 +34,7 @@ final class FlutterApiDocsProjectSource extends ProjectSource {
     try {
       response = await http.get(snippetUri);
     } on http.ClientException {
-      throw ProjectSourceRetrievalException('Failed to load Flutter API sample $sampleId');
+      throw ProjectSourceRetrievalException('Failed to GET Flutter API sample $sampleId');
     }
     if (response.statusCode != 200) {
       throw ProjectSourceException('Failed to load Flutter API sample $sampleId (${response.statusCode}).');

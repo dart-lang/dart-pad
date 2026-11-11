@@ -64,7 +64,7 @@ void main() {
         isA<ProjectSourceRetrievalException>().having(
           (error) => error.message,
           'message',
-          'Failed to load truncated gist file main.dart',
+          'Failed to GET truncated gist file main.dart',
         ),
       ),
     );
