@@ -68,10 +68,14 @@ build:
         assert isinstance(hosting, dict)
         allowed = {'site', 'public', 'ignore', 'rewrites', 'redirects', 'headers', 'cleanUrls', 'trailingSlash'}
         assert set(hosting.keys()) <= allowed
-        assert hosting.get('site') == os.environ['_FIREBASE_SITE']
+        assert hosting.get('site') in {'dart-pad-a3c64', os.environ['_FIREBASE_SITE']}
         assert hosting.get('public') == 'public'
         for r in hosting.get('rewrites', []):
           assert set(r.keys()) <= {'source', 'regex', 'destination'}
+
+        hosting['site'] = os.environ['_FIREBASE_SITE']
+        with open('/workspace/deploy/firebase.json', 'w') as f:
+          json.dump(config, f, indent=2)
 
     # Deploy to PR preview channel.
     - name: gcr.io/$PROJECT_ID/firebase

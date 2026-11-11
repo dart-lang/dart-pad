@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "sketch-pad-1cebb",
+    "site": "dart-pad-a3c64",
     "public": "public",
     "ignore": [
       "firebase.json",

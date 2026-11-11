@@ -8,7 +8,8 @@ steps:
     args: ['build', 'web', '--wasm']
     dir: pkgs/dartpad_ui
 
-  # Deploy dartpad_ui to Firebase Hosting (site: dart-pad-a3c64)
-  - name: gcr.io/$PROJECT_ID/firebase
-    args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:dartpad']
-    dir: pkgs/dartpad_ui
+  # Disabled: dartpad.dev is now deployed by .cloud_build/deploy/trigger-main.yaml.
+  # # Deploy dartpad_ui to Firebase Hosting (site: dart-pad-a3c64)
+  # - name: gcr.io/$PROJECT_ID/firebase
+  #   args: ['deploy', '--project=$PROJECT_ID', '--only', 'hosting:dartpad']
+  #   dir: pkgs/dartpad_ui
