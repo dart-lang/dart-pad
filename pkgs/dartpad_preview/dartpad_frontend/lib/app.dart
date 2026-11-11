@@ -46,6 +46,7 @@ import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/panel_layout_controller.dart';
 import 'features/shared/panel_presentation_state.dart';
+import 'features/shared/project_exceptions.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/shared/workspace_mode.dart';
@@ -337,7 +338,11 @@ final class _AppState extends State<App> {
       _activeSession = null;
       _isCommandPaletteOpen = false;
       _isInitializingWorkspace = false;
-      _workspacePreparationFailure = error.toString();
+      _workspacePreparationFailure = switch (error) {
+        PubPackageMetadataException() => 'Could not load package metadata: ${error.message}',
+        PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
+        _ => error.toString(),
+      };
       _failedRestoreUri = restoring ? uri : null;
     });
     if (oldSession != null) {

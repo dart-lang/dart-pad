@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
@@ -20,6 +21,15 @@ void main() {
     test('loads ${version ?? 'latest'} package version via metadata archive_url', () async {
       final requests = <Uri>[];
       final archive = Uint8List.fromList(TarEncoder().encode(Archive()));
+      final versions = [
+        for (final value in ['1.2.3', '1.2.3+build.2', '2.0.0'])
+          {
+            'version': value,
+            'archive_url': 'https://archives.example.com/demo-${Uri.encodeComponent(value)}.tar.gz?token=test',
+          },
+      ];
+      final metadata = versions.singleWhere((entry) => entry['version'] == (version ?? '2.0.0'));
+      final archiveUri = Uri.parse(metadata['archive_url']!);
       await http.runWithClient(
         () async {
           final project = await PackageProjectSource('demo', version: version).loadProject();
@@ -27,27 +37,98 @@ void main() {
         },
         () => MockClient((request) async {
           requests.add(request.url);
-          if (request.url.path == '/api/archives/demo-1.2.3.tar.gz') {
+          if (request.url == archiveUri) {
             return http.Response.bytes(archive, 200);
           }
-          final metadata = {'archive_url': 'https://pub.dev/api/archives/demo-1.2.3.tar.gz'};
-          return http.Response(jsonEncode(version == null ? {'latest': metadata} : metadata), 200);
+          expect(request.url, Uri.https('pub.dev', '/api/packages/demo'));
+          expect(request.headers['accept'], 'application/vnd.pub.v2+json');
+          return http.Response(jsonEncode({'latest': versions.last, 'versions': versions}), 200);
         }),
       );
       expect(requests, [
-        Uri.https('pub.dev', version == null ? '/api/packages/demo' : '/api/packages/demo/versions/$version'),
-        Uri.https('pub.dev', '/api/archives/demo-1.2.3.tar.gz'),
+        Uri.https('pub.dev', '/api/packages/demo'),
+        archiveUri,
       ]);
     });
   }
   test('reports missing package versions without loading latest', () async {
+    final requests = <Uri>[];
+    await http.runWithClient(
+      () async {
+        await expectLater(
+          const PackageProjectSource('demo', version: '0.0.0').loadProject(),
+          throwsA(
+            isA<PackageVersionNotFoundException>().having(
+              (error) => error.message,
+              'message',
+              allOf(contains('demo'), contains('0.0.0')),
+            ),
+          ),
+        );
+      },
+      () => MockClient((request) async {
+        requests.add(request.url);
+        expect(request.url, Uri.https('pub.dev', '/api/packages/demo'));
+        const latest = {'version': '1.2.3', 'archive_url': 'https://pub.dev/api/archives/demo-1.2.3.tar.gz'};
+        return http.Response(
+          jsonEncode({
+            'latest': latest,
+            'versions': [latest],
+          }),
+          200,
+        );
+      }),
+    );
+    expect(requests, [Uri.https('pub.dev', '/api/packages/demo')]);
+  });
+  test('reports failed package metadata requests', () async {
     await http.runWithClient(() async {
       await expectLater(
-        const PackageProjectSource('demo', version: '0.0.0').loadProject(),
-        throwsFormatException,
+        const PackageProjectSource('demo', version: '1.2.3').loadProject(),
+        throwsA(isA<PubPackageMetadataException>().having((error) => error.message, 'message', contains('404'))),
       );
     }, () => MockClient((_) async => http.Response('Not found', 404)));
   });
+  test('reports package metadata network failures', () async {
+    await http.runWithClient(
+      () => expectLater(
+        const PackageProjectSource('demo', version: '1.2.3').loadProject(),
+        throwsA(
+          isA<PubPackageMetadataException>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('pub.dev'), contains('demo'), contains('1.2.3')),
+          ),
+        ),
+      ),
+      () => MockClient((_) async => throw http.ClientException('Network error')),
+    );
+  });
+  for (final (version, body) in [
+    (null, '{'),
+    (null, '[]'),
+    (null, '{"latest": {}}'),
+    ('1.2.3', '{"versions": {}}'),
+    ('1.2.3', '{"versions": [null]}'),
+    ('1.2.3', '{"versions": [{}]}'),
+    ('1.2.3', '{"versions": [{"version": "1.2.3"}]}'),
+  ]) {
+    test('reports invalid package metadata for version $version: $body', () async {
+      await http.runWithClient(
+        () => expectLater(
+          PackageProjectSource('demo', version: version).loadProject(),
+          throwsA(
+            isA<PubPackageMetadataException>().having(
+              (error) => error.message,
+              'message',
+              allOf(contains('pub.dev'), contains('demo'), contains(version ?? 'demo')),
+            ),
+          ),
+        ),
+        () => MockClient((_) async => http.Response(body, 200)),
+      );
+    });
+  }
   group('FlutterApiDocsProjectSource', () {
     for (final (channel, host) in [
       (null, 'api.flutter.dev'),

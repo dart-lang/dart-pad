@@ -22,26 +22,48 @@ final class PackageProjectSource extends ProjectSource {
 }
 
 Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) async {
+  final packageDescription = '$packageName${version == null ? '' : ' version $version'}';
   final uri = Uri(
     scheme: 'https',
     host: 'pub.dev',
-    pathSegments: [
-      'api',
-      'packages',
-      packageName,
-      if (version != null) ...['versions', version],
-    ],
+    pathSegments: ['api', 'packages', packageName],
   );
-  final response = await http.get(uri);
+  final http.Response response;
+  try {
+    response = await http.get(uri, headers: {'Accept': 'application/vnd.pub.v2+json'});
+  } on http.ClientException {
+    throw PubPackageMetadataException('pub.dev is unreachable for $packageDescription.');
+  }
   if (response.statusCode != 200) {
-    throw FormatException(
-      'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
+    throw PubPackageMetadataException(
+      'pub.dev returned HTTP ${response.statusCode} for $packageDescription.',
     );
   }
-  final Object? json = jsonDecode(response.body);
-  final Object? metadata = version == null && json is Map<String, Object?> ? json['latest'] : json;
+  final Object? json;
+  try {
+    json = jsonDecode(response.body);
+  } on FormatException {
+    throw PubPackageMetadataException('pub.dev returned invalid JSON for $packageDescription.');
+  }
+  if (json is! Map<String, Object?>) {
+    throw PubPackageMetadataException('pub.dev returned an unexpected response for $packageDescription.');
+  }
+  final Object? metadata;
+  if (version == null) {
+    metadata = json['latest'];
+  } else {
+    final versions = json['versions'];
+    if (versions is! List<Object?> ||
+        versions.any((entry) => entry is! Map<String, Object?> || entry['version'] is! String)) {
+      throw PubPackageMetadataException('pub.dev returned an unexpected response for $packageDescription.');
+    }
+    metadata = versions.whereType<Map<String, Object?>>().where((entry) => entry['version'] == version).firstOrNull;
+    if (metadata == null) {
+      throw PackageVersionNotFoundException('$packageName version $version');
+    }
+  }
   if (metadata is Map<String, Object?> && metadata['archive_url'] is String) {
     return metadata['archive_url'] as String;
   }
-  throw const FormatException('Unexpected package response.');
+  throw PubPackageMetadataException('pub.dev returned an unexpected response for $packageDescription.');
 }

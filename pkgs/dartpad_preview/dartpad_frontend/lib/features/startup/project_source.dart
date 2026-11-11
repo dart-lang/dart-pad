@@ -11,6 +11,7 @@ import 'package:tar/tar.dart';
 import 'package:yaml/yaml.dart';
 
 import '../shared/flutter_api_channel.dart';
+import '../shared/project_exceptions.dart';
 import 'examples.g.dart';
 import 'gzip/gzip.dart';
 import 'project_loader.dart';
