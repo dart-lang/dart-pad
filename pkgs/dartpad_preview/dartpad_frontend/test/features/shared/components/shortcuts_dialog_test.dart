@@ -151,6 +151,107 @@ void main() {
     expect(commandPaletteSeparator.length, 0);
   });
 
+  testClient('renders search input and focuses it on open', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+    expect(input?.placeholder, 'Search shortcuts...');
+    expect(web.document.activeElement, equals(input));
+  });
+
+  testClient('filters shortcuts by query and shows matching rows', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    expect(input, isNotNull);
+
+    input!.value = 'Rename symbol';
+    input.dispatchEvent(web.Event('input'));
+    await pumpEventQueue();
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    expect(rows.length, 1);
+    final commandLabel = (rows.item(0) as web.HTMLElement).querySelector('.shortcuts-dialog-command')?.textContent;
+    expect(commandLabel, 'Rename symbol');
+
+    final toggleBtn = web.document.querySelector('.shortcuts-dialog-toggle-btn');
+    expect(toggleBtn, isNull);
+  });
+
+  testClient('filters shortcuts by key combination including extended shortcuts', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    input!.value = 'F3';
+    input.dispatchEvent(web.Event('input'));
+    await pumpEventQueue();
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    expect(rows.length, 2);
+    final labels = [
+      for (var i = 0; i < rows.length; i++)
+        (rows.item(i) as web.HTMLElement).querySelector('.shortcuts-dialog-command')?.textContent,
+    ];
+    expect(labels, containsAll(['Find next', 'Find previous']));
+  });
+
+  testClient('shows empty message when no shortcuts match query', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    input!.value = 'nonexistent_query';
+    input.dispatchEvent(web.Event('input'));
+    await pumpEventQueue();
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    expect(rows.length, 0);
+
+    final empty = web.document.querySelector('.shortcuts-dialog-empty');
+    expect(empty, isNotNull);
+    expect(empty?.textContent, 'No matching shortcuts found');
+  });
+
+  testClient('clears search query and restores full list via clear button', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    input!.value = 'Rename symbol';
+    input.dispatchEvent(web.Event('input'));
+    await pumpEventQueue();
+
+    final clearBtn = web.document.querySelector('[aria-label="Clear search"]') as web.HTMLButtonElement?;
+    expect(clearBtn, isNotNull);
+    clearBtn!.click();
+    await pumpEventQueue();
+
+    final rows = web.document.querySelectorAll('.shortcuts-dialog-row');
+    expect(rows.length, primaryShortcutCount);
+    expect(input.value, '');
+  });
+
+  testClient('Cmd+F or Ctrl+F focuses and selects search input', (tester) async {
+    tester.pumpComponent(ShortcutsDialog(onClose: () {}));
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.shortcuts-dialog-search-input') as web.HTMLInputElement?;
+    input!.value = 'test';
+
+    input.blur();
+    expect(web.document.activeElement, isNot(equals(input)));
+
+    web.document.dispatchEvent(
+      web.KeyboardEvent(
+        'keydown',
+        web.KeyboardEventInit(key: 'f', metaKey: true, bubbles: true, cancelable: true),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(web.document.activeElement, equals(input));
+  });
+
   group('ShortcutDefinition', () {
     test('resolves display keys and joins them in displayKey', () {
       const single = ShortcutDefinition(label: 'Single', displayKey: 'Mod + S');
