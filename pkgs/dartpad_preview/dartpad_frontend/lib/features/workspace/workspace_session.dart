@@ -48,10 +48,12 @@ final class WorkspaceSession {
   /// string is not a sentinel for clearing the entrypoint.
   /// [initialMode] must be resolved for the repository's SDK and the entrypoint
   /// before creating the session, including when switching SDKs.
+  /// [analyzerEnabled] is the app's startup policy, independent of client state.
   factory WorkspaceSession.create(
     WorkspaceRepository repository, {
     required InitialProjectState initialProject,
     required RunMode initialMode,
+    bool analyzerEnabled = true,
     String? entrypoint,
     Future<void> Function()? onBeforeRun,
   }) {
@@ -59,6 +61,7 @@ final class WorkspaceSession {
     late final WorkspaceSession session;
     final codemirrorAdapter = CodeMirrorTabAdapter(
       contextMenu: contextMenu,
+      analyzerEnabled: analyzerEnabled,
       events: repository.events,
       onRun: () => session.runOrHotReload(),
       readSystemFile: repository.readSystemFile,

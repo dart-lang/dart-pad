@@ -318,6 +318,7 @@ final class _AppState extends State<App> {
       repository,
       initialProject: project,
       initialMode: project.mode,
+      analyzerEnabled: _enableAnalyzer,
       onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(session) : null,
     );
     _embedRuntime?.observePreview(session.preview.containerElement);
@@ -718,6 +719,7 @@ final class _AppState extends State<App> {
         ),
         initialProject: oldSession.initialProject,
         initialMode: mode,
+        analyzerEnabled: _enableAnalyzer,
         entrypoint: entrypoint,
         onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(next) : null,
       );

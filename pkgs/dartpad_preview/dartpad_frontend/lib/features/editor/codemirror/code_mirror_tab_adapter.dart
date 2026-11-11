@@ -19,12 +19,14 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
   /// Creates an adapter for files using the codemirror editor.
   CodeMirrorTabAdapter({
     this.contextMenu,
+    this.analyzerEnabled = true,
     this.events,
     this.onRun,
     this.readSystemFile,
   });
 
   final ContextMenuController? contextMenu;
+  final bool analyzerEnabled;
   final AppEventBus? events;
   final void Function()? onRun;
 
@@ -70,6 +72,7 @@ final class CodeMirrorTabAdapter extends EditorTabAdapter<Component> {
       workspaceResourceApi: tabs.workspaceResourceApi,
       languageServerClient: _languageServerClient,
       contextMenu: contextMenu,
+      analyzerEnabled: analyzerEnabled,
       events: events,
     );
   }
