@@ -26,7 +26,8 @@ github:
   push:
     branch: ^main$
 substitutions:
-  _FIREBASE_SITE: sketch-pad-1cebb
+  _FIREBASE_SITE: dart-pad-a3c64
+  _PR_FIREBASE_SITE: sketch-pad-1cebb
 build:
   logsBucket: gs://dart-pad-build-logs
   options:
@@ -95,7 +96,7 @@ build:
         )
         CHANNELS=$(
           firebase hosting:channel:list \
-            --site="${_FIREBASE_SITE}" \
+            --site="${_PR_FIREBASE_SITE}" \
             --project="${PROJECT_ID}" \
             --json \
             | jq -r '.result.channels[].name | split("/")[-1]' \
@@ -103,7 +104,7 @@ build:
         )
         for ch in $(comm -12 <(echo "${CLOSED}") <(echo "${CHANNELS}")); do
           firebase hosting:channel:delete "${ch}" \
-            --site="${_FIREBASE_SITE}" \
+            --site="${_PR_FIREBASE_SITE}" \
             --project="${PROJECT_ID}" \
             --force || true
         done
