@@ -25,7 +25,7 @@ final class GistProjectSource extends ProjectSource {
         headers: const {'Accept': 'application/vnd.github+json'},
       );
     } on http.ClientException {
-      throw ProjectSourceRetrievalException('Failed to load gist $id');
+      throw ProjectSourceRetrievalException('Failed to GET gist $id');
     }
     if (response.statusCode != 200) {
       throw ProjectSourceException('Failed to load gist $id (${response.statusCode}).');
@@ -84,7 +84,7 @@ Future<ProjectFile> _loadGistFile(Object? value) async {
     try {
       response = await http.get(rawUri);
     } on http.ClientException {
-      throw ProjectSourceRetrievalException('Failed to load truncated gist file $filename');
+      throw ProjectSourceRetrievalException('Failed to GET truncated gist file $filename');
     }
     if (response.statusCode != 200) {
       throw ProjectSourceException('Failed to load truncated gist file $filename.');

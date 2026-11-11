@@ -19,9 +19,9 @@ import 'initial_project_state_test.dart' show sdks;
 
 void main() {
   for (final (source, failureMessage) in <(ProjectSource, String)>[
-    (const ArchiveProjectSource('https://example.com/project.tar'), 'Failed to load archive'),
-    (const GistProjectSource('abc'), 'Failed to load gist abc'),
-    (const FlutterApiDocsProjectSource('material.AppBar.1'), 'Failed to load Flutter API sample material.AppBar.1'),
+    (const ArchiveProjectSource('https://example.com/project.tar'), 'Failed to GET archive'),
+    (const GistProjectSource('abc'), 'Failed to GET gist abc'),
+    (const FlutterApiDocsProjectSource('material.AppBar.1'), 'Failed to GET Flutter API sample material.AppBar.1'),
   ]) {
     test('${source.runtimeType} identifies a failed browser request as a source failure', () async {
       await expectLater(
@@ -63,7 +63,7 @@ void main() {
         isA<ProjectSourceRetrievalException>().having(
           (error) => error.message,
           'message',
-          'Failed to load truncated gist file main.dart',
+          'Failed to GET truncated gist file main.dart',
         ),
       ),
     );
@@ -217,7 +217,7 @@ void main() {
             isA<ProjectSourceRetrievalException>().having(
               (error) => error.message,
               'message',
-              'Failed to load package demo version 1.2.3',
+              'Failed to GET package demo version 1.2.3',
             ),
           );
         } else {
@@ -233,6 +233,26 @@ void main() {
       });
     });
   }
+  test('reports a network failure while loading the latest package after retries', () {
+    return fakeAsync((time) {
+      Object? failure;
+      http
+          .runWithClient(
+            () => const PackageProjectSource('demo').loadProject(),
+            () => MockClient((_) async => throw http.ClientException('Network error')),
+          )
+          .then<void>((_) {}, onError: (Object error, StackTrace _) => failure = error);
+      time.elapse(const Duration(seconds: 10));
+      expect(
+        failure,
+        isA<ProjectSourceRetrievalException>().having(
+          (error) => error.message,
+          'message',
+          'Failed to GET package demo',
+        ),
+      );
+    });
+  });
   for (final (version, body) in [
     (null, '{'),
     (null, '[]'),
