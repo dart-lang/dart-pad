@@ -7,11 +7,55 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/dart",
+        "destination": "/?sample=dart",
+        "type": 301
+      },
+      {
+        "source": "/flutter",
+        "destination": "/?sample=flutter",
+        "type": 301
+      },
+      {
+        "source": "/embed-dart?(.html)",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-flutter?(.html)",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-flutter_showcase?(.html)",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-html?(.html)",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/embed-inline?(.html)",
+        "destination": "/?embed=true",
+        "type": 301
+      },
+      {
+        "source": "/workshops?(.html)",
+        "destination": "https://github.com/dart-lang/dart-pad/wiki/Workshop-authoring-guide",
+        "type": 301
+      }
+    ],
     "headers": [
       {
         "source": "**",
         "headers": [
-          { "key": "Cache-Control", "value": "max-age=0, must-revalidate" }
+          { "key": "Cache-Control", "value": "max-age=0, must-revalidate" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
         ]
       },
       {
