@@ -16,7 +16,7 @@ const availableSdks = <SdkInfo>[
     path: 'dartpad/flutter/',
     channel: 'beta',
     dartVersion: '3.14.0 (build 3.14.0-315.1.beta)',
-    flutterVersion: '3.50.0-0.2.pre',
+    flutterVersion: '3.50.0-0.4.pre',
   ),
   SdkInfo(
     id: 'dart',
