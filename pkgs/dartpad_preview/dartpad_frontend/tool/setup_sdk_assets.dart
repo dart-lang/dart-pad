@@ -11,12 +11,9 @@ import 'package:process/process.dart';
 // Keep Flutter pinned to 3.50.0-0.2.pre until launch.
 const flutterRevision = '0e4dea427d51a91ccac1f3cbd01bffa927fe6409';
 
-// Keep Dart pinned to 3.14.0-315.3.beta until launch.
-const dartRevision = 'f6300bc9c8d2015d2865687987728885cd32277f';
-
-// Channel metadata does not change the pinned SDK revisions.
+// Channel metadata does not change the pinned Flutter revision.
 const flutterChannel = 'beta';
-const dartChannel = 'beta';
+const dartChannel = 'stable';
 
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
@@ -32,14 +29,13 @@ class SdkAssetSetup {
     final assets = Directory(p.join(stagingDir.path, 'assets'));
 
     try {
-      // Download the pinned Dart beta bundle independently of Flutter's Dart SDK.
+      // Download the latest Dart stable bundle independently of Flutter's Dart SDK.
       await _run(Platform.resolvedExecutable, [
         'run',
         'dartpad',
         'setup',
         'dart',
         '--channel=$dartChannel',
-        '--revision=$dartRevision',
         '--output=${p.join(assets.path, 'dart')}',
       ], frontendRoot.path);
 

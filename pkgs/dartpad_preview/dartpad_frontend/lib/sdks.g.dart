@@ -22,8 +22,8 @@ const availableSdks = <SdkInfo>[
     id: 'dart',
     name: 'Dart',
     path: 'dartpad/dart/',
-    channel: 'beta',
-    dartVersion: '3.14.0-315.3.beta',
+    channel: 'stable',
+    dartVersion: '3.14.0',
   ),
 ];
 
