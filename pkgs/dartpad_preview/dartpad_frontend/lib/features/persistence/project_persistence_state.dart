@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../shared/sdk_info.dart';
-
 /// Storage decisions made before loading a project's files.
 final class PersistenceLoadStrategy {
   const PersistenceLoadStrategy({this.restoreProjectId, this.mintedSessionId});
@@ -27,10 +25,4 @@ final class ProjectHistoryUnavailable extends PersistenceNotice {
 
 final class ProjectSaveFailed extends PersistenceNotice {
   const ProjectSaveFailed();
-}
-
-final class RestoredWithDifferentSdk extends PersistenceNotice {
-  const RestoredWithDifferentSdk(this.sdk);
-
-  final SdkInfo sdk;
 }

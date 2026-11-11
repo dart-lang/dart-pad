@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
-import '../shared/sdk_info.dart';
 import '../startup/project_request.dart';
 import '../workspace/workspace_session.dart';
 import 'indexed_db_project_store.dart';
@@ -134,13 +133,6 @@ final class ProjectPersistenceController extends ChangeNotifier {
       throw StateError('The saved project is no longer available.');
     }
     return project;
-  }
-
-  void reportRestoredSdk({required SdkInfo saved, required SdkInfo actual}) {
-    if (saved.dartVersion != actual.dartVersion || saved.flutterVersion != actual.flutterVersion) {
-      _notice = RestoredWithDifferentSdk(actual);
-      _notify();
-    }
   }
 
   /// Starts saving a prepared session. Omit [projectId] to create a new entry.

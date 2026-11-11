@@ -277,9 +277,6 @@ final class _AppState extends State<App> {
         session.events.dispatch(LogEvent(warning, level: Level.WARNING));
       }
       session.diagnostics.setImportDiagnostics(dependencyDiagnostics(project.contents));
-      if (snapshot != null) {
-        _persistence.reportRestoredSdk(saved: snapshot.sdk, actual: project.initialState.sdk);
-      }
       unawaited(
         _initializeWorkspace(
           session,

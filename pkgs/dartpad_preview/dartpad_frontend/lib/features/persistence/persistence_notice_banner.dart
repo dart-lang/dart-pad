@@ -22,8 +22,6 @@ final class PersistenceNoticeBanner extends StatelessComponent {
         ProjectHistoryUnavailable() => 'Your saved projects could not be loaded. Local saving is paused.',
         ProjectSaveFailed() =>
           'Your work could not be saved in this browser. Keep this tab open and copy your changes before leaving.',
-        RestoredWithDifferentSdk(:final sdk) =>
-          'Your previous SDK is no longer available. Your work was restored with ${sdk.displayName}.',
       }),
     ],
   );
