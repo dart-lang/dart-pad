@@ -90,7 +90,7 @@ final class AppBar extends StatelessComponent {
     final appBar = div(classes: 'app-bar', [
       // Flutter-style preview corner ribbon overlay.
       const div(classes: 'app-bar-preview-ribbon-wrapper', [
-        div(classes: 'app-bar-preview-ribbon', [.text('PREVIEW')]),
+        div(classes: 'app-bar-preview-ribbon', [.text('BETA')]),
       ]),
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
