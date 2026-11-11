@@ -156,9 +156,11 @@ void main() {
       expect(trigger.textContent, isNot(contains(sdk.displayName)));
       expect(trigger.querySelector('.app-footer-info-icon'), isNotNull);
       expect(trigger.getAttribute('aria-label'), contains(sdk.displayName));
+      final sdkChannel = sdk.channel!;
+      final expectedChannelLabel = '${sdkChannel[0].toUpperCase()}${sdkChannel.substring(1)} channel';
       final channel = web.document.querySelector('.app-footer-channel')!;
       expect(channel.querySelector('.material-symbols-outlined')?.textContent, 'tune');
-      expect(channel.getAttribute('aria-label'), 'Beta channel');
+      expect(channel.getAttribute('aria-label'), expectedChannelLabel);
       expect(channel.querySelector('.app-footer-channel-label'), isNull);
 
       trigger.click();

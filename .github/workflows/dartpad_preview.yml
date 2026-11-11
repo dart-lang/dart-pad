@@ -29,7 +29,10 @@ jobs:
         with:
           persist-credentials: false
 
+      # Pinned to 3.13 until jaspr_builder/analyzer support Dart 3.14.
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+        with:
+          sdk: '3.13'
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
@@ -77,7 +80,10 @@ jobs:
         with:
           persist-credentials: false
 
+      # Pinned to 3.13 until jaspr_builder/analyzer support Dart 3.14.
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+        with:
+          sdk: '3.13'
 
       - name: Install dependencies
         working-directory: pkgs/dartpad_preview
@@ -104,7 +110,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      # Pinned to 3.13 until jaspr_builder/analyzer support Dart 3.14.
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+        with:
+          sdk: '3.13'
 
       - name: Install dependencies
         working-directory: pkgs/dartpad_preview

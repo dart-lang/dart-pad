@@ -13,7 +13,7 @@ const flutterRevision = '0e4dea427d51a91ccac1f3cbd01bffa927fe6409';
 
 // Channel metadata does not change the pinned Flutter revision.
 const flutterChannel = 'beta';
-const dartChannel = 'beta';
+const dartChannel = 'stable';
 
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
@@ -29,7 +29,7 @@ class SdkAssetSetup {
     final assets = Directory(p.join(stagingDir.path, 'assets'));
 
     try {
-      // Download the latest Dart beta bundle independently of Flutter's Dart SDK.
+      // Download the latest Dart stable bundle independently of Flutter's Dart SDK.
       await _run(Platform.resolvedExecutable, [
         'run',
         'dartpad',
