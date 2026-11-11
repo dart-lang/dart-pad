@@ -217,7 +217,10 @@ Map<Object?, Object?> _pubspec(Project contents, String root) {
     yaml = loadYaml(utf8.decode(bytes));
   } on YamlException catch (error) {
     throw ProjectContentException('pubspec.yaml is not valid YAML: ${error.message}');
+  } on FormatException catch (error) {
+    throw ProjectContentException('pubspec.yaml contains invalid data: ${error.message}');
   }
+
   if (yaml is! Map<Object?, Object?>) {
     throw const ProjectContentException('pubspec.yaml must contain a mapping.');
   }
