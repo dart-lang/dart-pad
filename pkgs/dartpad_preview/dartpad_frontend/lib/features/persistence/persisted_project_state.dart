@@ -8,6 +8,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 
 import '../editor/models/tab_descriptor.dart';
 import '../preview/models/run_mode.dart';
+import '../shared/project_exceptions.dart';
 import '../shared/sdk_info.dart';
 import '../startup/initial_project_state.dart';
 import '../startup/project_loader.dart';
@@ -93,7 +94,7 @@ final class PersistedProjectState {
           )
           .firstOrNull ??
       available.where((value) => value.isFlutter == sdk.isFlutter).firstOrNull ??
-      (throw StateError('The SDK for your previous work is no longer available.'));
+      (throw const ProjectStorageException('The SDK for your previous work is no longer available.'));
 
   InitialProjectState initialProject(List<SdkInfo> available) => InitialProjectState.restore(
     request: ProjectRequest.fromUri(Uri(queryParameters: query)),
@@ -121,30 +122,30 @@ final class PersistedProjectState {
 
   factory PersistedProjectState.decode(Map<String, Object?> data, Map<String, Uint8List> files) {
     if (data['schemaVersion'] != 1) {
-      throw const FormatException('Unsupported saved project version.');
+      throw const ProjectStorageException('Unsupported saved project version.');
     }
     final sdk = SdkInfo.fromJson(data['sdk'] as Map<String, Object?>);
     if (sdk == null) {
-      throw const FormatException('Invalid saved SDK.');
+      throw const ProjectStorageException('Invalid saved SDK.');
     }
-    final root = ProjectLoader.normalizePath(data['root'] as String, allowRoot: true);
+    final root = _savedPath(data['root'] as String, allowRoot: true);
     final entrypoint = data['entrypoint'] as String?;
     if (entrypoint != null) {
-      ProjectLoader.normalizePath(entrypoint);
+      _savedPath(entrypoint);
     }
     for (final path in files.keys) {
-      ProjectLoader.normalizePath(path);
+      _savedPath(path);
     }
     final folders = (data['folders'] as List<Object?>).cast<String>().toList(growable: false);
     for (final path in folders) {
-      ProjectLoader.normalizePath(path);
+      _savedPath(path);
     }
     final tabs = [
       for (final tab in (data['tabs'] as List<Object?>).cast<Map<String, Object?>>())
         TabDescriptor(path: tab['path'] as String, origin: EditorTabOrigin.values.byName(tab['origin'] as String)),
     ];
     for (final tab in tabs.where((tab) => tab.origin == EditorTabOrigin.workspace)) {
-      ProjectLoader.normalizePath(tab.path);
+      _savedPath(tab.path);
     }
     return PersistedProjectState(
       query: (data['query'] as Map<String, Object?>).map(
@@ -165,3 +166,8 @@ final class PersistedProjectState {
 
 /// Excludes `.dart_tool/` metadata because Pub regenerates it.
 bool isPersistentProjectPath(String path) => !path.split('/').contains('.dart_tool');
+
+/// Normalizes a saved path. Invalid paths mean the saved data is corrupt.
+String _savedPath(String path, {bool allowRoot = false}) =>
+    ProjectLoader.tryNormalizePath(path, allowRoot: allowRoot) ??
+    (throw ProjectStorageException('Saved project has an invalid path: $path.'));

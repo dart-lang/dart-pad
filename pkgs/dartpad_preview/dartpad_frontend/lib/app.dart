@@ -46,6 +46,7 @@ import 'features/shared/events/log_event.dart';
 import 'features/shared/events/open_console_event.dart';
 import 'features/shared/panel_layout_controller.dart';
 import 'features/shared/panel_presentation_state.dart';
+import 'features/shared/project_exceptions.dart';
 import 'features/shared/sdk_info.dart';
 import 'features/shared/task_status.dart';
 import 'features/shared/workspace_mode.dart';
@@ -337,13 +338,23 @@ final class _AppState extends State<App> {
       _activeSession = null;
       _isCommandPaletteOpen = false;
       _isInitializingWorkspace = false;
-      _workspacePreparationFailure = error.toString();
+      _workspacePreparationFailure = _describeProjectLoadFailure(error);
       _failedRestoreUri = restoring ? uri : null;
     });
     if (oldSession != null) {
       disposeAfterWorkspaceUnmount(context, oldSession.dispose);
     }
   }
+
+  String _describeProjectLoadFailure(Object error) => switch (error) {
+    QueryParameterValidationException() => 'You provided invalid configuration parameters in the URL: ${error.message}',
+    ProjectPathException() => 'Invalid project path: ${error.message}',
+    ProjectContentException() => 'Invalid project file: ${error.message}',
+    ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
+    ProjectStorageException() => 'Could not access saved projects: ${error.message}',
+    WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',
+    _ => error.toString(),
+  };
 
   Future<void> _writeProject(
     MemoryWorkspaceResourceApi api, {
@@ -462,13 +473,13 @@ final class _AppState extends State<App> {
         runtimeGeneration: generation,
       );
       if (!ready && _isCurrentRuntime(session, generation)) {
-        throw StateError('Could not prepare the example. Try Run again.');
+        throw const WorkspaceStartupException('Could not prepare the example. Try Run again.');
       }
     } catch (error) {
       if (_isCurrentRuntime(session, generation)) {
         _embedRuntime!.release();
         unawaited(session.suspendRuntime());
-        setState(() => _workspacePreparationFailure = error.toString());
+        setState(() => _workspacePreparationFailure = _describeProjectLoadFailure(error));
       }
       rethrow;
     }

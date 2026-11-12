@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../shared/project_exceptions.dart';
 import '../startup/project_request.dart';
 import '../workspace/workspace_session.dart';
 import 'indexed_db_project_store.dart';
@@ -126,11 +127,11 @@ final class ProjectPersistenceController extends ChangeNotifier {
   /// successfully opens its files.
   Future<StoredProject> read(String id) async {
     if (!_available || _disposed) {
-      throw StateError('Local project storage is unavailable.');
+      throw const ProjectStorageException('Local project storage is unavailable.');
     }
     final project = await _store!.read(id);
     if (project == null) {
-      throw StateError('The saved project is no longer available.');
+      throw const ProjectStorageException('The saved project is no longer available.');
     }
     return project;
   }

@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:test/test.dart';
 
@@ -38,7 +39,7 @@ void main() {
           ProjectFile(path: 'lib/main.dart', bytes: Uint8List(0)),
           ProjectFile(path: './lib/main.dart', bytes: Uint8List(0)),
         ]),
-        throwsArgumentError,
+        throwsA(isA<ProjectPathException>()),
       );
     });
   });

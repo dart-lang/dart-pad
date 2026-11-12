@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -156,7 +157,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsException,
+            throwsA(isA<ProjectSourceException>()),
           );
         },
         () => MockClient((request) async {
@@ -180,7 +181,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsArgumentError,
+            throwsA(isA<ProjectPathException>()),
           );
         },
         () => MockClient((request) async => http.Response(response, 200)),
@@ -195,7 +196,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsFormatException,
+            throwsA(isA<ProjectSourceException>()),
           );
         },
         () => MockClient(
@@ -210,7 +211,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsException,
+            throwsA(isA<ProjectSourceException>()),
           );
         },
         () => MockClient((request) async => http.Response('Not Found', 404)),
@@ -220,7 +221,7 @@ void main() {
         () async {
           await expectLater(
             loadInto(const GistProjectSource(gistId), api.root),
-            throwsFormatException,
+            throwsA(isA<ProjectSourceException>()),
           );
         },
         () => MockClient((request) async => http.Response('not json', 200)),
