@@ -144,6 +144,34 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     );
   }
 
+  FileTreeInputItem _creationInput(String path, FileTreeEntryKind kind) {
+    final isFolder = kind == FileTreeEntryKind.folder;
+    return FileTreeInputItem(
+      depth: component.depth + 1,
+      icon: isFolder
+          ? const FileIcon(
+              'seti:folder',
+              classes: 'file-tree-icon folder-icon',
+              attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
+            )
+          : const FileIcon(
+              'seti:default',
+              classes: 'file-tree-icon file-icon',
+              attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
+            ),
+      confirmOnBlur: true,
+      checkConflict: (name) {
+        final targetPath = path.isEmpty ? name : '$path/$name';
+        if (component.state.root.exists(targetPath)) {
+          return 'A file or folder already exists at "$targetPath".';
+        }
+        return null;
+      },
+      onConfirm: component.onConfirmCreate,
+      onCancel: component.onCancelCreate,
+    );
+  }
+
   @override
   Component build(BuildContext context) {
     final path = component.node.resource.path;
@@ -266,24 +294,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         if (!_isCollapsed)
           div(classes: 'file-tree-folder-children', [
             if (component.creatingEntry == FileTreeEntryKind.folder && component.creatingInFolder == path)
-              FileTreeInputItem(
-                depth: component.depth + 1,
-                icon: const FileIcon(
-                  'seti:folder',
-                  classes: 'file-tree-icon folder-icon',
-                  attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
-                ),
-                confirmOnBlur: true,
-                checkConflict: (name) {
-                  final targetPath = path.isEmpty ? name : '$path/$name';
-                  if (component.state.root.exists(targetPath)) {
-                    return 'A file or folder already exists at "$targetPath".';
-                  }
-                  return null;
-                },
-                onConfirm: component.onConfirmCreate,
-                onCancel: component.onCancelCreate,
-              ),
+              _creationInput(path, FileTreeEntryKind.folder),
             ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),
@@ -304,24 +315,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
               );
             }),
             if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)
-              FileTreeInputItem(
-                depth: component.depth + 1,
-                icon: const FileIcon(
-                  'seti:default',
-                  classes: 'file-tree-icon file-icon',
-                  attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
-                ),
-                confirmOnBlur: true,
-                checkConflict: (name) {
-                  final targetPath = path.isEmpty ? name : '$path/$name';
-                  if (component.state.root.exists(targetPath)) {
-                    return 'A file or folder already exists at "$targetPath".';
-                  }
-                  return null;
-                },
-                onConfirm: component.onConfirmCreate,
-                onCancel: component.onCancelCreate,
-              ),
+              _creationInput(path, FileTreeEntryKind.file),
             ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFileItem(
                 key: ValueKey('file-${child.resource.path}'),
