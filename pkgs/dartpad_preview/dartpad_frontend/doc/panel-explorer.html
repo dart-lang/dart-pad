@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panels Explorer</title>
+<style>
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --surface2: #eef1f5; --text: #1a1f26; --muted: #5b6573; --line: #d5dae2; --line2: #aab2be;
+  --accent: #0b6bcb; --accent-bg: #e1effd; --accent-line: #7fb4ee;
+  --warn: #7a4e00; --warn-bg: #fff1cf; --warn-line: #e8c46a;
+  --c-appbar: #d8e6fb; --c-status: #e3e6eb; --c-tree: #d9f0e1; --c-editor: #ffffff; --c-nav: #d5eeee;
+  --c-bottom: #fde3c8; --c-preview: #e7d9f7; --c-tab: #f1f3f6;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116; --surface: #161b22; --surface2: #1e242d; --text: #e5e9ef; --muted: #97a1af; --line: #2d3541; --line2: #4a5565;
+    --accent: #5ea4ff; --accent-bg: #112d4d; --accent-line: #2f6db8;
+    --warn: #f0c46a; --warn-bg: #352a0b; --warn-line: #6b5415;
+    --c-appbar: #1b3355; --c-status: #29303a; --c-tree: #18382a; --c-editor: #1a2029; --c-nav: #163838;
+    --c-bottom: #4a301a; --c-preview: #35264e; --c-tab: #232a34;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+code, .mono { font-family: var(--mono); }
+header.top { padding: 20px 24px 8px; max-width: 1500px; margin: 0 auto; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 15px; margin: 0 0 10px; }
+.sub { color: var(--muted); margin: 0; max-width: 100ch; }
+main { max-width: 1500px; margin: 0 auto; padding: 0 24px 60px; }
+section { margin-top: 22px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+
+/* ---------- controls ---------- */
+.controls { display: grid; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; min-width: 92px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.chip-btn { border: 1px solid var(--line); background: var(--surface2); border-radius: 999px; padding: 3px 11px; font-size: 13px; }
+.chip-btn:hover { border-color: var(--accent-line); }
+.chip-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; flex: 1; }
+.mrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px 4px 10px; background: var(--surface); }
+.mrow code { font-size: 12.5px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface2); padding: 2px 9px; font-family: var(--mono); font-size: 12.5px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.on-minus { background: #c0392b; color: #fff; }
+.seg button.on-plus { background: #1e8e50; color: #fff; }
+.seg button.on-none { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; background: var(--surface); cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--accent); }
+.toggle small { color: var(--muted); }
+.caption { color: var(--muted); font-size: 12.5px; }
+
+/* ---------- views ---------- */
+.views { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.view { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; cursor: pointer; }
+.view.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+.view h3 { margin: 0; font-size: 13.5px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.view h3 small { color: var(--muted); font-weight: 400; }
+.view .pick { font-size: 11.5px; color: var(--accent); white-space: nowrap; }
+.frame { margin-top: 8px; border: 1.5px solid var(--text); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; background: var(--surface2); position: relative; }
+.frame.large { height: 290px; }
+.frame.small { height: 360px; width: min(230px, 100%); margin-left: auto; margin-right: auto; border-radius: 18px; }
+.p { border: 1px solid var(--line); border-radius: 3px; padding: 3px 6px; font-size: 11.5px; line-height: 1.25; overflow: hidden; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.p b { font-weight: 600; }
+.p i { color: var(--muted); font-style: normal; font-size: 10.5px; }
+.p.appbar { background: var(--c-appbar); flex: 0 0 auto; flex-direction: row; justify-content: space-between; }
+.p.status { background: var(--c-status); flex: 0 0 auto; flex-direction: row; justify-content: space-between; }
+.p.tree { background: var(--c-tree); }
+.p.editor { background: var(--c-editor); flex: 1 1 0; min-height: 0; }
+.p.nav { background: var(--c-nav); flex: 0 0 auto; }
+.p.preview { background: var(--c-preview); }
+.p.bottom { background: var(--c-bottom); padding: 0; gap: 0; }
+.bhead { display: flex; gap: 4px; align-items: center; padding: 2px 4px; }
+.bhead i { margin-left: auto; }
+.tab { padding: 0 5px; border-radius: 3px; background: var(--c-tab); border: 1px solid var(--line); font-size: 10.5px; }
+.tab.act { background: var(--text); color: var(--bg); border-color: var(--text); }
+.bbody { flex: 1; padding: 2px 6px; border-top: 1px solid var(--line); font-size: 10.5px; color: var(--muted); }
+.rail { flex: 0 0 22px; writing-mode: vertical-rl; align-items: center; padding: 4px 2px; }
+.work { flex: 1; display: flex; min-height: 0; gap: 2px; padding: 2px; position: relative; }
+.shell { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.work > .p.tree { flex: 0 0 24%; }
+.work > .p.preview { flex: 0 0 32%; }
+.tabbar { display: flex; gap: 0; align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+.tabbar button { border: 0; background: transparent; padding: 5px 10px; font-size: 12px; border-bottom: 2px solid transparent; }
+.tabbar button.act { border-bottom-color: var(--accent); color: var(--accent); font-weight: 600; }
+.tabbar .folder { border-right: 1px solid var(--line); }
+.tabbar .folder.act { background: var(--c-tree); color: var(--text); }
+.drawer { position: absolute; z-index: 3; top: 0; bottom: 0; left: 0; width: 67%; background: var(--c-tree); border: 1px solid var(--line); box-shadow: 4px 0 12px rgba(0,0,0,.25); padding: 6px; font-size: 11.5px; }
+.backdrop { position: absolute; inset: 0; z-index: 2; background: rgba(0,0,0,.35); }
+.tray { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.ghost { border: 1px dashed var(--muted); border-radius: 4px; padding: 0 6px; text-decoration: line-through; opacity: .85; }
+.note { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); border-radius: 6px; padding: 3px 8px; font-size: 12px; }
+.notes { display: grid; gap: 4px; margin-top: 6px; }
+.legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); vertical-align: -2px; margin-right: 4px; }
+
+/* ---------- decision ladder ---------- */
+.panel-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.cmp { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--surface2); cursor: pointer; }
+.cmp.sel { border-color: var(--accent); background: var(--accent-bg); }
+.cmp small { display: block; color: var(--muted); font-size: 11.5px; }
+.cmp b { font-size: 13px; }
+.files { font-size: 12px; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+ol.flow { list-style: none; margin: 0; padding: 0; }
+.fl { position: relative; padding: 0 0 14px 40px; }
+.fl::before { content: ""; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--line); }
+.fl.reached::before { background: var(--accent); }
+.fl:last-child::before { bottom: auto; height: 22px; }
+.dot { position: absolute; left: 4px; top: 6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--surface); border: 2px solid var(--line); color: var(--muted); z-index: 1; }
+.fl.reached .dot { border-color: var(--accent); color: var(--accent); }
+.fl.skipped .dot { opacity: .5; }
+.stage-h { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 0 0 6px 40px; position: relative; list-style: none; }
+.stage-h::before { content: ""; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+.stage-h.dim::before { background: var(--line); }
+.stage-h span { display: inline-block; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; }
+.node { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 12px; }
+.fl.reached .node { border-color: var(--accent-line); }
+.fl.skipped .node { opacity: .5; background: var(--surface2); }
+.q { font-weight: 600; margin-bottom: 4px; }
+.q::before { content: "◆ "; color: var(--accent); }
+.fl.skipped .q::before { color: var(--muted); }
+.where { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.loc { font-family: var(--mono); font-size: 11.5px; border: 1px solid var(--line); background: var(--surface2); border-radius: 5px; padding: 0 6px; }
+button.loc:hover { border-color: var(--accent-line); color: var(--accent); }
+.branches { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.br { border: 1.5px solid var(--line); border-radius: 8px; padding: 4px 10px; font-size: 12.5px; color: var(--muted); background: var(--surface); }
+.br.on { border-color: var(--accent); background: var(--accent-bg); color: var(--text); font-weight: 600; box-shadow: 0 0 0 3px var(--accent-bg), 0 0 14px -2px var(--accent); }
+.br.on::before { content: "▶ "; color: var(--accent); }
+.nodenote { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.skipwhy { margin-top: 6px; font-size: 12px; color: var(--warn); }
+.result { border: 2px solid var(--accent); background: var(--accent-bg); border-radius: 10px; padding: 8px 12px; font-weight: 600; }
+
+/* ---------- flowchart ---------- */
+.chart-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface2); padding: 8px; }
+svg.chart { display: block; width: 100%; min-width: 820px; height: auto; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.chart .e { fill: none; stroke: var(--line2); stroke-width: 1.4; }
+.chart .e.on { stroke: var(--accent); stroke-width: 3.2; }
+.chart .el { font-size: 11px; fill: var(--muted); paint-order: stroke; stroke: var(--surface2); stroke-width: 4px; text-anchor: middle; }
+.chart .el.on { fill: var(--accent); font-weight: 700; }
+.chart .n { fill: var(--surface); stroke: var(--line2); stroke-width: 1.3; }
+.chart .nt { font-size: 12px; fill: var(--muted); text-anchor: middle; }
+.chart .nl { font-size: 10px; fill: var(--muted); text-anchor: middle; font-family: var(--mono); opacity: .85; }
+.chart g.on .n { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 2.6; }
+.chart g.on .nt { fill: var(--text); font-weight: 600; }
+.chart g.start .n, .chart g.res .n { stroke-width: 1.8; }
+.chart g.dim { opacity: .62; }
+.chart .m-on { fill: var(--accent); }
+.chart .m-off { fill: var(--line2); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 0; font-size: 12.5px; color: var(--muted); align-items: center; }
+.chart-legend svg { vertical-align: middle; }
+
+/* ---------- findings ---------- */
+.finds { display: grid; gap: 10px; counter-reset: f; }
+.find { border: 1px solid var(--line); border-left: 4px solid var(--warn-line); border-radius: 8px; padding: 8px 12px; background: var(--surface); }
+.find h4 { margin: 0 0 3px; font-size: 13.5px; }
+.find h4::before { counter-increment: f; content: counter(f) ". "; color: var(--muted); }
+.find p { margin: 0 0 4px; color: var(--muted); }
+.find .where { margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Panels Explorer · dartpad_preview</h1>
+  <p class="sub">Mirrors the panel logic in <code>dartpad_frontend</code> (current <code>main</code>): URL parsing → defaults → hints → render.
+    Pick hints below, compare the four views, then follow the decision path per panel — as a step ladder or as the full flowchart.</p>
+</header>
+
+<main>
+  <section class="card controls" id="controls"></section>
+  <section><div class="views" id="views"></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c-appbar)"></i>AppBar</span>
+      <span><i class="sw" style="background:var(--c-tree)"></i>FileTree</span>
+      <span><i class="sw" style="background:var(--c-nav)"></i>Tabs/Breadcrumbs</span>
+      <span><i class="sw" style="background:var(--c-bottom)"></i>Bottom (Problems/Console)</span>
+      <span><i class="sw" style="background:var(--c-preview)"></i>Preview</span>
+      <span><i class="sw" style="background:var(--c-status)"></i>StatusBar</span>
+      <span>Dashed/struck-through = not rendered (Hidden). Narrow strip = Collapsed.</span>
+    </div>
+  </section>
+  <section class="card" id="flow"></section>
+  <section class="card" id="chart"></section>
+  <section class="card"><h2>Observations for the refactor</h2><div class="finds" id="finds"></div></section>
+</main>
+
+<script>
+/* LOGIC-START ------------------------------------------------------------ */
+const ROOT = 'pkgs/dartpad_preview/dartpad_frontend/lib/';
+const F = {
+  query: 'features/startup/query_parameters.dart',
+  defaults: 'features/shared/panel_defaults.dart',
+  hints: 'features/shared/panel_hints.dart',
+  ctrl: 'features/shared/panel_layout_controller.dart',
+  app: 'app.dart',
+  wl: 'features/workspace/workspace_layout.dart',
+  bp: 'features/bottom_panel/views/bottom_panel.dart',
+  bpt: 'features/bottom_panel/views/bottom_panel_tabs.dart',
+  shell: 'features/editor/components/editor_shell.dart',
+  split: 'features/shared/components/split_panel.dart',
+  prev: 'features/preview/view/preview_container.dart',
+  footer: 'features/shared/components/footer.dart',
+  appbar: 'features/shared/components/app_bar.dart',
+  analyzer: 'features/startup/analyzer_policy.dart',
+  browser: 'features/shared/browser_device.dart',
+};
+const PANELS = [
+  { key: 'console', q: 'console' }, { key: 'problems', q: 'problems' }, { key: 'preview', q: 'preview' },
+  { key: 'tabs', q: 'tabs' }, { key: 'fileTree', q: 'filetree' }, { key: 'appBar', q: 'appbar' }, { key: 'statusBar', q: 'statusbar' },
+];
+const STAGES = {
+  0: 'Inputs · environment',
+  1: 'Parse · URL → PanelHints',
+  2: 'Defaults · mode × screen',
+  3: 'Hints · override the defaults',
+  4: 'Render · widgets decide',
+};
+const W = (f, line, sym) => ({ f, line, sym });
+const S = (stage, q, where, branches, extra = {}) => ({ stage, q, where, branches, ...extra });
+const B = (label, on) => ({ label, on: !!on });
+const skipAll = (s, why) => ({ ...s, skipped: true, why, branches: s.branches.map((b) => ({ ...b, on: false })) });
+
+/* Mirrors PresentationParameters._validatePanels (query_parameters.dart:323). Order matters. */
+function parseHints(str) {
+  const map = new Map();
+  const ignored = [];
+  for (const raw of str.split(',')) {
+    const hint = raw.trim();
+    if (!hint) continue;
+    const panel = hint.length >= 2 && (hint[0] === '+' || hint[0] === '-') ? PANELS.find((p) => p.q === hint.slice(1)) : null;
+    if (!panel) { ignored.push(hint); continue; }
+    map.delete(panel.key); // move to the end: the last hint wins
+    map.set(panel.key, hint[0] === '+');
+  }
+  let preferred = null;
+  for (const [k, v] of map) if (v && (k === 'console' || k === 'problems')) preferred = k;
+  const h = { preferred, ignored, order: [...map] };
+  for (const p of PANELS) h[p.key] = map.has(p.key) ? map.get(p.key) : null;
+  return h;
+}
+const serialize = (h) => h.order.map(([k, v]) => (v ? '+' : '-') + PANELS.find((p) => p.key === k).q).join(',');
+
+const NAME = { expanded: 'Expanded', collapsed: 'Collapsed', hidden: 'Hidden', split: 'Expanded', leftCollapsed: 'Collapsed', leftHidden: 'Hidden', rightCollapsed: 'Collapsed', rightHidden: 'Hidden' };
+
+function hintStage(h, key) {
+  const p = PANELS.find((x) => x.key === key);
+  const v = h[key];
+  return S(1, `Hint for “${p.q}” in panels=…?`, W('query', 323, 'PresentationParameters._validatePanels'),
+    [B(`+${p.q} → true`, v === true), B(`-${p.q} → false`, v === false), B('not set → null', v === null)]);
+}
+function contextStages(ctx) {
+  return [
+    S(0, 'Mode: embed=true in the URL?', W('query', 53, 'QueryParameters.isEmbeddedUri'),
+      [B('yes → WorkspaceMode.embed', ctx.embed), B('no → WorkspaceMode.standalone', !ctx.embed)],
+      { note: 'Read in app.dart:156 and fixed as PanelLayoutController.mode (app.dart:159).' }),
+    S(0, 'Screen: window.innerWidth ≥ 866 px?', W('app', 68, 'minLargeScreenWidth · _isLargeScreen (app.dart:157)'),
+      [B('yes → large', !ctx.small), B('no → small (“mobile” layout)', ctx.small)],
+      { note: 'Yields PanelLayout.smallScreen (panel_defaults.dart:30). The mode is lost in the enum: embed·small and standalone·small are both “smallScreen”.' }),
+  ];
+}
+
+function resolveBottom(ctx, h) {
+  const { embed, small } = ctx;
+  const defState = embed ? 'collapsed' : small ? 'collapsed' : 'expanded';
+  const stages = [...contextStages(ctx), hintStage(h, 'console'), hintStage(h, 'problems')];
+  stages.push(S(1, 'Preferred tab: last positive hint?', W('query', 341, 'PresentationParameters._validatePanels'),
+    [B('+console last → console', h.preferred === 'console'), B('+problems last → problems', h.preferred === 'problems'), B('no positive hint → null', h.preferred === null)],
+    { note: 'Chosen after de-duplication: a later “-console” cancels an earlier “+console”.' }));
+  stages.push(S(2, 'Default state of the bottom area?', W('defaults', 37, 'resolveInitialPanelLayout'),
+    [B('embed (any size) → Collapsed(problems)', embed), B('standalone · large → Expanded(problems)', !embed && !small), B('standalone · small → Collapsed(problems)', !embed && small)]));
+  stages.push(S(3, 'Small screen? Apply the bottom hints at all?', W('hints', embed ? 82 : 126, embed ? 'PanelHints._buildEmbedLayout' : 'PanelHints._buildStandaloneLayout'),
+    [B('small → defaults.bottom, all bottom hints ignored', small), B('large → _resolveBottomPanel(…)', !small)]));
+
+  let state, tab, cs = null, ps = null, tabBranch = null;
+  const nonExpanded = embed ? 'hidden' : 'collapsed';
+  const mkHint = (key, line) => {
+    const v = h[key];
+    const s = S(3, `${key} hint → state of “${key}”`, W('hints', line, 'PanelHints._resolveBottomPanel'),
+      [B('true → Expanded', v === true), B(`false → ${NAME[nonExpanded]} (${embed ? 'embed: Hidden' : 'standalone: Collapsed'})`, v === false), B(`null → default (${NAME[defState]})`, v === null)]);
+    return { s, val: v === null ? defState : v ? 'expanded' : nonExpanded };
+  };
+  const c = mkHint('console', 156), p = mkHint('problems', 161);
+  if (small) {
+    state = defState; tab = 'problems';
+    const why = 'Skipped: small screens always keep the default (Collapsed).';
+    stages.push(skipAll(c.s, why), skipAll(p.s, why));
+    stages.push(skipAll(S(3, 'Most visible state wins (_moreVisibleBottomPanel)', W('hints', 180, 'PanelHints._moreVisibleBottomPanel'),
+      [B('one side Expanded → Expanded', 0), B('else one side Collapsed → Collapsed', 0), B('else → Hidden', 0)]), why));
+    stages.push(skipAll(S(3, 'Which tab is selected?', W('hints', 189, 'PanelHints._resolveBottomTab'),
+      [B('preferredBottomTab set → that tab', 0), B('states differ → tab of the more visible one', 0), B('equal → default tab (problems)', 0)]), why));
+  } else {
+    stages.push(c.s, p.s);
+    cs = c.val; ps = p.val;
+    state = cs === 'expanded' || ps === 'expanded' ? 'expanded' : cs === 'collapsed' || ps === 'collapsed' ? 'collapsed' : 'hidden';
+    stages.push(S(3, 'Most visible state wins (_moreVisibleBottomPanel)', W('hints', 180, 'PanelHints._moreVisibleBottomPanel'),
+      [B('one side Expanded → Expanded', state === 'expanded'), B('else one side Collapsed → Collapsed', state === 'collapsed'), B('else → Hidden', state === 'hidden')],
+      { note: `console = ${NAME[cs]}, problems = ${NAME[ps]}. In an embed, Hidden therefore needs “-console,-problems”.` }));
+    if (h.preferred) { tab = h.preferred; tabBranch = 0; }
+    else if (cs !== ps) { tab = cs === state ? 'console' : 'problems'; tabBranch = 1; }
+    else { tab = 'problems'; tabBranch = 2; }
+    stages.push(S(3, 'Which tab is selected?', W('hints', 189, 'PanelHints._resolveBottomTab'),
+      [B(`preferredBottomTab set → ${h.preferred ?? '…'}`, tabBranch === 0), B('console ≠ problems → tab of the more visible state', tabBranch === 1), B('equal → default tab (problems)', tabBranch === 2)]));
+  }
+  const analyzerOn = !ctx.mobile;
+  const shown = analyzerOn ? tab : 'console';
+  stages.push(S(4, 'Analyzer enabled? (not a mobile browser)', W('bp', 110, 'BottomPanel._buildPanel · BottomPanelTabs.build (bottom_panel_tabs.dart:52)'),
+    [B(`yes → selected tab “${tab}”, both tabs visible`, analyzerOn), B('no → always “Console”, no Problems tab', !analyzerOn)],
+    { note: 'Source: analyzerEnabledByDefault() = !isMobileBrowser() (analyzer_policy.dart:11 → browser_device.dart:14), a user-agent heuristic independent of viewport width.' }));
+  stages.push(S(4, 'BottomPanelState when rendering?', W('bp', 106, 'BottomPanel._buildPanel (+ SplitPanel RightHidden → split_panel.dart:557)'),
+    [B('Hidden → empty div, nothing visible', state === 'hidden'), B('Collapsed → tab bar only', state === 'collapsed'), B('Expanded → tab bar + content', state === 'expanded')]));
+  return {
+    value: { state, tab, shown, analyzerOn, cs, ps, tabBranch }, stages,
+    result: `Bottom ${NAME[state]}${state === 'hidden' ? '' : ` · tab shown: ${shown}`}${!analyzerOn ? ' (analyzer off)' : ''}`,
+    summary: state === 'hidden' ? 'Hidden' : `${NAME[state]} · ${shown}`,
+  };
+}
+
+function resolvePreview(ctx, h) {
+  const { embed, small } = ctx;
+  const kind = h.preview === true ? 'split' : h.preview === false ? (embed ? 'rightHidden' : 'rightCollapsed') : 'split';
+  const stages = [...contextStages(ctx), hintStage(h, 'preview')];
+  stages.push(S(2, 'Default state of the preview?', W('defaults', 28, 'resolveInitialPanelLayout'),
+    [B('always Split(0.7) — or split=5…95 from the URL', true)]));
+  stages.push(S(3, 'preview hint → SplitState', W('hints', embed ? 62 : 103, embed ? 'PanelHints._buildEmbedLayout' : 'PanelHints._buildStandaloneLayout'),
+    [B('true → Split', h.preview === true), B(`false → ${embed ? 'RightHidden (embed)' : 'RightCollapsed (standalone)'}`, h.preview === false), B('null → default (Split)', h.preview === null)]));
+  const eff = small ? (ctx.tab === 'output' ? 'leftHidden' : 'rightHidden') : kind;
+  stages.push(S(4, 'Large screen? Does the computed state stay?', W('wl', 279, '_PreviewSplitListenable.value'),
+    [B('large → state unchanged', !small), B('small + Output tab → LeftHidden (preview fills everything)', small && ctx.tab === 'output'), B('small + Code tab → RightHidden (editor fills everything)', small && ctx.tab !== 'output')],
+    { note: small ? 'On small screens the computed state is overridden completely — the preview hint has no visible effect.' : undefined }));
+  stages.push(S(4, 'SplitState → DOM', W('split', 551, 'SplitPanel.build (switch on SplitState) · rail: preview_container.dart:165'),
+    [B('Split → pane + drag handle', eff === 'split'), B('RightCollapsed → narrow rail “Show preview”', eff === 'rightCollapsed'), B('Left/RightHidden → display: none', eff === 'leftHidden' || eff === 'rightHidden')]));
+  return {
+    value: kind, eff, stages,
+    result: small ? `Preview: driven by tab (${ctx.tab === 'output' ? 'Output visible' : 'Code visible'}) · computed: ${NAME[kind]}` : `Preview ${NAME[kind]}`,
+    summary: small ? `Tab: ${ctx.tab} (computed: ${NAME[kind]})` : NAME[kind],
+  };
+}
+
+function resolveFileTree(ctx, h) {
+  const { embed, small } = ctx;
+  const def = embed ? 'leftHidden' : small ? 'leftHidden' : 'split';
+  const falseVal = embed ? 'leftHidden' : small ? 'leftHidden' : 'leftCollapsed';
+  const kind = h.fileTree === true ? 'split' : h.fileTree === false ? falseVal : def;
+  const stages = [...contextStages(ctx), hintStage(h, 'fileTree')];
+  stages.push(S(2, 'Default state of the file tree?', W('defaults', 51, 'resolveInitialPanelLayout'),
+    [B('embed → LeftHidden(200)', embed), B('standalone · large → Split(200)', !embed && !small), B('standalone · small → LeftHidden(200)', !embed && small)]));
+  stages.push(S(3, 'filetree hint → SplitState', W('hints', embed ? 67 : 108, embed ? 'PanelHints._buildEmbedLayout' : 'PanelHints._buildStandaloneLayout'),
+    [B('true → Split', h.fileTree === true),
+     B(`false → ${embed ? 'LeftHidden (embed)' : small ? 'LeftHidden (standalone · small)' : 'LeftCollapsed (standalone · large)'}`, h.fileTree === false),
+     B(`null → default (${NAME[def]})`, h.fileTree === null)],
+    { note: 'Small screens have no collapsed rail: PanelLayoutController.updateFileTree additionally turns LeftCollapsed into LeftHidden (panel_layout_controller.dart:102).' }));
+  stages.push(S(4, 'Layout + state when rendering?', W('wl', 51, 'WorkspaceLayout.build (canCollapseLeft: isLargeScreen, :59)'),
+    [B('large · Split → column (200 px)', !small && kind === 'split'), B('large · Collapsed → narrow rail', !small && kind === 'leftCollapsed'), B('large · Hidden → not rendered', !small && kind === 'leftHidden'),
+     B('small · Split → drawer open + backdrop', small && kind === 'split'), B('small · Hidden → drawer closed', small && kind !== 'split')],
+    { note: small ? 'On small screens the toggle in the Code/Output bar (app.dart:883) opens the drawer.' : undefined }));
+  return {
+    value: kind, stages,
+    result: small ? (kind === 'split' ? 'FileTree: drawer open' : 'FileTree: drawer closed') : `FileTree ${NAME[kind]}`,
+    summary: small ? (kind === 'split' ? 'Drawer open' : 'Drawer closed') : NAME[kind],
+  };
+}
+
+function resolveBar(ctx, h, key, label) {
+  const { embed, small } = ctx;
+  const isApp = key === 'appBar';
+  const def = embed ? 'hidden' : 'expanded';
+  const v = h[key];
+  const value = v === true ? 'expanded' : v === false ? 'hidden' : def;
+  const stages = [...contextStages(ctx), hintStage(h, key)];
+  stages.push(S(2, `Default state of the ${label}?`, W('defaults', embed ? 39 : 48, 'resolveInitialPanelLayout'),
+    [B('embed → Hidden', embed), B('standalone → Expanded (also small)', !embed)]));
+  stages.push(S(3, `${PANELS.find((p) => p.key === key).q} hint → presentation`, W('hints', isApp ? (embed ? 72 : 116) : (embed ? 77 : 121), embed ? 'PanelHints._buildEmbedLayout' : 'PanelHints._buildStandaloneLayout'),
+    [B('true → Expanded', v === true), B('false → Hidden (both modes)', v === false), B(`null → default (${NAME[def]})`, v === null)],
+    { note: 'No Collapsed state — “-appbar” / “-statusbar” can only be undone by reloading.' }));
+  let footer = null;
+  stages.push(S(4, `Does PanelVisibility render the ${label}?`, W('app', isApp ? 871 : 900, isApp ? 'App._buildAppBar → PanelVisibility(id: app-bar-panel)' : 'App._buildStatusBar → PanelVisibility(id: status-bar-panel)'),
+    [B('Expanded → component is mounted', value === 'expanded'), B('Hidden → nothing in the DOM', value === 'hidden')]));
+  if (isApp) {
+    stages.push(S(4, 'Small screen? Code/Output bar', W('app', 883, 'App._buildAppBar (showNavigation && !_isLargeScreen)'),
+      [B('large → no bar', !small), B('small → Code/Output bar, independent of the appbar hint', small)],
+      { note: 'AppBar.isEmbedMode is never passed → the (true, …) branches in app_bar.dart:75–83 are dead code. The embed logic lives in PanelVisibility.' }));
+    return { value, stages, result: value === 'expanded' ? 'AppBar visible' : `AppBar Hidden${small ? ' · Code/Output bar stays' : ''}`, summary: NAME[value] + (small ? ' (+ Code/Output bar)' : '') };
+  }
+  footer = ctx.narrow ? 'compact' : small ? 'reduced' : 'full';
+  const s = S(4, 'Footer variant?', W('footer', 87, '_FooterState.build (breakpoint <500 px: footer.dart:69)'),
+    [B('innerWidth < 500 → compact (short labels)', footer === 'compact'), B('small & ≥ 500 → reduced (no links)', footer === 'reduced'), B('large → full', footer === 'full')],
+    { note: 'Its own breakpoint, independent of the workspace size. This is the only “compact” in the code.' });
+  stages.push(value === 'hidden' ? skipAll(s, 'Skipped: the StatusBar is Hidden.') : s);
+  return { value, footer, stages, result: value === 'expanded' ? `StatusBar visible · footer ${footer}` : 'StatusBar Hidden', summary: value === 'expanded' ? `Expanded · ${footer}` : 'Hidden' };
+}
+
+function resolveNav(ctx, h) {
+  const { embed, small } = ctx;
+  const def = !embed || ctx.multi ? 'expanded' : 'hidden';
+  const v = h.tabs;
+  const value = v === true ? 'expanded' : v === false ? 'hidden' : def;
+  const visible = ctx.multi || value === 'expanded';
+  const tabBar = visible && !small;
+  const stages = [...contextStages(ctx), hintStage(h, 'tabs')];
+  stages.push(S(2, 'Default: showEditorNavigation?', W('app', 216, 'App._loadProject → applyInitialDefaults(showEditorNavigation: …)'),
+    [B('standalone → true', !embed), B('embed + ≥ 2 distinct file= → true', embed && ctx.multi), B('embed + < 2 file= → false', embed && !ctx.multi)],
+    { note: 'The same rule exists a second time in panel_defaults.dart:33 (mode == standalone), but the app always overrides it.' }));
+  stages.push(S(3, 'tabs hint → presentation', W('hints', embed ? 85 : 129, embed ? 'PanelHints._buildEmbedLayout' : 'PanelHints._buildStandaloneLayout'),
+    [B('true → Expanded', v === true), B('false → Hidden (both modes)', v === false), B(`null → default (${NAME[def]})`, v === null)]));
+  stages.push(S(4, 'Several tabs open or navigation Expanded?', W('shell', 77, 'EditorShell.build → PanelVisibility(visible: …)'),
+    [B('≥ 2 tabs open → visible (overrides “-tabs”)', ctx.multi), B('navigation Expanded → visible', !ctx.multi && value === 'expanded'), B('otherwise → invisible', !visible)]));
+  stages.push(S(4, 'Small screen? Tab bar or only breadcrumbs?', W('shell', 82, 'EditorShell.build (!panelController.isSmallScreen)'),
+    [B('large → tab bar + breadcrumbs', visible && !small), B('small → breadcrumbs only (no tab bar)', visible && small), B('not visible → nothing', !visible)]));
+  return { value, visible, tabBar, stages, result: !visible ? 'Tabs/breadcrumbs invisible' : tabBar ? 'Tab bar + breadcrumbs' : 'Breadcrumbs only', summary: !visible ? 'invisible' : tabBar ? 'Tabs + breadcrumbs' : 'Breadcrumbs only' };
+}
+
+function compute(ctx, h) {
+  const r = {
+    bottom: resolveBottom(ctx, h), preview: resolvePreview(ctx, h), fileTree: resolveFileTree(ctx, h),
+    appBar: resolveBar(ctx, h, 'appBar', 'AppBar'), statusBar: resolveBar(ctx, h, 'statusBar', 'StatusBar'), nav: resolveNav(ctx, h),
+  };
+  const n = [];
+  if (ctx.small && (h.console !== null || h.problems !== null)) n.push('console/problems hints ignored: small screens always start Collapsed.');
+  if (ctx.small && h.preview !== null) n.push('preview hint has no visible effect: the Code/Output tab decides.');
+  if (ctx.mobile && (h.problems !== null || h.preferred === 'problems')) n.push('Mobile browser: there is no Problems tab, so the problems hint only affects the state.');
+  if (ctx.mobile && !ctx.small && h.console === false && h.problems !== false && r.bottom.value.state !== 'hidden') n.push('“-console” does not hide the console: the (non-existent) Problems tab keeps the area open, and Console is shown anyway.');
+  if (h.tabs === false && ctx.multi) n.push('“-tabs” is overridden: ≥ 2 files are open.');
+  if (h.tabs === true && ctx.small) n.push('There is no tab bar on small screens, only breadcrumbs.');
+  if (h.appBar === false && ctx.small) n.push('The Code/Output bar stays visible despite “-appbar”.');
+  r.notes = n;
+  return r;
+}
+
+/* ---------- flowchart graphs ----------
+   Nodes are placed by hand. A node is "on" when an active edge reaches it; an edge is "on"
+   when its source is on and its predicate (taken-branch test over ctx/hints/results) holds. */
+const L = (f, ...lines) => ({ f, lines });
+const N = (id, kind, cx, y, text, o = {}) => ({ id, kind, cx, y, text, w: o.w || 190, loc: o.loc || null });
+const E = (a, b, label, on, o = {}) => ({ a, b, label, on: on || (() => true), ...o });
+
+function barGraph(key) {
+  const isApp = key === 'appBar';
+  const q = isApp ? 'appbar' : 'statusbar';
+  const name = isApp ? 'AppBar' : 'StatusBar';
+  const lx = isApp ? 200 : 330;
+  const nodes = [
+    N('s', 'start', 520, 10, 'URL query\n?panels=…'),
+    N('d1', 'dec', 520, 100, `±${q} in panels=?`, { loc: L('query', 323) }),
+    N('d2', 'dec', 520, 250, 'embed=true?\n(default)', { loc: L('defaults', 39, 48) }),
+    N('exp', 'proc', lx, 400, `${name} = Expanded`, { loc: L('hints', ...(isApp ? [72, 116] : [77, 121])) }),
+    N('hid', 'proc', 840, 400, `${name} = Hidden`),
+    N('rexp', 'res', lx, 520, `${name} mounted\n(PanelVisibility)`, { loc: L('app', isApp ? 871 : 900) }),
+    N('rhid', 'res', 840, 520, 'nothing in the DOM'),
+  ];
+  const edges = [
+    E('s', 'd1'),
+    E('d1', 'exp', '+', (c) => c.h[key] === true),
+    E('d1', 'hid', '−', (c) => c.h[key] === false),
+    E('d1', 'd2', 'not set', (c) => c.h[key] === null),
+    E('d2', 'exp', 'standalone', (c) => !c.ctx.embed),
+    E('d2', 'hid', 'embed', (c) => c.ctx.embed),
+    E('exp', 'rexp'), E('hid', 'rhid'),
+  ];
+  if (isApp) {
+    nodes.push(
+      N('ds', 'dec', 1150, 100, 'small screen?', { loc: L('app', 883) }),
+      N('tb', 'res', 1050, 250, 'Code/Output bar\nalways shown', { w: 170 }),
+      N('ntb', 'res', 1270, 250, 'no extra bar', { w: 150 }));
+    edges.push(E('s', 'ds', 'independent of the hint'), E('ds', 'tb', 'small', (c) => c.ctx.small), E('ds', 'ntb', 'large', (c) => !c.ctx.small));
+  } else {
+    nodes.push(
+      N('df', 'dec', lx, 640, 'window width?', { loc: L('footer', 69, 87), w: 170 }),
+      N('f1', 'res', 110, 790, 'Footer compact\n(< 500 px)', { w: 160 }),
+      N('f2', 'res', 330, 790, 'Footer reduced\n(small, ≥ 500 px)', { w: 170 }),
+      N('f3', 'res', 560, 790, 'Footer full\n(large)', { w: 160 }));
+    edges.push(E('rexp', 'df'),
+      E('df', 'f1', '< 500', (c) => c.ctx.narrow), E('df', 'f2', 'small', (c) => !c.ctx.narrow && c.ctx.small), E('df', 'f3', 'large', (c) => !c.ctx.narrow && !c.ctx.small));
+  }
+  return { nodes, edges };
+}
+
+function previewGraph() {
+  const nodes = [
+    N('s', 'start', 440, 10, 'URL query\n?panels=…'),
+    N('d1', 'dec', 440, 100, '±preview in panels=?', { loc: L('query', 323) }),
+    N('d2', 'dec', 700, 250, 'embed=true?', { loc: L('hints', 62, 103) }),
+    N('split', 'proc', 130, 400, 'preview = Split\n(default 0.7 / split=)', { loc: L('defaults', 28) }),
+    N('rc', 'proc', 520, 400, 'preview = RightCollapsed', { loc: L('hints', 103) }),
+    N('rh', 'proc', 880, 400, 'preview = RightHidden', { loc: L('hints', 62) }),
+    N('d3', 'dec', 520, 540, 'large screen?', { loc: L('wl', 51, 279) }),
+    N('d4', 'dec', 250, 680, 'computed state?', { loc: L('split', 551) }),
+    N('osplit', 'res', 80, 830, 'pane + drag handle', { w: 160 }),
+    N('orail', 'res', 270, 830, 'narrow rail\n“Show preview”', { w: 160 }),
+    N('onone', 'res', 460, 830, 'display: none', { w: 160 }),
+    N('d5', 'dec', 860, 680, 'selected tab?\n(small screen)', { loc: L('wl', 279) }),
+    N('oout', 'res', 760, 830, 'Output tab: LeftHidden\npreview fills screen', { w: 200 }),
+    N('ocode', 'res', 990, 830, 'Code tab: RightHidden\npreview not shown', { w: 200 }),
+  ];
+  const kind = (c) => c.r.preview.value;
+  const edges = [
+    E('s', 'd1'),
+    E('d1', 'split', '+ or not set', (c) => c.h.preview !== false),
+    E('d1', 'd2', '−', (c) => c.h.preview === false),
+    E('d2', 'rc', 'standalone', (c) => !c.ctx.embed), E('d2', 'rh', 'embed', (c) => c.ctx.embed),
+    E('split', 'd3'), E('rc', 'd3'), E('rh', 'd3'),
+    E('d3', 'd4', 'large', (c) => !c.ctx.small), E('d3', 'd5', 'small', (c) => c.ctx.small),
+    E('d4', 'osplit', 'Split', (c) => kind(c) === 'split'), E('d4', 'orail', 'RightCollapsed', (c) => kind(c) === 'rightCollapsed'), E('d4', 'onone', 'RightHidden', (c) => kind(c) === 'rightHidden'),
+    E('d5', 'oout', 'Output', (c) => c.ctx.tab === 'output'), E('d5', 'ocode', 'Code', (c) => c.ctx.tab !== 'output'),
+  ];
+  return { nodes, edges };
+}
+
+function fileTreeGraph() {
+  const nodes = [
+    N('s', 'start', 480, 10, 'URL query\n?panels=…'),
+    N('d1', 'dec', 480, 100, '±filetree in panels=?', { loc: L('query', 323) }),
+    N('d2', 'dec', 480, 250, 'embed or small?\n(default)', { loc: L('defaults', 51) }),
+    N('d3', 'dec', 880, 250, 'embed or small?\n(after “−”)', { loc: L('hints', 67, 108) }),
+    N('split', 'proc', 130, 420, 'filetree = Split(200)'),
+    N('hid', 'proc', 620, 420, 'filetree = LeftHidden', { loc: L('hints', 67, 108) }),
+    N('coll', 'proc', 1000, 420, 'filetree = LeftCollapsed'),
+    N('d4', 'dec', 620, 550, 'large screen?', { loc: L('wl', 51, 59) }),
+    N('d6', 'dec', 300, 680, 'state? (large)'),
+    N('o1', 'res', 110, 830, 'column (200 px)', { w: 170 }),
+    N('o2', 'res', 300, 830, 'narrow rail', { w: 170 }),
+    N('o3', 'res', 490, 830, 'not rendered', { w: 170 }),
+    N('d5', 'dec', 950, 680, 'state? (small)', { loc: L('ctrl', 102) }),
+    N('o4', 'res', 850, 830, 'drawer open\n+ backdrop', { w: 190 }),
+    N('o5', 'res', 1060, 830, 'drawer closed\n(toggle in Code/Output bar)', { w: 210 }),
+  ];
+  const kind = (c) => c.r.fileTree.value;
+  const edges = [
+    E('s', 'd1'),
+    E('d1', 'split', '+', (c) => c.h.fileTree === true),
+    E('d1', 'd2', 'not set', (c) => c.h.fileTree === null),
+    E('d1', 'd3', '−', (c) => c.h.fileTree === false),
+    E('d2', 'split', 'standalone · large', (c) => !c.ctx.embed && !c.ctx.small),
+    E('d2', 'hid', 'embed or small', (c) => c.ctx.embed || c.ctx.small),
+    E('d3', 'hid', 'embed or small', (c) => c.ctx.embed || c.ctx.small),
+    E('d3', 'coll', 'standalone · large', (c) => !c.ctx.embed && !c.ctx.small),
+    E('split', 'd4'), E('hid', 'd4'), E('coll', 'd4'),
+    E('d4', 'd6', 'large', (c) => !c.ctx.small), E('d4', 'd5', 'small', (c) => c.ctx.small),
+    E('d6', 'o1', 'Split', (c) => kind(c) === 'split'), E('d6', 'o2', 'Collapsed', (c) => kind(c) === 'leftCollapsed'), E('d6', 'o3', 'Hidden', (c) => kind(c) === 'leftHidden'),
+    E('d5', 'o4', 'Split', (c) => kind(c) === 'split'), E('d5', 'o5', 'Hidden', (c) => kind(c) !== 'split'),
+  ];
+  return { nodes, edges };
+}
+
+function navGraph() {
+  const nodes = [
+    N('s', 'start', 500, 10, 'URL query\n?panels=…'),
+    N('d1', 'dec', 500, 100, '±tabs in panels=?', { loc: L('query', 323) }),
+    N('d2', 'dec', 500, 250, 'standalone, or embed\nwith ≥ 2 file=?\n(default)', { loc: L('app', 216), w: 210 }),
+    N('exp', 'proc', 140, 420, 'navigation = Expanded', { loc: L('hints', 85, 129) }),
+    N('hid', 'proc', 860, 420, 'navigation = Hidden'),
+    N('d3', 'dec', 500, 550, '≥ 2 tabs open?', { loc: L('shell', 77) }),
+    N('d4', 'dec', 800, 680, 'navigation state?', { loc: L('shell', 77) }),
+    N('v', 'proc', 300, 810, 'visible\n(“-tabs” overridden if ≥ 2 tabs)', { w: 220 }),
+    N('n', 'res', 950, 810, 'not visible'),
+    N('d5', 'dec', 300, 930, 'small screen?', { loc: L('shell', 82) }),
+    N('o1', 'res', 140, 1060, 'tab bar +\nbreadcrumbs', { w: 170 }),
+    N('o2', 'res', 460, 1060, 'breadcrumbs only', { w: 170 }),
+  ];
+  const edges = [
+    E('s', 'd1'),
+    E('d1', 'exp', '+', (c) => c.h.tabs === true),
+    E('d1', 'hid', '−', (c) => c.h.tabs === false),
+    E('d1', 'd2', 'not set', (c) => c.h.tabs === null),
+    E('d2', 'exp', 'yes', (c) => !c.ctx.embed || c.ctx.multi),
+    E('d2', 'hid', 'no', (c) => c.ctx.embed && !c.ctx.multi),
+    E('exp', 'd3'), E('hid', 'd3'),
+    E('d3', 'v', 'yes', (c) => c.ctx.multi), E('d3', 'd4', 'no', (c) => !c.ctx.multi),
+    E('d4', 'v', 'Expanded', (c) => c.r.nav.value === 'expanded'), E('d4', 'n', 'Hidden', (c) => c.r.nav.value === 'hidden'),
+    E('v', 'd5'),
+    E('d5', 'o1', 'large', (c) => !c.ctx.small), E('d5', 'o2', 'small', (c) => c.ctx.small),
+  ];
+  return { nodes, edges };
+}
+
+function bottomGraph() {
+  const w = 170;
+  const nodes = [
+    N('s', 'start', 700, 10, 'URL query\n?panels=…'),
+    N('d0', 'dec', 700, 100, 'small screen?\n(< 866 px)', { loc: L('hints', 82, 126) }),
+    N('sdef', 'proc', 1330, 260, 'Collapsed(problems)\nall bottom hints ignored', { w: 190, loc: L('defaults', 52) }),
+    N('dc', 'dec', 300, 250, '±console in panels=?', { loc: L('query', 323), w: 200 }),
+    N('cexp', 'proc', 110, 410, 'console = Expanded', { w, loc: L('hints', 156) }),
+    N('cnon', 'proc', 300, 410, 'console = non-expanded\n(embed Hidden,\nstandalone Collapsed)', { w }),
+    N('cdef', 'proc', 490, 410, 'console = default\n(embed Collapsed,\nstandalone Expanded)', { w, loc: L('defaults', 37) }),
+    N('dp', 'dec', 950, 250, '±problems in panels=?', { loc: L('query', 323), w: 200 }),
+    N('pexp', 'proc', 760, 410, 'problems = Expanded', { w, loc: L('hints', 161) }),
+    N('pnon', 'proc', 950, 410, 'problems = non-expanded\n(embed Hidden,\nstandalone Collapsed)', { w }),
+    N('pdef', 'proc', 1140, 410, 'problems = default\n(embed Collapsed,\nstandalone Expanded)', { w, loc: L('defaults', 37) }),
+    N('dm', 'dec', 625, 570, 'most visible state wins', { loc: L('hints', 180), w: 220 }),
+    N('sexp', 'proc', 325, 710, 'bottom = Expanded', { w }),
+    N('scol', 'proc', 625, 710, 'bottom = Collapsed', { w }),
+    N('shid', 'proc', 925, 710, 'bottom = Hidden', { w }),
+    N('dt', 'dec', 625, 840, 'which tab?', { loc: L('hints', 189) }),
+    N('tpref', 'proc', 325, 980, 'preferred tab\n(last positive hint)', { w }),
+    N('tvis', 'proc', 625, 980, 'tab of the more\nvisible state', { w }),
+    N('tdef', 'proc', 925, 980, 'default tab\n(problems)', { w }),
+    N('da', 'dec', 625, 1120, 'analyzer on?\n(not a mobile browser)', { loc: L('bp', 110), w: 230 }),
+    N('aon', 'proc', 375, 1260, 'show selected tab\n(Problems + Console tabs)', { w: 210 }),
+    N('aoff', 'proc', 875, 1260, 'show Console only\n(no Problems tab)', { w: 210 }),
+    N('dr', 'dec', 625, 1400, 'BottomPanelState?', { loc: L('bp', 106) }),
+    N('ohid', 'res', 325, 1540, 'Hidden:\nempty div', { w }),
+    N('ocol', 'res', 625, 1540, 'Collapsed:\ntab bar only', { w }),
+    N('oexp', 'res', 925, 1540, 'Expanded:\ntab bar + content', { w }),
+  ];
+  const v = (c) => c.r.bottom.value;
+  const edges = [
+    E('s', 'd0'),
+    E('d0', 'sdef', 'small', (c) => c.ctx.small),
+    E('d0', 'dc', 'large', (c) => !c.ctx.small), E('d0', 'dp', 'large', (c) => !c.ctx.small),
+    E('dc', 'cexp', '+', (c) => c.h.console === true), E('dc', 'cnon', '−', (c) => c.h.console === false), E('dc', 'cdef', 'not set', (c) => c.h.console === null),
+    E('dp', 'pexp', '+', (c) => c.h.problems === true), E('dp', 'pnon', '−', (c) => c.h.problems === false), E('dp', 'pdef', 'not set', (c) => c.h.problems === null),
+    ...['cexp', 'cnon', 'cdef', 'pexp', 'pnon', 'pdef'].map((id) => E(id, 'dm')),
+    E('dm', 'sexp', 'any Expanded', (c) => v(c).state === 'expanded'),
+    E('dm', 'scol', 'else any Collapsed', (c) => v(c).state === 'collapsed'),
+    E('dm', 'shid', 'else', (c) => v(c).state === 'hidden'),
+    E('sexp', 'dt'), E('scol', 'dt'), E('shid', 'dt'),
+    E('dt', 'tpref', 'preferred set', (c) => v(c).tabBranch === 0),
+    E('dt', 'tvis', 'console ≠ problems', (c) => v(c).tabBranch === 1),
+    E('dt', 'tdef', 'equal', (c) => v(c).tabBranch === 2),
+    E('tpref', 'da'), E('tvis', 'da'), E('tdef', 'da'),
+    E('sdef', 'da', 'tab = problems', null, { to: 'right' }),
+    E('da', 'aon', 'yes', (c) => !c.ctx.mobile), E('da', 'aoff', 'no', (c) => c.ctx.mobile),
+    E('aon', 'dr'), E('aoff', 'dr'),
+    E('dr', 'ohid', 'Hidden', (c) => v(c).state === 'hidden'), E('dr', 'ocol', 'Collapsed', (c) => v(c).state === 'collapsed'), E('dr', 'oexp', 'Expanded', (c) => v(c).state === 'expanded'),
+  ];
+  return { nodes, edges };
+}
+
+const GRAPHS = {
+  bottom: bottomGraph, preview: previewGraph, fileTree: fileTreeGraph,
+  appBar: () => barGraph('appBar'), statusBar: () => barGraph('statusBar'), nav: navGraph,
+};
+
+/* Computes geometry and the active path of a graph for one view. */
+function evalGraph(key, ctx, h, r) {
+  const g = GRAPHS[key]();
+  const c = { ctx, h, r };
+  const byId = {};
+  for (const n of g.nodes) {
+    const lines = n.text.split('\n');
+    const loc = n.loc ? `${F[n.loc.f].split('/').pop()}:${n.loc.lines.join('/')}` : null;
+    n.lines = lines; n.locText = loc;
+    n.h = lines.length * 15 + 16 + (loc ? 14 : 0) + (n.kind === 'dec' ? 8 : 0);
+    n.x = n.cx - n.w / 2;
+    n.on = n.kind === 'start';
+    byId[n.id] = n;
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const e of g.edges) {
+      const on = byId[e.a].on && e.on(c);
+      if (on && !e.live) { e.live = true; changed = true; }
+      if (e.live && !byId[e.b].on) { byId[e.b].on = true; changed = true; }
+    }
+  }
+  g.byId = byId;
+  return g;
+}
+/* LOGIC-END -------------------------------------------------------------- */
+
+/* ---------- UI ---------- */
+const VIEWS = [
+  { id: 'standalone', name: 'Standalone', sub: 'large ≥ 866 px', embed: false, small: false },
+  { id: 'embed', name: 'Embed', sub: 'large ≥ 866 px', embed: true, small: false },
+  { id: 'standalone-small', name: 'Standalone · Small', sub: '“mobile” < 866 px', embed: false, small: true },
+  { id: 'embed-small', name: 'Embed · Small', sub: '< 866 px', embed: true, small: true },
+];
+const PANEL_TABS = [
+  { key: 'bottom', label: 'Bottom (Console + Problems)' }, { key: 'preview', label: 'Preview' }, { key: 'fileTree', label: 'FileTree' },
+  { key: 'appBar', label: 'AppBar' }, { key: 'statusBar', label: 'StatusBar' }, { key: 'nav', label: 'Tabs + Breadcrumbs' },
+];
+const ui = { hintStr: '', env: { mobile: false, multi: false, narrow: false }, tabs: {}, view: 'standalone', panel: 'bottom', gpanel: 'bottom' };
+try { const saved = JSON.parse(localStorage.getItem('panel-explorer-v2') || 'null'); if (saved) Object.assign(ui, saved); } catch (_) {}
+const save = () => { try { localStorage.setItem('panel-explorer-v2', JSON.stringify(ui)); } catch (_) {} };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ctxOf = (v) => ({ embed: v.embed, small: v.small, mobile: ui.env.mobile, multi: ui.env.multi, narrow: ui.env.narrow, tab: ui.tabs[v.id] || 'code' });
+const loc = (w) => `<button class="loc" data-copy="${ROOT}${F[w.f]}:${w.line}" title="${ROOT}${F[w.f]}:${w.line} (click to copy)">${esc(F[w.f].split('/').pop())}:${w.line}</button> <span class="mono">${esc(w.sym)}</span>`;
+
+function controlsHTML(h) {
+  const matrix = PANELS.map((p) => {
+    const v = h[p.key];
+    return `<div class="mrow"><code>${p.q}</code><span class="seg" data-panel="${p.key}">
+      <button data-set="-" class="${v === false ? 'on-minus' : ''}" title="-${p.q}">−</button>
+      <button data-set="" class="${v === null ? 'on-none' : ''}" title="not set">·</button>
+      <button data-set="+" class="${v === true ? 'on-plus' : ''}" title="+${p.q}">+</button></span></div>`;
+  }).join('');
+  const tog = (k, t, s) => `<label class="toggle"><input type="checkbox" data-env="${k}" ${ui.env[k] ? 'checked' : ''}> ${t} <small>${s}</small></label>`;
+  return `
+    <div class="row"><span class="label">Panel hints</span><div class="matrix">${matrix}</div></div>
+    <div class="row"><span class="label"></span><span class="caption">− = <code>-panel</code> · · = not set · + = <code>+panel</code>. Hints are applied in click order, like in the URL (the last positive console/problems hint selects the tab).</span></div>
+    <div class="row"><span class="label">Environment</span>
+      ${tog('mobile', 'Mobile browser', '(user agent → analyzer off)')}
+      ${tog('multi', 'several <code>file=</code>', '(≥ 2 tabs)')}
+      ${tog('narrow', 'Width &lt; 500 px', '(footer “compact” only)')}
+    </div>`;
+}
+
+function frameHTML(v, r, ctx) {
+  const hidden = [];
+  const b = r.bottom.value;
+  const col = () => {
+    let nav = '';
+    if (r.nav.visible) nav = `<div class="p nav"><b>${ctx.small ? 'Breadcrumbs' : 'Tabs + Breadcrumbs'}</b></div>`; else hidden.push('Tabs/Breadcrumbs');
+    let bottom = '';
+    if (b.state === 'hidden') hidden.push('Bottom');
+    else {
+      const tabs = b.analyzerOn
+        ? `<span class="tab ${b.shown === 'problems' ? 'act' : ''}">Problems</span><span class="tab ${b.shown === 'console' ? 'act' : ''}">Console</span>`
+        : '<span class="tab act">Console</span>';
+      bottom = `<div class="p bottom" style="flex:${b.state === 'expanded' ? '0 0 30%' : '0 0 auto'}"><div class="bhead">${tabs}<i>${b.state}</i></div>${b.state === 'expanded' ? `<div class="bbody">${b.shown} content</div>` : ''}</div>`;
+    }
+    return `<div class="shell">${nav}<div class="p editor"><b>Editor</b></div>${bottom}</div>`;
+  };
+  let top = '';
+  if (r.appBar.value === 'expanded') top += '<div class="p appbar"><b>AppBar</b><i>expanded</i></div>'; else hidden.push('AppBar');
+  let status = '';
+  if (r.statusBar.value === 'expanded') status = `<div class="p status"><b>StatusBar</b><i>${r.statusBar.footer}</i></div>`; else hidden.push('StatusBar');
+  let body = '';
+  if (!v.small) {
+    const ft = r.fileTree.value;
+    let tree = '';
+    if (ft === 'split') tree = '<div class="p tree"><b>FileTree</b><i>expanded</i></div>';
+    else if (ft === 'leftCollapsed') tree = '<div class="p rail tree"><b>FileTree</b></div>';
+    else hidden.push('FileTree');
+    const pv = r.preview.value;
+    let prev = '';
+    if (pv === 'split') prev = '<div class="p preview"><b>Preview</b><i>expanded</i></div>';
+    else if (pv === 'rightCollapsed') prev = '<div class="p rail preview"><b>Preview</b></div>';
+    else hidden.push('Preview');
+    body = `<div class="work">${tree}${col()}${prev}</div>`;
+  } else {
+    const tab = ctx.tab;
+    const open = r.fileTree.value === 'split';
+    const content = tab === 'code' ? col() : '<div class="p preview" style="flex:1"><b>Preview</b><i>Output tab</i></div>';
+    if (tab === 'code') hidden.push('Preview (Output tab only)');
+    body = `<div class="tabbar"><button class="folder ${open ? 'act' : ''}" data-fold="${v.id}" title="File tree">📁</button>
+        <button class="${tab === 'code' ? 'act' : ''}" data-tab="${v.id}:code">Code</button><button class="${tab === 'output' ? 'act' : ''}" data-tab="${v.id}:output">Output</button></div>
+      <div class="work">${content}${open ? '<div class="backdrop"></div><div class="drawer"><b>FileTree</b><br><i>drawer open</i></div>' : ''}</div>`;
+    if (!open) hidden.push('FileTree drawer');
+  }
+  const notes = r.notes.map((n) => `<div class="note">${esc(n)}</div>`).join('');
+  return `<div class="frame ${v.small ? 'small' : 'large'}">${top}${body}${status}</div>
+    <div class="tray">${hidden.length ? 'not rendered: ' + hidden.map((x) => `<span class="ghost">${esc(x)}</span>`).join('') : 'everything rendered'}</div>
+    ${notes ? `<div class="notes">${notes}</div>` : ''}`;
+}
+
+function viewsHTML(results) {
+  return VIEWS.map((v, i) => `<div class="view ${ui.view === v.id ? 'sel' : ''}" data-view="${v.id}">
+    <h3><span>${v.name} <small>${v.sub}</small></span><span class="pick">${ui.view === v.id ? '● path below' : 'show path'}</span></h3>
+    ${frameHTML(v, results[i], ctxOf(v))}</div>`).join('');
+}
+
+function flowHTML(results) {
+  const vi = VIEWS.findIndex((v) => v.id === ui.view);
+  const res = results[vi][ui.panel];
+  const tabs = PANEL_TABS.map((t) => `<button class="chip-btn ${ui.panel === t.key ? 'active' : ''}" data-panel-tab="${t.key}">${t.label}</button>`).join('');
+  const cmp = VIEWS.map((v, i) => `<div class="cmp ${ui.view === v.id ? 'sel' : ''}" data-view="${v.id}"><small>${v.name}</small><b>${esc(results[i][ui.panel].summary)}</b></div>`).join('');
+  const files = [...new Set(res.stages.map((s) => s.where.f))].map((f) => `<span class="loc">${esc(F[f])}</span>`).join('');
+  let lastStage = -1;
+  const items = [];
+  res.stages.forEach((s) => {
+    if (s.stage !== lastStage) {
+      items.push(`<li class="stage-h ${s.skipped ? 'dim' : ''}"><span>${STAGES[s.stage]}</span></li>`);
+      lastStage = s.stage;
+    }
+    items.push(`<li class="fl ${s.skipped ? 'skipped' : 'reached'}"><span class="dot">${s.stage}</span><div class="node">
+      <div class="q">${esc(s.q)}</div><div class="where">${loc(s.where)}</div>
+      <div class="branches">${s.branches.map((b) => `<span class="br ${b.on ? 'on' : ''}">${esc(b.label)}</span>`).join('')}</div>
+      ${s.note ? `<div class="nodenote">${esc(s.note)}</div>` : ''}${s.why ? `<div class="skipwhy">${esc(s.why)}</div>` : ''}</div></li>`);
+  });
+  items.push(`<li class="fl reached"><span class="dot">✓</span><div class="result">${esc(res.result)}</div></li>`);
+  return `<h2>Decision path (step ladder) · ${VIEWS[vi].name}</h2>
+    <div class="panel-tabs">${tabs}</div>
+    <div class="compare">${cmp}</div>
+    <div class="files"><span>Files involved:</span>${files}</div>
+    <ol class="flow">${items.join('')}</ol>`;
+}
+
+/* ---------- flowchart rendering ---------- */
+function shapePath(n) {
+  const { x, y, w, h } = n;
+  return `M${x},${y + h / 2} L${x + 14},${y} L${x + w - 14},${y} L${x + w},${y + h / 2} L${x + w - 14},${y + h} L${x + 14},${y + h} Z`;
+}
+function edgeGeom(e, byId) {
+  const a = byId[e.a], b = byId[e.b];
+  const x1 = a.cx, y1 = a.y + a.h;
+  if (e.to === 'right') {
+    const x2 = b.x + b.w, y2 = b.y + b.h / 2;
+    return { d: `M${x1},${y1} L${x1},${y2} L${x2 + 3},${y2}`, lx: x1 + 6, ly: (y1 + y2) / 2, anchor: 'start' };
+  }
+  const x2 = b.cx, y2 = b.y;
+  const dy = Math.max(30, (y2 - y1) * 0.5);
+  return { d: `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2 - 3}`, lx: (x1 + x2) / 2, ly: (y1 + y2) / 2 + 4, anchor: 'middle' };
+}
+function chartSVG(g) {
+  const maxX = Math.max(...g.nodes.map((n) => n.x + n.w)) + 24;
+  const maxY = Math.max(...g.nodes.map((n) => n.y + n.h)) + 24;
+  const minX = Math.min(0, ...g.nodes.map((n) => n.x - 24));
+  const edges = [...g.edges].sort((p, q) => (p.live ? 1 : 0) - (q.live ? 1 : 0));
+  const eHTML = edges.map((e) => {
+    const geo = edgeGeom(e, g.byId);
+    const on = !!e.live;
+    return `<path class="e ${on ? 'on' : ''}" d="${geo.d}" marker-end="url(#${on ? 'ar-on' : 'ar-off'})"/>` +
+      (e.label ? `<text class="el ${on ? 'on' : ''}" x="${geo.lx}" y="${geo.ly}" ${geo.anchor === 'start' ? 'text-anchor="start"' : ''}>${esc(e.label)}</text>` : '');
+  }).join('');
+  const nHTML = g.nodes.map((n) => {
+    const shape = n.kind === 'dec'
+      ? `<path class="n" d="${shapePath(n)}"/>`
+      : `<rect class="n" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${n.kind === 'start' || n.kind === 'res' ? 16 : 6}"/>`;
+    const text = n.lines.map((l, i) => `<text class="nt" x="${n.cx}" y="${n.y + (n.kind === 'dec' ? 4 : 0) + 20 + i * 15}">${esc(l)}</text>`).join('');
+    const lt = n.locText ? `<text class="nl" x="${n.cx}" y="${n.y + n.h - (n.kind === 'dec' ? 10 : 6)}">${esc(n.locText)}</text>` : '';
+    return `<g class="${n.kind} ${n.on ? 'on' : 'dim'}">${shape}${text}${lt}</g>`;
+  }).join('');
+  return `<svg class="chart" viewBox="${minX} -6 ${maxX - minX} ${maxY + 6}" role="img" aria-label="Decision flowchart">
+    <defs>
+      <marker id="ar-off" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="m-off" d="M0,0 L10,5 L0,10 z"/></marker>
+      <marker id="ar-on" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="m-on" d="M0,0 L10,5 L0,10 z"/></marker>
+    </defs>${eHTML}${nHTML}</svg>`;
+}
+function chartHTML(results) {
+  const vi = VIEWS.findIndex((v) => v.id === ui.view);
+  const ctx = ctxOf(VIEWS[vi]);
+  const h = parseHints(ui.hintStr);
+  const g = evalGraph(ui.gpanel, ctx, h, results[vi]);
+  const tabs = PANEL_TABS.map((t) => `<button class="chip-btn ${ui.gpanel === t.key ? 'active' : ''}" data-gpanel-tab="${t.key}">${t.label}</button>`).join('');
+  const views = VIEWS.map((v) => `<button class="chip-btn ${ui.view === v.id ? 'active' : ''}" data-view="${v.id}">${v.name}</button>`).join('');
+  return `<h2>Full decision flowchart</h2>
+    <div class="panel-tabs">${tabs}</div>
+    <div class="panel-tabs"><span class="caption" style="align-self:center">Highlighted path for:</span>${views}</div>
+    <div class="chart-wrap">${chartSVG(g)}</div>
+    <div class="chart-legend">
+      <span><svg width="38" height="18"><path d="M3,9 L10,2 L28,2 L35,9 L28,16 L10,16 Z" fill="none" stroke="currentColor"/></svg> decision</span>
+      <span><svg width="38" height="18"><rect x="2" y="2" width="34" height="14" rx="3" fill="none" stroke="currentColor"/></svg> resolved state</span>
+      <span><svg width="38" height="18"><rect x="2" y="2" width="34" height="14" rx="8" fill="none" stroke="currentColor"/></svg> start / outcome</span>
+      <span><svg width="38" height="18"><path d="M2,9 L36,9" stroke="var(--accent)" stroke-width="3"/></svg> path taken in the selected view</span>
+      <span><svg width="38" height="18"><path d="M2,9 L36,9" stroke="var(--line2)" stroke-width="1.4"/></svg> branch not taken</span>
+      <span class="mono">xyz.dart:12/34</span><span>= file and line(s) where the decision is made</span>
+    </div>`;
+}
+
+const FINDINGS = [
+  { t: 'There is no “compact” layout — there are four independent axes', p: 'Mode (embed=true), viewport width (< 866 px = “smallScreen”, your “mobile”), mobile browser by user agent (only turns the analyzer / Problems tab off) and footer width (< 500 px = “compact”, footer only). Each is evaluated in a different place.',
+    w: [W('query', 53, 'isEmbeddedUri'), W('app', 68, 'minLargeScreenWidth'), W('analyzer', 11, 'analyzerEnabledByDefault'), W('footer', 69, '_isCompact')] },
+  { t: 'The PanelLayout enum loses the mode on small screens', p: 'standalone | embed | smallScreen: embed·small and standalone·small are both “smallScreen”. That is why `mode` and `isSmallScreen` are additionally passed around separately, and `layout` itself is only used for a single `== smallScreen` check in PanelHints.',
+    w: [W('hints', 82, '_buildEmbedLayout'), W('ctrl', 108, 'updateScreenSize')] },
+  { t: '_buildEmbedLayout and _buildStandaloneLayout are near duplicates', p: 'The only real difference is what “not visible” looks like (embed: Hidden, standalone: Collapsed) — except for appbar/statusbar/tabs (always Hidden). This could be one parameter “nonVisibleKind” per panel.',
+    w: [W('hints', 61, '_buildEmbedLayout'), W('hints', 102, '_buildStandaloneLayout')] },
+  { t: 'The small-screen rule applies on load only, not on resize', p: 'On start, bottom hints are ignored on small screens (always Collapsed). updateScreenSize never touches the bottom area, though: large → small leaves it Expanded, small → large leaves it Collapsed. The file tree, in contrast, has a memory (_largeScreenFileTree).',
+    w: [W('ctrl', 108, 'updateScreenSize'), W('hints', 126, 'small gate for bottom')] },
+  { t: 'The preview state is overridden at runtime on small screens', p: 'The computed preview state (including the -preview hint) has no visible effect on small screens: _PreviewSplitListenable replaces it with the Code/Output tab. The hint lies dormant until you switch back to large.',
+    w: [W('wl', 279, '_PreviewSplitListenable')] },
+  { t: 'Mobile browser: the Problems tab is removed only at render time', p: 'Hint resolution does not know about the analyzer. Result: “-console” in a mobile browser resolves to Problems = Expanded, but Console is forced as the displayed tab → the console is open although you wanted it hidden. Better: make the analyzer policy an input of the resolution.',
+    w: [W('bp', 110, 'activeTab'), W('hints', 146, '_resolveBottomPanel')] },
+  { t: 'AppBar.isEmbedMode is dead code', p: 'The component has an (isEmbedMode, isSmallScreen) switch, but app.dart never passes isEmbedMode. Embed behavior comes entirely from PanelVisibility + defaults; the Code/Output bar is built separately in app.dart.',
+    w: [W('appbar', 75, 'AppBar.build'), W('app', 883, 'SmallScreenTabBar')] },
+  { t: 'Duplicate rule for the tabs/breadcrumbs default', p: '“Standalone → visible, embed → only with ≥ 2 files” lives in app.dart (always passed explicitly) and again — differently — in panel_defaults.dart. On top of that, EditorShell overrides the result at runtime as soon as ≥ 2 tabs are open.',
+    w: [W('app', 216, 'showEditorNavigation'), W('defaults', 33, 'editorNavigation'), W('shell', 77, 'PanelVisibility.visible')] },
+];
+const findsHTML = () => FINDINGS.map((f) => `<div class="find"><h4>${esc(f.t)}</h4><p>${esc(f.p)}</p><div class="where">${f.w.map(loc).join(' · ')}</div></div>`).join('');
+
+function render() {
+  const h = parseHints(ui.hintStr);
+  const results = VIEWS.map((v) => compute(ctxOf(v), h));
+  document.getElementById('controls').innerHTML = controlsHTML(h);
+  document.getElementById('views').innerHTML = viewsHTML(results);
+  document.getElementById('flow').innerHTML = flowHTML(results);
+  document.getElementById('chart').innerHTML = chartHTML(results);
+  document.getElementById('finds').innerHTML = findsHTML();
+  save();
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button, .view, .cmp');
+  if (!t) return;
+  const h = parseHints(ui.hintStr);
+  if (t.dataset.copy) { try { navigator.clipboard.writeText(t.dataset.copy); } catch (_) {} return; }
+  if (t.dataset.set !== undefined) {
+    const key = t.parentElement.dataset.panel;
+    h.order = h.order.filter(([k]) => k !== key);
+    if (t.dataset.set) h.order.push([key, t.dataset.set === '+']);
+    ui.hintStr = serialize(h);
+  } else if (t.dataset.panelTab) ui.panel = t.dataset.panelTab;
+  else if (t.dataset.gpanelTab) ui.gpanel = t.dataset.gpanelTab;
+  else if (t.dataset.tab) { const [id, tab] = t.dataset.tab.split(':'); ui.tabs[id] = tab; ui.view = id; }
+  else if (t.dataset.fold) ui.view = t.dataset.fold; // the drawer follows the hints; toggling it is a runtime action and not modelled
+  else if (t.dataset.view) ui.view = t.dataset.view;
+  else return;
+  render();
+});
+document.addEventListener('change', (e) => {
+  if (e.target.dataset.env) { ui.env[e.target.dataset.env] = e.target.checked; render(); }
+});
+render();
+</script>
+</body>
+</html>
