@@ -162,16 +162,34 @@ svg.chart { display: block; width: 100%; min-width: 820px; height: auto; font-fa
 .find h4::before { counter-increment: f; content: counter(f) ". "; color: var(--muted); }
 .find p { margin: 0 0 4px; color: var(--muted); }
 .find .where { margin: 4px 0 0; }
+[hidden] { display: none !important; }
+:root { --bug: #9b1c14; --bug-bg: #fde8e6; --bug-line: #e5a29c; --fix: #14612f; --fix-bg: #e0f5e8; }
+@media (prefers-color-scheme: dark) { :root { --bug: #ff9d93; --bug-bg: #3a1612; --bug-line: #7a2b24; --fix: #7fdca0; --fix-bg: #12301f; } }
+.pages { display: inline-flex; margin-top: 12px; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.pages button { border: 0; background: transparent; padding: 5px 20px; font-size: 13.5px; }
+.pages button.active { background: var(--accent); color: #fff; font-weight: 600; }
+.note.bug { background: var(--bug-bg); color: var(--bug); border-color: var(--bug-line); font-weight: 600; }
+.note.fixed { background: var(--fix-bg); color: var(--fix); border-color: var(--fix); }
+.tabbar .folder.bug { outline: 2px solid var(--bug); outline-offset: -2px; }
+.seg button:disabled { opacity: .3; cursor: not-allowed; }
+.bugs { display: grid; gap: 8px; }
+.bug-item { border: 1px solid var(--bug-line); border-left: 4px solid var(--bug); border-radius: 8px; padding: 8px 12px; background: var(--surface); }
+.bug-item h4 { margin: 0 0 3px; font-size: 13.5px; color: var(--bug); }
+.bug-item p { margin: 0 0 4px; color: var(--muted); }
+.bug-item .where { margin: 4px 0 0; }
+.rules { display: grid; gap: 3px; }
+.rules .caption::before { content: "• "; }
 </style>
 </head>
 <body>
 <header class="top">
   <h1>Panels Explorer · dartpad_preview</h1>
-  <p class="sub">Mirrors the panel logic in <code>dartpad_frontend</code> (current <code>main</code>): URL parsing → defaults → hints → render.
-    Pick hints below, compare the four views, then follow the decision path per panel — as a step ladder or as the full flowchart.</p>
+  <p class="sub" id="sub"></p>
+  <nav class="pages" id="pages"></nav>
 </header>
 
 <main>
+<div id="page-current">
   <section class="card controls" id="controls"></section>
   <section><div class="views" id="views"></div>
     <div class="legend">
@@ -184,9 +202,25 @@ svg.chart { display: block; width: 100%; min-width: 820px; height: auto; font-fa
       <span>Dashed/struck-through = not rendered (Hidden). Narrow strip = Collapsed.</span>
     </div>
   </section>
+  <section class="card" id="bugs"></section>
   <section class="card" id="flow"></section>
   <section class="card" id="chart"></section>
   <section class="card"><h2>Observations for the refactor</h2><div class="finds" id="finds"></div></section>
+</div>
+<div id="page-proposal" hidden>
+  <section class="card controls" id="p-controls"></section>
+  <section><div class="views" id="p-views"></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c-appbar)"></i>AppBar</span>
+      <span><i class="sw" style="background:var(--c-tree)"></i>FileTree</span>
+      <span><i class="sw" style="background:var(--c-nav)"></i>Tabs/Breadcrumbs</span>
+      <span><i class="sw" style="background:var(--c-bottom)"></i>Bottom (Problems/Console)</span>
+      <span><i class="sw" style="background:var(--c-preview)"></i>Preview</span>
+      <span><i class="sw" style="background:var(--c-status)"></i>StatusBar</span>
+      <span>Dashed/struck-through = not rendered. Narrow strip = Collapsed. 📁 in the bar = file tree toggle (click to open the drawer).</span>
+    </div>
+  </section>
+</div>
 </main>
 
 <script>
@@ -208,6 +242,7 @@ const F = {
   appbar: 'features/shared/components/app_bar.dart',
   analyzer: 'features/startup/analyzer_policy.dart',
   browser: 'features/shared/browser_device.dart',
+  stb: 'features/editor/components/small_screen_tab_bar.dart',
 };
 const PANELS = [
   { key: 'console', q: 'console' }, { key: 'problems', q: 'problems' }, { key: 'preview', q: 'preview' },
@@ -420,7 +455,7 @@ function compute(ctx, h) {
     appBar: resolveBar(ctx, h, 'appBar', 'AppBar'), statusBar: resolveBar(ctx, h, 'statusBar', 'StatusBar'), nav: resolveNav(ctx, h),
   };
   const n = [];
-  if (ctx.small && (h.console !== null || h.problems !== null)) n.push('console/problems hints ignored: small screens always start Collapsed.');
+  if (ctx.small && !ctx.embed && (h.console !== null || h.problems !== null)) n.push('console/problems hints ignored: small screens always start Collapsed.');
   if (ctx.small && h.preview !== null) n.push('preview hint has no visible effect: the Code/Output tab decides.');
   if (ctx.mobile && (h.problems !== null || h.preferred === 'problems')) n.push('Mobile browser: there is no Problems tab, so the problems hint only affects the state.');
   if (ctx.mobile && !ctx.small && h.console === false && h.problems !== false && r.bottom.value.state !== 'hidden') n.push('“-console” does not hide the console: the (non-existent) Problems tab keeps the area open, and Console is shown anyway.');
@@ -428,6 +463,15 @@ function compute(ctx, h) {
   if (h.tabs === true && ctx.small) n.push('There is no tab bar on small screens, only breadcrumbs.');
   if (h.appBar === false && ctx.small) n.push('The Code/Output bar stays visible despite “-appbar”.');
   r.notes = n;
+  r.bugs = [];
+  r.bugFolder = false;
+  if (ctx.embed && ctx.small) {
+    if (h.fileTree !== true) {
+      r.bugFolder = true;
+      r.bugs.push('BUG 1: the file tree button is shown in the Code/Output bar, although embeds hide the file tree by default.');
+    }
+    if (h.console !== null || h.problems !== null) r.bugs.push('BUG 2: console/problems hints are ignored in embed compact (panel_hints.dart:82).');
+  }
   return r;
 }
 
@@ -662,6 +706,41 @@ function evalGraph(key, ctx, h, r) {
   g.byId = byId;
   return g;
 }
+/* ---------- proposal ----------
+   - Only embeds are configurable (URL param `embedLayout`); standalone is a fixed layout.
+   - In embeds “-” always hides (no collapsed/hidden policy).
+   - AppBar / StatusBar: standalone shows, embeds don’t. Tabs/breadcrumbs: policy “several files”, no hint.
+   - File tree: hidden in embeds (“+” shows it: expanded on large, toggle button on compact). No “-”.
+   - Console/problems hints also apply on compact embeds. */
+const PROPOSAL_HINTS = ['console', 'problems', 'preview', 'fileTree'];
+function computeProposal(ctx, h) {
+  const { embed, small } = ctx;
+  const e = embed ? h : { console: null, problems: null, preview: null, fileTree: null, preferred: null };
+  const analyzerOn = !ctx.mobile;
+  let state, tab;
+  if (!embed) { state = small ? 'collapsed' : 'expanded'; tab = 'problems'; }
+  else {
+    const side = (v) => (v === true ? 'expanded' : v === false ? 'hidden' : 'collapsed');
+    const cs = side(e.console), ps = side(e.problems);
+    state = cs === 'expanded' || ps === 'expanded' ? 'expanded' : cs === 'collapsed' || ps === 'collapsed' ? 'collapsed' : 'hidden';
+    tab = e.preferred || (cs !== ps ? (cs === state ? 'console' : 'problems') : 'problems');
+  }
+  const bottom = { value: { state, tab, shown: analyzerOn ? tab : 'console', analyzerOn } };
+  const preview = { value: embed && e.preview === false ? 'rightHidden' : 'split' };
+  const showTree = !embed || e.fileTree === true;
+  const fileTree = small ? { value: 'leftHidden', button: showTree } : { value: showTree ? 'split' : 'leftHidden' };
+  const appBar = { value: embed ? 'hidden' : 'expanded' };
+  const statusBar = { value: embed ? 'hidden' : 'expanded', footer: ctx.narrow ? 'compact' : small ? 'reduced' : 'full' };
+  const visible = embed ? ctx.multi : true;
+  const nav = { visible, tabBar: visible && !small };
+  const n = [];
+  if (!embed && PROPOSAL_HINTS.some((k) => h[k] !== null)) n.push('Standalone is a fixed layout: embedLayout hints are ignored.');
+  if (embed && small && h.preview !== null) n.push('preview hint has no visible effect: the Code/Output tab decides.');
+  if (ctx.mobile && embed && (h.problems !== null || h.preferred === 'problems')) n.push('Mobile browser: there is no Problems tab, so the problems hint only affects the state.');
+  if (ctx.mobile && embed && h.console === false && h.problems !== false && state !== 'hidden') n.push('“-console” does not hide the console: the (non-existent) Problems tab keeps the area open, and Console is shown anyway.');
+  if (embed && small && h.fileTree === true) n.push('+filetree: toggle button appears in the Code/Output bar (drawer starts closed).');
+  return { bottom, preview, fileTree, appBar, statusBar, nav, notes: n };
+}
 /* LOGIC-END -------------------------------------------------------------- */
 
 /* ---------- UI ---------- */
@@ -675,11 +754,14 @@ const PANEL_TABS = [
   { key: 'bottom', label: 'Bottom (Console + Problems)' }, { key: 'preview', label: 'Preview' }, { key: 'fileTree', label: 'FileTree' },
   { key: 'appBar', label: 'AppBar' }, { key: 'statusBar', label: 'StatusBar' }, { key: 'nav', label: 'Tabs + Breadcrumbs' },
 ];
-const ui = { hintStr: '', env: { mobile: false, multi: false, narrow: false }, tabs: {}, view: 'standalone', panel: 'bottom', gpanel: 'bottom' };
+const ui = { hintStr: '', env: { mobile: false, multi: false, narrow: false }, tabs: {}, view: 'standalone', panel: 'bottom', gpanel: 'bottom', page: 'current',
+  pu: { hintStr: '', env: { mobile: false, multi: false, narrow: false }, tabs: {}, drawer: {}, view: 'standalone' } };
 try { const saved = JSON.parse(localStorage.getItem('panel-explorer-v2') || 'null'); if (saved) Object.assign(ui, saved); } catch (_) {}
+ui.pu = Object.assign({ hintStr: '', env: { mobile: false, multi: false, narrow: false }, tabs: {}, drawer: {}, view: 'standalone' }, ui.pu);
+if (location.hash === '#proposal') ui.page = 'proposal'; else if (location.hash === '#current') ui.page = 'current';
 const save = () => { try { localStorage.setItem('panel-explorer-v2', JSON.stringify(ui)); } catch (_) {} };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const ctxOf = (v) => ({ embed: v.embed, small: v.small, mobile: ui.env.mobile, multi: ui.env.multi, narrow: ui.env.narrow, tab: ui.tabs[v.id] || 'code' });
+const ctxOf = (v, st = ui) => ({ embed: v.embed, small: v.small, mobile: st.env.mobile, multi: st.env.multi, narrow: st.env.narrow, tab: st.tabs[v.id] || 'code' });
 const loc = (w) => `<button class="loc" data-copy="${ROOT}${F[w.f]}:${w.line}" title="${ROOT}${F[w.f]}:${w.line} (click to copy)">${esc(F[w.f].split('/').pop())}:${w.line}</button> <span class="mono">${esc(w.sym)}</span>`;
 
 function controlsHTML(h) {
@@ -736,24 +818,26 @@ function frameHTML(v, r, ctx) {
     body = `<div class="work">${tree}${col()}${prev}</div>`;
   } else {
     const tab = ctx.tab;
-    const open = r.fileTree.value === 'split';
+    const open = r.fileTree.open !== undefined ? r.fileTree.open : r.fileTree.value === 'split';
+    const showBtn = r.fileTree.button !== false;
     const content = tab === 'code' ? col() : '<div class="p preview" style="flex:1"><b>Preview</b><i>Output tab</i></div>';
     if (tab === 'code') hidden.push('Preview (Output tab only)');
-    body = `<div class="tabbar"><button class="folder ${open ? 'act' : ''}" data-fold="${v.id}" title="File tree">📁</button>
+    body = `<div class="tabbar">${showBtn ? `<button class="folder ${open ? 'act' : ''}${r.bugFolder ? ' bug' : ''}" data-fold="${v.id}" title="File tree">📁</button>` : ''}
         <button class="${tab === 'code' ? 'act' : ''}" data-tab="${v.id}:code">Code</button><button class="${tab === 'output' ? 'act' : ''}" data-tab="${v.id}:output">Output</button></div>
       <div class="work">${content}${open ? '<div class="backdrop"></div><div class="drawer"><b>FileTree</b><br><i>drawer open</i></div>' : ''}</div>`;
-    if (!open) hidden.push('FileTree drawer');
+    if (!open) hidden.push(showBtn ? 'FileTree drawer' : 'FileTree drawer + button');
   }
-  const notes = r.notes.map((n) => `<div class="note">${esc(n)}</div>`).join('');
+  const notes = r.notes.map((n) => `<div class="note">${esc(n)}</div>`).join('') + (r.bugs || []).map((n) => `<div class="note bug">${esc(n)}</div>`).join('');
   return `<div class="frame ${v.small ? 'small' : 'large'}">${top}${body}${status}</div>
     <div class="tray">${hidden.length ? 'not rendered: ' + hidden.map((x) => `<span class="ghost">${esc(x)}</span>`).join('') : 'everything rendered'}</div>
     ${notes ? `<div class="notes">${notes}</div>` : ''}`;
 }
 
-function viewsHTML(results) {
-  return VIEWS.map((v, i) => `<div class="view ${ui.view === v.id ? 'sel' : ''}" data-view="${v.id}">
-    <h3><span>${v.name} <small>${v.sub}</small></span><span class="pick">${ui.view === v.id ? '● path below' : 'show path'}</span></h3>
-    ${frameHTML(v, results[i], ctxOf(v))}</div>`).join('');
+function viewsHTML(results, st = ui, proposal = false) {
+  const list = proposal ? PVIEWS : VIEWS;
+  return list.map((v, i) => `<div class="view ${!proposal && st.view === v.id ? 'sel' : ''}" data-view="${v.id}">
+    <h3><span>${v.name} <small>${v.sub}</small></span>${proposal ? '' : `<span class="pick">${st.view === v.id ? '● path below' : 'show path'}</span>`}</h3>
+    ${frameHTML(v, results[i], ctxOf(v, st))}</div>`).join('');
 }
 
 function flowHTML(results) {
@@ -872,29 +956,117 @@ function render() {
   document.getElementById('flow').innerHTML = flowHTML(results);
   document.getElementById('chart').innerHTML = chartHTML(results);
   document.getElementById('finds').innerHTML = findsHTML();
+  document.getElementById('bugs').innerHTML = bugsHTML();
+  renderProposal();
+  renderChrome();
   save();
+}
+
+/* ---------- bugs (current implementation) ---------- */
+const BUGS = [
+  { t: 'File tree button is displayed on compact mobile (embed)', p: 'SmallScreenTabBar always receives onToggleFileTree, so the 📁 button appears in the Code/Output bar on every small screen — also in embeds, where the file tree is hidden by default and not meant to be used. Visible in “Embed · Small” (red outline).',
+    w: [W('app', 889, 'SmallScreenTabBar(onToggleFileTree: _panels.toggleFileTree)'), W('stb', 42, 'if (onToggleFileTree != null)')] },
+  { t: 'Problems/console hints are ignored in embed compact', p: '_buildEmbedLayout returns defaults.bottom on small screens before looking at the console/problems hints, so +console, -problems etc. do nothing in “Embed · Small”. For standalone this is by design (and goes away with the proposal, because standalone is no longer configurable).',
+    w: [W('hints', 82, 'PanelHints._buildEmbedLayout (defaults.layout == smallScreen ? defaults.bottom : …)')] },
+];
+const bugsHTML = () => `<h2>Known bugs in the current implementation <span class="caption">— fixed in the Proposal</span></h2><div class="bugs">${
+  BUGS.map((b) => `<div class="bug-item"><h4>${esc(b.t)}</h4><p>${esc(b.p)}</p><div class="where">${b.w.map(loc).join(' · ')}</div></div>`).join('')}</div>`;
+
+/* ---------- proposal page ---------- */
+const PVIEWS = [
+  { id: 'standalone', name: 'Standalone', sub: 'large ≥ 866 px', embed: false, small: false },
+  { id: 'embed', name: 'Embed', sub: 'large ≥ 866 px', embed: true, small: false },
+  { id: 'standalone-small', name: 'Standalone · Compact', sub: '< 866 px', embed: false, small: true },
+  { id: 'embed-small', name: 'Embed · Compact', sub: '< 866 px', embed: true, small: true },
+];
+function pControlsHTML(h) {
+  const rows = [
+    { k: 'console', q: 'console', minus: true }, { k: 'problems', q: 'problems', minus: true },
+    { k: 'preview', q: 'preview', minus: true }, { k: 'fileTree', q: 'filetree', minus: false },
+  ];
+  const matrix = rows.map((p) => {
+    const v = h[p.k];
+    return `<div class="mrow"><code>${p.q}</code><span class="seg" data-panel="${p.k}">
+      <button data-set="-" class="${v === false ? 'on-minus' : ''}" ${p.minus ? `title="-${p.q} (hides in embeds)"` : 'disabled title="not used: the file tree is hidden by default in embeds"'}>−</button>
+      <button data-set="" class="${v === null ? 'on-none' : ''}" title="not set">·</button>
+      <button data-set="+" class="${v === true ? 'on-plus' : ''}" title="+${p.q}">+</button></span></div>`;
+  }).join('');
+  const st = ui.pu;
+  const tog = (k, t, x) => `<label class="toggle"><input type="checkbox" data-env="${k}" ${st.env[k] ? 'checked' : ''}> ${t} <small>${x}</small></label>`;
+  return `
+    <div class="row"><span class="label">embedLayout</span><div class="matrix">${matrix}</div></div>
+    <div class="row"><span class="label"></span><div class="rules">
+      <span class="caption">URL param <code>embedLayout=</code> applies to <b>embeds only</b>; standalone is a fixed layout and ignores it. <code>−</code> always hides (no collapsed/hidden policy), <code>+</code> expands/shows. Hints are applied in click order.</span>
+      <span class="caption">Not configurable anymore: app bar + status bar (standalone shows them, embeds don’t) and tabs/breadcrumbs (embeds: only with several files; standalone: always).</span>
+      <span class="caption">File tree: hidden in embeds. <code>+filetree</code> shows it — expanded on large screens, as 📁 button in the Code/Output bar on compact. <code>−</code> is not used.</span>
+    </div></div>
+    <div class="row"><span class="label">Environment</span>
+      ${tog('mobile', 'Mobile browser', '(user agent → analyzer off)')}
+      ${tog('multi', 'several <code>file=</code>', '(≥ 2 tabs)')}
+      ${tog('narrow', 'Width &lt; 500 px', '(footer “compact” only)')}
+    </div>`;
+}
+function renderProposal() {
+  const st = ui.pu;
+  const h = parseHints(st.hintStr);
+  const results = PVIEWS.map((v) => {
+    const r = computeProposal(ctxOf(v, st), h);
+    if (v.small) r.fileTree.open = !!st.drawer[v.id] && r.fileTree.button;
+    return r;
+  });
+  document.getElementById('p-controls').innerHTML = pControlsHTML(h);
+  document.getElementById('p-views').innerHTML = viewsHTML(results, st, true);
+}
+const SUBS = {
+  current: 'Mirrors the panel logic in <code>dartpad_frontend</code> (current <code>main</code>): URL parsing → defaults → hints → render. Pick hints below, compare the four views, then follow the decision path per panel — as a step ladder or as the full flowchart.',
+  proposal: 'Proposal: only embeds are configurable (<code>embedLayout=</code>), standalone is a fixed layout, and the two bugs from the current version are fixed. Pick hints and compare the four layouts.',
+};
+function renderChrome() {
+  document.getElementById('sub').innerHTML = SUBS[ui.page];
+  document.getElementById('pages').innerHTML = [['current', 'Current'], ['proposal', 'Proposal']]
+    .map(([k, l]) => `<button class="${ui.page === k ? 'active' : ''}" data-page="${k}">${l}</button>`).join('');
+  document.getElementById('page-current').hidden = ui.page !== 'current';
+  document.getElementById('page-proposal').hidden = ui.page !== 'proposal';
 }
 
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button, .view, .cmp');
   if (!t) return;
-  const h = parseHints(ui.hintStr);
   if (t.dataset.copy) { try { navigator.clipboard.writeText(t.dataset.copy); } catch (_) {} return; }
+  if (t.dataset.page) {
+    ui.page = t.dataset.page;
+    try { history.replaceState(null, '', '#' + ui.page); } catch (_) {}
+    render();
+    return;
+  }
+  const st = t.closest('#page-proposal') ? ui.pu : ui;
+  const h = parseHints(st.hintStr);
   if (t.dataset.set !== undefined) {
     const key = t.parentElement.dataset.panel;
     h.order = h.order.filter(([k]) => k !== key);
     if (t.dataset.set) h.order.push([key, t.dataset.set === '+']);
-    ui.hintStr = serialize(h);
+    st.hintStr = serialize(h);
   } else if (t.dataset.panelTab) ui.panel = t.dataset.panelTab;
   else if (t.dataset.gpanelTab) ui.gpanel = t.dataset.gpanelTab;
-  else if (t.dataset.tab) { const [id, tab] = t.dataset.tab.split(':'); ui.tabs[id] = tab; ui.view = id; }
-  else if (t.dataset.fold) ui.view = t.dataset.fold; // the drawer follows the hints; toggling it is a runtime action and not modelled
-  else if (t.dataset.view) ui.view = t.dataset.view;
+  else if (t.dataset.tab) { const [id, tab] = t.dataset.tab.split(':'); st.tabs[id] = tab; st.view = id; }
+  else if (t.dataset.fold) {
+    // Current page: the drawer follows the hints and is not modelled. Proposal: the toggle opens/closes the drawer.
+    if (st === ui.pu) st.drawer[t.dataset.fold] = !st.drawer[t.dataset.fold];
+    st.view = t.dataset.fold;
+  } else if (t.dataset.view) st.view = t.dataset.view;
   else return;
   render();
 });
 document.addEventListener('change', (e) => {
-  if (e.target.dataset.env) { ui.env[e.target.dataset.env] = e.target.checked; render(); }
+  if (e.target.dataset.env) {
+    const st = e.target.closest('#page-proposal') ? ui.pu : ui;
+    st.env[e.target.dataset.env] = e.target.checked;
+    render();
+  }
+});
+window.addEventListener('hashchange', () => {
+  const page = location.hash.slice(1);
+  if ((page === 'proposal' || page === 'current') && page !== ui.page) { ui.page = page; render(); }
 });
 render();
 </script>
