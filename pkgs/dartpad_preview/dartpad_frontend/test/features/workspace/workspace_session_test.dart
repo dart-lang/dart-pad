@@ -16,6 +16,7 @@ import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/command_palette_actions.dart';
+import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -88,6 +89,46 @@ void main() {
     web.document.head!.appendChild(script);
     await loaded;
   });
+
+  for (final analyzerEnabled in [true, false]) {
+    test('editor context menu follows session analyzer policy: $analyzerEnabled', () async {
+      final initial = testProject();
+      final api = _Workspace();
+      await api.writeFileFromText('lib/main.dart', 'void main() {}');
+      final repository = WorkspaceRepository(
+        events: AppEventBus(),
+        taskStatus: TaskStatusController(),
+        workspaceResourceApi: api,
+        sdk: initial.sdk,
+      );
+      final session = WorkspaceSession.create(
+        repository,
+        initialProject: initial,
+        initialMode: initial.mode,
+        analyzerEnabled: analyzerEnabled,
+      );
+      addTearDown(session.dispose);
+      await session.tabs.openWorkspaceFile('lib/main.dart');
+      final tab = session.tabs.getTab('lib/main.dart')! as WorkspaceCodeMirrorTab;
+      web.document.body!.appendChild(tab.container);
+      addTearDown(() {
+        if (tab.container.isConnected) {
+          tab.container.remove();
+        }
+      });
+
+      expect(tab.editor.languageServerClient, isNull);
+      tab.container.dispatchEvent(web.MouseEvent('contextmenu', web.MouseEventInit(bubbles: true, cancelable: true)));
+
+      expect(session.contextMenu.isOpen, isTrue);
+      expect(
+        session.contextMenu.items.whereType<ContextMenuItem>().map((item) => item.label),
+        analyzerEnabled
+            ? ['Go to definition', 'Find references', 'Rename symbol', 'Format document', 'Cut', 'Copy', 'Paste']
+            : ['Cut', 'Copy', 'Paste'],
+      );
+    });
+  }
 
   test('creates workspace-scoped models and disposes them once', () async {
     final events = AppEventBus();
