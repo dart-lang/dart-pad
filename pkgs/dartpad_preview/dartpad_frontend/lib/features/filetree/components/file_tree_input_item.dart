@@ -8,6 +8,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+import '../file_tree_models.dart';
 import 'file_tree_row.dart';
 
 /// A stateful item representing a text input for creating/renaming.
@@ -21,6 +22,9 @@ class FileTreeInputItem extends StatefulComponent {
     this.initialValue,
     this.confirmOnBlur = true,
     this.checkConflict,
+    this.creationTarget,
+    this.creationKind,
+    this.active = true,
     super.key,
   });
 
@@ -48,6 +52,39 @@ class FileTreeInputItem extends StatefulComponent {
   /// Optional validation callback to check for conflicts (e.g. name already exists).
   final String? Function(String value)? checkConflict;
 
+  /// The folder for a creation input that can be prepared before it is shown.
+  final String? creationTarget;
+
+  /// The entry kind represented by a prepared input, if it is kind-specific.
+  final FileTreeEntryKind? creationKind;
+
+  /// Whether a prepared creation input is currently visible.
+  final bool active;
+
+  /// Reveals and focuses a prepared creation input during the user gesture.
+  ///
+  /// iOS WebKit requires this synchronous focus to open the on-screen keyboard.
+  static void focusPreparedCreation(
+    web.HTMLElement? tree, {
+    required String folderPath,
+    required FileTreeEntryKind kind,
+  }) {
+    final rows = tree?.querySelectorAll('[data-create-target]');
+    if (rows == null) {
+      return;
+    }
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows.item(i) as web.HTMLElement;
+      final inputKind = row.getAttribute('data-create-kind');
+      if (row.getAttribute('data-create-target') == folderPath && (inputKind == null || inputKind == kind.name)) {
+        row.removeAttribute('hidden');
+        final input = row.querySelector('input') as web.HTMLInputElement?;
+        input?.focus(web.FocusOptions(preventScroll: true));
+        return;
+      }
+    }
+  }
+
   @override
   State<FileTreeInputItem> createState() => _FileTreeInputItemState();
 }
@@ -60,6 +97,7 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
   bool _userHasEdited = false;
   bool _showError = false;
   bool _completed = false;
+  int _activation = 0;
 
   @override
   void initState() {
@@ -67,13 +105,38 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
     inputId = 'file-tree-input-${_counter++}';
     value = component.initialValue ?? '';
 
+    if (component.active) {
+      _focusAfterRender();
+    }
+  }
+
+  @override
+  void didUpdateComponent(FileTreeInputItem oldComponent) {
+    super.didUpdateComponent(oldComponent);
+    if (component.active != oldComponent.active) {
+      _activation++;
+      if (component.active) {
+        _completed = false;
+        _focusAfterRender();
+      } else {
+        value = component.initialValue ?? '';
+        _userHasEdited = false;
+        _showError = false;
+        _completed = true;
+      }
+    }
+  }
+
+  void _focusAfterRender() {
     scheduleMicrotask(() {
       Timer.run(() {
-        if (!_disposed && mounted) {
+        if (!_disposed && mounted && component.active) {
           final input = web.document.getElementById(inputId) as web.HTMLInputElement?;
-          input
-            ?..focus()
-            ..select();
+          if (input != null && web.document.activeElement != input) {
+            input
+              ..focus()
+              ..select();
+          }
         }
       });
     });
@@ -107,6 +170,11 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
     return FileTreeRow(
       depth: component.depth,
       classes: 'file-tree-input-wrapper',
+      attributes: {
+        'data-create-target': ?component.creationTarget,
+        'data-create-kind': ?component.creationKind?.name,
+        if (!component.active) 'hidden': '',
+      },
       children: [
         div(classes: 'file-tree-item input-row', [
           const span(classes: 'file-tree-disclosure spacer', []),
@@ -114,7 +182,9 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
           div(classes: 'file-tree-input-container', [
             input<String>(
               id: inputId,
-              classes: 'file-tree-input${displayError != null ? ' invalid' : ''}',
+              classes: component.active
+                  ? 'file-tree-input${displayError != null ? ' invalid' : ''}'
+                  : 'file-tree-input-prepared',
               value: value,
               attributes: {
                 'type': 'text',
@@ -131,8 +201,9 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
               events: {
                 'blur': (_) {
                   if (component.confirmOnBlur) {
+                    final activation = _activation;
                     Timer(const Duration(milliseconds: 150), () {
-                      if (_completed || _disposed || !mounted) {
+                      if (_completed || _disposed || !mounted || activation != _activation) {
                         return;
                       }
                       final trimmed = value.trim();

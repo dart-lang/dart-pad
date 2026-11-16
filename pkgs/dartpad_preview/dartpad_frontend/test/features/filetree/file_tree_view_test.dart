@@ -126,11 +126,16 @@ void main() {
     expect(newFileButton.textContent, 'New File');
 
     newFileButton.click();
+    final focusedInput = web.document.activeElement;
+    expect(focusedInput?.tagName, 'INPUT');
+    expect(focusedInput?.closest('.file-tree-folder-children'), isNull);
     await pumpEventQueue();
 
     expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
     final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
     expect(input, isNotNull);
+    expect(web.document.activeElement, focusedInput);
+    expect(input, focusedInput);
     expect(input!.placeholder, 'file');
   });
 
@@ -150,12 +155,40 @@ void main() {
     expect(newFolderButton.textContent, 'New Folder');
 
     newFolderButton.click();
+    final focusedInput = web.document.activeElement;
+    expect(focusedInput?.tagName, 'INPUT');
+    expect(focusedInput?.closest('.file-tree-folder-children'), isNull);
     await pumpEventQueue();
 
     expect(web.document.querySelector('.dropdown-menu-panel'), isNull);
     final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement?;
     expect(input, isNotNull);
+    expect(web.document.activeElement, focusedInput);
+    expect(input, focusedInput);
     expect(input!.placeholder, 'folder');
+  });
+
+  testClient('creation input only has an error border when validation fails', (tester) async {
+    tester.pumpComponent(
+      div(styles: const Styles(raw: {'--error': 'rgb(244, 67, 54)'}), [
+        Style(styles: FileTreeView.styles),
+        FileTreeView(state: _state(workspace), actions: _actions()),
+      ]),
+    );
+
+    (web.document.querySelector('.file-tree-add-button') as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    (web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement;
+    expect(web.window.getComputedStyle(input).borderTopColor, isNot('rgb(244, 67, 54)'));
+
+    input.dispatchEvent(
+      web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+    expect(web.window.getComputedStyle(input).borderTopColor, 'rgb(244, 67, 54)');
   });
 
   testClient('header "New File" creates the file in the root when nothing is selected', (tester) async {
@@ -170,6 +203,68 @@ void main() {
     await _createViaHeaderMenu(itemIndex: 0, name: 'main.dart');
 
     expect(created, [('', 'main.dart')]);
+  });
+
+  testClient('reopening creation starts with an empty input', (tester) async {
+    tester.pumpComponent(FileTreeView(state: _state(workspace), actions: _actions()));
+
+    await _createViaHeaderMenu(itemIndex: 0, name: 'first.dart');
+    (web.document.querySelector('.file-tree-add-button') as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    (web.document.querySelectorAll('.dropdown-menu-item').item(0) as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement;
+    expect(input.value, isEmpty);
+    expect(web.document.activeElement, input);
+  });
+
+  for (final (index, kind) in [(0, 'file'), (1, 'folder')]) {
+    testClient('focuses a new $kind in a collapsed selected folder during the menu click', (tester) async {
+      tester.pumpComponent(
+        FileTreeView(state: _stateWithFolder(workspace), actions: _actions()),
+      );
+
+      final folder = web.document.querySelector('.file-tree-item.folder') as web.HTMLElement;
+      folder.click();
+      await pumpEventQueue();
+      folder.click();
+      await pumpEventQueue();
+      expect(folder.getAttribute('aria-expanded'), 'false');
+
+      (web.document.querySelector('.file-tree-add-button') as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(index) as web.HTMLButtonElement).click();
+
+      final focusedInput = web.document.activeElement;
+      expect(focusedInput?.tagName, 'INPUT');
+      expect(
+        focusedInput?.closest('.file-tree-folder-children'),
+        folder.closest('.file-tree-folder')?.querySelector('.file-tree-folder-children'),
+      );
+      await pumpEventQueue();
+      expect(web.document.querySelector('.file-tree-folder-children .file-tree-input'), focusedInput);
+      expect(web.document.activeElement, focusedInput);
+      expect(focusedInput?.closest('.file-tree-item')?.querySelector('.$kind-icon'), isNotNull);
+    });
+  }
+
+  testClient('focuses a new file when choosing a folder context menu action', (tester) async {
+    final contextMenu = ContextMenuController();
+    tester.pumpComponent(
+      FileTreeView(state: _stateWithFolder(workspace), actions: _actions(), contextMenu: contextMenu),
+    );
+
+    (web.document.querySelector('.file-tree-item.folder') as web.HTMLElement).dispatchEvent(
+      web.MouseEvent('contextmenu', web.MouseEventInit(bubbles: true, cancelable: true)),
+    );
+    await pumpEventQueue();
+    contextMenu.items.whereType<ContextMenuItem>().firstWhere((item) => item.label == 'New file').onPressed();
+    final focusedInput = web.document.activeElement;
+    expect(focusedInput?.closest('.file-tree-folder-children'), isNotNull);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.file-tree-folder-children .file-tree-input'), focusedInput);
+    expect(web.document.activeElement, focusedInput);
   });
 
   testClient('header "New File" creates the file in the selected folder', (tester) async {

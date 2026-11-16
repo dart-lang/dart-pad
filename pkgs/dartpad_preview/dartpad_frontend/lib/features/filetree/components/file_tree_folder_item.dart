@@ -155,6 +155,10 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     };
     final isFolder = kind == FileTreeEntryKind.folder;
     return FileTreeInputItem(
+      key: ValueKey('create-${kind.name}-$path'),
+      creationTarget: path,
+      creationKind: kind,
+      active: component.creatingEntry == kind && component.creatingInFolder == path,
       depth: component.depth + 1,
       icon: switch (kind) {
         FileTreeEntryKind.folder => const FileIcon(
@@ -185,6 +189,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   Component build(BuildContext context) {
     final path = component.node.resource.path;
     final selected = component.selectedPath == path;
+    final selectedPath = component.selectedPath;
+    final prepareCreation =
+        selected ||
+        (selectedPath != null && parentWorkspacePath(selectedPath) == path) ||
+        component.creatingInFolder == path;
 
     if (_isRenaming) {
       return FileTreeInputItem(
@@ -304,10 +313,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             },
       children: [
         folderRow,
-        if (!_isCollapsed)
-          div(classes: 'file-tree-folder-children', [
-            if (component.creatingEntry == FileTreeEntryKind.folder && component.creatingInFolder == path)
-              _creationInput(path, FileTreeEntryKind.folder),
+        div(classes: 'file-tree-folder-children', [
+          if (prepareCreation) _creationInput(path, FileTreeEntryKind.folder),
+          if (!_isCollapsed)
             ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),
@@ -327,8 +335,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onStartCreate: component.onStartCreate,
               );
             }),
-            if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)
-              _creationInput(path, FileTreeEntryKind.file),
+          if (prepareCreation) _creationInput(path, FileTreeEntryKind.file),
+          if (!_isCollapsed)
             ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFileItem(
                 key: ValueKey('file-${child.resource.path}'),
@@ -343,7 +351,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 contextMenu: component.contextMenu,
               );
             }),
-          ]),
+        ]),
       ],
     );
   }
