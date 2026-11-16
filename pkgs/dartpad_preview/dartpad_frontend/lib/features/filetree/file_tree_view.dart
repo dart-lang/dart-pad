@@ -64,6 +64,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   FileTreeEntryKind? _creatingEntry;
   bool _isRootDropTarget = false;
   int _dragEnterCount = 0;
+  final _treeKey = GlobalNodeKey<web.HTMLElement>();
 
   @override
   void didUpdateComponent(FileTreeView oldComponent) {
@@ -93,6 +94,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
   }
 
   void _startCreate(FileTreeEntryKind kind, String folderPath) {
+    FileTreeInputItem.focusPreparedCreation(_treeKey.currentNode, folderPath: folderPath, kind: kind);
     setState(() {
       _creatingEntry = kind;
       _creatingInFolder = folderPath;
@@ -170,6 +172,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           .text(error),
         ]),
       div(
+        key: _treeKey,
         classes: [
           'file-tree-list',
           if (state.busy) 'busy',
@@ -221,52 +224,53 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           'contextmenu': _handleContextMenu,
         },
         [
-          if (_creatingEntry != null && _creatingInFolder == state.focusedPath)
-            FileTreeInputItem(
-              placeholder: _creatingEntry == FileTreeEntryKind.folder ? 'folder' : 'file',
-              depth: 0,
-              icon: _creatingEntry == FileTreeEntryKind.folder
-                  ? const FileIcon(
-                      'seti:folder',
-                      classes: 'file-tree-icon folder-icon',
-                      attributes: {'width': '12', 'height': '12'},
-                    )
-                  : const FileIcon(
-                      'seti:default',
-                      classes: 'file-tree-icon file-icon',
-                      attributes: {'width': '12', 'height': '12'},
-                    ),
-              confirmOnBlur: true,
-              checkConflict: (name) {
-                final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
-                if (state.root.exists(targetPath)) {
-                  return 'A file or folder already exists at "$targetPath".';
+          FileTreeInputItem(
+            creationTarget: state.focusedPath,
+            active: _creatingEntry != null && _creatingInFolder == state.focusedPath,
+            placeholder: _creatingEntry == FileTreeEntryKind.folder ? 'folder' : 'file',
+            depth: 0,
+            icon: _creatingEntry == FileTreeEntryKind.folder
+                ? const FileIcon(
+                    'seti:folder',
+                    classes: 'file-tree-icon folder-icon',
+                    attributes: {'width': '12', 'height': '12'},
+                  )
+                : const FileIcon(
+                    'seti:default',
+                    classes: 'file-tree-icon file-icon',
+                    attributes: {'width': '12', 'height': '12'},
+                  ),
+            confirmOnBlur: true,
+            checkConflict: (name) {
+              final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
+              if (state.root.exists(targetPath)) {
+                return 'A file or folder already exists at "$targetPath".';
+              }
+              return null;
+            },
+            onConfirm: (name) async {
+              final kind = _creatingEntry!;
+              final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
+              setState(() {
+                _creatingEntry = null;
+                _creatingInFolder = null;
+                _selectedPath = targetPath;
+              });
+              if (kind == FileTreeEntryKind.folder) {
+                await actions.createFolder(state.focusedPath, name);
+              } else {
+                if (await actions.createFile(state.focusedPath, name) && mounted) {
+                  component.onFileOpened?.call();
                 }
-                return null;
-              },
-              onConfirm: (name) async {
-                final kind = _creatingEntry!;
-                final targetPath = state.focusedPath.isEmpty ? name : '${state.focusedPath}/$name';
-                setState(() {
-                  _creatingEntry = null;
-                  _creatingInFolder = null;
-                  _selectedPath = targetPath;
-                });
-                if (kind == FileTreeEntryKind.folder) {
-                  await actions.createFolder(state.focusedPath, name);
-                } else {
-                  if (await actions.createFile(state.focusedPath, name) && mounted) {
-                    component.onFileOpened?.call();
-                  }
-                }
-              },
-              onCancel: () {
-                setState(() {
-                  _creatingEntry = null;
-                  _creatingInFolder = null;
-                });
-              },
-            ),
+              }
+            },
+            onCancel: () {
+              setState(() {
+                _creatingEntry = null;
+                _creatingInFolder = null;
+              });
+            },
+          ),
           ...state.root.children.where((child) => !child.isIgnored).map((child) {
             if (child is FileTreeFolderNode) {
               return FileTreeFolderItem(
@@ -286,11 +290,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 creatingEntry: _creatingEntry,
                 contextMenu: component.contextMenu,
                 onStartCreate: (folderPath, kind) {
-                  setState(() {
-                    _creatingEntry = kind;
-                    _creatingInFolder = folderPath;
-                    _selectedPath = null;
-                  });
+                  _startCreate(kind, folderPath);
                 },
                 onConfirmCreate: (name) async {
                   final parentPath = _creatingInFolder!;
@@ -578,24 +578,22 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         minWidth: .zero,
         flex: const Flex(grow: 1, basis: .zero),
       ),
-      css('.file-tree-input', [
-        css('&').styles(
-          width: 100.percent,
-          height: 20.px,
-          minWidth: .zero,
-          padding: .symmetric(horizontal: 4.px),
-          boxSizing: .borderBox,
-          border: .all(color: colorBorder, width: 1.px),
-          radius: .circular(2.px),
-          outline: const Outline(style: .none),
-          color: colorOnContainer,
-          fontSize: 1.em,
-          backgroundColor: colorContainer,
-        ),
-        css('&.invalid').styles(
-          border: .all(color: colorError, width: 1.px),
-        ),
-      ]),
+      css('.file-tree-input, .file-tree-input-prepared').styles(
+        width: 100.percent,
+        height: 20.px,
+        minWidth: .zero,
+        padding: .symmetric(horizontal: 4.px),
+        boxSizing: .borderBox,
+        border: .all(color: colorBorder, width: 1.px),
+        radius: .circular(2.px),
+        outline: const Outline(style: .none),
+        color: colorOnContainer,
+        fontSize: 1.em,
+        backgroundColor: colorContainer,
+      ),
+      css('.file-tree-input.invalid').styles(
+        border: .all(color: colorError, width: 1.px),
+      ),
       css('.file-tree-error').styles(
         padding: .symmetric(horizontal: 8.px, vertical: 5.px),
         color: colorError,
