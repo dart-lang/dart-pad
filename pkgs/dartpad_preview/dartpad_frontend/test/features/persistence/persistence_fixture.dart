@@ -88,7 +88,10 @@ final class MemoryProjectStore implements ProjectStore {
   }
 
   @override
-  Future<int> reserveSessionId() async => ++_sessionCounter;
+  Future<int> reserveSessionId() async {
+    await _beforeWrite();
+    return ++_sessionCounter;
+  }
 
   Future<void> _beforeWrite() async {
     await writeBarrier;
