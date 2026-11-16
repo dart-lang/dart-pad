@@ -145,25 +145,27 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   }
 
   FileTreeInputItem _creationInput(String path, FileTreeEntryKind kind) {
+    const iconAttributes = {'aria-hidden': 'true', 'width': '12', 'height': '12'};
     final isFolder = kind == FileTreeEntryKind.folder;
     return FileTreeInputItem(
       depth: component.depth + 1,
-      icon: isFolder
-          ? const FileIcon(
-              'seti:folder',
-              classes: 'file-tree-icon folder-icon',
-              attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
-            )
-          : const FileIcon(
-              'seti:default',
-              classes: 'file-tree-icon file-icon',
-              attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
-            ),
+      icon: switch (kind) {
+        FileTreeEntryKind.folder => const FileIcon(
+          'seti:folder',
+          classes: 'file-tree-icon folder-icon',
+          attributes: iconAttributes,
+        ),
+        FileTreeEntryKind.file => const FileIcon(
+          'seti:default',
+          classes: 'file-tree-icon file-icon',
+          attributes: iconAttributes,
+        ),
+      },
       confirmOnBlur: true,
       checkConflict: (name) {
         final targetPath = path.isEmpty ? name : '$path/$name';
         if (component.state.root.exists(targetPath)) {
-          return 'A file or folder already exists at "$targetPath".';
+          return 'A ${isFolder ? 'folder' : 'file'} already exists at "$targetPath".';
         }
         return null;
       },
