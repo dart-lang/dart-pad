@@ -291,6 +291,9 @@ final class WorkspaceRepository {
         final api = workspaceResourceApi;
         if (api is SyncedWorkspaceResourceApi) {
           await api.flush();
+          if (api.remoteApi case final remote?) {
+            await cleanGeneratedOutput(remote, path: path);
+          }
         }
         await cleanGeneratedOutput(workspaceResourceApi, path: path);
         events.dispatch(const LogEvent('Cleaning workspace... Done'));
