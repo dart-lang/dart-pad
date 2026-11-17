@@ -87,7 +87,6 @@ final class SmallScreenTabBar extends StatelessComponent {
     ),
     css('.small-screen-file-tree-button').styles(
       display: .flex,
-      position: const .relative(),
       width: 44.px,
       height: 100.percent,
       padding: .zero,
@@ -103,14 +102,6 @@ final class SmallScreenTabBar extends StatelessComponent {
     css('.small-screen-file-tree-button[aria-expanded="true"]').styles(
       color: colorPrimary,
       backgroundColor: colorSurface.highlight(colorPrimary, 0.08),
-    ),
-    // Keep keyboard focus visible without making it look like an expanded tree.
-    css('.small-screen-file-tree-button:focus-visible::after').styles(
-      content: '',
-      position: .absolute(bottom: 2.px, left: 10.px),
-      width: 24.px,
-      height: 2.px,
-      backgroundColor: const Color('currentColor'),
     ),
     css('.small-screen-tab-bar-divider').styles(
       width: 1.px,
