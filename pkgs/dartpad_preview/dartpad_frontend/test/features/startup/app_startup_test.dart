@@ -365,6 +365,32 @@ void main() {
     }
 
     group('MobileDrawer', () {
+      testClient('file creation closes the drawer without outlining the file-tree button', (tester) async {
+        final styles = web.HTMLStyleElement()
+          ..textContent = [...SmallScreenTabBar.styles, ...EditorShell.styles].map((rule) => rule.toCss()).join('\n');
+        web.document.head!.appendChild(styles);
+        addTearDown(() => web.document.head!.removeChild(styles));
+        await mountApp(tester, width: 390, embed: false, files: ['lib/main.dart']);
+        final opener = web.document.querySelector('.small-screen-file-tree-button')! as web.HTMLElement;
+        opener.focus();
+        await click('.small-screen-file-tree-button');
+        await click('.file-tree-add-button');
+        await click('.dropdown-menu-item');
+        final input = web.document.querySelector('.file-tree-input')! as web.HTMLInputElement;
+        input.value = 'created.dart';
+        input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+        input.dispatchEvent(web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true)));
+        await pumpEventQueue();
+
+        expect(fileTreeSplit().state, const LeftHidden(200));
+        expect(web.document.querySelector('.editor-breadcrumbs')!.getAttribute('title'), 'created.dart');
+        expect(web.window.getComputedStyle(opener).outlineStyle, 'none');
+        final editor = web.document.querySelector('.editor-host')! as web.HTMLElement;
+        expect(web.document.activeElement, editor);
+        expect(editor.getAttribute('aria-label'), 'Editor: created.dart');
+        expect(web.window.getComputedStyle(editor).outlineStyle, 'none');
+      });
+
       testClient('preserves the output', (tester) async {
         await mountApp(tester, width: 600, embed: false, files: ['lib/main.dart']);
         await selectOutputTab();
@@ -446,7 +472,11 @@ void main() {
               expect(drawer.hasAttribute('role'), isFalse);
               expect(web.document.querySelector('.file-tree-drawer-backdrop'), isNull);
               expect(web.document.querySelector('.editor-shell-content')!.hasAttribute('inert'), isFalse);
-              expect(web.document.activeElement, opener);
+              final opensFile = variant.key == 'on file selection' || variant.key.startsWith('on file creation');
+              expect(
+                web.document.activeElement,
+                opensFile ? web.document.querySelector('.editor-host') : opener,
+              );
             });
           }
         }

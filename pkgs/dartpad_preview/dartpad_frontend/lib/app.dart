@@ -144,6 +144,7 @@ final class _AppState extends State<App> {
   bool _isShortcutsOpen = false;
 
   SmallScreenTab _selectedSmallScreenTab = .code;
+  final _editorFocusKey = GlobalNodeKey();
   StreamSubscription<web.Event>? _resizeSubscription;
   StreamSubscription<web.KeyboardEvent>? _keySubscription;
 
@@ -811,6 +812,7 @@ final class _AppState extends State<App> {
           listenable: session.tabs,
           builder: (context) {
             final editor = EditorShell(
+              editorFocusKey: _editorFocusKey,
               openTabs: session.tabs.openTabs,
               activeFile: session.tabs.activeFile,
               editorOverlay: _buildEditorOverlay(session),
@@ -997,9 +999,21 @@ final class _AppState extends State<App> {
         state: session.fileTree.state,
         actions: session.fileTree.actions,
         onFileOpened: () {
+          final wasOpenOnSmallScreen = !_isLargeScreen && _panels.fileTree.isSplit;
           _panels.closeSmallScreenFileTree();
           if (!_isLargeScreen && _selectedSmallScreenTab != .code) {
             setState(() => _selectedSmallScreenTab = .code);
+          }
+          if (wasOpenOnSmallScreen) {
+            // Focus the editor region without opening the software keyboard.
+            context.binding.addPostFrameCallback(() {
+              if (_isCurrent(session) &&
+                  !_isLargeScreen &&
+                  !_panels.fileTree.isSplit &&
+                  _selectedSmallScreenTab == .code) {
+                (_editorFocusKey.currentNode as web.HTMLElement?)?.focus(web.FocusOptions(preventScroll: true));
+              }
+            });
           }
         },
         contextMenu: session.contextMenu,
