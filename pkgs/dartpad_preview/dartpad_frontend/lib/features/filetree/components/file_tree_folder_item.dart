@@ -189,10 +189,10 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   Component build(BuildContext context) {
     final path = component.node.resource.path;
     final selected = component.selectedPath == path;
-    final selectedPath = component.selectedPath;
-    final prepareCreation =
+    // File tree rows which can hold input fields should prepare them
+    final shouldPrepareCreation =
         selected ||
-        (selectedPath != null && parentWorkspacePath(selectedPath) == path) ||
+        (component.selectedPath != null && parentWorkspacePath(component.selectedPath!) == path) ||
         component.creatingInFolder == path;
 
     if (_isRenaming) {
@@ -314,7 +314,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       children: [
         folderRow,
         div(classes: 'file-tree-folder-children', [
-          if (prepareCreation) _creationInput(path, FileTreeEntryKind.folder),
+          if (shouldPrepareCreation) _creationInput(path, FileTreeEntryKind.folder),
           if (!_isCollapsed)
             ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFolderItem(
@@ -335,7 +335,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onStartCreate: component.onStartCreate,
               );
             }),
-          if (prepareCreation) _creationInput(path, FileTreeEntryKind.file),
+          if (shouldPrepareCreation) _creationInput(path, FileTreeEntryKind.file),
           if (!_isCollapsed)
             ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFileItem(
