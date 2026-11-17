@@ -10,6 +10,7 @@ import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_request.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -81,29 +82,101 @@ void main() {
     );
     expect(requests, [Uri.https('pub.dev', '/api/packages/demo')]);
   });
-  test('reports failed package metadata requests', () async {
-    await http.runWithClient(() async {
-      await expectLater(
-        const PackageProjectSource('demo', version: '1.2.3').loadProject(),
-        throwsA(isA<PubPackageMetadataException>().having((error) => error.message, 'message', contains('404'))),
+  for (final status in [408, 429, 500, 503, null]) {
+    test('retries transient package metadata failure ${status ?? 'network error'}', () {
+      return fakeAsync((time) {
+        var attempts = 0;
+        var completed = false;
+        Object? failure;
+        final archive = Uint8List.fromList(TarEncoder().encode(Archive()));
+        final result = http.runWithClient(
+          () => const PackageProjectSource('demo').loadProject(),
+          () => MockClient((request) async {
+            if (request.url.host == 'archives.example.com') {
+              return http.Response.bytes(archive, 200);
+            }
+            attempts++;
+            if (attempts == 1) {
+              if (status == null) {
+                throw http.ClientException('Network error');
+              }
+              return http.Response('Temporary failure', status);
+            }
+            return http.Response(
+              jsonEncode({
+                'latest': {'archive_url': 'https://archives.example.com/demo.tar'},
+              }),
+              200,
+            );
+          }),
+        );
+        result.then<void>((_) => completed = true, onError: (Object error, StackTrace _) => failure = error);
+        time.flushMicrotasks();
+        expect(attempts, 1);
+        time.elapse(const Duration(seconds: 10));
+        expect(attempts, 2);
+        expect(failure, isNull);
+        expect(completed, isTrue);
+      });
+    });
+  }
+  for (final status in [400, 404]) {
+    test('does not retry package metadata HTTP $status', () async {
+      var attempts = 0;
+      await http.runWithClient(
+        () => expectLater(
+          const PackageProjectSource('demo', version: '1.2.3').loadProject(),
+          throwsA(isA<PubPackageMetadataException>().having((error) => error.message, 'message', contains('$status'))),
+        ),
+        () => MockClient((_) async {
+          attempts++;
+          return http.Response('Failed', status);
+        }),
       );
-    }, () => MockClient((_) async => http.Response('Not found', 404)));
-  });
-  test('reports package metadata network failures', () async {
-    await http.runWithClient(
-      () => expectLater(
-        const PackageProjectSource('demo', version: '1.2.3').loadProject(),
-        throwsA(
+      expect(attempts, 1);
+    });
+  }
+  for (final status in [503, null]) {
+    test('reports package metadata failure after retries: ${status ?? 'network error'}', () {
+      return fakeAsync((time) {
+        final attempts = <Duration>[];
+        Object? failure;
+        http
+            .runWithClient(
+              () => const PackageProjectSource('demo', version: '1.2.3').loadProject(),
+              () => MockClient((_) async {
+                attempts.add(time.elapsed);
+                if (status == null) {
+                  throw http.ClientException('Network error');
+                }
+                return http.Response('Unavailable', status);
+              }),
+            )
+            .then<void>((_) {}, onError: (Object error, StackTrace _) => failure = error);
+        time.flushMicrotasks();
+        expect(attempts, hasLength(1));
+        time.elapse(const Duration(seconds: 10));
+        expect(attempts, hasLength(4));
+        final delays = [for (var i = 1; i < attempts.length; i++) attempts[i] - attempts[i - 1]];
+        expect(delays[0], greaterThan(Duration.zero));
+        expect(delays[1], greaterThan(delays[0]));
+        expect(delays[2], greaterThan(delays[1]));
+        expect(
+          failure,
           isA<PubPackageMetadataException>().having(
             (error) => error.message,
             'message',
-            allOf(contains('pub.dev'), contains('demo'), contains('1.2.3')),
+            allOf(
+              contains('pub.dev'),
+              contains('demo'),
+              contains('1.2.3'),
+              contains(status?.toString() ?? 'unreachable'),
+            ),
           ),
-        ),
-      ),
-      () => MockClient((_) async => throw http.ClientException('Network error')),
-    );
-  });
+        );
+      });
+    });
+  }
   for (final (version, body) in [
     (null, '{'),
     (null, '[]'),

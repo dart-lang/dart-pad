@@ -30,9 +30,25 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
   );
   final http.Response response;
   try {
-    response = await http.get(uri, headers: {'Accept': 'application/vnd.pub.v2+json'});
+    response = await retry(
+      () async {
+        final response = await http.get(uri, headers: {'Accept': 'application/vnd.pub.v2+json'});
+        if (response.statusCode == 408 ||
+            response.statusCode == 429 ||
+            (response.statusCode >= 500 && response.statusCode < 600)) {
+          throw _RetryablePubResponse(response);
+        }
+        return response;
+      },
+      retryIf: (error) => error is http.ClientException || error is _RetryablePubResponse,
+      maxAttempts: 4,
+    );
   } on http.ClientException {
     throw PubPackageMetadataException('pub.dev is unreachable for $packageDescription.');
+  } on _RetryablePubResponse catch (error) {
+    throw PubPackageMetadataException(
+      'pub.dev returned HTTP ${error.response.statusCode} for $packageDescription.',
+    );
   }
   if (response.statusCode != 200) {
     throw PubPackageMetadataException(
@@ -66,4 +82,11 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
     return metadata['archive_url'] as String;
   }
   throw PubPackageMetadataException('pub.dev returned an unexpected response for $packageDescription.');
+}
+
+/// Carries a transient HTTP response through the retry loop.
+final class _RetryablePubResponse implements Exception {
+  const _RetryablePubResponse(this.response);
+
+  final http.Response response;
 }
