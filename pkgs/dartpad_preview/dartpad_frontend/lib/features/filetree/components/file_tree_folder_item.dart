@@ -314,8 +314,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       children: [
         folderRow,
         div(classes: 'file-tree-folder-children', [
-          if (shouldPrepareCreation) _creationInput(path, FileTreeEntryKind.folder),
-          if (!_isCollapsed)
+          if (shouldPrepareCreation) ...[
+            _creationInput(path, FileTreeEntryKind.folder),
+            _creationInput(path, FileTreeEntryKind.file),
+          ],
+          if (!_isCollapsed) ...[
             ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFolderItem(
                 key: ValueKey('folder-${child.resource.path}'),
@@ -335,8 +338,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 onStartCreate: component.onStartCreate,
               );
             }),
-          if (shouldPrepareCreation) _creationInput(path, FileTreeEntryKind.file),
-          if (!_isCollapsed)
             ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
               return FileTreeFileItem(
                 key: ValueKey('file-${child.resource.path}'),
@@ -351,6 +352,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 contextMenu: component.contextMenu,
               );
             }),
+          ],
         ]),
       ],
     );

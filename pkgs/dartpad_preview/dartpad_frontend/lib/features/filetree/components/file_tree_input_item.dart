@@ -61,7 +61,7 @@ class FileTreeInputItem extends StatefulComponent {
   /// Whether a prepared creation input is currently visible.
   final bool active;
 
-  /// Reveals and focuses a prepared creation input during the user gesture.
+  /// Reveals and focuses a prepared creation input during input event like click or touch.
   ///
   /// iOS WebKit requires this synchronous focus to open the on-screen keyboard.
   static void focusPreparedCreation(
