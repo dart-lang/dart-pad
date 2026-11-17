@@ -18,10 +18,15 @@ final class GistProjectSource extends ProjectSource {
       throw ArgumentError.value(id, 'gistId', 'must not be empty');
     }
 
-    final response = await http.get(
-      Uri.https('api.github.com', '/gists/$id'),
-      headers: const {'Accept': 'application/vnd.github+json'},
-    );
+    final http.Response response;
+    try {
+      response = await http.get(
+        Uri.https('api.github.com', '/gists/$id'),
+        headers: const {'Accept': 'application/vnd.github+json'},
+      );
+    } on http.ClientException {
+      throw ProjectSourceRetrievalException('Failed to GET gist $id');
+    }
     if (response.statusCode != 200) {
       throw ProjectSourceException('Failed to load gist $id (${response.statusCode}).');
     }
@@ -75,7 +80,12 @@ Future<ProjectFile> _loadGistFile(Object? value) async {
     if (rawUri == null || !rawUri.isAbsolute) {
       throw const ProjectSourceException('A truncated gist file has an invalid raw URL.');
     }
-    final response = await http.get(rawUri);
+    final http.Response response;
+    try {
+      response = await http.get(rawUri);
+    } on http.ClientException {
+      throw ProjectSourceRetrievalException('Failed to GET truncated gist file $filename');
+    }
     if (response.statusCode != 200) {
       throw ProjectSourceException('Failed to load truncated gist file $filename.');
     }

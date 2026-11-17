@@ -14,6 +14,13 @@ final class ProjectSourceException implements Exception {
   final String message;
 }
 
+/// A project source that could not be retrieved over the network.
+final class ProjectSourceRetrievalException implements Exception {
+  const ProjectSourceRetrievalException(this.message);
+
+  final String message;
+}
+
 /// A project file whose content is malformed, such as a pubspec that is not a YAML mapping.
 final class ProjectContentException extends FormatException {
   const ProjectContentException(super.message);

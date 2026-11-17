@@ -32,7 +32,14 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
       if (version != null) ...['versions', version],
     ],
   );
-  final response = await http.get(uri);
+  final http.Response response;
+  try {
+    response = await http.get(uri);
+  } on http.ClientException {
+    throw ProjectSourceRetrievalException(
+      'Failed to GET package $packageName${version == null ? '' : ' version $version'}',
+    );
+  }
   if (response.statusCode != 200) {
     throw ProjectSourceException(
       'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
