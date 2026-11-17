@@ -33,7 +33,11 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
 
-  /// Whether the editor is visible and can be measured or have its state saved.
+  /// Whether this tab is showing the CodeMirror input field.
+  ///
+  /// Markdown Preview hides that field. Skip layout measurements and saving
+  /// its cursor/scroll position while hidden. Whether the tab is active is
+  /// checked separately.
   bool get _isEditorVisible => true;
 
   EditorViewState? _savedViewState;

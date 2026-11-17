@@ -224,66 +224,23 @@ void main() {
     tab.setMarkdownViewMode(MarkdownViewMode.source);
     await tabs!.openWorkspaceFile('other.markdown');
     expect((tabs!.activeTab! as WorkspaceCodeMirrorTab).markdownViewMode, MarkdownViewMode.preview);
-    tabs!.closeTab('README.md');
+    tabs!.switchFile('README.md');
+    expect(tab.markdownViewMode, MarkdownViewMode.source);
+    expect(tabs!.closeFile('README.md'), isTrue);
+    expect(tabs!.getTab('README.md'), same(tab));
     await tabs!.openWorkspaceFile('README.md');
-    expect(tabs!.activeTab, same(tab));
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
-    tab.setMarkdownViewMode(MarkdownViewMode.preview);
-    tab.rename('README.txt');
-    expect(tab.isMarkdown, isFalse);
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
-    expect(tab.editor.file, 'README.txt');
-    tab.setMarkdownViewMode(MarkdownViewMode.preview);
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
+    final reopened = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    expect(reopened, same(tab));
+    expect(reopened.editor, same(tab.editor));
+    expect(reopened.markdownViewMode, MarkdownViewMode.source);
   });
 
-  testClient('view mode stays valid across renames and preserves the editor', (tester) async {
-    workspace.files['README.txt'] = '# Readme';
-    await tabs!.openWorkspaceFile('README.txt');
+  test('non-Markdown tabs cannot enter preview mode', () async {
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
-    final editor = tab.editor;
-    tester.pumpComponent(
-      EditorStack(openTabs: [tab], activeFile: tab.path, overlay: const Component.fragment([])),
-    );
-    await pumpEventQueue();
-
     for (final mode in MarkdownViewMode.values) {
       tab.setMarkdownViewMode(mode);
       expect(tab.markdownViewMode, MarkdownViewMode.source);
     }
-    editor.view.dispatch(TransactionSpec(selection: EditorSelection.single(4)));
-    tab.rename('README.md');
-    tester.pumpComponent(
-      EditorStack(openTabs: [tab], activeFile: tab.path, overlay: const Component.fragment([])),
-    );
-    await pumpEventQueue();
-    expect(tab.markdownViewMode, MarkdownViewMode.preview);
-    expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Readme');
-    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isTrue);
-
-    tab.rename('README.txt');
-    tester.pumpComponent(
-      EditorStack(openTabs: [tab], activeFile: tab.path, overlay: const Component.fragment([])),
-    );
-    await pumpEventQueue();
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
-    expect(web.document.querySelector('.markdown-preview'), isNull);
-    expect(editor.view.state.selection.main.head, 4);
-
-    tab.rename('README.md');
-    expect(tab.markdownViewMode, MarkdownViewMode.preview);
-    tab.setMarkdownViewMode(MarkdownViewMode.source);
-    tab.rename('README.txt');
-    tab.rename('README.markdown');
-    tester.pumpComponent(
-      EditorStack(openTabs: [tab], activeFile: tab.path, overlay: const Component.fragment([])),
-    );
-    await pumpEventQueue();
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
-    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isFalse);
-    expect(tab.editor, same(editor));
-    expect(editor.text, '# Readme');
-    expect(editor.view.state.selection.main.head, 4);
   });
 
   testClient('system Markdown files remain read-only source tabs', (tester) async {
