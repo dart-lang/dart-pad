@@ -17,6 +17,8 @@ import '../../shared/node_container.dart';
 import '../components/code_action_panel.dart';
 import 'editor_context_menu.dart';
 
+part 'workspace_markdown_preview.dart';
+
 /// Shared editor display, navigation, and lifecycle for CodeMirror tabs.
 sealed class CodeMirrorTab extends EditorTab<Component> {
   CodeMirrorTab._(super.path, EditorTabOrigin origin)
@@ -31,38 +33,16 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
 
+  /// Whether the editor is visible and can be measured or have its state saved.
+  bool get _isEditorVisible => true;
+
   EditorViewState? _savedViewState;
   bool _active = false;
   bool _disposed = false;
   Timer? _measureTimer;
   final StreamController<void> _updates = StreamController<void>.broadcast();
-  MarkdownRenderer? _markdownRenderer;
-  bool _previewMarkdown = true;
-
-  /// Whether this tab supports Markdown preview.
-  bool get isMarkdown => isMarkdownFile(displayPath);
-
-  /// Markdown files initially open in preview, with the editor kept in memory.
-  bool get isMarkdownPreview => isMarkdown && _previewMarkdown;
-
   @override
   Stream<void> get onUpdate => _updates.stream;
-
-  /// Switches Markdown display without recreating the editor.
-  void setMarkdownPreview({required bool preview}) {
-    if (!isMarkdown || _previewMarkdown == preview) {
-      return;
-    }
-    if (preview) {
-      _savedViewState = editor.saveViewState();
-      CodeMirrorEditor.hideAllTooltips();
-    }
-    _previewMarkdown = preview;
-    if (!preview) {
-      _scheduleMeasureAndRestore();
-    }
-    _notifyUpdate();
-  }
 
   void _notifyUpdate() {
     if (!_disposed) {
@@ -84,16 +64,25 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
-    if (!isMarkdownPreview) {
+    if (_isEditorVisible) {
       _savedViewState = editor.saveViewState();
     }
+  }
+
+  void _prepareEditorForHiding() {
+    if (_active && container.isConnected) {
+      _savedViewState = editor.saveViewState();
+      CodeMirrorEditor.hideAllTooltips();
+    }
+    _measureTimer?.cancel();
+    _measureTimer = null;
   }
 
   void _scheduleMeasureAndRestore() {
     _measureTimer?.cancel();
     _measureTimer = Timer(Duration.zero, () {
       _measureTimer = null;
-      if (_disposed || !_active || isMarkdownPreview || !container.isConnected) {
+      if (_disposed || !_active || !_isEditorVisible || !container.isConnected) {
         return;
       }
       editor.requestMeasure();
@@ -116,28 +105,7 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   }
 
   @override
-  Component build() {
-    final source = NodeContainer(container, onAttached: _scheduleMeasureAndRestore);
-    if (!isMarkdown) {
-      return source;
-    }
-    final renderer = _markdownRenderer ??= MarkdownRenderer();
-    if (isMarkdownPreview) {
-      renderer.render(content);
-    }
-    return div(classes: 'markdown-tab', [
-      div(
-        classes: 'markdown-source',
-        attributes: {if (isMarkdownPreview) 'hidden': ''},
-        [source],
-      ),
-      div(
-        classes: 'markdown-rendered',
-        attributes: {if (!isMarkdownPreview) 'hidden': ''},
-        [NodeContainer(renderer.container)],
-      ),
-    ]);
-  }
+  Component build() => NodeContainer(container, onAttached: _scheduleMeasureAndRestore);
 
   @override
   void dispose() {
@@ -153,8 +121,8 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   }
 }
 
-/// An editable project tab with autosave, code actions, and a context menu.
-final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
+/// An editable workspace text tab with autosave, code actions, and a context menu.
+final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdownPreview {
   /// Creates an editable tab for the workspace-relative [path].
   WorkspaceCodeMirrorTab({
     required String path,
@@ -319,10 +287,12 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
   }
 
   @override
-  Component build() => Component.fragment([
-    super.build(),
-    if (codeActionsController.showFloatingPanel) CodeActionPanel(controller: codeActionsController),
-  ]);
+  Component build() => _buildMarkdownView(
+    Component.fragment([
+      super.build(),
+      if (codeActionsController.showFloatingPanel) CodeActionPanel(controller: codeActionsController),
+    ]),
+  );
 
   @override
   void dispose() {
