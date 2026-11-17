@@ -101,7 +101,7 @@ class EditorShell extends StatelessComponent {
           activeFile: activeFile,
           overlay: .fragment([
             editorOverlay,
-            if (activeTab case final CodeMirrorTab tab when tab.isMarkdown)
+            if (activeTab case final WorkspaceCodeMirrorTab tab when tab.isMarkdown)
               MarkdownViewSwitch(tab: tab, key: ValueKey('md-switch-${tab.path}')),
           ]),
         ),

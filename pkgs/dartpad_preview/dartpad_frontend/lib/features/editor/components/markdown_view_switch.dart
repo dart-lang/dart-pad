@@ -14,22 +14,27 @@ import 'editor_floating_action.dart';
 final class MarkdownViewSwitch extends StatelessComponent {
   const MarkdownViewSwitch({required this.tab, super.key});
 
-  final CodeMirrorTab tab;
+  final WorkspaceCodeMirrorTab tab;
 
   @override
   Component build(BuildContext context) => EditorFloatingAction(
     className: 'markdown-view-switch',
     busy: false,
     child: Button(
-      label: tab.isMarkdownPreview ? 'Edit' : 'Preview',
-      onClick: () => tab.setMarkdownPreview(preview: !tab.isMarkdownPreview),
+      label: tab.markdownViewMode == MarkdownViewMode.preview ? 'Edit' : 'Preview',
+      onClick: () => tab.setMarkdownViewMode(
+        switch (tab.markdownViewMode) {
+          MarkdownViewMode.source => MarkdownViewMode.preview,
+          MarkdownViewMode.preview => MarkdownViewMode.source,
+        },
+      ),
     ),
   );
 
   @css
   static List<StyleRule> get styles => [
-    css('.markdown-tab, .markdown-source, .markdown-rendered').styles(height: 100.percent, minWidth: .zero),
-    css('.markdown-tab [hidden]').styles(display: .none),
+    css('.workspace-text-tab, .workspace-source, .markdown-rendered').styles(height: 100.percent, minWidth: .zero),
+    css('.workspace-text-tab [hidden]').styles(display: .none),
     css('.markdown-preview').styles(
       height: 100.percent,
       padding: .only(top: 64.px, right: 28.px, bottom: 20.px, left: 28.px),
