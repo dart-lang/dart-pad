@@ -28,7 +28,6 @@ class EditorShell extends StatelessComponent {
     required this.bottomPanel,
     this.contextMenu,
     required this.panelController,
-    this.editorFocusKey,
     super.key,
   }) : assert(
          openTabs == null || (onSwitchFile != null && onCloseFile != null),
@@ -58,9 +57,6 @@ class EditorShell extends StatelessComponent {
 
   /// Shared bottom-panel and editor-navigation state.
   final PanelLayoutController panelController;
-
-  /// Allows the app to focus the editor region after opening a file.
-  final GlobalNodeKey? editorFocusKey;
 
   // Reserve at least 30% of the height for the editor and 15% for the bottom panel.
   static const _minEditorHeightFraction = 0.3;
@@ -108,11 +104,6 @@ class EditorShell extends StatelessComponent {
     return ValueListenableBuilder(
       listenable: panelController.layoutListenable,
       builder: (_, _) => main_(
-        key: editorFocusKey,
-        attributes: {
-          'tabindex': '-1',
-          'aria-label': activeFile.isEmpty ? 'Editor' : 'Editor: $breadcrumbPath',
-        },
         classes: [
           'editor-shell',
           'editor-host',
@@ -141,7 +132,6 @@ class EditorShell extends StatelessComponent {
       display: .flex,
       minWidth: .zero,
       minHeight: 0.px,
-      outline: const Outline(style: .none),
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1),
