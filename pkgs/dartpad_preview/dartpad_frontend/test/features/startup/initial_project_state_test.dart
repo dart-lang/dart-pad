@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
 import 'package:dartpad_frontend/features/shared/dart_source.dart';
 import 'package:dartpad_frontend/features/shared/flutter_api_channel.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/startup/initial_project_state.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
@@ -279,14 +280,15 @@ void main() {
         }).sdk,
         sdks.first,
       );
-      expect(() => resolve('', {'pubspec.yaml': '- not a mapping'}), throwsFormatException);
+      expect(() => resolve('', {'pubspec.yaml': '- not a mapping'}), throwsA(isA<ProjectContentException>()));
+      expect(() => resolve('', {'pubspec.yaml': 'invalid: [yaml'}), throwsA(isA<ProjectContentException>()));
     });
     test('normalizes explicit workspace roots and rejects unsafe paths', () {
       for (final root in ['', '.', './', 'nested/..']) {
         expect(resolve('?root=$root', {}).root, '');
       }
       for (final path in ['/outside', '../outside']) {
-        expect(() => ProjectLoader.normalizePath(path), throwsArgumentError);
+        expect(() => ProjectLoader.normalizePath(path), throwsA(isA<ProjectPathException>()));
       }
     });
     test('sample opens its configured initial file and detects main', () {
@@ -377,7 +379,10 @@ void main() {
       });
       expect(state.files, ['notes.txt']);
       expect(state.entrypoint, 'lib/main.dart');
-      expect(() => resolve('?file=README.md', {'lib/main.dart': 'void main() {}'}), throwsFormatException);
+      expect(
+        () => resolve('?file=README.md', {'lib/main.dart': 'void main() {}'}),
+        throwsA(isA<QueryParameterValidationException>()),
+      );
     });
     test('opens the mapped Gist entrypoint when README is absent', () {
       final state = InitialProjectState.resolve(
@@ -456,7 +461,7 @@ void main() {
     });
     test('rejects missing explicit files, root and entrypoint', () {
       for (final query in ['?file=missing.dart', '?entrypoint=missing.dart', '?root=missing']) {
-        expect(() => resolve(query, {}), throwsFormatException);
+        expect(() => resolve(query, {}), throwsA(isA<QueryParameterValidationException>()));
       }
     });
     for (final pubspec in [

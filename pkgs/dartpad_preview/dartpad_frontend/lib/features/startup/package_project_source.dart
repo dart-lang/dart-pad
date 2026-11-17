@@ -34,14 +34,14 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
   );
   final response = await http.get(uri);
   if (response.statusCode != 200) {
-    throw FormatException(
+    throw ProjectSourceException(
       'Failed to load package $packageName${version == null ? '' : ' version $version'} (${response.statusCode}).',
     );
   }
-  final Object? json = jsonDecode(response.body);
+  final Object? json = _decodeSourceJson(response.body);
   final Object? metadata = version == null && json is Map<String, Object?> ? json['latest'] : json;
   if (metadata is Map<String, Object?> && metadata['archive_url'] is String) {
     return metadata['archive_url'] as String;
   }
-  throw const FormatException('Unexpected package response.');
+  throw const ProjectSourceException('Unexpected package response.');
 }
