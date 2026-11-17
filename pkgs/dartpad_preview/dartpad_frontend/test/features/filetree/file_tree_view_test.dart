@@ -167,8 +167,9 @@ void main() {
   });
 
   testClient('creation input only has an error border when validation fails', (tester) async {
+    const errorColor = 'rgb(244, 67, 54)';
     tester.pumpComponent(
-      div(styles: const Styles(raw: {'--error': 'rgb(244, 67, 54)'}), [
+      div(styles: const Styles(raw: {'--error': errorColor}), [
         Style(styles: FileTreeView.styles),
         FileTreeView(state: _state(workspace), actions: _actions()),
       ]),
@@ -180,13 +181,13 @@ void main() {
     await pumpEventQueue();
 
     final input = web.document.querySelector('.file-tree-input') as web.HTMLInputElement;
-    expect(web.window.getComputedStyle(input).borderTopColor, isNot('rgb(244, 67, 54)'));
+    expect(web.window.getComputedStyle(input).borderTopColor, isNot(errorColor));
 
     input.dispatchEvent(
       web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter', bubbles: true, cancelable: true)),
     );
     await pumpEventQueue();
-    expect(web.window.getComputedStyle(input).borderTopColor, 'rgb(244, 67, 54)');
+    expect(web.window.getComputedStyle(input).borderTopColor, errorColor);
   });
 
   testClient('header "New File" creates the file in the root when nothing is selected', (tester) async {
@@ -259,6 +260,7 @@ void main() {
     await pumpEventQueue();
     contextMenu.items.whereType<ContextMenuItem>().firstWhere((item) => item.label == 'New file').onPressed();
     final focusedInput = web.document.activeElement;
+    expect(focusedInput?.tagName, 'INPUT');
     expect(focusedInput?.closest('.file-tree-folder-children'), isNotNull);
     await pumpEventQueue();
     expect(web.document.querySelector('.file-tree-folder-children .file-tree-input'), focusedInput);
