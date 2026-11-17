@@ -134,4 +134,15 @@ void main() {
     expect(store.closes, 1);
     expect(utf8.decode(store.state!.files['lib/main.dart']!), 'pending save');
   });
+
+  test('prepareLoad skips reading history for sourced requests without a session id', () async {
+    await store.create(savedProject(query: '?sample=counter', text: 'saved counter'));
+    store.reads = 0;
+
+    final request = ProjectRequest.fromUri(Uri.parse('?sample=counter'));
+    final strategy = await controller.prepareLoad(request);
+    expect(strategy.restoreProjectId, isNull);
+    expect(strategy.mintedSessionId, 1);
+    expect(store.reads, 0);
+  });
 }

@@ -64,20 +64,16 @@ final class ProjectPersistenceController extends ChangeNotifier {
   /// its load generation before opening the selected project.
   Future<PersistenceLoadStrategy> prepareLoad(ProjectRequest request, {bool startFresh = false}) async {
     await stop();
-    final history = await _readHistory();
     _sessionId = null;
-    return _resolveRequest(request, history, startFresh: startFresh);
+    return _resolveRequest(request, startFresh: startFresh);
   }
 
   /// Restores the entry saved under the requested session id.
   /// Otherwise, given no or an unknown id loads the source under a newly minted id.
-  Future<PersistenceLoadStrategy> _resolveRequest(
-    ProjectRequest request,
-    List<StoredProject> history, {
-    required bool startFresh,
-  }) async {
+  Future<PersistenceLoadStrategy> _resolveRequest(ProjectRequest request, {required bool startFresh}) async {
     final requested = _requestedSessionId(request);
     if (!startFresh && requested != null) {
+      final history = await _readHistory();
       final match = history
           .where((entry) => entry.state.sessionId == requested && entry.state.matchesQuery(request.query))
           .firstOrNull;
