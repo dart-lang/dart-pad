@@ -32,3 +32,17 @@ final class WorkspaceStartupException implements Exception {
 
   final String message;
 }
+
+/// Pub.dev package metadata could not be loaded or was invalid.
+final class PubPackageMetadataException implements Exception {
+  const PubPackageMetadataException(this.message);
+
+  final String message;
+}
+
+/// The requested package version was not present in pub.dev metadata.
+final class PackageVersionNotFoundException implements Exception {
+  const PackageVersionNotFoundException(this.message);
+
+  final String message;
+}

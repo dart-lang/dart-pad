@@ -22,6 +22,7 @@ import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
@@ -1586,6 +1587,32 @@ void main() {
         expect(web.document.querySelector('.app-bar'), isNull);
       }
       expect(web.document.querySelector('.editor-tab'), isNull);
+    });
+  }
+
+  for (final (error, message) in [
+    (
+      const PubPackageMetadataException('pub.dev returned invalid JSON for demo version 1.2.3.'),
+      'Could not load package metadata: pub.dev returned invalid JSON for demo version 1.2.3.',
+    ),
+    (
+      const PackageVersionNotFoundException('demo version 1.2.3'),
+      'Package version not found: demo version 1.2.3.',
+    ),
+  ]) {
+    testClient('project source failures show their message in the error dialog: ${error.runtimeType}', (tester) async {
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?package=demo&version=1.2.3'),
+          loadSource: (_) async => throw error,
+        ),
+      );
+      await pumpEventQueue();
+      expect(
+        web.document.querySelector('[role="alertdialog"]')?.textContent,
+        contains(message),
+      );
     });
   }
 

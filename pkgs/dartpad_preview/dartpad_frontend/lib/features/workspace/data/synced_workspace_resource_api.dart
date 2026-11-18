@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 
+import '../../persistence/persisted_project_state.dart';
+
 /// An implementation of [WorkspaceResourceApi] that maintains a local in-memory file system
 /// as the primary source of truth for reads and outgoing change events, while asynchronously
 /// initializing and continuously synchronizing with a remote file system.
@@ -57,16 +59,27 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
         remoteApi = api;
 
         final resources = await localApi.listDirectory(path: '', recursive: true);
-        for (final r in resources) {
-          if (_isDisposed || !identical(initialization, _initialization)) {
-            return;
-          }
-          if (r.type == 'folder') {
-            await api.createFolder(r.path);
-          } else {
-            final bytes = await localApi.readFileAsBytes(r.path);
-            await api.writeFileFromBytes(r.path, bytes);
-          }
+        if (_isDisposed || !identical(initialization, _initialization)) {
+          return;
+        }
+        final folders = resources.where((r) => r.type == 'folder').toList(growable: false);
+        if (folders.isNotEmpty) {
+          await Future.wait(folders.map((r) => api.createFolder(r.path)));
+        }
+        if (_isDisposed || !identical(initialization, _initialization)) {
+          return;
+        }
+        final files = resources.where((r) => r.type != 'folder').toList(growable: false);
+        if (files.isNotEmpty) {
+          await Future.wait(
+            files.map((r) async {
+              final bytes = await localApi.readFileAsBytes(r.path);
+              if (_isDisposed || !identical(initialization, _initialization)) {
+                return;
+              }
+              await api.writeFileFromBytes(r.path, bytes);
+            }),
+          );
         }
 
         if (!_isDisposed && identical(initialization, _initialization)) {
@@ -145,6 +158,9 @@ class SyncedWorkspaceResourceApi implements WorkspaceResourceApi {
   }
 
   Future<void> _applyRemoteChange(WorkspaceResourceApi ws, WorkspaceChangeEvent event) async {
+    if (!isPersistentProjectPath(event.path)) {
+      return;
+    }
     bool current() => !_isDisposed && identical(remoteApi, ws);
     switch (event.type) {
       case WorkspaceChangeEventType.add:

@@ -368,7 +368,7 @@ void main() {
   );
 
   testClient('unavailable storage loads the source and pauses local saving', (tester) async {
-    store.readError = StateError('storage denied');
+    store.writeError = StateError('storage denied');
     tester.pumpComponent(app(''));
     await pumpEventQueue();
     expect(sourceLoads, 1);

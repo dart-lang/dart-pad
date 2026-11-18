@@ -316,6 +316,7 @@ final class _AppState extends State<App> {
       repository,
       initialProject: project,
       initialMode: project.mode,
+      analyzerEnabled: _enableAnalyzer,
       onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(session) : null,
     );
     _embedRuntime?.observePreview(session.preview.containerElement);
@@ -350,6 +351,8 @@ final class _AppState extends State<App> {
     QueryParameterValidationException() => 'You provided invalid configuration parameters in the URL: ${error.message}',
     ProjectPathException() => 'Invalid project path: ${error.message}',
     ProjectContentException() => 'Invalid project file: ${error.message}',
+    PubPackageMetadataException() => 'Could not load package metadata: ${error.message}',
+    PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
     ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
     ProjectStorageException() => 'Could not access saved projects: ${error.message}',
     WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',
@@ -726,6 +729,7 @@ final class _AppState extends State<App> {
         ),
         initialProject: oldSession.initialProject,
         initialMode: mode,
+        analyzerEnabled: _enableAnalyzer,
         entrypoint: entrypoint,
         onBeforeRun: _isEmbedMode ? () => _prepareEmbeddedRuntime(next) : null,
       );
