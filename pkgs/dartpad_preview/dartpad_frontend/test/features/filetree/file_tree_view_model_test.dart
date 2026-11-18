@@ -401,6 +401,16 @@ void main() {
     expect(workspace.fileExistChecks['lib/new.dart'], 2);
   });
 
+  test('skips willRenameFiles when renaming a non-Dart file', () async {
+    workspace.addTextFile('README.md', '# Readme');
+    await viewModel.refresh();
+
+    await viewModel.renameFile('README.md', 'README2.md');
+
+    expect(operationLog, ['save-all', 'move:README.md->README2.md']);
+    expect(workspace.files, contains('README2.md'));
+  });
+
   test('aborts rename before LSP and move when save-all fails', () async {
     workspace.addTextFile('lib/old.dart', 'class Old {}');
     await viewModel.refresh();
