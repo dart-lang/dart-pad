@@ -64,6 +64,7 @@ class FileTreeInputItem extends StatefulComponent {
   /// Reveals and focuses a prepared creation input during input event like click or touch.
   ///
   /// iOS WebKit requires this synchronous focus to open the on-screen keyboard.
+  /// see https://bugs.webkit.org/show_bug.cgi?id=195884
   static void focusPreparedCreation(
     web.HTMLElement? tree, {
     required String folderPath,
