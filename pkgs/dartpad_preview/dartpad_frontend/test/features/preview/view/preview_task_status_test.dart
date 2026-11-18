@@ -69,6 +69,7 @@ void main() {
     final compiling = controller.startTask(TaskKind.compilingApplication);
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-title')?.textContent, 'Compiling application');
+    expect(web.document.querySelector('.preview-task-status .task-status-icon.running'), isNotNull);
 
     compiling.succeed();
     await pumpEventQueue();
@@ -77,6 +78,57 @@ void main() {
     starting.succeed();
     await pumpEventQueue();
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
+  });
+
+  testClient('shows a compilation failure without an error icon', (tester) async {
+    tester.pumpComponent(
+      PreviewTaskStatus(
+        controller: controller,
+        mode: PreviewTaskStatusMode.startup,
+        persistentFailureKind: TaskKind.compilingApplication,
+        persistentFailureMessage: 'See the console for details.',
+        onOpenConsole: () {},
+      ),
+    );
+
+    final status = web.document.querySelector('.preview-task-status.failed')!;
+    expect(web.document.querySelector('.preview-task-title')?.textContent, 'Compilation failed');
+    expect(status.getAttribute('aria-label'), 'Compilation failed');
+    expect(status.querySelector('.task-status-icon'), isNull);
+    expect(_statusText, contains('See the console for details.'));
+    expect(_statusText, contains('Open Console'));
+  });
+
+  for (final kind in [TaskKind.startingPreview, TaskKind.restartingPreview]) {
+    testClient('shows a clear title when $kind fails', (tester) async {
+      tester.pumpComponent(
+        PreviewTaskStatus(
+          controller: controller,
+          mode: PreviewTaskStatusMode.startup,
+          persistentFailureKind: kind,
+          persistentFailureMessage: 'See the console for details.',
+          onOpenConsole: () {},
+        ),
+      );
+
+      expect(web.document.querySelector('.preview-task-title')?.textContent, 'Could not start preview');
+      expect(_statusText, contains('See the console for details.'));
+    });
+  }
+
+  testClient('shows the missing entrypoint beneath the preview failure title', (tester) async {
+    tester.pumpComponent(
+      PreviewTaskStatus(
+        controller: controller,
+        mode: PreviewTaskStatusMode.startup,
+        persistentFailureKind: TaskKind.startingPreview,
+        persistentFailureMessage: 'Entry point "lib/main.dart" not found.',
+        onOpenConsole: () {},
+      ),
+    );
+
+    expect(web.document.querySelector('.preview-task-title')?.textContent, 'Could not start preview');
+    expect(_statusText, contains('Entry point "lib/main.dart" not found.'));
   });
 
   testClient('shows an explicit preview restart without showing stop tasks', (tester) async {
@@ -111,7 +163,8 @@ void main() {
     );
 
     expect(web.document.querySelector('.preview-task-status.failed'), isNotNull);
-    expect(_statusText, contains('Workspace preparation'));
+    expect(web.document.querySelector('.preview-task-title')?.textContent, 'Workspace preparation failed');
+    expect(web.document.querySelector('.preview-task-status .task-status-icon'), isNull);
     expect(_statusText, contains('Pub get failed.'));
 
     final link = web.document.querySelector('.preview-task-console-link')! as web.HTMLButtonElement;

@@ -501,7 +501,8 @@ void main() {
     await preview.runCode('lib/main.dart');
     expect(sandbox.runCount, 0);
     final failure = preview.state as PreviewCompileError;
-    expect(failure.message, 'Preview could not be started.');
+    expect(failure.message, 'See the console for details.');
+    expect(failure.failedTask, TaskKind.startingPreview);
     await pump();
     final log = logs.singleWhere((event) => event.message == 'Run failed');
     expect(log.error.toString(), contains('write failed'));
@@ -516,7 +517,7 @@ void main() {
 
     final failure = preview.state as PreviewCompileError;
     expect(failure.message, 'Entry point "$path" not found.');
-    expect(failure.failedTask, TaskKind.compilingApplication);
+    expect(failure.failedTask, TaskKind.startingPreview);
     expect(sandbox.runCount, 0);
     expect(repository.taskStatus.hasBlockingPreviewTask, isFalse);
     await pump();
@@ -540,6 +541,7 @@ void main() {
     final failure = preview.state as PreviewCompileError;
     expect(failure.message, 'Entry point "lib/main.dart" not found.');
     expect(failure.action, PreviewLaunchAction.restart);
+    expect(failure.failedTask, TaskKind.restartingPreview);
     expect(sandbox.hotRestartCount, 0);
     expect(sandbox.disposeCount, 1);
     expect(repository.taskStatus.hasBlockingPreviewTask, isFalse);
@@ -577,13 +579,29 @@ void main() {
     };
     await preview.runCode('lib/main.dart');
     final failure = preview.state as PreviewCompileError;
-    expect(failure.message, 'Compilation failed.');
+    expect(failure.message, 'See the console for details.');
     expect(failure.action, PreviewLaunchAction.restart);
     expect(failure.failedTask, TaskKind.compilingApplication);
     expect(sandbox.disposeCount, 1);
     await pump();
     final log = logs.singleWhere((event) => event.message == 'Run failed');
     expect(log.error.toString(), contains('syntax error'));
+    expect(log.stackTrace, isNotNull);
+  });
+
+  test('an unknown sandbox failure is not described as a compiler failure', () async {
+    sandbox.onRun = () async {
+      throw StateError('sandbox disconnected');
+    };
+
+    await preview.runCurrent();
+
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.failedTask, TaskKind.startingPreview);
+    expect(failure.message, 'See the console for details.');
+    await pump();
+    final log = logs.singleWhere((event) => event.message == 'Run failed');
+    expect(log.error.toString(), contains('sandbox disconnected'));
     expect(log.stackTrace, isNotNull);
   });
 
