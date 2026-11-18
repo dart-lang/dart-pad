@@ -9,6 +9,11 @@ import '../shared/panel_hints.dart';
 import '../shared/sdk_kind.dart';
 import 'project_loader.dart';
 
+/// An invalid or conflicting URL query parameter.
+final class QueryParameterValidationException extends FormatException {
+  const QueryParameterValidationException(super.message);
+}
+
 /// The validated dartpad URL query.
 ///
 /// Owns every recognized parameter name as a static `const` key, and validates
@@ -62,7 +67,7 @@ final class QueryParameters {
     }
     for (final key in obsolete) {
       if (raw.containsKey(key)) {
-        throw FormatException('Unsupported query parameter: $key.');
+        throw QueryParameterValidationException('Unsupported query parameter: $key.');
       }
     }
     return QueryParameters._(
@@ -112,18 +117,23 @@ sealed class SourceSelection {
   const SourceSelection();
 
   static SourceSelection? _validate(Map<String, List<String>> raw) {
-    final candidates = <SourceSelection?>[
-      UrlSourceSelection._validate(raw),
-      PackageSourceSelection._validate(raw),
-      GistSourceSelection._validate(raw),
-      ApiDocsSourceSelection._validate(raw),
-      SampleSourceSelection._validate(raw),
+    final candidates = <String, SourceSelection?>{
+      QueryParameters.url: UrlSourceSelection._validate(raw),
+      QueryParameters.package: PackageSourceSelection._validate(raw),
+      QueryParameters.gist: GistSourceSelection._validate(raw),
+      QueryParameters.sampleId: ApiDocsSourceSelection._validate(raw),
+      QueryParameters.sample: SampleSourceSelection._validate(raw),
+    };
+    final selected = [
+      for (final entry in candidates.entries)
+        if (entry.value != null) entry.key,
     ];
-    final selected = candidates.nonNulls.toList();
     if (selected.length > 1) {
-      throw const FormatException('Choose only one project source.');
+      throw QueryParameterValidationException(
+        'Choose only one project source, but found ${selected.join(' and ')}.',
+      );
     }
-    return selected.singleOrNull;
+    return candidates.values.nonNulls.singleOrNull;
   }
 }
 
@@ -150,7 +160,9 @@ final class PackageSourceSelection extends SourceSelection {
     final package = _single(raw, QueryParameters.package);
     final version = _single(raw, QueryParameters.version);
     if (version != null && package == null) {
-      throw const FormatException('version requires package.');
+      throw const QueryParameterValidationException(
+        'A version parameter was provided without a package parameter.',
+      );
     }
     return package == null ? null : PackageSourceSelection(package, version: version);
   }
@@ -166,7 +178,7 @@ final class GistSourceSelection extends SourceSelection {
     final gist = _single(raw, QueryParameters.gist);
     final id = _single(raw, QueryParameters.id);
     if (gist != null && id != null) {
-      throw const FormatException('Choose either gist or id, not both.');
+      throw const QueryParameterValidationException('Choose either gist or id, not both.');
     }
     final gistId = gist ?? id;
     return gistId == null ? null : GistSourceSelection(gistId);
@@ -249,7 +261,7 @@ final class ProjectParameters {
     // An empty root is valid: it selects the source root.
     final root = _single(raw, QueryParameters.root, allowEmpty: true);
     if (root != null) {
-      ProjectLoader.normalizePath(root, allowRoot: true);
+      _projectPath(QueryParameters.root, root, allowRoot: true);
     }
     return root;
   }
@@ -257,10 +269,15 @@ final class ProjectParameters {
   static String? _validateEntrypoint(Map<String, List<String>> raw) {
     final entrypoint = _single(raw, QueryParameters.entrypoint);
     if (entrypoint != null) {
-      ProjectLoader.normalizePath(entrypoint);
+      _projectPath(QueryParameters.entrypoint, entrypoint);
     }
     return entrypoint;
   }
+
+  /// Checks that [path] stays inside the project, naming [key] in the error.
+  static String _projectPath(String key, String path, {bool allowRoot = false}) =>
+      ProjectLoader.tryNormalizePath(path, allowRoot: allowRoot) ??
+      (throw QueryParameterValidationException('$key must be a path inside the project: $path.'));
 
   static ({SdkKind kind, String? version})? _validateSdk(Map<String, List<String>> raw) {
     final value = _single(raw, QueryParameters.sdk);
@@ -270,7 +287,7 @@ final class ProjectParameters {
     final parts = value.split(':');
     final kind = SdkKind.values.asNameMap()[parts.first];
     if (kind == null || parts.length > 2 || parts.last.isEmpty) {
-      throw const FormatException('sdk must be dart or flutter, optionally followed by :<version>.');
+      throw const QueryParameterValidationException('sdk must be dart or flutter, optionally followed by :<version>.');
     }
     return (kind: kind, version: parts.length == 2 ? parts.last : null);
   }
@@ -283,7 +300,7 @@ final class ProjectParameters {
     final mode = RunMode.values.asNameMap()[value];
     if (mode == null) {
       final allowed = RunMode.values.map((mode) => mode.name).join(' or ');
-      throw FormatException('mode must be $allowed.');
+      throw QueryParameterValidationException('mode must be $allowed.');
     }
     return mode;
   }
@@ -291,7 +308,7 @@ final class ProjectParameters {
   static List<String> _validateFiles(Map<String, List<String>> raw) {
     final files = raw[QueryParameters.file] ?? const <String>[];
     for (final path in files) {
-      ProjectLoader.normalizePath(path);
+      _projectPath(QueryParameters.file, path);
     }
     return List.unmodifiable(files);
   }
@@ -393,7 +410,7 @@ String? _single(Map<String, List<String>> raw, String key, {bool allowEmpty = fa
     return null;
   }
   if (values.length != 1 || (values.single.isEmpty && !allowEmpty)) {
-    throw FormatException('Expected one non-empty "$key" parameter.');
+    throw QueryParameterValidationException('Expected one non-empty "$key" parameter.');
   }
   return values.single;
 }

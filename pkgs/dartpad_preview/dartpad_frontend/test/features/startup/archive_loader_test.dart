@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
 import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
@@ -566,7 +567,7 @@ dependencies:
       );
     });
 
-    test('throws Exception if HTTP response is not 200', () async {
+    test('throws ProjectSourceException if HTTP response is not 200', () async {
       const ArchiveProjectSource source = ArchiveProjectSource(
         absoluteUrl,
       );
@@ -576,7 +577,7 @@ dependencies:
         () async {
           expect(
             () => loadInto(source, api.root),
-            throwsException,
+            throwsA(isA<ProjectSourceException>()),
           );
         },
         () => MockClient((http.Request request) async {
