@@ -354,7 +354,6 @@ final class _AppState extends State<App> {
     PubPackageMetadataException() => 'Could not load package metadata: ${error.message}',
     PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
     ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
-    ProjectStorageException() => 'Could not access saved projects: ${error.message}',
     WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',
     _ => error.toString(),
   };
