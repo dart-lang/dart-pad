@@ -589,6 +589,27 @@ void main() {
     expect(log.stackTrace, isNotNull);
   });
 
+  test('shows the compiler error filename and keeps the full output in the console', () async {
+    const output = '''
+file:///workspace/pad_1/lib/other.dart:2:16: Error: Expected ';' after this.
+  print("hello")
+               ^
+''';
+    sandbox.onRun = () async {
+      throw CompilationFailedException(output);
+    };
+
+    await preview.runCurrent();
+
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.failedTask, TaskKind.compilingApplication);
+    expect(failure.message, 'Error in "other.dart". See console for details.');
+    await pump();
+    final log = logs.singleWhere((event) => event.message == 'Run failed');
+    expect((log.error as CompilationFailedException).message, output);
+    expect(log.stackTrace, isNotNull);
+  });
+
   test('an unknown sandbox failure is not described as a compiler failure', () async {
     sandbox.onRun = () async {
       throw StateError('sandbox disconnected');

@@ -15,6 +15,7 @@ import '../../shared/events/log_event.dart';
 import '../../shared/run_availability.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
+import '../models/compiler_error_file.dart';
 import '../models/preview_exceptions.dart';
 import '../models/preview_sandbox.dart';
 import '../models/preview_state.dart';
@@ -525,5 +526,9 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
 
 String _previewFailureMessage(Object error) => switch (error) {
   PreviewEntrypointException(:final message) => message,
+  CompilationFailedException(:final message) => switch (compilerErrorFile(message)) {
+    final String file => 'Error in "$file". See console for details.',
+    null => 'See the console for details.',
+  },
   _ => 'See the console for details.',
 };
