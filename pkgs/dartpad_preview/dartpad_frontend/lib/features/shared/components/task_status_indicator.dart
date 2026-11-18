@@ -462,18 +462,26 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
     }
 
     final failed = failureKind != null || failureMessage != null || task?.outcome == TaskStatusOutcome.failed;
-    final label = failureKind?.label ?? task?.label ?? 'Workspace preparation';
+    final kind = failureKind ?? task?.kind;
+    final taskLabel = failureKind?.label ?? task?.label ?? 'Workspace preparation';
+    final label = failed
+        ? switch (kind) {
+            TaskKind.compilingApplication when failureKind != null => 'Compilation failed',
+            // This task wraps compilation and sandbox startup, and can fail
+            // before the launch handler has classified the actual error.
+            TaskKind.compilingApplication => 'Could not start preview',
+            TaskKind.startingPreview || TaskKind.restartingPreview => 'Could not start preview',
+            _ => '$taskLabel failed',
+          }
+        : taskLabel;
     final duration = task == null ? null : formatTaskDuration(task.durationAt(DateTime.now()));
     return div(
       classes: 'preview-task-status ${failed ? 'failed' : 'running'}',
       attributes: {
-        'aria-label': failed ? '$label failed' : '$label running',
+        'aria-label': failed ? label : '$label running',
       },
       [
-        _TaskStatusIcon.outcome(
-          outcome: failed ? TaskStatusOutcome.failed : TaskStatusOutcome.running,
-          size: 24,
-        ),
+        if (!failed) const _TaskStatusIcon.outcome(outcome: TaskStatusOutcome.running, size: 24),
         span(classes: 'preview-task-title', [.text(label)]),
         if (duration != null)
           span(
