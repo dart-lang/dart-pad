@@ -176,7 +176,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
         : PreviewStarting(entrypoint, autoStart: autoStart);
     _appLogs.clear();
     notifyListeners();
-    var failedTask = kind;
     try {
       await _onBeforeRun?.call();
       if (!_current(id)) {
@@ -191,7 +190,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
         return;
       }
       if (!entrypointExists) {
-        failedTask = TaskKind.compilingApplication;
         throw PreviewEntrypointException('Entry point "$entrypoint" not found.');
       }
       final runMode =
@@ -243,7 +241,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       _eventBus.dispatch(
         LogEvent('Compiling and ${reuse ? 'restarting' : 'running'} $entrypoint (${runMode.mode})...'),
       );
-      failedTask = TaskKind.compilingApplication;
       final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingApplication,
         () => _guardMainThrow(() => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode)),
@@ -269,9 +266,9 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       _eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack));
       _state = PreviewCompileError(
         entrypoint,
-        _previewFailureMessage(error, failedTask),
+        _previewFailureMessage(error),
         action: action,
-        failedTask: failedTask,
+        failedTask: error is CompilationFailedException ? TaskKind.compilingApplication : kind,
       );
       try {
         await _closeSandbox();
@@ -526,7 +523,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   }
 }
 
-String _previewFailureMessage(Object error, TaskKind failedTask) => switch (error) {
+String _previewFailureMessage(Object error) => switch (error) {
   PreviewEntrypointException(:final message) => message,
-  _ => failedTask == TaskKind.compilingApplication ? 'Compilation failed.' : 'Preview could not be started.',
+  _ => 'See the console for details.',
 };
