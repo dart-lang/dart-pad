@@ -366,7 +366,7 @@ JSAny _languageExtension(String fileName, [LanguageServerClient? languageServerC
       if (languageServerClient case final lsc?) lsc.createCodeMirrorExtension(fileName),
     ].toJS,
     'yaml' || 'yml' || 'lock' => cm.yaml(),
-    'md' => cm.markdown(),
+    'md' || 'markdown' => cm.markdown(),
     'js' || 'ts' => cm.javascript(),
     'html' => cm.html(),
     'css' => cm.css(),
