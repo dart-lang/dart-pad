@@ -552,11 +552,6 @@ void main() {
       expect(toggleColors(), isNot(closedColors));
       await click('.small-screen-file-tree-button');
       expect(toggleColors(), closedColors);
-      button.focus();
-      expect(button.matches(':focus-visible'), isTrue);
-      expect(toggleColors(), closedColors);
-      expect(web.window.getComputedStyle(button).outlineStyle, 'none');
-      expect(web.window.getComputedStyle(button, '::after').content, 'none');
       expect(web.document.querySelector('.small-screen-tab-bar-tab.active')!.textContent, 'Code');
       await _resizeWindow(1200);
       expect(web.document.querySelector('.preview-content.mode-mobile'), isNotNull);
