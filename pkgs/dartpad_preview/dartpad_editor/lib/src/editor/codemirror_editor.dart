@@ -256,6 +256,10 @@ final class CodeMirrorEditor {
 
   /// Reconfigures language-specific extensions when a file is renamed or swapped.
   void applyRename(String filename) {
+    if (filename != file) {
+      // Diagnostics belong to the previous document URI, not the new one.
+      view.dispatch(cm.setDiagnostics(view.state, <JSObject>[].toJS));
+    }
     file = filename;
     view.dispatch(
       cm.TransactionSpec(

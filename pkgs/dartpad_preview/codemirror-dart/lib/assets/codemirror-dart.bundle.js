@@ -40794,6 +40794,7 @@ ${text}</tr>
         keymap,
         lintGutter,
         linter,
+        setDiagnostics,
         LSPPlugin,
         formatDocumentAsync,
         dartpadTheme: dartpad,

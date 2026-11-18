@@ -255,6 +255,87 @@ void main() {
       expect(client.allDiagnostics, isEmpty);
     });
 
+    for (final hasCachedDiagnostics in [true, false]) {
+      test('ignores late diagnostics for a renamed file with cached diagnostics: $hasCachedDiagnostics', () async {
+        final diagnostic = {
+          'method': 'textDocument/publishDiagnostics',
+          'params': {
+            'uri': 'file:///workspace/main.dart',
+            'diagnostics': [
+              {
+                'range': {
+                  'start': {'line': 0, 'character': 0},
+                },
+                'message': 'problem',
+              },
+            ],
+          },
+        };
+        if (hasCachedDiagnostics) {
+          final diagnosticActivity = client.analyzerActivityStream.first;
+          serverMessages.add(diagnostic);
+          await diagnosticActivity;
+          expect(client.allDiagnostics.single.fileName, 'main.dart');
+        }
+
+        workspaceEvents.add(
+          WorkspaceChangeEvent(
+            type: WorkspaceChangeEventType.move,
+            path: 'main.md',
+            oldPath: 'main.dart',
+          ),
+        );
+        expect(client.allDiagnostics, isEmpty);
+
+        // A later status notification establishes that the queued diagnostic was processed.
+        final status = client.analyzerActivityStream.where((event) => event is AnalyzerStatusActivity).first;
+        serverMessages.add(diagnostic);
+        serverMessages.add({
+          'method': r'$/progress',
+          'params': {
+            'token': 'ANALYZING',
+            'value': {'kind': 'end'},
+          },
+        });
+        await status;
+        expect(client.allDiagnostics, isEmpty);
+      });
+    }
+
+    for (final entry in <String, WorkspaceChangeEvent>{
+      'recreated': WorkspaceChangeEvent(type: WorkspaceChangeEventType.add, path: 'main.dart'),
+      'renamed back': WorkspaceChangeEvent(
+        type: WorkspaceChangeEventType.move,
+        oldPath: 'main.md',
+        path: 'main.dart',
+      ),
+    }.entries) {
+      test('accepts diagnostics when a renamed path is ${entry.key}', () async {
+        workspaceEvents.add(
+          WorkspaceChangeEvent(type: WorkspaceChangeEventType.move, oldPath: 'main.dart', path: 'main.md'),
+        );
+        workspaceEvents.add(entry.value);
+
+        final published = client.analyzerActivityStream.first;
+        serverMessages.add({
+          'method': 'textDocument/publishDiagnostics',
+          'params': {
+            'uri': 'file:///workspace/main.dart',
+            'diagnostics': [
+              {
+                'range': {
+                  'start': {'line': 0, 'character': 0},
+                },
+                'message': 'new problem',
+              },
+            ],
+          },
+        });
+        await published;
+        expect(client.allDiagnostics.single.diagnostic.message, 'new problem');
+      });
+    }
+
     test('routes workspace edits to open documents or persistent files', () async {
       workspace.files['closed.dart'] = 'hello world';
       final intercepted = <String, List<dynamic>>{};
