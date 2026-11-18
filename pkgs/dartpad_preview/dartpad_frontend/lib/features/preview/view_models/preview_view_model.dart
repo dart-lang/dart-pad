@@ -524,11 +524,11 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
   }
 }
 
-String _previewFailureMessage(Object error) => switch (error) {
-  PreviewEntrypointException(:final message) => message,
-  CompilationFailedException(:final message) => switch (compilerErrorFile(message)) {
-    final String file => 'Error in "$file". See console for details.',
-    null => 'See the console for details.',
-  },
-  _ => 'See the console for details.',
-};
+String _previewFailureMessage(Object error) {
+  if (error is PreviewEntrypointException) {
+    return error.message;
+  }
+  final file = error is CompilationFailedException ? compilerErrorFile(error.message) : null;
+  final prefix = file == null ? '' : 'Error in "$file". ';
+  return '${prefix}See the console for details.';
+}
