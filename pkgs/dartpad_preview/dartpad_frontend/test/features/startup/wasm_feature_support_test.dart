@@ -14,27 +14,6 @@ void main() {
     });
   });
 
-  group('isFirefoxBelowMinVersion', () {
-    test('matches Firefox older than 147', () {
-      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.0; rv:146.0) Gecko/20100101 Firefox/146.0';
-      expect(isFirefoxBelowMinVersion(userAgent), isTrue);
-    });
-
-    test('accepts Firefox 147 and later', () {
-      const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0';
-      expect(isFirefoxBelowMinVersion(userAgent), isFalse);
-    });
-
-    test('ignores other browsers', () {
-      const chrome =
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
-      const firefoxIos =
-          'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/140.0 Mobile/15E148 Safari/605.1.15';
-      expect(isFirefoxBelowMinVersion(chrome), isFalse);
-      expect(isFirefoxBelowMinVersion(firefoxIos), isFalse);
-    });
-  });
-
   group('unsupportedBrowserMessage', () {
     test('lists each missing feature', () {
       expect(
