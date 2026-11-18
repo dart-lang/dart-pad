@@ -99,6 +99,20 @@ void main() {
     expect(_statusText, contains('Open Console'));
   });
 
+  testClient('uses a neutral title before a failed compilation task is classified', (tester) async {
+    tester.pumpComponent(
+      PreviewTaskStatus(
+        controller: controller,
+        mode: PreviewTaskStatusMode.startup,
+        onOpenConsole: () {},
+      ),
+    );
+
+    controller.startTask(TaskKind.compilingApplication).fail();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.preview-task-title')?.textContent, 'Could not start preview');
+  });
+
   for (final kind in [TaskKind.startingPreview, TaskKind.restartingPreview]) {
     testClient('shows a clear title when $kind fails', (tester) async {
       tester.pumpComponent(

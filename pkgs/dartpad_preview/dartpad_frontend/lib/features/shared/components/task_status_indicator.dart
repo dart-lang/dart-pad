@@ -466,7 +466,10 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
     final taskLabel = failureKind?.label ?? task?.label ?? 'Workspace preparation';
     final label = failed
         ? switch (kind) {
-            TaskKind.compilingApplication => failureKind == null ? 'Could not start preview' : 'Compilation failed',
+            TaskKind.compilingApplication when failureKind != null => 'Compilation failed',
+            // This task wraps compilation and sandbox startup, and can fail
+            // before the launch handler has classified the actual error.
+            TaskKind.compilingApplication => 'Could not start preview',
             TaskKind.startingPreview || TaskKind.restartingPreview => 'Could not start preview',
             _ => '$taskLabel failed',
           }
