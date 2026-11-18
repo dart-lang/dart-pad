@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/features/preview/models/preview_exceptions.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_sandbox.dart';
 import 'package:dartpad_frontend/features/preview/models/preview_state.dart';
 import 'package:dartpad_frontend/features/preview/models/run_mode.dart';
@@ -23,8 +24,15 @@ import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 final class FakeWorkspaceResourceApi implements WorkspaceResourceApi {
+  final missingFiles = <String>{};
+  void Function(String path)? onFileExist;
+
   @override
-  Future<bool> fileExist(String path) async => path == 'pubspec.yaml';
+  Future<bool> fileExist(String path) async {
+    onFileExist?.call(path);
+    return path == 'pubspec.yaml' || (path.endsWith('.dart') && !missingFiles.contains(path));
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -151,13 +159,15 @@ WorkspaceRepository fakeWorkspaceRepository(
 void main() {
   late AppEventBus events;
   late WorkspaceRepository repository;
+  late FakeWorkspaceResourceApi workspace;
   late FakePreviewSandbox sandbox;
   late PreviewViewModel preview;
   late List<LogEvent> logs;
   late StreamSubscription<LogEvent> subscription;
   setUp(() {
     events = AppEventBus();
-    repository = fakeWorkspaceRepository(events, FakeWorkspaceResourceApi());
+    workspace = FakeWorkspaceResourceApi();
+    repository = fakeWorkspaceRepository(events, workspace);
     sandbox = FakePreviewSandbox();
     logs = [];
     subscription = events.on<LogEvent>().listen(logs.add);
@@ -452,6 +462,11 @@ void main() {
     repository.onFlush = () async {
       order.add('flush');
     };
+    workspace.onFileExist = (path) {
+      if (path == 'lib/main.dart') {
+        order.add('check entrypoint');
+      }
+    };
     sandbox.onRun = () async {
       order.add('run');
     };
@@ -464,7 +479,19 @@ void main() {
     await preview.runCode('lib/main.dart');
     await preview.hotReloadCode();
     await preview.runCode('lib/main.dart');
-    expect(order, ['save', 'flush', 'run', 'save', 'flush', 'reload', 'save', 'flush', 'restart']);
+    expect(order, [
+      'save',
+      'flush',
+      'check entrypoint',
+      'run',
+      'save',
+      'flush',
+      'reload',
+      'save',
+      'flush',
+      'check entrypoint',
+      'restart',
+    ]);
   });
 
   test('failed synchronization prevents compilation', () async {
@@ -473,7 +500,49 @@ void main() {
     };
     await preview.runCode('lib/main.dart');
     expect(sandbox.runCount, 0);
-    expect(preview.state, isA<PreviewCompileError>());
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.message, 'Preview could not be started.');
+    await pump();
+    final log = logs.singleWhere((event) => event.message == 'Run failed');
+    expect(log.error.toString(), contains('write failed'));
+    expect(log.stackTrace, isNotNull);
+  });
+
+  test('missing entrypoint is reported before compilation and can be retried', () async {
+    const path = 'example/lib/app.dart';
+    workspace.missingFiles.add(path);
+
+    await preview.runCode(path, mode: RunMode.flutter);
+
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.message, 'Entry point "$path" not found.');
+    expect(failure.failedTask, TaskKind.compilingApplication);
+    expect(sandbox.runCount, 0);
+    expect(repository.taskStatus.hasBlockingPreviewTask, isFalse);
+    await pump();
+    final log = logs.singleWhere((event) => event.message == 'Run failed');
+    expect(log.error, isA<PreviewEntrypointException>());
+    expect(log.error.toString(), contains('Entry point "$path" not found.'));
+    expect(log.stackTrace, isNotNull);
+
+    workspace.missingFiles.remove(path);
+    await preview.runCurrent();
+    expect(preview.state, isA<PreviewRunning>());
+    expect(sandbox.runCount, 1);
+  });
+
+  test('missing entrypoint on restart closes the running preview', () async {
+    await preview.runCurrent();
+    workspace.missingFiles.add('lib/main.dart');
+
+    await preview.restartCode();
+
+    final failure = preview.state as PreviewCompileError;
+    expect(failure.message, 'Entry point "lib/main.dart" not found.');
+    expect(failure.action, PreviewLaunchAction.restart);
+    expect(sandbox.hotRestartCount, 0);
+    expect(sandbox.disposeCount, 1);
+    expect(repository.taskStatus.hasBlockingPreviewTask, isFalse);
   });
 
   test('failed save prevents run and failed reload save preserves running app', () async {
@@ -508,10 +577,14 @@ void main() {
     };
     await preview.runCode('lib/main.dart');
     final failure = preview.state as PreviewCompileError;
-    expect(failure.message, 'syntax error');
+    expect(failure.message, 'Compilation failed.');
     expect(failure.action, PreviewLaunchAction.restart);
     expect(failure.failedTask, TaskKind.compilingApplication);
     expect(sandbox.disposeCount, 1);
+    await pump();
+    final log = logs.singleWhere((event) => event.message == 'Run failed');
+    expect(log.error.toString(), contains('syntax error'));
+    expect(log.stackTrace, isNotNull);
   });
 
   test('cleanup failure still finishes the blocking preview task', () async {

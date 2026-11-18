@@ -15,6 +15,7 @@ import '../../shared/events/log_event.dart';
 import '../../shared/run_availability.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
+import '../models/preview_exceptions.dart';
 import '../models/preview_sandbox.dart';
 import '../models/preview_state.dart';
 import '../models/run_mode.dart';
@@ -185,6 +186,14 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (!_current(id)) {
         return;
       }
+      final entrypointExists = await _workspaceRepository.workspaceResourceApi.fileExist(entrypoint);
+      if (!_current(id)) {
+        return;
+      }
+      if (!entrypointExists) {
+        failedTask = TaskKind.compilingApplication;
+        throw PreviewEntrypointException('Entry point "$entrypoint" not found.');
+      }
       final runMode =
           mode ??
           _modeOverride ??
@@ -260,7 +269,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       _eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack));
       _state = PreviewCompileError(
         entrypoint,
-        error is DartPadException ? error.message : error.toString(),
+        _previewFailureMessage(error, failedTask),
         action: action,
         failedTask: failedTask,
       );
@@ -516,3 +525,8 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     super.dispose();
   }
 }
+
+String _previewFailureMessage(Object error, TaskKind failedTask) => switch (error) {
+  PreviewEntrypointException(:final message) => message,
+  _ => failedTask == TaskKind.compilingApplication ? 'Compilation failed.' : 'Preview could not be started.',
+};
