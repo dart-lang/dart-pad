@@ -603,7 +603,7 @@ file:///workspace/pad_1/lib/other.dart:2:16: Error: Expected ';' after this.
 
     final failure = preview.state as PreviewCompileError;
     expect(failure.failedTask, TaskKind.compilingApplication);
-    expect(failure.message, 'Error in "other.dart". See console for details.');
+    expect(failure.message, 'Error in "other.dart". See the console for details.');
     await pump();
     final log = logs.singleWhere((event) => event.message == 'Run failed');
     expect((log.error as CompilationFailedException).message, output);
