@@ -83,6 +83,10 @@ external JSAny lintGutter();
 @JS()
 external JSAny linter(JSFunction? source, [JSObject? config]);
 
+/// Returns a transaction that replaces the editor's lint diagnostics.
+@JS()
+external TransactionSpec setDiagnostics(EditorState state, JSArray<JSObject> diagnostics);
+
 @JS()
 external JSAny diagnosticHoverToolbar(JSArray<ToolbarAction> actions);
 

@@ -9,6 +9,7 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
 import '../workspace/workspace_events.dart';
+import '../workspace/workspace_path.dart';
 import 'diagnostic.dart';
 import 'diagnostic_uri_resolver.dart';
 
@@ -114,6 +115,8 @@ interface class LanguageServerClient {
     _workspaceSubscription = workspaceChangeEvents.listen((event) {
       if (event.type == WorkspaceChangeEventType.move) {
         _handleFileMoved(event.oldPath!, event.path);
+      } else if (event.type == WorkspaceChangeEventType.add) {
+        _movedDiagnosticPaths.remove(normalizeWorkspacePath(event.path));
       } else if (event.type == WorkspaceChangeEventType.remove) {
         _handleFileDeleted([event.path]);
       }
@@ -132,6 +135,8 @@ interface class LanguageServerClient {
 
   late final StreamSubscription<WorkspaceChangeEvent> _workspaceSubscription;
   final Map<String, List<Diagnostic>> _diagnostics = {};
+  // Old paths remain invalid until a workspace entry is created there again.
+  final Set<String> _movedDiagnosticPaths = {};
   final _AnalyzerNotificationQueue _analyzerNotificationQueue = _AnalyzerNotificationQueue();
   bool _isAnalyzing = false;
 
@@ -151,7 +156,8 @@ interface class LanguageServerClient {
   final StreamController<Map<String, Object?>> _diagnosticsController =
       StreamController<Map<String, Object?>>.broadcast();
 
-  /// A broadcast stream of raw diagnostic payloads from the language server.
+  /// Diagnostic updates, including synthetic updates after a file moves.
+  /// Read [allDiagnostics] for the current state after each update.
   Stream<Map<String, Object?>> get diagnosticsStream => _diagnosticsController.stream;
 
   final StreamController<AnalyzerActivity> _analyzerActivityController = StreamController<AnalyzerActivity>.broadcast();
@@ -424,9 +430,17 @@ interface class LanguageServerClient {
   }
 
   void _handleFileMoved(String oldPath, String newPath) {
+    oldPath = normalizeWorkspacePath(oldPath);
+    newPath = normalizeWorkspacePath(newPath);
+    _movedDiagnosticPaths.add(oldPath);
+    _movedDiagnosticPaths.remove(newPath);
     final diagnostics = _diagnostics.remove(oldPath);
     if (diagnostics != null) {
-      _diagnostics[newPath] = diagnostics;
+      // A different extension can select a different analyzer or no analyzer.
+      if (workspacePath.extension(oldPath) == workspacePath.extension(newPath)) {
+        _diagnostics[newPath] = diagnostics;
+      }
+      _diagnosticsController.add({'uri': rootWorkspaceUri.resolve(oldPath).toString(), 'diagnostics': []});
     }
   }
 
@@ -443,6 +457,12 @@ interface class LanguageServerClient {
     try {
       final uri = map['uri'] as String? ?? '';
       final fileName = pathFromDiagnosticUri(uri, workspaceFolder: rootWorkspaceUri);
+      final parsedUri = Uri.tryParse(uri);
+      if (parsedUri != null &&
+          relativePathWithinWorkspace(parsedUri, rootWorkspaceUri) != null &&
+          _movedDiagnosticPaths.contains(fileName)) {
+        return;
+      }
 
       final rawList = map['diagnostics'] as List? ?? const [];
       final diagnostics = rawList
