@@ -33,7 +33,7 @@ void main() {
       web.document.body?.appendChild(container);
       editor = CodeMirrorEditor(
         container,
-        file: 'main.dart',
+        filePath: 'main.dart',
         initialDoc: 'void main() {}',
       );
     });
