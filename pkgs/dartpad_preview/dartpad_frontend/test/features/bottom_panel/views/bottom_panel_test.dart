@@ -345,6 +345,92 @@ void main() {
     expect(web.document.querySelector('.console-panel'), isNotNull);
   });
 
+  group('console reveal', () {
+    Future<web.HTMLElement> pumpConsoleWithLogs(
+      ClientTester tester,
+      AppEventBus events,
+      ConsoleViewModel console,
+    ) async {
+      for (var i = 0; i < 40; i++) {
+        events.dispatch(LogEvent('line $i'));
+      }
+      await pumpEventQueue();
+      tester.pumpComponent(
+        inSplitPanel(
+          BottomPanel(
+            panelController: createPanels(tester),
+            diagnostics: const [],
+            hasMoreDiagnostics: false,
+            console: console,
+            onOpenDiagnostic: (_, _) {},
+            events: events,
+          ),
+        ),
+      );
+      // Component styles are not loaded in tests; give the list a scrollable height.
+      final style = web.HTMLStyleElement()
+        ..textContent = '.console-list { flex: none; height: 100px; overflow-y: auto; }';
+      web.document.head!.append(style);
+      // JS interop methods cannot be used as tear-offs.
+      // ignore: unnecessary_lambdas
+      addTearDown(() => style.remove());
+      events.dispatch(const OpenConsoleEvent());
+      await pumpEventQueue();
+      return web.document.querySelector('.console-list')! as web.HTMLElement;
+    }
+
+    double rowOffset(web.HTMLElement list, int index) {
+      final row = list.children.item(index)!;
+      return row.getBoundingClientRect().top - list.getBoundingClientRect().top;
+    }
+
+    bool isAtBottom(web.HTMLElement list) => list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+
+    testClient('scrolls the revealed line to the top and stops following output', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      await pumpEventQueue();
+      expect(rowOffset(list, 5), 0);
+
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+      expect(rowOffset(list, 5), 0);
+    });
+
+    testClient('resumes following output after the user scrolls to the bottom', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      await pumpEventQueue();
+      list.scrollTop = list.scrollHeight;
+      list.dispatchEvent(web.Event('scroll'));
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+
+      expect(isAtBottom(list), isTrue);
+    });
+
+    testClient('an open request without a reveal follows output again', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      await pumpEventQueue();
+      events.dispatch(const OpenConsoleEvent());
+      await pumpEventQueue();
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+
+      expect(isAtBottom(list), isTrue);
+    });
+  });
+
   testClient('tab clicks expand a collapsed panel and select the requested tab', (tester) async {
     final events = AppEventBus();
     final console = createConsole(events, () => tester.pumpComponent(const div([])));

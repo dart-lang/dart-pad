@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../shared/events/log_event.dart';
 import '../../shared/task_status.dart';
 
 /// Base sealed class representing the current visual and execution state of
@@ -118,6 +119,7 @@ final class PreviewCompileError extends PreviewState {
     this.message, {
     required this.action,
     required this.failedTask,
+    this.log,
   });
 
   @override
@@ -131,4 +133,7 @@ final class PreviewCompileError extends PreviewState {
 
   /// The typed task phase that failed.
   final TaskKind failedTask;
+
+  /// The console log describing the failure, if any.
+  final LogEvent? log;
 }

@@ -257,12 +257,14 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (!_current(id)) {
         return;
       }
-      _eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack));
+      final log = LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack);
+      _eventBus.dispatch(log);
       _state = PreviewCompileError(
         entrypoint,
         error is DartPadException ? error.message : error.toString(),
         action: action,
         failedTask: failedTask,
+        log: log,
       );
       try {
         await _closeSandbox();
