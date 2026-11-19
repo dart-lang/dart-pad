@@ -114,7 +114,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab {
        super._(path, EditorTabOrigin.workspace) {
     editor = CodeMirrorEditor(
       container,
-      file: path,
+      filePath: path,
       initialDoc: content,
       onUpdate: _handleEditorUpdate,
       onSave: onSaveAll,
@@ -308,7 +308,7 @@ final class SystemCodeMirrorTab extends CodeMirrorTab {
   }) : super._(uri.toString(), EditorTabOrigin.system) {
     editor = CodeMirrorEditor(
       container,
-      file: path,
+      filePath: path,
       initialDoc: content,
       // Consume Mod-S so the browser does not open its Save page dialog.
       onSave: () {},
