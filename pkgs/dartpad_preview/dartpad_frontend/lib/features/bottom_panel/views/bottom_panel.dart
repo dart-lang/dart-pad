@@ -61,6 +61,9 @@ final class BottomPanel extends StatefulComponent {
 final class _BottomPanelState extends State<BottomPanel> {
   StreamSubscription<OpenConsoleEvent>? _openConsoleSubscription;
 
+  /// The latest console request, kept until the console panel is shown.
+  ConsoleOpenRequest? _consoleOpenRequest;
+
   @override
   void initState() {
     super.initState();
@@ -77,10 +80,11 @@ final class _BottomPanelState extends State<BottomPanel> {
   }
 
   void _listenForOpenConsole() {
-    _openConsoleSubscription = component.events.on<OpenConsoleEvent>().listen((_) {
+    _openConsoleSubscription = component.events.on<OpenConsoleEvent>().listen((event) {
       if (!mounted) {
         return;
       }
+      setState(() => _consoleOpenRequest = ConsoleOpenRequest(revealIndex: event.reveal));
       component.panelController.openBottomPanel(BottomPanelTab.console);
     });
   }
@@ -135,7 +139,10 @@ final class _BottomPanelState extends State<BottomPanel> {
         ),
         BottomPanelTab.console => ListenableBuilder(
           listenable: component.console,
-          builder: (_) => ConsolePanel(logs: component.console.logs),
+          builder: (_) => ConsolePanel(
+            logs: component.console.logs,
+            openRequest: _consoleOpenRequest,
+          ),
         ),
       },
     ]);

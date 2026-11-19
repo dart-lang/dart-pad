@@ -135,7 +135,7 @@ final class _AppState extends State<App> {
   String get _projectDir => _activeSession?.initialProject.root ?? '';
 
   /// Failure shown when source loading, workspace preparation or SDK switching fails.
-  String? _workspacePreparationFailure;
+  _WorkspaceFailure? _workspacePreparationFailure;
 
   /// Original request to retry without restoring after saved-project import
   /// fails. Also selects the restore failure message and Start fresh action.
@@ -337,7 +337,7 @@ final class _AppState extends State<App> {
       _activeSession = null;
       _isCommandPaletteOpen = false;
       _isInitializingWorkspace = false;
-      _workspacePreparationFailure = _describeProjectLoadFailure(error);
+      _workspacePreparationFailure = _WorkspaceFailure(_describeProjectLoadFailure(error));
       _failedRestoreUri = restoring ? uri : null;
     });
     if (oldSession != null) {
@@ -480,7 +480,13 @@ final class _AppState extends State<App> {
       if (_isCurrentRuntime(session, generation)) {
         _embedRuntime!.release();
         unawaited(session.suspendRuntime());
-        setState(() => _workspacePreparationFailure = _describeProjectLoadFailure(error));
+        // Keep the log of a pub get that failed during this preparation, if any.
+        setState(
+          () => _workspacePreparationFailure = _WorkspaceFailure(
+            _describeProjectLoadFailure(error),
+            log: _workspacePreparationFailure?.log,
+          ),
+        );
       }
       rethrow;
     }
@@ -523,12 +529,11 @@ final class _AppState extends State<App> {
       if (!_isCurrent(session)) {
         return;
       }
-      session.events.dispatch(
-        LogEvent('Workspace preparation failed.', level: Level.SEVERE, error: error, stackTrace: stackTrace),
-      );
+      final log = LogEvent('Workspace preparation failed.', level: Level.SEVERE, error: error, stackTrace: stackTrace);
+      session.events.dispatch(log);
       setState(() {
         _isInitializingWorkspace = false;
-        _workspacePreparationFailure = 'The workspace could not be initialized: $error';
+        _workspacePreparationFailure = _WorkspaceFailure('The workspace could not be initialized: $error', log: log);
       });
     }
   }
@@ -555,16 +560,21 @@ final class _AppState extends State<App> {
       } catch (error, stackTrace) {
         preparationSucceeded = false;
         if (_isCurrentRuntime(session, generation)) {
-          session.events.dispatch(
-            LogEvent(
-              'Pub get failed.',
-              level: Level.SEVERE,
-              error: error,
-              stackTrace: stackTrace,
-            ),
+          final log = LogEvent(
+            'Pub get failed.',
+            level: Level.SEVERE,
+            error: error,
+            stackTrace: stackTrace,
           );
+          session.events.dispatch(log);
           setState(() {
-            _workspacePreparationFailure = 'Pub get failed while preparing the workspace.';
+            _workspacePreparationFailure = _WorkspaceFailure('Pub get failed while preparing the workspace.', log: log);
+          });
+          // The console shows the failure once it has received the log.
+          context.binding.addPostFrameCallback(() {
+            if (mounted) {
+              _openConsole(session, reveal: log);
+            }
           });
         }
       }
@@ -751,7 +761,7 @@ final class _AppState extends State<App> {
       }
       setState(() {
         _isInitializingWorkspace = false;
-        _workspacePreparationFailure = 'SDK switch failed: $error';
+        _workspacePreparationFailure = _WorkspaceFailure('SDK switch failed: $error');
       });
     }
   }
@@ -798,7 +808,7 @@ final class _AppState extends State<App> {
                   ],
                 )
               else if (_workspacePreparationFailure case final failure?)
-                ErrorDialog(errorMessage: failure)
+                ErrorDialog(errorMessage: failure.message)
               else
                 _buildPendingWorkspace(),
             ]),
@@ -1027,29 +1037,43 @@ final class _AppState extends State<App> {
         preview: session.preview,
         taskStatus: session.taskStatus,
         activeFile: session.tabs.activeFile,
-        workspacePreparationFailure: _workspacePreparationFailure,
-        onOpenConsole: () => _openConsole(session),
+        workspacePreparationFailure: _workspacePreparationFailure?.message,
+        onOpenConsole: () => _openConsole(session, reveal: _shownFailureLog(session)),
         initialDeviceMode: _isEmbedMode || !_isLargeScreen ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }
 
-  void _openConsole(WorkspaceSession session) {
+  /// The log of the failure shown in the preview panel, matching the message
+  /// [PreviewContainer] displays.
+  LogEvent? _shownFailureLog(WorkspaceSession session) => switch (session.preview.state) {
+    PreviewCompileError(:final log) => log,
+    _ => _workspacePreparationFailure?.log,
+  };
+
+  /// Opens the console, scrolled to the first line of [reveal] when it is
+  /// still displayed.
+  void _openConsole(WorkspaceSession session, {LogEvent? reveal}) {
     if (!_isCurrent(session)) {
       return;
     }
+    void dispatch() {
+      final index = reveal == null ? null : session.console.indexOf(reveal);
+      session.events.dispatch(OpenConsoleEvent(reveal: index));
+    }
+
     if (!_isLargeScreen && _selectedSmallScreenTab != SmallScreenTab.code) {
       setState(() {
         _selectedSmallScreenTab = SmallScreenTab.code;
       });
       context.binding.addPostFrameCallback(() {
         if (_isCurrent(session)) {
-          session.events.dispatch(const OpenConsoleEvent());
+          dispatch();
         }
       });
       return;
     }
-    session.events.dispatch(const OpenConsoleEvent());
+    dispatch();
   }
 
   void _handleGlobalKeyDown(web.KeyboardEvent event) {
@@ -1147,4 +1171,13 @@ final class _LoadedProject {
   final InitialProjectState initialState;
   final Project contents;
   final StoredProject? saved;
+}
+
+/// A failure shown in place of the workspace or preview, with the console
+/// log that describes it, if any.
+final class _WorkspaceFailure {
+  const _WorkspaceFailure(this.message, {this.log});
+
+  final String message;
+  final LogEvent? log;
 }

@@ -51,6 +51,22 @@ void main() {
       expect(viewModel.logs.every((entry) => entry.level == Level.SEVERE), isTrue);
     });
 
+    test('finds the first displayed line of an event until logs are cleared', () async {
+      final failure = LogEvent('Pub get failed.', level: Level.SEVERE, error: StateError('no solution'));
+      events
+        ..dispatch(const LogEvent('Running pub get in /\nResolving dependencies...'))
+        ..dispatch(failure)
+        ..dispatch(const LogEvent('later output'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(viewModel.indexOf(failure), 2);
+      expect(viewModel.indexOf(const LogEvent('Pub get failed.')), isNull);
+
+      viewModel.clear();
+
+      expect(viewModel.indexOf(failure), isNull);
+    });
+
     test('clears logs and notifies listeners', () async {
       var notifications = 0;
       viewModel.addListener(() => notifications++);
