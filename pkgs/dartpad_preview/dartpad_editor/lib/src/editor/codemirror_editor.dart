@@ -255,16 +255,17 @@ final class CodeMirrorEditor {
   }
 
   /// Reconfigures language-specific extensions when a file is renamed or swapped.
-  void applyRename(String newFileNae) {
-    if (newFileNae != file) {
-      // Diagnostics belong to the previous document URI, not the new one.
-      view.dispatch(cm.setDiagnostics(view.state, <JSObject>[].toJS));
+  void applyRename(String newFileName) {
+    if (newFileName == file) {
+      return;
     }
-    file = newFileNae;
+    // Clear stale editor diagnostics when the file path changes (squiggly lines).
+    view.dispatch(cm.setDiagnostics(view.state, <JSObject>[].toJS));
+    file = newFileName;
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(newFileNae, _languageServerClient),
+          _languageExtension(newFileName, _languageServerClient),
         ),
       ),
     );
