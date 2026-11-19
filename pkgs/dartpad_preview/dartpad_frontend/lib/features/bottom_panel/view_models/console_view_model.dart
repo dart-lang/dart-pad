@@ -28,13 +28,13 @@ class ConsoleViewModel extends ChangeNotifier {
   bool get hasErrors => _hasErrors;
 
   void _handleLog(LogEvent event) {
-    var changed = _appendLogText(event.message, event.level);
+    var changed = _appendLogText(event.message, event);
 
     if (event.error case final error?) {
-      changed |= _appendLogText(error.toString(), event.level);
+      changed |= _appendLogText(error.toString(), event);
     }
     if (event.stackTrace case final stackTrace?) {
-      changed |= _appendLogText(stackTrace.toString(), event.level);
+      changed |= _appendLogText(stackTrace.toString(), event);
     }
 
     if (changed) {
@@ -42,16 +42,23 @@ class ConsoleViewModel extends ChangeNotifier {
     }
   }
 
-  bool _appendLogText(String text, Level level) {
+  bool _appendLogText(String text, LogEvent event) {
     var changed = false;
     for (final line in _splitLogLines(text)) {
-      _logs.add(ConsoleEntry(message: line, level: level));
+      _logs.add(ConsoleEntry(message: line, level: event.level, source: event));
       changed = true;
     }
-    if (changed && level > Level.WARNING) {
+    if (changed && event.level > Level.WARNING) {
       _hasErrors = true;
     }
     return changed;
+  }
+
+  /// The index of the first line displayed for [event], or `null` when that
+  /// event has no displayed lines, for example after [clear].
+  int? indexOf(LogEvent event) {
+    final index = _logs.indexWhere((entry) => identical(entry.source, event));
+    return index < 0 ? null : index;
   }
 
   /// Removes all displayed logs.
