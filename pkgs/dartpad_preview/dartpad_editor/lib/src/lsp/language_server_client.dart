@@ -558,9 +558,9 @@ interface class LanguageServerClient {
     }
   }
 
-  JSObject createCodeMirrorExtension(String fileName) {
+  JSObject createCodeMirrorExtension(String filePath) {
     return codeMirrorLspClient.createExtension(
-      rootWorkspaceUri.resolve(fileName).toString(),
+      rootWorkspaceUri.resolve(filePath).toString(),
     );
   }
 }

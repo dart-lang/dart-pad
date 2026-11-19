@@ -26,12 +26,12 @@ class EditorViewState {
 /// language server features (such as syntax highlighting, diagnostics,
 /// code actions, renaming, and hover tooltips).
 final class CodeMirrorEditor {
-  CodeMirrorEditor._(this.view, this.langCompartment, this.file, this._languageServerClient);
+  CodeMirrorEditor._(this.view, this.langCompartment, this.filePath, this._languageServerClient);
 
   /// Creates a new [CodeMirrorEditor] inside the given [element].
   ///
   /// The editor is configured with Dart syntax highlighting and LSP integration
-  /// if the specified [file] is a Dart file.
+  /// if the specified [filePath] is a Dart file.
   ///
   /// Optional callbacks can be provided:
   /// - [onUpdate] is triggered when the document text changes.
@@ -44,7 +44,7 @@ final class CodeMirrorEditor {
   /// - [readOnly] prevents both user-initiated and programmatic document changes.
   factory CodeMirrorEditor(
     web.HTMLElement element, {
-    required String file,
+    required String filePath,
     String? initialDoc,
     void Function(String text)? onUpdate,
     void Function()? onSave,
@@ -120,7 +120,7 @@ final class CodeMirrorEditor {
             cm.EditorState.changeFilter.of(
               ((JSObject _) => false.toJS).toJS,
             ),
-          langCompartment.of(_languageExtension(file, languageServerClient)),
+          langCompartment.of(_languageExtension(filePath, languageServerClient)),
           if (onCodeActionRequested != null)
             cm.keymapOf(
               [
@@ -160,12 +160,12 @@ final class CodeMirrorEditor {
       ),
     );
 
-    final editor = CodeMirrorEditor._(view, langCompartment, file, languageServerClient);
+    final editor = CodeMirrorEditor._(view, langCompartment, filePath, languageServerClient);
     return editor;
   }
 
   /// The active file path.
-  String file;
+  String filePath;
 
   /// The underlying CodeMirror [cm.EditorView] instance.
   final cm.EditorView view;
@@ -234,7 +234,7 @@ final class CodeMirrorEditor {
   /// Returns after formatting edits have been applied, or `false` when no
   /// formatting request could be completed.
   Future<bool> format() async {
-    if (!_isDartFile(file)) {
+    if (!_isDartFile(filePath)) {
       return false;
     }
 
@@ -255,17 +255,17 @@ final class CodeMirrorEditor {
   }
 
   /// Reconfigures language-specific extensions when a file is renamed or swapped.
-  void applyRename(String newFileName) {
-    if (newFileName == file) {
+  void applyRename(String newFilePath) {
+    if (newFilePath == filePath) {
       return;
     }
     // Clear stale editor diagnostics when the file path changes (squiggly lines).
     view.dispatch(cm.setDiagnostics(view.state, <JSObject>[].toJS));
-    file = newFileName;
+    filePath = newFilePath;
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(newFileName, _languageServerClient),
+          _languageExtension(newFilePath, _languageServerClient),
         ),
       ),
     );
@@ -280,7 +280,7 @@ final class CodeMirrorEditor {
     view.dispatch(
       cm.TransactionSpec(
         effects: langCompartment.reconfigure(
-          _languageExtension(file, _languageServerClient),
+          _languageExtension(filePath, _languageServerClient),
         ),
       ),
     );
@@ -360,15 +360,15 @@ final class CodeMirrorEditor {
   }
 }
 
-bool _isDartFile(String fileName) => fileName.endsWith('.dart');
+bool _isDartFile(String filePath) => filePath.endsWith('.dart');
 
 /// Returns the CodeMirror language extension for Dart or non-Dart files, or null.
-JSAny _languageExtension(String fileName, [LanguageServerClient? languageServerClient]) {
-  final extension = fileName.split('.').last.toLowerCase();
+JSAny _languageExtension(String filePath, [LanguageServerClient? languageServerClient]) {
+  final extension = filePath.split('.').last.toLowerCase();
   return switch (extension) {
     'dart' => [
       cm.dart(),
-      if (languageServerClient case final lsc?) lsc.createCodeMirrorExtension(fileName),
+      if (languageServerClient case final lsc?) lsc.createCodeMirrorExtension(filePath),
     ].toJS,
     'yaml' || 'yml' || 'lock' => cm.yaml(),
     'md' => cm.markdown(),

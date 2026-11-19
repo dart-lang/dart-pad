@@ -71,7 +71,7 @@ void main() {
     web.document.body!.appendChild(parent);
     editor = CodeMirrorEditor(
       parent,
-      file: 'lib/main.dart',
+      filePath: 'lib/main.dart',
       initialDoc: 'final value = Widget();',
       onCodeActionRequested: () {
         unawaited(controller.triggerCodeActions());
