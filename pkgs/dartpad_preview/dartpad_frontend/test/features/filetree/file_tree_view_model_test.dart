@@ -411,6 +411,29 @@ void main() {
     expect(workspace.files, contains('README2.md'));
   });
 
+  for (final (oldName, newName) in [('source.md', 'source.dart'), ('source.dart', 'source.md')]) {
+    test('skips willRenameFiles when renaming $oldName to $newName', () async {
+      workspace.addTextFile('lib/$oldName', 'void main() {}');
+      await viewModel.refresh();
+
+      await viewModel.renameFile('lib/$oldName', newName);
+
+      expect(operationLog, ['save-all', 'move:lib/$oldName->lib/$newName']);
+      expect(workspace.files, contains('lib/$newName'));
+      expect(workspace.files, isNot(contains('lib/$oldName')));
+    });
+  }
+
+  test('notifies the language server when renaming a folder containing Dart files', () async {
+    workspace.addTextFile('lib/folder.md/child.dart', 'void main() {}');
+    await viewModel.refresh();
+
+    await viewModel.renameFolder('lib/folder.md', 'folder.txt');
+
+    expect(operationLog.take(2), ['save-all', 'lsp:lib/folder.md->lib/folder.txt']);
+    expect(workspace.files, contains('lib/folder.txt/child.dart'));
+  });
+
   test('aborts rename before LSP and move when save-all fails', () async {
     workspace.addTextFile('lib/old.dart', 'class Old {}');
     await viewModel.refresh();
