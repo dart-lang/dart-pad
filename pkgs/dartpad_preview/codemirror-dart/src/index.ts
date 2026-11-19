@@ -43,7 +43,7 @@ import {
   foldAll,
   unfoldAll,
 } from "@codemirror/language";
-import { lintGutter, linter } from "@codemirror/lint";
+import { lintGutter, linter, setDiagnostics } from "@codemirror/lint";
 import { LSPPlugin } from "@codemirror/lsp-client";
 import { createLspClient } from "./lspClient";
 import { gotoDefinitionOnClick } from "./gotoDefinition";
@@ -96,6 +96,7 @@ declare global {
       keymap: typeof keymap;
       lintGutter: () => Extension;
       linter: (source: any, config?: any) => Extension;
+      setDiagnostics: typeof setDiagnostics;
       LSPPlugin: typeof LSPPlugin;
       formatDocumentAsync: typeof formatDocumentAsync;
       dartpadTheme: Extension;
@@ -175,6 +176,7 @@ window._codemirror = {
   keymap,
   lintGutter,
   linter,
+  setDiagnostics,
   LSPPlugin,
   formatDocumentAsync,
   dartpadTheme,
