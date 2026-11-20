@@ -72,7 +72,7 @@ void main() {
     expect(status?.textContent, contains('Ready'));
   });
 
-  testClient('shows separate SDK and beta channel controls', (tester) async {
+  testClient('shows separate SDK and stable channel controls', (tester) async {
     final flutter = availableSdks.firstWhere((sdk) => sdk.isFlutter);
     final dart = availableSdks.firstWhere((sdk) => !sdk.isFlutter);
     var selected = flutter;
@@ -88,7 +88,7 @@ void main() {
     final sdkButton = web.document.querySelector('.app-footer-sdk-trigger') as web.HTMLButtonElement;
     expect(sdkButton.textContent, contains(flutter.displayName));
     final channel = web.document.querySelector('.app-footer-channel')!;
-    expect(channel.textContent, contains('Beta channel'));
+    expect(channel.textContent, contains('Stable channel'));
     expect(channel.tagName, 'SPAN');
     expect(channel.hasAttribute('title'), isFalse);
 
