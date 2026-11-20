@@ -8,11 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 
-// Keep Flutter pinned to 3.50.0-0.2.pre until launch.
-const flutterRevision = '0e4dea427d51a91ccac1f3cbd01bffa927fe6409';
-
-// Channel metadata does not change the pinned Flutter revision.
-const flutterChannel = 'beta';
+const flutterChannel = 'stable';
 const dartChannel = 'stable';
 
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
@@ -39,13 +35,12 @@ class SdkAssetSetup {
         '--output=${p.join(assets.path, 'dart')}',
       ], frontendRoot.path);
 
-      final flutterRoot = await checkoutFlutterSdk(stagingDir);
       await _run(Platform.resolvedExecutable, [
         'run',
         'dartpad',
         'setup',
         'flutter',
-        '--flutter-root=${flutterRoot.path}',
+        '--channel=$flutterChannel',
         '--web-sdk=copy',
         '--output=${p.join(assets.path, 'flutter')}',
       ], frontendRoot.path);
@@ -75,24 +70,6 @@ class SdkAssetSetup {
     if (result != 0) {
       throw ProcessException(executable, arguments, 'SDK asset setup failed', result);
     }
-  }
-
-  /// Checks out the pinned Flutter revision with the history needed to determine its version.
-  Future<Directory> checkoutFlutterSdk(Directory stagingDir) async {
-    final flutterRoot = Directory(p.join(stagingDir.path, 'flutter'));
-    await _run('git', [
-      'clone',
-      // Flutter's version fallback needs release tags from other branches and
-      // their common ancestors with master, so retain all commit history.
-      '--filter=blob:none',
-      '--branch=master',
-      // Only populate the working tree after selecting the pinned revision.
-      '--no-checkout',
-      'https://github.com/flutter/flutter.git',
-      flutterRoot.path,
-    ], stagingDir.path);
-    await _run('git', ['checkout', '--detach', flutterRevision], flutterRoot.path);
-    return flutterRoot;
   }
 }
 
