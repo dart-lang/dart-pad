@@ -234,7 +234,7 @@ final class FileTreeViewModel extends ChangeNotifier {
     );
     await tabs.saveAllTabs();
     try {
-      // Refactor Dart-to-Dart renames. Folders may contain Dart files, so notify for them too.
+      // Only run Dart refactoring for renames that can affect Dart source code.
       final affectsDartSources = isFolder || (oldPath.endsWith('.dart') && newPath.endsWith('.dart'));
       if (languageServerClient case final lsp? when affectsDartSources) {
         await lsp.willRenameFiles(oldPath, newPath);

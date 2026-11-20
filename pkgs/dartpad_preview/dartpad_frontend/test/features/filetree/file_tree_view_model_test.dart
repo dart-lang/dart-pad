@@ -412,7 +412,7 @@ void main() {
   });
 
   for (final (oldName, newName) in [('source.md', 'source.dart'), ('source.dart', 'source.md')]) {
-    test('skips willRenameFiles when renaming $oldName to $newName', () async {
+    test('does not run Dart refactoring when renaming $oldName to $newName', () async {
       workspace.addTextFile('lib/$oldName', 'void main() {}');
       await viewModel.refresh();
 
