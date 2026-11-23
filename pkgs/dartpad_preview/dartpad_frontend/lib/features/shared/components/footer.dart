@@ -113,8 +113,8 @@ class _FooterState extends State<Footer> {
         const div(classes: 'app-footer-spacer', []),
       TaskStatusIndicator(controller: component.taskStatus),
       _buildRuntimeVersions(compact: compact),
-      if (component.currentSdk?.channel case final channel? when channel.isNotEmpty)
-        _buildChannelIndicator(channel, compact: compact),
+      if (component.currentSdk case final sdk? when sdk.channel?.isNotEmpty == true)
+        _buildChannelSelector(sdk, compact: compact),
     ]);
   }
 
@@ -148,27 +148,48 @@ class _FooterState extends State<Footer> {
         ],
       ),
       items: [
-        for (final sdk in availableSdks)
+        for (final sdk in availableSdks.where(
+          (sdk) =>
+              sdk.channel == sdkChannelForKind(currentSdk?.channel ?? defaultSdk.channel, isFlutter: sdk.isFlutter),
+        ))
           DropdownMenuItem(
             label: sdk.displayName,
-            trailingIcon: sdk.id == currentSdk?.id ? 'check' : null,
+            trailingIcon: sdk == currentSdk ? 'check' : null,
+            isSelected: sdk == currentSdk,
             onPressed: () => onSelectSdk?.call(sdk),
           ),
       ],
     );
   }
 
-  Component _buildChannelIndicator(String channel, {required bool compact}) {
-    final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
-    return span(
-      classes: 'app-footer-channel',
-      attributes: {'role': 'img', 'aria-label': label},
-      [
-        const Icon('tune', size: 14, attributes: {'aria-hidden': 'true'}),
-        if (!compact) span(classes: 'app-footer-channel-label', [.text(label)]),
+  Component _buildChannelSelector(SdkInfo currentSdk, {required bool compact}) {
+    final onSelectSdk = component.onSelectSdk;
+    final label = _channelLabel(currentSdk.channel!);
+    return DropdownMenu(
+      openUp: true,
+      disabled: onSelectSdk == null,
+      trigger: button(
+        classes: 'app-footer-channel',
+        disabled: onSelectSdk == null,
+        attributes: {'aria-label': 'Select ${currentSdk.name} channel ($label)'},
+        [
+          const Icon('tune', size: 14, attributes: {'aria-hidden': 'true'}),
+          if (!compact) span(classes: 'app-footer-channel-label', [.text(label)]),
+        ],
+      ),
+      items: [
+        for (final sdk in availableSdks.where((sdk) => sdk.isFlutter == currentSdk.isFlutter && sdk.channel != null))
+          DropdownMenuItem(
+            label: _channelLabel(sdk.channel!),
+            trailingIcon: sdk == currentSdk ? 'check' : null,
+            isSelected: sdk == currentSdk,
+            onPressed: () => onSelectSdk?.call(sdk),
+          ),
       ],
     );
   }
+
+  String _channelLabel(String channel) => '${channel[0].toUpperCase()}${channel.substring(1)} channel';
 
   Component _buildPrivacyNoticeLink() {
     return const a(
@@ -251,11 +272,14 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
     ),
-    css('.app-footer-sdk-trigger').styles(cursor: .pointer),
-    css('.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus').styles(
+    css('.app-footer-sdk-trigger, .app-footer-channel').styles(cursor: .pointer),
+    css(
+      '.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus, '
+      '.app-footer-channel:not(:disabled):hover, .app-footer-channel:not(:disabled):focus',
+    ).styles(
       backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
     ),
-    css('.app-footer-sdk-trigger:disabled').styles(
+    css('.app-footer-sdk-trigger:disabled, .app-footer-channel:disabled').styles(
       opacity: 0.7,
       cursor: .notAllowed,
     ),

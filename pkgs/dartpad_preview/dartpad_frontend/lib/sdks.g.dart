@@ -19,11 +19,41 @@ const availableSdks = <SdkInfo>[
     flutterVersion: '3.50.1',
   ),
   SdkInfo(
+    id: 'flutter-beta',
+    name: 'Flutter',
+    path: 'dartpad/flutter-beta/',
+    channel: 'beta',
+    dartVersion: '3.15.0 (build 3.15.0-118.1.beta)',
+    flutterVersion: '3.51.0-0.2.pre',
+  ),
+  SdkInfo(
+    id: 'flutter-main',
+    name: 'Flutter',
+    path: 'dartpad/flutter-main/',
+    channel: 'main',
+    dartVersion: '3.15.0 (build 3.15.0-168.0.dev)',
+    flutterVersion: '3.51.0-1.0.pre-255',
+  ),
+  SdkInfo(
     id: 'dart',
     name: 'Dart',
     path: 'dartpad/dart/',
     channel: 'stable',
     dartVersion: '3.14.1',
+  ),
+  SdkInfo(
+    id: 'dart-beta',
+    name: 'Dart',
+    path: 'dartpad/dart-beta/',
+    channel: 'beta',
+    dartVersion: '3.15.0-118.1.beta',
+  ),
+  SdkInfo(
+    id: 'dart-dev',
+    name: 'Dart',
+    path: 'dartpad/dart-dev/',
+    channel: 'dev',
+    dartVersion: '3.15.0-157.0.dev',
   ),
 ];
 

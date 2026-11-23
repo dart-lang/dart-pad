@@ -36,7 +36,14 @@ final class InitialProjectState {
   /// Gists and Flutter API samples without a root pubspec receive one using the
   /// selected SDK's version.
   /// Existing pubspecs are preserved.
-  factory InitialProjectState.resolve(ProjectRequest request, Project contents, List<SdkInfo> sdks) {
+  /// [preferredChannel] selects a matching channel when available, mapping Dart
+  /// Dev and Flutter Main. Explicit SDK versions take precedence.
+  factory InitialProjectState.resolve(
+    ProjectRequest request,
+    Project contents,
+    List<SdkInfo> sdks, {
+    String? preferredChannel,
+  }) {
     final generatedPubspecSource = switch (request.source) {
       GistProjectSource(:final id) => 'Gist "$id"',
       FlutterApiDocsProjectSource(:final sampleId) => 'Flutter API sample "$sampleId"',
@@ -74,7 +81,7 @@ final class InitialProjectState {
         (root.isEmpty && inferredDependencies != null
             ? inferredDependencies.contains('flutter')
             : pubspecUsesFlutter(_pubspec(contents, root)));
-    final sdk = _resolveSdk(request, sdks, usesFlutter: usesFlutter);
+    final sdk = _resolveSdk(request, sdks, usesFlutter: usesFlutter, preferredChannel: preferredChannel);
     final entrypoint = _resolveEntrypoint(contents, root, [
       ...explicitFiles,
       ?initialFile,
@@ -154,7 +161,12 @@ String _resolveRoot(ProjectRequest request, Project contents, List<String> relev
   return root;
 }
 
-SdkInfo _resolveSdk(ProjectRequest request, List<SdkInfo> availableSdks, {required bool usesFlutter}) {
+SdkInfo _resolveSdk(
+  ProjectRequest request,
+  List<SdkInfo> availableSdks, {
+  required bool usesFlutter,
+  String? preferredChannel,
+}) {
   final sdkKind = request.sdk ?? (usesFlutter ? SdkKind.flutter : SdkKind.dart);
   final matches = availableSdks.where(
     (sdk) =>
@@ -166,7 +178,12 @@ SdkInfo _resolveSdk(ProjectRequest request, List<SdkInfo> availableSdks, {requir
       'SDK not available: ${sdkKind.name}${request.sdkVersion == null ? '' : ':${request.sdkVersion}'}.',
     );
   }
-  return matches.first;
+  return preferredChannel == null
+      ? matches.first
+      : matches
+                .where((sdk) => sdk.channel == sdkChannelForKind(preferredChannel, isFlutter: sdk.isFlutter))
+                .firstOrNull ??
+            matches.first;
 }
 
 String? _resolveEntrypoint(

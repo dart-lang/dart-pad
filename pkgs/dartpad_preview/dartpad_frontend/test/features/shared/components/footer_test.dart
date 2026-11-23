@@ -89,7 +89,7 @@ void main() {
     expect(sdkButton.textContent, contains(flutter.displayName));
     final channel = web.document.querySelector('.app-footer-channel')!;
     expect(channel.textContent, contains('Stable channel'));
-    expect(channel.tagName, 'SPAN');
+    expect(channel.tagName, 'BUTTON');
     expect(channel.hasAttribute('title'), isFalse);
 
     sdkButton.click();
@@ -133,13 +133,95 @@ void main() {
         expect(indicator, isNull);
       } else {
         expect(indicator?.textContent, contains(label));
-        expect(indicator?.tagName, 'SPAN');
+        expect(indicator?.tagName, 'BUTTON');
       }
     }
   });
 
+  for (final kind in ['Dart', 'Flutter']) {
+    testClient('switches $kind channels without changing SDK kind', (tester) async {
+      final currentSdk = ValueNotifier(availableSdks.firstWhere((sdk) => sdk.name == kind && sdk.channel == 'stable'));
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        currentSdk.dispose();
+      });
+      tester.pumpComponent(
+        ValueListenableBuilder(
+          listenable: currentSdk,
+          builder: (_, sdk) => Footer(
+            taskStatus: taskStatus,
+            currentSdk: sdk,
+            onSelectSdk: (sdk) => currentSdk.value = sdk,
+            onOpenShortcuts: () {},
+          ),
+        ),
+      );
+
+      for (final channel in ['beta', kind == 'Dart' ? 'dev' : 'main', 'stable']) {
+        (web.document.querySelector('.app-footer-channel')! as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+        final items = web.document.querySelectorAll('.dropdown-menu-item');
+        expect(items.length, 3);
+        expect(web.document.querySelector('.dropdown-menu-item.active')?.textContent, contains('channel'));
+        final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
+        final item = [
+          for (var i = 0; i < items.length; i++) items.item(i)!,
+        ].singleWhere((item) => item.textContent!.contains(label));
+        (item as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+        expect(currentSdk.value.name, kind);
+        expect(currentSdk.value.channel, channel);
+        expect(web.document.querySelector('.app-footer-channel')?.textContent, contains(label));
+        expect(web.document.querySelector('.app-footer-sdk-label')?.textContent, currentSdk.value.displayName);
+      }
+    });
+  }
+
+  for (final isFlutter in [true, false]) {
+    final fromChannel = isFlutter ? 'main' : 'dev';
+    final toChannel = isFlutter ? 'dev' : 'main';
+    testClient('switching SDK kind maps $fromChannel to $toChannel', (tester) async {
+      final current = availableSdks.singleWhere((sdk) => sdk.isFlutter == isFlutter && sdk.channel == fromChannel);
+      final target = availableSdks.singleWhere((sdk) => sdk.isFlutter != isFlutter && sdk.channel == toChannel);
+      SdkInfo? selected;
+      tester.pumpComponent(
+        Footer(
+          taskStatus: taskStatus,
+          currentSdk: current,
+          onSelectSdk: (sdk) => selected = sdk,
+          onOpenShortcuts: () {},
+        ),
+      );
+
+      (web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      final items = web.document.querySelectorAll('.dropdown-menu-item');
+      expect(items.length, 2);
+      final item = [
+        for (var i = 0; i < items.length; i++) items.item(i)!,
+      ].singleWhere((item) => item.textContent!.trim() == target.displayName);
+      (item as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(selected, target);
+    });
+  }
+
+  testClient('disables SDK and channel selection during workspace preparation', (tester) async {
+    tester.pumpComponent(
+      Footer(taskStatus: taskStatus, currentSdk: defaultSdk, onOpenShortcuts: () {}),
+    );
+    for (final selector in ['.app-footer-sdk-trigger', '.app-footer-channel']) {
+      final button = web.document.querySelector(selector)! as web.HTMLButtonElement;
+      expect(button.disabled, isTrue);
+      button.click();
+      await pumpEventQueue();
+      expect(web.document.querySelector('.dropdown-menu'), isNull);
+    }
+  });
+
   for (final sdk in availableSdks) {
-    testClient('shows compact ${sdk.name} controls on small screens', (tester) async {
+    testClient('shows compact ${sdk.name} ${sdk.channel} controls on small screens', (tester) async {
       _setWidth(390);
       tester.pumpComponent(
         Footer(
@@ -160,7 +242,7 @@ void main() {
       final expectedChannelLabel = '${sdkChannel[0].toUpperCase()}${sdkChannel.substring(1)} channel';
       final channel = web.document.querySelector('.app-footer-channel')!;
       expect(channel.querySelector('.material-symbols-outlined')?.textContent, 'tune');
-      expect(channel.getAttribute('aria-label'), expectedChannelLabel);
+      expect(channel.getAttribute('aria-label'), 'Select ${sdk.name} channel ($expectedChannelLabel)');
       expect(channel.querySelector('.app-footer-channel-label'), isNull);
 
       trigger.click();

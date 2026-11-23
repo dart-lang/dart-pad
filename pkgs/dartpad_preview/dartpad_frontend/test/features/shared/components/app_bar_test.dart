@@ -135,7 +135,7 @@ void main() {
     newButton.click();
     await pumpEventQueue();
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, 6);
+    expect(items.length, 7);
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
@@ -165,7 +165,7 @@ void main() {
     expect((dividers.item(1)! as web.HTMLElement).textContent, 'Flutter');
 
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, 6);
+    expect(items.length, 7);
     (items.item(2)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 

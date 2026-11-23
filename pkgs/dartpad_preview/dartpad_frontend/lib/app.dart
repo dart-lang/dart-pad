@@ -185,7 +185,7 @@ final class _AppState extends State<App> {
 
   /// Opens either the URL's source or a saved project, including subsequent
   /// project switches. Only the latest load may replace the visible session.
-  Future<void> _loadProject(Uri uri, {bool startFresh = false}) async {
+  Future<void> _loadProject(Uri uri, {bool startFresh = false, String? preferredSdkChannel}) async {
     final generation = ++_loadGeneration;
     setState(() {
       _isInitializingWorkspace = true;
@@ -226,7 +226,7 @@ final class _AppState extends State<App> {
         }
         final project = switch (strategy.restoreProjectId) {
           final id? => await _loadSavedProject(id, request),
-          null => await _loadProjectFromSource(request),
+          null => await _loadProjectFromSource(request, preferredSdkChannel: preferredSdkChannel),
         };
         if (!_isCurrentLoad(generation)) {
           return;
@@ -242,11 +242,16 @@ final class _AppState extends State<App> {
 
   bool _isCurrentLoad(int generation) => mounted && generation == _loadGeneration;
 
-  Future<_LoadedProject> _loadProjectFromSource(ProjectRequest request) async {
+  Future<_LoadedProject> _loadProjectFromSource(ProjectRequest request, {String? preferredSdkChannel}) async {
     final contents = await component.loadSource(request.source);
     return _LoadedProject(
       request: request,
-      initialState: InitialProjectState.resolve(request, contents, availableSdks),
+      initialState: InitialProjectState.resolve(
+        request,
+        contents,
+        availableSdks,
+        preferredChannel: preferredSdkChannel,
+      ),
       contents: contents,
     );
   }
@@ -691,7 +696,8 @@ final class _AppState extends State<App> {
     if (web.window.location.search != newSearch) {
       web.window.history.pushState(null, '', newSearch.isEmpty ? web.window.location.pathname : newSearch);
     }
-    unawaited(_loadProject(Uri.base.replace(queryParameters: request.query)));
+    // Examples infer Dart or Flutter while keeping the selected release channel.
+    unawaited(_loadProject(Uri.base.replace(queryParameters: request.query), preferredSdkChannel: _currentSdk.channel));
   }
 
   /// Rebuilds worker resources from a copy of the current workspace, keeping the snapshot.

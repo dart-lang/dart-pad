@@ -77,6 +77,16 @@ void main() {
       expect(availableSdks, isNotEmpty);
       expect(defaultSdk, isNotNull);
       expect(availableSdks.contains(defaultSdk), isTrue);
+      expect(defaultSdk.id, 'flutter');
+      expect(defaultSdk.channel, 'stable');
+      expect(availableSdks.map((sdk) => sdk.id).toSet(), hasLength(6));
+      for (final kind in ['Dart', 'Flutter']) {
+        expect(availableSdks.where((sdk) => sdk.name == kind).map((sdk) => sdk.channel), [
+          'stable',
+          'beta',
+          kind == 'Dart' ? 'dev' : 'main',
+        ]);
+      }
     });
   });
 }

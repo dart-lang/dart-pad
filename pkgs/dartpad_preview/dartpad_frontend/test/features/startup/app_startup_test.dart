@@ -12,6 +12,7 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/app.dart';
 import 'package:dartpad_frontend/app_styles.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/codemirror_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
@@ -25,10 +26,12 @@ import 'package:dartpad_frontend/features/shared/panel_presentation_state.dart';
 import 'package:dartpad_frontend/features/shared/project_exceptions.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/startup/project_loader.dart';
+import 'package:dartpad_frontend/features/startup/project_source.dart';
 import 'package:dartpad_frontend/features/startup/strip_unavailable_dependencies.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/features/workspace/embed_runtime_controller.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
+import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:jaspr/dom.dart' show div;
 import 'package:jaspr/jaspr.dart' show StatefulElement;
 import 'package:jaspr_test/client_test.dart';
@@ -1613,6 +1616,163 @@ void main() {
         web.document.querySelector('[role="alertdialog"]')?.textContent,
         contains(message),
       );
+    });
+  }
+
+  for (final channel in ['beta', 'main']) {
+    testClient('switching to Flutter $channel replaces the worker and preserves files and tabs', (tester) async {
+      final repositories = <WorkspaceRepository>[];
+      final workers = [await TestWorker.start(), await TestWorker.start()];
+      for (final worker in workers) {
+        addTearDown(worker.dispose);
+      }
+      var loads = 0;
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?sdk=flutter&run=false&file=README.md&file=lib/main.dart'),
+          loadSource: (_) async {
+            loads++;
+            return contents({'README.md': '# Project', 'lib/main.dart': 'void main() {}'});
+          },
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            final repository = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              dartpad: workers[repositories.length].dartpad,
+              workspaceFuture: Completer<Workspace>().future,
+              readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
+            );
+            repositories.add(repository);
+            return repository;
+          },
+        ),
+      );
+      await pumpEventQueue();
+      final old = repositories.single;
+      final oldShell = find.byType(EditorShell).evaluate().single.component as EditorShell;
+      final mainTab = oldShell.openTabs!.singleWhere((tab) => tab.path == 'lib/main.dart') as WorkspaceCodeMirrorTab;
+      const editedSource = 'void main() { print("keep edits"); }';
+      mainTab.editor.text = editedSource;
+
+      (web.document.querySelector('.app-footer-channel')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      final items = web.document.querySelectorAll('.dropdown-menu-item');
+      final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
+      final item = [
+        for (var i = 0; i < items.length; i++) items.item(i)!,
+      ].singleWhere((item) => item.textContent!.contains(label));
+      (item as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+
+      expect(loads, 1);
+      expect(repositories, hasLength(2));
+      final next = repositories.last;
+      expect(next.sdk, availableSdks.singleWhere((sdk) => sdk.isFlutter && sdk.channel == channel));
+      expect(next.dartpad, isNot(same(old.dartpad)));
+      expect(old.closeCount, 1);
+      expect(workers.first.isClosed, isTrue);
+      expect(await next.workspaceResourceApi.readFileAsText('lib/main.dart'), editedSource);
+      final newShell = find.byType(EditorShell).evaluate().single.component as EditorShell;
+      expect(newShell.openTabs!.map((tab) => tab.path), ['README.md', 'lib/main.dart']);
+      expect(newShell.activeFile, 'README.md');
+
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      expect(next.closeCount, 1);
+      expect(workers.last.isClosed, isTrue);
+    });
+  }
+
+  for (final channel in ['stable', 'beta', 'main']) {
+    testClient('opening examples keeps $channel across Dart and Flutter projects', (tester) async {
+      final repositories = <WorkspaceRepository>[];
+      final workers = [for (var i = 0; i < 5; i++) await TestWorker.start()];
+      for (final worker in workers) {
+        addTearDown(worker.dispose);
+      }
+      final loadedSamples = <String>[];
+      tester.pumpComponent(
+        App(
+          projectStore: MemoryProjectStore(),
+          initialUri: Uri.parse('?sample=counter'),
+          loadSource: (source) async {
+            final sample = (source as SampleProjectSource).sampleId!;
+            loadedSamples.add(sample);
+            final isFlutter = sample != 'dart';
+            return contents({
+              'pubspec.yaml': 'name: demo\n${isFlutter ? 'dependencies:\n  flutter:\n    sdk: flutter\n' : ''}',
+              '${isFlutter ? 'lib' : 'bin'}/main.dart': 'void main() { print("$sample"); }',
+            });
+          },
+          createRepository: ({required events, required sdk, required taskStatus, localApi, deferWorker = false}) {
+            final repository = WorkspaceRepository(
+              events: events,
+              sdk: sdk,
+              taskStatus: taskStatus,
+              workspaceResourceApi: localApi!,
+              dartpad: workers[repositories.length].dartpad,
+              workspaceFuture: Completer<Workspace>().future,
+              readyWorkspaceFuture: Future.error(StateError('Test worker unavailable')),
+            );
+            repositories.add(repository);
+            return repository;
+          },
+        ),
+      );
+      await pumpEventQueue();
+      if (channel != 'stable') {
+        (web.document.querySelector('.app-footer-channel')! as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+        final items = web.document.querySelectorAll('.dropdown-menu-item');
+        final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
+        final item = [
+          for (var i = 0; i < items.length; i++) items.item(i)!,
+        ].singleWhere((item) => item.textContent!.contains(label));
+        (item as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+      }
+      expect(repositories.last.sdk.channel, channel);
+      expect(loadedSamples, ['counter']);
+
+      for (final (sample, name, isFlutter) in [
+        ('sunflower', 'Sunflower', true),
+        ('dart', 'Dart Snippet', false),
+        ('flutter', 'Flutter Snippet', true),
+      ]) {
+        final previous = repositories.last;
+        final previousCount = repositories.length;
+        (web.document.querySelector('button[aria-label="New"]')! as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+        final items = web.document.querySelectorAll('.dropdown-menu-item');
+        final item = [
+          for (var i = 0; i < items.length; i++) items.item(i)!,
+        ].singleWhere((item) => item.textContent!.trim() == name);
+        (item as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+
+        expect(repositories, hasLength(previousCount + 1));
+        final next = repositories.last;
+        final expectedChannel = channel == 'main' && !isFlutter ? 'dev' : channel;
+        expect(
+          next.sdk,
+          availableSdks.singleWhere((sdk) => sdk.isFlutter == isFlutter && sdk.channel == expectedChannel),
+        );
+        expect(next.dartpad, isNot(same(previous.dartpad)));
+        expect(previous.closeCount, 1);
+        expect(workers[previousCount - 1].isClosed, isTrue);
+        expect(loadedSamples.last, sample);
+        expect(web.document.querySelector('.cm-content')!.textContent, contains('print("$sample")'));
+        expect(Uri.parse(web.window.location.href).queryParameters['sample'], sample);
+      }
+      expect(loadedSamples, ['counter', 'sunflower', 'dart', 'flutter']);
+
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      expect(repositories.last.closeCount, 1);
+      expect(workers[repositories.length - 1].isClosed, isTrue);
     });
   }
 

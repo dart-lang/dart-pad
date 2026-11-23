@@ -30,6 +30,12 @@ void main() {
     return sdkDir;
   }
 
+  Future<void> writeChannels(String kind, String contents) async {
+    for (final channel in sdkChannels[kind]!) {
+      await writeVersion(channel == 'stable' ? kind : '$kind-$channel', contents);
+    }
+  }
+
   test('keeps a Dart-only prerelease version verbatim', () async {
     final sdkDir = await writeVersion('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
 
@@ -101,34 +107,47 @@ void main() {
     });
   }
 
-  test('generates a manifest when both requested bundles have valid metadata', () async {
-    await writeVersion('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
-    await writeVersion('flutter', '{"dartVersion": "3.14.0-1.0.dev", "properties": {"flutterVersion": "3.48.0"}}');
+  test('generates every channel with Stable as the default', () async {
+    await writeChannels('dart', '{"dartVersion": "3.15.0-edge.example", "properties": {}}');
+    await writeChannels('flutter', '{"dartVersion": "3.14.0-1.0.dev", "properties": {"flutterVersion": "3.48.0"}}');
 
     final manifest = await generateSdkManifest(assets);
 
     expect(manifest, contains("const defaultSdkId = 'flutter';"));
-    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(2));
+    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(6));
     expect(
       manifest,
       stringContainsInOrder([
         "id: 'flutter'",
         "name: 'Flutter'",
         "path: 'dartpad/flutter/'",
-        "channel: '$flutterChannel'",
+        "channel: 'stable'",
         "dartVersion: '3.14.0 (build 3.14.0-1.0.dev)'",
         "flutterVersion: '3.48.0'",
+        "id: 'flutter-beta'",
+        "path: 'dartpad/flutter-beta/'",
+        "channel: 'beta'",
+        "id: 'flutter-main'",
+        "path: 'dartpad/flutter-main/'",
+        "channel: 'main'",
         "id: 'dart'",
         "name: 'Dart'",
         "path: 'dartpad/dart/'",
-        "channel: '$dartChannel'",
+        "channel: 'stable'",
         "dartVersion: '3.15.0-edge.example'",
+        "id: 'dart-beta'",
+        "path: 'dartpad/dart-beta/'",
+        "channel: 'beta'",
+        "id: 'dart-dev'",
+        "path: 'dartpad/dart-dev/'",
+        "channel: 'dev'",
       ]),
     );
+    expect(manifest, isNot(contains("id: 'dart-main'")));
   });
 
   test('requires the Dart bundle even when Flutter metadata is valid', () async {
-    await writeVersion('flutter', '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}');
+    await writeChannels('flutter', '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}');
     await expectLater(
       generateSdkManifest(assets),
       throwsA(
@@ -155,20 +174,34 @@ void main() {
     );
   });
 
+  for (final kind in ['dart', 'flutter']) {
+    test('rejects an incomplete $kind channel bundle', () async {
+      await writeChannels('dart', '{"dartVersion": "3.14.0", "properties": {}}');
+      await writeChannels('flutter', '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}');
+      final missingId = '$kind-${kind == 'dart' ? 'dev' : 'main'}';
+      await Directory(p.join(assets.path, missingId)).delete(recursive: true);
+
+      await expectLater(
+        generateSdkManifest(assets),
+        throwsA(isA<StateError>().having((error) => error.message, 'message', contains(missingId))),
+      );
+    });
+  }
+
   test('allows a Dart-only manifest when Flutter is explicitly not requested', () async {
-    await writeVersion('dart', '{"dartVersion": "3.14.0", "properties": {}}');
+    await writeChannels('dart', '{"dartVersion": "3.14.0", "properties": {}}');
 
     final manifest = await generateSdkManifest(assets, requireFlutter: false);
 
     expect(manifest, contains("const defaultSdkId = 'dart';"));
-    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(1));
+    expect(RegExp(r'\bSdkInfo\(').allMatches(manifest), hasLength(3));
     expect(
       manifest,
       stringContainsInOrder([
         "id: 'dart'",
         "name: 'Dart'",
         "path: 'dartpad/dart/'",
-        "channel: '$dartChannel'",
+        "channel: 'stable'",
         "dartVersion: '3.14.0'",
       ]),
     );

@@ -8,8 +8,10 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 
-const flutterChannel = 'stable';
-const dartChannel = 'stable';
+const sdkChannels = {
+  'dart': ['stable', 'beta', 'dev'],
+  'flutter': ['stable', 'beta', 'main'],
+};
 
 Future<void> main() => const SdkAssetSetup().setup(Directory.fromUri(Platform.script.resolve('..')));
 
@@ -25,27 +27,22 @@ class SdkAssetSetup {
     final assets = Directory(p.join(stagingDir.path, 'assets'));
 
     try {
-      // Download the latest Dart stable bundle independently of Flutter's Dart SDK.
-      await _run(Platform.resolvedExecutable, [
-        'run',
-        'dartpad',
-        'setup',
-        'dart',
-        '--channel=$dartChannel',
-        '--output=${p.join(assets.path, 'dart')}',
-      ], frontendRoot.path);
+      for (final kind in sdkChannels.keys) {
+        // Dart and Flutter bundles resolve their matching SDKs independently.
+        for (final channel in sdkChannels[kind]!) {
+          await _run(Platform.resolvedExecutable, [
+            'run',
+            'dartpad',
+            'setup',
+            kind,
+            '--channel=$channel',
+            if (kind == 'flutter') '--web-sdk=copy',
+            '--output=${p.join(assets.path, _sdkId(kind, channel))}',
+          ], frontendRoot.path);
+        }
+      }
 
-      await _run(Platform.resolvedExecutable, [
-        'run',
-        'dartpad',
-        'setup',
-        'flutter',
-        '--channel=$flutterChannel',
-        '--web-sdk=copy',
-        '--output=${p.join(assets.path, 'flutter')}',
-      ], frontendRoot.path);
-
-      // Validate both bundles before replacing the existing assets.
+      // Validate all channel bundles before replacing the existing assets.
       final sdkManifest = await generateSdkManifest(assets, requireFlutter: true);
       if (targetAssetDir.existsSync()) {
         await targetAssetDir.delete(recursive: true);
@@ -73,6 +70,9 @@ class SdkAssetSetup {
   }
 }
 
+// Keep Stable IDs and paths compatible with existing saved projects and URLs.
+String _sdkId(String kind, String channel) => channel == 'stable' ? kind : '$kind-$channel';
+
 Future<void> _copyDirectory(Directory source, Directory target) async {
   await target.create(recursive: true);
   await for (final entity in source.list(recursive: false)) {
@@ -88,19 +88,22 @@ Future<void> _copyDirectory(Directory source, Directory target) async {
 /// Requires Dart and, when requested, Flutter metadata before generating the manifest.
 Future<String> generateSdkManifest(Directory assetRoot, {bool requireFlutter = true}) async {
   final sdks = <Map<String, dynamic>>[];
-  // Validate the expected bundles explicitly, including directories that are
-  // entirely missing. Keep Flutter first as the default when it is requested.
-  for (final sdkId in [if (requireFlutter) 'flutter', 'dart']) {
-    final isFlutter = sdkId == 'flutter';
-    final versions = await readSdkVersions(Directory(p.join(assetRoot.path, sdkId)), isFlutter: isFlutter);
-    sdks.add({
-      'id': sdkId,
-      'name': isFlutter ? 'Flutter' : 'Dart',
-      'path': 'dartpad/$sdkId/',
-      'channel': isFlutter ? flutterChannel : dartChannel,
-      'dartVersion': versions.dartVersion,
-      'flutterVersion': ?versions.flutterVersion,
-    });
+  // Require every configured channel before replacing the active bundles.
+  // Stable comes first so startup and fallback selection retain their defaults.
+  for (final kind in [if (requireFlutter) 'flutter', 'dart']) {
+    final isFlutter = kind == 'flutter';
+    for (final channel in sdkChannels[kind]!) {
+      final sdkId = _sdkId(kind, channel);
+      final versions = await readSdkVersions(Directory(p.join(assetRoot.path, sdkId)), isFlutter: isFlutter);
+      sdks.add({
+        'id': sdkId,
+        'name': isFlutter ? 'Flutter' : 'Dart',
+        'path': 'dartpad/$sdkId/',
+        'channel': channel,
+        'dartVersion': versions.dartVersion,
+        'flutterVersion': ?versions.flutterVersion,
+      });
+    }
   }
 
   final defaultSdkId = requireFlutter ? 'flutter' : 'dart';
