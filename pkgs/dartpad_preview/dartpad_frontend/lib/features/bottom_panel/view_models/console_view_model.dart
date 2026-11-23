@@ -27,6 +27,10 @@ class ConsoleViewModel extends ChangeNotifier {
   /// Whether a displayed log line has a level above warning.
   bool get hasErrors => _hasErrors;
 
+  /// The console scroll position while it does not follow new output, kept so
+  /// a remounted console returns to it. `null` while the console follows.
+  double? scrollTop;
+
   void _handleLog(LogEvent event) {
     var changed = _appendLogText(event.message, event);
 
@@ -68,6 +72,7 @@ class ConsoleViewModel extends ChangeNotifier {
     }
     _logs.clear();
     _hasErrors = false;
+    scrollTop = null;
     notifyListeners();
   }
 

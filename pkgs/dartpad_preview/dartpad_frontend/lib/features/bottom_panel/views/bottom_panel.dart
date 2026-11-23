@@ -149,6 +149,8 @@ final class _BottomPanelState extends State<BottomPanel> {
             openRequest: _consoleOpenRequest,
             // Nothing displayed depends on the request, so no rebuild is needed.
             onOpenRequestApplied: () => _consoleOpenRequest = null,
+            scrollTop: component.console.scrollTop,
+            onScrollTopChanged: (scrollTop) => component.console.scrollTop = scrollTop,
           ),
         ),
       },

@@ -445,19 +445,58 @@ void main() {
       expect(isAtBottom(list), isTrue);
     });
 
-    testClient('a remounted console scrolls to the bottom instead of revealing again', (tester) async {
+    Future<web.HTMLElement> remountConsole() async {
+      (web.document.querySelector('.bottom-panel-tab:nth-child(1)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      return web.document.querySelector('.console-list')! as web.HTMLElement;
+    }
+
+    testClient('a remounted console keeps the revealed line at the top', (tester) async {
       final events = AppEventBus();
       final console = createConsole(events, () => tester.pumpComponent(const div([])));
       await pumpConsoleWithLogs(tester, events, console);
 
       events.dispatch(OpenConsoleEvent(reveal: lines[5]));
       await pumpEventQueue();
-      (web.document.querySelector('.bottom-panel-tab:nth-child(1)')! as web.HTMLButtonElement).click();
+      final list = await remountConsole();
+      expect(rowOffset(list, 5), 0);
+
+      events.dispatch(const LogEvent('later output'));
       await pumpEventQueue();
-      (web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement).click();
+      expect(rowOffset(list, 5), 0);
+    });
+
+    testClient('a remounted console keeps the position the user scrolled to', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
+      await pumpEventQueue();
+      list.scrollTop += rowOffset(list, 10);
+      list.dispatchEvent(web.Event('scroll'));
       await pumpEventQueue();
 
-      expect(isAtBottom(web.document.querySelector('.console-list')! as web.HTMLElement), isTrue);
+      expect(rowOffset(await remountConsole(), 10), 0);
+    });
+
+    testClient('a remounted console follows output after the user scrolled to the bottom', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
+      await pumpEventQueue();
+      list.scrollTop = list.scrollHeight;
+      list.dispatchEvent(web.Event('scroll'));
+      await pumpEventQueue();
+      final remounted = await remountConsole();
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+
+      expect(isAtBottom(remounted), isTrue);
     });
   });
 

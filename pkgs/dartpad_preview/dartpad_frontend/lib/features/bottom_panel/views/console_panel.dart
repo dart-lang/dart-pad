@@ -26,6 +26,8 @@ class ConsolePanel extends StatefulComponent {
     required this.logs,
     this.openRequest,
     this.onOpenRequestApplied,
+    this.scrollTop,
+    this.onScrollTopChanged,
     super.key,
   });
 
@@ -36,6 +38,14 @@ class ConsolePanel extends StatefulComponent {
 
   /// Called once [openRequest] is applied, so the owner can drop it.
   final void Function()? onOpenRequestApplied;
+
+  /// The scroll position restored when the console is shown, or `null` to
+  /// follow new output at the bottom.
+  final double? scrollTop;
+
+  /// Called with the position to restore when the console is shown again, or
+  /// `null` once the console follows new output.
+  final void Function(double? scrollTop)? onScrollTopChanged;
 
   @override
   State<ConsolePanel> createState() => _DebugConsolePanelState();
@@ -48,17 +58,19 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
   final GlobalNodeKey<web.HTMLElement> _listKey = GlobalNodeKey();
 
   /// Whether new output scrolls the console to the bottom.
-  bool _followOutput = true;
+  late bool _followOutput = component.scrollTop == null;
 
-  /// The scroll position set by [_reveal], used to tell it apart from scrolls
+  /// The scroll position set by this state, used to tell it apart from scrolls
   /// made by the user.
-  double? _revealedScrollTop;
+  double? _setScrollTop;
 
   @override
   void initState() {
     super.initState();
     if (component.openRequest != null) {
       context.binding.addPostFrameCallback(_applyOpenRequest);
+    } else if (!_followOutput) {
+      context.binding.addPostFrameCallback(_restoreScrollTop);
     } else if (component.logs.isNotEmpty) {
       context.binding.addPostFrameCallback(_scrollToBottom);
     }
@@ -67,8 +79,8 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
   @override
   void didUpdateComponent(covariant ConsolePanel oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (component.logs.isEmpty) {
-      _followOutput = true;
+    if (component.logs.isEmpty && !_followOutput) {
+      _updateFollowOutput(null);
     }
     if (!identical(component.openRequest, oldComponent.openRequest) && component.openRequest != null) {
       context.binding.addPostFrameCallback(_applyOpenRequest);
@@ -85,7 +97,7 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     component.onOpenRequestApplied?.call();
     final index = request.revealIndex;
     if (index == null || !_reveal(index)) {
-      _followOutput = true;
+      _updateFollowOutput(null);
       _scrollToBottom();
     }
   }
@@ -103,9 +115,27 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       return false;
     }
     element.scrollTop += row.getBoundingClientRect().top - element.getBoundingClientRect().top;
-    _revealedScrollTop = element.scrollTop;
-    _followOutput = _isScrolledToBottom(element);
+    _setScrollTop = element.scrollTop;
+    _updateFollowOutput(element);
     return true;
+  }
+
+  void _restoreScrollTop() {
+    final element = _listKey.currentNode;
+    final scrollTop = component.scrollTop;
+    if (!mounted || element == null || scrollTop == null) {
+      return;
+    }
+    element.scrollTop = scrollTop;
+    _setScrollTop = element.scrollTop;
+    _updateFollowOutput(element);
+  }
+
+  /// Follows new output when [element] is `null` or scrolled to the bottom.
+  /// Otherwise, keeps its scroll position for when the console is shown again.
+  void _updateFollowOutput(web.HTMLElement? element) {
+    _followOutput = element == null || _isScrolledToBottom(element);
+    component.onScrollTopChanged?.call(_followOutput ? null : element!.scrollTop);
   }
 
   void _scrollToBottom() {
@@ -118,16 +148,15 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     }
   }
 
-  /// Resumes following output once the user scrolls back to the bottom.
+  /// Keeps the user's scroll position, and resumes following output once the
+  /// user scrolls back to the bottom.
   void _onScroll() {
     final element = _listKey.currentNode;
-    if (_followOutput || element == null || element.scrollTop == _revealedScrollTop) {
+    if (_followOutput || element == null || element.scrollTop == _setScrollTop) {
       return;
     }
-    _revealedScrollTop = null;
-    if (_isScrolledToBottom(element)) {
-      _followOutput = true;
-    }
+    _setScrollTop = null;
+    _updateFollowOutput(element);
   }
 
   bool _isScrolledToBottom(web.HTMLElement element) =>
