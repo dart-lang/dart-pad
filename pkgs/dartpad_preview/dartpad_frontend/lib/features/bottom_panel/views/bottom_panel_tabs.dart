@@ -198,11 +198,6 @@ final class BottomPanelTabs extends StatelessComponent {
       outline: const Outline(style: .none),
       cursor: .pointer,
       userSelect: .none,
-      transition: .combine([
-        Transition('background', duration: 150.ms, curve: .ease),
-        Transition('color', duration: 150.ms, curve: .ease),
-        Transition('border-color', duration: 150.ms, curve: .ease),
-      ]),
       alignItems: .center,
       gap: Gap.all(6.px),
       color: colorOnSurface,
