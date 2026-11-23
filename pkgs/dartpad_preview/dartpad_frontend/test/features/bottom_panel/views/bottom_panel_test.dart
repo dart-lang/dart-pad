@@ -346,13 +346,15 @@ void main() {
   });
 
   group('console reveal', () {
+    final lines = [for (var i = 0; i < 40; i++) LogEvent('line $i')];
+
     Future<web.HTMLElement> pumpConsoleWithLogs(
       ClientTester tester,
       AppEventBus events,
       ConsoleViewModel console,
     ) async {
       for (var i = 0; i < 40; i++) {
-        events.dispatch(LogEvent('line $i'));
+        events.dispatch(lines[i]);
       }
       await pumpEventQueue();
       tester.pumpComponent(
@@ -391,7 +393,7 @@ void main() {
       final console = createConsole(events, () => tester.pumpComponent(const div([])));
       final list = await pumpConsoleWithLogs(tester, events, console);
 
-      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
       await pumpEventQueue();
       expect(rowOffset(list, 5), 0);
 
@@ -405,7 +407,7 @@ void main() {
       final console = createConsole(events, () => tester.pumpComponent(const div([])));
       final list = await pumpConsoleWithLogs(tester, events, console);
 
-      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
       await pumpEventQueue();
       list.scrollTop = list.scrollHeight;
       list.dispatchEvent(web.Event('scroll'));
@@ -420,7 +422,7 @@ void main() {
       final console = createConsole(events, () => tester.pumpComponent(const div([])));
       final list = await pumpConsoleWithLogs(tester, events, console);
 
-      events.dispatch(const OpenConsoleEvent(reveal: 5));
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
       await pumpEventQueue();
       events.dispatch(const OpenConsoleEvent());
       await pumpEventQueue();
@@ -428,6 +430,34 @@ void main() {
       await pumpEventQueue();
 
       expect(isAtBottom(list), isTrue);
+    });
+
+    testClient('keeps following output when the revealed line is in the last screen', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(OpenConsoleEvent(reveal: lines.last));
+      await pumpEventQueue();
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+
+      expect(isAtBottom(list), isTrue);
+    });
+
+    testClient('a remounted console scrolls to the bottom instead of revealing again', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      await pumpConsoleWithLogs(tester, events, console);
+
+      events.dispatch(OpenConsoleEvent(reveal: lines[5]));
+      await pumpEventQueue();
+      (web.document.querySelector('.bottom-panel-tab:nth-child(1)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+
+      expect(isAtBottom(web.document.querySelector('.console-list')! as web.HTMLElement), isTrue);
     });
   });
 

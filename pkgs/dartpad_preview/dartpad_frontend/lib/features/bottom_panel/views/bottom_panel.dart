@@ -84,7 +84,12 @@ final class _BottomPanelState extends State<BottomPanel> {
       if (!mounted) {
         return;
       }
-      setState(() => _consoleOpenRequest = ConsoleOpenRequest(revealIndex: event.reveal));
+      final reveal = event.reveal;
+      setState(() {
+        _consoleOpenRequest = ConsoleOpenRequest(
+          revealIndex: reveal == null ? null : component.console.indexOf(reveal),
+        );
+      });
       component.panelController.openBottomPanel(BottomPanelTab.console);
     });
   }
@@ -142,6 +147,8 @@ final class _BottomPanelState extends State<BottomPanel> {
           builder: (_) => ConsolePanel(
             logs: component.console.logs,
             openRequest: _consoleOpenRequest,
+            // Nothing displayed depends on the request, so no rebuild is needed.
+            onOpenRequestApplied: () => _consoleOpenRequest = null,
           ),
         ),
       },

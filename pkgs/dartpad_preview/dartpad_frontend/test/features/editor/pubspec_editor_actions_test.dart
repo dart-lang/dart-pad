@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:dartpad_frontend/features/editor/components/pubspec_editor_actions.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/events/log_event.dart';
+import 'package:dartpad_frontend/features/shared/events/open_console_event.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
@@ -17,13 +18,8 @@ import 'package:web/web.dart' as web;
 void main() {
   late AppEventBus events;
 
-  /// The `reveal` argument of each console open request.
-  late List<LogEvent?> opened;
-  void openConsole({LogEvent? reveal}) => opened.add(reveal);
-
   setUp(() {
     events = AppEventBus();
-    opened = [];
   });
 
   tearDown(() async {
@@ -37,7 +33,6 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (path) async => pubGetPath = path,
       ),
     );
@@ -54,7 +49,6 @@ void main() {
         activeFile: 'packages/example/pubspec.lock',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (path) async => pubGetPath = path,
       ),
     );
@@ -71,7 +65,6 @@ void main() {
         activeFile: 'packages/example/analysis_options.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) async {},
       ),
     );
@@ -85,7 +78,6 @@ void main() {
         activeFile: 'main.dart',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) async {},
       ),
     );
@@ -97,7 +89,6 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) async {},
       ),
     );
@@ -113,7 +104,6 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => operations.add('save-all'),
         events: events,
-        openConsole: openConsole,
         onPubGet: (path) async => operations.add('pub-get:$path'),
       ),
     );
@@ -125,13 +115,16 @@ void main() {
   });
 
   testClient('opens the console when Pub Get starts', (tester) async {
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
+
     final completer = Completer<void>();
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) => completer.future,
       ),
     );
@@ -147,12 +140,15 @@ void main() {
   });
 
   testClient('opens the console even when saving fails', (tester) async {
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
+
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => throw StateError('save failed'),
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) async {},
       ),
     );
@@ -163,17 +159,19 @@ void main() {
     expect(opened, hasLength(1));
   });
 
-  testClient('logs failures and resets busy state', (tester) async {
+  testClient('logs failures, reveals them in the console, and resets busy state', (tester) async {
     final logs = <LogEvent>[];
     final logSubscription = events.on<LogEvent>().listen(logs.add);
     addTearDown(logSubscription.cancel);
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
 
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) async => throw StateError('pub failed'),
       ),
     );
@@ -184,7 +182,7 @@ void main() {
     expect(logs.single.level, Level.SEVERE);
     expect(logs.single.message, 'Pub get failed.');
     expect(logs.single.error, isA<StateError>());
-    expect(opened, [null, same(logs.single)]);
+    expect(opened.map((event) => event.reveal), [null, same(logs.single)]);
 
     final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
     expect(pubGet.disabled, isFalse);
@@ -204,7 +202,6 @@ void main() {
           throw StateError('save failed');
         },
         events: events,
-        openConsole: openConsole,
         onPubGet: (path) async => operations.add('pub-get:$path'),
       ),
     );
@@ -226,7 +223,6 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        openConsole: openConsole,
         onPubGet: (_) => completer.future,
       ),
     );
@@ -251,7 +247,6 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => operations.add('save-all'),
         events: events,
-        openConsole: openConsole,
         onPubGet: (path) async {
           operations.add('pub-get:$path');
           await completer.future;

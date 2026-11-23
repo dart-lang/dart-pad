@@ -18,10 +18,6 @@ final class ConsoleOpenRequest {
   ConsoleOpenRequest({this.revealIndex});
 
   final int? revealIndex;
-
-  /// Whether a [ConsolePanel] has applied this request. A remounted panel
-  /// ignores handled requests.
-  bool _handled = false;
 }
 
 /// Displays the application's structured log events.
@@ -29,13 +25,17 @@ class ConsolePanel extends StatefulComponent {
   const ConsolePanel({
     required this.logs,
     this.openRequest,
+    this.onOpenRequestApplied,
     super.key,
   });
 
   final List<ConsoleEntry> logs;
 
-  /// The latest request to show the console, if it is not handled yet.
+  /// The latest request to show the console, if it is not applied yet.
   final ConsoleOpenRequest? openRequest;
+
+  /// Called once [openRequest] is applied, so the owner can drop it.
+  final void Function()? onOpenRequestApplied;
 
   @override
   State<ConsolePanel> createState() => _DebugConsolePanelState();
@@ -79,10 +79,10 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
 
   void _applyOpenRequest() {
     final request = component.openRequest;
-    if (!mounted || request == null || request._handled) {
+    if (!mounted || request == null) {
       return;
     }
-    request._handled = true;
+    component.onOpenRequestApplied?.call();
     final index = request.revealIndex;
     if (index == null || !_reveal(index)) {
       _followOutput = true;
@@ -90,8 +90,9 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     }
   }
 
-  /// Scrolls the line at [index] to the top and stops following output.
-  /// Returns `false` when the line is not displayed.
+  /// Scrolls the line at [index] to the top and stops following output,
+  /// unless the console is already at the bottom. Returns `false` when the
+  /// line is not displayed.
   bool _reveal(int index) {
     final element = _listKey.currentNode;
     if (element == null || index < 0 || index >= component.logs.length) {
@@ -101,9 +102,9 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     if (row == null) {
       return false;
     }
-    _followOutput = false;
     element.scrollTop += row.getBoundingClientRect().top - element.getBoundingClientRect().top;
     _revealedScrollTop = element.scrollTop;
+    _followOutput = _isScrolledToBottom(element);
     return true;
   }
 
@@ -124,10 +125,13 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       return;
     }
     _revealedScrollTop = null;
-    if (element.scrollTop + element.clientHeight >= element.scrollHeight - 1) {
+    if (_isScrolledToBottom(element)) {
       _followOutput = true;
     }
   }
+
+  bool _isScrolledToBottom(web.HTMLElement element) =>
+      element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
 
   @override
   Component build(BuildContext context) {
