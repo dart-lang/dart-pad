@@ -60,10 +60,6 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
   /// Whether new output scrolls the console to the bottom.
   late bool _followOutput = component.scrollTop == null;
 
-  /// The scroll position set by this state, used to tell it apart from scrolls
-  /// made by the user.
-  double? _setScrollTop;
-
   @override
   void initState() {
     super.initState();
@@ -115,7 +111,6 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       return false;
     }
     element.scrollTop += row.getBoundingClientRect().top - element.getBoundingClientRect().top;
-    _setScrollTop = element.scrollTop;
     _updateFollowOutput(element);
     return true;
   }
@@ -127,7 +122,6 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       return;
     }
     element.scrollTop = scrollTop;
-    _setScrollTop = element.scrollTop;
     _updateFollowOutput(element);
   }
 
@@ -148,15 +142,12 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     }
   }
 
-  /// Keeps the user's scroll position, and resumes following output once the
-  /// user scrolls back to the bottom.
+  /// Follows output only while the console is scrolled to the bottom.
   void _onScroll() {
     final element = _listKey.currentNode;
-    if (_followOutput || element == null || element.scrollTop == _setScrollTop) {
-      return;
+    if (element != null) {
+      _updateFollowOutput(element);
     }
-    _setScrollTop = null;
-    _updateFollowOutput(element);
   }
 
   bool _isScrolledToBottom(web.HTMLElement element) =>

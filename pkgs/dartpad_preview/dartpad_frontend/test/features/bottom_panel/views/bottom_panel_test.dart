@@ -386,6 +386,14 @@ void main() {
       return row.getBoundingClientRect().top - list.getBoundingClientRect().top;
     }
 
+    Future<web.HTMLElement> remountConsole() async {
+      (web.document.querySelector('.bottom-panel-tab:nth-child(1)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      return web.document.querySelector('.console-list')! as web.HTMLElement;
+    }
+
     bool isAtBottom(web.HTMLElement list) => list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
 
     testClient('scrolls the revealed line to the top and stops following output', (tester) async {
@@ -417,6 +425,20 @@ void main() {
       expect(isAtBottom(list), isTrue);
     });
 
+    testClient('stops following output when the user scrolls up', (tester) async {
+      final events = AppEventBus();
+      final console = createConsole(events, () => tester.pumpComponent(const div([])));
+      final list = await pumpConsoleWithLogs(tester, events, console);
+
+      list.scrollTop += rowOffset(list, 10);
+      list.dispatchEvent(web.Event('scroll'));
+      events.dispatch(const LogEvent('later output'));
+      await pumpEventQueue();
+      expect(rowOffset(list, 10), 0);
+
+      expect(rowOffset(await remountConsole(), 10), 0);
+    });
+
     testClient('an open request without a reveal follows output again', (tester) async {
       final events = AppEventBus();
       final console = createConsole(events, () => tester.pumpComponent(const div([])));
@@ -444,14 +466,6 @@ void main() {
 
       expect(isAtBottom(list), isTrue);
     });
-
-    Future<web.HTMLElement> remountConsole() async {
-      (web.document.querySelector('.bottom-panel-tab:nth-child(1)')! as web.HTMLButtonElement).click();
-      await pumpEventQueue();
-      (web.document.querySelector('.bottom-panel-tab:nth-child(2)')! as web.HTMLButtonElement).click();
-      await pumpEventQueue();
-      return web.document.querySelector('.console-list')! as web.HTMLElement;
-    }
 
     testClient('a remounted console keeps the revealed line at the top', (tester) async {
       final events = AppEventBus();
