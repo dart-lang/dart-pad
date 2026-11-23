@@ -5,7 +5,7 @@ Cloud Build configuration for deploying DartPad to Firebase Hosting.
 ## Files
 
 - `trigger-pr.yaml` (`deploy-pr`):
-    * Trigger for PRs targeting `main`.
+    * Trigger for all PRs (including stacked PRs targeting non-`main` branches).
     * Deploys to preview channel `pr-<N>` on `sketch-pad-1cebb` (expires in 7d).
     * External PRs require a `/gcbrun` comment from a maintainer.
 - `trigger-main.yaml` (`deploy-main`):

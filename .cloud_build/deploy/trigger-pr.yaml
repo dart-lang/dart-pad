@@ -24,7 +24,7 @@ github:
   owner: dart-lang
   name: dart-pad
   pullRequest:
-    branch: ^main$
+    branch: .*
     commentControl: COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY
 substitutions:
   _FIREBASE_SITE: sketch-pad-1cebb
