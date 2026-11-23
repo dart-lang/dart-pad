@@ -1130,9 +1130,6 @@ web.HTMLElement _pumpFileTreeWithFile(
   return web.document.querySelector('.file-tree-item.file') as web.HTMLElement;
 }
 
-@JS('Object.defineProperty')
-external void _defineProperty(JSObject object, JSString key, JSObject descriptor);
-
 void _withPointerMode({required bool coarse, required void Function() run}) {
   final originalMatchMedia = web.window.getProperty<JSFunction>('matchMedia'.toJS);
   web.window.setProperty(
