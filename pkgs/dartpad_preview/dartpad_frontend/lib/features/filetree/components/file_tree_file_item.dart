@@ -141,6 +141,9 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       ].join(' '),
       path: path,
       isDraggable: !component.state.busy,
+      onContextMenu: component.contextMenu == null
+          ? null
+          : (x, y) => _showContextMenu(path, x: x, y: y, openable: openable),
       attributes: {
         'title': openable ? path : '$path — binary preview is not available',
         'tabindex': '0',
@@ -166,11 +169,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
             _confirmDelete(path);
           }
         },
-        'contextmenu': (web.Event event) => _handleContextMenu(
-          event,
-          path,
-          openable: openable,
-        ),
       },
       children: [
         const span(classes: 'file-tree-disclosure spacer', []),
@@ -189,23 +187,21 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     }
   }
 
-  void _handleContextMenu(
-    web.Event event,
+  void _showContextMenu(
     String path, {
+    required double x,
+    required double y,
     required bool openable,
   }) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
     }
-    final mouseEvent = event as web.MouseEvent;
-    event.preventDefault();
-    event.stopPropagation();
     component.actions.clearOperationError();
     component.onSelect(path);
     menu.show(
-      mouseEvent.clientX.toDouble(),
-      mouseEvent.clientY.toDouble(),
+      x,
+      y,
       _buildContextMenuItems(path, openable: openable),
     );
   }

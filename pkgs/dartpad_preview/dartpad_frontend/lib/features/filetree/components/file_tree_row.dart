@@ -34,6 +34,7 @@ class FileTreeRow extends StatefulComponent {
     this.events = const {},
     this.path,
     this.isDraggable = false,
+    this.onContextMenu,
     this.onDrop,
     required this.children,
     super.key,
@@ -56,6 +57,9 @@ class FileTreeRow extends StatefulComponent {
 
   /// Whether the row can be dragged as a move operation source.
   final bool isDraggable;
+
+  /// Opens the row's context menu at the given viewport coordinates.
+  final void Function(double x, double y)? onContextMenu;
 
   /// Callback when a resource path is dropped onto this row.
   /// If null, drop events are not handled.
@@ -93,6 +97,13 @@ class _FileTreeRowState extends State<FileTreeRow> {
       },
       events: {
         ...component.events,
+        if (component.onContextMenu != null)
+          'contextmenu': (web.Event event) {
+            event.preventDefault();
+            event.stopPropagation();
+            final mouseEvent = event as web.MouseEvent;
+            component.onContextMenu?.call(mouseEvent.clientX.toDouble(), mouseEvent.clientY.toDouble());
+          },
         if (isDraggable) ...{
           'dragstart': (web.Event event) {
             final dragEvent = event as web.DragEvent;

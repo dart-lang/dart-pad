@@ -216,6 +216,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ].join(' '),
       path: path,
       isDraggable: !component.state.busy,
+      onContextMenu: component.contextMenu == null ? null : (x, y) => _showContextMenu(path, x: x, y: y),
       attributes: {
         'title': path,
         'tabindex': '0',
@@ -239,10 +240,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             _confirmDelete(path);
           }
         },
-        'contextmenu': (web.Event event) => _handleContextMenu(
-          event,
-          path,
-        ),
       },
       children: [
         button(
@@ -350,21 +347,15 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     );
   }
 
-  void _handleContextMenu(
-    web.Event event,
-    String path,
-  ) {
+  void _showContextMenu(String path, {required double x, required double y}) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
     }
-    final mouseEvent = event as web.MouseEvent;
-    event.preventDefault();
-    event.stopPropagation();
     component.onSelect(path);
     menu.show(
-      mouseEvent.clientX.toDouble(),
-      mouseEvent.clientY.toDouble(),
+      x,
+      y,
       _buildContextMenuItems(path),
     );
   }
