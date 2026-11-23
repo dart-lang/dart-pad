@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
 import '../../shared/events/log_event.dart';
-import '../../shared/events/open_console_event.dart';
 import 'editor_floating_action.dart';
 
 /// Displays a path-aware Pub get action for an active Pub metadata file.
@@ -26,6 +25,7 @@ final class PubspecEditorActions extends StatefulComponent {
     required this.saveAllFiles,
     required this.events,
     required this.onPubGet,
+    required this.openConsole,
     super.key,
   });
 
@@ -41,6 +41,9 @@ final class PubspecEditorActions extends StatefulComponent {
   /// Runs Pub Get in the supplied workspace-relative directory.
   final Future<void> Function(String path) onPubGet;
 
+  /// Opens the console, scrolled to the first line of `reveal` when given.
+  final void Function({LogEvent? reveal}) openConsole;
+
   @override
   State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
 }
@@ -53,7 +56,7 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     await _run('Pub get failed.', () async {
       // Reveal the console so the user gets immediate feedback that pub get
       // started, and can follow its output.
-      component.events.dispatch(const OpenConsoleEvent());
+      component.openConsole();
       try {
         await component.saveAllFiles();
       } catch (_) {
@@ -77,14 +80,14 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     try {
       await operation();
     } catch (error, stackTrace) {
-      component.events.dispatch(
-        LogEvent(
-          failureMessage,
-          level: Level.SEVERE,
-          error: error,
-          stackTrace: stackTrace,
-        ),
+      final log = LogEvent(
+        failureMessage,
+        level: Level.SEVERE,
+        error: error,
+        stackTrace: stackTrace,
       );
+      component.events.dispatch(log);
+      component.openConsole(reveal: log);
     } finally {
       if (mounted) {
         setState(() {

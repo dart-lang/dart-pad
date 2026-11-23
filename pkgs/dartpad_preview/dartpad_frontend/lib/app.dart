@@ -570,12 +570,7 @@ final class _AppState extends State<App> {
           setState(() {
             _workspacePreparationFailure = _WorkspaceFailure('Pub get failed while preparing the workspace.', log: log);
           });
-          // The console shows the failure once it has received the log.
-          context.binding.addPostFrameCallback(() {
-            if (mounted) {
-              _openConsole(session, reveal: log);
-            }
-          });
+          _openConsole(session, reveal: log);
         }
       }
     }
@@ -996,6 +991,7 @@ final class _AppState extends State<App> {
             path: workspacePath,
             projectRoot: _projectDir,
           ),
+          openConsole: ({reveal}) => _openConsole(session, reveal: reveal),
         ),
         if (activeTab is CodeMirrorTab)
           MainEditorActions(
@@ -1058,22 +1054,25 @@ final class _AppState extends State<App> {
       return;
     }
     void dispatch() {
+      if (!mounted || !_isCurrent(session)) {
+        return;
+      }
       final index = reveal == null ? null : session.console.indexOf(reveal);
       session.events.dispatch(OpenConsoleEvent(reveal: index));
     }
+
+    // The console receives log events asynchronously, so look up [reveal]
+    // after events dispatched before this call are delivered.
+    void dispatchAfterLogs() => reveal == null ? dispatch() : Timer.run(dispatch);
 
     if (!_isLargeScreen && _selectedSmallScreenTab != SmallScreenTab.code) {
       setState(() {
         _selectedSmallScreenTab = SmallScreenTab.code;
       });
-      context.binding.addPostFrameCallback(() {
-        if (_isCurrent(session)) {
-          dispatch();
-        }
-      });
+      context.binding.addPostFrameCallback(dispatchAfterLogs);
       return;
     }
-    dispatch();
+    dispatchAfterLogs();
   }
 
   void _handleGlobalKeyDown(web.KeyboardEvent event) {
