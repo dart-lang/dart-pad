@@ -55,37 +55,56 @@ void main() {
   });
 
   for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
-    testClient('typing a new $kind name reveals the input in the tree', (tester) async {
+    testClient('creating a root $kind reveals its input in a scrolled tree', (tester) async {
       tester.pumpComponent(const _ScrollFixture());
       await pumpEventQueue();
-      (web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement).click();
-      await pumpEventQueue();
+      final host = web.document.getElementById('scroll-host')!;
+      final tree = web.document.querySelector('.file-tree-list')!;
+      host.scrollTop = 220;
+      tree.scrollTop = 250;
+      final hostScroll = host.scrollTop;
+      expect(tree.scrollTop, greaterThan(0));
+
       (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
       await pumpEventQueue();
       (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
       await pumpEventQueue();
 
+      final input = web.document.querySelector('.file-tree-input')!;
+      final inputRect = input.getBoundingClientRect();
+      final treeRect = tree.getBoundingClientRect();
+      expect(web.document.activeElement, input);
+      expect(inputRect.top, greaterThanOrEqualTo(treeRect.top));
+      expect(inputRect.bottom, lessThanOrEqualTo(treeRect.bottom));
+      expect(host.scrollTop, hostScroll, reason: 'Revealing the input must not scroll the enclosing page.');
+    });
+  }
+
+  for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
+    testClient('creating a nested $kind reveals its input in a scrolled tree', (tester) async {
+      tester.pumpComponent(const _ScrollFixture());
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement).click();
+      await pumpEventQueue();
       final host = web.document.getElementById('scroll-host')!;
       final tree = web.document.querySelector('.file-tree-list')!;
-      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
       host.scrollTop = 220;
       tree.scrollTop = 250;
-      expect(input.getBoundingClientRect().bottom, lessThan(tree.getBoundingClientRect().top));
       final hostScroll = host.scrollTop;
+      expect(tree.scrollTop, greaterThan(0));
 
-      input.value = 'a';
-      input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+      (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
       await pumpEventQueue();
 
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')!;
+      expect(web.document.activeElement, input);
       expect(input.getBoundingClientRect().top, greaterThanOrEqualTo(tree.getBoundingClientRect().top));
       expect(input.getBoundingClientRect().bottom, lessThanOrEqualTo(tree.getBoundingClientRect().bottom));
-      expect(host.scrollTop, hostScroll, reason: 'Typing must not scroll the enclosing page.');
-
-      final scroll = tree.scrollTop;
-      input.value = 'ab';
-      input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
-      await pumpEventQueue();
-      expect(tree.scrollTop, scroll, reason: 'An already visible input should not jump while typing.');
+      expect(host.scrollTop, hostScroll, reason: 'Revealing the input must not scroll the enclosing page.');
     });
   }
 }
