@@ -9,6 +9,7 @@ import 'dart:js_interop';
 import 'package:codemirror_dart/codemirror_dart.dart';
 import 'package:dartpad/dartpad.dart';
 import '../workspace/workspace_events.dart';
+import '../workspace/workspace_path.dart';
 import 'diagnostic.dart';
 import 'diagnostic_uri_resolver.dart';
 
@@ -113,7 +114,7 @@ interface class LanguageServerClient {
     );
     _workspaceSubscription = workspaceChangeEvents.listen((event) {
       if (event.type == WorkspaceChangeEventType.move) {
-        _handleFileMoved(event.oldPath!, event.path);
+        _handleFileMoved(event.oldPath!);
       } else if (event.type == WorkspaceChangeEventType.remove) {
         _handleFileDeleted([event.path]);
       }
@@ -151,7 +152,8 @@ interface class LanguageServerClient {
   final StreamController<Map<String, Object?>> _diagnosticsController =
       StreamController<Map<String, Object?>>.broadcast();
 
-  /// A broadcast stream of raw diagnostic payloads from the language server.
+  /// Diagnostic updates, including synthetic updates after a file moves.
+  /// Read [allDiagnostics] for the current state after each update.
   Stream<Map<String, Object?>> get diagnosticsStream => _diagnosticsController.stream;
 
   final StreamController<AnalyzerActivity> _analyzerActivityController = StreamController<AnalyzerActivity>.broadcast();
@@ -423,10 +425,11 @@ interface class LanguageServerClient {
     }
   }
 
-  void _handleFileMoved(String oldPath, String newPath) {
+  void _handleFileMoved(String oldPath) {
+    oldPath = normalizeWorkspacePath(oldPath);
     final diagnostics = _diagnostics.remove(oldPath);
     if (diagnostics != null) {
-      _diagnostics[newPath] = diagnostics;
+      _diagnosticsController.add({'uri': rootWorkspaceUri.resolve(oldPath).toString(), 'diagnostics': []});
     }
   }
 

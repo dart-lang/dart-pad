@@ -218,7 +218,7 @@ void main() {
       expect(client.isAnalyzing, isFalse);
     });
 
-    test('moves and removes cached diagnostics with workspace events', () async {
+    test('removes cached diagnostics when a file is moved', () async {
       workspace.files['old.dart'] = '';
       final diagnosticActivity = client.analyzerActivityStream.first;
       serverMessages.add({
@@ -244,6 +244,24 @@ void main() {
           oldPath: 'old.dart',
         ),
       );
+      expect(client.allDiagnostics, isEmpty);
+
+      final newDiagnosticActivity = client.analyzerActivityStream.first;
+      serverMessages.add({
+        'method': 'textDocument/publishDiagnostics',
+        'params': {
+          'uri': 'file:///workspace/new.dart',
+          'diagnostics': [
+            {
+              'range': {
+                'start': {'line': 0, 'character': 0},
+              },
+              'message': 'new problem',
+            },
+          ],
+        },
+      });
+      await newDiagnosticActivity;
       expect(client.allDiagnostics.single.fileName, 'new.dart');
 
       workspaceEvents.add(

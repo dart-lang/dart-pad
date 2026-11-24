@@ -80,6 +80,39 @@ void main() {
       expect(languageServerClient.allDiagnostics, hasLength(3));
     });
 
+    test('updates problems immediately when a Dart file is renamed to Markdown', () async {
+      viewModel.attachLanguageServer(languageServerClient);
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/main.dart');
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/other.dart');
+      expect(viewModel.diagnostics, hasLength(2));
+
+      await _moveAndWaitForUpdate(viewModel, workspaceEvents, 'lib/main.dart', 'lib/main.md');
+      expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart']);
+    });
+
+    test('clears problems on rename and displays new analyzer diagnostics', () async {
+      viewModel.attachLanguageServer(languageServerClient);
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/main.dart');
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/other.dart');
+
+      await _moveAndWaitForUpdate(viewModel, workspaceEvents, 'lib/main.dart', 'lib/renamed.dart');
+      expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart']);
+
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/renamed.dart');
+      expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart', 'lib/renamed.dart']);
+    });
+
+    test('clears pubspec diagnostics when renamed to another YAML file', () async {
+      viewModel.attachLanguageServer(languageServerClient);
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'pubspec.yaml');
+
+      await _moveAndWaitForUpdate(viewModel, workspaceEvents, 'pubspec.yaml', 'pubspec_backup.yaml');
+      expect(viewModel.diagnostics, isEmpty);
+
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'pubspec.yaml', count: 0);
+      expect(viewModel.diagnostics, isEmpty);
+    });
+
     for (final entry in <String, String?>{'unset': null, 'the workspace root': ''}.entries) {
       test('includes all diagnostics when project root is ${entry.key}', () async {
         final projectRoot = entry.value;
@@ -120,6 +153,28 @@ void main() {
       expect(viewModel.hasMoreDiagnostics, isTrue);
     });
   });
+}
+
+Future<void> _moveAndWaitForUpdate(
+  DiagnosticsViewModel viewModel,
+  StreamController<WorkspaceChangeEvent> workspaceEvents,
+  String oldPath,
+  String newPath,
+) async {
+  final updated = Completer<void>();
+  void onUpdate() {
+    if (!updated.isCompleted) {
+      updated.complete();
+    }
+  }
+
+  viewModel.addListener(onUpdate);
+  try {
+    workspaceEvents.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.move, oldPath: oldPath, path: newPath));
+    await updated.future;
+  } finally {
+    viewModel.removeListener(onUpdate);
+  }
 }
 
 Future<void> _publishDiagnostics(
