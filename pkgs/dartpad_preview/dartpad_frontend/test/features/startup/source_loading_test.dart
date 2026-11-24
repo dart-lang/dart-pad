@@ -18,6 +18,56 @@ import 'package:test/test.dart';
 import 'initial_project_state_test.dart' show sdks;
 
 void main() {
+  for (final (source, failureMessage) in <(ProjectSource, String)>[
+    (const ArchiveProjectSource('https://example.com/project.tar'), 'Failed to GET archive'),
+    (const GistProjectSource('abc'), 'Failed to GET gist abc'),
+    (const FlutterApiDocsProjectSource('material.AppBar.1'), 'Failed to GET Flutter API sample material.AppBar.1'),
+  ]) {
+    test('${source.runtimeType} identifies a failed browser request as a source failure', () async {
+      await expectLater(
+        http.runWithClient(
+          source.loadProject,
+          () => MockClient((request) async => throw http.ClientException('Failed to fetch', request.url)),
+        ),
+        throwsA(
+          isA<ProjectSourceRetrievalException>().having(
+            (error) => error.message,
+            'message',
+            failureMessage,
+          ),
+        ),
+      );
+    });
+  }
+  test('GistProjectSource identifies a failed browser request for a truncated file as a retrieval failure', () async {
+    final gistResponse = jsonEncode({
+      'files': {
+        'main.dart': {
+          'filename': 'main.dart',
+          'truncated': true,
+          'raw_url': 'https://gist.githubusercontent.com/raw/main.dart',
+        },
+      },
+    });
+    await expectLater(
+      http.runWithClient(
+        const GistProjectSource('abc').loadProject,
+        () => MockClient((request) async {
+          if (request.url.host == 'api.github.com') {
+            return http.Response(gistResponse, 200);
+          }
+          throw http.ClientException('Failed to fetch', request.url);
+        }),
+      ),
+      throwsA(
+        isA<ProjectSourceRetrievalException>().having(
+          (error) => error.message,
+          'message',
+          'Failed to GET truncated gist file main.dart',
+        ),
+      ),
+    );
+  });
   for (final version in [null, '1.2.3', '1.2.3+build.2']) {
     test('loads ${version ?? 'latest'} package version via metadata archive_url', () async {
       final requests = <Uri>[];
@@ -161,22 +211,48 @@ void main() {
         expect(delays[0], greaterThan(Duration.zero));
         expect(delays[1], greaterThan(delays[0]));
         expect(delays[2], greaterThan(delays[1]));
-        expect(
-          failure,
-          isA<PubPackageMetadataException>().having(
-            (error) => error.message,
-            'message',
-            allOf(
-              contains('pub.dev'),
-              contains('demo'),
-              contains('1.2.3'),
-              contains(status?.toString() ?? 'unreachable'),
+        if (status == null) {
+          expect(
+            failure,
+            isA<ProjectSourceRetrievalException>().having(
+              (error) => error.message,
+              'message',
+              'Failed to GET package demo version 1.2.3',
             ),
-          ),
-        );
+          );
+        } else {
+          expect(
+            failure,
+            isA<PubPackageMetadataException>().having(
+              (error) => error.message,
+              'message',
+              allOf(contains('pub.dev'), contains('demo'), contains('1.2.3'), contains('$status')),
+            ),
+          );
+        }
       });
     });
   }
+  test('reports a network failure while loading the latest package after retries', () {
+    return fakeAsync((time) {
+      Object? failure;
+      http
+          .runWithClient(
+            () => const PackageProjectSource('demo').loadProject(),
+            () => MockClient((_) async => throw http.ClientException('Network error')),
+          )
+          .then<void>((_) {}, onError: (Object error, StackTrace _) => failure = error);
+      time.elapse(const Duration(seconds: 10));
+      expect(
+        failure,
+        isA<ProjectSourceRetrievalException>().having(
+          (error) => error.message,
+          'message',
+          'Failed to GET package demo',
+        ),
+      );
+    });
+  });
   for (final (version, body) in [
     (null, '{'),
     (null, '[]'),

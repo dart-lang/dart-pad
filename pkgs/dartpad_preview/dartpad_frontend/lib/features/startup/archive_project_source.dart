@@ -22,7 +22,12 @@ Future<Project> _loadArchive(String archiveUrl) async {
     throw ProjectSourceException('Project archive URL must resolve to be absolute: $archiveUrl.');
   }
 
-  final http.Response response = await http.get(uri);
+  final http.Response response;
+  try {
+    response = await http.get(uri);
+  } on http.ClientException {
+    throw const ProjectSourceRetrievalException('Failed to GET archive');
+  }
   if (response.statusCode != 200) {
     throw ProjectSourceException('Failed to load archive (${response.statusCode}).');
   }
