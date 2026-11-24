@@ -93,7 +93,7 @@ class _FileTreeRowState extends State<FileTreeRow> {
 
   @override
   Component build(BuildContext context) {
-    // Disable dragging for coarse pointers.
+    // Disable dragging for coarse pointers such as fingers on touchscreens
     final isDraggable =
         component.isDraggable && component.path != null && !web.window.matchMedia('(pointer: coarse)').matches;
     final isDropTarget = component.onDrop != null && component.path != null;
