@@ -93,7 +93,10 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void initState() {
     super.initState();
-    final expectedLibPath = joinWorkspacePath(component.state.focusedPath, 'lib');
+    final expectedLibPath = joinWorkspacePath(
+      component.state.focusedPath,
+      'lib',
+    );
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
@@ -145,7 +148,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   }
 
   FileTreeInputItem _creationInput(String path, FileTreeEntryKind kind) {
-    const iconAttributes = {'aria-hidden': 'true', 'width': '12', 'height': '12'};
+    const iconAttributes = {
+      'aria-hidden': 'true',
+      'width': '12',
+      'height': '12',
+    };
     final isFolder = kind == FileTreeEntryKind.folder;
     return FileTreeInputItem(
       depth: component.depth + 1,
@@ -188,7 +195,10 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
+        checkConflict: (newName) => component.state.checkFileTreeConflict(
+          currentPath: path,
+          newName: newName,
+        ),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -216,6 +226,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ].join(' '),
       path: path,
       isDraggable: !component.state.busy,
+      onContextMenu: component.contextMenu == null
+          ? null
+          : (coordinates) => _showContextMenu(path, coordinates: coordinates),
       attributes: {
         'title': path,
         'tabindex': '0',
@@ -239,10 +252,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
             _confirmDelete(path);
           }
         },
-        'contextmenu': (web.Event event) => _handleContextMenu(
-          event,
-          path,
-        ),
       },
       children: [
         button(
@@ -267,7 +276,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
+        span(classes: 'file-tree-name', [
+          .text(component.node.resource.basename),
+        ]),
       ],
     );
 
@@ -350,28 +361,19 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     );
   }
 
-  void _handleContextMenu(
-    web.Event event,
-    String path,
-  ) {
+  void _showContextMenu(
+    String path, {
+    required FileTreeCoordinates coordinates,
+  }) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
     }
-    final mouseEvent = event as web.MouseEvent;
-    event.preventDefault();
-    event.stopPropagation();
     component.onSelect(path);
-    menu.show(
-      mouseEvent.clientX.toDouble(),
-      mouseEvent.clientY.toDouble(),
-      _buildContextMenuItems(path),
-    );
+    menu.show(coordinates.x, coordinates.y, _buildContextMenuItems(path));
   }
 
-  List<ContextMenuEntry> _buildContextMenuItems(
-    String path,
-  ) {
+  List<ContextMenuEntry> _buildContextMenuItems(String path) {
     return [
       ContextMenuItem(
         label: 'New file',
@@ -408,7 +410,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {
-          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+          unawaited(
+            web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null),
+          );
         },
       ),
     ];

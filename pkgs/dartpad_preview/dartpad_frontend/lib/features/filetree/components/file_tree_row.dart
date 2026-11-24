@@ -6,6 +6,9 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+/// Viewport coordinates used to position a file tree context menu.
+typedef FileTreeCoordinates = ({double x, double y});
+
 /// Reveals a row without scrolling any ancestor of the file-tree viewport.
 void scrollFileTreeRowIntoView(web.HTMLElement node, {required int depth}) {
   final root = node.closest('.file-tree-list');
@@ -34,6 +37,7 @@ class FileTreeRow extends StatefulComponent {
     this.events = const {},
     this.path,
     this.isDraggable = false,
+    this.onContextMenu,
     this.onDrop,
     required this.children,
     super.key,
@@ -56,6 +60,9 @@ class FileTreeRow extends StatefulComponent {
 
   /// Whether the row can be dragged as a move operation source.
   final bool isDraggable;
+
+  /// Opens the row's context menu at the given viewport coordinates.
+  final void Function(FileTreeCoordinates coordinates)? onContextMenu;
 
   /// Callback when a resource path is dropped onto this row.
   /// If null, drop events are not handled.
@@ -93,6 +100,16 @@ class _FileTreeRowState extends State<FileTreeRow> {
       },
       events: {
         ...component.events,
+        if (component.onContextMenu != null)
+          'contextmenu': (web.Event event) {
+            event.preventDefault();
+            event.stopPropagation();
+            final mouseEvent = event as web.MouseEvent;
+            component.onContextMenu?.call((
+              x: mouseEvent.clientX.toDouble(),
+              y: mouseEvent.clientY.toDouble(),
+            ));
+          },
         if (isDraggable) ...{
           'dragstart': (web.Event event) {
             final dragEvent = event as web.DragEvent;
