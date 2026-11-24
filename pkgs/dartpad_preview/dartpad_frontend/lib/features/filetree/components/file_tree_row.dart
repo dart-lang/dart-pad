@@ -6,6 +6,9 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
+/// Viewport coordinates used to position a file tree context menu.
+typedef FileTreeCoordinates = ({double x, double y});
+
 /// Reveals a row without scrolling any ancestor of the file-tree viewport.
 void scrollFileTreeRowIntoView(web.HTMLElement node, {required int depth}) {
   final root = node.closest('.file-tree-list');
@@ -15,7 +18,10 @@ void scrollFileTreeRowIntoView(web.HTMLElement node, {required int depth}) {
 
   // scrollIntoView also scrolls the page hosting DartPad's iframe. Compute the
   // offset inside the tree instead, leaving room for sticky parent folder rows.
-  final offset = node.getBoundingClientRect().top - root.getBoundingClientRect().top - root.clientTop;
+  final offset =
+      node.getBoundingClientRect().top -
+      root.getBoundingClientRect().top -
+      root.clientTop;
   root.scrollTo(
     web.ScrollToOptions(
       top: root.scrollTop + offset - 25 * depth,
@@ -59,7 +65,7 @@ class FileTreeRow extends StatefulComponent {
   final bool isDraggable;
 
   /// Opens the row's context menu at the given viewport coordinates.
-  final void Function(double x, double y)? onContextMenu;
+  final void Function(FileTreeCoordinates coordinates)? onContextMenu;
 
   /// Callback when a resource path is dropped onto this row.
   /// If null, drop events are not handled.
@@ -102,7 +108,10 @@ class _FileTreeRowState extends State<FileTreeRow> {
             event.preventDefault();
             event.stopPropagation();
             final mouseEvent = event as web.MouseEvent;
-            component.onContextMenu?.call(mouseEvent.clientX.toDouble(), mouseEvent.clientY.toDouble());
+            component.onContextMenu?.call((
+              x: mouseEvent.clientX.toDouble(),
+              y: mouseEvent.clientY.toDouble(),
+            ));
           },
         if (isDraggable) ...{
           'dragstart': (web.Event event) {

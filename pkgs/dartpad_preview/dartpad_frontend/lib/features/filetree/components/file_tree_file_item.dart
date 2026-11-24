@@ -71,7 +71,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
   void initState() {
     super.initState();
     final path = component.node.resource.path;
-    final active = component.selectedPath == null && component.state.activeFile == path;
+    final active =
+        component.selectedPath == null && component.state.activeFile == path;
     if (active) {
       _scrollIntoView();
     }
@@ -81,8 +82,11 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
   void didUpdateComponent(FileTreeFileItem oldComponent) {
     super.didUpdateComponent(oldComponent);
     final path = component.node.resource.path;
-    final active = component.selectedPath == null && component.state.activeFile == path;
-    final oldActive = oldComponent.selectedPath == null && oldComponent.state.activeFile == path;
+    final active =
+        component.selectedPath == null && component.state.activeFile == path;
+    final oldActive =
+        oldComponent.selectedPath == null &&
+        oldComponent.state.activeFile == path;
     if (active && !oldActive) {
       _scrollIntoView();
     }
@@ -104,7 +108,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     final path = component.node.resource.path;
     final openable = component.node.openable;
     final selected = component.selectedPath == path;
-    final active = component.selectedPath == null && component.state.activeFile == path;
+    final active =
+        component.selectedPath == null && component.state.activeFile == path;
     final dim = component.node.isIgnored;
 
     if (_isRenaming) {
@@ -112,7 +117,10 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         initialValue: component.node.resource.basename,
         depth: component.depth,
         icon: _fileIcon(component.node.resource.basename),
-        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
+        checkConflict: (newName) => component.state.checkFileTreeConflict(
+          currentPath: path,
+          newName: newName,
+        ),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -143,7 +151,11 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       isDraggable: !component.state.busy,
       onContextMenu: component.contextMenu == null
           ? null
-          : (x, y) => _showContextMenu(path, x: x, y: y, openable: openable),
+          : (coordinates) => _showContextMenu(
+              path,
+              coordinates: coordinates,
+              openable: openable,
+            ),
       attributes: {
         'title': openable ? path : '$path — binary preview is not available',
         'tabindex': '0',
@@ -161,7 +173,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         },
         'keydown': (web.Event event) {
           final keyboardEvent = event as web.KeyboardEvent;
-          if (openable && (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
+          if (openable &&
+              (keyboardEvent.key == 'Enter' || keyboardEvent.key == ' ')) {
             component.onSelect(path);
             unawaited(_openWorkspaceFile(path));
           } else if (isDeleteShortcut(keyboardEvent)) {
@@ -173,7 +186,9 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       children: [
         const span(classes: 'file-tree-disclosure spacer', []),
         _fileIcon(component.node.resource.basename),
-        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
+        span(classes: 'file-tree-name', [
+          .text(component.node.resource.basename),
+        ]),
       ],
     );
   }
@@ -189,8 +204,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
 
   void _showContextMenu(
     String path, {
-    required double x,
-    required double y,
+    required FileTreeCoordinates coordinates,
     required bool openable,
   }) {
     final menu = component.contextMenu;
@@ -200,8 +214,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     component.actions.clearOperationError();
     component.onSelect(path);
     menu.show(
-      x,
-      y,
+      coordinates.x,
+      coordinates.y,
       _buildContextMenuItems(path, openable: openable),
     );
   }
@@ -231,7 +245,12 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {
-          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+          unawaited(
+            web.window.navigator.clipboard
+                .writeText(path)
+                .toDart
+                .catchError((Object? _) => null),
+          );
         },
       ),
     ];
@@ -254,7 +273,8 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     final lowerName = fileName.toLowerCase();
     final colorClass = switch (lowerName) {
       final path when path.endsWith('.dart') => 'file-icon-dart',
-      final path when path.endsWith('.yaml') || path.endsWith('.yml') => 'file-icon-yaml',
+      final path when path.endsWith('.yaml') || path.endsWith('.yml') =>
+        'file-icon-yaml',
       _ => 'file-icon',
     };
     return FileIcon.forFile(

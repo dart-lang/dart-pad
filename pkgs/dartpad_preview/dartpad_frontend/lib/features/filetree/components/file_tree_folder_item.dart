@@ -93,11 +93,16 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void initState() {
     super.initState();
-    final expectedLibPath = joinWorkspacePath(component.state.focusedPath, 'lib');
+    final expectedLibPath = joinWorkspacePath(
+      component.state.focusedPath,
+      'lib',
+    );
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
+        folderPath.isNotEmpty &&
+        isWithinWorkspaceFolder(activeFile, folderPath) &&
+        activeFile != folderPath;
 
     if (folderPath == expectedLibPath || isActiveParent) {
       _isCollapsed = false;
@@ -118,7 +123,8 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void didUpdateComponent(FileTreeFolderItem oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (component.creatingEntry != null && component.creatingInFolder == component.node.resource.path) {
+    if (component.creatingEntry != null &&
+        component.creatingInFolder == component.node.resource.path) {
       _isCollapsed = false;
       _scrollTopIntoView();
     }
@@ -126,7 +132,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
+        folderPath.isNotEmpty &&
+        isWithinWorkspaceFolder(activeFile, folderPath) &&
+        activeFile != folderPath;
 
     if (isActiveParent && activeFile != oldComponent.state.activeFile) {
       _isCollapsed = false;
@@ -145,7 +153,11 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   }
 
   FileTreeInputItem _creationInput(String path, FileTreeEntryKind kind) {
-    const iconAttributes = {'aria-hidden': 'true', 'width': '12', 'height': '12'};
+    const iconAttributes = {
+      'aria-hidden': 'true',
+      'width': '12',
+      'height': '12',
+    };
     final isFolder = kind == FileTreeEntryKind.folder;
     return FileTreeInputItem(
       depth: component.depth + 1,
@@ -188,7 +200,10 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
+        checkConflict: (newName) => component.state.checkFileTreeConflict(
+          currentPath: path,
+          newName: newName,
+        ),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -216,7 +231,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ].join(' '),
       path: path,
       isDraggable: !component.state.busy,
-      onContextMenu: component.contextMenu == null ? null : (x, y) => _showContextMenu(path, x: x, y: y),
+      onContextMenu: component.contextMenu == null
+          ? null
+          : (coordinates) => _showContextMenu(path, coordinates: coordinates),
       attributes: {
         'title': path,
         'tabindex': '0',
@@ -264,7 +281,9 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
           classes: 'file-tree-icon folder-icon',
           attributes: {'aria-hidden': 'true', 'width': '12', 'height': '12'},
         ),
-        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
+        span(classes: 'file-tree-name', [
+          .text(component.node.resource.basename),
+        ]),
       ],
     );
 
@@ -292,43 +311,51 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         folderRow,
         if (!_isCollapsed)
           div(classes: 'file-tree-folder-children', [
-            if (component.creatingEntry == FileTreeEntryKind.folder && component.creatingInFolder == path)
+            if (component.creatingEntry == FileTreeEntryKind.folder &&
+                component.creatingInFolder == path)
               _creationInput(path, FileTreeEntryKind.folder),
-            ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
-              return FileTreeFolderItem(
-                key: ValueKey('folder-${child.resource.path}'),
-                node: child,
-                depth: component.depth + 1,
-                state: component.state,
-                actions: component.actions,
-                onFileOpened: component.onFileOpened,
-                selectedPath: component.selectedPath,
-                onSelect: component.onSelect,
-                creatingInFolder: component.creatingInFolder,
-                creatingEntry: component.creatingEntry,
-                onConfirmCreate: component.onConfirmCreate,
-                onCancelCreate: component.onCancelCreate,
-                confirmDelete: component.confirmDelete,
-                contextMenu: component.contextMenu,
-                onStartCreate: component.onStartCreate,
-              );
-            }),
-            if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)
+            ...component.node.children
+                .whereType<FileTreeFolderNode>()
+                .where((child) => !child.isIgnored)
+                .map((child) {
+                  return FileTreeFolderItem(
+                    key: ValueKey('folder-${child.resource.path}'),
+                    node: child,
+                    depth: component.depth + 1,
+                    state: component.state,
+                    actions: component.actions,
+                    onFileOpened: component.onFileOpened,
+                    selectedPath: component.selectedPath,
+                    onSelect: component.onSelect,
+                    creatingInFolder: component.creatingInFolder,
+                    creatingEntry: component.creatingEntry,
+                    onConfirmCreate: component.onConfirmCreate,
+                    onCancelCreate: component.onCancelCreate,
+                    confirmDelete: component.confirmDelete,
+                    contextMenu: component.contextMenu,
+                    onStartCreate: component.onStartCreate,
+                  );
+                }),
+            if (component.creatingEntry == FileTreeEntryKind.file &&
+                component.creatingInFolder == path)
               _creationInput(path, FileTreeEntryKind.file),
-            ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
-              return FileTreeFileItem(
-                key: ValueKey('file-${child.resource.path}'),
-                node: child,
-                depth: component.depth + 1,
-                state: component.state,
-                actions: component.actions,
-                onFileOpened: component.onFileOpened,
-                selectedPath: component.selectedPath,
-                onSelect: component.onSelect,
-                confirmDelete: component.confirmDelete,
-                contextMenu: component.contextMenu,
-              );
-            }),
+            ...component.node.children
+                .whereType<FileTreeFileNode>()
+                .where((child) => !child.isIgnored)
+                .map((child) {
+                  return FileTreeFileItem(
+                    key: ValueKey('file-${child.resource.path}'),
+                    node: child,
+                    depth: component.depth + 1,
+                    state: component.state,
+                    actions: component.actions,
+                    onFileOpened: component.onFileOpened,
+                    selectedPath: component.selectedPath,
+                    onSelect: component.onSelect,
+                    confirmDelete: component.confirmDelete,
+                    contextMenu: component.contextMenu,
+                  );
+                }),
           ]),
       ],
     );
@@ -347,22 +374,19 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     );
   }
 
-  void _showContextMenu(String path, {required double x, required double y}) {
+  void _showContextMenu(
+    String path, {
+    required FileTreeCoordinates coordinates,
+  }) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
     }
     component.onSelect(path);
-    menu.show(
-      x,
-      y,
-      _buildContextMenuItems(path),
-    );
+    menu.show(coordinates.x, coordinates.y, _buildContextMenuItems(path));
   }
 
-  List<ContextMenuEntry> _buildContextMenuItems(
-    String path,
-  ) {
+  List<ContextMenuEntry> _buildContextMenuItems(String path) {
     return [
       ContextMenuItem(
         label: 'New file',
@@ -399,7 +423,12 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {
-          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+          unawaited(
+            web.window.navigator.clipboard
+                .writeText(path)
+                .toDart
+                .catchError((Object? _) => null),
+          );
         },
       ),
     ];
