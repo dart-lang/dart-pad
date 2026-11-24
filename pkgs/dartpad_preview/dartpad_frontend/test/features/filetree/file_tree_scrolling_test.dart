@@ -70,13 +70,14 @@ void main() {
       (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
       await pumpEventQueue();
 
-      final input = web.document.querySelector('.file-tree-input')!;
+      final input = web.document.querySelector('.file-tree-input')! as web.HTMLInputElement;
       final inputRect = input.getBoundingClientRect();
       final treeRect = tree.getBoundingClientRect();
       expect(web.document.activeElement, input);
       expect(inputRect.top, greaterThanOrEqualTo(treeRect.top));
       expect(inputRect.bottom, lessThanOrEqualTo(treeRect.bottom));
       expect(host.scrollTop, hostScroll, reason: 'Revealing the input must not scroll the enclosing page.');
+      await _expectTypingReveals(input, tree, host);
     });
   }
 
@@ -100,13 +101,28 @@ void main() {
       (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
       await pumpEventQueue();
 
-      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')!;
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
       expect(web.document.activeElement, input);
       expect(input.getBoundingClientRect().top, greaterThanOrEqualTo(tree.getBoundingClientRect().top));
       expect(input.getBoundingClientRect().bottom, lessThanOrEqualTo(tree.getBoundingClientRect().bottom));
       expect(host.scrollTop, hostScroll, reason: 'Revealing the input must not scroll the enclosing page.');
+      await _expectTypingReveals(input, tree, host);
     });
   }
+}
+
+Future<void> _expectTypingReveals(web.HTMLInputElement input, web.Element tree, web.Element host) async {
+  tree.scrollTop = 250;
+  expect(input.getBoundingClientRect().bottom, lessThan(tree.getBoundingClientRect().top));
+  final hostScroll = host.scrollTop;
+
+  input.value = 'a';
+  input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+  await pumpEventQueue();
+
+  expect(input.getBoundingClientRect().top, greaterThanOrEqualTo(tree.getBoundingClientRect().top));
+  expect(input.getBoundingClientRect().bottom, lessThanOrEqualTo(tree.getBoundingClientRect().bottom));
+  expect(host.scrollTop, hostScroll, reason: 'Typing must not scroll the enclosing page.');
 }
 
 final class _Workspace implements WorkspaceResourceApi {
