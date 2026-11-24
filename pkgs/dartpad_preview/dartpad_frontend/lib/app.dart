@@ -339,17 +339,24 @@ final class _AppState extends State<App> {
       _activeSession = null;
       _isCommandPaletteOpen = false;
       _isInitializingWorkspace = false;
-      _workspacePreparationFailure = switch (error) {
-        PubPackageMetadataException() => 'Could not load package metadata: ${error.message}',
-        PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
-        _ => error.toString(),
-      };
+      _workspacePreparationFailure = _describeProjectLoadFailure(error);
       _failedRestoreUri = restoring ? uri : null;
     });
     if (oldSession != null) {
       disposeAfterWorkspaceUnmount(context, oldSession.dispose);
     }
   }
+
+  String _describeProjectLoadFailure(Object error) => switch (error) {
+    QueryParameterValidationException() => 'You provided invalid configuration parameters in the URL: ${error.message}',
+    ProjectPathException() => 'Invalid project path: ${error.message}',
+    ProjectContentException() => 'Invalid project file: ${error.message}',
+    PubPackageMetadataException() => 'Could not load package metadata: ${error.message}',
+    PackageVersionNotFoundException() => 'Package version not found: ${error.message}.',
+    ProjectSourceException() => "Something is wrong with the project's source: ${error.message}",
+    WorkspaceStartupException() => 'Something went wrong during startup: ${error.message}',
+    _ => error.toString(),
+  };
 
   Future<void> _writeProject(
     MemoryWorkspaceResourceApi api, {
@@ -468,13 +475,13 @@ final class _AppState extends State<App> {
         runtimeGeneration: generation,
       );
       if (!ready && _isCurrentRuntime(session, generation)) {
-        throw StateError('Could not prepare the example. Try Run again.');
+        throw const WorkspaceStartupException('Could not prepare the example. Try Run again.');
       }
     } catch (error) {
       if (_isCurrentRuntime(session, generation)) {
         _embedRuntime!.release();
         unawaited(session.suspendRuntime());
-        setState(() => _workspacePreparationFailure = error.toString());
+        setState(() => _workspacePreparationFailure = _describeProjectLoadFailure(error));
       }
       rethrow;
     }

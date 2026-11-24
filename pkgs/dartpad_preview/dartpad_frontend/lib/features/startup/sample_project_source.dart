@@ -17,7 +17,7 @@ final class SampleProjectSource extends ProjectSource {
     final id = sampleId;
     final example = id == null ? Examples.defaultExample : Examples.getById(id);
     if (example == null) {
-      throw ArgumentError.value(sampleId, 'sampleId', 'Unknown example ID');
+      throw QueryParameterValidationException('Unknown example ID: $sampleId.');
     }
     return _loadArchive(example.archivePath);
   }

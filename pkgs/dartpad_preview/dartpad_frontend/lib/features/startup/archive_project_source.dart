@@ -19,12 +19,12 @@ final class ArchiveProjectSource extends ProjectSource {
 Future<Project> _loadArchive(String archiveUrl) async {
   final Uri uri = Uri.base.resolve(archiveUrl);
   if (!uri.isAbsolute) {
-    throw ArgumentError('archiveUrl must resolve to an absolute URI: $archiveUrl');
+    throw ProjectSourceException('Project archive URL must resolve to be absolute: $archiveUrl.');
   }
 
   final http.Response response = await http.get(uri);
   if (response.statusCode != 200) {
-    throw Exception('Failed to load archive');
+    throw ProjectSourceException('Failed to load archive (${response.statusCode}).');
   }
 
   final Uint8List bytes = response.bodyBytes;
