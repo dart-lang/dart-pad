@@ -114,7 +114,7 @@ interface class LanguageServerClient {
     );
     _workspaceSubscription = workspaceChangeEvents.listen((event) {
       if (event.type == WorkspaceChangeEventType.move) {
-        _handleFileMoved(event.oldPath!, event.path);
+        _handleFileMoved(event.oldPath!);
       } else if (event.type == WorkspaceChangeEventType.remove) {
         _handleFileDeleted([event.path]);
       }
@@ -425,15 +425,10 @@ interface class LanguageServerClient {
     }
   }
 
-  void _handleFileMoved(String oldPath, String newPath) {
+  void _handleFileMoved(String oldPath) {
     oldPath = normalizeWorkspacePath(oldPath);
-    newPath = normalizeWorkspacePath(newPath);
     final diagnostics = _diagnostics.remove(oldPath);
     if (diagnostics != null) {
-      // A different extension can select a different analyzer or no analyzer.
-      if (workspacePath.extension(oldPath) == workspacePath.extension(newPath)) {
-        _diagnostics[newPath] = diagnostics;
-      }
       _diagnosticsController.add({'uri': rootWorkspaceUri.resolve(oldPath).toString(), 'diagnostics': []});
     }
   }

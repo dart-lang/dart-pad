@@ -90,13 +90,27 @@ void main() {
       expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart']);
     });
 
-    test('updates problems immediately when a Dart file is renamed to another Dart file', () async {
+    test('clears problems on rename and displays new analyzer diagnostics', () async {
       viewModel.attachLanguageServer(languageServerClient);
       await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/main.dart');
       await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/other.dart');
 
       await _moveAndWaitForUpdate(viewModel, workspaceEvents, 'lib/main.dart', 'lib/renamed.dart');
+      expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart']);
+
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'lib/renamed.dart');
       expect(viewModel.diagnostics.map((entry) => entry.fileName), ['lib/other.dart', 'lib/renamed.dart']);
+    });
+
+    test('clears pubspec diagnostics when renamed to another YAML file', () async {
+      viewModel.attachLanguageServer(languageServerClient);
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'pubspec.yaml');
+
+      await _moveAndWaitForUpdate(viewModel, workspaceEvents, 'pubspec.yaml', 'pubspec_backup.yaml');
+      expect(viewModel.diagnostics, isEmpty);
+
+      await _publishDiagnostics(languageServerClient, languageServerMessages, 'pubspec.yaml', count: 0);
+      expect(viewModel.diagnostics, isEmpty);
     });
 
     for (final entry in <String, String?>{'unset': null, 'the workspace root': ''}.entries) {
