@@ -18,10 +18,7 @@ void scrollFileTreeRowIntoView(web.HTMLElement node, {required int depth}) {
 
   // scrollIntoView also scrolls the page hosting DartPad's iframe. Compute the
   // offset inside the tree instead, leaving room for sticky parent folder rows.
-  final offset =
-      node.getBoundingClientRect().top -
-      root.getBoundingClientRect().top -
-      root.clientTop;
+  final offset = node.getBoundingClientRect().top - root.getBoundingClientRect().top - root.clientTop;
   root.scrollTo(
     web.ScrollToOptions(
       top: root.scrollTop + offset - 25 * depth,

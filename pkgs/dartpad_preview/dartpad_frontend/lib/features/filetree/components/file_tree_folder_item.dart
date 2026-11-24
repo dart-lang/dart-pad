@@ -100,9 +100,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty &&
-        isWithinWorkspaceFolder(activeFile, folderPath) &&
-        activeFile != folderPath;
+        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (folderPath == expectedLibPath || isActiveParent) {
       _isCollapsed = false;
@@ -123,8 +121,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
   @override
   void didUpdateComponent(FileTreeFolderItem oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (component.creatingEntry != null &&
-        component.creatingInFolder == component.node.resource.path) {
+    if (component.creatingEntry != null && component.creatingInFolder == component.node.resource.path) {
       _isCollapsed = false;
       _scrollTopIntoView();
     }
@@ -132,9 +129,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     final activeFile = component.state.activeFile;
     final folderPath = component.node.resource.path;
     final isActiveParent =
-        folderPath.isNotEmpty &&
-        isWithinWorkspaceFolder(activeFile, folderPath) &&
-        activeFile != folderPath;
+        folderPath.isNotEmpty && isWithinWorkspaceFolder(activeFile, folderPath) && activeFile != folderPath;
 
     if (isActiveParent && activeFile != oldComponent.state.activeFile) {
       _isCollapsed = false;
@@ -311,51 +306,43 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         folderRow,
         if (!_isCollapsed)
           div(classes: 'file-tree-folder-children', [
-            if (component.creatingEntry == FileTreeEntryKind.folder &&
-                component.creatingInFolder == path)
+            if (component.creatingEntry == FileTreeEntryKind.folder && component.creatingInFolder == path)
               _creationInput(path, FileTreeEntryKind.folder),
-            ...component.node.children
-                .whereType<FileTreeFolderNode>()
-                .where((child) => !child.isIgnored)
-                .map((child) {
-                  return FileTreeFolderItem(
-                    key: ValueKey('folder-${child.resource.path}'),
-                    node: child,
-                    depth: component.depth + 1,
-                    state: component.state,
-                    actions: component.actions,
-                    onFileOpened: component.onFileOpened,
-                    selectedPath: component.selectedPath,
-                    onSelect: component.onSelect,
-                    creatingInFolder: component.creatingInFolder,
-                    creatingEntry: component.creatingEntry,
-                    onConfirmCreate: component.onConfirmCreate,
-                    onCancelCreate: component.onCancelCreate,
-                    confirmDelete: component.confirmDelete,
-                    contextMenu: component.contextMenu,
-                    onStartCreate: component.onStartCreate,
-                  );
-                }),
-            if (component.creatingEntry == FileTreeEntryKind.file &&
-                component.creatingInFolder == path)
+            ...component.node.children.whereType<FileTreeFolderNode>().where((child) => !child.isIgnored).map((child) {
+              return FileTreeFolderItem(
+                key: ValueKey('folder-${child.resource.path}'),
+                node: child,
+                depth: component.depth + 1,
+                state: component.state,
+                actions: component.actions,
+                onFileOpened: component.onFileOpened,
+                selectedPath: component.selectedPath,
+                onSelect: component.onSelect,
+                creatingInFolder: component.creatingInFolder,
+                creatingEntry: component.creatingEntry,
+                onConfirmCreate: component.onConfirmCreate,
+                onCancelCreate: component.onCancelCreate,
+                confirmDelete: component.confirmDelete,
+                contextMenu: component.contextMenu,
+                onStartCreate: component.onStartCreate,
+              );
+            }),
+            if (component.creatingEntry == FileTreeEntryKind.file && component.creatingInFolder == path)
               _creationInput(path, FileTreeEntryKind.file),
-            ...component.node.children
-                .whereType<FileTreeFileNode>()
-                .where((child) => !child.isIgnored)
-                .map((child) {
-                  return FileTreeFileItem(
-                    key: ValueKey('file-${child.resource.path}'),
-                    node: child,
-                    depth: component.depth + 1,
-                    state: component.state,
-                    actions: component.actions,
-                    onFileOpened: component.onFileOpened,
-                    selectedPath: component.selectedPath,
-                    onSelect: component.onSelect,
-                    confirmDelete: component.confirmDelete,
-                    contextMenu: component.contextMenu,
-                  );
-                }),
+            ...component.node.children.whereType<FileTreeFileNode>().where((child) => !child.isIgnored).map((child) {
+              return FileTreeFileItem(
+                key: ValueKey('file-${child.resource.path}'),
+                node: child,
+                depth: component.depth + 1,
+                state: component.state,
+                actions: component.actions,
+                onFileOpened: component.onFileOpened,
+                selectedPath: component.selectedPath,
+                onSelect: component.onSelect,
+                confirmDelete: component.confirmDelete,
+                contextMenu: component.contextMenu,
+              );
+            }),
           ]),
       ],
     );
@@ -424,10 +411,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
         label: 'Copy path',
         onPressed: () {
           unawaited(
-            web.window.navigator.clipboard
-                .writeText(path)
-                .toDart
-                .catchError((Object? _) => null),
+            web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null),
           );
         },
       ),
