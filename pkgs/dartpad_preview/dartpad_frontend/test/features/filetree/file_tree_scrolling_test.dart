@@ -53,6 +53,41 @@ void main() {
     expect(web.document.activeElement, input);
     expect(host.scrollTop, hostScroll, reason: 'Showing and focusing the folder input must not scroll its ancestors.');
   });
+
+  for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
+    testClient('typing a new $kind name reveals the input in the tree', (tester) async {
+      tester.pumpComponent(const _ScrollFixture());
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      final host = web.document.getElementById('scroll-host')!;
+      final tree = web.document.querySelector('.file-tree-list')!;
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
+      host.scrollTop = 220;
+      tree.scrollTop = 250;
+      expect(input.getBoundingClientRect().bottom, lessThan(tree.getBoundingClientRect().top));
+      final hostScroll = host.scrollTop;
+
+      input.value = 'a';
+      input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+      await pumpEventQueue();
+
+      expect(input.getBoundingClientRect().top, greaterThanOrEqualTo(tree.getBoundingClientRect().top));
+      expect(input.getBoundingClientRect().bottom, lessThanOrEqualTo(tree.getBoundingClientRect().bottom));
+      expect(host.scrollTop, hostScroll, reason: 'Typing must not scroll the enclosing page.');
+
+      final scroll = tree.scrollTop;
+      input.value = 'ab';
+      input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+      await pumpEventQueue();
+      expect(tree.scrollTop, scroll, reason: 'An already visible input should not jump while typing.');
+    });
+  }
 }
 
 final class _Workspace implements WorkspaceResourceApi {

@@ -111,6 +111,25 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
     }
   }
 
+  void _revealInput() {
+    final input = web.document.getElementById(inputId) as web.HTMLInputElement?;
+    if (input == null || web.document.activeElement != input) {
+      return;
+    }
+    final tree = input.closest('.file-tree-list') as web.HTMLElement?;
+    if (tree == null) {
+      return;
+    }
+
+    final treeRect = tree.getBoundingClientRect();
+    final inputRect = input.getBoundingClientRect();
+    final top = treeRect.top + tree.clientTop + 25 * component.depth;
+    final bottom = treeRect.top + tree.clientTop + tree.clientHeight;
+    if (inputRect.top < top || inputRect.bottom > bottom) {
+      scrollFileTreeRowIntoView(input, depth: component.depth);
+    }
+  }
+
   @override
   void didUpdateComponent(FileTreeInputItem oldComponent) {
     super.didUpdateComponent(oldComponent);
@@ -198,6 +217,7 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
                   value = val;
                   _userHasEdited = true;
                 });
+                _revealInput();
               },
               events: {
                 'blur': (_) {
