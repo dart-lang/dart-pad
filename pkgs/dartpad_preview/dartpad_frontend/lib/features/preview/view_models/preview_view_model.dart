@@ -15,6 +15,8 @@ import '../../shared/events/log_event.dart';
 import '../../shared/run_availability.dart';
 import '../../shared/task_status.dart';
 import '../../workspace/data/workspace_repository.dart';
+import '../models/compiler_error_file.dart';
+import '../models/preview_exceptions.dart';
 import '../models/preview_sandbox.dart';
 import '../models/preview_state.dart';
 import '../models/run_mode.dart';
@@ -175,7 +177,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
         : PreviewStarting(entrypoint, autoStart: autoStart);
     _appLogs.clear();
     notifyListeners();
-    var failedTask = kind;
     try {
       await _onBeforeRun?.call();
       if (!_current(id)) {
@@ -184,6 +185,13 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       await _saveAndFlush();
       if (!_current(id)) {
         return;
+      }
+      final entrypointExists = await _workspaceRepository.workspaceResourceApi.fileExist(entrypoint);
+      if (!_current(id)) {
+        return;
+      }
+      if (!entrypointExists) {
+        throw PreviewEntrypointException('Entry point "$entrypoint" not found.');
       }
       final runMode =
           mode ??
@@ -234,7 +242,6 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       _eventBus.dispatch(
         LogEvent('Compiling and ${reuse ? 'restarting' : 'running'} $entrypoint (${runMode.mode})...'),
       );
-      failedTask = TaskKind.compilingApplication;
       final result = await _workspaceRepository.taskStatus.runTask(
         TaskKind.compilingApplication,
         () => _guardMainThrow(() => reuse ? sandbox.hotRestart() : sandbox.run(entrypoint, mode: runMode.mode)),
@@ -260,9 +267,9 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       _eventBus.dispatch(LogEvent('Run failed', level: Level.SEVERE, error: error, stackTrace: stack));
       _state = PreviewCompileError(
         entrypoint,
-        error is DartPadException ? error.message : error.toString(),
+        _previewFailureMessage(error),
         action: action,
-        failedTask: failedTask,
+        failedTask: error is CompilationFailedException ? TaskKind.compilingApplication : kind,
       );
       try {
         await _closeSandbox();
@@ -515,4 +522,13 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
     unawaited(_cleanup);
     super.dispose();
   }
+}
+
+String _previewFailureMessage(Object error) {
+  if (error is PreviewEntrypointException) {
+    return error.message;
+  }
+  final file = error is CompilationFailedException ? compilerErrorFile(error.message) : null;
+  final prefix = file == null ? '' : 'Error in "$file". ';
+  return '${prefix}See the console for details.';
 }
