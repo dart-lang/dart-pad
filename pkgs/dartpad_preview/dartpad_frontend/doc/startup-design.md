@@ -49,8 +49,9 @@ Contributor notes on project resolution and session lifecycle.
 - Archives isolate packages with `resolution: workspace` through package-local
   `pubspec_overrides.yaml` files with null `resolution`; existing overrides are replaced.
 - Unavailable `dev_dependencies` and `dependency_overrides` are removed in place and left as comments.
-  `dependencies` in `pubspec.yaml` are never changed. An override whose name is also in `dependencies`
-  is kept, because removing it would change how that dependency resolves; this applies to overrides in both files.
+  `dependencies` in `pubspec.yaml` are never changed. Unavailable overrides in both files are removed even when
+  their name is also in `dependencies`, so a hosted constraint such as `foo: ^1.0.0` resolves from pub.dev
+  instead of through a missing monorepo sibling, as with `dart pub unpack`.
   A changed file is first copied to `pubspec.original.dartpad.yaml` or `pubspec_overrides.original.dartpad.yaml`;
   unchanged files get no backup.
 - Run and its shortcut retain the resolved entrypoint across tab changes.

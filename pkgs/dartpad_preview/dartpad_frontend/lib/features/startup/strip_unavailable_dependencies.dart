@@ -19,8 +19,9 @@ import 'project_loader.dart';
 /// once during import, so later user edits remain under the user's control.
 /// Dependencies requiring unsupported alias edits are preserved with a warning.
 ///
-/// Regular `dependencies` are never changed. An override whose name is also in
-/// `dependencies` is kept, because removing it would change how that dependency resolves.
+/// Regular `dependencies` are never changed. Unavailable overrides are removed even when their
+/// name is also in `dependencies`, so that dependency resolves from its own source, as with
+/// `dart pub unpack`.
 /// Each amended file keeps its original bytes in a sibling `*.original.dartpad.yaml` file.
 void stripUnavailableDependencies(Project project) {
   for (final packageDirectory in _packageDirectories(project)) {
@@ -36,7 +37,6 @@ List<DiagnosticEntry> dependencyDiagnostics(Project project) {
   for (final packageDirectory in _packageDirectories(project)) {
     final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
     final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
-    final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
     if (pubspec != null) {
       for (final sectionName in const ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
         diagnostics.addAll(
@@ -44,7 +44,6 @@ List<DiagnosticEntry> dependencyDiagnostics(Project project) {
             project,
             file: pubspec,
             sectionName: sectionName,
-            namesInDependencies: namesInDependencies,
             overrides: overrides,
           ),
         );
@@ -56,7 +55,6 @@ List<DiagnosticEntry> dependencyDiagnostics(Project project) {
           project,
           file: overrides,
           sectionName: 'dependency_overrides',
-          namesInDependencies: namesInDependencies,
         ),
       );
     }
@@ -69,14 +67,12 @@ List<DiagnosticEntry> _sectionDiagnostics(
   Project project, {
   required _Pubspec file,
   required String sectionName,
-  required Set<String> namesInDependencies,
   _Pubspec? overrides,
 }) => [
   for (final entry in _unavailableEntries(
     project,
     file: file,
     sectionName: sectionName,
-    namesInDependencies: namesInDependencies,
     overrides: overrides,
   ))
     _dependencyDiagnostic(file.path, entry),
@@ -91,19 +87,16 @@ Set<String> _packageDirectories(Project project) => {
 
 /// Prepares the pubspec and overrides files of one package directory.
 ///
-/// Both files check membership against the original pubspec.yaml snapshot, so their
-/// order does not matter. Each file is written once, after its changes are collected.
+/// Each file is written once, after its changes are collected.
 void _stripUnavailableDependenciesInPackage(Project project, {required String packageDirectory}) {
   final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
   final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
-  final namesInDependencies = _sectionNames(pubspec, sectionName: 'dependencies');
   if (pubspec != null) {
     _warnAboutUnavailableDependencies(project, file: pubspec, overrides: overrides);
     _amendFile(
       project,
       file: pubspec,
       sectionNames: const ['dev_dependencies', 'dependency_overrides'],
-      namesInDependencies: namesInDependencies,
     );
   }
   if (overrides != null) {
@@ -111,7 +104,6 @@ void _stripUnavailableDependenciesInPackage(Project project, {required String pa
       project,
       file: overrides,
       sectionNames: const ['dependency_overrides'],
-      namesInDependencies: namesInDependencies,
     );
   }
 }
@@ -164,18 +156,6 @@ _Pubspec? _readPubspec(Project project, String path) {
   return (path: path, bytes: bytes, source: source, editor: pubspecEditor, node: pubspecNode);
 }
 
-/// Names of the string-keyed entries in [sectionName] of the original [file], read before any edits.
-Set<String> _sectionNames(_Pubspec? file, {required String sectionName}) {
-  final section = file?.node.nodes[sectionName];
-  if (section is! YamlMap) {
-    return const <String>{};
-  }
-  return {
-    for (final key in section.nodes.keys)
-      if ((key as YamlNode).value case final String name) name,
-  };
-}
-
 /// Warns about each unavailable entry in `dependencies`. These entries are never removed,
 /// so the project may not resolve.
 void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file, _Pubspec? overrides}) {
@@ -183,7 +163,6 @@ void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file,
     project,
     file: file,
     sectionName: 'dependencies',
-    namesInDependencies: const <String>{},
     overrides: overrides,
   );
   for (final entry in entries) {
@@ -214,7 +193,6 @@ void _amendFile(
   Project project, {
   required _Pubspec file,
   required List<String> sectionNames,
-  required Set<String> namesInDependencies,
 }) {
   final changes = [
     for (final sectionName in sectionNames)
@@ -222,7 +200,6 @@ void _amendFile(
         project,
         file: file,
         sectionName: sectionName,
-        namesInDependencies: namesInDependencies,
       ),
   ];
   if (changes.isEmpty) {
@@ -246,14 +223,12 @@ List<_DependencyComment> _collectDependencyAmendments(
   Project project, {
   required _Pubspec file,
   required String sectionName,
-  required Set<String> namesInDependencies,
 }) {
   final amendments = <_DependencyComment>[];
   final entries = _unavailableEntries(
     project,
     file: file,
     sectionName: sectionName,
-    namesInDependencies: namesInDependencies,
   );
   for (final entry in entries) {
     if (!_removeDependency(project, file: file, sectionName: sectionName, entry: entry)) {
@@ -270,14 +245,13 @@ List<_DependencyComment> _collectDependencyAmendments(
 
 /// Returns the entries of [sectionName] that cannot be loaded in DartPad.
 ///
-/// Overrides whose names are in [namesInDependencies] are skipped, because removing them
-/// would change how the same dependency resolves. For `dependencies`, an entry is checked
-/// against the override that replaces it when [overrides] or [file] declares one.
+/// For `dependencies`, an entry is checked against the override that replaces it when
+/// [overrides] or [file] declares an available one. Unavailable overrides are removed,
+/// so the entry then resolves from its own source.
 List<_UnavailableEntry> _unavailableEntries(
   Project project, {
   required _Pubspec file,
   required String sectionName,
-  required Set<String> namesInDependencies,
   _Pubspec? overrides,
 }) {
   final section = file.node.nodes[sectionName];
@@ -292,16 +266,17 @@ List<_UnavailableEntry> _unavailableEntries(
     if (dependencyName is! String) {
       continue;
     }
-    if (sectionName == 'dependency_overrides' && namesInDependencies.contains(dependencyName)) {
-      continue;
-    }
-    final effectiveNode = sectionName == 'dependencies'
-        ? _overrideFor(dependencyName, file: file, overrides: overrides) ?? dependencyNode
-        : dependencyNode;
+    final packageDirectory = parentWorkspacePath(file.path);
+    final override = sectionName == 'dependencies'
+        ? _overrideFor(dependencyName, file: file, overrides: overrides)
+        : null;
+    final overrideIsAvailable =
+        override != null &&
+        _unavailableReason(project, packageDirectory: packageDirectory, dependencyNode: override) == null;
     final unavailableReason = _unavailableReason(
       project,
-      packageDirectory: parentWorkspacePath(file.path),
-      dependencyNode: effectiveNode,
+      packageDirectory: packageDirectory,
+      dependencyNode: overrideIsAvailable ? override : dependencyNode,
     );
     if (unavailableReason case final reason?) {
       entries.add((
