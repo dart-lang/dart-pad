@@ -260,7 +260,7 @@ final class CodeMirrorEditor {
       return;
     }
     // Clear stale editor diagnostics when the file path changes (squiggly lines).
-    view.dispatch(cm.setDiagnostics(view.state, <JSObject>[].toJS));
+    view.dispatch(cm.setDiagnostics(view.state, <cm.CMDiagnostic>[].toJS));
     file = newFileName;
     view.dispatch(
       cm.TransactionSpec(
