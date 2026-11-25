@@ -97,10 +97,7 @@ final class PersistedProjectState {
       available.where((value) => value.id == sdk.id && value.isFlutter == sdk.isFlutter).firstOrNull ??
       available
           .where(
-            (value) =>
-                sdk.channel != null &&
-                value.isFlutter == sdk.isFlutter &&
-                value.channel == sdkChannelForKind(sdk.channel, isFlutter: sdk.isFlutter),
+            (value) => sdk.channel != null && value.isFlutter == sdk.isFlutter && value.channel == sdk.channel,
           )
           .firstOrNull ??
       available.where((value) => value.isFlutter == sdk.isFlutter).firstOrNull ??
