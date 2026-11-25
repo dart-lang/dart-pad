@@ -141,10 +141,19 @@ jobs:
       - name: Verify SDK asset entrypoints
         working-directory: pkgs/dartpad_preview/dartpad_frontend
         run: |
+          sdkPaths=()
+          while IFS= read -r sdkPath; do
+            sdkPaths+=("$sdkPath")
+          done < <(sed -n "s/^[[:space:]]*path: '\([^']*\)',/\1/p" lib/sdks.g.dart)
+          sdkCount=$(grep -c '^[[:space:]]*SdkInfo(' lib/sdks.g.dart || true)
+          if (( sdkCount == 0 || ${#sdkPaths[@]} != sdkCount )); then
+            echo "::error::Could not read all SDK paths from lib/sdks.g.dart"
+            exit 1
+          fi
           assetCheckFailed=0
-          for sdk in dart flutter; do
+          for sdkPath in "${sdkPaths[@]}"; do
             for entrypoint in worker.js sandbox.js; do
-              asset="web/dartpad/$sdk/$entrypoint"
+              asset="web/${sdkPath%/}/$entrypoint"
               if [[ ! -f "$asset" || ! -s "$asset" ]]; then
                 echo "::error::Missing or empty SDK entrypoint: $asset"
                 assetCheckFailed=1
