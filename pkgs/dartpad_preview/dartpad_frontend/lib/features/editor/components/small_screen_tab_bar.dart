@@ -91,6 +91,7 @@ final class SmallScreenTabBar extends StatelessComponent {
       height: 100.percent,
       padding: .zero,
       border: .none,
+      outline: const Outline(style: .none),
       cursor: .pointer,
       justifyContent: .center,
       alignItems: .center,
@@ -101,10 +102,6 @@ final class SmallScreenTabBar extends StatelessComponent {
     css('.small-screen-file-tree-button[aria-expanded="true"]').styles(
       color: colorPrimary,
       backgroundColor: colorSurface.highlight(colorPrimary, 0.08),
-    ),
-    css('.small-screen-file-tree-button:focus-visible').styles(
-      outline: Outline(style: .solid, color: colorPrimary, width: OutlineWidth(2.px)),
-      raw: {'outline-offset': '-2px'},
     ),
     css('.small-screen-tab-bar-divider').styles(
       width: 1.px,

@@ -28,7 +28,7 @@ void main() {
 
     final editor = CodeMirrorEditor(
       parent,
-      file: 'lib/main.dart',
+      filePath: 'lib/main.dart',
       initialDoc: 'void main() {}',
       onRun: () {},
     );
@@ -53,7 +53,7 @@ void main() {
       languageServerMessages: const Stream.empty(),
       sendToLanguageServer: (_) {},
     );
-    final editor = CodeMirrorEditor(parent, file: 'main.dart', initialDoc: 'void main() {}');
+    final editor = CodeMirrorEditor(parent, filePath: 'main.dart', initialDoc: 'void main() {}');
     addTearDown(() async {
       editor.destroy();
       parent.remove();
@@ -96,7 +96,7 @@ void main() {
     );
     final editor = CodeMirrorEditor(
       parent,
-      file: 'main.dart',
+      filePath: 'main.dart',
       initialDoc: 'void main() {}',
       languageServerClient: client,
     );
@@ -181,7 +181,7 @@ void main() {
     var runTriggered = false;
     final editor = CodeMirrorEditor(
       parent,
-      file: 'lib/main.dart',
+      filePath: 'lib/main.dart',
       initialDoc: 'void main() {}',
       onRun: () {
         runTriggered = true;
@@ -224,7 +224,7 @@ void main() {
     var blurCount = 0;
     final editor = CodeMirrorEditor(
       parent,
-      file: 'lib/main.dart',
+      filePath: 'lib/main.dart',
       initialDoc: 'void main() {}',
       onBlur: () {
         blurCount++;

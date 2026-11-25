@@ -156,7 +156,7 @@ void main() {
     web.document.body!.appendChild(parent);
     final editor = CodeMirrorEditor(
       parent,
-      file: 'main.dart',
+      filePath: 'main.dart',
       initialDoc: 'void main() {}',
       onSave: () {},
       onCodeActionRequested: () {},

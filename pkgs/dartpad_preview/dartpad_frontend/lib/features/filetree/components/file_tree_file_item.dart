@@ -112,7 +112,10 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         initialValue: component.node.resource.basename,
         depth: component.depth,
         icon: _fileIcon(component.node.resource.basename),
-        checkConflict: (newName) => component.state.checkFileTreeConflict(currentPath: path, newName: newName),
+        checkConflict: (newName) => component.state.checkFileTreeConflict(
+          currentPath: path,
+          newName: newName,
+        ),
         onConfirm: (newName) async {
           setState(() {
             _isRenaming = false;
@@ -141,6 +144,13 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       ].join(' '),
       path: path,
       isDraggable: !component.state.busy,
+      onContextMenu: component.contextMenu == null
+          ? null
+          : (coordinates) => _showContextMenu(
+              path,
+              coordinates: coordinates,
+              openable: openable,
+            ),
       attributes: {
         'title': openable ? path : '$path — binary preview is not available',
         'tabindex': '0',
@@ -166,16 +176,13 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
             _confirmDelete(path);
           }
         },
-        'contextmenu': (web.Event event) => _handleContextMenu(
-          event,
-          path,
-          openable: openable,
-        ),
       },
       children: [
         const span(classes: 'file-tree-disclosure spacer', []),
         _fileIcon(component.node.resource.basename),
-        span(classes: 'file-tree-name', [.text(component.node.resource.basename)]),
+        span(classes: 'file-tree-name', [
+          .text(component.node.resource.basename),
+        ]),
       ],
     );
   }
@@ -189,23 +196,20 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     }
   }
 
-  void _handleContextMenu(
-    web.Event event,
+  void _showContextMenu(
     String path, {
+    required FileTreeCoordinates coordinates,
     required bool openable,
   }) {
     final menu = component.contextMenu;
     if (menu == null) {
       return;
     }
-    final mouseEvent = event as web.MouseEvent;
-    event.preventDefault();
-    event.stopPropagation();
     component.actions.clearOperationError();
     component.onSelect(path);
     menu.show(
-      mouseEvent.clientX.toDouble(),
-      mouseEvent.clientY.toDouble(),
+      coordinates.x,
+      coordinates.y,
       _buildContextMenuItems(path, openable: openable),
     );
   }
@@ -235,7 +239,9 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
       ContextMenuItem(
         label: 'Copy path',
         onPressed: () {
-          unawaited(web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null));
+          unawaited(
+            web.window.navigator.clipboard.writeText(path).toDart.catchError((Object? _) => null),
+          );
         },
       ),
     ];

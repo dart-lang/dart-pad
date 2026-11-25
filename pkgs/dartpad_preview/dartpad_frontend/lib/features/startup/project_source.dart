@@ -16,6 +16,7 @@ import '../shared/project_exceptions.dart';
 import 'examples.g.dart';
 import 'gzip/gzip.dart';
 import 'project_loader.dart';
+import 'query_parameters.dart';
 import 'strip_unavailable_dependencies.dart';
 
 part 'archive_project_source.dart';
@@ -41,4 +42,13 @@ sealed class ProjectSource {
 
   /// Loads and prepares the files supplied by this source.
   Future<Project> loadProject();
+}
+
+/// Decodes a remote JSON response, reporting malformed bodies as [ProjectSourceException].
+Object? _decodeSourceJson(String body) {
+  try {
+    return jsonDecode(body);
+  } on FormatException {
+    throw const ProjectSourceException("Could not parse project's source response.");
+  }
 }

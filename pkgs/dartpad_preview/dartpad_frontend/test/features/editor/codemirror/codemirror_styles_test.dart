@@ -37,7 +37,7 @@ void main() {
     web.document.body!.appendChild(shell);
     editor = CodeMirrorEditor(
       container,
-      file: 'main.dart',
+      filePath: 'main.dart',
       initialDoc: 'void main() {}\n// ${List.filled(500, 'x').join()}\n',
     );
   });

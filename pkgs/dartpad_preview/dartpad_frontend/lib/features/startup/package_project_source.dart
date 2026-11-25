@@ -44,7 +44,7 @@ Future<String> _loadPackageArchiveUrl(String packageName, {String? version}) asy
       maxAttempts: 4,
     );
   } on http.ClientException {
-    throw PubPackageMetadataException('pub.dev is unreachable for $packageDescription.');
+    throw ProjectSourceRetrievalException('Failed to GET package $packageDescription');
   } on _RetryablePubResponse catch (error) {
     throw PubPackageMetadataException(
       'pub.dev returned HTTP ${error.response.statusCode} for $packageDescription.',

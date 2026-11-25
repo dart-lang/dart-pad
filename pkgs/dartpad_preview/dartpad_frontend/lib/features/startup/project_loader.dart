@@ -6,6 +6,8 @@ import 'dart:typed_data';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 
+import '../shared/project_exceptions.dart';
+
 /// A file that can be imported into the virtual workspace.
 final class ProjectFile {
   const ProjectFile({required this.path, required this.bytes});
@@ -25,13 +27,13 @@ final class Project {
   /// Collects [files] and copies the optional gist [pathMapping].
   ///
   /// File paths are normalized with [ProjectLoader.normalizePath]. Invalid paths
-  /// or multiple files resolving to the same path throw an [ArgumentError].
+  /// or multiple files resolving to the same path throw a [ProjectPathException].
   Project(Iterable<ProjectFile> files, {Map<String, String> pathMapping = const {}})
     : pathMapping = Map.unmodifiable(pathMapping) {
     for (final file in files) {
       final path = ProjectLoader.normalizePath(file.path);
       if (_files.containsKey(path)) {
-        throw ArgumentError('Multiple files resolve to the same path: $path');
+        throw ProjectPathException('Multiple files resolve to the same path: $path');
       }
       _files[path] = file.bytes;
     }
@@ -165,13 +167,18 @@ final class ProjectLoader {
   }
 
   /// Normalizes [path] and verifies that it remains inside the workspace.
-  static String normalizePath(String path, {bool allowRoot = false}) {
+  static String normalizePath(String path, {bool allowRoot = false}) =>
+      tryNormalizePath(path, allowRoot: allowRoot) ??
+      (throw ProjectPathException('Path must be relative to the workspace: $path'));
+
+  /// Returns the normalized [path], or null when it is absolute or escapes the workspace.
+  static String? tryNormalizePath(String path, {bool allowRoot = false}) {
     final normalized = normalizeWorkspacePath(path);
     if ((!allowRoot && normalized.isEmpty) ||
         workspacePath.isAbsolute(normalized) ||
         normalized == '..' ||
         normalized.startsWith('../')) {
-      throw ArgumentError('Path must be relative to the workspace: $path');
+      return null;
     }
     return normalized;
   }

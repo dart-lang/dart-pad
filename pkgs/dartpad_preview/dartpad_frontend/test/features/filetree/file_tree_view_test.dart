@@ -6,6 +6,8 @@
 library;
 
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
@@ -381,6 +383,127 @@ void main() {
     await pumpEventQueue();
 
     expect(folder.getAttribute('aria-expanded'), 'false');
+  });
+
+  testClient('a stationary touch long press opens the file context menu', (tester) async {
+    final contextMenu = ContextMenuController();
+    final file = _pumpFileTreeWithFile(tester, workspace, contextMenu);
+    file.dispatchEvent(_touch('pointerdown'));
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    expect(contextMenu.isOpen, isTrue);
+    expect(contextMenu.items.whereType<ContextMenuItem>().map((item) => item.label), contains('Rename'));
+    file.dispatchEvent(_touch('pointerup'));
+  });
+
+  testClient('long pressing a folder disclosure opens the folder context menu', (tester) async {
+    final contextMenu = ContextMenuController();
+    tester.pumpComponent(
+      FileTreeView(state: _stateWithFolder(workspace), actions: _actions(), contextMenu: contextMenu),
+    );
+    final folder = web.document.querySelector('.file-tree-item.folder') as web.HTMLElement;
+    final disclosure = folder.querySelector('button') as web.HTMLElement;
+    disclosure.dispatchEvent(_touch('pointerdown'));
+    await Future<void>.delayed(const Duration(milliseconds: 750));
+    expect(contextMenu.isOpen, isTrue);
+    expect(contextMenu.items.whereType<ContextMenuItem>().map((item) => item.label), contains('New file'));
+    disclosure.dispatchEvent(_touch('pointerup'));
+    await pumpEventQueue();
+    expect(contextMenu.isOpen, isTrue);
+  });
+
+  for (final interruption in ['pointermove', 'pointercancel', 'pointerup']) {
+    testClient('touch $interruption before the hold ends does not open the menu', (tester) async {
+      final contextMenu = ContextMenuController();
+      final file = _pumpFileTreeWithFile(tester, workspace, contextMenu);
+      file.dispatchEvent(_touch('pointerdown'));
+      file.dispatchEvent(_touch(interruption, x: interruption == 'pointermove' ? 120 : 100));
+      await Future<void>.delayed(const Duration(milliseconds: 750));
+      expect(contextMenu.isOpen, isFalse);
+      file.dispatchEvent(_touch('pointerup'));
+    });
+  }
+
+  testClient('a native touch context menu opens once at its coordinates', (tester) async {
+    final contextMenu = ContextMenuController();
+    var openings = 0;
+    contextMenu.addListener(() => openings++);
+    final file = _pumpFileTreeWithFile(tester, workspace, contextMenu);
+    file.dispatchEvent(_touch('pointerdown'));
+    final nativeMenu = web.MouseEvent(
+      'contextmenu',
+      web.MouseEventInit(clientX: 100, clientY: 100, bubbles: true, cancelable: true),
+    );
+    file.dispatchEvent(nativeMenu);
+    expect(nativeMenu.defaultPrevented, isTrue);
+    expect(contextMenu.isOpen, isTrue);
+    expect(contextMenu.x, 100);
+    expect(contextMenu.y, 100);
+    await Future<void>.delayed(const Duration(milliseconds: 750));
+    expect(openings, 1);
+    file.dispatchEvent(_touch('pointerup'));
+  });
+
+  testClient('a native context menu after the fallback does not open twice while touching', (tester) async {
+    final contextMenu = ContextMenuController();
+    var openings = 0;
+    contextMenu.addListener(() => openings++);
+    final file = _pumpFileTreeWithFile(tester, workspace, contextMenu);
+    file.dispatchEvent(_touch('pointerdown'));
+    await Future<void>.delayed(const Duration(milliseconds: 750));
+    expect(openings, 1);
+    file.dispatchEvent(web.MouseEvent('contextmenu', web.MouseEventInit(bubbles: true, cancelable: true)));
+    expect(openings, 1);
+    file.dispatchEvent(_touch('pointerup'));
+  });
+
+  for (final hasContextMenu in [true, false]) {
+    testClient('coarse pointers disable dragging ${hasContextMenu ? 'with' : 'without'} a context menu', (tester) {
+      _withPointerMode(
+        coarse: true,
+        run: () {
+          final file = _pumpFileTreeWithFile(tester, workspace, hasContextMenu ? ContextMenuController() : null);
+          expect(file.draggable, isFalse);
+        },
+      );
+    });
+  }
+
+  testClient('dragging remains available for a fine pointer', (tester) {
+    _withPointerMode(
+      coarse: false,
+      run: () {
+        final file = _pumpFileTreeWithFile(tester, workspace, ContextMenuController());
+        expect(file.draggable, isTrue);
+        final transfer = web.DataTransfer();
+        final drag = web.DragEvent(
+          'dragstart',
+          web.DragEventInit(dataTransfer: transfer, bubbles: true, cancelable: true),
+        );
+        file.dispatchEvent(drag);
+        expect(drag.defaultPrevented, isFalse);
+        expect(transfer.getData('text/plain'), 'example.txt');
+      },
+    );
+  });
+
+  testClient('touching a file leaves pointerdown uncancelled and the file clickable', (tester) async {
+    var opened = 0;
+    tester.pumpComponent(
+      FileTreeView(
+        state: _state(workspace),
+        actions: _actions(openWorkspaceFile: (_) async => opened++),
+        contextMenu: ContextMenuController(),
+      ),
+    );
+    final file = web.document.querySelector('.file-tree-item.file') as web.HTMLElement;
+    final down = _touch('pointerdown');
+    file.dispatchEvent(down);
+    expect(down.defaultPrevented, isFalse);
+    file.dispatchEvent(_touch('pointerup'));
+    // The browser normally generates this click after a tap.
+    file.click();
+    await pumpEventQueue();
+    expect(opened, 1);
   });
 
   testClient('uses the injected delete confirmation callback via context menu', (tester) async {
@@ -995,6 +1118,43 @@ FileTreeActions _actions({
     focusPath: focusPath ?? (_) {},
   );
 }
+
+web.HTMLElement _pumpFileTreeWithFile(
+  ClientTester tester,
+  WorkspaceResourceApi workspace,
+  ContextMenuController? contextMenu,
+) {
+  tester.pumpComponent(
+    FileTreeView(state: _state(workspace), actions: _actions(), contextMenu: contextMenu),
+  );
+  return web.document.querySelector('.file-tree-item.file') as web.HTMLElement;
+}
+
+void _withPointerMode({required bool coarse, required void Function() run}) {
+  final originalMatchMedia = web.window.getProperty<JSFunction>('matchMedia'.toJS);
+  web.window.setProperty(
+    'matchMedia'.toJS,
+    ((JSString query) => {'matches': coarse && query.toDart == '(pointer: coarse)'}.jsify()).toJS,
+  );
+  try {
+    run();
+  } finally {
+    web.window.setProperty('matchMedia'.toJS, originalMatchMedia);
+  }
+}
+
+web.PointerEvent _touch(String type, {int x = 100}) => web.PointerEvent(
+  type,
+  web.PointerEventInit(
+    pointerType: 'touch',
+    pointerId: 1,
+    isPrimary: true,
+    clientX: x,
+    clientY: 100,
+    bubbles: true,
+    cancelable: true,
+  ),
+);
 
 enum _Platform { macOS, windows }
 

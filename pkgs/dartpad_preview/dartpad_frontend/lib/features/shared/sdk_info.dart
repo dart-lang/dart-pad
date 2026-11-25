@@ -32,7 +32,7 @@ final class SdkInfo {
   /// The version of the Flutter SDK (e.g. `'3.48.0'`), or `null` if this is a pure Dart runtime.
   final String? flutterVersion;
 
-  /// Release channel assigned to this runtime, independent of its pinned revision.
+  /// The release channel of this SDK runtime (e.g. `'stable'` or `'beta'`).
   final String? channel;
 
   bool get isFlutter => flutterVersion != null;

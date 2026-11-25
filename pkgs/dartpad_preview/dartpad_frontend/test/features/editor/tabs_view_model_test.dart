@@ -229,7 +229,7 @@ void main() {
     expect(tab.hasUnsavedChanges, isFalse);
 
     tab.rename('renamed.yaml');
-    expect(tab.editor.file, 'renamed.yaml');
+    expect(tab.editor.filePath, 'renamed.yaml');
     expect(tab.codeActionsController.file, 'renamed.yaml');
     tab.editor.text = 'name: renamed';
     await tab.save();
