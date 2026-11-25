@@ -26,6 +26,7 @@ class FileTreeFileItem extends StatefulComponent {
     required this.actions,
     this.onFileOpened,
     required this.selectedPath,
+    this.isCreating = false,
     required this.onSelect,
     this.confirmDelete,
     this.contextMenu,
@@ -50,6 +51,9 @@ class FileTreeFileItem extends StatefulComponent {
   /// The path of the currently selected node, if any.
   final String? selectedPath;
 
+  /// Whether a creation input is open elsewhere in the tree.
+  final bool isCreating;
+
   /// Callback when this file item is selected.
   final void Function(String path) onSelect;
 
@@ -72,7 +76,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     super.initState();
     final path = component.node.resource.path;
     final active = component.selectedPath == null && component.state.activeFile == path;
-    if (active) {
+    if (active && !component.isCreating) {
       _scrollIntoView();
     }
   }
@@ -83,7 +87,7 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
     final path = component.node.resource.path;
     final active = component.selectedPath == null && component.state.activeFile == path;
     final oldActive = oldComponent.selectedPath == null && oldComponent.state.activeFile == path;
-    if (active && !oldActive) {
+    if (active && !oldActive && !component.isCreating) {
       _scrollIntoView();
     }
   }

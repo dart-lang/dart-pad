@@ -82,6 +82,113 @@ void main() {
   }
 
   for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
+    testClient('opening a visible nested $kind input preserves the tree scroll position', (tester) async {
+      tester.pumpComponent(const _ScrollFixture(leadingFiles: 10));
+      await pumpEventQueue();
+      final host = web.document.getElementById('scroll-host')!;
+      host.scrollTop = 220;
+      final tree = web.document.querySelector('.file-tree-list')!;
+      final folder = web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement;
+      (web.document.querySelector('.file-tree-item.file[title="lib/file00.dart"]')! as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      tree.scrollTop += folder.getBoundingClientRect().top - tree.getBoundingClientRect().top - 50;
+      final initialScroll = tree.scrollTop;
+      final folderBottom = folder.getBoundingClientRect().bottom;
+      expect(folderBottom, greaterThan(tree.getBoundingClientRect().top));
+      expect(folderBottom + 25, lessThan(tree.getBoundingClientRect().bottom));
+
+      (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
+      expect(web.document.activeElement, input);
+      expect(tree.scrollTop, initialScroll, reason: 'Opening an already visible input must not move the tree.');
+    });
+
+    testClient('opening a visible $kind input in a collapsed folder preserves the tree scroll position', (
+      tester,
+    ) async {
+      tester.pumpComponent(const _ScrollFixture(leadingFiles: 10, trailingFiles: 10));
+      await pumpEventQueue();
+      web.document.getElementById('scroll-host')!.scrollTop = 220;
+      final tree = web.document.querySelector('.file-tree-list')!;
+      final folder = web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement;
+      folder.click();
+      await pumpEventQueue();
+      expect(folder.getAttribute('aria-expanded'), 'false');
+      tree.scrollTop += folder.getBoundingClientRect().top - tree.getBoundingClientRect().top - 50;
+      final initialScroll = tree.scrollTop;
+      expect(folder.getBoundingClientRect().bottom + 25, lessThan(tree.getBoundingClientRect().bottom));
+
+      (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
+      expect(folder.getAttribute('aria-expanded'), 'true');
+      expect(web.document.activeElement, input);
+      expect(tree.scrollTop, initialScroll, reason: 'Opening an already visible input must not move the tree.');
+    });
+  }
+
+  for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
+    testClient('typing in a visible nested $kind input preserves the tree scroll position', (tester) async {
+      tester.pumpComponent(const _ScrollFixture(leadingFiles: 10));
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-item.folder')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelector('.file-tree-add-button')! as web.HTMLElement).click();
+      await pumpEventQueue();
+      (web.document.querySelectorAll('.dropdown-menu-item').item(menuIndex)! as web.HTMLElement).click();
+      await pumpEventQueue();
+
+      final tree = web.document.querySelector('.file-tree-list')!;
+      web.document.getElementById('scroll-host')!.scrollTop = 220;
+      final input = web.document.querySelector('.file-tree-folder-children .file-tree-input')! as web.HTMLInputElement;
+      final bounds = tree.getBoundingClientRect();
+      final viewportTop = bounds.top + tree.clientTop;
+      final inputHeight = input.getBoundingClientRect().height;
+      final positions = [4.0, 75.0, tree.clientHeight - inputHeight - 4];
+
+      for (var i = 0; i < positions.length; i++) {
+        tree.scrollTop += input.getBoundingClientRect().top - viewportTop - positions[i];
+        final inputBounds = input.getBoundingClientRect();
+        expect(inputBounds.top, greaterThanOrEqualTo(viewportTop));
+        expect(inputBounds.bottom, lessThanOrEqualTo(viewportTop + tree.clientHeight));
+        expect(
+          web.document.elementFromPoint(inputBounds.left + inputBounds.width / 2, inputBounds.top + 2),
+          input,
+          reason: 'The input must be visible at position ${positions[i]}.',
+        );
+        final scrollTop = tree.scrollTop;
+        input.value = 'a${i + 1}';
+        input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+        await pumpEventQueue();
+        expect(
+          tree.scrollTop,
+          scrollTop,
+          reason: 'Typing in a visible input must not move the tree at ${positions[i]}.',
+        );
+      }
+
+      tree.scrollTop = 0;
+      expect(input.getBoundingClientRect().top, greaterThan(viewportTop + tree.clientHeight));
+      final host = web.document.getElementById('scroll-host')!;
+      final hostScrollTop = host.scrollTop;
+      input.value = 'file';
+      input.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+      await pumpEventQueue();
+      expect(input.getBoundingClientRect().top, greaterThanOrEqualTo(viewportTop));
+      expect(input.getBoundingClientRect().bottom, lessThanOrEqualTo(viewportTop + tree.clientHeight));
+      expect(host.scrollTop, hostScrollTop, reason: 'Revealing the input must not scroll the enclosing page.');
+    });
+  }
+
+  for (final (kind, menuIndex) in [('file', 0), ('folder', 1)]) {
     testClient('creating a nested $kind reveals its input in a scrolled tree', (tester) async {
       tester.pumpComponent(const _ScrollFixture());
       await pumpEventQueue();
@@ -131,7 +238,10 @@ final class _Workspace implements WorkspaceResourceApi {
 }
 
 class _ScrollFixture extends StatefulComponent {
-  const _ScrollFixture();
+  const _ScrollFixture({this.leadingFiles = 0, this.trailingFiles = 0});
+
+  final int leadingFiles;
+  final int trailingFiles;
 
   @override
   State<_ScrollFixture> createState() => _ScrollFixtureState();
@@ -163,6 +273,11 @@ class _ScrollFixtureState extends State<_ScrollFixture> {
                   root: FileTreeFolderNode(
                     WorkspaceFolder(workspace: workspace, path: ''),
                     children: [
+                      for (var i = 0; i < component.leadingFiles; i++)
+                        FileTreeFileNode(
+                          WorkspaceFile(workspace: workspace, path: 'before$i.dart'),
+                          openable: true,
+                        ),
                       FileTreeFolderNode(
                         WorkspaceFolder(workspace: workspace, path: 'lib'),
                         children: [
@@ -173,6 +288,11 @@ class _ScrollFixtureState extends State<_ScrollFixture> {
                             ),
                         ],
                       ),
+                      for (var i = 0; i < component.trailingFiles; i++)
+                        FileTreeFileNode(
+                          WorkspaceFile(workspace: workspace, path: 'after$i.dart'),
+                          openable: true,
+                        ),
                     ],
                   ),
                   activeFile: activeFile,

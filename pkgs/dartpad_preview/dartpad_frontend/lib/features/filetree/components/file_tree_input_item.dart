@@ -113,9 +113,20 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
 
   void _revealInput() {
     final input = web.document.getElementById(inputId);
-    final row = input?.closest('.file-tree-input-wrapper') as web.HTMLElement?;
-    if (row != null) {
-      scrollFileTreeRowIntoView(row, depth: component.depth);
+    final tree = input?.closest('.file-tree-list') as web.HTMLElement?;
+    if (input == null || tree == null) {
+      return;
+    }
+
+    final treeRect = tree.getBoundingClientRect();
+    final inputRect = input.getBoundingClientRect();
+    final top = treeRect.top + tree.clientTop;
+    final bottom = treeRect.top + tree.clientTop + tree.clientHeight;
+    if (inputRect.top < top || inputRect.bottom > bottom) {
+      final row = input.closest('.file-tree-input-wrapper') as web.HTMLElement?;
+      if (row != null) {
+        scrollFileTreeRowIntoView(row, depth: component.depth);
+      }
     }
   }
 

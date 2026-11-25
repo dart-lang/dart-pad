@@ -123,7 +123,6 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
     super.didUpdateComponent(oldComponent);
     if (component.creatingEntry != null && component.creatingInFolder == component.node.resource.path) {
       _isCollapsed = false;
-      _scrollTopIntoView();
     }
 
     final activeFile = component.state.activeFile;
@@ -347,6 +346,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
                 actions: component.actions,
                 onFileOpened: component.onFileOpened,
                 selectedPath: component.selectedPath,
+                isCreating: component.creatingEntry != null,
                 onSelect: component.onSelect,
                 confirmDelete: component.confirmDelete,
                 contextMenu: component.contextMenu,

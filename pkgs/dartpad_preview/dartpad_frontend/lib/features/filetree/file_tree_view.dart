@@ -326,6 +326,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
                 actions: actions,
                 onFileOpened: component.onFileOpened,
                 selectedPath: _selectedPath,
+                isCreating: _creatingEntry != null,
                 onSelect: (selectedPath) {
                   setState(() {
                     _selectedPath = selectedPath;
