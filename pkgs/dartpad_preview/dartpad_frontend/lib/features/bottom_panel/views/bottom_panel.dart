@@ -87,7 +87,7 @@ final class _BottomPanelState extends State<BottomPanel> {
       final reveal = event.reveal;
       setState(() {
         _consoleOpenRequest = ConsoleOpenRequest(
-          revealIndex: reveal == null ? null : component.console.indexOf(reveal),
+          revealIndex: reveal == null ? null : component.console.lastIndexOf(reveal),
         );
       });
       component.panelController.openBottomPanel(BottomPanelTab.console);

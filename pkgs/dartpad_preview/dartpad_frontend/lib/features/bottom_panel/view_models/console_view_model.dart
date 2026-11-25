@@ -58,11 +58,21 @@ class ConsoleViewModel extends ChangeNotifier {
     return changed;
   }
 
-  /// The index of the first line displayed for [event], or `null` when that
-  /// event has no displayed lines, for example after [clear].
-  int? indexOf(LogEvent event) {
-    final index = _logs.indexWhere((entry) => identical(entry.source, event));
-    return index < 0 ? null : index;
+  /// The index of the first line displayed for the newest event with the
+  /// same message as [event], or `null` when there is none, for example after
+  /// [clear].
+  int? lastIndexOf(LogEvent event) {
+    final lastLine = _logs.lastIndexWhere((entry) => entry.source?.message == event.message);
+    if (lastLine < 0) {
+      return null;
+    }
+    // An event displays as several lines so we step back to its first line.
+    final source = _logs[lastLine].source;
+    var firstLine = lastLine;
+    while (firstLine > 0 && identical(_logs[firstLine - 1].source, source)) {
+      firstLine--;
+    }
+    return firstLine;
   }
 
   /// Removes all displayed logs.
