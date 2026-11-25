@@ -9,10 +9,7 @@ and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 
 | Package | Description | CI Status |
 | --- | --- | --- |
-| [dart_services](pkgs/dart_services/) | The backend service for DartPad. | [![dart_services](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml) |
-| [dartpad_shared](pkgs/dartpad_shared/) | Shared code between the DartPad frontend and backend. | [![dartpad_shared](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_shared.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_shared.yml) |
-| [dartpad_ui](pkgs/dartpad_ui/) | The frontend UI for DartPad. | [![dartpad_ui](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_ui.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_ui.yml) |
-| [samples](pkgs/samples/) | Sample code snippets for DartPad. | [![samples](https://github.com/dart-lang/dart-pad/actions/workflows/samples.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/samples.yml) |
+| [dartpad_preview](pkgs/dartpad_preview/) | The DartPad web app, with in-browser analysis and compilation. | [![dartpad_preview](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_preview.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dartpad_preview.yml) |
 
 ## Background
 
