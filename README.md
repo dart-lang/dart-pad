@@ -111,7 +111,10 @@ they return to the configured visibility.
 Requirements:
 
 - Dart 3.12 or later.
-- Jaspr CLI (installed by `dart pub get`, invoked via `dart run`).
+- Jaspr CLI: `jaspr_cli` is a dev dependency of `dartpad_frontend`, so
+  `dart pub get` installs it. Run it with `dart run jaspr_cli:jaspr`. Avoid
+  `dart pub global activate jaspr_cli`; a global install ignores the Jaspr
+  version pinned in the root `pubspec.yaml`.
 - Chrome for tests.
 
 From the repository root:
@@ -141,15 +144,15 @@ Frontend checks and builds, from `pkgs/dartpad_frontend`:
 
 ## Further reading
 
-| Document                                                                  | Audience                                                       |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Document                                                                  | Audience                                                       |
-| [Development details](pkgs/dartpad_frontend/doc/development.md)           | Contributors updating generated assets                         |
-| [Startup design](pkgs/dartpad_frontend/doc/startup-design.md)             | Contributors working on project loading and execution          |
-| [Frontend UI](pkgs/dartpad_frontend/README.md)                            | Contributors working on the Jaspr UI                           |
-| [Editor package](pkgs/dartpad_editor/README.md)                           | Contributors working on editor and language-server integration |
-| [Examples](pkgs/examples/README.md)                                       | Contributors adding bundled samples                            |
-| [Sharing Guide](https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide) | Users sharing DartPad links                                    |
+| Document                                                                      | Audience                                                       |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [Development details](pkgs/dartpad_frontend/doc/development.md)               | Contributors updating generated assets                         |
+| [Startup design](pkgs/dartpad_frontend/doc/startup-design.md)                 | Contributors working on project loading and execution          |
+| [Frontend UI](pkgs/dartpad_frontend/README.md)                                | Contributors working on the Jaspr UI                           |
+| [Editor package](pkgs/dartpad_editor/README.md)                               | Contributors working on editor and language-server integration |
+| [Examples](pkgs/examples/README.md)                                           | Contributors adding bundled samples                            |
+| [Sharing Guide](https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide)     | Users sharing DartPad links                                    |
+| [Embedding Guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide) | Users embedding DartPad in their websites                      |
 
 ## Background
 
