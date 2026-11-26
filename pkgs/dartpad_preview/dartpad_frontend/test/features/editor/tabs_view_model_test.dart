@@ -14,10 +14,12 @@ import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/diagnostics_view_model.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab.dart';
 import 'package:dartpad_frontend/features/editor/codemirror/code_mirror_tab_adapter.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/codemirror_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/code_action_panel.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
+import 'package:dartpad_frontend/features/editor/components/markdown_view_switch.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
@@ -34,9 +36,15 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
   };
   Error? readError;
   Error? writeError;
+  final changes = StreamController<WorkspaceChangeEvent>.broadcast();
 
   @override
-  Stream<WorkspaceChangeEvent> get changeEvents => const Stream<WorkspaceChangeEvent>.empty();
+  Stream<WorkspaceChangeEvent> get changeEvents => changes.stream;
+
+  void moveFile(String oldPath, String newPath) {
+    files[newPath] = files.remove(oldPath)!;
+    changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.move, path: newPath, oldPath: oldPath));
+  }
 
   @override
   Future<void> get changeEventsReady => Future.value();
@@ -113,7 +121,44 @@ void main() {
     diagnostics = null;
     tabs?.dispose();
     tabs = null;
+    await workspace.changes.close();
   });
+
+  void mountEditors(ClientTester tester) {
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+    });
+    tester.pumpComponent(
+      dom.div([
+        dom.Style(styles: [...EditorStack.styles, ...MarkdownViewSwitch.styles, ...codemirrorStyles]),
+        dom.div(
+          styles: dom.Styles(display: .flex, width: 600.px, height: 240.px, flexDirection: .column),
+          [
+            ListenableBuilder(
+              listenable: tabs!,
+              builder: (_) => EditorStack(
+                openTabs: tabs!.openTabs,
+                activeFile: tabs!.activeFile,
+                overlay: const Component.fragment([]),
+              ),
+            ),
+          ],
+        ),
+      ]),
+    );
+  }
+
+  Future<void> settleEditorLayout() async {
+    await pumpEventQueue();
+    // CodeMirror and scroll restoration finish on animation frames.
+    for (var i = 0; i < 2; i++) {
+      final frame = Completer<void>();
+      web.window.requestAnimationFrame(((double _) => frame.complete()).toJS);
+      await frame.future;
+    }
+    await pumpEventQueue();
+  }
 
   test('missing workspace files report an opening error', () async {
     await expectLater(tabs!.openWorkspaceFile('missing.dart'), throwsStateError);
@@ -170,7 +215,7 @@ void main() {
     );
     await pumpEventQueue();
 
-    expect(tab.markdownViewMode, MarkdownViewMode.preview);
+    expect(tab.presentationMode, PresentationMode.presentation);
     expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Original');
     expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isTrue);
     final switcher = web.document.querySelector('.markdown-view-switch')!;
@@ -182,7 +227,7 @@ void main() {
 
     (switcher.querySelector('button')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
+    expect(tab.presentationMode, PresentationMode.source);
     expect(switcher.querySelector('button')!.getAttribute('aria-label'), 'Preview');
     expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isFalse);
     expect(web.document.querySelector('.markdown-rendered')!.hasAttribute('hidden'), isTrue);
@@ -197,7 +242,7 @@ void main() {
     (switcher.querySelector('button')! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
-    expect(tab.markdownViewMode, MarkdownViewMode.preview);
+    expect(tab.presentationMode, PresentationMode.presentation);
     expect(web.document.querySelector('.markdown-preview h1')?.textContent, 'Edited');
     expect(web.document.querySelector('.markdown-preview h1')!.isSameNode(originalHeading), isFalse);
     expect(switcher.querySelector('button')!.getAttribute('aria-label'), 'Edit');
@@ -211,7 +256,7 @@ void main() {
     expect(web.document.querySelector('.markdown-view-switch'), isNull);
     tabs!.switchFile('README.MD');
     await pumpEventQueue();
-    tab.setMarkdownViewMode(MarkdownViewMode.source);
+    tab.setPresentationMode(PresentationMode.source);
     await pumpEventQueue();
     expect(editor.view.state.selection.main.head, 4);
   });
@@ -221,26 +266,142 @@ void main() {
     workspace.files['other.markdown'] = '# Other';
     await tabs!.openWorkspaceFile('README.md');
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
-    tab.setMarkdownViewMode(MarkdownViewMode.source);
+    tab.setPresentationMode(PresentationMode.source);
     await tabs!.openWorkspaceFile('other.markdown');
-    expect((tabs!.activeTab! as WorkspaceCodeMirrorTab).markdownViewMode, MarkdownViewMode.preview);
+    expect((tabs!.activeTab! as WorkspaceCodeMirrorTab).presentationMode, PresentationMode.presentation);
     tabs!.switchFile('README.md');
-    expect(tab.markdownViewMode, MarkdownViewMode.source);
+    expect(tab.presentationMode, PresentationMode.source);
     expect(tabs!.closeFile('README.md'), isTrue);
     expect(tabs!.getTab('README.md'), same(tab));
     await tabs!.openWorkspaceFile('README.md');
     final reopened = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     expect(reopened, same(tab));
     expect(reopened.editor, same(tab.editor));
-    expect(reopened.markdownViewMode, MarkdownViewMode.source);
+    expect(reopened.presentationMode, PresentationMode.source);
   });
 
   test('non-Markdown tabs cannot enter preview mode', () async {
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
-    for (final mode in MarkdownViewMode.values) {
-      tab.setMarkdownViewMode(mode);
-      expect(tab.markdownViewMode, MarkdownViewMode.source);
+    for (final mode in PresentationMode.values) {
+      tab.setPresentationMode(mode);
+      expect(tab.presentationMode, PresentationMode.source);
     }
+  });
+
+  for (final preferredMode in PresentationMode.values) {
+    test('cached Markdown tabs remember $preferredMode across file type renames', () async {
+      workspace.files['README.md'] = '# Readme';
+      await tabs!.openWorkspaceFile('README.md');
+      final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+      final editor = tab.editor;
+      tab.setPresentationMode(preferredMode);
+      expect(tabs!.closeFile('README.md'), isTrue);
+
+      workspace.moveFile('README.md', 'renamed.dart');
+      await pumpEventQueue();
+      expect(tabs!.getTab('renamed.dart'), same(tab));
+      expect(tab.presentationMode, PresentationMode.source);
+      expect(tab.editor.file, 'renamed.dart');
+      expect(tab.codeActionsController.file, 'renamed.dart');
+
+      workspace.moveFile('renamed.dart', 'renamed.markdown');
+      await pumpEventQueue();
+      await tabs!.openWorkspaceFile('renamed.markdown');
+      expect(tabs!.activeTab, same(tab));
+      expect(tab.editor, same(editor));
+      expect(tab.presentationMode, preferredMode);
+    });
+  }
+
+  test('a source tab renamed to Markdown keeps its initial source mode', () async {
+    // Rename before any presentation getter or build is used.
+    workspace.moveFile('lib/main.dart', 'README.md');
+    await pumpEventQueue();
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    expect(tabs!.activeFile, 'README.md');
+    expect(tab.isMarkdown, isTrue);
+    expect(tab.presentationMode, PresentationMode.source);
+    tab.setPresentationMode(PresentationMode.presentation);
+    expect(tab.presentationMode, PresentationMode.presentation);
+  });
+
+  testClient('preview and active or inactive renames retain source selection and scroll', (tester) async {
+    workspace.files['README.md'] = List.generate(160, (i) => '# Line $i').join('\n');
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    tab.setPresentationMode(PresentationMode.source);
+    mountEditors(tester);
+    await settleEditorLayout();
+    tab.goToPosition(35, 3);
+    await settleEditorLayout();
+    editor.view.scrollDOM.scrollTop = 350;
+    final saved = editor.saveViewState();
+    expect(saved.scrollTop, greaterThan(0));
+
+    tab.setPresentationMode(PresentationMode.presentation);
+    await settleEditorLayout();
+    expect(tab.container.getClientRects().length, 0);
+    tabs!.switchFile('lib/main.dart');
+    await settleEditorLayout();
+    workspace.moveFile('README.md', 'renamed.dart');
+    await settleEditorLayout();
+    expect(tab.presentationMode, PresentationMode.source);
+    expect(tabs!.activeFile, 'lib/main.dart');
+    tabs!.switchFile('renamed.dart');
+    await settleEditorLayout();
+
+    expect(tab.editor, same(editor));
+    expect(tab.container.isConnected, isTrue);
+    expect(tab.container.getClientRects().length, greaterThan(0));
+    expect(editor.view.state.selection.main.head, saved.selection.main.head);
+    expect(editor.view.scrollDOM.scrollTop, closeTo(saved.scrollTop, 1));
+
+    workspace.moveFile('renamed.dart', 'README.markdown');
+    await settleEditorLayout();
+    expect(tabs!.activeFile, 'README.markdown');
+    expect(tab.presentationMode, PresentationMode.presentation);
+    expect(tab.container.getClientRects().length, 0);
+    workspace.moveFile('README.markdown', 'final.dart');
+    await settleEditorLayout();
+    expect(tabs!.activeFile, 'final.dart');
+    expect(tab.presentationMode, PresentationMode.source);
+    expect(tab.container.isConnected, isTrue);
+    expect(tab.container.getClientRects().length, greaterThan(0));
+    expect(editor.view.state.selection.main.head, saved.selection.main.head);
+    expect(editor.view.scrollDOM.scrollTop, closeTo(saved.scrollTop, 1));
+  });
+
+  testClient('rapid mode changes restore source on the same editor DOM', (tester) async {
+    workspace.files['README.md'] = List.generate(160, (i) => '# Line $i').join('\n');
+    await tabs!.openWorkspaceFile('README.md');
+    final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    tab.setPresentationMode(PresentationMode.source);
+    mountEditors(tester);
+    await settleEditorLayout();
+    tab.goToPosition(35, 3);
+    await settleEditorLayout();
+    editor.view.scrollDOM.scrollTop = 350;
+    final saved = editor.saveViewState();
+    final editorDom = editor.view.dom;
+
+    tab.setPresentationMode(PresentationMode.presentation);
+    await settleEditorLayout();
+    for (var i = 0; i < 5; i++) {
+      tab.setPresentationMode(PresentationMode.source);
+      tab.setPresentationMode(PresentationMode.presentation);
+    }
+    tab.setPresentationMode(PresentationMode.source);
+    await settleEditorLayout();
+
+    expect(tab.presentationMode, PresentationMode.source);
+    expect(tab.editor, same(editor));
+    expect(editor.view.dom.isSameNode(editorDom), isTrue);
+    expect(tab.container.isConnected, isTrue);
+    expect(tab.container.getClientRects().length, greaterThan(0));
+    expect(editor.view.state.selection.main.head, saved.selection.main.head);
+    expect(editor.view.scrollDOM.scrollTop, closeTo(saved.scrollTop, 1));
   });
 
   testClient('system Markdown files remain read-only source tabs', (tester) async {

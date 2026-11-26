@@ -21,11 +21,11 @@ final class MarkdownViewSwitch extends StatelessComponent {
     className: 'markdown-view-switch',
     busy: false,
     child: Button(
-      label: tab.markdownViewMode == MarkdownViewMode.preview ? 'Edit' : 'Preview',
-      onClick: () => tab.setMarkdownViewMode(
-        switch (tab.markdownViewMode) {
-          MarkdownViewMode.source => MarkdownViewMode.preview,
-          MarkdownViewMode.preview => MarkdownViewMode.source,
+      label: tab.presentationMode == PresentationMode.presentation ? 'Edit' : 'Preview',
+      onClick: () => tab.setPresentationMode(
+        switch (tab.presentationMode) {
+          PresentationMode.source => PresentationMode.presentation,
+          PresentationMode.presentation => PresentationMode.source,
         },
       ),
     ),

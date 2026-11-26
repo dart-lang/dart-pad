@@ -17,8 +17,6 @@ import '../../shared/node_container.dart';
 import '../components/code_action_panel.dart';
 import 'editor_context_menu.dart';
 
-part 'workspace_markdown_preview.dart';
-
 /// Shared editor display, navigation, and lifecycle for CodeMirror tabs.
 sealed class CodeMirrorTab extends EditorTab<Component> {
   CodeMirrorTab._(super.path, EditorTabOrigin origin)
@@ -33,12 +31,8 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
   /// The CodeMirror editor managed by this tab.
   late final CodeMirrorEditor editor;
 
-  /// Whether this tab is showing the CodeMirror input field.
-  ///
-  /// Markdown Preview hides that field. Skip layout measurements and saving
-  /// its cursor/scroll position while hidden. Whether the tab is active is
-  /// checked separately.
-  bool get _isEditorVisible => true;
+  /// Whether the editor is attached and displayed in the document.
+  bool get _isEditorDisplayed => container.isConnected && container.getClientRects().length > 0;
 
   EditorViewState? _savedViewState;
   bool _active = false;
@@ -68,25 +62,17 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     _active = false;
     _measureTimer?.cancel();
     _measureTimer = null;
-    if (_isEditorVisible) {
+    // A detached or hidden editor has no layout state worth saving.
+    if (_isEditorDisplayed) {
       _savedViewState = editor.saveViewState();
     }
-  }
-
-  void _prepareEditorForHiding() {
-    if (_active && container.isConnected) {
-      _savedViewState = editor.saveViewState();
-      CodeMirrorEditor.hideAllTooltips();
-    }
-    _measureTimer?.cancel();
-    _measureTimer = null;
   }
 
   void _scheduleMeasureAndRestore() {
     _measureTimer?.cancel();
     _measureTimer = Timer(Duration.zero, () {
       _measureTimer = null;
-      if (_disposed || !_active || !_isEditorVisible || !container.isConnected) {
+      if (_disposed || !_active || !_isEditorDisplayed) {
         return;
       }
       editor.requestMeasure();
@@ -124,6 +110,9 @@ sealed class CodeMirrorTab extends EditorTab<Component> {
     unawaited(_updates.close());
   }
 }
+
+/// The presentation shown by an editable workspace tab.
+enum PresentationMode { source, presentation }
 
 /// An editable workspace text tab with autosave, code actions, and a context menu.
 final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdownPreview {
@@ -172,6 +161,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
       _showContextMenu(event.clientX.toDouble(), event.clientY.toDouble());
     }.toJS;
     container.addEventListener('contextmenu', _contextMenuHandler);
+    _initializeMarkdownView();
   }
 
   /// Saves all dirty tabs when CodeMirror receives its save command.
@@ -195,6 +185,41 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
   late final JSFunction _contextMenuHandler;
   String _savedContent;
   bool _isDirty = false;
+  PresentationMode _presentationMode = PresentationMode.source;
+
+  /// The current presentation, with the editor retained in both modes.
+  @override
+  PresentationMode get presentationMode => _presentationMode;
+
+  /// Updates the presentation after saving the source view and before scheduling
+  /// its restoration. [updateView] must run synchronously without reentering.
+  @override
+  void _updateEditorPresentation({
+    required PresentationMode presentationMode,
+    required void Function() updateView,
+  }) {
+    if (_disposed) {
+      return;
+    }
+
+    final previousMode = _presentationMode;
+    if (previousMode == PresentationMode.source && presentationMode == PresentationMode.presentation) {
+      if (_active && _isEditorDisplayed) {
+        _savedViewState = editor.saveViewState();
+        CodeMirrorEditor.hideAllTooltips();
+      }
+      _measureTimer?.cancel();
+      _measureTimer = null;
+    }
+
+    updateView();
+    _presentationMode = presentationMode;
+
+    if (previousMode == PresentationMode.presentation && presentationMode == PresentationMode.source) {
+      _scheduleMeasureAndRestore();
+    }
+    _notifyUpdate();
+  }
 
   @override
   bool get keepAlive => true;
@@ -258,9 +283,14 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
 
   @override
   void rename(String newPath) {
-    super.rename(newPath);
-    codeActionsController.file = newPath;
-    editor.applyRename(newPath);
+    _updateEditorPresentation(
+      presentationMode: _presentationModeForPath(newPath),
+      updateView: () {
+        super.rename(newPath);
+        codeActionsController.file = newPath;
+        editor.applyRename(newPath);
+      },
+    );
   }
 
   void _handleEditorUpdate(String content) {
@@ -335,5 +365,77 @@ final class SystemCodeMirrorTab extends CodeMirrorTab {
       languageServerClient: languageServerClient,
       readOnly: origin.isReadOnly,
     );
+  }
+}
+
+/// Markdown rendering and mode selection for workspace tabs.
+///
+/// The workspace owns the presentation lifecycle; this mixin supplies the file
+/// rules and rendering through initialization, build, and rename hooks.
+mixin _WorkspaceMarkdownPreview on CodeMirrorTab {
+  web.HTMLDivElement? _previewContainer;
+  String? _renderedContent;
+  late PresentationMode _preferredMode;
+
+  PresentationMode get presentationMode;
+
+  void _updateEditorPresentation({
+    required PresentationMode presentationMode,
+    required void Function() updateView,
+  });
+
+  void _initializeMarkdownView() {
+    final initialMode = isMarkdown ? PresentationMode.presentation : PresentationMode.source;
+    _updateEditorPresentation(
+      presentationMode: initialMode,
+      updateView: () => _preferredMode = initialMode,
+    );
+  }
+
+  /// Whether the current path supports Markdown preview.
+  bool get isMarkdown => isMarkdownFile(path);
+
+  PresentationMode _presentationModeForPath(String filePath) =>
+      isMarkdownFile(filePath) ? _preferredMode : PresentationMode.source;
+
+  /// Switches Markdown display without recreating the editor.
+  void setPresentationMode(PresentationMode mode) {
+    if (!isMarkdown || presentationMode == mode) {
+      return;
+    }
+    _updateEditorPresentation(
+      presentationMode: mode,
+      updateView: () => _preferredMode = mode,
+    );
+  }
+
+  Component _buildMarkdownView(Component source) {
+    // Keep stable wrappers so Jaspr does not reuse CodeMirror's externally
+    // managed DOM container as one of its own elements.
+    final previewContainer = isMarkdown
+        ? (_previewContainer ??= web.HTMLDivElement()
+            ..className = 'markdown-preview'
+            ..setAttribute('role', 'document')
+            ..setAttribute('aria-label', 'Markdown preview')
+            ..tabIndex = 0)
+        : null;
+    final showPreview = presentationMode == PresentationMode.presentation;
+    if (showPreview && _renderedContent != content) {
+      previewContainer!.innerHTML = renderMarkdown(content).toJS;
+      _renderedContent = content;
+    }
+    return div(classes: 'workspace-text-tab', [
+      div(
+        classes: 'workspace-source${isMarkdown ? ' markdown-source' : ''}',
+        attributes: {if (showPreview) 'hidden': ''},
+        [source],
+      ),
+      if (previewContainer != null)
+        div(
+          classes: 'markdown-rendered',
+          attributes: {if (!showPreview) 'hidden': ''},
+          [NodeContainer(previewContainer)],
+        ),
+    ]);
   }
 }
