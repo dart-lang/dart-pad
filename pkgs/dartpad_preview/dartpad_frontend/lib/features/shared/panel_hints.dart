@@ -13,7 +13,7 @@ import 'workspace_mode.dart';
 ///
 /// Null retains the contextual default. False collapses or hides the panel,
 /// depending on the workspace mode and the panel's available presentations.
-/// Small screens always start with the bottom panel collapsed, ignoring its hints.
+/// Standalone small screens always start with the bottom panel collapsed, ignoring its hints.
 final class PanelHints {
   const PanelHints.none() : this();
 
@@ -79,9 +79,7 @@ final class PanelHints {
       false => PanelPresentationState.hidden,
       null => defaults.statusBar,
     };
-    final bottom = defaults.layout == PanelLayout.smallScreen
-        ? defaults.bottom
-        : _resolveBottomPanel(defaults.bottom, mode: WorkspaceMode.embed);
+    final bottom = _resolveBottomPanel(defaults.bottom, mode: WorkspaceMode.embed);
     final editorNavigation = switch (this.editorNavigation) {
       true => PanelPresentationState.expanded,
       false => PanelPresentationState.hidden,

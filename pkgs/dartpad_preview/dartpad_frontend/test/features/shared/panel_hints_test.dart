@@ -148,6 +148,39 @@ void main() {
     });
   }
 
+  for (final (hints, bottom) in [
+    ('', const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: 0.75)),
+    ('+console', const BottomPanelExpanded(BottomPanelTab.console, editorFraction: 0.75)),
+    ('-console', const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: 0.75)),
+    ('+problems', const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: 0.75)),
+    ('-problems', const BottomPanelCollapsed(BottomPanelTab.console, editorFraction: 0.75)),
+    ('+console,-problems', const BottomPanelExpanded(BottomPanelTab.console, editorFraction: 0.75)),
+    ('-console,+problems', const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: 0.75)),
+    ('+console,+problems', const BottomPanelExpanded(BottomPanelTab.problems, editorFraction: 0.75)),
+    ('-console,-problems', const BottomPanelHidden(BottomPanelTab.problems, editorFraction: 0.75)),
+  ]) {
+    test('small-screen embeds apply bottom hints like desktop embeds: panels=$hints', () {
+      final hinted = ProjectRequest.fromUri(Uri.parse('?panels=$hints&embed=true')).panels;
+      expect(hinted.resolve(mode: WorkspaceMode.embed, isSmallScreen: true).bottom, bottom);
+      expect(hinted.resolve(mode: WorkspaceMode.embed).bottom, bottom);
+
+      final panels = PanelLayoutController(mode: WorkspaceMode.embed, isSmallScreen: true);
+      addTearDown(panels.dispose);
+      panels.applyInitialDefaults(hints: hinted);
+      expect(panels.bottom, bottom);
+      panels.updateScreenSize(isSmallScreen: false);
+      expect(panels.bottom, bottom);
+    });
+
+    test('small-screen standalone keeps the collapsed bottom default: panels=$hints', () {
+      final hinted = ProjectRequest.fromUri(Uri.parse('?panels=$hints')).panels;
+      expect(
+        hinted.resolve(mode: WorkspaceMode.standalone, isSmallScreen: true).bottom,
+        const BottomPanelCollapsed(BottomPanelTab.problems, editorFraction: 0.75),
+      );
+    });
+  }
+
   test('literal and encoded plus signs survive request/history round trips', () {
     for (final query in [
       '?panels=+console,-problems,+tabs&panels=+filetree&embed=true',
