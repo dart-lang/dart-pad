@@ -159,6 +159,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       creationKind: kind,
       active: component.creatingEntry == kind && component.creatingInFolder == path,
       depth: component.depth + 1,
+      showDisclosureSpacer: isFolder,
       icon: switch (kind) {
         FileTreeEntryKind.folder => const FileIcon(
           'seti:folder',
@@ -198,6 +199,7 @@ class _FileTreeFolderItemState extends State<FileTreeFolderItem> {
       return FileTreeInputItem(
         initialValue: component.node.resource.basename,
         depth: component.depth,
+        showDisclosureSpacer: true,
         icon: const FileIcon(
           'seti:folder',
           classes: 'file-tree-icon folder-icon',

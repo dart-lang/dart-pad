@@ -16,6 +16,7 @@ class FileTreeInputItem extends StatefulComponent {
   const FileTreeInputItem({
     required this.depth,
     required this.icon,
+    this.showDisclosureSpacer = false,
     this.placeholder,
     required this.onConfirm,
     required this.onCancel,
@@ -33,6 +34,9 @@ class FileTreeInputItem extends StatefulComponent {
 
   /// The icon component to display next to the input.
   final Component icon;
+
+  /// Whether to reserve the leading disclosure-arrow slot before [icon].
+  final bool showDisclosureSpacer;
 
   /// The optional placeholder text for the text input.
   final String? placeholder;
@@ -200,7 +204,7 @@ class _FileTreeInputItemState extends State<FileTreeInputItem> {
       },
       children: [
         div(classes: 'file-tree-item input-row', [
-          const span(classes: 'file-tree-disclosure spacer', []),
+          if (component.showDisclosureSpacer) const span(classes: 'file-tree-disclosure spacer', []),
           component.icon,
           div(classes: 'file-tree-input-container', [
             input<String>(
