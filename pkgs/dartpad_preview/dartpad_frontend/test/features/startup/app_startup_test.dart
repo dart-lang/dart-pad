@@ -1657,15 +1657,7 @@ void main() {
       const editedSource = 'void main() { print("keep edits"); }';
       mainTab.editor.text = editedSource;
 
-      (web.document.querySelector('.app-footer-channel')! as web.HTMLButtonElement).click();
-      await pumpEventQueue();
-      final items = web.document.querySelectorAll('.dropdown-menu-item');
-      final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
-      final item = [
-        for (var i = 0; i < items.length; i++) items.item(i)!,
-      ].singleWhere((item) => item.textContent!.contains(label));
-      (item as web.HTMLButtonElement).click();
-      await pumpEventQueue();
+      await _selectFlutterChannel(channel);
 
       expect(loads, 1);
       expect(repositories, hasLength(2));
@@ -1724,15 +1716,7 @@ void main() {
       );
       await pumpEventQueue();
       if (channel != 'stable') {
-        (web.document.querySelector('.app-footer-channel')! as web.HTMLButtonElement).click();
-        await pumpEventQueue();
-        final items = web.document.querySelectorAll('.dropdown-menu-item');
-        final label = '${channel[0].toUpperCase()}${channel.substring(1)} channel';
-        final item = [
-          for (var i = 0; i < items.length; i++) items.item(i)!,
-        ].singleWhere((item) => item.textContent!.contains(label));
-        (item as web.HTMLButtonElement).click();
-        await pumpEventQueue();
+        await _selectFlutterChannel(channel);
       }
       expect(repositories.last.sdk.channel, channel);
       expect(loadedSamples, ['counter']);
@@ -1892,6 +1876,25 @@ void injectSource(String source) {
       ),
     ),
   );
+}
+
+// Opens the footer SDK selector and picks the Flutter SDK of [channel]. Beta and main share
+// a version label, so the channel tag identifies the entry.
+Future<void> _selectFlutterChannel(String channel) async {
+  (web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement).click();
+  await pumpEventQueue();
+  final label = availableSdks.singleWhere((sdk) => sdk.isFlutter && sdk.channel == channel).menuLabel;
+  final items = web.document.querySelectorAll('.dropdown-menu-item');
+  final item =
+      [
+        for (var i = 0; i < items.length; i++) items.item(i)! as web.Element,
+      ].singleWhere(
+        (item) =>
+            item.querySelector('.dropdown-menu-item-name')?.textContent == label &&
+            item.querySelector('.sdk-tag')?.textContent == channel,
+      );
+  (item as web.HTMLButtonElement).click();
+  await pumpEventQueue();
 }
 
 // Headless Chrome cannot reliably resize the test iframe's native viewport.

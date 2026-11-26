@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
+import 'package:dartpad_frontend/features/shared/sdk_kind.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 
@@ -65,6 +66,35 @@ void main() {
       expect(flutter.dartVersion, '3.15.0 (build 3.15.0-27.0.dev)');
       expect(flutter.flutterVersion, '3.50.0-1.0.pre-39');
       expect(dart.dartVersion, '3.14.0-315.1.beta');
+    });
+
+    test('labels menu entries by version only', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'flutter/',
+        dartVersion: '3.14.0',
+        flutterVersion: '3.50.1',
+        channel: 'stable',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.0');
+
+      expect(flutter.menuLabel, '3.50.1 · Dart 3.14.0');
+      expect(dart.menuLabel, '3.13.0');
+    });
+
+    test('derives the SDK kind from the Flutter version', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'f/',
+        dartVersion: '3.14.0',
+        flutterVersion: '3.50.1',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'd/', dartVersion: '3.14.0');
+
+      expect(flutter.kind, SdkKind.flutter);
+      expect(dart.kind, SdkKind.dart);
     });
 
     test('returns null for invalid JSON', () {

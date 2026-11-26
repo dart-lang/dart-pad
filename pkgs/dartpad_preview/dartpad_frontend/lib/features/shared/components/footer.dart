@@ -13,9 +13,11 @@ import '../../../sdks.g.dart';
 import '../icons.dart';
 import '../links.dart';
 import '../sdk_info.dart';
+import '../sdk_kind.dart';
 import '../task_status.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart';
+import 'sdk_tag.dart';
 import 'task_status_indicator.dart';
 
 /// The application footer with links, runtime information, and shortcuts.
@@ -112,84 +114,73 @@ class _FooterState extends State<Footer> {
       else
         const div(classes: 'app-footer-spacer', []),
       TaskStatusIndicator(controller: component.taskStatus),
-      _buildRuntimeVersions(compact: compact),
-      if (component.currentSdk case final sdk? when sdk.channel?.isNotEmpty == true)
-        _buildChannelSelector(sdk, compact: compact),
+      _buildSdkSelector(compact: compact),
     ]);
   }
 
-  Component _buildRuntimeVersions({required bool compact}) {
+  Component _buildSdkSelector({required bool compact}) {
     final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
     final label = currentSdk?.displayName ?? 'Dart …';
 
-    return DropdownMenu(
+    return DropdownMenu.columns(
       openUp: true,
       disabled: onSelectSdk == null,
       trigger: button(
-        classes: 'app-footer-sdk-trigger',
+        // A fixed width keeps the footer from shifting when switching between Dart and Flutter.
+        classes: compact ? 'app-footer-sdk-trigger' : 'app-footer-sdk-trigger app-footer-sdk-trigger-fixed',
         disabled: onSelectSdk == null,
         attributes: {'aria-label': 'Select DartPad SDK ($label)', 'title': 'Select DartPad SDK'},
         [
-          const svg(
-            classes: 'app-footer-info-icon',
-            viewBox: '0 0 24 24',
-            width: Unit.pixels(14),
-            height: Unit.pixels(14),
-            attributes: {'aria-hidden': 'true', 'focusable': 'false', 'fill': 'currentColor'},
-            [
-              path(
-                d: 'M11 7h2v2h-2zm0 4h2v6h-2zm1-9a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z',
-                [],
-              ),
-            ],
-          ),
-          span(classes: 'app-footer-sdk-label', [.text(compact ? currentSdk?.name ?? 'Dart' : label)]),
+          span(classes: 'app-footer-sdk-label', _buildSdkLabel(currentSdk, compact: compact)),
         ],
       ),
-      items: [
-        for (final sdk in availableSdks.where(
-          (sdk) =>
-              sdk.channel == sdkChannelForKind(currentSdk?.channel ?? defaultSdk.channel, isFlutter: sdk.isFlutter),
-        ))
-          DropdownMenuItem(
-            label: sdk.displayName,
-            trailingIcon: sdk == currentSdk ? 'check' : null,
-            isSelected: sdk == currentSdk,
-            onPressed: () => onSelectSdk?.call(sdk),
-          ),
-      ],
+      columns: _sdkColumns(),
     );
   }
 
-  Component _buildChannelSelector(SdkInfo currentSdk, {required bool compact}) {
+  /// The trigger label, with the Flutter and Dart logos standing in for their names.
+  List<Component> _buildSdkLabel(SdkInfo? sdk, {required bool compact}) {
+    if (sdk == null) {
+      return const [SdkLogo(.dart), .text('…')];
+    }
+    if (compact) {
+      return [SdkLogo(sdk.kind)];
+    }
+    final channel = sdk.channel;
+    return [
+      if (sdk.shortFlutterVersion case final flutter?) ...[
+        const SdkLogo(.flutter),
+        .text('$flutter •'),
+      ],
+      const SdkLogo(.dart),
+      .text(sdk.shortDartVersion),
+      if (channel != null) SdkTag(channel),
+    ];
+  }
+
+  /// The popup's contents: one column per SDK kind, each listing its available SDKs.
+  ///
+  /// Kept apart from the popup itself so that supporting more SDKs (e.g. a
+  /// scrollable list with sticky headers) only needs changes here.
+  List<List<DropdownMenuEntry>> _sdkColumns() {
+    final currentSdk = component.currentSdk;
     final onSelectSdk = component.onSelectSdk;
-    final label = _channelLabel(currentSdk.channel!);
-    return DropdownMenu(
-      openUp: true,
-      disabled: onSelectSdk == null,
-      trigger: button(
-        classes: 'app-footer-channel',
-        disabled: onSelectSdk == null,
-        attributes: {'aria-label': 'Select ${currentSdk.name} channel ($label)'},
+    return [
+      for (final kind in const [SdkKind.flutter, SdkKind.dart])
         [
-          const Icon('tune', size: 14, attributes: {'aria-hidden': 'true'}),
-          if (!compact) span(classes: 'app-footer-channel-label', [.text(label)]),
+          DropdownMenuDivider(label: kind.label, leading: SdkLogo(kind)),
+          // `availableSdks` is ordered oldest to newest; the menu lists the newest first.
+          for (final sdk in availableSdks.where((sdk) => sdk.kind == kind).toList().reversed)
+            DropdownMenuItem(
+              label: sdk.menuLabel,
+              trailing: sdk.channel == null ? null : SdkTag(sdk.channel!),
+              isSelected: sdk == currentSdk,
+              onPressed: () => onSelectSdk?.call(sdk),
+            ),
         ],
-      ),
-      items: [
-        for (final sdk in availableSdks.where((sdk) => sdk.isFlutter == currentSdk.isFlutter && sdk.channel != null))
-          DropdownMenuItem(
-            label: _channelLabel(sdk.channel!),
-            trailingIcon: sdk == currentSdk ? 'check' : null,
-            isSelected: sdk == currentSdk,
-            onPressed: () => onSelectSdk?.call(sdk),
-          ),
-      ],
-    );
+    ];
   }
-
-  String _channelLabel(String channel) => '${channel[0].toUpperCase()}${channel.substring(1)} channel';
 
   Component _buildPrivacyNoticeLink() {
     return const a(
@@ -219,6 +210,8 @@ class _FooterState extends State<Footer> {
 
   static List<StyleRule> get styles => [
     ...TaskStatusIndicator.styles,
+    ...SdkLogo.styles,
+    ...SdkTag.styles,
     css('.app-footer').styles(
       display: .flex,
       minHeight: 34.px,
@@ -253,7 +246,7 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
     ),
     css('.app-footer-link:hover').styles(color: colorOnSurface),
-    css('.app-footer-sdk-trigger, .app-footer-channel').styles(
+    css('.app-footer-sdk-trigger').styles(
       display: .inlineFlex,
       position: const .relative(),
       height: 28.px,
@@ -272,16 +265,24 @@ class _FooterState extends State<Footer> {
       whiteSpace: .noWrap,
       backgroundColor: Colors.transparent,
     ),
-    css('.app-footer-sdk-trigger, .app-footer-channel').styles(cursor: .pointer),
-    css(
-      '.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus, '
-      '.app-footer-channel:not(:disabled):hover, .app-footer-channel:not(:disabled):focus',
-    ).styles(
+    css('.app-footer-sdk-trigger').styles(cursor: .pointer),
+    css('.app-footer-sdk-trigger:not(:disabled):hover, .app-footer-sdk-trigger:not(:disabled):focus').styles(
       backgroundColor: colorSurface.highlight(colorOnSurface, 0.1),
     ),
-    css('.app-footer-sdk-trigger:disabled, .app-footer-channel:disabled').styles(
+    css('.app-footer-sdk-trigger:disabled').styles(
       opacity: 0.7,
       cursor: .notAllowed,
+    ),
+    // Wide enough for the longest label (Flutter version, Dart version and channel tag).
+    css('.app-footer-sdk-trigger-fixed').styles(
+      width: 176.px,
+      boxSizing: .borderBox,
+      justifyContent: .end,
+    ),
+    css('.app-footer-sdk-label').styles(
+      display: .inlineFlex,
+      alignItems: .center,
+      gap: Gap.all(4.px),
     ),
     css('.app-footer-spacer').styles(flex: const .grow(1)),
     css('.app-footer .task-status-trigger').styles(

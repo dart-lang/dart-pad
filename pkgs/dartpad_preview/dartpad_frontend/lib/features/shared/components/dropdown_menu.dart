@@ -25,10 +25,13 @@ sealed class DropdownMenuEntry {
 
 /// A non-interactive text divider / category header in a [DropdownMenu].
 class DropdownMenuDivider extends DropdownMenuEntry {
-  const DropdownMenuDivider({required this.label});
+  const DropdownMenuDivider({required this.label, this.leading});
 
   /// The category label displayed as a header.
   final String label;
+
+  /// An optional component (e.g. a logo) displayed before the label.
+  final Component? leading;
 }
 
 /// A single interactive item in a [DropdownMenu].
@@ -39,6 +42,7 @@ class DropdownMenuItem extends DropdownMenuEntry {
     this.leadingImage,
     this.leadingIcon,
     this.leadingIconSize = 18,
+    this.trailing,
     this.trailingIcon,
     this.trailingIconSize = 16,
     this.isSelected = false,
@@ -59,6 +63,9 @@ class DropdownMenuItem extends DropdownMenuEntry {
   /// Size of the leading icon.
   final double leadingIconSize;
 
+  /// An optional component (e.g. a tag) displayed after the label.
+  final Component? trailing;
+
   /// Optional trailing icon name (Material Symbol).
   final String? trailingIcon;
 
@@ -74,8 +81,18 @@ class DropdownMenuItem extends DropdownMenuEntry {
 /// Renders a trigger widget that toggles a dropdown panel with a list of
 /// [DropdownMenuItem]s. Clicking outside the menu dismisses it.
 class DropdownMenu extends StatefulComponent {
-  const DropdownMenu({
-    required this.items,
+  DropdownMenu({
+    required List<DropdownMenuEntry> items,
+    this.trigger,
+    this.alignLeft = false,
+    this.openUp = false,
+    this.disabled = false,
+    super.key,
+  }) : columns = [items];
+
+  /// Creates a menu whose entries are laid out side by side, one list per column.
+  const DropdownMenu.columns({
+    required this.columns,
     this.trigger,
     this.alignLeft = false,
     this.openUp = false,
@@ -83,8 +100,8 @@ class DropdownMenu extends StatefulComponent {
     super.key,
   });
 
-  /// The menu entries to display when the dropdown is open.
-  final List<DropdownMenuEntry> items;
+  /// The menu entries to display when the dropdown is open, one list per column.
+  final List<List<DropdownMenuEntry>> columns;
 
   /// An optional trigger component. If `null`, a default "more_vert" icon
   /// button is rendered.
@@ -189,41 +206,49 @@ class _DropdownMenuState extends State<DropdownMenu> {
             ].join(' '),
             attributes: const {'role': 'menu'},
             [
-              ul([
-                for (final entry in component.items)
-                  li([
-                    switch (entry) {
-                      DropdownMenuDivider(:final label) => div(
-                        classes: 'dropdown-menu-divider',
-                        [
-                          span([.text(label)]),
-                        ],
-                      ),
-                      DropdownMenuItem() => button(
-                        classes: [
-                          'dropdown-menu-item',
-                          if (entry.isSelected) 'active',
-                        ].join(' '),
-                        attributes: const {'role': 'menuitem'},
-                        onClick: () {
-                          _closeMenu();
-                          entry.onPressed();
+              div(classes: 'dropdown-menu-columns', [
+                for (final column in component.columns)
+                  ul([
+                    for (final entry in column)
+                      li([
+                        switch (entry) {
+                          DropdownMenuDivider(:final label, :final leading) => div(
+                            classes: leading == null
+                                ? 'dropdown-menu-divider'
+                                : 'dropdown-menu-divider dropdown-menu-divider-leading',
+                            [
+                              ?leading,
+                              span([.text(label)]),
+                            ],
+                          ),
+                          DropdownMenuItem() => button(
+                            classes: [
+                              'dropdown-menu-item',
+                              if (entry.isSelected) 'active',
+                            ].join(' '),
+                            attributes: const {'role': 'menuitem'},
+                            onClick: () {
+                              _closeMenu();
+                              entry.onPressed();
+                            },
+                            [
+                              if (entry.leadingImage case final leadingImage?)
+                                img(
+                                  src: leadingImage,
+                                  alt: '',
+                                  classes: 'dropdown-menu-item-image',
+                                  attributes: const {'width': '20', 'height': '20'},
+                                ),
+                              if (entry.leadingIcon case final leadingIcon?)
+                                Icon(leadingIcon, size: entry.leadingIconSize),
+                              span(classes: 'dropdown-menu-item-name', [.text(entry.label)]),
+                              ?entry.trailing,
+                              if (entry.trailingIcon case final trailingIcon?)
+                                Icon(trailingIcon, size: entry.trailingIconSize),
+                            ],
+                          ),
                         },
-                        [
-                          if (entry.leadingImage case final leadingImage?)
-                            img(
-                              src: leadingImage,
-                              alt: '',
-                              classes: 'dropdown-menu-item-image',
-                              attributes: const {'width': '20', 'height': '20'},
-                            ),
-                          if (entry.leadingIcon case final leadingIcon?) Icon(leadingIcon, size: entry.leadingIconSize),
-                          span(classes: 'dropdown-menu-item-name', [.text(entry.label)]),
-                          if (entry.trailingIcon case final trailingIcon?)
-                            Icon(trailingIcon, size: entry.trailingIconSize),
-                        ],
-                      ),
-                    },
+                      ]),
                   ]),
               ]),
             ],
@@ -256,6 +281,7 @@ class _DropdownMenuState extends State<DropdownMenu> {
       backgroundColor: colorContainer,
       raw: {
         'width': 'max-content',
+        'max-width': 'calc(100vw - 16px)',
         'right': '0',
         'font-optical-sizing': 'auto',
         '-webkit-font-smoothing': 'antialiased',
@@ -281,6 +307,12 @@ class _DropdownMenuState extends State<DropdownMenu> {
       color: const Color('#f3f4f6'),
       backgroundColor: const Color('#1c2834'),
     ),
+    // Columns wrap onto separate rows when the viewport is too narrow for all of them.
+    css('.dropdown-menu-columns').styles(
+      display: .flex,
+      flexWrap: .wrap,
+      gap: Gap.all(6.px),
+    ),
     // List styling
     css('.dropdown-menu ul').styles(
       display: .flex,
@@ -296,7 +328,10 @@ class _DropdownMenuState extends State<DropdownMenu> {
     ),
     // Divider
     css('.dropdown-menu-divider').styles(
+      display: .flex,
       padding: .only(left: 10.px, right: 10.px, top: 8.px, bottom: 4.px),
+      alignItems: .center,
+      gap: Gap.all(6.px),
       color: colorOnContainer,
       fontSize: 12.px,
       fontWeight: .w700,
@@ -308,6 +343,12 @@ class _DropdownMenuState extends State<DropdownMenu> {
     css('html[data-theme="dark"] .dropdown-menu-divider').styles(
       color: const Color('#a8acad'),
     ),
+    // Headers with a logo read as titles and use the regular item color.
+    css('html[data-theme="dark"] .dropdown-menu-divider-leading').styles(
+      color: const Color('#f3f4f6'),
+    ),
+    // Solid black logos look heavy next to the text on a light background.
+    css('html[data-theme="light"] .dropdown-menu-divider-leading > :first-child').styles(opacity: 0.6),
     // Items
     css('.dropdown-menu-item').styles(
       display: .flex,

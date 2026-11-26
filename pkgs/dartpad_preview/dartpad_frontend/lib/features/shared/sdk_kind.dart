@@ -3,4 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The kind of SDK used by a project. Decoded from query parameters on project startup.
-enum SdkKind { dart, flutter }
+enum SdkKind {
+  dart('Dart'),
+  flutter('Flutter');
+
+  const SdkKind(this.label);
+
+  /// The human-readable name of this kind.
+  final String label;
+}

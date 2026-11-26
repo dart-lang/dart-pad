@@ -5,6 +5,8 @@
 import 'package:meta/meta.dart';
 import 'package:web/web.dart' as web;
 
+import 'sdk_kind.dart';
+
 /// The channel name for an SDK kind, mapping Dart Dev and Flutter Main.
 String? sdkChannelForKind(String? channel, {required bool isFlutter}) => switch ((channel, isFlutter)) {
   ('dev', true) => 'main',
@@ -44,11 +46,25 @@ final class SdkInfo {
 
   bool get isFlutter => flutterVersion != null;
 
+  SdkKind get kind => isFlutter ? SdkKind.flutter : SdkKind.dart;
+
   /// Runtime versions for display, without prerelease or build suffixes.
   String get displayName {
-    final dart = 'Dart ${_shortVersion(dartVersion)}';
-    final flutter = flutterVersion;
-    return flutter == null ? dart : 'Flutter ${_shortVersion(flutter)} • $dart';
+    final dart = 'Dart $shortDartVersion';
+    final flutter = shortFlutterVersion;
+    return flutter == null ? dart : 'Flutter $flutter • $dart';
+  }
+
+  /// The Dart version without prerelease or build suffixes.
+  String get shortDartVersion => _shortVersion(dartVersion);
+
+  /// The Flutter version without prerelease or build suffixes, or `null` for a pure Dart runtime.
+  String? get shortFlutterVersion => flutterVersion == null ? null : _shortVersion(flutterVersion!);
+
+  /// Label for SDK lists, e.g. `3.50.1 · Dart 3.14.0`. The channel is shown separately.
+  String get menuLabel {
+    final flutter = shortFlutterVersion;
+    return flutter == null ? shortDartVersion : '$flutter · Dart $shortDartVersion';
   }
 
   static final _versionPattern = RegExp(r'^\d+\.\d+\.\d+');
