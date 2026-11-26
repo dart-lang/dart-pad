@@ -11,9 +11,13 @@ import '../../editor/components/small_screen_tab_bar.dart';
 import '../../startup/examples.g.dart';
 import '../icons.dart';
 import '../links.dart';
+import '../panel_defaults.dart';
 import 'dropdown_menu.dart';
 import 'icon_button.dart' as dp;
 import 'theme_toggle.dart';
+
+const _horizontalPadding = 16.0;
+const _sectionGap = 8.0;
 
 const FontFamily _headerFontFamily = .list([
   FontFamily('Google Sans Flex'),
@@ -94,18 +98,22 @@ final class AppBar extends StatelessComponent {
       ]),
       // Left section: logo + title + new menu.
       div(classes: 'app-bar-left', [
-        const img(
-          src: 'images/dart-192.svg',
-          alt: 'Dart',
-          classes: 'app-bar-logo',
+        div(
+          classes: isSmallScreen ? 'app-bar-brand' : 'app-bar-brand app-bar-brand-wide',
+          const [
+            img(
+              src: 'images/dart-192.svg',
+              alt: 'Dart',
+              classes: 'app-bar-logo',
+            ),
+            span(classes: 'app-bar-title', [.text('DartPad')]),
+          ],
         ),
-        const span(classes: 'app-bar-title', [.text('DartPad')]),
-        const div(classes: 'app-bar-divider', []),
         DropdownMenu(
           alignLeft: true,
           disabled: isNewDisabled,
           trigger: button(
-            classes: 'app-bar-text-button',
+            classes: isSmallScreen ? 'app-bar-text-button app-bar-icon-only' : 'app-bar-text-button',
             disabled: isNewDisabled,
             attributes: {
               'aria-label': 'New',
@@ -126,8 +134,8 @@ final class AppBar extends StatelessComponent {
         const ThemeToggle(),
         DropdownMenu(
           trigger: const dp.IconButton(
-            icon: 'apps',
-            iconSize: 28.0,
+            icon: 'more_vert',
+            iconSize: 24.0,
             tooltip: 'More options',
             label: 'More options',
           ),
@@ -182,12 +190,12 @@ final class AppBar extends StatelessComponent {
       zIndex: const ZIndex(200),
       height: 52.px,
       minHeight: 52.px,
-      padding: .symmetric(horizontal: 16.px),
+      padding: .symmetric(horizontal: _horizontalPadding.px),
       border: .only(
         bottom: .solid(color: colorBorder, width: 1.px),
       ),
       alignItems: .center,
-      gap: Gap.all(8.px),
+      gap: Gap.all(_sectionGap.px),
       flex: const .shrink(0),
       fontFamily: _headerFontFamily,
       backgroundColor: colorSurface,
@@ -239,19 +247,37 @@ final class AppBar extends StatelessComponent {
           backgroundColor: const Color('#1c2834'),
         ),
         css('.app-bar-title').styles(color: const Color('#f3f4f6')),
-        css('.app-bar-divider').styles(backgroundColor: const Color('#394c60')),
-        css('.app-bar-text-button').styles(color: const Color('#f3f4f6')),
+        css('.app-bar-text-button').styles(color: const Color('#ffffff')),
         css('.app-bar-text-button:hover').styles(backgroundColor: const Color('#253446')),
-        css('.icon-button').styles(color: const Color('#a8acad')),
-        css('.icon-button:hover').styles(color: const Color('#40c4ff')),
+        css('.icon-button').styles(color: const Color('#ffffff')),
+        css('.icon-button:not(:disabled):hover').styles(
+          color: const Color('#40c4ff'),
+          backgroundColor: const Color.rgba(255, 255, 255, 0.06),
+        ),
       ]),
     ]),
+    css('.app-bar .icon-button').styles(
+      width: 36.px,
+      height: 36.px,
+      radius: .circular(50.percent),
+    ),
+    css('.app-bar .icon-button:not(:disabled):hover').styles(
+      backgroundColor: const Color.rgba(0, 0, 0, 0.06),
+    ),
     css('.app-bar-left').styles(
       display: .flex,
       position: const .relative(),
       zIndex: const ZIndex(99),
       alignItems: .center,
-      gap: Gap.all(8.px),
+      gap: Gap.all(_sectionGap.px),
+    ),
+    css('.app-bar-brand').styles(
+      display: .flex,
+      alignItems: .center,
+      gap: Gap.all(_sectionGap.px),
+    ),
+    css('.app-bar-brand-wide').styles(
+      minWidth: (fileTreeWidth - _horizontalPadding - _sectionGap).px,
     ),
     css('.app-bar-spacer').styles(
       flex: const Flex(grow: 1),
@@ -261,7 +287,7 @@ final class AppBar extends StatelessComponent {
       position: const .relative(),
       zIndex: const ZIndex(99),
       alignItems: .center,
-      gap: Gap.all(8.px),
+      gap: Gap.all(_sectionGap.px),
     ),
     css('.app-bar-logo').styles(
       width: 36.px,
@@ -278,12 +304,6 @@ final class AppBar extends StatelessComponent {
         'font-variant-ligatures': 'none',
       },
     ),
-    css('.app-bar-divider').styles(
-      width: 1.px,
-      height: 24.px,
-      margin: .symmetric(horizontal: 4.px),
-      backgroundColor: colorBorder,
-    ),
 
     // -- Text button (New) --
     css('.app-bar-text-button').styles(
@@ -299,6 +319,13 @@ final class AppBar extends StatelessComponent {
       fontSize: 14.px,
       fontWeight: .w500,
       backgroundColor: Colors.transparent,
+    ),
+    css('.app-bar-text-button.app-bar-icon-only').styles(
+      width: 36.px,
+      height: 36.px,
+      padding: .zero,
+      radius: .circular(50.percent),
+      justifyContent: .center,
     ),
     css('.app-bar-text-button:hover').styles(
       backgroundColor: colorBorder,
