@@ -24,66 +24,15 @@ import 'project_loader.dart';
 /// `dart pub unpack`.
 /// Each amended file keeps its original bytes in a sibling `*.original.dartpad.yaml` file.
 void stripUnavailableDependencies(Project project) {
-  for (final packageDirectory in _packageDirectories(project)) {
+  // A package is a directory holding pubspec.yaml; its overrides need that snapshot.
+  final packageDirectories = <String>{
+    for (final path in project.paths)
+      if (basenameWorkspacePath(path) == 'pubspec.yaml') parentWorkspacePath(path),
+  };
+  for (final packageDirectory in packageDirectories) {
     _stripUnavailableDependenciesInPackage(project, packageDirectory: packageDirectory);
   }
 }
-
-/// Returns the Problems entries for unavailable entries in [project] without changing it.
-///
-/// Checks the sections [stripUnavailableDependencies] checks, against the files as they are at call-time.
-List<DiagnosticEntry> dependencyDiagnostics(Project project) {
-  final diagnostics = <DiagnosticEntry>[];
-  for (final packageDirectory in _packageDirectories(project)) {
-    final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
-    final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
-    if (pubspec != null) {
-      for (final sectionName in const ['dependencies', 'dev_dependencies', 'dependency_overrides']) {
-        diagnostics.addAll(
-          _sectionDiagnostics(
-            project,
-            file: pubspec,
-            sectionName: sectionName,
-            overrides: overrides,
-          ),
-        );
-      }
-    }
-    if (overrides != null) {
-      diagnostics.addAll(
-        _sectionDiagnostics(
-          project,
-          file: overrides,
-          sectionName: 'dependency_overrides',
-        ),
-      );
-    }
-  }
-  return diagnostics;
-}
-
-/// The Problems entries for the unavailable entries of [sectionName] in [file].
-List<DiagnosticEntry> _sectionDiagnostics(
-  Project project, {
-  required _Pubspec file,
-  required String sectionName,
-  _Pubspec? overrides,
-}) => [
-  for (final entry in _unavailableEntries(
-    project,
-    file: file,
-    sectionName: sectionName,
-    overrides: overrides,
-  ))
-    _dependencyDiagnostic(file.path, entry),
-];
-
-/// The directories of the packages in [project]. A package is a directory holding pubspec.yaml,
-/// and its overrides need that snapshot.
-Set<String> _packageDirectories(Project project) => {
-  for (final path in project.paths)
-    if (basenameWorkspacePath(path) == 'pubspec.yaml') parentWorkspacePath(path),
-};
 
 /// Prepares the pubspec and overrides files of one package directory.
 ///
@@ -92,7 +41,6 @@ void _stripUnavailableDependenciesInPackage(Project project, {required String pa
   final pubspec = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec.yaml'));
   final overrides = _readPubspec(project, joinWorkspacePath(packageDirectory, 'pubspec_overrides.yaml'));
   if (pubspec != null) {
-    _warnAboutUnavailableDependencies(project, file: pubspec, overrides: overrides);
     _amendFile(
       project,
       file: pubspec,
@@ -123,7 +71,7 @@ typedef _DependencyComment = ({
 typedef _UnavailableEntry = ({
   String name,
   YamlNode nameNode,
-  YamlNode node,
+  YamlMap node,
   String reason,
 });
 
@@ -154,35 +102,6 @@ _Pubspec? _readPubspec(Project project, String path) {
     return null;
   }
   return (path: path, bytes: bytes, source: source, editor: pubspecEditor, node: pubspecNode);
-}
-
-/// Warns about each unavailable entry in `dependencies`. These entries are never removed,
-/// so the project may not resolve.
-void _warnAboutUnavailableDependencies(Project project, {required _Pubspec file, _Pubspec? overrides}) {
-  final entries = _unavailableEntries(
-    project,
-    file: file,
-    sectionName: 'dependencies',
-    overrides: overrides,
-  );
-  for (final entry in entries) {
-    project.addImportWarning(
-      'Dependency "${entry.name}" in ${file.path} (dependencies) ${entry.reason}, and cannot be resolved.',
-    );
-  }
-}
-
-/// The Problems tab entry for an unavailable `dependencies` entry in the pubspec at [path].
-DiagnosticEntry _dependencyDiagnostic(String path, _UnavailableEntry entry) {
-  return DiagnosticEntry(
-    path,
-    Diagnostic(
-      line: entry.nameNode.span.start.line,
-      character: entry.nameNode.span.start.column,
-      message: 'Dependency "${entry.name}" ${entry.reason}, and cannot be resolved.',
-      severity: DiagnosticSeverity.error,
-    ),
-  );
 }
 
 /// Removes unavailable entries from each of [sectionNames] and writes [file].
@@ -244,15 +163,10 @@ List<_DependencyComment> _collectDependencyAmendments(
 }
 
 /// Returns the entries of [sectionName] that cannot be loaded in DartPad.
-///
-/// For `dependencies`, an entry is checked against the override that replaces it when
-/// [overrides] or [file] declares an available one. Unavailable overrides are removed,
-/// so the entry then resolves from its own source.
 List<_UnavailableEntry> _unavailableEntries(
   Project project, {
   required _Pubspec file,
   required String sectionName,
-  _Pubspec? overrides,
 }) {
   final section = file.node.nodes[sectionName];
   if (section is! YamlMap) {
@@ -263,20 +177,13 @@ List<_UnavailableEntry> _unavailableEntries(
     final dependencyNameNode = dependencyEntry.key as YamlNode;
     final dependencyName = dependencyNameNode.value;
     final dependencyNode = dependencyEntry.value;
-    if (dependencyName is! String) {
+    if (dependencyName is! String || dependencyNode is! YamlMap) {
       continue;
     }
-    final packageDirectory = parentWorkspacePath(file.path);
-    final override = sectionName == 'dependencies'
-        ? _overrideFor(dependencyName, file: file, overrides: overrides)
-        : null;
-    final overrideIsAvailable =
-        override != null &&
-        _unavailableReason(project, packageDirectory: packageDirectory, dependencyNode: override) == null;
     final unavailableReason = _unavailableReason(
       project,
-      packageDirectory: packageDirectory,
-      dependencyNode: overrideIsAvailable ? override : dependencyNode,
+      packageDirectory: parentWorkspacePath(file.path),
+      dependencyNode: dependencyNode,
     );
     if (unavailableReason case final reason?) {
       entries.add((
@@ -361,32 +268,12 @@ String _commentOutEntry(_DependencyComment entry, {required String lineEnding}) 
   return commentedLines.join(lineEnding);
 }
 
-/// Returns the override that pub applies to [name], or null when none is declared.
-///
-/// Pub applies `pubspec_overrides.yaml` over the `dependency_overrides` in `pubspec.yaml`.
-YamlNode? _overrideFor(String name, {required _Pubspec file, _Pubspec? overrides}) {
-  for (final source in [overrides, file]) {
-    final section = source?.node.nodes['dependency_overrides'];
-    if (section is YamlMap && section.nodes[name] != null) {
-      return section.nodes[name];
-    }
-  }
-  return null;
-}
-
 /// Returns why a dependency cannot be loaded in DartPad, or null when it can.
-///
-/// Only git and path sources can be unavailable. Hosted sources load from pub, so a
-/// [dependencyNode] that is not a map (a version constraint such as `^1.0.0`, `any`,
-/// or an empty value) is always available.
 String? _unavailableReason(
   Project project, {
   required String packageDirectory,
-  required YamlNode dependencyNode,
+  required YamlMap dependencyNode,
 }) {
-  if (dependencyNode is! YamlMap) {
-    return null;
-  }
   if (dependencyNode.containsKey('git')) {
     return 'uses Git, which is not supported by DartPad';
   }

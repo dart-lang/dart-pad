@@ -22,8 +22,6 @@ final class DiagnosticsViewModel extends ChangeNotifier {
   final TabsViewModel tabs;
 
   List<DiagnosticEntry> _diagnostics = const [];
-  List<DiagnosticEntry> _languageServerDiagnostics = const [];
-  List<DiagnosticEntry> _importDiagnostics = const [];
   String? _projectRoot;
 
   StreamSubscription<Map<String, Object?>>? _diagnosticsSubscription;
@@ -37,15 +35,6 @@ final class DiagnosticsViewModel extends ChangeNotifier {
 
   /// Whether some diagnostics are omitted from the problems panel.
   bool get hasMoreDiagnostics => _diagnostics.length > maxDisplayedDiagnostics;
-
-  /// Replaces the problems recorded while importing the project.
-  ///
-  /// These remain listed when the language server is absent or detached.
-  void setImportDiagnostics(List<DiagnosticEntry> entries) {
-    _importDiagnostics = List.unmodifiable(entries);
-    _rebuildDiagnostics();
-    notifyListeners();
-  }
 
   /// Opens the file for [diagnostic] and navigates to its source position.
   Future<void> openDiagnostic(String fileName, Diagnostic diagnostic) async {
@@ -74,28 +63,17 @@ final class DiagnosticsViewModel extends ChangeNotifier {
   }
 
   void _updateDiagnostics(LanguageServerClient lsc) {
-    _languageServerDiagnostics = lsc.allDiagnostics
+    _diagnostics = lsc.allDiagnostics
         .where(
           (entry) => _projectRoot == null || isWithinWorkspaceFolder(entry.fileName, _projectRoot!),
         )
         .toList(growable: false);
-    _rebuildDiagnostics();
-  }
-
-  /// Merges import and language server problems, sorted by severity then location.
-  void _rebuildDiagnostics() {
-    final byFile = <String, List<Diagnostic>>{};
-    for (final entry in [..._importDiagnostics, ..._languageServerDiagnostics]) {
-      byFile.putIfAbsent(entry.fileName, () => []).add(entry.diagnostic);
-    }
-    _diagnostics = sortedDiagnosticEntries(byFile);
   }
 
   void detachLanguageServer() {
     _diagnosticsSubscription?.cancel();
     _diagnosticsSubscription = null;
-    _languageServerDiagnostics = const [];
-    _rebuildDiagnostics();
+    _diagnostics = const [];
     notifyListeners();
   }
 

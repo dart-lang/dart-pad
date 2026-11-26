@@ -136,16 +136,11 @@ dev_dependencies:
       );
       final yaml = loadYaml(String.fromCharCodes(project.readFile('packages/root/example/pubspec.yaml')!)) as YamlMap;
       expect((yaml['dependencies'] as YamlMap).keys, ['parent', 'sibling', 'missing']);
-      expect(project.importWarnings, hasLength(6));
+      expect(project.importWarnings, hasLength(5));
       expect(project.importWarnings.join('\n'), contains('Dependency "flutter_goldens"'));
       expect(project.importWarnings.join('\n'), contains('outside the imported workspace'));
       expect(project.importWarnings.join('\n'), contains('uses Git'));
-      expect(
-        project.importWarnings.join('\n'),
-        contains(
-          'Dependency "missing" in packages/root/example/pubspec.yaml (dependencies) uses relative path "../../missing"',
-        ),
-      );
+      expect(project.importWarnings.join('\n'), isNot(contains('Dependency "missing"')));
       expect(
         project.importWarnings.where((warning) => warning.endsWith('was not loaded.')),
         hasLength(3),
@@ -353,7 +348,7 @@ dev_dependencies: {
       expect(String.fromCharCodes(project.readFile('pubspec.original.dartpad.yaml')!), pubspec);
     });
 
-    test('keeps unavailable dependencies untouched and warns that they cannot be resolved', () async {
+    test('keeps unavailable dependencies untouched and warns about none', () async {
       const pubspec = '''
 name: example
 dependencies:
@@ -366,12 +361,7 @@ dependencies:
         () => MockClient((_) async => http.Response.bytes(archive, 200)),
       );
       expect(String.fromCharCodes(project.readFile('pubspec.yaml')!), pubspec);
-      expect(project.importWarnings, [
-        'Dependency "outside" in pubspec.yaml (dependencies) uses relative path "../outside", '
-            'which is outside the imported workspace, and cannot be resolved.',
-        'Dependency "remote" in pubspec.yaml (dependencies) uses Git, '
-            'which is not supported by DartPad, and cannot be resolved.',
-      ]);
+      expect(project.importWarnings, isEmpty);
       expect(project.containsFile('pubspec.original.dartpad.yaml'), isFalse);
       expect(project.containsFile('pubspec_overrides.yaml'), isFalse);
     });
@@ -967,60 +957,6 @@ resolution: workspace
       for (final file in files.entries) ProjectFile(path: file.key, bytes: Uint8List.fromList(file.value.codeUnits)),
     ]);
 
-    test('keeps a git dependency warning-free when pubspec_overrides.yaml supplies an available path', () {
-      final project = projectWith({
-        'pubspec.yaml': 'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n',
-        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/local}\n',
-        'packages/local/pubspec.yaml': 'name: local\n',
-      });
-
-      stripUnavailableDependencies(project);
-
-      expect(project.importWarnings, isEmpty);
-      expect(dependencyDiagnostics(project), isEmpty);
-    });
-
-    test('keeps a git dependency warning-free when pubspec.yaml supplies an available path override', () {
-      final project = projectWith({
-        'pubspec.yaml':
-            'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n'
-            'dependency_overrides:\n  local: {path: packages/local}\n',
-        'packages/local/pubspec.yaml': 'name: local\n',
-      });
-
-      stripUnavailableDependencies(project);
-
-      expect(dependencyDiagnostics(project), isEmpty);
-    });
-
-    test('prefers pubspec_overrides.yaml over pubspec.yaml when both override the same dependency', () {
-      final project = projectWith({
-        'pubspec.yaml':
-            'name: app\ndependencies:\n  local: {path: packages/missing}\n'
-            'dependency_overrides:\n  local: {path: packages/missing}\n',
-        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/local}\n',
-        'packages/local/pubspec.yaml': 'name: local\n',
-      });
-
-      stripUnavailableDependencies(project);
-
-      expect(dependencyDiagnostics(project), isEmpty);
-    });
-
-    test('warns about the dependency itself when both it and its override are unavailable', () {
-      final project = projectWith({
-        'pubspec.yaml': 'name: app\ndependencies:\n  local: {git: https://example.com/local.git}\n',
-        'pubspec_overrides.yaml': 'dependency_overrides:\n  local: {path: packages/missing}\n',
-      });
-
-      stripUnavailableDependencies(project);
-
-      const message = 'Dependency "local" uses Git, which is not supported by DartPad, and cannot be resolved.';
-      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.message), [message]);
-      expect(dependencyDiagnostics(project).map((entry) => entry.diagnostic.severity), [DiagnosticSeverity.error]);
-      expect(project.importWarnings, contains(contains('Dependency "local" in pubspec.yaml (dependencies) uses Git')));
-    });
-
     test('lets a hosted dependency resolve when its path override is unavailable', () {
       final project = projectWith({
         'pubspec.yaml': 'name: app\ndependencies:\n  local: ^1.0.0\n',
@@ -1031,8 +967,6 @@ resolution: workspace
 
       final overrides = String.fromCharCodes(project.readFile('pubspec_overrides.yaml')!);
       expect((loadYaml(overrides) as YamlMap)['dependency_overrides'], isEmpty);
-      expect(project.importWarnings, isNot(contains(contains('cannot be resolved'))));
-      expect(dependencyDiagnostics(project), isEmpty);
     });
 
     test('lets a hosted dependency resolve when its pubspec.yaml override is unavailable', () {
@@ -1046,8 +980,6 @@ resolution: workspace
 
       final pubspec = String.fromCharCodes(project.readFile('pubspec.yaml')!);
       expect((loadYaml(pubspec) as YamlMap)['dependency_overrides'], isEmpty);
-      expect(project.importWarnings, isNot(contains(contains('cannot be resolved'))));
-      expect(dependencyDiagnostics(project), isEmpty);
     });
   });
 }
