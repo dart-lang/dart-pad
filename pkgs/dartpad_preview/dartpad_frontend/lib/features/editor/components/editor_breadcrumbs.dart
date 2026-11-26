@@ -62,18 +62,15 @@ final class EditorBreadcrumbs extends StatelessComponent {
         height: 24.px,
         minHeight: 24.px,
         padding: .symmetric(horizontal: 12.px),
-        border: .only(
-          bottom: .solid(color: colorBorder, width: 1.px),
-        ),
         overflow: const .only(x: .auto, y: .hidden),
         userSelect: .none,
         alignItems: .center,
         gap: .all(4.px),
         flex: const .shrink(0),
-        color: colorOnSurface,
+        color: colorEditorLineNumber,
         fontFamily: monospaceFontFamily,
         fontSize: 11.px,
-        backgroundColor: colorSurface,
+        backgroundColor: colorEditorBackground,
       ),
       css('.editor-breadcrumb-item').styles(
         display: .inlineFlex,
@@ -81,16 +78,9 @@ final class EditorBreadcrumbs extends StatelessComponent {
         gap: .all(4.px),
         whiteSpace: .noWrap,
       ),
-      css('.editor-breadcrumb-folder').styles(
-        color: colorOnSurface.highlight(colorSurface, 0.2),
-      ),
-      css('.editor-breadcrumb-file').styles(
-        color: colorOnContainer,
-      ),
       css('.editor-breadcrumb-separator').styles(
         display: .inlineFlex,
         alignItems: .center,
-        color: colorOnSurface.highlight(colorSurface, 0.4),
       ),
     ]),
   ];

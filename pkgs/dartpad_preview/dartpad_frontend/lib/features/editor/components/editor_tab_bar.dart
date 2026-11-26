@@ -218,7 +218,10 @@ final class EditorTabBar extends StatelessComponent {
     css('.editor-tab-bar', [
       css('&').styles(
         display: .flex,
-        minHeight: 38.px,
+        height: paneHeaderHeight,
+        minHeight: paneHeaderHeight,
+        padding: .only(top: 4.px),
+        boxSizing: .borderBox,
         overflow: const .only(x: .auto, y: .hidden),
         flex: const .shrink(0),
         backgroundColor: colorSurface,
@@ -229,9 +232,7 @@ final class EditorTabBar extends StatelessComponent {
           minWidth: 96.px,
           maxWidth: 180.px,
           padding: .only(left: 12.px, right: 8.px),
-          border: .only(
-            top: .solid(color: Colors.transparent, width: 2.px),
-          ),
+          radius: tabTopBorderRadius,
           cursor: .pointer,
           userSelect: .none,
           alignItems: .center,
@@ -247,7 +248,7 @@ final class EditorTabBar extends StatelessComponent {
           backgroundColor: colorTabActive,
         ),
         css('&.active:hover').styles(
-          backgroundColor: colorTabActive.highlight(colorOnContainer, 0.05),
+          backgroundColor: colorTabActive,
         ),
         css('.editor-tab-name').styles(
           minWidth: .zero,

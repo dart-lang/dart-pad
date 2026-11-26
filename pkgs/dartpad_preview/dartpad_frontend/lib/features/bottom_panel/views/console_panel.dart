@@ -84,7 +84,7 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
-      backgroundColor: colorContainer,
+      backgroundColor: colorEditorBackground,
     ),
     css('.console-list').styles(
       minHeight: .zero,

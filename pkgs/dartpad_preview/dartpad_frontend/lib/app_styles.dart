@@ -11,9 +11,17 @@ final colorSurface = const ColorToken('surface', Color('#F5F5F7'), dark: Color('
 final colorOnSurface = const ColorToken('on-surface', Color('#445F91'), dark: Color('#FFFFFF'));
 final colorContainer = const ColorToken('container', Color('#FFFFFF'), dark: Color('#0C141D'));
 final colorOnContainer = const ColorToken('on-container', Color('#000000'), dark: Color('#FFFFFF'));
+final colorEditorBackground = const ColorToken('editor-background', Color('#FFFFFF'), dark: Color('#0E161F'));
+final colorEditorLineNumber = const ColorToken('editor-line-number', Color('#D0D0D2'), dark: Color('#909090'));
 
 final colorBorder = colorSurface.highlight(colorOnSurface, 0.05);
 const colorBackdrop = Color.rgba(0, 0, 0, 0.55);
+
+/// Shared outer height for the Explorer, Editor tab bar, and Preview pane headers.
+const paneHeaderHeight = Unit.pixels(38);
+
+/// Shared top corner radius for editor and bottom-panel tabs.
+final tabTopBorderRadius = BorderRadius.only(topLeft: .circular(6.px), topRight: .circular(6.px));
 
 extension ColorHighlight on Color {
   Color highlight(Color overlay, double amount) {
@@ -23,13 +31,13 @@ extension ColorHighlight on Color {
 
 final colorTabActive = ColorToken(
   'tab-active',
-  const Color('#FFFFFF'),
-  dark: colorSurface.highlight(colorOnSurface, 0.1),
+  colorEditorBackground,
+  dark: colorEditorBackground,
 );
 final colorTabInactive = ColorToken(
   'tab-inactive',
-  colorContainer.highlight(colorOnContainer, 0.1),
-  dark: colorContainer,
+  colorSurface,
+  dark: colorSurface,
 );
 
 final colorError = const ColorToken('error', Color('#F44336'));
@@ -110,6 +118,8 @@ List<StyleRule> get appStyles => [
     colorOnSurface,
     colorContainer,
     colorOnContainer,
+    colorEditorBackground,
+    colorEditorLineNumber,
     colorTabActive,
     colorTabInactive,
     colorError,

@@ -325,7 +325,10 @@ final class _PreviewContainerState extends State<PreviewContainer> {
       css('.preview-toolbar', [
         css('&').styles(
           display: .flex,
-          padding: .symmetric(vertical: 4.px, horizontal: 4.px),
+          height: paneHeaderHeight,
+          minHeight: paneHeaderHeight,
+          padding: .symmetric(horizontal: 4.px),
+          boxSizing: .borderBox,
           border: .only(
             bottom: .solid(color: colorBorder, width: 1.px),
           ),

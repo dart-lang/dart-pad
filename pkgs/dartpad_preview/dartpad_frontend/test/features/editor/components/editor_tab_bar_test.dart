@@ -8,7 +8,11 @@ library;
 import 'dart:async';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/app_styles.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/codemirror_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
+import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
+import 'package:dartpad_frontend/features/preview/view/preview_container.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
 import 'package:jaspr/dom.dart' hide path;
 import 'package:jaspr/jaspr.dart';
@@ -238,6 +242,74 @@ void main() {
       final cleanAction = cleanElement.querySelector('.editor-tab-action') as web.HTMLElement;
       expect(cleanAction.className, isNot(contains('dirty')));
       expect(cleanAction.querySelector('.editor-tab-dirty-dot'), isNull);
+    });
+
+    testClient('matches active tab to code area background and inactive tabs to side pane headers', (tester) {
+      final previousTheme = web.document.documentElement!.getAttribute('data-theme');
+      addTearDown(() {
+        if (previousTheme == null) {
+          web.document.documentElement!.removeAttribute('data-theme');
+        } else {
+          web.document.documentElement!.setAttribute('data-theme', previousTheme);
+        }
+      });
+
+      final activeTab = _TestEditorTab('lib/main.dart');
+      final inactiveTab = _TestEditorTab('pubspec.yaml');
+
+      tester.pumpComponent(
+        div([
+          Style(
+            styles: [
+              ...appStyles,
+              ...EditorTabBar.styles,
+              ...codemirrorStyles,
+              ...FileTreeView.styles,
+              ...PreviewContainer.styles,
+            ],
+          ),
+          const div(classes: 'file-tree', [div(classes: 'file-tree-header', [])]),
+          EditorTabBar(
+            openTabs: [activeTab, inactiveTab],
+            activeFile: 'lib/main.dart',
+            onSwitchFile: (_) {},
+            onCloseFile: (_, {discardChanges = false}) => true,
+          ),
+          const div(classes: 'editor-container', []),
+          const div(classes: 'preview-container', [div(classes: 'preview-toolbar', [])]),
+        ]),
+      );
+
+      final tabs = web.document.querySelectorAll('.editor-tab');
+      final activeElement = tabs.item(0)! as web.HTMLElement;
+      final inactiveElement = tabs.item(1)! as web.HTMLElement;
+      final editorContainer = web.document.querySelector('.editor-container')! as web.HTMLElement;
+      final tabBar = web.document.querySelector('.editor-tab-bar')! as web.HTMLElement;
+      final fileTreeHeader = web.document.querySelector('.file-tree-header')! as web.HTMLElement;
+      final previewToolbar = web.document.querySelector('.preview-toolbar')! as web.HTMLElement;
+
+      expect(tabBar.getBoundingClientRect().height, 38);
+      expect(fileTreeHeader.getBoundingClientRect().height, tabBar.getBoundingClientRect().height);
+      expect(previewToolbar.getBoundingClientRect().height, tabBar.getBoundingClientRect().height);
+      expect(web.window.getComputedStyle(activeElement).borderTopLeftRadius, '6px');
+      expect(web.window.getComputedStyle(activeElement).borderTopRightRadius, '6px');
+      expect(web.window.getComputedStyle(activeElement).borderBottomLeftRadius, '0px');
+      expect(web.window.getComputedStyle(activeElement).borderBottomRightRadius, '0px');
+
+      for (final (theme, expectedActiveBg, expectedInactiveBg) in [
+        ('light', 'rgb(255, 255, 255)', 'rgb(245, 245, 247)'),
+        ('dark', 'rgb(14, 22, 31)', 'rgb(29, 40, 52)'),
+      ]) {
+        web.document.documentElement!.setAttribute('data-theme', theme);
+        final activeBg = web.window.getComputedStyle(activeElement).backgroundColor;
+        final inactiveBg = web.window.getComputedStyle(inactiveElement).backgroundColor;
+
+        expect(activeBg, expectedActiveBg);
+        expect(activeBg, web.window.getComputedStyle(editorContainer).backgroundColor);
+        expect(inactiveBg, expectedInactiveBg);
+        expect(inactiveBg, web.window.getComputedStyle(fileTreeHeader).backgroundColor);
+        expect(inactiveBg, web.window.getComputedStyle(previewToolbar).backgroundColor);
+      }
     });
   });
 }

@@ -25,7 +25,7 @@ List<StyleRule> get codemirrorStyles => [
     minWidth: .zero,
     overflow: .hidden,
     flex: const Flex(grow: 1, basis: .zero),
-    backgroundColor: colorContainer,
+    backgroundColor: colorEditorBackground,
   ),
   css('.editor-container .cm-editor').styles(
     position: const .relative(),
@@ -42,6 +42,10 @@ List<StyleRule> get codemirrorStyles => [
     ]),
     fontSize: 14.px,
     raw: {'overscroll-behavior': 'none'},
+  ),
+  css('#editor-navigation-panel:has(.editor-breadcrumbs) + .editor-stack .editor-container .cm-scroller').styles(
+    padding: .only(top: 24.px),
+    boxSizing: .borderBox,
   ),
   // Prevent iOS focus zoom for editor text smaller than 16px.
   css('.editor-shell-small .editor-container .cm-scroller').styles(
