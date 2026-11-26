@@ -301,7 +301,7 @@ void main() {
       await pumpEventQueue();
       expect(tabs!.getTab('renamed.dart'), same(tab));
       expect(tab.presentationMode, PresentationMode.source);
-      expect(tab.editor.file, 'renamed.dart');
+      expect(tab.path, 'renamed.dart');
       expect(tab.codeActionsController.file, 'renamed.dart');
 
       workspace.moveFile('renamed.dart', 'renamed.markdown');
