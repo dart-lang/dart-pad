@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-name: package:dartpad_preview
+name: dartpad
 
 permissions:
   contents: read
@@ -11,13 +11,17 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/dartpad_preview.yml'
-      - 'pkgs/dartpad_preview/**'
+      - '.github/workflows/dartpad.yml'
+      - 'pkgs/**'
+      - 'pubspec.yaml'
+      - 'analysis_options.yaml'
   pull_request:
     branches: [main]
     paths:
-      - '.github/workflows/dartpad_preview.yml'
-      - 'pkgs/dartpad_preview/**'
+      - '.github/workflows/dartpad.yml'
+      - 'pkgs/**'
+      - 'pubspec.yaml'
+      - 'analysis_options.yaml'
   schedule:
     - cron: '0 0 * * 0'
 
@@ -39,36 +43,35 @@ jobs:
           node-version: '20'
 
       - name: Install Dart workspace dependencies
-        working-directory: pkgs/dartpad_preview
         run: dart pub get
 
       - name: Test and build codemirror-lang-dart
-        working-directory: pkgs/dartpad_preview/codemirror-lang-dart
+        working-directory: pkgs/codemirror-lang-dart
         run: |
           npm ci
           npm test
           npm run build
 
       - name: Install codemirror-dart Node dependencies
-        working-directory: pkgs/dartpad_preview/codemirror-dart
+        working-directory: pkgs/codemirror-dart
         run: npm ci
 
       - name: Check codemirror-dart Dart sources
-        working-directory: pkgs/dartpad_preview/codemirror-dart
+        working-directory: pkgs/codemirror-dart
         run: |
           dart format --output=none --set-exit-if-changed lib test
           dart analyze --fatal-infos
           dart test --platform chrome
 
       - name: Check codemirror-dart TypeScript and tests
-        working-directory: pkgs/dartpad_preview/codemirror-dart
+        working-directory: pkgs/codemirror-dart
         run: |
           npm run format:check
           npm run typecheck
           npm test
 
       - name: Verify codemirror-dart generated assets
-        working-directory: pkgs/dartpad_preview/codemirror-dart
+        working-directory: pkgs/codemirror-dart
         run: |
           npm run build
           git diff --exit-code -- lib/assets
@@ -86,17 +89,16 @@ jobs:
           sdk: '3.13'
 
       - name: Install dependencies
-        working-directory: pkgs/dartpad_preview
         run: dart pub get
 
       - name: Check Dart sources
-        working-directory: pkgs/dartpad_preview/dartpad_editor
+        working-directory: pkgs/dartpad_editor
         run: |
           dart format --output=none --set-exit-if-changed lib test
           dart analyze --fatal-infos
 
       - name: Run tests
-        working-directory: pkgs/dartpad_preview/dartpad_editor
+        working-directory: pkgs/dartpad_editor
         run: dart test
 
   frontend:
@@ -116,30 +118,29 @@ jobs:
           sdk: '3.13'
 
       - name: Install dependencies
-        working-directory: pkgs/dartpad_preview
         run: dart pub get
 
       - name: Generate example assets
-        working-directory: pkgs/dartpad_preview/examples
+        working-directory: pkgs/examples
         run: dart run build_examples.dart
 
       - name: Verify generated example definition is checked in
         run: |
-          git ls-files --error-unmatch pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
-          git diff --exit-code HEAD -- pkgs/dartpad_preview/dartpad_frontend/lib/features/startup/examples.g.dart
+          git ls-files --error-unmatch pkgs/dartpad_frontend/lib/features/startup/examples.g.dart
+          git diff --exit-code HEAD -- pkgs/dartpad_frontend/lib/features/startup/examples.g.dart
 
       - name: Set up SDK assets and generate sdks.g.dart
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: dart run tool/setup_sdk_assets.dart
 
       - name: Verify generated SDK manifest exists
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: test -f lib/sdks.g.dart
 
       # Channel revisions move independently of this repository, so the generated
       # manifest can differ from the checked-in version snapshot.
       - name: Verify SDK asset entrypoints
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: |
           assetCheckFailed=0
           for sdk in dart flutter; do
@@ -154,13 +155,13 @@ jobs:
           exit "$assetCheckFailed"
 
       - name: Check Dart sources
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: |
           dart format --output=none --set-exit-if-changed lib test
           dart analyze --fatal-infos
 
       - name: Run tests
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: dart test --compiler=${{ matrix.compiler }}
 
       # Verify the production Jaspr build (dual dart2wasm + dart2js fallback) in
@@ -169,5 +170,5 @@ jobs:
       # Run this dual-compiler build only once across the test matrix.
       - name: Build frontend (wasm)
         if: matrix.compiler == 'dart2wasm'
-        working-directory: pkgs/dartpad_preview/dartpad_frontend
+        working-directory: pkgs/dartpad_frontend
         run: dart run jaspr_cli:jaspr build --experimental-wasm -v

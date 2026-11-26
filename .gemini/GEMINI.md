@@ -9,8 +9,8 @@ This project is DartPad, an online editor for the Dart language.
 
 ### Project Structure
 
-DartPad runs analysis and compilation in the browser. Its packages live in the
-`pkgs/dartpad_preview` Dart workspace:
+DartPad runs analysis and compilation in the browser. The repository root is a
+Dart workspace with these packages in `pkgs/`:
 
 - `dartpad_frontend`: The Jaspr web app served at dartpad.dev.
 - `dartpad_editor`: Editor, language-server, and workspace building blocks.

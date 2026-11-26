@@ -1,6 +1,6 @@
 # DartPad Frontend
 
-Jaspr client-side UI for DartPad Preview: editor, file tree, execution preview,
+Jaspr client-side UI for DartPad: editor, file tree, execution preview,
 and console panels.
 
 | Path | Purpose |
@@ -11,6 +11,6 @@ and console panels.
 | [lib/features/](lib/features/) | Feature views, view models, and controllers |
 | [test/](test/) | Chrome-based component and workflow tests |
 
-- [Setup, commands, and embedding](../README.md)
+- [Setup, commands, and embedding](../../README.md)
 - [Asset generation](doc/development.md)
 - [Editor and language-server integration](../dartpad_editor/README.md)

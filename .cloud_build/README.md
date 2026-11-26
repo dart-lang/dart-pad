@@ -4,7 +4,7 @@ Cloud Build configuration files for DartPad.
 
 # Contents
 
-- `deploy/` - Builds and deploys `dartpad_preview` (PR previews and `main`) to Firebase Hosting
+- `deploy/` - Builds and deploys `dartpad_frontend` (PR previews and `main`) to Firebase Hosting
 - `firebase/` - Uploads an image that contains the Firebase SDK to Container Registry, from
   [cloud-builders-community][]
 

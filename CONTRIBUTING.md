@@ -22,8 +22,7 @@ Contributions made by corporations are covered by a different agreement than the
 
 ## How to run DartPad locally
 
-See [Develop locally](pkgs/dartpad_preview/README.md#develop-locally) in the
-`dartpad_preview` README.
+See [Develop locally](README.md#develop-locally) in the README.
 
 ## Generate diagrams
 

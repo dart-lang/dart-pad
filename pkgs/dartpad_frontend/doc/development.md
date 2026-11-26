@@ -1,8 +1,8 @@
 # Development details
 
 For initial setup, serving, testing, and building, see the
-[workspace README](../../README.md#develop-locally). The preview packages use the independent
-[Dart workspace](../../pubspec.yaml) in `pkgs/dartpad_preview/`; resolve Dart
+[README](../../../README.md#develop-locally). The packages share the
+[Dart workspace](../../../pubspec.yaml) at the repository root; resolve Dart
 dependencies there.
 
 ## SDK runtime assets
@@ -30,7 +30,7 @@ dart run tool/setup_sdk_assets.dart
 
 ## Bundled examples
 
-Run from `pkgs/dartpad_preview/examples`:
+Run from `pkgs/examples`:
 
 ```bash
 dart run build_examples.dart
@@ -43,7 +43,7 @@ See the [examples README](../../examples/README.md) for adding or changing a sam
 ## CodeMirror bundles
 
 Rebuild after changing the TypeScript editor or grammar sources. Node.js and npm
-are required. From `pkgs/dartpad_preview`:
+are required. From `pkgs`:
 
 ```bash
 cd codemirror-lang-dart

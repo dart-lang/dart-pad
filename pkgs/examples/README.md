@@ -1,4 +1,4 @@
-# DartPad Preview – Example Projects
+# DartPad – Example Projects
 
 This package declares example projects that ship with the DartPad preview.
 

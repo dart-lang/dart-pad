@@ -18,7 +18,9 @@ description: Build and deploy PR previews to Firebase Hosting
 serviceAccount: projects/dart-pad/serviceAccounts/deployer@dart-pad.iam.gserviceaccount.com
 includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
 includedFiles:
-  - pkgs/dartpad_preview/**
+  - pkgs/**
+  - pubspec.yaml
+  - analysis_options.yaml
   - .cloud_build/deploy/**
 github:
   owner: dart-lang

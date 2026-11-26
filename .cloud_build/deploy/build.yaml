@@ -25,8 +25,8 @@ steps:
       #!/usr/bin/env bash
       set -eu
 
-      cd pkgs/dartpad_preview/dartpad_frontend
       dart pub get
+      cd pkgs/dartpad_frontend
       (cd ../examples && dart run build_examples.dart)
       dart run tool/setup_sdk_assets.dart
       dart run jaspr_cli:jaspr build --experimental-wasm -v
