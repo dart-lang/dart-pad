@@ -755,10 +755,10 @@ void main() {
               fileTreeSplit().state,
               embed || web.window.innerWidth < minLargeScreenWidth ? const LeftHidden(200) : const LeftCollapsed(200),
             );
-            expect(bottomSplit().state, embed && width == 1200 ? const RightHidden(0.75) : const RightCollapsed(0.75));
+            expect(bottomSplit().state, embed ? const RightHidden(0.75) : const RightCollapsed(0.75));
             expect(
               web.document.querySelectorAll('.bottom-panel [role="tab"]').length,
-              loaded && (!embed || width == 600) ? 2 : 0,
+              loaded && !embed ? 2 : 0,
             );
             expect(web.document.querySelector('.editor-tab-bar'), isNull);
             expect(web.document.querySelector('.editor-breadcrumbs'), isNull);
@@ -790,9 +790,9 @@ void main() {
             panelHints: ['+console,+preview,+tabs,+filetree,+appbar,+statusbar'],
           );
           expect(fileTreeSplit().state, const Split(200));
-          expect(bottomSplit().state, width == 600 ? const RightCollapsed(0.75) : const Split(0.75));
+          expect(bottomSplit().state, width == 600 && !embed ? const RightCollapsed(0.75) : const Split(0.75));
           expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-          expect(web.document.querySelector('.console-panel'), width == 600 ? isNull : isNotNull);
+          expect(web.document.querySelector('.console-panel'), width == 600 && !embed ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-tab-bar'), width < minLargeScreenWidth ? isNull : isNotNull);
           expect(web.document.querySelector('.editor-breadcrumbs'), isNotNull);
           expect(web.document.querySelector('.app-bar'), isNotNull);
@@ -806,7 +806,7 @@ void main() {
           testClient('$hint keeps available bottom tabs: width=$width, embed=$embed', (tester) async {
             await mountApp(tester, width: width, embed: embed, panelHints: [hint]);
             expect(web.document.querySelectorAll('.bottom-panel [role="tab"]').length, 2);
-            final collapsed = width == 600 || embed && hint == '-console';
+            final collapsed = embed ? hint == '-console' : width == 600;
             expect(bottomSplit().state, collapsed ? const RightCollapsed(0.75) : const Split(0.75));
             expect(web.document.querySelector('.problems-panel'), collapsed ? isNull : isNotNull);
             if (!collapsed) {
