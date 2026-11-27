@@ -15,9 +15,13 @@ final class PackageProjectSource extends ProjectSource {
   /// Exact package version, or null to load the latest version from pub.dev.
   final String? version;
 
+  /// Loads the archive into a folder named after [package], as in a checkout
+  /// of the package source, so example path dependencies such as
+  /// `../../<package>` resolve to the package.
   @override
   Future<Project> loadProject() async => _loadArchive(
     await _loadPackageArchiveUrl(package, version: version),
+    sourceRoot: package,
   );
 }
 

@@ -16,7 +16,8 @@ final class ArchiveProjectSource extends ProjectSource {
   Future<Project> loadProject() => _loadArchive(url);
 }
 
-Future<Project> _loadArchive(String archiveUrl) async {
+/// Loads the archive at [archiveUrl], placing its files under [sourceRoot].
+Future<Project> _loadArchive(String archiveUrl, {String sourceRoot = ''}) async {
   final Uri uri = Uri.base.resolve(archiveUrl);
   if (!uri.isAbsolute) {
     throw ProjectSourceException('Project archive URL must resolve to be absolute: $archiveUrl.');
@@ -46,8 +47,7 @@ Future<Project> _loadArchive(String archiveUrl) async {
       if (entry.type != TypeFlag.reg) {
         continue;
       }
-      final path = _relativeArchivePath(entry.name);
-      ProjectLoader.normalizePath(path);
+      final path = joinWorkspacePath(sourceRoot, ProjectLoader.normalizePath(_relativeArchivePath(entry.name)));
       // Tar streams may reuse buffers. Copy each chunk immediately and retain
       // only the file's bytes.
       final contents = Uint8List(entry.size);
@@ -61,7 +61,7 @@ Future<Project> _loadArchive(String archiveUrl) async {
   } finally {
     await reader.cancel();
   }
-  final project = Project(files);
+  final project = Project(files, sourceRoot: sourceRoot);
 
   _disableWorkspaceResolution(project);
   stripUnavailableDependencies(project);
