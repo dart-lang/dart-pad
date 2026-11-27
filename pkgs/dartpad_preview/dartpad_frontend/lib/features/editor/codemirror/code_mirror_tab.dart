@@ -161,7 +161,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
       _showContextMenu(event.clientX.toDouble(), event.clientY.toDouble());
     }.toJS;
     container.addEventListener('contextmenu', _contextMenuHandler);
-    _initializeMarkdownView();
+    _initializePresentationView();
   }
 
   /// Saves all dirty tabs when CodeMirror receives its save command.
@@ -191,12 +191,18 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
   @override
   PresentationMode get presentationMode => _presentationMode;
 
-  /// Updates the presentation after saving the source view and before scheduling
-  /// its restoration. [updateView] must run synchronously without reentering.
+  /// Applies [applyChanges] as part of a transition to [presentationMode].
+  ///
+  /// [applyChanges] updates the state used to build the presentation: the
+  /// preferred mode, or the tab path and editor configuration when renaming.
+  /// It runs after any required source view state has been saved and before the
+  /// new mode is committed, source restoration is scheduled, and listeners are
+  /// notified to rebuild the view. It must run synchronously and must not call
+  /// [_updateEditorPresentation] again.
   @override
   void _updateEditorPresentation({
     required PresentationMode presentationMode,
-    required void Function() updateView,
+    required void Function() applyChanges,
   }) {
     if (_disposed) {
       return;
@@ -212,7 +218,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
       _measureTimer = null;
     }
 
-    updateView();
+    applyChanges();
     _presentationMode = presentationMode;
 
     if (previousMode == PresentationMode.presentation && presentationMode == PresentationMode.source) {
@@ -285,7 +291,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
   void rename(String newPath) {
     _updateEditorPresentation(
       presentationMode: _presentationModeForPath(newPath),
-      updateView: () {
+      applyChanges: () {
         super.rename(newPath);
         codeActionsController.file = newPath;
         editor.applyRename(newPath);
@@ -326,7 +332,7 @@ final class WorkspaceCodeMirrorTab extends CodeMirrorTab with _WorkspaceMarkdown
   }
 
   @override
-  Component build() => _buildMarkdownView(
+  Component build() => _buildPresentationView(
     Component.fragment([
       super.build(),
       if (codeActionsController.showFloatingPanel) CodeActionPanel(controller: codeActionsController),
@@ -372,6 +378,9 @@ final class SystemCodeMirrorTab extends CodeMirrorTab {
 ///
 /// The workspace owns the presentation lifecycle; this mixin supplies the file
 /// rules and rendering through initialization, build, and rename hooks.
+/// Newly opened Markdown tabs start in preview. Renaming an existing tab keeps
+/// its preferred mode, including source mode for tabs opened as non-Markdown,
+/// so changing the file type does not interrupt editing.
 mixin _WorkspaceMarkdownPreview on CodeMirrorTab {
   web.HTMLDivElement? _previewContainer;
   String? _renderedContent;
@@ -381,14 +390,14 @@ mixin _WorkspaceMarkdownPreview on CodeMirrorTab {
 
   void _updateEditorPresentation({
     required PresentationMode presentationMode,
-    required void Function() updateView,
+    required void Function() applyChanges,
   });
 
-  void _initializeMarkdownView() {
+  void _initializePresentationView() {
     final initialMode = isMarkdown ? PresentationMode.presentation : PresentationMode.source;
     _updateEditorPresentation(
       presentationMode: initialMode,
-      updateView: () => _preferredMode = initialMode,
+      applyChanges: () => _preferredMode = initialMode,
     );
   }
 
@@ -405,11 +414,11 @@ mixin _WorkspaceMarkdownPreview on CodeMirrorTab {
     }
     _updateEditorPresentation(
       presentationMode: mode,
-      updateView: () => _preferredMode = mode,
+      applyChanges: () => _preferredMode = mode,
     );
   }
 
-  Component _buildMarkdownView(Component source) {
+  Component _buildPresentationView(Component source) {
     // Keep stable wrappers so Jaspr does not reuse CodeMirror's externally
     // managed DOM container as one of its own elements.
     final previewContainer = isMarkdown
