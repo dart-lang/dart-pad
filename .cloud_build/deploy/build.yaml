@@ -31,15 +31,24 @@ steps:
       dart run tool/setup_sdk_assets.dart
       dart run jaspr_cli:jaspr build --experimental-wasm -v
 
-      for sdk in dart flutter; do
+      # Verify the built entrypoints for every SDK in the generated manifest.
+      sdkCount=$(grep -c '^[[:space:]]*SdkInfo(' lib/sdks.g.dart || true)
+      pathCount=0
+      while IFS= read -r sdkPath; do
+        pathCount=$((pathCount + 1))
         for entrypoint in worker.js sandbox.js; do
-          asset="build/jaspr/dartpad/${sdk}/${entrypoint}"
+          asset="build/jaspr/${sdkPath%/}/${entrypoint}"
           if [[ ! -f "${asset}" || ! -s "${asset}" ]]; then
             echo "Missing or empty SDK entrypoint: ${asset}" >&2
             exit 1
           fi
         done
-      done
+      done < <(sed -n "s/^[[:space:]]*path: '\([^']*\)',/\1/p" lib/sdks.g.dart)
+
+      if (( sdkCount == 0 || pathCount != sdkCount )); then
+        echo "Could not read all SDK paths from lib/sdks.g.dart" >&2
+        exit 1
+      fi
 
       mv build/jaspr public
       tar -cf /workspace/site.tar firebase.json public
