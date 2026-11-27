@@ -20,35 +20,10 @@ All files in the project must start with the following header.
 ### The small print
 Contributions made by corporations are covered by a different agreement than the one above, the Software Grant and Corporate Contributor License Agreement.
 
-## How to change and add to Sample Gists
-
-1) Update the samples first in the dartpad_examples repository: https://github.com/dart-lang/dartpad_examples
-
-2) If you are updating an existing sample, create your own gist based on the existing samples.
-   Gist IDs can be found in the [index file](https://github.com/dart-lang/dart-pad/blob/main/web/index.html#L54).
-   Fork the gist, if necessary, then update the contents with the new version from dartpad_examples.
-
-   Otherwise, use the same gist layout as the samples to make sure that DartPad recognizes it:
-     * `index.html` for the HTML snippet used to build the output page
-     * `styles.css` for the style sheet
-     * `main.dart` for the Dart code.
-
-   You can test your gist after updating or creating it by appending the gist ID to the URL for
-   dartpad.
-
-3) Add or change sample Gist IDs to the [index file](https://github.com/dart-lang/dart-pad/blob/main/web/index.html#L54),
-   and submit a PR for review.
-
 ## How to run DartPad locally
 
-To run the server, see the [dart_services readme](pkgs/dart_services/README.md).
-
-To run the front-end, see the [dartpad_ui readme](pkgs/dartpad_ui/README.md).
-
-## Update goldens
-
-When your change requires update to [golden images](https://api.flutter.dev/flutter/flutter_test/matchesGoldenFile.html), run the tests
-with flag `--update-goldens`.
+See [Develop locally](pkgs/dartpad_preview/README.md#develop-locally) in the
+`dartpad_preview` README.
 
 ## Generate diagrams
 

@@ -9,20 +9,15 @@ This project is DartPad, an online editor for the Dart language.
 
 ### Project Structure
 
-The DartPad project is a monorepo composed of several packages located in the
-`pkgs` directory:
+DartPad runs analysis and compilation in the browser. Its packages live in the
+`pkgs/dartpad_preview` Dart workspace:
 
-- `dart_services`: The backend service for DartPad.
-  - `lib/server.dart`: The main entry point for the backend server.
-  - `lib/src/`: Contains the implementation of the backend services.
-- `dartpad_shared`: Shared code between the DartPad frontend and backend.
-  - `lib/`: Contains data models, services, and other shared code.
-- `dartpad_ui`: The frontend UI for DartPad.
-  - `lib/main.dart`: The main entry point for the frontend application.
-  - `lib/app/`: Contains the main application widgets and UI components.
-  - `lib/model/`: Contains frontend-specific data models.
-  - `lib/primitives/`: Contains low-level UI widgets and utilities.
-- `samples`: Sample code snippets for DartPad.
+- `dartpad_frontend`: The Jaspr web app served at dartpad.dev.
+- `dartpad_editor`: Editor, language-server, and workspace building blocks.
+- `codemirror-dart`: Dart wrapper around the CodeMirror 6 editor.
+- `codemirror-lang-dart`: Dart language support for CodeMirror 6.
+- `examples`: Bundled example projects, loaded with the `sample=` query
+  parameter.
 
 ## General principles
 
@@ -36,7 +31,7 @@ The DartPad project is a monorepo composed of several packages located in the
 
 - Follow the official
   [Dart style guide](https://dart.dev/guides/language/effective-dart/style).
-- Keep lines under 80 characters.
+- Keep lines under 120 characters.
 - Add comments to explain complex or non-obvious code.
 
 ## Commit messages
