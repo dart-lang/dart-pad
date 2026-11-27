@@ -146,7 +146,7 @@ void main() {
           preview: customPreview ?? preview,
           taskStatus: taskStatus,
           activeFile: 'lib/main.dart',
-          onOpenConsole: () {},
+          onOpenConsole: (_) {},
           initialDeviceMode: initialDeviceMode,
         ),
       ],
@@ -232,7 +232,7 @@ void main() {
             preview: preview,
             taskStatus: taskStatus,
             activeFile: 'lib/main.dart',
-            onOpenConsole: () {},
+            onOpenConsole: (_) {},
           ),
         ),
       );
@@ -252,7 +252,7 @@ void main() {
             preview: preview,
             taskStatus: taskStatus,
             activeFile: 'lib/main.dart',
-            onOpenConsole: () {},
+            onOpenConsole: (_) {},
           ),
         ),
       );
@@ -280,7 +280,7 @@ void main() {
               preview: preview,
               taskStatus: taskStatus,
               activeFile: 'lib/main.dart',
-              onOpenConsole: () {},
+              onOpenConsole: (_) {},
             ),
           ),
         ),
@@ -320,7 +320,7 @@ void main() {
             preview: preview,
             taskStatus: taskStatus,
             activeFile: 'lib/main.dart',
-            onOpenConsole: () {},
+            onOpenConsole: (_) {},
             initialDeviceMode: mode,
           ),
         ),
@@ -667,7 +667,7 @@ void main() {
         preview: preview,
         taskStatus: repository.taskStatus,
         activeFile: 'lib/main.dart',
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 

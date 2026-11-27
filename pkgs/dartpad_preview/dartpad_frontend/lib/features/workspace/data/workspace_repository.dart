@@ -233,6 +233,7 @@ final class WorkspaceRepository {
       label: '${kind.label} in $pathLabel',
       scope: normalizedPath.toString(),
       blocksPreview: blocksPreview,
+      failureMessage: '${kind.label} failed.',
     );
   }
 
@@ -301,6 +302,7 @@ final class WorkspaceRepository {
       label: 'Pub clean in $pathLabel',
       scope: normalizedPath.toString(),
       blocksPreview: true,
+      failureMessage: 'Pub clean failed.',
     );
   }
 

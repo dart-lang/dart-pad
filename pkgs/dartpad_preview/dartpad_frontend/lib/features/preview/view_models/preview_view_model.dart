@@ -285,7 +285,7 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
           ),
         );
       } finally {
-        task.fail();
+        task.fail(log: log);
       }
     } finally {
       if (!_current(id)) {
@@ -340,15 +340,14 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
       if (!_current(id)) {
         return;
       }
-      _eventBus.dispatch(
-        LogEvent(
-          'Hot reload failed',
-          level: error is HotReloadRejectedException ? Level.WARNING : Level.SEVERE,
-          error: error,
-          stackTrace: stack,
-        ),
+      final log = LogEvent(
+        'Hot reload failed',
+        level: error is HotReloadRejectedException ? Level.WARNING : Level.SEVERE,
+        error: error,
+        stackTrace: stack,
       );
-      task.fail();
+      _eventBus.dispatch(log);
+      task.fail(log: log);
     } finally {
       if (_current(id)) {
         _state = PreviewRunning(entrypoint);
@@ -399,9 +398,10 @@ interface class PreviewViewModel extends ChangeNotifier implements RunAvailabili
         task.cancel();
         return;
       }
-      _eventBus.dispatch(LogEvent('Stop failed', level: Level.SEVERE, error: error, stackTrace: stack));
+      final log = LogEvent('Stop failed', level: Level.SEVERE, error: error, stackTrace: stack);
+      _eventBus.dispatch(log);
       _state = PreviewInitial();
-      task.fail();
+      task.fail(log: log);
     } finally {
       if (!_disposed) {
         notifyListeners();

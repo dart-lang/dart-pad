@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
-
 import '../../bottom_panel/view_models/console_view_model.dart';
 import '../../bottom_panel/view_models/diagnostics_view_model.dart';
 import '../../editor/codemirror/code_mirror_tab.dart';
@@ -15,7 +13,6 @@ import '../../preview/view_models/preview_view_model.dart';
 import '../../workspace/data/workspace_repository.dart';
 import '../../workspace/workspace_session.dart';
 import '../app_event_bus.dart';
-import '../events/log_event.dart';
 import '../task_status.dart';
 import 'shortcut_definitions.dart';
 
@@ -202,15 +199,8 @@ Future<void> _executePubGet(CommandContext context) async {
       path: context.projectDir,
       projectRoot: context.projectDir,
     );
-  } catch (error, stackTrace) {
-    session.events.dispatch(
-      LogEvent(
-        'Pub get failed.',
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
+  } catch (_) {
+    // The task logs the failure to the console.
   }
 }
 
@@ -229,15 +219,8 @@ Future<void> _executePubUpgrade(CommandContext context) async {
       path: context.projectDir,
       projectRoot: context.projectDir,
     );
-  } catch (error, stackTrace) {
-    session.events.dispatch(
-      LogEvent(
-        'Pub upgrade failed.',
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
+  } catch (_) {
+    // The task logs the failure to the console.
   }
 }
 
@@ -251,15 +234,8 @@ Future<void> _executePubOutdated(CommandContext context) async {
       path: context.projectDir,
       projectRoot: context.projectDir,
     );
-  } catch (error, stackTrace) {
-    session.events.dispatch(
-      LogEvent(
-        'Pub outdated failed.',
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
+  } catch (_) {
+    // The task logs the failure to the console.
   }
 }
 
@@ -278,15 +254,8 @@ Future<void> _executePubDowngrade(CommandContext context) async {
       path: context.projectDir,
       projectRoot: context.projectDir,
     );
-  } catch (error, stackTrace) {
-    session.events.dispatch(
-      LogEvent(
-        'Pub downgrade failed.',
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
+  } catch (_) {
+    // The task logs the failure to the console.
   }
 }
 
@@ -299,15 +268,8 @@ Future<void> _executePubClean(CommandContext context) async {
     await session.repository.pubClean(
       path: context.projectDir,
     );
-  } catch (error, stackTrace) {
-    session.events.dispatch(
-      LogEvent(
-        'Pub clean failed.',
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      ),
-    );
+  } catch (_) {
+    // The task logs the failure to the console.
   }
 }
 

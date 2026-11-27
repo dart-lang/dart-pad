@@ -215,6 +215,33 @@ void main() {
     },
   );
 
+  test('Pub Get logs a failure and keeps the log on its task', () async {
+    final events = AppEventBus();
+    final logs = <LogEvent>[];
+    final subscription = events.on<LogEvent>().listen(logs.add);
+    final taskStatus = TaskStatusController(events: events);
+    final failure = StateError('workspace not available');
+    final repository = WorkspaceRepository(
+      events: events,
+      taskStatus: taskStatus,
+      workspaceResourceApi: _Workspace(),
+      sdk: defaultSdk,
+      workspaceFuture: Future.error(failure),
+    );
+
+    await expectLater(repository.pubGet(path: 'example'), throwsA(same(failure)));
+    await pumpEventQueue();
+
+    final log = logs.last;
+    expect(log.message, 'Pub get failed.');
+    expect(log.error, same(failure));
+    expect(taskStatus.current?.failureLog, same(log));
+    expect(taskStatus.failureLogFor(failure), same(log));
+    await subscription.cancel();
+    taskStatus.dispose();
+    await events.dispose();
+  });
+
   test('Pub Clean exposes a blocking task status', () async {
     final workspace = _Workspace()..folders.add('example/build');
     final taskStatus = TaskStatusController();

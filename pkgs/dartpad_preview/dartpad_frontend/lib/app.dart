@@ -301,7 +301,7 @@ final class _AppState extends State<App> {
   }) {
     final oldSession = _activeSession;
     final events = AppEventBus();
-    final taskStatus = TaskStatusController();
+    final taskStatus = TaskStatusController(events: events);
     final repository = component.createRepository(
       events: events,
       sdk: project.sdk,
@@ -557,16 +557,10 @@ final class _AppState extends State<App> {
           path: packageRoot,
           projectRoot: packageRoot,
         );
-      } catch (error, stackTrace) {
+      } catch (error) {
         preparationSucceeded = false;
         if (_isCurrentRuntime(session, generation)) {
-          final log = LogEvent(
-            'Pub get failed.',
-            level: Level.SEVERE,
-            error: error,
-            stackTrace: stackTrace,
-          );
-          session.events.dispatch(log);
+          final log = session.taskStatus.failureLogFor(error);
           setState(() {
             _workspacePreparationFailure = _WorkspaceFailure('Pub get failed while preparing the workspace.', log: log);
           });
@@ -722,11 +716,12 @@ final class _AppState extends State<App> {
       final paths = oldSession.tabSnapshot;
       final activeFile = oldSession.tabs.activeFile;
       late final WorkspaceSession next;
+      final events = AppEventBus();
       next = WorkspaceSession.create(
         component.createRepository(
-          events: AppEventBus(),
+          events: events,
           sdk: newSdk,
-          taskStatus: TaskStatusController(),
+          taskStatus: TaskStatusController(events: events),
           localApi: localApi,
           deferWorker: _isEmbedMode,
         ),
@@ -991,6 +986,7 @@ final class _AppState extends State<App> {
             path: workspacePath,
             projectRoot: _projectDir,
           ),
+          failureLogFor: session.taskStatus.failureLogFor,
         ),
         if (activeTab is CodeMirrorTab)
           MainEditorActions(
@@ -1033,18 +1029,12 @@ final class _AppState extends State<App> {
         taskStatus: session.taskStatus,
         activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure?.message,
-        onOpenConsole: () => _openConsole(session, reveal: _shownFailureLog(session)),
+        workspacePreparationFailureLog: _workspacePreparationFailure?.log,
+        onOpenConsole: (log) => _openConsole(session, reveal: log),
         initialDeviceMode: _isEmbedMode || !_isLargeScreen ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }
-
-  /// The log of the failure shown in the preview panel, matching the message
-  /// [PreviewContainer] displays.
-  LogEvent? _shownFailureLog(WorkspaceSession session) => switch (session.preview.state) {
-    PreviewCompileError(:final log) => log,
-    _ => _workspacePreparationFailure?.log,
-  };
 
   /// Opens the console, scrolled to the first line of [reveal] when it is
   /// still displayed.

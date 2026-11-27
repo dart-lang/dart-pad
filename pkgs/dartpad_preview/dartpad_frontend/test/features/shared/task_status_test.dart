@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
+import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -160,6 +163,55 @@ void main() {
         expect(controller.current?.label, 'Async failure');
         expect(controller.current?.outcome, TaskStatusOutcome.failed);
       });
+    });
+
+    test('runTask logs a failure with a failure message and keeps it on the task', () async {
+      final events = AppEventBus();
+      addTearDown(events.dispose);
+      final logs = <LogEvent>[];
+      final subscription = events.on<LogEvent>().listen(logs.add);
+      addTearDown(subscription.cancel);
+      final loggingController = TaskStatusController(events: events);
+      addTearDown(loggingController.dispose);
+      final error = StateError('no solution');
+
+      await expectLater(
+        loggingController.runTask<void>(
+          TaskKind.pubGet,
+          () async => throw error,
+          failureMessage: 'Pub get failed.',
+        ),
+        throwsStateError,
+      );
+      await pumpEventQueue();
+
+      final log = logs.single;
+      expect(log.message, 'Pub get failed.');
+      expect(log.level, Level.SEVERE);
+      expect(log.error, same(error));
+      expect(loggingController.current?.failureLog, same(log));
+      expect(loggingController.failureLogFor(error), same(log));
+      expect(loggingController.failureLogFor(StateError('other')), isNull);
+    });
+
+    test('runTask keeps no failure log without a failure message', () async {
+      final error = StateError('compile');
+      await expectLater(
+        controller.runTask<void>(TaskKind.compilingApplication, () async => throw error),
+        throwsStateError,
+      );
+
+      expect(controller.current?.outcome, TaskStatusOutcome.failed);
+      expect(controller.current?.failureLog, isNull);
+      expect(controller.failureLogFor(error), isNull);
+    });
+
+    test('a failed handle keeps its log', () {
+      const log = LogEvent('Run failed', level: Level.SEVERE);
+      controller.startTask(TaskKind.startingPreview).fail(log: log);
+
+      expect(controller.current?.outcome, TaskStatusOutcome.failed);
+      expect(controller.current?.failureLog, same(log));
     });
 
     test('tracks whether a running task blocks preview compilation', () {
