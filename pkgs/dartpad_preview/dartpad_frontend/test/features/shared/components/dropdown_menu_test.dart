@@ -6,10 +6,51 @@
 library;
 
 import 'package:dartpad_frontend/features/shared/components/dropdown_menu.dart';
+import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
+  testClient('renders columns, header logos and trailing components', (tester) async {
+    tester.pumpComponent(
+      DropdownMenu.columns(
+        columns: [
+          [
+            const DropdownMenuDivider(
+              label: 'First',
+              leading: span(classes: 'header-logo', []),
+            ),
+            DropdownMenuItem(
+              label: 'Item 1',
+              trailing: const span(classes: 'item-tag', []),
+              onPressed: () {},
+            ),
+          ],
+          [
+            const DropdownMenuDivider(label: 'Second'),
+            DropdownMenuItem(label: 'Item 2', onPressed: () {}),
+          ],
+        ],
+      ),
+    );
+
+    final trigger = web.document.querySelector('.dropdown-menu-default-trigger') as web.HTMLButtonElement;
+    trigger.click();
+    await pumpEventQueue();
+
+    final columns = web.document.querySelectorAll('.dropdown-menu-columns ul');
+    expect(columns.length, 2);
+    final headers = web.document.querySelectorAll('.dropdown-menu-divider');
+    expect(headers.length, 2);
+    expect((headers.item(0) as web.Element).classList.contains('dropdown-menu-divider-leading'), isTrue);
+    expect((headers.item(0) as web.Element).querySelector('.header-logo'), isNotNull);
+    expect((headers.item(1) as web.Element).classList.contains('dropdown-menu-divider-leading'), isFalse);
+    expect(web.document.querySelectorAll('.dropdown-menu-item .item-tag').length, 1);
+
+    trigger.click();
+    await pumpEventQueue();
+  });
+
   testClient('opens and closes dropdown menu on trigger click', (tester) async {
     tester.pumpComponent(
       DropdownMenu(

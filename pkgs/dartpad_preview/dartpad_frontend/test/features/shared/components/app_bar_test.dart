@@ -13,6 +13,7 @@ import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_defaults.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
+import 'package:dartpad_frontend/features/startup/examples.g.dart';
 import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
@@ -135,7 +136,7 @@ void main() {
     newButton.click();
     await pumpEventQueue();
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, 6);
+    expect(items.length, Examples.all.length);
     (items.item(0)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 
@@ -165,7 +166,7 @@ void main() {
     expect((dividers.item(1)! as web.HTMLElement).textContent, 'Flutter');
 
     final items = web.document.querySelectorAll('.dropdown-menu-panel-left .dropdown-menu-item');
-    expect(items.length, 6);
+    expect(items.length, Examples.all.length);
     (items.item(2)! as web.HTMLButtonElement).click();
     await pumpEventQueue();
 

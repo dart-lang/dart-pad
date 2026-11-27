@@ -84,6 +84,25 @@ void main() {
     expect(web.document.querySelector('.persistence-notice'), isNull);
   });
 
+  for (final channel in ['beta', 'main']) {
+    testClient('restores the $channel channel after its SDK version advances', (tester) async {
+      final currentSdk = availableSdks.singleWhere((sdk) => !sdk.isFlutter && sdk.channel == channel);
+      final olderSdk = SdkInfo(
+        id: currentSdk.id,
+        name: currentSdk.name,
+        path: currentSdk.path,
+        dartVersion: '3.12.0',
+        channel: channel,
+      );
+      await store.create(savedProject(query: '', sdk: olderSdk, sessionId: 1));
+      tester.pumpComponent(app('?s=1'));
+      await pumpEventQueue();
+      expect(repositories.single.sdk, currentSdk);
+      expect(repositories.single.sdk.channel, channel);
+      expect(sourceLoads, 0);
+    });
+  }
+
   testClient('theme-only query with session id restores its saved entry', (tester) async {
     final latest = await store.create(savedProject(query: '', text: 'most recent', sessionId: 1));
     tester.pumpComponent(app('?theme=dark&s=1'));

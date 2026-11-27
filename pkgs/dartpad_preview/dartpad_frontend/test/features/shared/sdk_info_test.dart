@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
+import 'package:dartpad_frontend/features/shared/sdk_kind.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
 import 'package:test/test.dart';
 
@@ -67,6 +68,85 @@ void main() {
       expect(dart.dartVersion, '3.14.0-315.1.beta');
     });
 
+    test('labels menu entries by version only', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'flutter/',
+        dartVersion: '3.14.0',
+        flutterVersion: '3.50.1',
+        channel: 'stable',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.0');
+
+      expect(flutter.menuLabel, '3.50.1 · Dart 3.14.0');
+      expect(dart.menuLabel, '3.13.0');
+    });
+
+    test('labels non-stable menu entries with their exact versions', () {
+      const flutter = SdkInfo(
+        id: 'flutter-main',
+        name: 'Flutter',
+        path: 'flutter-main/',
+        dartVersion: '3.15.0 (build 3.15.0-168.0.dev)',
+        flutterVersion: '3.51.0-1.0.pre-255',
+        channel: 'main',
+      );
+      const dart = SdkInfo(
+        id: 'dart-beta',
+        name: 'Dart',
+        path: 'dart-beta/',
+        dartVersion: '3.15.0-118.1.beta',
+        channel: 'beta',
+      );
+
+      expect(flutter.menuLabel, '3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev');
+      expect(dart.menuLabel, '3.15.0-118.1.beta');
+    });
+
+    test('shortens only long Dart main revision hashes in menu labels', () {
+      const dart = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.8e8f29e404ee5451bda87d015fb45775c71355f2',
+        channel: 'main',
+      );
+      const shortHash = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.abcde',
+        channel: 'main',
+      );
+      const nonHash = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.example',
+        channel: 'main',
+      );
+
+      expect(dart.menuLabel, '3.15.0-edge.355f2...');
+      expect(dart.fullDartVersion, '3.15.0-edge.8e8f29e404ee5451bda87d015fb45775c71355f2');
+      expect(shortHash.menuLabel, '3.15.0-edge.abcde');
+      expect(nonHash.menuLabel, '3.15.0-edge.example');
+    });
+
+    test('derives the SDK kind from the Flutter version', () {
+      const flutter = SdkInfo(
+        id: 'flutter',
+        name: 'Flutter',
+        path: 'f/',
+        dartVersion: '3.14.0',
+        flutterVersion: '3.50.1',
+      );
+      const dart = SdkInfo(id: 'dart', name: 'Dart', path: 'd/', dartVersion: '3.14.0');
+
+      expect(flutter.kind, SdkKind.flutter);
+      expect(dart.kind, SdkKind.dart);
+    });
+
     test('returns null for invalid JSON', () {
       expect(SdkInfo.fromJson({'id': 'flutter'}), isNull);
     });
@@ -77,6 +157,16 @@ void main() {
       expect(availableSdks, isNotEmpty);
       expect(defaultSdk, isNotNull);
       expect(availableSdks.contains(defaultSdk), isTrue);
+      expect(defaultSdk.id, 'flutter');
+      expect(defaultSdk.channel, 'stable');
+      expect(availableSdks.map((sdk) => sdk.id).toSet(), hasLength(6));
+      for (final kind in ['Dart', 'Flutter']) {
+        expect(availableSdks.where((sdk) => sdk.name == kind).map((sdk) => sdk.channel), [
+          'stable',
+          'beta',
+          'main',
+        ]);
+      }
     });
   });
 }

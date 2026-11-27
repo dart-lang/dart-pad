@@ -93,6 +93,13 @@ final class PersistedProjectState {
                 value.flutterVersion == sdk.flutterVersion,
           )
           .firstOrNull ??
+      // Channel versions advance between deployments; keep the selected runtime.
+      available.where((value) => value.id == sdk.id && value.isFlutter == sdk.isFlutter).firstOrNull ??
+      available
+          .where(
+            (value) => sdk.channel != null && value.isFlutter == sdk.isFlutter && value.channel == sdk.channel,
+          )
+          .firstOrNull ??
       available.where((value) => value.isFlutter == sdk.isFlutter).firstOrNull ??
       (throw const ProjectStorageException('The SDK for your previous work is no longer available.'));
 

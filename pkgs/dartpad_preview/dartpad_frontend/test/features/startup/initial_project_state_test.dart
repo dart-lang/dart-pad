@@ -139,6 +139,31 @@ void main() {
   });
 
   group('InitialProjectState', () {
+    group('SDK channel preference', () {
+      const stable = SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.12.0', channel: 'stable');
+      const dev = SdkInfo(id: 'dart-dev', name: 'Dart', path: 'dart-dev/', dartVersion: '3.15.0', channel: 'dev');
+      const main = SdkInfo(id: 'dart-main', name: 'Dart', path: 'dart-main/', dartVersion: '3.16.0', channel: 'main');
+      const legacy = SdkInfo(id: 'dart-legacy', name: 'Dart', path: 'dart-legacy/', dartVersion: '3.11.0');
+
+      for (final (query, preferredChannel, expected) in [
+        ('', null, stable),
+        ('', 'main', main),
+        ('', 'dev', dev),
+        ('', 'beta', stable),
+        ('?sdk=dart:3.12.0', 'main', stable),
+      ]) {
+        test('resolves $query with preferred channel $preferredChannel', () {
+          final state = InitialProjectState.resolve(
+            ProjectRequest.fromUri(Uri.parse(query)),
+            contents({'lib/main.dart': 'void main() {}'}),
+            [stable, dev, main, legacy],
+            preferredChannel: preferredChannel,
+          );
+          expect(state.sdk, expected);
+        });
+      }
+    });
+
     for (final package in ['material_ui', 'cupertino_ui']) {
       for (final source in ['gist=abc', 'sample_id=material.ListTile.2']) {
         test('selects Flutter for a standalone $package import in $source', () {
@@ -170,7 +195,7 @@ void main() {
     group('generated Gist pubspec', () {
       const available = [
         SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.13.3'),
-        SdkInfo(id: 'dart-dev', name: 'Dart dev', path: 'dart-dev/', dartVersion: '3.15.0-edge'),
+        SdkInfo(id: 'dart-main', name: 'Dart main', path: 'dart-main/', dartVersion: '3.15.0-edge'),
         SdkInfo(
           id: 'flutter',
           name: 'Flutter',

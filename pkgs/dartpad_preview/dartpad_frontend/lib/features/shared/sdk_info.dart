@@ -5,6 +5,8 @@
 import 'package:meta/meta.dart';
 import 'package:web/web.dart' as web;
 
+import 'sdk_kind.dart';
+
 /// Information about an available DartPad SDK/runtime.
 @immutable
 final class SdkInfo {
@@ -17,7 +19,7 @@ final class SdkInfo {
     this.channel,
   });
 
-  /// Unique identifier for this SDK runtime (e.g. `'flutter'`, `'dart'`).
+  /// Unique identifier for this SDK runtime (e.g. `'flutter'` or `'dart-beta'`).
   final String id;
 
   /// Human-readable display name for this SDK (e.g. `'Flutter'`, `'Dart'`).
@@ -32,17 +34,52 @@ final class SdkInfo {
   /// The version of the Flutter SDK (e.g. `'3.48.0'`), or `null` if this is a pure Dart runtime.
   final String? flutterVersion;
 
-  /// The release channel of this SDK runtime (e.g. `'stable'` or `'beta'`).
+  /// The release channel: `'stable'`, `'beta'`, or `'main'`.
   final String? channel;
 
   bool get isFlutter => flutterVersion != null;
 
+  SdkKind get kind => isFlutter ? SdkKind.flutter : SdkKind.dart;
+
   /// Runtime versions for display, without prerelease or build suffixes.
   String get displayName {
-    final dart = 'Dart ${_shortVersion(dartVersion)}';
-    final flutter = flutterVersion;
-    return flutter == null ? dart : 'Flutter ${_shortVersion(flutter)} • $dart';
+    final dart = 'Dart $shortDartVersion';
+    final flutter = shortFlutterVersion;
+    return flutter == null ? dart : 'Flutter $flutter • $dart';
   }
+
+  /// The Dart version without prerelease or build suffixes.
+  String get shortDartVersion => _shortVersion(dartVersion);
+
+  /// The Flutter version without prerelease or build suffixes, or `null` for a pure Dart runtime.
+  String? get shortFlutterVersion => flutterVersion == null ? null : _shortVersion(flutterVersion!);
+
+  /// The exact Dart version including prerelease and build suffixes, e.g. `3.15.0-168.0.dev`.
+  ///
+  /// Flutter bundles record this as `3.15.0 (build 3.15.0-168.0.dev)`.
+  String get fullDartVersion => _buildPattern.firstMatch(dartVersion)?.group(1) ?? dartVersion;
+
+  /// Label for SDK lists, e.g. `3.50.1 · Dart 3.14.0`. The channel is shown separately.
+  ///
+  /// Non-stable SDKs show their build versions, e.g. `3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev`.
+  /// Dart main revision hashes are shortened to their last five characters.
+  String get menuLabel {
+    final exact = channel != null && channel != 'stable';
+    var dart = exact ? fullDartVersion : shortDartVersion;
+    if (!isFlutter && channel == 'main') {
+      final revision = _edgeRevisionPattern.firstMatch(dart);
+      if (revision != null) {
+        final hash = revision.group(2)!;
+        dart = '${revision.group(1)}${hash.substring(hash.length - 5)}...';
+      }
+    }
+    final flutter = exact ? flutterVersion : shortFlutterVersion;
+    return flutter == null ? dart : '$flutter · Dart $dart';
+  }
+
+  static final _buildPattern = RegExp(r'\(build (.+)\)');
+
+  static final _edgeRevisionPattern = RegExp(r'^(.*-edge\.)([0-9a-fA-F]{6,})$');
 
   static final _versionPattern = RegExp(r'^\d+\.\d+\.\d+');
 

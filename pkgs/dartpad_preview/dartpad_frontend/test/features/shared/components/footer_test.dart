@@ -12,6 +12,7 @@ import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/dropdown_menu.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
 import 'package:dartpad_frontend/features/shared/components/icon_button.dart';
+import 'package:dartpad_frontend/features/shared/components/sdk_tag.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
@@ -72,7 +73,7 @@ void main() {
     expect(status?.textContent, contains('Ready'));
   });
 
-  testClient('shows separate SDK and stable channel controls', (tester) async {
+  testClient('lists Flutter and Dart SDKs in two columns of one selector', (tester) async {
     final flutter = availableSdks.firstWhere((sdk) => sdk.isFlutter);
     final dart = availableSdks.firstWhere((sdk) => !sdk.isFlutter);
     var selected = flutter;
@@ -86,60 +87,101 @@ void main() {
     );
 
     final sdkButton = web.document.querySelector('.app-footer-sdk-trigger') as web.HTMLButtonElement;
-    expect(sdkButton.textContent, contains(flutter.displayName));
-    final channel = web.document.querySelector('.app-footer-channel')!;
-    expect(channel.textContent, contains('Stable channel'));
-    expect(channel.tagName, 'SPAN');
-    expect(channel.hasAttribute('title'), isFalse);
+    expect(sdkButton.textContent, _triggerText(flutter));
+    expect(sdkButton.querySelectorAll('.sdk-logo').length, 2);
 
     sdkButton.click();
     await pumpEventQueue();
-    final items = web.document.querySelectorAll('.dropdown-menu-item');
-    expect(items.item(0)?.textContent, contains(flutter.displayName));
-    final dartItem =
-        [
-              for (var i = 0; i < items.length; i++) items.item(i)!,
-            ].firstWhere((item) => item.textContent!.trim() == dart.displayName)
-            as web.HTMLButtonElement;
-    dartItem.click();
+    final columns = _items(web.document.querySelectorAll('.dropdown-menu-columns ul'));
+    expect(columns.length, 2);
+    expect(columns[0].querySelector('.dropdown-menu-divider')?.textContent, 'Flutter');
+    expect(columns[0].querySelector('.dropdown-menu-divider .sdk-logo'), isNotNull);
+    expect(columns[1].querySelector('.dropdown-menu-divider')?.textContent, 'Dart');
+    expect(columns[1].querySelector('.dropdown-menu-divider .sdk-logo'), isNotNull);
+    for (final (index, isFlutter) in [(0, true), (1, false)]) {
+      final labels = [
+        for (final item in _items(columns[index].querySelectorAll('.dropdown-menu-item'))) _label(item),
+      ];
+      expect(labels, [
+        for (final sdk in availableSdks.where((sdk) => sdk.isFlutter == isFlutter).toList().reversed) sdk.menuLabel,
+      ]);
+    }
+    expect(
+      web.document.querySelector('.dropdown-menu-item.active .dropdown-menu-item-name')?.textContent,
+      flutter.menuLabel,
+    );
+    final dartItem = _itemFor(_items(web.document.querySelectorAll('.dropdown-menu-item')), dart);
+    (dartItem as web.HTMLButtonElement).click();
     await pumpEventQueue();
     expect(selected, dart);
   });
 
-  testClient('updates the channel indicator with the current SDK', (tester) async {
-    final currentChannel = ValueNotifier<String?>(null);
+  testClient('selects any SDK across kinds and channels', (tester) async {
+    final currentSdk = ValueNotifier(availableSdks.first);
     addTearDown(() async {
       tester.binding.detachRootComponent();
       await pumpEventQueue();
-      currentChannel.dispose();
+      currentSdk.dispose();
     });
     tester.pumpComponent(
       ValueListenableBuilder(
-        listenable: currentChannel,
-        builder: (_, channel) => Footer(
+        listenable: currentSdk,
+        builder: (_, sdk) => Footer(
           taskStatus: taskStatus,
-          currentSdk: SdkInfo(id: 'dart', name: 'Dart', path: 'dart/', dartVersion: '3.14.0', channel: channel),
+          currentSdk: sdk,
+          onSelectSdk: (sdk) => currentSdk.value = sdk,
           onOpenShortcuts: () {},
         ),
       ),
     );
 
-    for (final (channel, label) in [('stable', 'Stable channel'), ('beta', 'Beta channel'), (null, null)]) {
-      currentChannel.value = channel;
+    for (final target in [...availableSdks.skip(1), availableSdks.first]) {
+      (web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement).click();
       await pumpEventQueue();
-
-      final indicator = web.document.querySelector('.app-footer-channel');
-      if (label == null) {
-        expect(indicator, isNull);
-      } else {
-        expect(indicator?.textContent, contains(label));
-        expect(indicator?.tagName, 'SPAN');
-      }
+      final items = _items(web.document.querySelectorAll('.dropdown-menu-item'));
+      expect(items.length, availableSdks.length);
+      final item = _itemFor(items, target);
+      (item as web.HTMLButtonElement).click();
+      await pumpEventQueue();
+      expect(currentSdk.value, target);
+      expect(web.document.querySelector('.app-footer-sdk-label')?.textContent, _triggerText(target));
     }
   });
 
+  testClient('keeps the Dart main revision and channel inside a narrow SDK menu', (tester) async {
+    tester.pumpComponent(
+      div([
+        Style(styles: [...Footer.styles, ...DropdownMenu.styles, ...SdkTag.styles]),
+        Footer(taskStatus: taskStatus, currentSdk: defaultSdk, onSelectSdk: (_) {}, onOpenShortcuts: () {}),
+      ]),
+    );
+    (web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    final menu = web.document.querySelector('.dropdown-menu')! as web.HTMLElement;
+    menu.style.maxWidth = '304px';
+    final sdk = availableSdks.singleWhere((sdk) => !sdk.isFlutter && sdk.channel == 'main');
+    final item = _itemFor(_items(menu.querySelectorAll('.dropdown-menu-item')), sdk);
+    final bounds = menu.getBoundingClientRect();
+    final itemBounds = item.getBoundingClientRect();
+    expect(item.textContent, contains(sdk.menuLabel));
+    expect(itemBounds.right, lessThanOrEqualTo(bounds.right));
+    expect(item.querySelector('.sdk-tag')!.getBoundingClientRect().right, lessThanOrEqualTo(bounds.right));
+  });
+
+  testClient('disables SDK selection during workspace preparation', (tester) async {
+    tester.pumpComponent(
+      Footer(taskStatus: taskStatus, currentSdk: defaultSdk, onOpenShortcuts: () {}),
+    );
+    final button = web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement;
+    expect(button.disabled, isTrue);
+    button.click();
+    await pumpEventQueue();
+    expect(web.document.querySelector('.dropdown-menu'), isNull);
+  });
+
   for (final sdk in availableSdks) {
-    testClient('shows compact ${sdk.name} controls on small screens', (tester) async {
+    testClient('shows compact ${sdk.name} ${sdk.channel} control on small screens', (tester) async {
       _setWidth(390);
       tester.pumpComponent(
         Footer(
@@ -152,20 +194,13 @@ void main() {
       );
 
       final trigger = web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement;
-      expect(trigger.textContent, sdk.name);
-      expect(trigger.textContent, isNot(contains(sdk.displayName)));
-      expect(trigger.querySelector('.app-footer-info-icon'), isNotNull);
+      expect(trigger.textContent, isEmpty);
+      expect(trigger.querySelectorAll('.sdk-logo').length, 1);
       expect(trigger.getAttribute('aria-label'), contains(sdk.displayName));
-      final sdkChannel = sdk.channel!;
-      final expectedChannelLabel = '${sdkChannel[0].toUpperCase()}${sdkChannel.substring(1)} channel';
-      final channel = web.document.querySelector('.app-footer-channel')!;
-      expect(channel.querySelector('.material-symbols-outlined')?.textContent, 'tune');
-      expect(channel.getAttribute('aria-label'), expectedChannelLabel);
-      expect(channel.querySelector('.app-footer-channel-label'), isNull);
 
       trigger.click();
       await pumpEventQueue();
-      expect(web.document.querySelector('.dropdown-menu')?.textContent, contains(sdk.displayName));
+      expect(web.document.querySelector('.dropdown-menu')?.textContent, contains(sdk.menuLabel));
     });
   }
 
@@ -195,20 +230,17 @@ void main() {
       final flutter = availableSdks.firstWhere((sdk) => sdk.isFlutter);
       expect(
         footer.querySelector('.app-footer-sdk-trigger')!.textContent,
-        width < 500 ? flutter.name : flutter.displayName,
+        width < 500 ? isEmpty : _triggerText(flutter),
       );
-      expect(footer.querySelector('.app-footer-channel-label'), width < 500 ? isNull : isNotNull);
       expect(footer.querySelectorAll('.app-footer-link').length, width < 866 ? 0 : 2);
       final status = footer.querySelector('.task-status-trigger')!.getBoundingClientRect();
       final sdk = footer.querySelector('.app-footer-sdk-trigger')!.getBoundingClientRect();
-      final channel = footer.querySelector('.app-footer-channel')!.getBoundingClientRect();
       expect(status.right, lessThanOrEqualTo(sdk.left));
-      expect(sdk.right, lessThanOrEqualTo(channel.left));
-      expect(channel.right, lessThanOrEqualTo(footer.getBoundingClientRect().right));
+      expect(sdk.right, lessThanOrEqualTo(footer.getBoundingClientRect().right));
     });
   }
 
-  testClient('updates SDK and channel labels when crossing the compact breakpoint', (tester) async {
+  testClient('updates SDK labels when crossing the compact breakpoint', (tester) async {
     final sdk = availableSdks.first;
     _setWidth(499);
     tester.pumpComponent(
@@ -227,9 +259,8 @@ void main() {
       await pumpEventQueue();
       expect(
         web.document.querySelector('.app-footer-sdk-trigger')!.textContent,
-        width < 500 ? sdk.name : sdk.displayName,
+        width < 500 ? isEmpty : _triggerText(sdk),
       );
-      expect(web.document.querySelector('.app-footer-channel-label'), width < 500 ? isNull : isNotNull);
       expect(web.document.querySelector('.app-footer-link'), isNull);
     }
   });
@@ -337,6 +368,19 @@ void main() {
     expect(web.document.querySelector('.task-status-popover'), isNotNull);
   });
 }
+
+// The trigger shows logos instead of the SDK names, so only versions and the channel are text.
+String _triggerText(SdkInfo sdk) =>
+    '${sdk.shortFlutterVersion == null ? '' : '${sdk.shortFlutterVersion} •'}${sdk.shortDartVersion}${sdk.channel ?? ''}';
+
+// Menu items of beta and main/dev share a version label, so the channel tag tells them apart.
+web.Element _itemFor(Iterable<web.Element> items, SdkInfo sdk) => items.singleWhere(
+  (item) => _label(item) == sdk.menuLabel && (item.querySelector('.sdk-tag')?.textContent ?? '') == (sdk.channel ?? ''),
+);
+
+String _label(web.Element item) => item.querySelector('.dropdown-menu-item-name')!.textContent!;
+
+List<web.Element> _items(web.NodeList nodes) => [for (var i = 0; i < nodes.length; i++) nodes.item(i)! as web.Element];
 
 // Drive the same viewport input and resize event used by Footer.
 void _setWidth(int width) {

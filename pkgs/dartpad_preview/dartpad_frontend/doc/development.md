@@ -18,15 +18,15 @@ dart run tool/setup_sdk_assets.dart
 | `web/dartpad/` (ignored) | Worker, sandbox, compiler, and SDK assets            |
 | `lib/sdks.g.dart`        | Available SDK versions and the default SDK selection |
 
-- [setup_sdk_assets.dart](../tool/setup_sdk_assets.dart) downloads the latest Dart
-  stable runtime and builds the Flutter stable bundle (`--channel=stable --web-sdk=copy`)
-  with its matching Dart SDK.
-- The latest Dart and Flutter stable releases are resolved on each run. When
+- [setup_sdk_assets.dart](../tool/setup_sdk_assets.dart) prepares Stable, Beta,
+  and Dev runtimes for Dart, and Stable, Beta, and Main for Flutter. Flutter bundles use
+  `--web-sdk=copy` with their matching Dart SDK.
+- All channels are resolved on each run. Stable remains the default. When
   refreshing assets, include the regenerated SDK manifest in the change.
 - SDK versions come from each bundle's `version.json`. Missing or invalid version
   metadata, including an entirely missing required bundle, fails setup before
-  the existing runtime assets are replaced. The current setup requires both Dart
-  and Flutter; manifest generation can explicitly request Dart only.
+  the existing runtime assets are replaced. Setup requires all three channels
+  for Dart and Flutter; manifest generation can explicitly request Dart only.
 
 ## Bundled examples
 
