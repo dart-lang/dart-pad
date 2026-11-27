@@ -6,8 +6,13 @@
 library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/app_styles.dart';
+import 'package:dartpad_frontend/features/editor/codemirror/codemirror_styles.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_breadcrumbs.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
+import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
+import 'package:dartpad_frontend/features/shared/components/panel_visibility.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
@@ -574,5 +579,77 @@ void main() {
       expect((web.document.querySelector('.file-tree-panel')! as web.HTMLElement).style.display, 'none');
       expect(web.document.querySelector('.file-tree-rail'), isNull);
     });
+
+    testClient('aligns editor scroller top with underside of tab bar while keeping breadcrumbs visible', (tester) {
+      final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+      addTearDown(() async {
+        tester.binding.detachRootComponent();
+        await pumpEventQueue();
+        panels.dispose();
+      });
+
+      final tab = _ScrollingFakeTab('lib/main.dart');
+      tester.pumpComponent(
+        div(
+          styles: Styles(display: .flex, width: 800.px, height: 400.px),
+          [
+            Style(
+              styles: [
+                ...appStyles,
+                ...PanelVisibility.styles,
+                ...EditorTabBar.styles,
+                ...EditorBreadcrumbs.styles,
+                ...EditorShell.styles,
+                ...EditorStack.styles,
+                ...codemirrorStyles,
+              ],
+            ),
+            EditorShell(
+              openTabs: [tab],
+              activeFile: 'lib/main.dart',
+              editorOverlay: const Component.fragment([]),
+              onSwitchFile: (_) {},
+              onCloseFile: (_, {discardChanges = false}) => true,
+              bottomPanel: const div([]),
+              panelController: panels,
+            ),
+          ],
+        ),
+      );
+
+      final tabBarRect = web.document.querySelector('.editor-tab-bar')!.getBoundingClientRect();
+      final breadcrumbsRect = web.document.querySelector('.editor-breadcrumbs')!.getBoundingClientRect();
+      final scroller = web.document.querySelector('.cm-scroller')! as web.HTMLElement;
+      final scrollerRect = scroller.getBoundingClientRect();
+
+      expect(scrollerRect.top, tabBarRect.bottom);
+      expect(breadcrumbsRect.top, tabBarRect.bottom);
+      expect(breadcrumbsRect.right, scrollerRect.right - 16);
+      expect(web.window.getComputedStyle(scroller).paddingTop, '24px');
+    });
   });
+}
+
+final class _ScrollingFakeTab extends EditorTab<Component> {
+  _ScrollingFakeTab(super.path);
+
+  @override
+  Component build() => const div(classes: 'editor-container', [
+    div(classes: 'cm-editor', [div(classes: 'cm-scroller', [])]),
+  ]);
+
+  @override
+  void discardUnsavedChanges() {}
+
+  @override
+  bool get hasUnsavedChanges => false;
+
+  @override
+  bool get keepAlive => false;
+
+  @override
+  Stream<void> get onUpdate => const Stream.empty();
+
+  @override
+  Future<void> save() async {}
 }

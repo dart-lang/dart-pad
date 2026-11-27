@@ -135,15 +135,26 @@ class EditorShell extends StatelessComponent {
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1),
-      backgroundColor: colorContainer,
+      backgroundColor: colorEditorBackground,
     ),
     css('.editor-area').styles(
       display: .flex,
+      position: const .relative(),
       minWidth: .zero,
       minHeight: .zero,
       overflow: .hidden,
       flexDirection: .column,
       flex: const Flex(grow: 1, basis: .zero),
+    ),
+    css('#editor-navigation-panel').styles(
+      position: const .relative(),
+    ),
+    css('#editor-navigation-panel .editor-breadcrumbs').styles(
+      position: .absolute(top: 100.percent, left: 0.px, right: 16.px),
+      zIndex: const ZIndex(1),
+    ),
+    css('#editor-navigation-panel:has(.editor-breadcrumbs) + .editor-stack .image-preview-container').styles(
+      padding: .only(top: 44.px, right: 20.px, bottom: 20.px, left: 20.px),
     ),
   ];
 }

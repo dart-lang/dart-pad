@@ -407,8 +407,10 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         display: .flex,
         position: const .relative(),
         zIndex: const ZIndex(105),
-        minHeight: 38.px,
+        height: paneHeaderHeight,
+        minHeight: paneHeaderHeight,
         padding: .symmetric(horizontal: 10.px),
+        boxSizing: .borderBox,
         border: .only(
           bottom: .solid(color: colorBorder, width: 1.px),
         ),

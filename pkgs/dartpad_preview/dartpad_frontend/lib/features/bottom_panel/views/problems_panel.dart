@@ -59,7 +59,7 @@ final class ProblemsPanel extends StatelessComponent {
         overflow: .hidden,
         flexDirection: .column,
         flex: const .shrink(0),
-        backgroundColor: colorContainer,
+        backgroundColor: colorEditorBackground,
       ),
       css('& .problems-list').styles(
         minHeight: .zero,

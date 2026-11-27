@@ -6,9 +6,12 @@
 library;
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/app_styles.dart';
 import 'package:dartpad_frontend/features/bottom_panel/bottom_panel_state.dart';
 import 'package:dartpad_frontend/features/bottom_panel/view_models/console_view_model.dart';
 import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel.dart';
+import 'package:dartpad_frontend/features/bottom_panel/views/bottom_panel_tabs.dart';
+import 'package:dartpad_frontend/features/bottom_panel/views/problems_panel.dart';
 import 'package:dartpad_frontend/features/shared/analyzer_configuration.dart';
 import 'package:dartpad_frontend/features/shared/app_event_bus.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
@@ -656,5 +659,56 @@ void main() {
     expect(web.document.querySelector('.bottom-panel.collapsed'), isNotNull);
     expect(web.document.querySelector('.bottom-panel-tabs'), isNotNull);
     expect(web.document.querySelector('.bottom-panel-content'), isNull);
+  });
+
+  testClient('matches active bottom tab to content background and inactive tab to surface', (tester) {
+    final previousTheme = web.document.documentElement!.getAttribute('data-theme');
+    addTearDown(() {
+      if (previousTheme == null) {
+        web.document.documentElement!.removeAttribute('data-theme');
+      } else {
+        web.document.documentElement!.setAttribute('data-theme', previousTheme);
+      }
+    });
+
+    final events = AppEventBus();
+    final console = createConsole(events, () => tester.pumpComponent(const div([])));
+    tester.pumpComponent(
+      div([
+        Style(styles: [...appStyles, ...BottomPanel.styles, ...BottomPanelTabs.styles, ...ProblemsPanel.styles]),
+        SplitPanel(
+          state: createSplitOwner(tester, const Split(0.75)),
+          canCollapseRight: true,
+          left: const div([]),
+          right: BottomPanel(
+            panelController: createPanels(tester),
+            diagnostics: const [],
+            hasMoreDiagnostics: false,
+            console: console,
+            onOpenDiagnostic: (_, _) {},
+            events: events,
+          ),
+        ),
+      ]),
+    );
+
+    final problemsTab = web.document.querySelector('.bottom-panel-tab.active')! as web.HTMLElement;
+    final consoleTab = web.document.querySelector('.bottom-panel-tab:not(.active)')! as web.HTMLElement;
+    final problemsPanel = web.document.querySelector('.problems-panel')! as web.HTMLElement;
+
+    expect(web.window.getComputedStyle(problemsTab).borderTopLeftRadius, '6px');
+    expect(web.window.getComputedStyle(problemsTab).borderTopRightRadius, '6px');
+    expect(web.window.getComputedStyle(problemsTab).borderBottomLeftRadius, '0px');
+    expect(web.window.getComputedStyle(problemsTab).borderBottomRightRadius, '0px');
+
+    for (final (theme, expectedActiveBg, expectedInactiveBg) in [
+      ('light', 'rgb(255, 255, 255)', 'rgb(245, 245, 247)'),
+      ('dark', 'rgb(14, 22, 31)', 'rgb(29, 40, 52)'),
+    ]) {
+      web.document.documentElement!.setAttribute('data-theme', theme);
+      expect(web.window.getComputedStyle(problemsTab).backgroundColor, expectedActiveBg);
+      expect(web.window.getComputedStyle(problemsPanel).backgroundColor, expectedActiveBg);
+      expect(web.window.getComputedStyle(consoleTab).backgroundColor, expectedInactiveBg);
+    }
   });
 }
