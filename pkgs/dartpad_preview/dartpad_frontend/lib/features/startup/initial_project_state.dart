@@ -146,7 +146,7 @@ final class InitialProjectState {
 
 String _resolveRoot(ProjectRequest request, Project contents, List<String> relevantPaths) {
   final root = request.root != null
-      ? ProjectLoader.normalizePath(request.root!, allowRoot: true)
+      ? contents.resolveFolder(request.root!)
       : _commonPackageRoot(contents, relevantPaths);
   if (root.isNotEmpty && !contents.paths.any((path) => path.startsWith('$root/'))) {
     throw QueryParameterValidationException('Project root not found: $root.');
@@ -192,7 +192,7 @@ String _sdkVersion(SdkInfo sdk) => (sdk.flutterVersion ?? sdk.dartVersion).split
 
 String _commonPackageRoot(Project contents, List<String> paths) {
   if (paths.isEmpty) {
-    return '';
+    return contents.sourceRoot;
   }
   var parent = parentWorkspacePath(paths.first);
   while (true) {

@@ -28,8 +28,9 @@ final class Project {
   ///
   /// File paths are normalized with [ProjectLoader.normalizePath]. Invalid paths
   /// or multiple files resolving to the same path throw a [ProjectPathException].
-  Project(Iterable<ProjectFile> files, {Map<String, String> pathMapping = const {}})
-    : pathMapping = Map.unmodifiable(pathMapping) {
+  Project(Iterable<ProjectFile> files, {Map<String, String> pathMapping = const {}, String sourceRoot = ''})
+    : pathMapping = Map.unmodifiable(pathMapping),
+      sourceRoot = ProjectLoader.normalizePath(sourceRoot, allowRoot: true) {
     for (final file in files) {
       final path = ProjectLoader.normalizePath(file.path);
       if (_files.containsKey(path)) {
@@ -57,16 +58,32 @@ final class Project {
   /// normalized paths.
   final Map<String, String> pathMapping;
 
+  /// The workspace folder that holds the source files, or empty for the
+  /// workspace root.
+  ///
+  /// Only the package loader supplies this folder: it places the package
+  /// archive in a folder named after the package. Source paths, such as URL
+  /// file and root parameters, are relative to this folder.
+  final String sourceRoot;
+
   /// Normalizes a source [path] and returns its mapped workspace path, if any.
   ///
   /// Only gist projects use [pathMapping] to account for root-level Dart files
-  /// moved into `lib/`. For archives, packages, and samples, this simply returns
-  /// the normalized path. Does not check whether the target file exists.
-  /// Invalid source paths throw an [ArgumentError].
+  /// moved into `lib/`, and only package projects use [sourceRoot]. For
+  /// archives and samples, this simply returns the normalized path. Does not
+  /// check whether the target file exists. Invalid source paths throw an
+  /// [ArgumentError].
   String resolvePath(String path) {
     final normalized = ProjectLoader.normalizePath(path);
-    return pathMapping[normalized] ?? normalized;
+    return joinWorkspacePath(sourceRoot, pathMapping[normalized] ?? normalized);
   }
+
+  /// Normalizes a source folder [path], which may be empty for the source
+  /// root, and returns its workspace path.
+  ///
+  /// Invalid source paths throw an [ArgumentError].
+  String resolveFolder(String path) =>
+      joinWorkspacePath(sourceRoot, ProjectLoader.normalizePath(path, allowRoot: true));
 
   /// The normalized workspace-relative paths in this project.
   ///
