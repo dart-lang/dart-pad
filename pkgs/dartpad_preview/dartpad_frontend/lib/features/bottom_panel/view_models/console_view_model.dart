@@ -27,14 +27,18 @@ class ConsoleViewModel extends ChangeNotifier {
   /// Whether a displayed log line has a level above warning.
   bool get hasErrors => _hasErrors;
 
+  /// The console scroll position while it does not follow new output, kept so
+  /// a remounted console returns to it. `null` while the console follows.
+  double? scrollTop;
+
   void _handleLog(LogEvent event) {
-    var changed = _appendLogText(event.message, event.level);
+    var changed = _appendLogText(event.message, event);
 
     if (event.error case final error?) {
-      changed |= _appendLogText(error.toString(), event.level);
+      changed |= _appendLogText(error.toString(), event);
     }
     if (event.stackTrace case final stackTrace?) {
-      changed |= _appendLogText(stackTrace.toString(), event.level);
+      changed |= _appendLogText(stackTrace.toString(), event);
     }
 
     if (changed) {
@@ -42,16 +46,33 @@ class ConsoleViewModel extends ChangeNotifier {
     }
   }
 
-  bool _appendLogText(String text, Level level) {
+  bool _appendLogText(String text, LogEvent event) {
     var changed = false;
     for (final line in _splitLogLines(text)) {
-      _logs.add(ConsoleEntry(message: line, level: level));
+      _logs.add(ConsoleEntry(message: line, level: event.level, source: event));
       changed = true;
     }
-    if (changed && level > Level.WARNING) {
+    if (changed && event.level > Level.WARNING) {
       _hasErrors = true;
     }
     return changed;
+  }
+
+  /// The index of the first line displayed for the newest event with the
+  /// same message as [event], or `null` when there is none, for example after
+  /// [clear].
+  int? lastIndexOf(LogEvent event) {
+    final lastLine = _logs.lastIndexWhere((entry) => entry.source?.message == event.message);
+    if (lastLine < 0) {
+      return null;
+    }
+    // An event displays as several lines so we step back to its first line.
+    final source = _logs[lastLine].source;
+    var firstLine = lastLine;
+    while (firstLine > 0 && identical(_logs[firstLine - 1].source, source)) {
+      firstLine--;
+    }
+    return firstLine;
   }
 
   /// Removes all displayed logs.
@@ -61,6 +82,7 @@ class ConsoleViewModel extends ChangeNotifier {
     }
     _logs.clear();
     _hasErrors = false;
+    scrollTop = null;
     notifyListeners();
   }
 

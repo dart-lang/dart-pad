@@ -10,14 +10,42 @@ import 'package:web/web.dart' as web;
 import '../../../app_styles.dart';
 import '../models/console_entry.dart';
 
+/// A one-time request to show the console, created each time it is opened.
+///
+/// A request with a [revealIndex] scrolls that line to the top of the console
+/// and stops following new output. A request without one resumes following.
+final class ConsoleOpenRequest {
+  ConsoleOpenRequest({this.revealIndex});
+
+  final int? revealIndex;
+}
+
 /// Displays the application's structured log events.
 class ConsolePanel extends StatefulComponent {
   const ConsolePanel({
     required this.logs,
+    this.openRequest,
+    this.onOpenRequestApplied,
+    this.scrollTop,
+    this.onScrollTopChanged,
     super.key,
   });
 
   final List<ConsoleEntry> logs;
+
+  /// The latest request to show the console, if it is not applied yet.
+  final ConsoleOpenRequest? openRequest;
+
+  /// Called once [openRequest] is applied, so the owner can drop it.
+  final void Function()? onOpenRequestApplied;
+
+  /// The scroll position restored when the console is shown, or `null` to
+  /// follow new output at the bottom.
+  final double? scrollTop;
+
+  /// Called with the position to restore when the console is shown again, or
+  /// `null` once the console follows new output.
+  final void Function(double? scrollTop)? onScrollTopChanged;
 
   @override
   State<ConsolePanel> createState() => _DebugConsolePanelState();
@@ -29,10 +57,17 @@ class ConsolePanel extends StatefulComponent {
 class _DebugConsolePanelState extends State<ConsolePanel> {
   final GlobalNodeKey<web.HTMLElement> _listKey = GlobalNodeKey();
 
+  /// Whether new output scrolls the console to the bottom.
+  late bool _followOutput = component.scrollTop == null;
+
   @override
   void initState() {
     super.initState();
-    if (component.logs.isNotEmpty) {
+    if (component.openRequest != null) {
+      context.binding.addPostFrameCallback(_applyOpenRequest);
+    } else if (!_followOutput) {
+      context.binding.addPostFrameCallback(_restoreScrollTop);
+    } else if (component.logs.isNotEmpty) {
       context.binding.addPostFrameCallback(_scrollToBottom);
     }
   }
@@ -40,9 +75,61 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
   @override
   void didUpdateComponent(covariant ConsolePanel oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (component.logs.length != oldComponent.logs.length) {
+    if (component.logs.isEmpty && !_followOutput) {
+      _updateFollowOutput(null);
+    }
+    if (!identical(component.openRequest, oldComponent.openRequest) && component.openRequest != null) {
+      context.binding.addPostFrameCallback(_applyOpenRequest);
+    } else if (component.logs.length != oldComponent.logs.length && _followOutput) {
       context.binding.addPostFrameCallback(_scrollToBottom);
     }
+  }
+
+  void _applyOpenRequest() {
+    final request = component.openRequest;
+    if (!mounted || request == null) {
+      return;
+    }
+    component.onOpenRequestApplied?.call();
+    final index = request.revealIndex;
+    if (index == null || !_reveal(index)) {
+      _updateFollowOutput(null);
+      _scrollToBottom();
+    }
+  }
+
+  /// Scrolls the line at [index] to the top and stops following output,
+  /// unless the console is already at the bottom. Returns `false` when the
+  /// line is not displayed.
+  bool _reveal(int index) {
+    final element = _listKey.currentNode;
+    if (element == null || index < 0 || index >= component.logs.length) {
+      return false;
+    }
+    final row = element.children.item(index);
+    if (row == null) {
+      return false;
+    }
+    element.scrollTop += row.getBoundingClientRect().top - element.getBoundingClientRect().top;
+    _updateFollowOutput(element);
+    return true;
+  }
+
+  void _restoreScrollTop() {
+    final element = _listKey.currentNode;
+    final scrollTop = component.scrollTop;
+    if (!mounted || element == null || scrollTop == null) {
+      return;
+    }
+    element.scrollTop = scrollTop;
+    _updateFollowOutput(element);
+  }
+
+  /// Follows new output when [element] is `null` or scrolled to the bottom.
+  /// Otherwise, keeps its scroll position for when the console is shown again.
+  void _updateFollowOutput(web.HTMLElement? element) {
+    _followOutput = element == null || _isScrolledToBottom(element);
+    component.onScrollTopChanged?.call(_followOutput ? null : element!.scrollTop);
   }
 
   void _scrollToBottom() {
@@ -55,6 +142,17 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
     }
   }
 
+  /// Follows output only while the console is scrolled to the bottom.
+  void _onScroll() {
+    final element = _listKey.currentNode;
+    if (element != null) {
+      _updateFollowOutput(element);
+    }
+  }
+
+  bool _isScrolledToBottom(web.HTMLElement element) =>
+      element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
+
   @override
   Component build(BuildContext context) {
     return div(
@@ -63,6 +161,7 @@ class _DebugConsolePanelState extends State<ConsolePanel> {
         div(
           key: _listKey,
           classes: 'console-list',
+          events: {'scroll': (_) => _onScroll()},
           [
             if (component.logs.isEmpty)
               const div(classes: 'console-empty', [.text('No output yet')])

@@ -159,10 +159,13 @@ void main() {
     expect(opened, hasLength(1));
   });
 
-  testClient('logs failures and resets busy state', (tester) async {
+  testClient('logs failures, reveals them in the console, and resets busy state', (tester) async {
     final logs = <LogEvent>[];
     final logSubscription = events.on<LogEvent>().listen(logs.add);
     addTearDown(logSubscription.cancel);
+    final opened = <OpenConsoleEvent>[];
+    final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
+    addTearDown(consoleSubscription.cancel);
 
     tester.pumpComponent(
       PubspecEditorActions(
@@ -179,6 +182,7 @@ void main() {
     expect(logs.single.level, Level.SEVERE);
     expect(logs.single.message, 'Pub get failed.');
     expect(logs.single.error, isA<StateError>());
+    expect(opened.map((event) => event.reveal), [null, same(logs.single)]);
 
     final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
     expect(pubGet.disabled, isFalse);

@@ -77,14 +77,15 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     try {
       await operation();
     } catch (error, stackTrace) {
-      component.events.dispatch(
-        LogEvent(
-          failureMessage,
-          level: Level.SEVERE,
-          error: error,
-          stackTrace: stackTrace,
-        ),
+      final log = LogEvent(
+        failureMessage,
+        level: Level.SEVERE,
+        error: error,
+        stackTrace: stackTrace,
       );
+      component.events
+        ..dispatch(log)
+        ..dispatch(OpenConsoleEvent(reveal: log));
     } finally {
       if (mounted) {
         setState(() {

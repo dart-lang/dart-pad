@@ -4,10 +4,15 @@
 
 import 'package:logging/logging.dart';
 
+import '../../shared/events/log_event.dart';
+
 /// A single rendered line in the console.
 final class ConsoleEntry {
-  const ConsoleEntry({required this.message, required this.level});
+  const ConsoleEntry({required this.message, required this.level, this.source});
 
   final String message;
   final Level level;
+
+  /// The event that produced this line, if any.
+  final LogEvent? source;
 }
