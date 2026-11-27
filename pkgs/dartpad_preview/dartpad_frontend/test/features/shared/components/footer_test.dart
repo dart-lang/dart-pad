@@ -12,6 +12,7 @@ import 'package:dartpad_frontend/features/shared/analyzer_status.dart';
 import 'package:dartpad_frontend/features/shared/components/dropdown_menu.dart';
 import 'package:dartpad_frontend/features/shared/components/footer.dart';
 import 'package:dartpad_frontend/features/shared/components/icon_button.dart';
+import 'package:dartpad_frontend/features/shared/components/sdk_tag.dart';
 import 'package:dartpad_frontend/features/shared/sdk_info.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
@@ -145,6 +146,27 @@ void main() {
       expect(currentSdk.value, target);
       expect(web.document.querySelector('.app-footer-sdk-label')?.textContent, _triggerText(target));
     }
+  });
+
+  testClient('keeps the Dart main revision and channel inside a narrow SDK menu', (tester) async {
+    tester.pumpComponent(
+      div([
+        Style(styles: [...Footer.styles, ...DropdownMenu.styles, ...SdkTag.styles]),
+        Footer(taskStatus: taskStatus, currentSdk: defaultSdk, onSelectSdk: (_) {}, onOpenShortcuts: () {}),
+      ]),
+    );
+    (web.document.querySelector('.app-footer-sdk-trigger')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+
+    final menu = web.document.querySelector('.dropdown-menu')! as web.HTMLElement;
+    menu.style.maxWidth = '304px';
+    final sdk = availableSdks.singleWhere((sdk) => !sdk.isFlutter && sdk.channel == 'main');
+    final item = _itemFor(_items(menu.querySelectorAll('.dropdown-menu-item')), sdk);
+    final bounds = menu.getBoundingClientRect();
+    final itemBounds = item.getBoundingClientRect();
+    expect(item.textContent, contains(sdk.menuLabel));
+    expect(itemBounds.right, lessThanOrEqualTo(bounds.right));
+    expect(item.querySelector('.sdk-tag')!.getBoundingClientRect().right, lessThanOrEqualTo(bounds.right));
   });
 
   testClient('disables SDK selection during workspace preparation', (tester) async {

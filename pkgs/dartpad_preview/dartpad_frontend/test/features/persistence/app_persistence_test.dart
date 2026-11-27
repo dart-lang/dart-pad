@@ -84,7 +84,7 @@ void main() {
     expect(web.document.querySelector('.persistence-notice'), isNull);
   });
 
-  for (final channel in ['beta', 'dev']) {
+  for (final channel in ['beta', 'main']) {
     testClient('restores the $channel channel after its SDK version advances', (tester) async {
       final currentSdk = availableSdks.singleWhere((sdk) => !sdk.isFlutter && sdk.channel == channel);
       final olderSdk = SdkInfo(

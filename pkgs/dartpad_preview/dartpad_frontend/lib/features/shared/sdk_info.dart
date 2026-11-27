@@ -7,13 +7,6 @@ import 'package:web/web.dart' as web;
 
 import 'sdk_kind.dart';
 
-/// The channel name for an SDK kind, mapping Dart Dev and Flutter Main.
-String? sdkChannelForKind(String? channel, {required bool isFlutter}) => switch ((channel, isFlutter)) {
-  ('dev', true) => 'main',
-  ('main', false) => 'dev',
-  _ => channel,
-};
-
 /// Information about an available DartPad SDK/runtime.
 @immutable
 final class SdkInfo {
@@ -41,7 +34,7 @@ final class SdkInfo {
   /// The version of the Flutter SDK (e.g. `'3.48.0'`), or `null` if this is a pure Dart runtime.
   final String? flutterVersion;
 
-  /// The release channel: `'stable'`, `'beta'`, Dart `'dev'`, or Flutter `'main'`.
+  /// The release channel: `'stable'`, `'beta'`, or `'main'`.
   final String? channel;
 
   bool get isFlutter => flutterVersion != null;

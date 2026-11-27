@@ -49,11 +49,11 @@ const availableSdks = <SdkInfo>[
     dartVersion: '3.15.0-118.1.beta',
   ),
   SdkInfo(
-    id: 'dart-dev',
+    id: 'dart-main',
     name: 'Dart',
-    path: 'dartpad/dart-dev/',
-    channel: 'dev',
-    dartVersion: '3.15.0-157.0.dev',
+    path: 'dartpad/dart-main/',
+    channel: 'main',
+    dartVersion: '3.15.0-edge.8e8f29e404ee5451bda87d015fb45775c71355f2',
   ),
 ];
 

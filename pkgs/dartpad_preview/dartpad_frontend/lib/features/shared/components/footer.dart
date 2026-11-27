@@ -284,6 +284,16 @@ class _FooterState extends State<Footer> {
       alignItems: .center,
       gap: Gap.all(4.px),
     ),
+    // Dart main versions include a full revision hash; allow it to wrap on small screens.
+    css('.app-footer .dropdown-menu-columns ul').styles(
+      minWidth: .zero,
+      maxWidth: 100.percent,
+    ),
+    css('.app-footer .dropdown-menu-item-name').styles(
+      minWidth: .zero,
+      whiteSpace: .normal,
+      raw: {'overflow-wrap': 'anywhere'},
+    ),
     css('.app-footer-spacer').styles(flex: const .grow(1)),
     css('.app-footer .task-status-trigger').styles(
       width: 100.percent,

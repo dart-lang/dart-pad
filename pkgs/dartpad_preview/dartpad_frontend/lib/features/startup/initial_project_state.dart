@@ -36,8 +36,8 @@ final class InitialProjectState {
   /// Gists and Flutter API samples without a root pubspec receive one using the
   /// selected SDK's version.
   /// Existing pubspecs are preserved.
-  /// [preferredChannel] selects a matching channel when available, mapping Dart
-  /// Dev and Flutter Main. Explicit SDK versions take precedence.
+  /// [preferredChannel] selects a matching channel when available.
+  /// Explicit SDK versions take precedence.
   factory InitialProjectState.resolve(
     ProjectRequest request,
     Project contents,
@@ -180,10 +180,7 @@ SdkInfo _resolveSdk(
   }
   return preferredChannel == null
       ? matches.first
-      : matches
-                .where((sdk) => sdk.channel == sdkChannelForKind(preferredChannel, isFlutter: sdk.isFlutter))
-                .firstOrNull ??
-            matches.first;
+      : matches.where((sdk) => sdk.channel == preferredChannel).firstOrNull ?? matches.first;
 }
 
 String? _resolveEntrypoint(

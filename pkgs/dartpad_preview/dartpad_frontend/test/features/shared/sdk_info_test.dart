@@ -135,7 +135,7 @@ void main() {
         expect(availableSdks.where((sdk) => sdk.name == kind).map((sdk) => sdk.channel), [
           'stable',
           'beta',
-          kind == 'Dart' ? 'dev' : 'main',
+          'main',
         ]);
       }
     });

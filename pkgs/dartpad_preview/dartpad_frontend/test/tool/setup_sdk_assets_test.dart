@@ -138,12 +138,12 @@ void main() {
         "id: 'dart-beta'",
         "path: 'dartpad/dart-beta/'",
         "channel: 'beta'",
-        "id: 'dart-dev'",
-        "path: 'dartpad/dart-dev/'",
-        "channel: 'dev'",
+        "id: 'dart-main'",
+        "path: 'dartpad/dart-main/'",
+        "channel: 'main'",
       ]),
     );
-    expect(manifest, isNot(contains("id: 'dart-main'")));
+    expect(manifest, isNot(contains("id: 'dart-dev'")));
   });
 
   test('requires the Dart bundle even when Flutter metadata is valid', () async {
@@ -178,7 +178,7 @@ void main() {
     test('rejects an incomplete $kind channel bundle', () async {
       await writeChannels('dart', '{"dartVersion": "3.14.0", "properties": {}}');
       await writeChannels('flutter', '{"dartVersion": "3.14.0", "properties": {"flutterVersion": "3.48.0"}}');
-      final missingId = '$kind-${kind == 'dart' ? 'dev' : 'main'}';
+      final missingId = '$kind-main';
       await Directory(p.join(assets.path, missingId)).delete(recursive: true);
 
       await expectLater(

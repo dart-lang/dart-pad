@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 
 const sdkChannels = {
-  'dart': ['stable', 'beta', 'dev'],
+  'dart': ['stable', 'beta', 'main'],
   'flutter': ['stable', 'beta', 'main'],
 };
 

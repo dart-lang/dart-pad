@@ -1739,10 +1739,9 @@ void main() {
 
         expect(repositories, hasLength(previousCount + 1));
         final next = repositories.last;
-        final expectedChannel = channel == 'main' && !isFlutter ? 'dev' : channel;
         expect(
           next.sdk,
-          availableSdks.singleWhere((sdk) => sdk.isFlutter == isFlutter && sdk.channel == expectedChannel),
+          availableSdks.singleWhere((sdk) => sdk.isFlutter == isFlutter && sdk.channel == channel),
         );
         expect(next.dartpad, isNot(same(previous.dartpad)));
         expect(previous.closeCount, 1);
