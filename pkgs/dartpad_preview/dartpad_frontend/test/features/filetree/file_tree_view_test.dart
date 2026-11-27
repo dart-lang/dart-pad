@@ -10,10 +10,12 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:dartpad_frontend/app_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_shell.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_models.dart';
 import 'package:dartpad_frontend/features/filetree/file_tree_view.dart';
 import 'package:dartpad_frontend/features/shared/components/context_menu.dart';
+import 'package:dartpad_frontend/features/shared/components/icon_button.dart';
 import 'package:dartpad_frontend/features/shared/components/shortcut_definitions.dart';
 import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
@@ -1106,6 +1108,123 @@ void main() {
     expect(web.document.querySelector('.file-tree-item.file[title=".env"]'), isNull);
     expect(web.document.querySelector('.file-tree-item.folder[title="lib"]'), isNotNull);
     expect(web.document.querySelector('.file-tree-item.file[title="pubspec.yaml"]'), isNotNull);
+  });
+
+  testClient('uses monospace font and aligns sibling arrows and child icons across depths', (tester) async {
+    tester.pumpComponent(
+      div(styles: const Styles(width: Unit.pixels(240)), [
+        Style(styles: [...appStyles, ...IconButton.styles, ...FileTreeView.styles]),
+        FileTreeView(
+          state: FileTreeState(
+            root: FileTreeFolderNode(
+              WorkspaceFolder(workspace: workspace, path: ''),
+              children: [
+                FileTreeFolderNode(
+                  WorkspaceFolder(workspace: workspace, path: 'lib'),
+                  children: [
+                    FileTreeFolderNode(
+                      WorkspaceFolder(workspace: workspace, path: 'lib/src'),
+                      children: [
+                        FileTreeFileNode(
+                          WorkspaceFile(workspace: workspace, path: 'lib/src/helper.dart'),
+                          openable: true,
+                        ),
+                      ],
+                    ),
+                    FileTreeFileNode(
+                      WorkspaceFile(workspace: workspace, path: 'lib/main.dart'),
+                      openable: true,
+                    ),
+                  ],
+                ),
+                FileTreeFileNode(
+                  WorkspaceFile(workspace: workspace, path: 'pubspec.yaml'),
+                  openable: true,
+                ),
+              ],
+            ),
+            activeFile: 'lib/main.dart',
+            operationError: null,
+            busy: false,
+            dirtyEntries: const {},
+            focusedPath: '',
+          ),
+          actions: _actions(),
+        ),
+      ]),
+    );
+
+    // Expand nested `lib/src` folder (root `lib` expands automatically for `activeFile`? No, expand both if needed).
+    for (final path in ['lib', 'lib/src']) {
+      final folderRow = web.document.querySelector('.file-tree-item.folder[title="$path"]') as web.HTMLElement;
+      if (folderRow.getAttribute('aria-expanded') != 'true') {
+        (folderRow.querySelector('.file-tree-disclosure') as web.HTMLButtonElement).click();
+        await pumpEventQueue();
+      }
+    }
+
+    final libFolderRow = web.document.querySelector('.file-tree-item.folder[title="lib"]') as web.HTMLElement;
+    final srcFolderRow = web.document.querySelector('.file-tree-item.folder[title="lib/src"]') as web.HTMLElement;
+    final helperFileRow =
+        web.document.querySelector('.file-tree-item.file[title="lib/src/helper.dart"]') as web.HTMLElement;
+    final mainFileRow = web.document.querySelector('.file-tree-item.file[title="lib/main.dart"]') as web.HTMLElement;
+    final pubspecFileRow = web.document.querySelector('.file-tree-item.file[title="pubspec.yaml"]') as web.HTMLElement;
+
+    // (a) Monospace font family matching editor tabs on rows and inputs.
+    expect(web.window.getComputedStyle(libFolderRow).fontFamily, contains('monospace'));
+    expect(web.window.getComputedStyle(pubspecFileRow).fontFamily, contains('monospace'));
+    final preparedInput = web.document.querySelector('.file-tree-input-prepared') as web.HTMLInputElement;
+    expect(web.window.getComputedStyle(preparedInput).fontFamily, contains('monospace'));
+
+    double centerX(web.Element el) {
+      final rect = el.getBoundingClientRect();
+      return rect.left + rect.width / 2;
+    }
+
+    // (b) Folder disclosure arrow and sibling file icons at the same depth align horizontally.
+    expect(pubspecFileRow.querySelector('.file-tree-disclosure.spacer'), isNull);
+    final libArrow = libFolderRow.querySelector('.file-tree-disclosure')!;
+    final pubspecIcon = pubspecFileRow.querySelector('.file-tree-icon')!;
+    expect(centerX(pubspecIcon), closeTo(centerX(libArrow), 0.5));
+
+    final srcArrow = srcFolderRow.querySelector('.file-tree-disclosure')!;
+    final mainIcon = mainFileRow.querySelector('.file-tree-icon')!;
+    expect(centerX(mainIcon), closeTo(centerX(srcArrow), 0.5));
+
+    // (c) Icons (and subfolder arrows) inside a folder align with the parent folder's icon.
+    final libFolderIconRect = libFolderRow.querySelector('.file-tree-icon')!.getBoundingClientRect();
+    final mainIconRect = mainIcon.getBoundingClientRect();
+    expect(mainIconRect.left, closeTo(libFolderIconRect.left, 0.5));
+    expect(mainIconRect.right, closeTo(libFolderIconRect.right, 0.5));
+    expect(centerX(srcArrow), closeTo(libFolderIconRect.left + libFolderIconRect.width / 2, 0.5));
+
+    final srcFolderIconRect = srcFolderRow.querySelector('.file-tree-icon')!.getBoundingClientRect();
+    final helperIconRect = helperFileRow.querySelector('.file-tree-icon')!.getBoundingClientRect();
+    expect(helperIconRect.left, closeTo(srcFolderIconRect.left, 0.5));
+    expect(helperIconRect.right, closeTo(srcFolderIconRect.right, 0.5));
+
+    // Selection indicator: 6px rounded light-grey box with no hairline outline.
+    expect(mainFileRow.classList.contains('active'), isTrue);
+    final activeBg = web.window.getComputedStyle(mainFileRow).backgroundColor;
+    final unselectedBg = web.window.getComputedStyle(pubspecFileRow).backgroundColor;
+    expect(activeBg, isNot(unselectedBg));
+
+    pubspecFileRow
+      ..focus()
+      ..click();
+    await pumpEventQueue();
+    expect(pubspecFileRow.classList.contains('selected'), isTrue);
+    final selectedStyle = web.window.getComputedStyle(pubspecFileRow);
+    expect(selectedStyle.outlineStyle, 'none');
+    expect(selectedStyle.borderTopLeftRadius, '6px');
+    expect(selectedStyle.borderTopRightRadius, '6px');
+    expect(selectedStyle.borderBottomLeftRadius, '6px');
+    expect(selectedStyle.borderBottomRightRadius, '6px');
+    expect(selectedStyle.backgroundColor, activeBg);
+
+    // No vertical indent-guide hairline pseudo-element inside expanded folders.
+    final folderContainer = libFolderRow.closest('.file-tree-folder')!;
+    expect(web.window.getComputedStyle(folderContainer, '::after').content, 'none');
   });
 }
 

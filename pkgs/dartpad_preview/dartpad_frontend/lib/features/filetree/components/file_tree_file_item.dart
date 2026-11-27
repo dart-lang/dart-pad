@@ -182,7 +182,6 @@ class _FileTreeFileItemState extends State<FileTreeFileItem> {
         },
       },
       children: [
-        const span(classes: 'file-tree-disclosure spacer', []),
         _fileIcon(component.node.resource.basename),
         span(classes: 'file-tree-name', [
           .text(component.node.resource.basename),

@@ -229,6 +229,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
             active: _creatingEntry != null && _creatingInFolder == state.focusedPath,
             placeholder: _creatingEntry == FileTreeEntryKind.folder ? 'folder' : 'file',
             depth: 0,
+            showDisclosureSpacer: _creatingEntry == FileTreeEntryKind.folder,
             icon: _creatingEntry == FileTreeEntryKind.folder
                 ? const FileIcon(
                     'seti:folder',
@@ -451,6 +452,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       css('.file-tree-list', [
         css('&').styles(
           minHeight: .zero,
+          padding: .symmetric(horizontal: 4.px),
           overflow: .auto,
           flex: const Flex(grow: 1, basis: .zero),
         ),
@@ -471,14 +473,17 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           display: .flex,
           height: 25.px,
           padding: .only(
-            left: const Unit.expression('calc(6px + var(--tree-depth) * 10px)'),
+            left: const Unit.expression('calc(4px + var(--tree-depth) * 20px)'),
             right: 5.px,
           ),
+          radius: .circular(6.px),
+          outline: const Outline(style: .none),
           cursor: .pointer,
           userSelect: .none,
           alignItems: .center,
-          gap: .all(5.px),
+          gap: .all(4.px),
           color: colorOnContainer,
+          fontFamily: monospaceFontFamily,
           fontSize: 12.px,
           backgroundColor: colorContainer,
         ),
@@ -486,7 +491,8 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         css('&:hover').styles(
           backgroundColor: colorContainer.highlight(colorOnContainer, 0.05),
         ),
-        css('&.active').styles(
+        css('&.active, &.selected').styles(
+          color: colorOnContainer,
           backgroundColor: colorContainer.highlight(colorOnContainer, 0.1),
         ),
         css('&.dim .file-tree-name').styles(
@@ -498,43 +504,12 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
           ),
           raw: {'z-index': 'calc(100 - var(--tree-depth))'},
         ),
-        css('&.selected').styles(
-          outline: Outline(
-            color: colorPrimary,
-            style: OutlineStyle.solid,
-            width: OutlineWidth(1.px),
-            offset: (-1).px,
-          ),
-          color: colorOnContainer,
-          backgroundColor: colorContainer.highlight(colorPrimary, 0.4),
-        ),
 
         css('&.dragging').styles(opacity: 0.45),
         css('&.binary').styles(opacity: 0.58, cursor: .defaultCursor),
       ]),
 
       css('.file-tree-folder').styles(position: const .relative()),
-      css('.file-tree-list:hover .file-tree-folder:has(.file-tree-item.folder[aria-expanded=true])::after').styles(
-        opacity: 1,
-      ),
-      css('.file-tree-folder::after').styles(
-        content: '',
-        display: .block,
-        position: .absolute(
-          left: const .expression('calc(14px + var(--tree-depth,0) * 10px)'),
-          top: 22.px,
-          bottom: 0.px,
-        ),
-        width: 1.px,
-        opacity: 0,
-        backgroundColor: colorContainer.highlight(colorOnContainer, 0.3),
-        raw: {'z-index': 'calc(100 - var(--tree-depth) - 1)'},
-      ),
-      css(
-        '.file-tree-folder:has(>.file-tree-item.selected, >.file-tree-folder-children >.file-tree-item.selected)::after',
-      ).styles(
-        backgroundColor: colorContainer.highlight(colorOnContainer, 0.5),
-      ),
       css('.file-tree-folder.drop-target').styles(
         border: .none,
         outline: const Outline(style: .none),
@@ -556,6 +531,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
       css('.file-tree-icon').styles(
         width: 12.px,
         height: 12.px,
+        margin: .symmetric(horizontal: 2.px),
         flex: const .shrink(0),
         color: colorOnSurface,
         raw: const {'vertical-align': 'middle'},
@@ -589,6 +565,7 @@ final class _FileTreeViewInternalState extends State<FileTreeView> {
         radius: .circular(2.px),
         outline: const Outline(style: .none),
         color: colorOnContainer,
+        fontFamily: monospaceFontFamily,
         fontSize: 1.em,
         backgroundColor: colorContainer,
       ),
