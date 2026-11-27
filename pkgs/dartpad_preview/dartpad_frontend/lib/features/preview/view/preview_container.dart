@@ -16,6 +16,7 @@ import '../../shared/components/button_group.dart';
 import '../../shared/components/icon_button.dart';
 import '../../shared/components/split_panel.dart';
 import '../../shared/components/task_status_indicator.dart';
+import '../../shared/events/log_event.dart';
 import '../../shared/node_container.dart';
 import '../../shared/task_status.dart';
 import '../components/device_mode_dropdown.dart';
@@ -34,6 +35,7 @@ final class PreviewContainer extends StatefulComponent {
     required this.activeFile,
     required this.onOpenConsole,
     this.workspacePreparationFailure,
+    this.workspacePreparationFailureLog,
     this.initialDeviceMode = DeviceMode.mobile,
     super.key,
   });
@@ -50,8 +52,11 @@ final class PreviewContainer extends StatefulComponent {
   /// A persistent failure from the one-time workspace preparation lifecycle.
   final String? workspacePreparationFailure;
 
-  /// Opens the workspace Console tab.
-  final void Function() onOpenConsole;
+  /// The console log describing [workspacePreparationFailure], if any.
+  final LogEvent? workspacePreparationFailureLog;
+
+  /// Opens the workspace Console tab, revealing the failure log, if any.
+  final void Function(LogEvent? log) onOpenConsole;
 
   /// The default device preview mode until the user selects a mode.
   final DeviceMode initialDeviceMode;
@@ -150,6 +155,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
     final previewFailure = state is PreviewCompileError ? state : null;
     final failureKind = previewFailure?.failedTask;
     final failureMessage = previewFailure?.message ?? component.workspacePreparationFailure;
+    final failureLog = previewFailure != null ? previewFailure.log : component.workspacePreparationFailureLog;
     final taskStatusMode = switch (state) {
       PreviewInitial() => PreviewTaskStatusMode.workspacePreparation,
       PreviewStarting() => PreviewTaskStatusMode.startup,
@@ -260,6 +266,7 @@ final class _PreviewContainerState extends State<PreviewContainer> {
               mode: taskStatusMode,
               persistentFailureKind: failureKind,
               persistentFailureMessage: failureMessage,
+              persistentFailureLog: failureLog,
               onOpenConsole: component.onOpenConsole,
             ),
           if ((isRunning || state is PreviewDartReady) && viewModel.previewMode == RunMode.console)

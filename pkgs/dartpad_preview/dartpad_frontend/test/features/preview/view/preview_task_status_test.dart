@@ -6,6 +6,7 @@
 library;
 
 import 'package:dartpad_frontend/features/shared/components/task_status_indicator.dart';
+import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
@@ -26,7 +27,7 @@ void main() {
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.workspacePreparation,
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -58,7 +59,7 @@ void main() {
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.startup,
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -87,7 +88,7 @@ void main() {
         mode: PreviewTaskStatusMode.startup,
         persistentFailureKind: TaskKind.compilingApplication,
         persistentFailureMessage: 'See the console for details.',
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -104,7 +105,7 @@ void main() {
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.startup,
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -121,7 +122,7 @@ void main() {
           mode: PreviewTaskStatusMode.startup,
           persistentFailureKind: kind,
           persistentFailureMessage: 'See the console for details.',
-          onOpenConsole: () {},
+          onOpenConsole: (_) {},
         ),
       );
 
@@ -137,7 +138,7 @@ void main() {
         mode: PreviewTaskStatusMode.startup,
         persistentFailureKind: TaskKind.startingPreview,
         persistentFailureMessage: 'Entry point "lib/main.dart" not found.',
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -150,7 +151,7 @@ void main() {
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.restart,
-        onOpenConsole: () {},
+        onOpenConsole: (_) {},
       ),
     );
 
@@ -165,14 +166,16 @@ void main() {
     expect(web.document.querySelector('.preview-task-status.idle'), isNotNull);
   });
 
-  testClient('keeps failures visible and opens the Console', (tester) async {
-    var openConsoleCalls = 0;
+  testClient('keeps failures visible and opens the Console at their log', (tester) async {
+    const failureLog = LogEvent('Pub get failed.');
+    final opened = <LogEvent?>[];
     tester.pumpComponent(
       PreviewTaskStatus(
         controller: controller,
         mode: PreviewTaskStatusMode.workspacePreparation,
         persistentFailureMessage: 'Pub get failed.',
-        onOpenConsole: () => openConsoleCalls++,
+        persistentFailureLog: failureLog,
+        onOpenConsole: opened.add,
       ),
     );
 
@@ -184,7 +187,27 @@ void main() {
     final link = web.document.querySelector('.preview-task-console-link')! as web.HTMLButtonElement;
     link.click();
     await pumpEventQueue();
-    expect(openConsoleCalls, 1);
+    expect(opened, [same(failureLog)]);
+  });
+
+  testClient('opens the Console at the log of a failed task', (tester) async {
+    const failureLog = LogEvent('Pub get failed.');
+    final opened = <LogEvent?>[];
+    tester.pumpComponent(
+      PreviewTaskStatus(
+        controller: controller,
+        mode: PreviewTaskStatusMode.workspacePreparation,
+        onOpenConsole: opened.add,
+      ),
+    );
+
+    controller.startTask(TaskKind.pubGet, label: 'Pub get in /', scope: '').fail(log: failureLog);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.preview-task-title')?.textContent, 'Pub get in / failed');
+
+    (web.document.querySelector('.preview-task-console-link')! as web.HTMLButtonElement).click();
+    await pumpEventQueue();
+    expect(opened, [same(failureLog)]);
   });
 }
 

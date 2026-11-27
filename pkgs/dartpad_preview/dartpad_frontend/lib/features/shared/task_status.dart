@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:jaspr/jaspr.dart';
 
+import 'events/log_event.dart';
+
 /// The lifecycle state of a tracked application task.
 enum TaskStatusOutcome { running, succeeded, failed }
 
@@ -83,6 +85,7 @@ final class TaskStatusEntry {
     required this.blocksPreview,
     this.scope,
     this.finishedAt,
+    this.failureLog,
   });
 
   /// The stable task category used by application behavior.
@@ -106,6 +109,9 @@ final class TaskStatusEntry {
   /// Whether this task must finish before compiling preview code.
   final bool blocksPreview;
 
+  /// The console log describing why the task failed, if it failed with one.
+  final LogEvent? failureLog;
+
   /// Whether the task is still running.
   bool get isRunning => outcome == TaskStatusOutcome.running;
 
@@ -115,7 +121,7 @@ final class TaskStatusEntry {
     return duration.isNegative ? Duration.zero : duration;
   }
 
-  TaskStatusEntry _finish(DateTime finishedAt, TaskStatusOutcome outcome) {
+  TaskStatusEntry _finish(DateTime finishedAt, TaskStatusOutcome outcome, LogEvent? failureLog) {
     return TaskStatusEntry(
       kind: kind,
       label: label,
@@ -124,6 +130,7 @@ final class TaskStatusEntry {
       finishedAt: finishedAt,
       outcome: outcome,
       blocksPreview: blocksPreview,
+      failureLog: failureLog,
     );
   }
 }
@@ -233,6 +240,7 @@ final class TaskStatusController extends ChangeNotifier {
     Object token,
     TaskStatusOutcome outcome,
     DateTime? finishedAt,
+    LogEvent? failureLog,
   ) {
     if (_disposed) {
       return;
@@ -241,7 +249,7 @@ final class TaskStatusController extends ChangeNotifier {
     if (task == null || !identical(task.token, token)) {
       return;
     }
-    _tasks[key] = _TrackedTask(token, task.entry._finish(finishedAt ?? clock.now(), outcome));
+    _tasks[key] = _TrackedTask(token, task.entry._finish(finishedAt ?? clock.now(), outcome, failureLog));
     notifyListeners();
   }
 
@@ -292,8 +300,8 @@ final class TaskStatusHandle {
   /// Marks the task as successful at [finishedAt], or at the current time.
   void succeed({DateTime? finishedAt}) => _finish(TaskStatusOutcome.succeeded, finishedAt);
 
-  /// Marks the task as failed.
-  void fail() => _finish(TaskStatusOutcome.failed, null);
+  /// Marks the task as failed, keeping the console [log] describing why.
+  void fail({LogEvent? log}) => _finish(TaskStatusOutcome.failed, null, log);
 
   /// Removes an externally-driven task without recording an outcome.
   void cancel() {
@@ -304,12 +312,12 @@ final class TaskStatusHandle {
     _controller._cancelTask(_key, _token);
   }
 
-  void _finish(TaskStatusOutcome outcome, DateTime? finishedAt) {
+  void _finish(TaskStatusOutcome outcome, DateTime? finishedAt, [LogEvent? failureLog]) {
     if (_finished) {
       return;
     }
     _finished = true;
-    _controller._finishTask(_key, _token, outcome, finishedAt);
+    _controller._finishTask(_key, _token, outcome, finishedAt, failureLog);
   }
 }
 

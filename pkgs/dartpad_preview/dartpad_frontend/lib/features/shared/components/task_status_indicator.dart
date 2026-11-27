@@ -9,6 +9,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:web/web.dart' as web;
 
 import '../../../app_styles.dart';
+import '../events/log_event.dart';
 import '../icons.dart';
 import '../task_status.dart';
 
@@ -357,14 +358,18 @@ final class PreviewTaskStatus extends StatefulComponent {
     required this.onOpenConsole,
     this.persistentFailureKind,
     this.persistentFailureMessage,
+    this.persistentFailureLog,
     super.key,
   });
 
   final TaskStatusController controller;
   final PreviewTaskStatusMode mode;
-  final void Function() onOpenConsole;
+
+  /// Opens the console, revealing the log of the failure shown, if any.
+  final void Function(LogEvent? log) onOpenConsole;
   final TaskKind? persistentFailureKind;
   final String? persistentFailureMessage;
+  final LogEvent? persistentFailureLog;
 
   @override
   State<PreviewTaskStatus> createState() => _PreviewTaskStatusState();
@@ -461,7 +466,9 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
       ]);
     }
 
-    final failed = failureKind != null || failureMessage != null || task?.outcome == TaskStatusOutcome.failed;
+    final hasPersistentFailure = failureKind != null || failureMessage != null;
+    final failed = hasPersistentFailure || task?.outcome == TaskStatusOutcome.failed;
+    final failureLog = hasPersistentFailure ? component.persistentFailureLog : task?.failureLog;
     final kind = failureKind ?? task?.kind;
     final taskLabel = failureKind?.label ?? task?.label ?? 'Workspace preparation';
     final label = failed
@@ -494,7 +501,7 @@ class _PreviewTaskStatusState extends State<PreviewTaskStatus> {
             span(classes: 'preview-task-error', [.text(message)]),
           button(
             classes: 'preview-task-console-link',
-            onClick: component.onOpenConsole,
+            onClick: () => component.onOpenConsole(failureLog),
             [const .text('Open Console')],
           ),
         ],

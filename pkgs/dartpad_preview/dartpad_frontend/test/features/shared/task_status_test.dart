@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:dartpad_frontend/features/shared/events/log_event.dart';
 import 'package:dartpad_frontend/features/shared/task_status.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -160,6 +162,14 @@ void main() {
         expect(controller.current?.label, 'Async failure');
         expect(controller.current?.outcome, TaskStatusOutcome.failed);
       });
+    });
+
+    test('a failed handle keeps its log', () {
+      const log = LogEvent('Run failed', level: Level.SEVERE);
+      controller.startTask(TaskKind.startingPreview).fail(log: log);
+
+      expect(controller.current?.outcome, TaskStatusOutcome.failed);
+      expect(controller.current?.failureLog, same(log));
     });
 
     test('tracks whether a running task blocks preview compilation', () {

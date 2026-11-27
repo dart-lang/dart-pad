@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:dartpad_editor/dartpad_editor.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 
 import '../../shared/app_event_bus.dart';
 import '../../shared/components/button.dart';
@@ -35,11 +34,12 @@ final class PubspecEditorActions extends StatefulComponent {
   /// Persists all open editor files before Pub resolves dependencies.
   final Future<void> Function() saveAllFiles;
 
-  /// Event bus used to report Pub failures to the debug console.
+  /// Event bus used to open the debug console.
   final AppEventBus events;
 
-  /// Runs Pub Get in the supplied workspace-relative directory.
-  final Future<void> Function(String path) onPubGet;
+  /// Runs Pub Get in the supplied workspace-relative directory and returns
+  /// its failure log, or `null` when it succeeds.
+  final Future<LogEvent?> Function(String path) onPubGet;
 
   @override
   State<PubspecEditorActions> createState() => _PubspecEditorActionsState();
@@ -50,7 +50,7 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
 
   /// Saves all files and runs Pub Get in [path].
   Future<void> _pubGet(String path) async {
-    await _run('Pub get failed.', () async {
+    await _run(() async {
       // Reveal the console so the user gets immediate feedback that pub get
       // started, and can follow its output.
       component.events.dispatch(const OpenConsoleEvent());
@@ -60,14 +60,13 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
         // The editor owns and displays save failures.
         return;
       }
-      await component.onPubGet(path);
+      if (await component.onPubGet(path) case final failure?) {
+        component.events.dispatch(OpenConsoleEvent(reveal: failure));
+      }
     });
   }
 
-  Future<void> _run(
-    String failureMessage,
-    Future<void> Function() operation,
-  ) async {
+  Future<void> _run(Future<void> Function() operation) async {
     if (_busy) {
       return;
     }
@@ -76,16 +75,6 @@ final class _PubspecEditorActionsState extends State<PubspecEditorActions> {
     });
     try {
       await operation();
-    } catch (error, stackTrace) {
-      final log = LogEvent(
-        failureMessage,
-        level: Level.SEVERE,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      component.events
-        ..dispatch(log)
-        ..dispatch(OpenConsoleEvent(reveal: log));
     } finally {
       if (mounted) {
         setState(() {

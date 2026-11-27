@@ -552,25 +552,20 @@ final class _AppState extends State<App> {
       if (!_isCurrentRuntime(session, generation)) {
         return false;
       }
-      try {
-        await session.repository.pubGetOfflineFirst(
-          path: packageRoot,
-          projectRoot: packageRoot,
-        );
-      } catch (error, stackTrace) {
+      final failure = await session.repository.pubGetOfflineFirst(
+        path: packageRoot,
+        projectRoot: packageRoot,
+      );
+      if (failure != null) {
         preparationSucceeded = false;
         if (_isCurrentRuntime(session, generation)) {
-          final log = LogEvent(
-            'Pub get failed.',
-            level: Level.SEVERE,
-            error: error,
-            stackTrace: stackTrace,
-          );
-          session.events.dispatch(log);
           setState(() {
-            _workspacePreparationFailure = _WorkspaceFailure('Pub get failed while preparing the workspace.', log: log);
+            _workspacePreparationFailure = _WorkspaceFailure(
+              'Pub get failed while preparing the workspace.',
+              log: failure,
+            );
           });
-          _openConsole(session, reveal: log);
+          _openConsole(session, reveal: failure);
         }
       }
     }
@@ -1033,18 +1028,12 @@ final class _AppState extends State<App> {
         taskStatus: session.taskStatus,
         activeFile: session.tabs.activeFile,
         workspacePreparationFailure: _workspacePreparationFailure?.message,
-        onOpenConsole: () => _openConsole(session, reveal: _shownFailureLog(session)),
+        workspacePreparationFailureLog: _workspacePreparationFailure?.log,
+        onOpenConsole: (log) => _openConsole(session, reveal: log),
         initialDeviceMode: _isEmbedMode || !_isLargeScreen ? DeviceMode.current : DeviceMode.mobile,
       ),
     );
   }
-
-  /// The log of the failure shown in the preview panel, matching the message
-  /// [PreviewContainer] displays.
-  LogEvent? _shownFailureLog(WorkspaceSession session) => switch (session.preview.state) {
-    PreviewCompileError(:final log) => log,
-    _ => _workspacePreparationFailure?.log,
-  };
 
   /// Opens the console, scrolled to the first line of [reveal] when it is
   /// still displayed.

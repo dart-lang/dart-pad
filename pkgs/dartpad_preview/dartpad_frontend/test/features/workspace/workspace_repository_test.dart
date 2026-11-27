@@ -17,6 +17,7 @@ import 'package:dartpad_frontend/features/shared/task_status.dart';
 import 'package:dartpad_frontend/features/workspace/data/synced_workspace_resource_api.dart';
 import 'package:dartpad_frontend/features/workspace/data/workspace_repository.dart';
 import 'package:dartpad_frontend/sdks.g.dart';
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import '../../worker_fixture.dart';
@@ -215,6 +216,34 @@ void main() {
     },
   );
 
+  test('Pub Get logs a failure, keeps the log on its task and returns it', () async {
+    final events = AppEventBus();
+    final logs = <LogEvent>[];
+    final subscription = events.on<LogEvent>().listen(logs.add);
+    final taskStatus = TaskStatusController();
+    final failure = StateError('workspace not available');
+    final repository = WorkspaceRepository(
+      events: events,
+      taskStatus: taskStatus,
+      workspaceResourceApi: _Workspace(),
+      sdk: defaultSdk,
+      workspaceFuture: Future.error(failure),
+    );
+
+    final returned = await repository.pubGet(path: 'example');
+    await pumpEventQueue();
+
+    final log = logs.last;
+    expect(log.message, 'Pub get failed.');
+    expect(log.level, Level.SEVERE);
+    expect(log.error, same(failure));
+    expect(returned, same(log));
+    expect(taskStatus.current?.failureLog, same(log));
+    await subscription.cancel();
+    taskStatus.dispose();
+    await events.dispose();
+  });
+
   test('Pub Clean exposes a blocking task status', () async {
     final workspace = _Workspace()..folders.add('example/build');
     final taskStatus = TaskStatusController();
@@ -231,7 +260,7 @@ void main() {
     expect(taskStatus.current?.label, 'Pub clean in example');
     expect(taskStatus.current?.scope, 'example');
     expect(taskStatus.hasBlockingPreviewTask, isTrue);
-    await future;
+    expect(await future, isNull);
 
     expect(taskStatus.current?.outcome, TaskStatusOutcome.succeeded);
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
@@ -257,7 +286,7 @@ void main() {
     expect(taskStatus.hasBlockingPreviewTask, isTrue);
 
     completer.completeError(StateError('workspace not available'));
-    await expectLater(future, throwsA(isA<StateError>()));
+    expect((await future)?.error, isA<StateError>());
 
     expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
@@ -283,7 +312,7 @@ void main() {
     expect(taskStatus.hasBlockingPreviewTask, isTrue);
 
     completer.completeError(StateError('workspace not available'));
-    await expectLater(future, throwsA(isA<StateError>()));
+    expect((await future)?.error, isA<StateError>());
 
     expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
@@ -309,7 +338,7 @@ void main() {
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
 
     completer.completeError(StateError('workspace not available'));
-    await expectLater(future, throwsA(isA<StateError>()));
+    expect((await future)?.error, isA<StateError>());
 
     expect(taskStatus.current?.outcome, TaskStatusOutcome.failed);
     expect(taskStatus.hasBlockingPreviewTask, isFalse);
