@@ -61,16 +61,25 @@ final class SdkInfo {
 
   /// Label for SDK lists, e.g. `3.50.1 · Dart 3.14.0`. The channel is shown separately.
   ///
-  /// Non-stable SDKs show their exact versions, e.g. `3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev`,
-  /// since the short version alone cannot tell two beta or main builds apart.
+  /// Non-stable SDKs show their build versions, e.g. `3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev`.
+  /// Dart main revision hashes are shortened to their last five characters.
   String get menuLabel {
     final exact = channel != null && channel != 'stable';
-    final dart = exact ? fullDartVersion : shortDartVersion;
+    var dart = exact ? fullDartVersion : shortDartVersion;
+    if (!isFlutter && channel == 'main') {
+      final revision = _edgeRevisionPattern.firstMatch(dart);
+      if (revision != null) {
+        final hash = revision.group(2)!;
+        dart = '${revision.group(1)}${hash.substring(hash.length - 5)}...';
+      }
+    }
     final flutter = exact ? flutterVersion : shortFlutterVersion;
     return flutter == null ? dart : '$flutter · Dart $dart';
   }
 
   static final _buildPattern = RegExp(r'\(build (.+)\)');
+
+  static final _edgeRevisionPattern = RegExp(r'^(.*-edge\.)([0-9a-fA-F]{6,})$');
 
   static final _versionPattern = RegExp(r'^\d+\.\d+\.\d+');
 

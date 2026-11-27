@@ -104,6 +104,35 @@ void main() {
       expect(dart.menuLabel, '3.15.0-118.1.beta');
     });
 
+    test('shortens only long Dart main revision hashes in menu labels', () {
+      const dart = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.8e8f29e404ee5451bda87d015fb45775c71355f2',
+        channel: 'main',
+      );
+      const shortHash = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.abcde',
+        channel: 'main',
+      );
+      const nonHash = SdkInfo(
+        id: 'dart-main',
+        name: 'Dart',
+        path: 'dart-main/',
+        dartVersion: '3.15.0-edge.example',
+        channel: 'main',
+      );
+
+      expect(dart.menuLabel, '3.15.0-edge.355f2...');
+      expect(dart.fullDartVersion, '3.15.0-edge.8e8f29e404ee5451bda87d015fb45775c71355f2');
+      expect(shortHash.menuLabel, '3.15.0-edge.abcde');
+      expect(nonHash.menuLabel, '3.15.0-edge.example');
+    });
+
     test('derives the SDK kind from the Flutter version', () {
       const flutter = SdkInfo(
         id: 'flutter',
