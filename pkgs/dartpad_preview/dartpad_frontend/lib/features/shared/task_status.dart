@@ -145,8 +145,8 @@ final class TaskStatusEntry {
 final class TaskStatusController extends ChangeNotifier {
   TaskStatusController({
     this.retention = const Duration(minutes: 5),
-    AppEventBus? events,
-  }) : _events = events;
+    this._events,
+  });
 
   /// How long completed tasks remain visible.
   final Duration retention;
