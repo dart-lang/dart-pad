@@ -5,8 +5,16 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad_frontend/app_styles.dart';
 import 'package:dartpad_frontend/features/editor/components/small_screen_tab_bar.dart';
 import 'package:dartpad_frontend/features/shared/components/app_bar.dart';
+import 'package:dartpad_frontend/features/shared/components/icon_button.dart' as dp;
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
+import 'package:dartpad_frontend/features/shared/panel_defaults.dart';
+import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
+import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
+import 'package:dartpad_frontend/features/workspace/workspace_layout.dart';
+import 'package:jaspr/dom.dart';
 import 'package:jaspr_test/client_test.dart';
 import 'package:web/web.dart' as web;
 
@@ -39,6 +47,76 @@ void main() {
     final title = web.document.querySelector('.app-bar-title');
     expect(title, isNotNull);
     expect(title!.textContent, 'DartPad');
+    expect(web.document.querySelector('.app-bar-divider'), isNull);
+  });
+
+  testClient('left-aligns New button with default file-tree pane splitter', (tester) {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+
+    tester.pumpComponent(
+      div(
+        styles: Styles(display: .flex, width: 1200.px, height: 400.px, flexDirection: .column),
+        [
+          Style(styles: [...appStyles, ...AppBar.styles, ...WorkspaceLayout.styles, ...SplitPanelState.styles]),
+          AppBar(onSelectExample: (_) {}),
+          WorkspaceLayout(
+            fileTree: const div([]),
+            editor: const div([]),
+            preview: const div([]),
+            panels: panels,
+            showOutput: false,
+          ),
+        ],
+      ),
+    );
+
+    final shellLeft = web.document.querySelector('.app-bar')!.getBoundingClientRect().left;
+    final newButtonLeft = web.document.querySelector('[aria-label="New"]')!.getBoundingClientRect().left;
+    final fileTreeRight = web.document.querySelector('.file-tree-panel')!.getBoundingClientRect().right;
+    final dragHandleLeft = web.document.querySelector('.drag-handle.horizontal')!.getBoundingClientRect().left;
+
+    expect(newButtonLeft - shellLeft, fileTreeWidth);
+    expect(newButtonLeft, fileTreeRight);
+    // `.drag-handle.horizontal` has a -2px left margin and renders its visible bar at left: 2px.
+    expect(newButtonLeft, dragHandleLeft + 2);
+  });
+
+  testClient('renders pure white buttons in dark mode', (tester) {
+    final previousTheme = web.document.documentElement!.getAttribute('data-theme');
+    web.document.documentElement!.setAttribute('data-theme', 'dark');
+    addTearDown(() {
+      if (previousTheme == null) {
+        web.document.documentElement!.removeAttribute('data-theme');
+      } else {
+        web.document.documentElement!.setAttribute('data-theme', previousTheme);
+      }
+    });
+
+    tester.pumpComponent(
+      div([
+        Style(styles: [...appStyles, ...AppBar.styles, ...dp.IconButton.styles]),
+        AppBar(onSelectExample: (_) {}),
+      ]),
+    );
+
+    const pureWhite = 'rgb(255, 255, 255)';
+    for (final label in ['New', 'Theme Toggle', 'More options']) {
+      final button = web.document.querySelector('[aria-label="$label"]')! as web.HTMLButtonElement;
+      expect(web.window.getComputedStyle(button).color, pureWhite, reason: '$label button should be pure white');
+    }
+
+    for (final label in ['Theme Toggle', 'More options']) {
+      final button = web.document.querySelector('[aria-label="$label"]')! as web.HTMLButtonElement;
+      final style = web.window.getComputedStyle(button);
+      expect(style.width, '36px', reason: '$label button should be 36px wide');
+      expect(style.height, '36px', reason: '$label button should be 36px tall');
+      expect(style.borderRadius, '50%', reason: '$label button should have a circular hover shape');
+    }
   });
 
   testClient('opens New and selects Dart Snippet', (tester) async {
@@ -103,9 +181,9 @@ void main() {
               '[aria-label="More options"]',
             )!
             as web.HTMLButtonElement;
-    expect(moreButton.textContent, contains('apps'));
-    final appsIcon = moreButton.querySelector('.material-symbols-outlined')! as web.HTMLElement;
-    expect(appsIcon.style.fontSize, '28px');
+    expect(moreButton.textContent, contains('more_vert'));
+    final moreIcon = moreButton.querySelector('.material-symbols-outlined')! as web.HTMLElement;
+    expect(moreIcon.style.fontSize, '24px');
 
     moreButton.click();
     await pumpEventQueue();
