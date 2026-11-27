@@ -33,8 +33,10 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (path) async => pubGetPath = path,
+        onPubGet: (path) async {
+          pubGetPath = path;
+          return null;
+        },
       ),
     );
 
@@ -50,8 +52,10 @@ void main() {
         activeFile: 'packages/example/pubspec.lock',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (path) async => pubGetPath = path,
+        onPubGet: (path) async {
+          pubGetPath = path;
+          return null;
+        },
       ),
     );
 
@@ -67,8 +71,7 @@ void main() {
         activeFile: 'packages/example/analysis_options.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (_) async {},
+        onPubGet: (_) async => null,
       ),
     );
 
@@ -81,8 +84,7 @@ void main() {
         activeFile: 'main.dart',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (_) async {},
+        onPubGet: (_) async => null,
       ),
     );
     await pumpEventQueue();
@@ -93,8 +95,7 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (_) async {},
+        onPubGet: (_) async => null,
       ),
     );
     await pumpEventQueue();
@@ -109,8 +110,10 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => operations.add('save-all'),
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (path) async => operations.add('pub-get:$path'),
+        onPubGet: (path) async {
+          operations.add('pub-get:$path');
+          return null;
+        },
       ),
     );
 
@@ -125,13 +128,12 @@ void main() {
     final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
     addTearDown(consoleSubscription.cancel);
 
-    final completer = Completer<void>();
+    final completer = Completer<LogEvent?>();
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
         onPubGet: (_) => completer.future,
       ),
     );
@@ -142,7 +144,7 @@ void main() {
     // The console is revealed while Pub Get is still running.
     expect(opened, hasLength(1));
 
-    completer.complete();
+    completer.complete(null);
     await pumpEventQueue();
   });
 
@@ -156,8 +158,7 @@ void main() {
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => throw StateError('save failed'),
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (_) async {},
+        onPubGet: (_) async => null,
       ),
     );
 
@@ -167,20 +168,18 @@ void main() {
     expect(opened, hasLength(1));
   });
 
-  testClient('reveals the failure log of the task in the console and resets busy state', (tester) async {
+  testClient('reveals the returned failure log in the console and resets busy state', (tester) async {
     final opened = <OpenConsoleEvent>[];
     final consoleSubscription = events.on<OpenConsoleEvent>().listen(opened.add);
     addTearDown(consoleSubscription.cancel);
-    final failure = StateError('pub failed');
-    final failureLog = LogEvent('Pub get failed.', level: Level.SEVERE, error: failure);
+    final failureLog = LogEvent('Pub get failed.', level: Level.SEVERE, error: StateError('pub failed'));
 
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (error) => identical(error, failure) ? failureLog : null,
-        onPubGet: (_) async => throw failure,
+        onPubGet: (_) async => failureLog,
       ),
     );
 
@@ -207,8 +206,10 @@ void main() {
           throw StateError('save failed');
         },
         events: events,
-        failureLogFor: (_) => null,
-        onPubGet: (path) async => operations.add('pub-get:$path'),
+        onPubGet: (path) async {
+          operations.add('pub-get:$path');
+          return null;
+        },
       ),
     );
 
@@ -223,13 +224,12 @@ void main() {
   });
 
   testClient('disables action while busy', (tester) async {
-    final completer = Completer<void>();
+    final completer = Completer<LogEvent?>();
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async {},
         events: events,
-        failureLogFor: (_) => null,
         onPubGet: (_) => completer.future,
       ),
     );
@@ -240,24 +240,23 @@ void main() {
     final pubGet = web.document.querySelector('[aria-label="Pub get"]')! as web.HTMLButtonElement;
     expect(pubGet.disabled, isTrue);
 
-    completer.complete();
+    completer.complete(null);
     await pumpEventQueue();
 
     expect(pubGet.disabled, isFalse);
   });
 
   testClient('ignores another Pub action while one is running', (tester) async {
-    final completer = Completer<void>();
+    final completer = Completer<LogEvent?>();
     final operations = <String>[];
     tester.pumpComponent(
       PubspecEditorActions(
         activeFile: 'pubspec.yaml',
         saveAllFiles: () async => operations.add('save-all'),
         events: events,
-        failureLogFor: (_) => null,
         onPubGet: (path) async {
           operations.add('pub-get:$path');
-          await completer.future;
+          return completer.future;
         },
       ),
     );
@@ -270,7 +269,7 @@ void main() {
 
     expect(operations, ['save-all', 'pub-get:']);
 
-    completer.complete();
+    completer.complete(null);
     await pumpEventQueue();
   });
 }

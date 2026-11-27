@@ -6,9 +6,7 @@ import 'dart:async';
 
 import 'package:clock/clock.dart';
 import 'package:jaspr/jaspr.dart';
-import 'package:logging/logging.dart';
 
-import 'app_event_bus.dart';
 import 'events/log_event.dart';
 
 /// The lifecycle state of a tracked application task.
@@ -145,14 +143,10 @@ final class TaskStatusEntry {
 final class TaskStatusController extends ChangeNotifier {
   TaskStatusController({
     this.retention = const Duration(minutes: 5),
-    this._events,
   });
 
   /// How long completed tasks remain visible.
   final Duration retention;
-
-  /// Receives the failure logs of [runTask].
-  final AppEventBus? _events;
 
   final Map<_TaskKey, _TrackedTask> _tasks = {};
   bool _disposed = false;
@@ -179,17 +173,6 @@ final class TaskStatusController extends ChangeNotifier {
 
   /// The task shown in the compact status summary.
   TaskStatusEntry? get current => entries.firstOrNull;
-
-  /// The failure log of the task that failed with [error], if any.
-  LogEvent? failureLogFor(Object error) {
-    for (final task in _tasks.values) {
-      final log = task.entry.failureLog;
-      if (log != null && identical(log.error, error)) {
-        return log;
-      }
-    }
-    return null;
-  }
 
   /// Whether a running task currently blocks preview compilation.
   bool get hasBlockingPreviewTask {
@@ -226,16 +209,12 @@ final class TaskStatusController extends ChangeNotifier {
   }
 
   /// Runs [operation] while tracking its success or failure.
-  ///
-  /// With a [failureMessage], a failure is also logged to the console and
-  /// kept as the task's [TaskStatusEntry.failureLog].
   Future<T> runTask<T>(
     TaskKind kind,
     FutureOr<T> Function() operation, {
     String? label,
     String? scope,
     bool blocksPreview = false,
-    String? failureMessage,
   }) async {
     final handle = startTask(
       kind,
@@ -243,19 +222,16 @@ final class TaskStatusController extends ChangeNotifier {
       scope: scope,
       blocksPreview: blocksPreview,
     );
+    var success = false;
     try {
       final result = await Future<T>.sync(operation);
       handle.succeed();
+      success = true;
       return result;
-    } catch (error, stackTrace) {
-      final log = failureMessage == null
-          ? null
-          : LogEvent(failureMessage, level: Level.SEVERE, error: error, stackTrace: stackTrace);
-      if (log != null) {
-        _events?.dispatch(log);
+    } finally {
+      if (!success) {
+        handle.fail();
       }
-      handle.fail(log: log);
-      rethrow;
     }
   }
 

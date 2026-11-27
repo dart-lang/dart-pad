@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dartpad/dartpad.dart';
 import 'package:dartpad_editor/dartpad_editor.dart';
+import 'package:logging/logging.dart';
 
 import '../../preview/models/run_mode.dart';
 import '../../shared/app_event_bus.dart';
@@ -180,7 +181,30 @@ final class WorkspaceRepository {
     }
   }
 
-  Future<void> _runPubCommand({
+  /// Runs [operation] as a Pub task. A failure is logged to the console, kept
+  /// on the task and returned instead of thrown.
+  Future<LogEvent?> _runPubTask(
+    TaskKind kind,
+    Future<void> Function() operation, {
+    required String label,
+    required String scope,
+    required bool blocksPreview,
+  }) async {
+    final task = taskStatus.startTask(kind, label: label, scope: scope, blocksPreview: blocksPreview);
+    try {
+      await operation();
+      task.succeed();
+      return null;
+    } catch (error, stackTrace) {
+      final log = LogEvent('${kind.label} failed.', level: Level.SEVERE, error: error, stackTrace: stackTrace);
+      events.dispatch(log);
+      task.fail(log: log);
+      return log;
+    }
+  }
+
+  /// Runs a Pub command. Returns its failure log, or `null` when it succeeds.
+  Future<LogEvent?> _runPubCommand({
     required TaskKind kind,
     required String commandName,
     String path = '',
@@ -200,7 +224,7 @@ final class WorkspaceRepository {
       path: normalizedPath,
       projectRoot: projectRoot,
     );
-    return taskStatus.runTask(
+    return _runPubTask(
       kind,
       () => runWorkspacePubCommand(
         events: events,
@@ -233,11 +257,10 @@ final class WorkspaceRepository {
       label: '${kind.label} in $pathLabel',
       scope: normalizedPath.toString(),
       blocksPreview: blocksPreview,
-      failureMessage: '${kind.label} failed.',
     );
   }
 
-  Future<void> pubGet({String path = '', String projectRoot = ''}) => _runPubCommand(
+  Future<LogEvent?> pubGet({String path = '', String projectRoot = ''}) => _runPubCommand(
     kind: TaskKind.pubGet,
     commandName: 'get',
     path: path,
@@ -245,7 +268,7 @@ final class WorkspaceRepository {
     blocksPreview: true,
   );
 
-  Future<void> pubGetOfflineFirst({String path = '', String projectRoot = ''}) => _runPubCommand(
+  Future<LogEvent?> pubGetOfflineFirst({String path = '', String projectRoot = ''}) => _runPubCommand(
     kind: TaskKind.pubGet,
     commandName: 'get',
     path: path,
@@ -254,7 +277,7 @@ final class WorkspaceRepository {
     offlineFirst: true,
   );
 
-  Future<void> pubUpgrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+  Future<LogEvent?> pubUpgrade({String path = '', String projectRoot = ''}) => _runPubCommand(
     kind: TaskKind.pubUpgrade,
     commandName: 'upgrade',
     path: path,
@@ -262,7 +285,7 @@ final class WorkspaceRepository {
     blocksPreview: true,
   );
 
-  Future<void> pubDowngrade({String path = '', String projectRoot = ''}) => _runPubCommand(
+  Future<LogEvent?> pubDowngrade({String path = '', String projectRoot = ''}) => _runPubCommand(
     kind: TaskKind.pubDowngrade,
     commandName: 'downgrade',
     path: path,
@@ -270,7 +293,7 @@ final class WorkspaceRepository {
     blocksPreview: true,
   );
 
-  Future<void> pubOutdated({String path = '', String projectRoot = ''}) => _runPubCommand(
+  Future<LogEvent?> pubOutdated({String path = '', String projectRoot = ''}) => _runPubCommand(
     kind: TaskKind.pubOutdated,
     commandName: 'outdated',
     path: path,
@@ -279,13 +302,13 @@ final class WorkspaceRepository {
   );
 
   /// Removes generated Pub and build output from the workspace.
-  Future<void> pubClean({String path = ''}) async {
+  Future<LogEvent?> pubClean({String path = ''}) {
     final normalizedPath = normalizeWorkspacePath(path);
     final pathLabel = _displayPathRelativeToProject(
       path: normalizedPath,
       projectRoot: '',
     );
-    await taskStatus.runTask(
+    return _runPubTask(
       TaskKind.pubClean,
       () async {
         events.dispatch(const LogEvent('Cleaning workspace...'));
@@ -302,7 +325,6 @@ final class WorkspaceRepository {
       label: 'Pub clean in $pathLabel',
       scope: normalizedPath.toString(),
       blocksPreview: true,
-      failureMessage: 'Pub clean failed.',
     );
   }
 

@@ -134,7 +134,7 @@ void main() {
       await session.tabs.saveAllTabs();
       final workspace = await session.repository.startWorker().timeout(const Duration(seconds: 45));
       print('Running pub get');
-      await session.repository.pubGet().timeout(const Duration(seconds: 45));
+      expect(await session.repository.pubGet().timeout(const Duration(seconds: 45)), isNull);
       print('Starting analyzer');
       final server = await workspace.startLanguageServer().timeout(const Duration(seconds: 30));
       final client = LanguageServerClient(

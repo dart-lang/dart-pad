@@ -301,7 +301,7 @@ final class _AppState extends State<App> {
   }) {
     final oldSession = _activeSession;
     final events = AppEventBus();
-    final taskStatus = TaskStatusController(events: events);
+    final taskStatus = TaskStatusController();
     final repository = component.createRepository(
       events: events,
       sdk: project.sdk,
@@ -552,19 +552,20 @@ final class _AppState extends State<App> {
       if (!_isCurrentRuntime(session, generation)) {
         return false;
       }
-      try {
-        await session.repository.pubGetOfflineFirst(
-          path: packageRoot,
-          projectRoot: packageRoot,
-        );
-      } catch (error) {
+      final failure = await session.repository.pubGetOfflineFirst(
+        path: packageRoot,
+        projectRoot: packageRoot,
+      );
+      if (failure != null) {
         preparationSucceeded = false;
         if (_isCurrentRuntime(session, generation)) {
-          final log = session.taskStatus.failureLogFor(error);
           setState(() {
-            _workspacePreparationFailure = _WorkspaceFailure('Pub get failed while preparing the workspace.', log: log);
+            _workspacePreparationFailure = _WorkspaceFailure(
+              'Pub get failed while preparing the workspace.',
+              log: failure,
+            );
           });
-          _openConsole(session, reveal: log);
+          _openConsole(session, reveal: failure);
         }
       }
     }
@@ -716,12 +717,11 @@ final class _AppState extends State<App> {
       final paths = oldSession.tabSnapshot;
       final activeFile = oldSession.tabs.activeFile;
       late final WorkspaceSession next;
-      final events = AppEventBus();
       next = WorkspaceSession.create(
         component.createRepository(
-          events: events,
+          events: AppEventBus(),
           sdk: newSdk,
-          taskStatus: TaskStatusController(events: events),
+          taskStatus: TaskStatusController(),
           localApi: localApi,
           deferWorker: _isEmbedMode,
         ),
@@ -986,7 +986,6 @@ final class _AppState extends State<App> {
             path: workspacePath,
             projectRoot: _projectDir,
           ),
-          failureLogFor: session.taskStatus.failureLogFor,
         ),
         if (activeTab is CodeMirrorTab)
           MainEditorActions(

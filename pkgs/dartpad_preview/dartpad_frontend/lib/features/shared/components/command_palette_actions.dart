@@ -194,14 +194,10 @@ Future<void> _executePubGet(CommandContext context) async {
   } catch (_) {
     return;
   }
-  try {
-    await session.repository.pubGet(
-      path: context.projectDir,
-      projectRoot: context.projectDir,
-    );
-  } catch (_) {
-    // The task logs the failure to the console.
-  }
+  await session.repository.pubGet(
+    path: context.projectDir,
+    projectRoot: context.projectDir,
+  );
 }
 
 Future<void> _executePubUpgrade(CommandContext context) async {
@@ -214,14 +210,10 @@ Future<void> _executePubUpgrade(CommandContext context) async {
   } catch (_) {
     return;
   }
-  try {
-    await session.repository.pubUpgrade(
-      path: context.projectDir,
-      projectRoot: context.projectDir,
-    );
-  } catch (_) {
-    // The task logs the failure to the console.
-  }
+  await session.repository.pubUpgrade(
+    path: context.projectDir,
+    projectRoot: context.projectDir,
+  );
 }
 
 Future<void> _executePubOutdated(CommandContext context) async {
@@ -229,14 +221,10 @@ Future<void> _executePubOutdated(CommandContext context) async {
   if (session == null) {
     return;
   }
-  try {
-    await session.repository.pubOutdated(
-      path: context.projectDir,
-      projectRoot: context.projectDir,
-    );
-  } catch (_) {
-    // The task logs the failure to the console.
-  }
+  await session.repository.pubOutdated(
+    path: context.projectDir,
+    projectRoot: context.projectDir,
+  );
 }
 
 Future<void> _executePubDowngrade(CommandContext context) async {
@@ -249,14 +237,10 @@ Future<void> _executePubDowngrade(CommandContext context) async {
   } catch (_) {
     return;
   }
-  try {
-    await session.repository.pubDowngrade(
-      path: context.projectDir,
-      projectRoot: context.projectDir,
-    );
-  } catch (_) {
-    // The task logs the failure to the console.
-  }
+  await session.repository.pubDowngrade(
+    path: context.projectDir,
+    projectRoot: context.projectDir,
+  );
 }
 
 Future<void> _executePubClean(CommandContext context) async {
@@ -264,13 +248,9 @@ Future<void> _executePubClean(CommandContext context) async {
   if (session == null) {
     return;
   }
-  try {
-    await session.repository.pubClean(
-      path: context.projectDir,
-    );
-  } catch (_) {
-    // The task logs the failure to the console.
-  }
+  await session.repository.pubClean(
+    path: context.projectDir,
+  );
 }
 
 Future<void> _executeFormatDocument(CommandContext context) async {
