@@ -61,11 +61,23 @@ final class SdkInfo {
   /// The Flutter version without prerelease or build suffixes, or `null` for a pure Dart runtime.
   String? get shortFlutterVersion => flutterVersion == null ? null : _shortVersion(flutterVersion!);
 
+  /// The exact Dart version including prerelease and build suffixes, e.g. `3.15.0-168.0.dev`.
+  ///
+  /// Flutter bundles record this as `3.15.0 (build 3.15.0-168.0.dev)`.
+  String get fullDartVersion => _buildPattern.firstMatch(dartVersion)?.group(1) ?? dartVersion;
+
   /// Label for SDK lists, e.g. `3.50.1 · Dart 3.14.0`. The channel is shown separately.
+  ///
+  /// Non-stable SDKs show their exact versions, e.g. `3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev`,
+  /// since the short version alone cannot tell two beta or main builds apart.
   String get menuLabel {
-    final flutter = shortFlutterVersion;
-    return flutter == null ? shortDartVersion : '$flutter · Dart $shortDartVersion';
+    final exact = channel != null && channel != 'stable';
+    final dart = exact ? fullDartVersion : shortDartVersion;
+    final flutter = exact ? flutterVersion : shortFlutterVersion;
+    return flutter == null ? dart : '$flutter · Dart $dart';
   }
+
+  static final _buildPattern = RegExp(r'\(build (.+)\)');
 
   static final _versionPattern = RegExp(r'^\d+\.\d+\.\d+');
 

@@ -83,6 +83,27 @@ void main() {
       expect(dart.menuLabel, '3.13.0');
     });
 
+    test('labels non-stable menu entries with their exact versions', () {
+      const flutter = SdkInfo(
+        id: 'flutter-main',
+        name: 'Flutter',
+        path: 'flutter-main/',
+        dartVersion: '3.15.0 (build 3.15.0-168.0.dev)',
+        flutterVersion: '3.51.0-1.0.pre-255',
+        channel: 'main',
+      );
+      const dart = SdkInfo(
+        id: 'dart-beta',
+        name: 'Dart',
+        path: 'dart-beta/',
+        dartVersion: '3.15.0-118.1.beta',
+        channel: 'beta',
+      );
+
+      expect(flutter.menuLabel, '3.51.0-1.0.pre-255 · Dart 3.15.0-168.0.dev');
+      expect(dart.menuLabel, '3.15.0-118.1.beta');
+    });
+
     test('derives the SDK kind from the Flutter version', () {
       const flutter = SdkInfo(
         id: 'flutter',
