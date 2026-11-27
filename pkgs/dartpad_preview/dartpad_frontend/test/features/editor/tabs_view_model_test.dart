@@ -21,6 +21,7 @@ import 'package:dartpad_frontend/features/editor/components/editor_stack.dart';
 import 'package:dartpad_frontend/features/editor/components/editor_tab_bar.dart';
 import 'package:dartpad_frontend/features/editor/components/markdown_view_switch.dart';
 import 'package:dartpad_frontend/features/editor/view_models/tabs_view_model.dart';
+import 'package:dartpad_frontend/features/shared/components/split_panel.dart';
 import 'package:dartpad_frontend/features/shared/panel_layout_controller.dart';
 import 'package:dartpad_frontend/features/shared/workspace_mode.dart';
 import 'package:jaspr/dom.dart' as dom;
@@ -43,6 +44,15 @@ final class FakeWorkspaceController implements WorkspaceResourceApi {
 
   void moveFile(String oldPath, String newPath) {
     files[newPath] = files.remove(oldPath)!;
+    changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.move, path: newPath, oldPath: oldPath));
+  }
+
+  void moveFolder(String oldPath, String newPath) {
+    final descendants = files.entries.where((entry) => isWithinWorkspaceFolder(entry.key, oldPath)).toList();
+    for (final entry in descendants) {
+      files.remove(entry.key);
+      files[rebaseWorkspacePath(entry.key, oldPath, newPath)] = entry.value;
+    }
     changes.add(WorkspaceChangeEvent(type: WorkspaceChangeEventType.move, path: newPath, oldPath: oldPath));
   }
 
@@ -149,6 +159,45 @@ void main() {
     );
   }
 
+  void mountEditorShell(ClientTester tester) {
+    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
+    addTearDown(() async {
+      tester.binding.detachRootComponent();
+      await pumpEventQueue();
+      panels.dispose();
+    });
+    tester.pumpComponent(
+      dom.div([
+        dom.Style(
+          styles: [
+            ...EditorShell.styles,
+            ...EditorStack.styles,
+            ...SplitPanelState.styles,
+            ...MarkdownViewSwitch.styles,
+            ...codemirrorStyles,
+          ],
+        ),
+        dom.div(
+          styles: dom.Styles(display: .flex, width: 600.px, height: 240.px, flexDirection: .column),
+          [
+            ListenableBuilder(
+              listenable: tabs!,
+              builder: (_) => EditorShell(
+                openTabs: tabs!.openTabs,
+                activeFile: tabs!.activeFile,
+                editorOverlay: const Component.fragment([]),
+                onSwitchFile: tabs!.switchFile,
+                onCloseFile: tabs!.closeFile,
+                bottomPanel: const dom.div([]),
+                panelController: panels,
+              ),
+            ),
+          ],
+        ),
+      ]),
+    );
+  }
+
   Future<void> settleEditorLayout() async {
     await pumpEventQueue();
     // CodeMirror and scroll restoration finish on animation frames.
@@ -189,30 +238,11 @@ void main() {
   });
 
   testClient('Markdown opens in preview and switches modes with a floating action', (tester) async {
-    final panels = PanelLayoutController(mode: WorkspaceMode.standalone);
-    addTearDown(() async {
-      tester.binding.detachRootComponent();
-      await pumpEventQueue();
-      panels.dispose();
-    });
     workspace.files['README.MD'] = '# Original';
     await tabs!.openWorkspaceFile('README.MD');
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final editor = tab.editor;
-    tester.pumpComponent(
-      ListenableBuilder(
-        listenable: tabs!,
-        builder: (_) => EditorShell(
-          openTabs: tabs!.openTabs,
-          activeFile: tabs!.activeFile,
-          editorOverlay: const Component.fragment([]),
-          onSwitchFile: tabs!.switchFile,
-          onCloseFile: tabs!.closeFile,
-          bottomPanel: const dom.div([]),
-          panelController: panels,
-        ),
-      ),
-    );
+    mountEditorShell(tester);
     await pumpEventQueue();
 
     expect(tab.presentationMode, PresentationMode.presentation);
@@ -280,12 +310,10 @@ void main() {
     expect(reopened.presentationMode, PresentationMode.source);
   });
 
-  test('non-Markdown tabs cannot enter preview mode', () async {
+  test('non-Markdown tabs cannot enter preview mode', () {
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
-    for (final mode in PresentationMode.values) {
-      tab.setPresentationMode(mode);
-      expect(tab.presentationMode, PresentationMode.source);
-    }
+    tab.setPresentationMode(PresentationMode.presentation);
+    expect(tab.presentationMode, PresentationMode.source);
   });
 
   for (final preferredMode in PresentationMode.values) {
@@ -313,17 +341,154 @@ void main() {
     });
   }
 
-  test('a source tab renamed to Markdown keeps its initial source mode', () async {
-    // Rename before any presentation getter or build is used.
-    workspace.moveFile('lib/main.dart', 'README.md');
-    await pumpEventQueue();
+  testClient('renaming an active source tab to Markdown preserves editing and offers preview', (tester) async {
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+    final editor = tab.editor;
+    mountEditorShell(tester);
+    await settleEditorLayout();
+    tab.goToPosition(0, 4);
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
+
+    workspace.moveFile('lib/main.dart', 'README.md');
+    await settleEditorLayout();
+    expect(tabs!.activeTab, same(tab));
     expect(tabs!.activeFile, 'README.md');
     expect(tab.isMarkdown, isTrue);
     expect(tab.presentationMode, PresentationMode.source);
-    tab.setPresentationMode(PresentationMode.presentation);
+    expect(tab.editor, same(editor));
+    expect(editor.view.state.selection.main.head, 4);
+    final button = web.document.querySelector('.markdown-view-switch button')! as web.HTMLButtonElement;
+    expect(button.getAttribute('aria-label'), 'Preview');
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isFalse);
+
+    button.click();
+    await pumpEventQueue();
     expect(tab.presentationMode, PresentationMode.presentation);
+    expect(button.getAttribute('aria-label'), 'Edit');
+    expect(web.document.querySelector('.markdown-source')!.hasAttribute('hidden'), isTrue);
   });
+
+  for (final mode in PresentationMode.values) {
+    testClient('renaming .md to .markdown retains $mode and the active switch works', (tester) async {
+      workspace.files['README.md'] = '# Readme';
+      await tabs!.openWorkspaceFile('README.md');
+      final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+      final editor = tab.editor;
+      tab.setPresentationMode(PresentationMode.source);
+      mountEditorShell(tester);
+      await settleEditorLayout();
+      editor.text = '# Edited';
+      expect(tab.hasUnsavedChanges, isTrue);
+      tab.goToPosition(0, 4);
+      tab.setPresentationMode(mode);
+      await settleEditorLayout();
+      final oldButton = web.document.querySelector('.markdown-view-switch button')!;
+
+      workspace.moveFile('README.md', 'README.markdown');
+      await settleEditorLayout();
+      expect(tabs!.activeFile, 'README.markdown');
+      expect(tabs!.activeTab, same(tab));
+      expect(tabs!.getTab('README.md'), isNull);
+      expect(tab.editor, same(editor));
+      expect(editor.filePath, 'README.markdown');
+      expect(tab.codeActionsController.file, 'README.markdown');
+      expect(tab.presentationMode, mode);
+      expect(tab.content, '# Edited');
+      expect(editor.view.state.selection.main.head, 4);
+      final button = web.document.querySelector('.markdown-view-switch button')! as web.HTMLButtonElement;
+      expect(oldButton.isConnected, isFalse);
+      expect(web.document.querySelectorAll('.markdown-view-switch').length, 1);
+      expect(button.getAttribute('aria-label'), mode == PresentationMode.source ? 'Preview' : 'Edit');
+      expect(
+        web.document.querySelector('.markdown-source')!.hasAttribute('hidden'),
+        mode == PresentationMode.presentation,
+      );
+
+      button.click();
+      await settleEditorLayout();
+      expect(
+        tab.presentationMode,
+        mode == PresentationMode.source ? PresentationMode.presentation : PresentationMode.source,
+      );
+      expect(button.getAttribute('aria-label'), mode == PresentationMode.source ? 'Edit' : 'Preview');
+      expect(editor.view.state.selection.main.head, 4);
+      await tab.save();
+      expect(workspace.files['README.markdown'], '# Edited');
+      expect(workspace.files.containsKey('README.md'), isFalse);
+    });
+
+    testClient('folder moves retain active $mode, inactive and cached Markdown tabs', (tester) async {
+      workspace.files.addAll({
+        'docs/nested/active.md': '# Active',
+        'docs/inactive.markdown': '# Inactive',
+        'docs/cached.md': '# Cached',
+        'docs-other/untouched.md': '# Untouched',
+      });
+      await tabs!.openWorkspaceFile('docs/cached.md');
+      final cached = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+      final cachedEditor = cached.editor;
+      cached.setPresentationMode(PresentationMode.source);
+      expect(tabs!.closeFile(cached.path), isTrue);
+      await tabs!.openWorkspaceFile('docs/inactive.markdown');
+      final inactive = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+      final inactiveEditor = inactive.editor;
+      await tabs!.openWorkspaceFile('docs-other/untouched.md');
+      final untouched = tabs!.activeTab!;
+      await tabs!.openWorkspaceFile('docs/nested/active.md');
+      final active = tabs!.activeTab! as WorkspaceCodeMirrorTab;
+      final activeEditor = active.editor;
+      active.setPresentationMode(mode);
+      mountEditorShell(tester);
+      await settleEditorLayout();
+
+      workspace.moveFolder('docs/', 'guide/');
+      await settleEditorLayout();
+      expect(tabs!.activeFile, 'guide/nested/active.md');
+      expect(tabs!.activeTab, same(active));
+      expect(tabs!.openTabs.map((tab) => tab.path), [
+        'lib/main.dart',
+        'guide/inactive.markdown',
+        'docs-other/untouched.md',
+        'guide/nested/active.md',
+      ]);
+      for (final (tab, editor, oldPath, newPath, expectedMode) in [
+        (active, activeEditor, 'docs/nested/active.md', 'guide/nested/active.md', mode),
+        (inactive, inactiveEditor, 'docs/inactive.markdown', 'guide/inactive.markdown', PresentationMode.presentation),
+        (cached, cachedEditor, 'docs/cached.md', 'guide/cached.md', PresentationMode.source),
+      ]) {
+        expect(tabs!.getTab(oldPath), isNull);
+        expect(tabs!.getTab(newPath), same(tab));
+        expect(tab.editor, same(editor));
+        expect(editor.filePath, newPath);
+        expect(tab.codeActionsController.file, newPath);
+        expect(tab.presentationMode, expectedMode);
+      }
+      expect(tabs!.getTab('docs-other/untouched.md'), same(untouched));
+      final button = web.document.querySelector('.markdown-view-switch button')! as web.HTMLButtonElement;
+      expect(button.getAttribute('aria-label'), mode == PresentationMode.source ? 'Preview' : 'Edit');
+      button.click();
+      await pumpEventQueue();
+      expect(button.getAttribute('aria-label'), mode == PresentationMode.source ? 'Edit' : 'Preview');
+
+      tabs!.switchFile('guide/inactive.markdown');
+      await pumpEventQueue();
+      expect(web.document.querySelector('.editor-tab-slot.active .markdown-preview h1')?.textContent, 'Inactive');
+      expect(web.document.querySelector('.markdown-view-switch button')!.getAttribute('aria-label'), 'Edit');
+
+      await tabs!.openWorkspaceFile('guide/cached.md');
+      await settleEditorLayout();
+      expect(tabs!.activeTab, same(cached));
+      expect(cached.editor, same(cachedEditor));
+      expect(cached.presentationMode, PresentationMode.source);
+      final cachedButton = web.document.querySelector('.markdown-view-switch button')! as web.HTMLButtonElement;
+      expect(cachedButton.getAttribute('aria-label'), 'Preview');
+      cachedButton.click();
+      await pumpEventQueue();
+      expect(cached.presentationMode, PresentationMode.presentation);
+      expect(cachedButton.getAttribute('aria-label'), 'Edit');
+      expect(web.document.querySelector('.editor-tab-slot.active .markdown-preview h1')?.textContent, 'Cached');
+    });
+  }
 
   testClient('preview and active or inactive renames retain source selection and scroll', (tester) async {
     workspace.files['README.md'] = List.generate(160, (i) => '# Line $i').join('\n');
@@ -331,7 +496,7 @@ void main() {
     final tab = tabs!.activeTab! as WorkspaceCodeMirrorTab;
     final editor = tab.editor;
     tab.setPresentationMode(PresentationMode.source);
-    mountEditors(tester);
+    mountEditorShell(tester);
     await settleEditorLayout();
     tab.goToPosition(35, 3);
     await settleEditorLayout();
@@ -351,6 +516,7 @@ void main() {
     tabs!.switchFile('renamed.dart');
     await settleEditorLayout();
 
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
     expect(tab.editor, same(editor));
     expect(tab.container.isConnected, isTrue);
     expect(tab.container.getClientRects().length, greaterThan(0));
@@ -362,10 +528,20 @@ void main() {
     expect(tabs!.activeFile, 'README.markdown');
     expect(tab.presentationMode, PresentationMode.presentation);
     expect(tab.container.getClientRects().length, 0);
+    final previewButton = web.document.querySelector('.markdown-view-switch button')! as web.HTMLButtonElement;
+    expect(previewButton.getAttribute('aria-label'), 'Edit');
+    previewButton.click();
+    await settleEditorLayout();
+    expect(tab.presentationMode, PresentationMode.source);
+    expect(previewButton.getAttribute('aria-label'), 'Preview');
+    previewButton.click();
+    await settleEditorLayout();
+    expect(tab.presentationMode, PresentationMode.presentation);
     workspace.moveFile('README.markdown', 'final.dart');
     await settleEditorLayout();
     expect(tabs!.activeFile, 'final.dart');
     expect(tab.presentationMode, PresentationMode.source);
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
     expect(tab.container.isConnected, isTrue);
     expect(tab.container.getClientRects().length, greaterThan(0));
     expect(editor.view.state.selection.main.head, saved.selection.main.head);
@@ -405,16 +581,22 @@ void main() {
   });
 
   testClient('system Markdown files remain read-only source tabs', (tester) async {
+    workspace.files['README.md'] = '# Workspace readme';
+    await tabs!.openWorkspaceFile('README.md');
+    mountEditorShell(tester);
+    await pumpEventQueue();
+    expect(web.document.querySelector('.markdown-view-switch'), isNotNull);
+
     final uri = Uri.parse('file:///pub-cache/example/README.md');
     systemFiles[uri] = '# System readme';
     await tabs!.openSystemFile(uri);
     final tab = tabs!.activeTab! as SystemCodeMirrorTab;
-    tester.pumpComponent(tab.build());
     await pumpEventQueue();
     expect(tab.content, '# System readme');
     expect(tab.isReadOnly, isTrue);
-    expect(web.document.querySelector('.cm-editor'), isNotNull);
-    expect(web.document.querySelector('.markdown-preview'), isNull);
+    expect(web.document.querySelector('.editor-tab-slot.active .cm-editor'), isNotNull);
+    expect(web.document.querySelector('.editor-tab-slot.active .markdown-preview'), isNull);
+    expect(web.document.querySelector('.markdown-view-switch'), isNull);
   });
 
   testClient('opens system URIs as navigable read-only tabs', (tester) async {
